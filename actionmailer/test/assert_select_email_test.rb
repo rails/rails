@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class AssertSelectEmailTest < ActionMailer::TestCase
   class AssertSelectMailer < ActionMailer::Base
@@ -11,8 +11,8 @@ class AssertSelectEmailTest < ActionMailer::TestCase
   class AssertMultipartSelectMailer < ActionMailer::Base
     def test(options)
       mail subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>" do |format|
-        format.text { render text: options[:text] }
-        format.html { render text: options[:html] }
+        format.text { render plain: options[:text] }
+        format.html { render plain: options[:html] }
       end
     end
   end
@@ -36,7 +36,7 @@ class AssertSelectEmailTest < ActionMailer::TestCase
   end
 
   def test_assert_select_email_multipart
-    AssertMultipartSelectMailer.test(html: "<div><p>foo</p><p>bar</p></div>", text: 'foo bar').deliver_now
+    AssertMultipartSelectMailer.test(html: "<div><p>foo</p><p>bar</p></div>", text: "foo bar").deliver_now
     assert_select_email do
       assert_select "div:root" do
         assert_select "p:first-child", "foo"

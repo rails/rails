@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class FormBuilderController < ActionController::Base
   class SpecializedFormBuilder < ActionView::Helpers::FormBuilder ; end

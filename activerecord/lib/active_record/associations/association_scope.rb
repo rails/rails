@@ -51,115 +51,115 @@ module ActiveRecord
 
       protected
 
-      attr_reader :value_transformation
+        attr_reader :value_transformation
 
       private
-      def join(table, constraint)
-        table.create_join(table, table.create_on(constraint), join_type)
-      end
-
-      def last_chain_scope(scope, table, reflection, owner, association_klass)
-        join_keys = reflection.join_keys(association_klass)
-        key = join_keys.key
-        foreign_key = join_keys.foreign_key
-
-        value = transform_value(owner[foreign_key])
-        scope = scope.where(table.name => { key => value })
-
-        if reflection.type
-          polymorphic_type = transform_value(owner.class.base_class.name)
-          scope = scope.where(table.name => { reflection.type => polymorphic_type })
+        def join(table, constraint)
+          table.create_join(table, table.create_on(constraint), join_type)
         end
 
-        scope
-      end
+        def last_chain_scope(scope, table, reflection, owner, association_klass)
+          join_keys = reflection.join_keys(association_klass)
+          key = join_keys.key
+          foreign_key = join_keys.foreign_key
 
-      def transform_value(value)
-        value_transformation.call(value)
-      end
+          value = transform_value(owner[foreign_key])
+          scope = scope.where(table.name => { key => value })
 
-      def next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
-        join_keys = reflection.join_keys(association_klass)
-        key = join_keys.key
-        foreign_key = join_keys.foreign_key
-
-        constraint = table[key].eq(foreign_table[foreign_key])
-
-        if reflection.type
-          value = transform_value(next_reflection.klass.base_class.name)
-          scope = scope.where(table.name => { reflection.type => value })
-        end
-
-        scope = scope.joins(join(foreign_table, constraint))
-      end
-
-      class ReflectionProxy < SimpleDelegator # :nodoc:
-        attr_accessor :next
-        attr_reader :alias_name
-
-        def initialize(reflection, alias_name)
-          super(reflection)
-          @alias_name = alias_name
-        end
-
-        def all_includes; nil; end
-      end
-
-      def get_chain(reflection, association, tracker)
-        name = reflection.name
-        runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
-        previous_reflection = runtime_reflection
-        reflection.chain.drop(1).each do |refl|
-          alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
-          proxy = ReflectionProxy.new(refl, alias_name)
-          previous_reflection.next = proxy
-          previous_reflection = proxy
-        end
-        [runtime_reflection, previous_reflection]
-      end
-
-      def add_constraints(scope, owner, association_klass, refl, chain_head, chain_tail)
-        owner_reflection = chain_tail
-        table = owner_reflection.alias_name
-        scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
-
-        reflection = chain_head
-        while reflection
-          table = reflection.alias_name
-
-          unless reflection == chain_tail
-            next_reflection = reflection.next
-            foreign_table = next_reflection.alias_name
-            scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
+          if reflection.type
+            polymorphic_type = transform_value(owner.class.base_class.name)
+            scope = scope.where(table.name => { reflection.type => polymorphic_type })
           end
 
-          # Exclude the scope of the association itself, because that
-          # was already merged in the #scope method.
-          reflection.constraints.each do |scope_chain_item|
-            item  = eval_scope(reflection.klass, scope_chain_item, owner)
-
-            if scope_chain_item == refl.scope
-              scope.merge! item.except(:where, :includes)
-            end
-
-            reflection.all_includes do
-              scope.includes! item.includes_values
-            end
-
-            scope.unscope!(*item.unscope_values)
-            scope.where_clause += item.where_clause
-            scope.order_values |= item.order_values
-          end
-
-          reflection = reflection.next
+          scope
         end
 
-        scope
-      end
+        def transform_value(value)
+          value_transformation.call(value)
+        end
 
-      def eval_scope(klass, scope, owner)
-        klass.unscoped.instance_exec(owner, &scope)
-      end
+        def next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
+          join_keys = reflection.join_keys(association_klass)
+          key = join_keys.key
+          foreign_key = join_keys.foreign_key
+
+          constraint = table[key].eq(foreign_table[foreign_key])
+
+          if reflection.type
+            value = transform_value(next_reflection.klass.base_class.name)
+            scope = scope.where(table.name => { reflection.type => value })
+          end
+
+          scope = scope.joins(join(foreign_table, constraint))
+        end
+
+        class ReflectionProxy < SimpleDelegator # :nodoc:
+          attr_accessor :next
+          attr_reader :alias_name
+
+          def initialize(reflection, alias_name)
+            super(reflection)
+            @alias_name = alias_name
+          end
+
+          def all_includes; nil; end
+        end
+
+        def get_chain(reflection, association, tracker)
+          name = reflection.name
+          runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
+          previous_reflection = runtime_reflection
+          reflection.chain.drop(1).each do |refl|
+            alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
+            proxy = ReflectionProxy.new(refl, alias_name)
+            previous_reflection.next = proxy
+            previous_reflection = proxy
+          end
+          [runtime_reflection, previous_reflection]
+        end
+
+        def add_constraints(scope, owner, association_klass, refl, chain_head, chain_tail)
+          owner_reflection = chain_tail
+          table = owner_reflection.alias_name
+          scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
+
+          reflection = chain_head
+          while reflection
+            table = reflection.alias_name
+
+            unless reflection == chain_tail
+              next_reflection = reflection.next
+              foreign_table = next_reflection.alias_name
+              scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
+            end
+
+            # Exclude the scope of the association itself, because that
+            # was already merged in the #scope method.
+            reflection.constraints.each do |scope_chain_item|
+              item  = eval_scope(reflection.klass, scope_chain_item, owner)
+
+              if scope_chain_item == refl.scope
+                scope.merge! item.except(:where, :includes)
+              end
+
+              reflection.all_includes do
+                scope.includes! item.includes_values
+              end
+
+              scope.unscope!(*item.unscope_values)
+              scope.where_clause += item.where_clause
+              scope.order_values |= item.order_values
+            end
+
+            reflection = reflection.next
+          end
+
+          scope
+        end
+
+        def eval_scope(klass, scope, owner)
+          klass.unscoped.instance_exec(owner, &scope)
+        end
     end
   end
 end

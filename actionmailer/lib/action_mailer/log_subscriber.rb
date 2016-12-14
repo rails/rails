@@ -1,4 +1,4 @@
-require 'active_support/log_subscriber'
+require "active_support/log_subscriber"
 
 module ActionMailer
   # Implements the ActiveSupport::LogSubscriber for logging notifications when
@@ -7,7 +7,7 @@ module ActionMailer
     # An email was delivered.
     def deliver(event)
       info do
-        recipients = Array(event.payload[:to]).join(', ')
+        recipients = Array(event.payload[:to]).join(", ")
         "Sent mail to #{recipients} (#{event.duration.round(1)}ms)"
       end
 

@@ -1,6 +1,6 @@
-require 'concurrent/map'
-require 'active_support/core_ext/array/prepend_and_append'
-require 'active_support/i18n'
+require "concurrent/map"
+require "active_support/core_ext/array/prepend_and_append"
+require "active_support/i18n"
 
 module ActiveSupport
   module Inflector
@@ -43,8 +43,8 @@ module ActiveSupport
         end
 
         def add(words)
-          self.concat(words.flatten.map(&:downcase))
-          @regex_array += self.map {|word|  to_regex(word) }
+          concat(words.flatten.map(&:downcase))
+          @regex_array += map { |word| to_regex(word) }
           self
         end
 
@@ -215,10 +215,10 @@ module ActiveSupport
       #   clear :plurals
       def clear(scope = :all)
         case scope
-          when :all
-            @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
+        when :all
+          @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
           else
-            instance_variable_set "@#{scope}", []
+          instance_variable_set "@#{scope}", []
         end
       end
     end

@@ -7,10 +7,7 @@ module ActiveRecord
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column)
-        spec = Hash[prepare_column_options(column).map { |k, v| [k, "#{k}: #{v}"] }]
-        spec[:name] = column.name.inspect
-        spec[:type] = schema_type(column).to_s
-        spec
+        [schema_type(column), prepare_column_options(column)]
       end
 
       def column_spec_for_primary_key(column)
@@ -38,9 +35,9 @@ module ActiveRecord
         end
 
         default = schema_default(column) if column.has_default?
-        spec[:default]   = default unless default.nil?
+        spec[:default] = default unless default.nil?
 
-        spec[:null] = 'false' unless column.null
+        spec[:null] = "false" unless column.null
 
         if collation = schema_collation(column)
           spec[:collation] = collation
@@ -53,53 +50,53 @@ module ActiveRecord
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
+        [:limit, :precision, :scale, :default, :null, :collation, :comment]
       end
 
       private
 
-      def default_primary_key?(column)
-        schema_type(column) == :integer
-      end
-
-      def schema_type(column)
-        if column.bigint?
-          :bigint
-        else
-          column.type
+        def default_primary_key?(column)
+          schema_type(column) == :bigint
         end
-      end
 
-      def schema_limit(column)
-        limit = column.limit unless column.bigint?
-        limit.inspect if limit && limit != native_database_types[column.type][:limit]
-      end
-
-      def schema_precision(column)
-        column.precision.inspect if column.precision
-      end
-
-      def schema_scale(column)
-        column.scale.inspect if column.scale
-      end
-
-      def schema_default(column)
-        type = lookup_cast_type_from_column(column)
-        default = type.deserialize(column.default)
-        if default.nil?
-          schema_expression(column)
-        else
-          type.type_cast_for_schema(default)
+        def schema_type(column)
+          if column.bigint?
+            :bigint
+          else
+            column.type
+          end
         end
-      end
 
-      def schema_expression(column)
-        "-> { #{column.default_function.inspect} }" if column.default_function
-      end
+        def schema_limit(column)
+          limit = column.limit unless column.bigint?
+          limit.inspect if limit && limit != native_database_types[column.type][:limit]
+        end
 
-      def schema_collation(column)
-        column.collation.inspect if column.collation
-      end
+        def schema_precision(column)
+          column.precision.inspect if column.precision
+        end
+
+        def schema_scale(column)
+          column.scale.inspect if column.scale
+        end
+
+        def schema_default(column)
+          type = lookup_cast_type_from_column(column)
+          default = type.deserialize(column.default)
+          if default.nil?
+            schema_expression(column)
+          else
+            type.type_cast_for_schema(default)
+          end
+        end
+
+        def schema_expression(column)
+          "-> { #{column.default_function.inspect} }" if column.default_function
+        end
+
+        def schema_collation(column)
+          column.collation.inspect if column.collation
+        end
     end
   end
 end

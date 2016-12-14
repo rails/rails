@@ -54,7 +54,7 @@ module ApplicationTests
         Rails.application.initialize!
       RUBY
 
-      assert_match("SuperMiddleware", Dir.chdir(app_path){ `bin/rails middleware` })
+      assert_match("SuperMiddleware", Dir.chdir(app_path) { `bin/rails middleware` })
     end
 
     def test_initializers_are_executed_in_rake_tasks
@@ -69,7 +69,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails do_nothing` }
+      output = Dir.chdir(app_path) { `bin/rails do_nothing` }
       assert_match "Doing something...", output
     end
 
@@ -82,7 +82,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         class Hello
           def world
             puts 'Hello world'
@@ -91,7 +91,7 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails do_nothing` }
-      assert_match 'Hello world', output
+      assert_match "Hello world", output
     end
 
     def test_should_not_eager_load_model_for_rake
@@ -102,17 +102,17 @@ module ApplicationTests
         end
       RUBY
 
-      add_to_env_config 'production', <<-RUBY
+      add_to_env_config "production", <<-RUBY
         config.eager_load = true
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         raise 'should not be pre-required for rake even eager_load=true'
       RUBY
 
       Dir.chdir(app_path) do
-        assert system('bin/rails do_nothing RAILS_ENV=production'),
-               'should not be pre-required for rake even eager_load=true'
+        assert system("bin/rails do_nothing RAILS_ENV=production"),
+               "should not be pre-required for rake even eager_load=true"
       end
     end
 
@@ -128,7 +128,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes` }
+      output = Dir.chdir(app_path) { `bin/rails routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -140,13 +140,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes CONTROLLER=cart` }
       assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
                     "Please use `bin/rails routes -c controller_name` instead.",
                     "Prefix Verb URI Pattern     Controller#Action",
                     "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -159,18 +159,38 @@ module ApplicationTests
         end
       RUBY
       expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
                          " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
                          "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
                          "                PATCH  /admin/post(.:format)      admin/posts#update",
                          "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
       assert_equal expected_output, output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
+    end
+
+    def test_singular_resource_output_in_rake_routes
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resource :post
+        end
+      RUBY
+
+      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
+                         " new_post GET    /post/new(.:format)  posts#new",
+                         "edit_post GET    /post/edit(.:format) posts#edit",
+                         "     post GET    /post(.:format)      posts#show",
+                         "          PATCH  /post(.:format)      posts#update",
+                         "          PUT    /post(.:format)      posts#update",
+                         "          DELETE /post(.:format)      posts#destroy",
+                         "          POST   /post(.:format)      posts#create\n"].join("\n")
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
       assert_equal expected_output, output
     end
 
@@ -183,13 +203,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g show` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g POST` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g basketballs` }
       assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
                    "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
@@ -202,13 +222,13 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c Cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -218,7 +238,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `bin/rails routes` }
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path) { `bin/rails routes` }
         You don't have any routes defined!
 
         Please add some routes in config/routes.rb.
@@ -234,7 +254,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rake --rakefile Rakefile routes` }
+      output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
@@ -247,7 +267,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
+      output = Dir.chdir(app_path) { `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
       assert_match "Sample log message", output
     end
 
@@ -346,7 +366,7 @@ module ApplicationTests
         # ensure we have a schema_migrations table to dump
         `bin/rails db:migrate db:structure:dump SCHEMA=db/my_structure.sql`
       end
-      assert File.exist?(File.join(app_path, 'db', 'my_structure.sql'))
+      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
     end
 
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
@@ -367,24 +387,24 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates
       Dir.chdir(app_path) do
         `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
         end
         %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
         end
       end
     end

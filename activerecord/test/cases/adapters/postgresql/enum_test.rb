@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
@@ -14,15 +14,15 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       @connection.execute <<-SQL
         CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy');
       SQL
-      @connection.create_table('postgresql_enums') do |t|
+      @connection.create_table("postgresql_enums") do |t|
         t.column :current_mood, :mood
       end
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_enums', if_exists: true
-    @connection.execute 'DROP TYPE IF EXISTS mood'
+    @connection.drop_table "postgresql_enums", if_exists: true
+    @connection.execute "DROP TYPE IF EXISTS mood"
     reset_connection
   end
 
@@ -37,10 +37,10 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_enum_defaults
-    @connection.add_column 'postgresql_enums', 'good_mood', :mood, default: 'happy'
+    @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy"
     PostgresqlEnum.reset_column_information
 
-    assert_equal "happy", PostgresqlEnum.column_defaults['good_mood']
+    assert_equal "happy", PostgresqlEnum.column_defaults["good_mood"]
     assert_equal "happy", PostgresqlEnum.new.good_mood
   ensure
     PostgresqlEnum.reset_column_information

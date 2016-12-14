@@ -1,4 +1,4 @@
-require 'rails/railtie/configuration'
+require "rails/railtie/configuration"
 
 module Rails
   class Engine
@@ -7,7 +7,7 @@ module Rails
       attr_accessor :middleware
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
-      def initialize(root=nil)
+      def initialize(root = nil)
         super()
         @root = root
         @generators = app_generators.dup

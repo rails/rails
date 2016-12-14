@@ -1,10 +1,10 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
-require 'rails/engine/configuration'
-require 'rails/source_annotation_extractor'
+require "active_support/core_ext/kernel/reporting"
+require "active_support/file_update_checker"
+require "rails/engine/configuration"
+require "rails/source_annotation_extractor"
 
-require 'active_support/deprecation'
-require 'active_support/core_ext/string/strip' # for strip_heredoc
+require "active_support/deprecation"
+require "active_support/core_ext/string/strip" # for strip_heredoc
 
 module Rails
   class Application
@@ -34,6 +34,7 @@ module Rails
         @public_file_server.index_name   = "index"
         @force_ssl                       = false
         @ssl_options                     = {}
+        @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
         @log_level                       = nil
@@ -133,7 +134,7 @@ module Rails
           require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
-        elsif ENV['DATABASE_URL']
+        elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}

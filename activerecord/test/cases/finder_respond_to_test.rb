@@ -1,8 +1,7 @@
 require "cases/helper"
-require 'models/topic'
+require "models/topic"
 
 class FinderRespondToTest < ActiveRecord::TestCase
-
   fixtures :topics
 
   def test_should_preserve_normal_respond_to_behaviour_on_base
@@ -11,7 +10,7 @@ class FinderRespondToTest < ActiveRecord::TestCase
   end
 
   def test_should_preserve_normal_respond_to_behaviour_and_respond_to_newly_added_method
-    class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) { }
+    class << Topic; self; end.send(:define_method, :method_added_for_finder_respond_to_test) {}
     assert_respond_to Topic, :method_added_for_finder_respond_to_test
   ensure
     class << Topic; self; end.send(:remove_method, :method_added_for_finder_respond_to_test)
@@ -54,7 +53,7 @@ class FinderRespondToTest < ActiveRecord::TestCase
 
   private
 
-  def ensure_topic_method_is_not_cached(method_id)
-    class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.include? method_id
-  end
+    def ensure_topic_method_is_not_cached(method_id)
+      class << Topic; self; end.send(:remove_method, method_id) if Topic.public_methods.include? method_id
+    end
 end

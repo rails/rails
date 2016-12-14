@@ -19,6 +19,17 @@ module ActiveSupport
         assert !object, message
       end
 
+      # Assertion that the block should not raise an exception.
+      #
+      # Passes if evaluated code in the yielded block raises no exception.
+      #
+      #   assert_nothing_raised do
+      #     perform_service(param: 'no_exception')
+      #   end
+      def assert_nothing_raised
+        yield
+      end
+
       # Test numeric difference between the return value of an expression as a
       # result of what is evaluated in the yielded block.
       #
@@ -136,7 +147,7 @@ module ActiveSupport
         retval = yield
 
         unless from == UNTRACKED
-          error = "#{expression.inspect} isn't #{from}"
+          error = "#{expression.inspect} isn't #{from.inspect}"
           error = "#{message}.\n#{error}" if message
           assert from === before, error
         end
@@ -148,7 +159,7 @@ module ActiveSupport
           error = "#{message}.\n#{error}" if message
           assert_not_equal before, after, error
         else
-          message = "#{expression.inspect} didn't change to #{to}"
+          error = "#{expression.inspect} didn't change to #{to}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end

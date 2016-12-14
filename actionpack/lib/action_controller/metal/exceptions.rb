@@ -3,19 +3,9 @@ module ActionController
   end
 
   class BadRequest < ActionControllerError #:nodoc:
-    def initialize(msg = nil, e = nil)
-      if e
-        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                        "Exceptions will automatically capture the original exception.", caller)
-      end
-
+    def initialize(msg = nil)
       super(msg)
       set_backtrace $!.backtrace if $!
-    end
-
-    def original_exception
-      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-      cause
     end
   end
 
@@ -24,7 +14,7 @@ module ActionController
 
   class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
-    def initialize(message, failures=[])
+    def initialize(message, failures = [])
       super(message)
       @failures = failures
     end
@@ -35,7 +25,7 @@ module ActionController
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
     end
   end
 
@@ -49,7 +39,7 @@ module ActionController
   end
 
   class SessionOverflowError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
+    DEFAULT_MESSAGE = "Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data."
 
     def initialize(message = nil)
       super(message || DEFAULT_MESSAGE)

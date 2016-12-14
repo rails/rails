@@ -1,4 +1,4 @@
-require 'base64'
+require "base64"
 
 module ActionMailer
   # Implements a mailer preview interceptor that converts image tag src attributes
@@ -11,7 +11,7 @@ module ActionMailer
   #   ActionMailer::Base.preview_interceptors.delete(ActionMailer::InlinePreviewInterceptor)
   #
   class InlinePreviewInterceptor
-    PATTERN  = /src=(?:"cid:[^"]+"|'cid:[^']+')/i
+    PATTERN = /src=(?:"cid:[^"]+"|'cid:[^']+')/i
 
     include Base64
 
@@ -55,7 +55,7 @@ module ActionMailer
       end
 
       def find_part(cid)
-        message.all_parts.find{ |p| p.attachment? && p.cid == cid }
+        message.all_parts.find { |p| p.attachment? && p.cid == cid }
       end
   end
 end

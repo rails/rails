@@ -63,10 +63,10 @@ module ActiveRecord
       #
       # See <tt>ActiveRecord::Inheritance#discriminate_class_for_record</tt> to see
       # how this "single-table" inheritance mapping is implemented.
-      def instantiate(attributes, column_types = {})
+      def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-        klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
+        klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
       end
 
       private
@@ -107,7 +107,7 @@ module ActiveRecord
     #
     # By default, save always runs validations. If any of them fail the action
     # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save also sets the +updated_at+/+updated_on+ attributes to
@@ -134,7 +134,7 @@ module ActiveRecord
     #
     # By default, #save! always runs validations. If any of them fail
     # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
@@ -178,10 +178,14 @@ module ActiveRecord
     # and #destroy returns +false+.
     # See ActiveRecord::Callbacks for further details.
     def destroy
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      _raise_readonly_record_error if readonly?
       destroy_associations
       self.class.connection.add_transaction_record(self)
-      destroy_row if persisted?
+      @_trigger_destroy_callback = if persisted?
+        destroy_row > 0
+      else
+        true
+      end
       @destroyed = true
       freeze
     end
@@ -252,7 +256,12 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
-      save(validate: false) if changed?
+
+      if has_changes_to_save?
+        save(validate: false)
+      else
+        true
+      end
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -335,7 +344,7 @@ module ActiveRecord
     # record could be saved.
     def increment!(attribute, by = 1)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
+      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
       self.class.update_counters(id, attribute => change)
       clear_attribute_change(attribute) # eww
       self
@@ -439,7 +448,7 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes = fresh_object.instance_variable_get('@attributes')
+      @attributes = fresh_object.instance_variable_get("@attributes")
       @new_record = false
       self
     end
@@ -498,7 +507,6 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
         scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
@@ -508,12 +516,14 @@ module ActiveRecord
           changes[locking_column] = increment_lock
         end
 
+        clear_attribute_changes(changes.keys)
         result = scope.update_all(changes) == 1
 
         if !result && locking_enabled?
           raise ActiveRecord::StaleObjectError.new(self, "touch")
         end
 
+        @_trigger_update_callback = result
         result
       else
         true
@@ -535,7 +545,7 @@ module ActiveRecord
     end
 
     def create_or_update(*args)
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      _raise_readonly_record_error if readonly?
       result = new_record? ? _create_record : _update_record(*args)
       result != false
     end
@@ -545,10 +555,13 @@ module ActiveRecord
     def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        0
+        rows_affected = 0
+        @_trigger_update_callback = true
       else
-        self.class.unscoped._update_record attributes_values, id, id_was
+        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        @_trigger_update_callback = rows_affected > 0
       end
+      rows_affected
     end
 
     # Creates a record with values matching those of the instance attributes
@@ -576,6 +589,10 @@ module ActiveRecord
 
     def belongs_to_touch_method
       :touch
+    end
+
+    def _raise_readonly_record_error
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
   end
 end

@@ -1,17 +1,17 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
-require 'active_support/core_ext/hash/transform_values'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
+require "active_support/core_ext/hash/transform_values"
 
 class ParametersMutatorsTest < ActiveSupport::TestCase
   setup do
     @params = ActionController::Parameters.new(
       person: {
-        age: '32',
+        age: "32",
         name: {
-          first: 'David',
-          last: 'Heinemeier Hansson'
+          first: "David",
+          last: "Heinemeier Hansson"
         },
-        addresses: [{city: 'Chicago', state: 'Illinois'}]
+        addresses: [{ city: "Chicago", state: "Illinois" }]
       }
     )
   end
@@ -45,11 +45,11 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "keep_if retains permitted status" do
     @params.permit!
-    assert @params.keep_if { |k,v| k == "person" }.permitted?
+    assert @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "keep_if retains unpermitted status" do
-    assert_not @params.keep_if { |k,v| k == "person" }.permitted?
+    assert_not @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "reject! retains permitted status" do

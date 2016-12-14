@@ -1,5 +1,5 @@
-require 'sneakers'
-require 'monitor'
+require "sneakers"
+require "monitor"
 
 module ActiveJob
   module QueueAdapters
@@ -33,7 +33,7 @@ module ActiveJob
 
       class JobWrapper #:nodoc:
         include Sneakers::Worker
-        from_queue 'default'
+        from_queue "default"
 
         def work(msg)
           job_data = ActiveSupport::JSON.decode(msg)

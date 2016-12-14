@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/module/delegation'
-require 'json'
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/delegation"
+require "json"
 
 module ActiveSupport
   # Look for and parse json strings that look like ISO 8601 times.

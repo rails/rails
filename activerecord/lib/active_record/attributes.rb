@@ -1,4 +1,4 @@
-require 'active_record/attribute/user_provided_default'
+require "active_record/attribute/user_provided_default"
 
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
@@ -116,7 +116,7 @@ module ActiveRecord
       # Users may also define their own custom types, as long as they respond
       # to the methods defined on the value type. The method +deserialize+ or
       # +cast+ will be called on your type object, with raw input from the
-      # database or from your controllers. See ActiveRecord::Type::Value for the
+      # database or from your controllers. See ActiveModel::Type::Value for the
       # expected API. It is recommended that your type objects inherit from an
       # existing type, or from ActiveRecord::Type::Value
       #
@@ -143,7 +143,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       #
       # For more details on creating custom types, see the documentation for
-      # ActiveRecord::Type::Value. For more details on registering your types
+      # ActiveModel::Type::Value. For more details on registering your types
       # to be referenced by a symbol, see ActiveRecord::Type.register. You can
       # also pass a type object directly, in place of a symbol.
       #
@@ -190,8 +190,8 @@ module ActiveRecord
       # The type of an attribute is given the opportunity to change how dirty
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
-      # methods in ActiveRecord::Type::Value for more details.
-      def attribute(name, cast_type, **options)
+      # methods in ActiveModel::Type::Value for more details.
+      def attribute(name, cast_type = Type::Value.new, **options)
         name = name.to_s
         reload_schema_from_cache
 
@@ -242,24 +242,24 @@ module ActiveRecord
 
       private
 
-      NO_DEFAULT_PROVIDED = Object.new # :nodoc:
-      private_constant :NO_DEFAULT_PROVIDED
+        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+        private_constant :NO_DEFAULT_PROVIDED
 
-      def define_default_attribute(name, value, type, from_user:)
-        if value == NO_DEFAULT_PROVIDED
-          default_attribute = _default_attributes[name].with_type(type)
-        elsif from_user
-          default_attribute = Attribute::UserProvidedDefault.new(
-            name,
-            value,
-            type,
-            _default_attributes[name],
-          )
-        else
-          default_attribute = Attribute.from_database(name, value, type)
+        def define_default_attribute(name, value, type, from_user:)
+          if value == NO_DEFAULT_PROVIDED
+            default_attribute = _default_attributes[name].with_type(type)
+          elsif from_user
+            default_attribute = Attribute::UserProvidedDefault.new(
+              name,
+              value,
+              type,
+              _default_attributes.fetch(name.to_s) { nil },
+            )
+          else
+            default_attribute = Attribute.from_database(name, value, type)
+          end
+          _default_attributes[name] = default_attribute
         end
-        _default_attributes[name] = default_attribute
-      end
     end
   end
 end

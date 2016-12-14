@@ -553,29 +553,23 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 
 ### Bound Parameters
 
-When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. Two of these symbols are special: `:controller` maps to the name of a controller in your application, and `:action` maps to the name of an action within that controller. For example, consider this route:
+When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:
 
 ```ruby
-get ':controller(/:action(/:id))'
+get 'photos(/:id)', to: :display
 ```
 
-If an incoming request of `/photos/show/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `show` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#index`, since `:action` and `:id` are optional parameters, denoted by parentheses.
+If an incoming request of `/photos/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `display` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#display`, since `:id` is an optional parameter, denoted by parentheses.
 
 ### Dynamic Segments
 
-You can set up as many dynamic segments within a regular route as you like. Anything other than `:controller` or `:action` will be available to the action as part of `params`. If you set up this route:
+You can set up as many dynamic segments within a regular route as you like. Any segment will be available to the action as part of `params`. If you set up this route:
 
 ```ruby
-get ':controller/:action/:id/:user_id'
+get 'photos/:id/:user_id', to: 'photos#show'
 ```
 
-An incoming path of `/photos/show/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
-
-NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
-
-```ruby
-get ':controller(/:action(/:id))', controller: /admin\/[^\/]+/
-```
+An incoming path of `/photos/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
 
 TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
@@ -584,32 +578,24 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 You can specify static segments when creating a route by not prepending a colon to a fragment:
 
 ```ruby
-get ':controller/:action/:id/with_user/:user_id'
+get 'photos/:id/with_user/:user_id', to: 'photos#show'
 ```
 
-This route would respond to paths such as `/photos/show/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
+This route would respond to paths such as `/photos/1/with_user/2`. In this case, `params` would be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
 ### The Query String
 
 The `params` will also include any parameters from the query string. For example, with this route:
 
 ```ruby
-get ':controller/:action/:id'
-```
-
-An incoming path of `/photos/show/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
-
-### Defining Defaults
-
-You do not need to explicitly use the `:controller` and `:action` symbols within a route. You can supply them as defaults:
-
-```ruby
 get 'photos/:id', to: 'photos#show'
 ```
 
-With this route, Rails will match an incoming path of `/photos/12` to the `show` action of `PhotosController`.
+An incoming path of `/photos/1?user_id=2` will be dispatched to the `show` action of the `Photos` controller. `params` will be `{ controller: 'photos', action: 'show', id: '1', user_id: '2' }`.
 
-You can also define other defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
+### Defining Defaults
+
+You can define defaults in a route by supplying a hash for the `:defaults` option. This even applies to parameters that you do not specify as dynamic segments. For example:
 
 ```ruby
 get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }

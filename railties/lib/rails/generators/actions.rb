@@ -68,7 +68,7 @@ module Rails
       #   add_source "http://gems.github.com/" do
       #     gem "rspec-rails"
       #   end
-      def add_source(source, options={}, &block)
+      def add_source(source, options = {}, &block)
         log :source, source
 
         in_root do
@@ -96,14 +96,14 @@ module Rails
       #   environment(nil, env: "development") do
       #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
-      def environment(data=nil, options={})
+      def environment(data = nil, options = {})
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
         data = yield if !data && block_given?
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n    #{data}", after: sentinel, verbose: false
+            inject_into_file "config/application.rb", "\n    #{data}", after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
               inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
@@ -118,7 +118,7 @@ module Rails
       #   git :init
       #   git add: "this.file that.rb"
       #   git add: "onefile.rb", rm: "badfile.cxx"
-      def git(commands={})
+      def git(commands = {})
         if commands.is_a?(Symbol)
           run "git #{commands}"
         else
@@ -137,7 +137,7 @@ module Rails
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      def vendor(filename, data=nil, &block)
+      def vendor(filename, data = nil, &block)
         log :vendor, filename
         create_file("vendor/#{filename}", data, verbose: false, &block)
       end
@@ -150,7 +150,7 @@ module Rails
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      def lib(filename, data=nil, &block)
+      def lib(filename, data = nil, &block)
         log :lib, filename
         create_file("lib/#{filename}", data, verbose: false, &block)
       end
@@ -170,7 +170,7 @@ module Rails
       #   end
       #
       #   rakefile('seed.rake', 'puts "Planting seeds"')
-      def rakefile(filename, data=nil, &block)
+      def rakefile(filename, data = nil, &block)
         log :rakefile, filename
         create_file("lib/tasks/#{filename}", data, verbose: false, &block)
       end
@@ -188,7 +188,7 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      def initializer(filename, data=nil, &block)
+      def initializer(filename, data = nil, &block)
         log :initializer, filename
         create_file("config/initializers/#{filename}", data, verbose: false, &block)
       end
@@ -210,7 +210,7 @@ module Rails
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
-      def rake(command, options={})
+      def rake(command, options = {})
         execute_command :rake, command, options
       end
 
@@ -219,7 +219,7 @@ module Rails
       #   rails("db:migrate")
       #   rails("db:migrate", env: "production")
       #   rails("gems:install", sudo: true)
-      def rails_command(command, options={})
+      def rails_command(command, options = {})
         execute_command :rails, command, options
       end
 
@@ -239,7 +239,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: false }
+          inject_into_file "config/routes.rb", "  #{routing_code}\n", after: sentinel, verbose: false, force: false
         end
       end
 
@@ -274,19 +274,18 @@ module Rails
           end
         end
 
-
         # Runs the supplied command using either "rake ..." or "rails ..."
         # based on the executor parameter provided.
-        def execute_command(executor, command, options={})
+        def execute_command(executor, command, options = {})
           log executor, command
-          env  = options[:env] || ENV["RAILS_ENV"] || 'development'
-          sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
+          env  = options[:env] || ENV["RAILS_ENV"] || "development"
+          sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.
         def extify(name)
-          if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+          if Gem.win_platform?
             "#{name}.bat"
           else
             name

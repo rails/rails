@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
-require 'active_support/core_ext/hash/transform_values'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
+require "active_support/core_ext/hash/transform_values"
 
 class ParametersAccessorsTest < ActiveSupport::TestCase
   setup do
@@ -8,12 +8,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
     @params = ActionController::Parameters.new(
       person: {
-        age: '32',
+        age: "32",
         name: {
-          first: 'David',
-          last: 'Heinemeier Hansson'
+          first: "David",
+          last: "Heinemeier Hansson"
         },
-        addresses: [{city: 'Chicago', state: 'Illinois'}]
+        addresses: [{ city: "Chicago", state: "Illinois" }]
       }
     )
   end
@@ -131,14 +131,6 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params[:person].values_at(:name).first.permitted?
   end
 
-  test "equality with a hash is deprecated" do
-    hash1 = { foo: :bar }
-    params1 = ActionController::Parameters.new(hash1)
-    assert_deprecated("will be removed in Rails 5.1") do
-      assert(params1 == hash1)
-    end
-  end
-
   test "is equal to Parameters instance with same params" do
     params1 = ActionController::Parameters.new(a: 1, b: 2)
     params2 = ActionController::Parameters.new(a: 1, b: 2)
@@ -158,7 +150,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert(params2 == params1)
   end
 
-  test 'is not equal to an unpermitted Parameters instance with same params' do
+  test "is not equal to an unpermitted Parameters instance with same params" do
     params1 = ActionController::Parameters.new(a: 1).permit(:a)
     params2 = ActionController::Parameters.new(a: 1)
     assert(params1 != params2)
@@ -173,7 +165,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "equality with simple types works" do
-    assert(@params != 'Hello')
+    assert(@params != "Hello")
     assert(@params != 42)
     assert(@params != false)
   end

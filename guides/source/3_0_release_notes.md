@@ -155,7 +155,7 @@ Documentation
 
 The documentation in the Rails tree is being updated with all the API changes, additionally, the [Rails Edge Guides](http://edgeguides.rubyonrails.org/) are being updated one by one to reflect the changes in Rails 3.0. The guides at [guides.rubyonrails.org](http://guides.rubyonrails.org/) however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
-More Information: - [Rails Documentation Projects](http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects.)
+More Information: - [Rails Documentation Projects](http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 
 
 Internationalization

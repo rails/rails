@@ -1,4 +1,4 @@
-require 'websocket/driver'
+require "websocket/driver"
 
 module ActionCable
   module Connection
@@ -8,16 +8,16 @@ module ActionCable
     # Copyright (c) 2010-2015 James Coglan
     class ClientSocket # :nodoc:
       def self.determine_url(env)
-        scheme = secure_request?(env) ? 'wss:' : 'ws:'
+        scheme = secure_request?(env) ? "wss:" : "ws:"
         "#{ scheme }//#{ env['HTTP_HOST'] }#{ env['REQUEST_URI'] }"
       end
 
       def self.secure_request?(env)
-        return true if env['HTTPS'] == 'on'
-        return true if env['HTTP_X_FORWARDED_SSL'] == 'on'
-        return true if env['HTTP_X_FORWARDED_SCHEME'] == 'https'
-        return true if env['HTTP_X_FORWARDED_PROTO'] == 'https'
-        return true if env['rack.url_scheme'] == 'https'
+        return true if env["HTTPS"] == "on"
+        return true if env["HTTP_X_FORWARDED_SSL"] == "on"
+        return true if env["HTTP_X_FORWARDED_SCHEME"] == "https"
+        return true if env["HTTP_X_FORWARDED_PROTO"] == "https"
+        return true if env["rack.url_scheme"] == "https"
 
         return false
       end
@@ -37,7 +37,7 @@ module ActionCable
         @url = ClientSocket.determine_url(@env)
 
         @driver = @driver_started = nil
-        @close_params = ['', 1006]
+        @close_params = ["", 1006]
 
         @ready_state = CONNECTING
 
@@ -56,7 +56,7 @@ module ActionCable
         return if @driver.nil? || @driver_started
         @stream.hijack_rack_socket
 
-        if callback = @env['async.callback']
+        if callback = @env["async.callback"]
           callback.call([101, {}, @stream])
         end
 
@@ -78,18 +78,18 @@ module ActionCable
       def transmit(message)
         return false if @ready_state > OPEN
         case message
-          when Numeric then @driver.text(message.to_s)
-          when String  then @driver.text(message)
-          when Array   then @driver.binary(message)
+        when Numeric then @driver.text(message.to_s)
+        when String  then @driver.text(message)
+        when Array   then @driver.binary(message)
           else false
         end
       end
 
       def close(code = nil, reason = nil)
         code   ||= 1000
-        reason ||= ''
+        reason ||= ""
 
-        unless code == 1000 or (code >= 3000 and code <= 4999)
+        unless code == 1000 || (code >= 3000 && code <= 4999)
           raise ArgumentError, "Failed to execute 'close' on WebSocket: " +
                                "The code must be either 1000, or between 3000 and 4999. " +
                                "#{code} is neither."

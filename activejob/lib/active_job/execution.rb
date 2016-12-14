@@ -1,5 +1,5 @@
-require 'active_support/rescuable'
-require 'active_job/arguments'
+require "active_support/rescuable"
+require "active_job/arguments"
 
 module ActiveJob
   module Execution
@@ -31,6 +31,9 @@ module ActiveJob
     def perform_now
       deserialize_arguments_if_needed
       run_callbacks :perform do
+        # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
+        self.executions = (executions || 0) + 1
+
         perform(*arguments)
       end
     rescue => exception

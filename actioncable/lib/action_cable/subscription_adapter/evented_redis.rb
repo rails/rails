@@ -1,9 +1,9 @@
-require 'thread'
+require "thread"
 
-gem 'em-hiredis', '~> 0.3.0'
-gem 'redis', '~> 3.0'
-require 'em-hiredis'
-require 'redis'
+gem "em-hiredis", "~> 0.3.0"
+gem "redis", "~> 3.0"
+require "em-hiredis"
+require "redis"
 
 EventMachine.epoll  if EventMachine.epoll?
 EventMachine.kqueue if EventMachine.kqueue?
@@ -68,10 +68,10 @@ module ActionCable
         end
 
         def ensure_reactor_running
-          return if EventMachine.reactor_running?
+          return if EventMachine.reactor_running? && EventMachine.reactor_thread
           @@mutex.synchronize do
             Thread.new { EventMachine.run } unless EventMachine.reactor_running?
-            Thread.pass until EventMachine.reactor_running?
+            Thread.pass until EventMachine.reactor_running? && EventMachine.reactor_thread
           end
         end
     end

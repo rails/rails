@@ -1,6 +1,6 @@
-require 'test_helper'
-require 'stubs/test_connection'
-require 'stubs/room'
+require "test_helper"
+require "stubs/test_connection"
+require "stubs/room"
 
 class ActionCable::Channel::BroadcastingTest < ActiveSupport::TestCase
   class ChatChannel < ActionCable::Channel::Base
@@ -11,7 +11,7 @@ class ActionCable::Channel::BroadcastingTest < ActiveSupport::TestCase
   end
 
   test "broadcasts_to" do
-    ActionCable.stubs(:server).returns mock().tap { |m| m.expects(:broadcast).with('action_cable:channel:broadcasting_test:chat:Room#1-Campfire', "Hello World") }
+    ActionCable.stubs(:server).returns mock().tap { |m| m.expects(:broadcast).with("action_cable:channel:broadcasting_test:chat:Room#1-Campfire", "Hello World") }
     ChatChannel.broadcast_to(Room.new(1), "Hello World")
   end
 

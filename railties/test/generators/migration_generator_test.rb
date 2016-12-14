@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/migration/migration_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/migration/migration_generator"
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -17,7 +17,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       run_generator [migration]
       file_name = migration_file_name "db/migrate/#{migration}.rb"
 
-      File.basename(file_name).split('_').first
+      File.basename(file_name).split("_").first
     end
 
     assert_not_equal first_migration_number, second_migration_number
@@ -248,7 +248,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_singular_table_name
     with_singular_table_name do
       migration = "add_title_body_to_post"
-      run_generator [migration, 'title:string']
+      run_generator [migration, "title:string"]
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/add_column :post, :title, :string/, change)

@@ -36,7 +36,7 @@ module ApplicationTests
 
     test "the config object is available on the application object" do
       rackup
-      assert_equal 'UTC', Rails.application.config.time_zone
+      assert_equal "UTC", Rails.application.config.time_zone
     end
   end
 end

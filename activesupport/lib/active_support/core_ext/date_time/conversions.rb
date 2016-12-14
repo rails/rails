@@ -1,8 +1,8 @@
-require 'date'
-require 'active_support/inflector/methods'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/date_time/calculations'
-require 'active_support/values/time_zone'
+require "date"
+require "active_support/inflector/methods"
+require "active_support/core_ext/time/conversions"
+require "active_support/core_ext/date_time/calculations"
+require "active_support/values/time_zone"
 
 class DateTime
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
@@ -64,7 +64,7 @@ class DateTime
   #   # => Sun, 01 Jan 2012 00:00:00 +0300
   #   DateTime.civil_from_format :local, 2012, 12, 17
   #   # => Mon, 17 Dec 2012 00:00:00 +0000
-  def self.civil_from_format(utc_or_local, year, month=1, day=1, hour=0, min=0, sec=0)
+  def self.civil_from_format(utc_or_local, year, month = 1, day = 1, hour = 0, min = 0, sec = 0)
     if utc_or_local.to_sym == :local
       offset = ::Time.local(year, month, day).utc_offset.to_r / 86400
     else
@@ -95,11 +95,11 @@ class DateTime
 
   private
 
-  def offset_in_seconds
-    (offset * 86400).to_i
-  end
+    def offset_in_seconds
+      (offset * 86400).to_i
+    end
 
-  def seconds_since_unix_epoch
-    (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
-  end
+    def seconds_since_unix_epoch
+      (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
+    end
 end

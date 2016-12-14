@@ -50,7 +50,7 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, '')
+      file.sub(/^#{app_root}\/?/, "")
     end
 
     private
@@ -68,7 +68,7 @@ module Rails
 
       def format_rerun_snippet(result)
         location, line = result.method(result.name).source_location
-        "#{self.executable} #{relative_path_for(location)}:#{line}"
+        "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root

@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/output_safety'
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View Capture Helper
@@ -37,7 +37,7 @@ module ActionView
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
-        if string = buffer.presence || value and string.is_a?(String)
+        if (string = buffer.presence || value) && string.is_a?(String)
           ERB::Util.html_escape string
         end
       end

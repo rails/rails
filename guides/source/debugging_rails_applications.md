@@ -946,16 +946,10 @@ development that will end your tailing of development.log. Have all information
 about your Rails app requests in the browser — in the Developer Tools panel.
 Provides insight to db/rendering/total times, parameter list, rendered views and
 more.
+* [Pry](https://github.com/pry/pry) An IRB alternative and runtime developer console.
 
 References
 ----------
 
-* [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
-* [debugger Homepage](https://github.com/cldwalker/debugger)
 * [byebug Homepage](https://github.com/deivid-rodriguez/byebug)
 * [web-console Homepage](https://github.com/rails/web-console)
-* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
-* [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
-* [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
-* [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
-* [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)

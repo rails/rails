@@ -290,7 +290,7 @@ You can also pass custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
-  validates :terms_of_service, acceptance: true, message: 'must be abided'
+  validates :terms_of_service, acceptance: { message: 'must be abided' }
 end
 ```
 

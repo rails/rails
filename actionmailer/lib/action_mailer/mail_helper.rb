@@ -54,7 +54,7 @@ module ActionMailer
       sentences = [[]]
 
       text.split.each do |word|
-        if sentences.first.present? && (sentences.last + [word]).join(' ').length > len
+        if sentences.first.present? && (sentences.last + [word]).join(" ").length > len
           sentences << [word]
         else
           sentences.last << word

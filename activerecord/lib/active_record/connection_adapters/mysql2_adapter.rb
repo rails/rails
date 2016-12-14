@@ -1,9 +1,9 @@
-require 'active_record/connection_adapters/abstract_mysql_adapter'
-require 'active_record/connection_adapters/mysql/database_statements'
+require "active_record/connection_adapters/abstract_mysql_adapter"
+require "active_record/connection_adapters/mysql/database_statements"
 
-gem 'mysql2', '>= 0.3.18', '< 0.5'
-require 'mysql2'
-raise 'mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+' if Mysql2::VERSION == '0.4.3'
+gem "mysql2", ">= 0.3.18", "< 0.5"
+require "mysql2"
+raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -11,15 +11,13 @@ module ActiveRecord
     def mysql2_connection(config)
       config = config.symbolize_keys
 
-      config[:username] = 'root' if config[:username].nil?
+      config[:username] = "root" if config[:username].nil?
       config[:flags] ||= 0
 
-      if Mysql2::Client.const_defined? :FOUND_ROWS
-        if config[:flags].kind_of? Array
-          config[:flags].push "FOUND_ROWS".freeze
-        else
-          config[:flags] |= Mysql2::Client::FOUND_ROWS
-        end
+      if config[:flags].kind_of? Array
+        config[:flags].push "FOUND_ROWS".freeze
+      else
+        config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
       client = Mysql2::Client.new(config)
@@ -35,7 +33,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ADAPTER_NAME = 'Mysql2'.freeze
+      ADAPTER_NAME = "Mysql2".freeze
 
       include MySQL::DatabaseStatements
 
@@ -46,7 +44,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        !mariadb? && version >= '5.7.8'
+        !mariadb? && version >= "5.7.8"
       end
 
       def supports_comments?
@@ -65,7 +63,7 @@ module ActiveRecord
 
       def each_hash(result) # :nodoc:
         if block_given?
-          result.each(:as => :hash, :symbolize_keys => true) do |row|
+          result.each(as: :hash, symbolize_keys: true) do |row|
             yield row
           end
         else
@@ -90,7 +88,6 @@ module ActiveRecord
       #++
 
       def active?
-        return false unless @connection
         @connection.ping
       end
 
@@ -105,27 +102,24 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        unless @connection.nil?
-          @connection.close
-          @connection = nil
-        end
+        @connection.close
       end
 
       private
 
-      def connect
-        @connection = Mysql2::Client.new(@config)
-        configure_connection
-      end
+        def connect
+          @connection = Mysql2::Client.new(@config)
+          configure_connection
+        end
 
-      def configure_connection
-        @connection.query_options.merge!(:as => :array)
-        super
-      end
+        def configure_connection
+          @connection.query_options.merge!(as: :array)
+          super
+        end
 
-      def full_version
-        @full_version ||= @connection.server_info[:version]
-      end
+        def full_version
+          @full_version ||= @connection.server_info[:version]
+        end
     end
   end
 end

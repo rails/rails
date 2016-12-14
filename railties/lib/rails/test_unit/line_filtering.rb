@@ -1,4 +1,4 @@
-require 'method_source'
+require "method_source"
 
 module Rails
   module LineFiltering # :nodoc:
@@ -39,7 +39,7 @@ module Rails
 
       def derive_line_filters(patterns)
         patterns.flat_map do |file_and_line|
-          file, *lines = file_and_line.split(':')
+          file, *lines = file_and_line.split(":")
 
           if lines.empty?
             Filter.new(@runnable, file, nil) if file

@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/per_thread_registry'
+require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/string/inflections"
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   module Cache
@@ -9,7 +9,7 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
-        autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
+        autoload :Middleware, "active_support/cache/strategy/local_cache_middleware"
 
         # Class for storing and registering the local caches.
         class LocalCacheRegistry # :nodoc:
@@ -44,7 +44,7 @@ module ActiveSupport
             yield
           end
 
-          def clear(options = nil)
+          def clear
             @data.clear
           end
 
@@ -70,6 +70,7 @@ module ActiveSupport
         def with_local_cache
           use_temporary_local_cache(LocalStore.new) { yield }
         end
+
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
@@ -78,9 +79,9 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear(options = nil) # :nodoc:
+        def clear # :nodoc:
           return super unless cache = local_cache
-          cache.clear(options)
+          cache.clear
           super
         end
 
@@ -92,14 +93,14 @@ module ActiveSupport
 
         def increment(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
-          value = bypass_local_cache{super}
+          value = bypass_local_cache { super }
           write_cache_value(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
-          value = bypass_local_cache{super}
+          value = bypass_local_cache { super }
           write_cache_value(name, value, options)
           value
         end
@@ -123,14 +124,6 @@ module ActiveSupport
             super
           end
 
-          def set_cache_value(value, name, amount, options) # :nodoc:
-            ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-              `set_cache_value` is deprecated and will be removed from Rails 5.1.
-              Please use `write_cache_value` instead.
-            MESSAGE
-            write_cache_value name, value, options
-          end
-
           def write_cache_value(name, value, options) # :nodoc:
             name = normalize_key(name, options)
             cache = local_cache
@@ -146,7 +139,7 @@ module ActiveSupport
         private
 
           def local_cache_key
-            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
           end
 
           def local_cache

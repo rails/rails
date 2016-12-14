@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-require 'abstract_unit'
-require 'multibyte_test_helpers'
+require "abstract_unit"
+require "multibyte_test_helpers"
 
-require 'fileutils'
-require 'open-uri'
-require 'tmpdir'
+require "fileutils"
+require "open-uri"
+require "tmpdir"
 
 class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
-  UNIDATA_FILE = '/NormalizationTest.txt'
+  UNIDATA_FILE = "/NormalizationTest.txt"
   RUN_P = begin
             Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
           rescue
@@ -87,18 +87,18 @@ class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
     def each_line_of_norm_tests(&block)
       lines = 0
       max_test_lines = 0 # Don't limit below 38, because that's the header of the testfile
-      File.open(File.join(CACHE_DIR, UNIDATA_FILE), 'r') do | f |
-        until f.eof? || (max_test_lines > 38 and lines > max_test_lines)
+      File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
+        until f.eof? || (max_test_lines > 38 && lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
-          next if line.empty? || line.start_with?('#')
+          next if line.empty? || line.start_with?("#")
 
           cols, comment = line.split("#")
-          cols = cols.split(";").map{|e| e.strip}.reject{|e| e.empty? }
+          cols = cols.split(";").map { |e| e.strip }.reject { |e| e.empty? }
           next unless cols.length == 5
 
           # codepoints are in hex in the test suite, pack wants them as integers
-          cols.map!{|c| c.split.map{|codepoint| codepoint.to_i(16)}.pack("U*") }
+          cols.map! { |c| c.split.map { |codepoint| codepoint.to_i(16) }.pack("U*") }
           cols << comment
 
           yield(*cols)
@@ -107,6 +107,6 @@ class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
     end
 
     def inspect_codepoints(str)
-      str.to_s.unpack("U*").map{|cp| cp.to_s(16) }.join(' ')
+      str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
     end
 end

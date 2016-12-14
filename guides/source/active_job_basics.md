@@ -34,8 +34,9 @@ Delayed Job and Resque. Picking your queuing backend becomes more of an operatio
 concern, then. And you'll be able to switch between them without having to rewrite
 your jobs.
 
-NOTE: Rails by default comes with an "immediate runner" queuing implementation.
-That means that each job that has been enqueued will run immediately.
+NOTE: Rails by default comes with an asynchronous queuing implementation that
+runs jobs with an in-process thread pool. Jobs will run asynchronously, but any
+jobs in the queue will be dropped upon restart.
 
 
 Creating a Job
@@ -109,7 +110,7 @@ That's it!
 Job Execution
 -------------
 
-For enqueuing and executing jobs in production you need to set up a queuing backend, 
+For enqueuing and executing jobs in production you need to set up a queuing backend,
 that is to say you need to decide for a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the

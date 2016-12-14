@@ -1,4 +1,4 @@
-require 'active_record/associations/join_dependency/join_part'
+require "active_record/associations/join_dependency/join_part"
 
 module ActiveRecord
   module Associations
@@ -56,7 +56,9 @@ module ActiveRecord
 
             klass_scope =
               if klass.current_scope
-                klass.current_scope.clone
+                klass.current_scope.clone.tap { |scope|
+                  scope.joins_values = []
+                }
               else
                 relation = ActiveRecord::Relation.create(
                   klass,

@@ -24,6 +24,9 @@ module ActiveJob
       # ID optionally provided by adapter
       attr_accessor :provider_job_id
 
+      # Number of times this job has been executed (which increments on every retry, like after an exception).
+      attr_accessor :executions
+
       # I18n.locale to be used during the job.
       attr_accessor :locale
     end
@@ -33,7 +36,7 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job = job_data['job_class'].constantize.new
+        job = job_data["job_class"].constantize.new
         job.deserialize(job_data)
         job
       end
@@ -56,7 +59,7 @@ module ActiveJob
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
-      def set(options={})
+      def set(options = {})
         ConfiguredJob.new(self, options)
       end
     end
@@ -68,18 +71,20 @@ module ActiveJob
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
       @priority   = self.class.priority
+      @executions = 0
     end
 
     # Returns a hash with the job data that can safely be passed to the
     # queueing adapter.
     def serialize
       {
-        'job_class'  => self.class.name,
-        'job_id'     => job_id,
-        'queue_name' => queue_name,
-        'priority'   => priority,
-        'arguments'  => serialize_arguments(arguments),
-        'locale'     => I18n.locale.to_s
+        "job_class"  => self.class.name,
+        "job_id"     => job_id,
+        "queue_name" => queue_name,
+        "priority"   => priority,
+        "arguments"  => serialize_arguments(arguments),
+        "executions" => executions,
+        "locale"     => I18n.locale.to_s
       }
     end
 
@@ -104,11 +109,13 @@ module ActiveJob
     #      end
     #    end
     def deserialize(job_data)
-      self.job_id               = job_data['job_id']
-      self.queue_name           = job_data['queue_name']
-      self.priority             = job_data['priority']
-      self.serialized_arguments = job_data['arguments']
-      self.locale               = job_data['locale'] || I18n.locale.to_s
+      self.job_id               = job_data["job_id"]
+      self.provider_job_id      = job_data["provider_job_id"]
+      self.queue_name           = job_data["queue_name"]
+      self.priority             = job_data["priority"]
+      self.serialized_arguments = job_data["arguments"]
+      self.executions           = job_data["executions"]
+      self.locale               = job_data["locale"] || I18n.locale.to_s
     end
 
     private

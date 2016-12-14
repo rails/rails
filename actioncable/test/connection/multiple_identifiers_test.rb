@@ -1,6 +1,6 @@
-require 'test_helper'
-require 'stubs/test_server'
-require 'stubs/user'
+require "test_helper"
+require "stubs/test_server"
+require "stubs/user"
 
 class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
@@ -22,13 +22,13 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
   protected
     def open_connection_with_stubbed_pubsub
       server = TestServer.new
-      server.stubs(:pubsub).returns(stub_everything('pubsub'))
+      server.stubs(:pubsub).returns(stub_everything("pubsub"))
 
       open_connection server: server
     end
 
     def open_connection(server:)
-      env = Rack::MockRequest.env_for "/test", 'HTTP_HOST' => 'localhost', 'HTTP_CONNECTION' => 'upgrade', 'HTTP_UPGRADE' => 'websocket'
+      env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
       @connection = Connection.new(server, env)
 
       @connection.process

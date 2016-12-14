@@ -1,11 +1,10 @@
-require 'cases/helper'
+require "cases/helper"
 
-require 'models/topic'
-require 'models/reply'
-require 'models/person'
+require "models/topic"
+require "models/reply"
+require "models/person"
 
 class AcceptanceValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -20,7 +19,7 @@ class AcceptanceValidationTest < ActiveModel::TestCase
   def test_terms_of_service_agreement
     Topic.validates_acceptance_of(:terms_of_service)
 
-    t = Topic.new("title" => "We should be confirmed","terms_of_service" => "")
+    t = Topic.new("title" => "We should be confirmed", "terms_of_service" => "")
     assert t.invalid?
     assert_equal ["must be accepted"], t.errors[:terms_of_service]
 
@@ -31,7 +30,7 @@ class AcceptanceValidationTest < ActiveModel::TestCase
   def test_eula
     Topic.validates_acceptance_of(:eula, message: "must be abided")
 
-    t = Topic.new("title" => "We should be confirmed","eula" => "")
+    t = Topic.new("title" => "We should be confirmed", "eula" => "")
     assert t.invalid?
     assert_equal ["must be abided"], t.errors[:eula]
 

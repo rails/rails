@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/enumerable'
+require "abstract_unit"
+require "active_support/core_ext/array"
+require "active_support/core_ext/enumerable"
 
 Payment = Struct.new(:price)
 ExpandedPayment = Struct.new(:dollars, :cents)
@@ -22,7 +22,7 @@ class EnumerableTests < ActiveSupport::TestCase
     end
   end
 
-  def assert_typed_equal(e, v, cls, msg=nil)
+  def assert_typed_equal(e, v, cls, msg = nil)
     assert_kind_of(cls, v, msg)
     assert_equal(e, v, msg)
   end
@@ -33,8 +33,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = GenericEnumerable.new(%w(a b c))
-    assert_equal 'abc', enum.sum
-    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
+    assert_equal "abc", enum.sum
+    assert_equal "aabbcc", enum.sum { |i| i * 2 }
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 30, payments.sum(&:price)
@@ -70,12 +70,12 @@ class EnumerableTests < ActiveSupport::TestCase
     sum = GenericEnumerable.new([1.quo(2), 1.quo(3)]).sum
     assert_typed_equal(5.quo(6), sum, Rational)
 
-    sum = GenericEnumerable.new([2.0, 3.0*Complex::I]).sum
+    sum = GenericEnumerable.new([2.0, 3.0 * Complex::I]).sum
     assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
 
-    sum = GenericEnumerable.new([1, 2]).sum(10) {|v| v * 2 }
+    sum = GenericEnumerable.new([1, 2]).sum(10) { |v| v * 2 }
     assert_typed_equal(16, sum, Integer)
   end
 
@@ -102,7 +102,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
-    assert_equal 'abc', ('a'..'c').sum
+    assert_equal "abc", ("a".."c").sum
     assert_equal 50_000_005_000_000, (0..10_000_000).sum
     assert_equal 0, (10..0).sum
     assert_equal 5, (10..0).sum(5)
@@ -120,8 +120,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = %w(a b c)
-    assert_equal 'abc', enum.sum
-    assert_equal 'aabbcc', enum.sum { |i| i * 2 }
+    assert_equal "abc", enum.sum
+    assert_equal "aabbcc", enum.sum { |i| i * 2 }
 
     payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
     assert_equal 30, payments.sum(&:price)
@@ -157,12 +157,12 @@ class EnumerableTests < ActiveSupport::TestCase
     sum = [1.quo(2), 1.quo(3)].sum
     assert_typed_equal(5.quo(6), sum, Rational)
 
-    sum = [2.0, 3.0*Complex::I].sum
+    sum = [2.0, 3.0 * Complex::I].sum
     assert_typed_equal(Complex(2.0, 3.0), sum, Complex)
     assert_typed_equal(2.0, sum.real, Float)
     assert_typed_equal(3.0, sum.imag, Float)
 
-    sum = [1, 2].sum(10) {|v| v * 2 }
+    sum = [1, 2].sum(10) { |v| v * 2 }
     assert_typed_equal(16, sum, Integer)
   end
 
@@ -180,21 +180,21 @@ class EnumerableTests < ActiveSupport::TestCase
   end
 
   def test_many
-    assert_equal false, GenericEnumerable.new([]         ).many?
-    assert_equal false, GenericEnumerable.new([ 1 ]      ).many?
-    assert_equal true,  GenericEnumerable.new([ 1, 2 ]   ).many?
+    assert_equal false, GenericEnumerable.new([]).many?
+    assert_equal false, GenericEnumerable.new([ 1 ]).many?
+    assert_equal true,  GenericEnumerable.new([ 1, 2 ]).many?
 
-    assert_equal false, GenericEnumerable.new([]         ).many? {|x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 2 ]      ).many? {|x| x > 1 }
-    assert_equal false, GenericEnumerable.new([ 1, 2 ]   ).many? {|x| x > 1 }
-    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? {|x| x > 1 }
+    assert_equal false, GenericEnumerable.new([]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 2 ]).many? { |x| x > 1 }
+    assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
-    infinity = 1.0/0.0
+    infinity = 1.0 / 0.0
     very_long_enum = 0..infinity
     assert_equal true, very_long_enum.many?
-    assert_equal true, very_long_enum.many?{|x| x > 100}
+    assert_equal true, very_long_enum.many? { |x| x > 100 }
   end
 
   def test_exclude?
@@ -206,7 +206,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).without(3, 5)
     assert_equal [1, 2, 4], (1..5).to_a.without(3, 5)
     assert_equal [1, 2, 4], (1..5).to_set.without(3, 5)
-    assert_equal({foo: 1, baz: 3}, {foo: 1, bar: 2, baz: 3}.without(:bar))
+    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.without(:bar))
   end
 
   def test_pluck

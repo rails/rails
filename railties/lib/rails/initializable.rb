@@ -1,4 +1,4 @@
-require 'tsort'
+require "tsort"
 
 module Rails
   module Initializable
@@ -53,7 +53,7 @@ module Rails
       end
     end
 
-    def run_initializers(group=:default, *args)
+    def run_initializers(group = :default, *args)
       return if instance_variable_defined?(:@ran)
       initializers.tsort_each do |initializer|
         initializer.run(*args) if initializer.belongs_to?(group)

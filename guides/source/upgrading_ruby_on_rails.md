@@ -44,7 +44,7 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rails:update` on 4.2 and earlier). After updating the Rails version
+Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
 in the Gemfile, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
@@ -93,6 +93,8 @@ class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 end
 ```
+
+Then make sure that all your models inherit from it.
 
 ### Halting Callback Chains via `throw(:abort)`
 
@@ -323,7 +325,7 @@ should support caching.
 
 #### Configure the Output of `db:structure:dump`
 
-If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
+If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
@@ -1424,7 +1426,7 @@ config.assets.digest = true
 # config.assets.manifest = YOUR_PATH
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+# config.assets.precompile += %w( admin.js admin.css )
 
 # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
 # config.force_ssl = true

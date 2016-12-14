@@ -7,8 +7,6 @@ module ActiveRecord
       end
 
       def build(opts, other)
-        binds = []
-
         case opts
         when String, Array
           parts = [klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
@@ -22,17 +20,16 @@ module ActiveRecord
           parts = predicate_builder.build_from_hash(attributes)
         when Arel::Nodes::Node
           parts = [opts]
-          binds = other
         else
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
 
-        WhereClause.new(parts, binds)
+        WhereClause.new(parts, binds || [])
       end
 
       protected
 
-      attr_reader :klass, :predicate_builder
+        attr_reader :klass, :predicate_builder
     end
   end
 end

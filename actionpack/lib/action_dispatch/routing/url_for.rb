@@ -194,20 +194,20 @@ module ActionDispatch
 
       protected
 
-      def optimize_routes_generation?
-        _routes.optimize_routes_generation? && default_url_options.empty?
-      end
+        def optimize_routes_generation?
+          _routes.optimize_routes_generation? && default_url_options.empty?
+        end
 
-      def _with_routes(routes)
-        old_routes, @_routes = @_routes, routes
-        yield
-      ensure
-        @_routes = old_routes
-      end
+        def _with_routes(routes)
+          old_routes, @_routes = @_routes, routes
+          yield
+        ensure
+          @_routes = old_routes
+        end
 
-      def _routes_context
-        self
-      end
+        def _routes_context
+          self
+        end
     end
   end
 end

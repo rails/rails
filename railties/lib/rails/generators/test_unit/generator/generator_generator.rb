@@ -1,4 +1,4 @@
-require 'rails/generators/test_unit'
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -9,7 +9,7 @@ module TestUnit # :nodoc:
                                desc: "Namespace generator under lib/generators/name"
 
       def create_generator_files
-        template 'generator_test.rb', File.join('test/lib/generators', class_path, "#{file_name}_generator_test.rb")
+        template "generator_test.rb", File.join("test/lib/generators", class_path, "#{file_name}_generator_test.rb")
       end
 
     protected

@@ -1,17 +1,16 @@
-require 'abstract_unit'
+require "abstract_unit"
 
-ActionController::Base.helpers_path = File.expand_path('../../../fixtures/helpers', __FILE__)
+ActionController::Base.helpers_path = File.expand_path("../../../fixtures/helpers", __FILE__)
 
 module AbstractController
   module Testing
-
     class ControllerWithHelpers < AbstractController::Base
       include AbstractController::Helpers
       include AbstractController::Rendering
       include ActionView::Rendering
 
       def with_module
-        render :inline => "Module <%= included_method %>"
+        render inline: "Module <%= included_method %>"
       end
     end
 
@@ -31,11 +30,11 @@ module AbstractController
       helper :abc
 
       def with_block
-        render :inline => "Hello <%= helpery_test %>"
+        render inline: "Hello <%= helpery_test %>"
       end
 
       def with_symbol
-        render :inline => "I respond to bare_a: <%= respond_to?(:bare_a) %>"
+        render inline: "I respond to bare_a: <%= respond_to?(:bare_a) %>"
       end
     end
 
@@ -52,7 +51,7 @@ module AbstractController
     class AbstractInvalidHelpers < AbstractHelpers
       include ActionController::Helpers
 
-      path = File.expand_path('../../../fixtures/helpers_missing', __FILE__)
+      path = File.expand_path("../../../fixtures/helpers_missing", __FILE__)
       $:.unshift(path)
       self.helpers_path = path
     end
@@ -110,7 +109,7 @@ module AbstractController
     class InvalidHelpersTest < ActiveSupport::TestCase
       def test_controller_raise_error_about_real_require_problem
         e = assert_raise(LoadError) { AbstractInvalidHelpers.helper(:invalid_require) }
-        assert_equal "No such file to load -- very_invalid_file_name", e.message
+        assert_equal "No such file to load -- very_invalid_file_name.rb", e.message
       end
 
       def test_controller_raise_error_about_missing_helper

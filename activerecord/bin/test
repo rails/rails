@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
-COMPONENT_ROOT = File.expand_path("../../", __FILE__)
+
+COMPONENT_ROOT = File.expand_path("..", __dir__)
 require File.expand_path("../tools/test", COMPONENT_ROOT)
+
 module Minitest
   def self.plugin_active_record_options(opts, options)
     opts.separator ""
@@ -14,6 +16,4 @@ module Minitest
   end
 end
 
-Minitest.extensions.unshift 'active_record'
-
-exit Minitest.run(ARGV)
+Minitest.extensions.unshift "active_record"

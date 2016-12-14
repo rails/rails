@@ -1,80 +1,77 @@
 require "cases/helper"
-require 'models/computer'
-require 'models/developer'
-require 'models/project'
-require 'models/company'
-require 'models/categorization'
-require 'models/category'
-require 'models/post'
-require 'models/author'
-require 'models/comment'
-require 'models/tag'
-require 'models/tagging'
-require 'models/person'
-require 'models/reader'
-require 'models/ship_part'
-require 'models/ship'
-require 'models/liquid'
-require 'models/molecule'
-require 'models/electron'
-require 'models/man'
-require 'models/interest'
+require "models/computer"
+require "models/developer"
+require "models/project"
+require "models/company"
+require "models/categorization"
+require "models/category"
+require "models/post"
+require "models/author"
+require "models/comment"
+require "models/tag"
+require "models/tagging"
+require "models/person"
+require "models/reader"
+require "models/ship_part"
+require "models/ship"
+require "models/liquid"
+require "models/molecule"
+require "models/electron"
+require "models/man"
+require "models/interest"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_favorites
 
   def test_eager_loading_should_not_change_count_of_children
-    liquid = Liquid.create(:name => 'salty')
-    molecule = liquid.molecules.create(:name => 'molecule_1')
-    molecule.electrons.create(:name => 'electron_1')
-    molecule.electrons.create(:name => 'electron_2')
+    liquid = Liquid.create(name: "salty")
+    molecule = liquid.molecules.create(name: "molecule_1")
+    molecule.electrons.create(name: "electron_1")
+    molecule.electrons.create(name: "electron_2")
 
-    liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where('molecules.id is not null')
+    liquids = Liquid.includes(molecules: :electrons).references(:molecules).where("molecules.id is not null")
     assert_equal 1, liquids[0].molecules.length
   end
 
   def test_subselect
     author = authors :david
     favs = author.author_favorites
-    fav2 = author.author_favorites.where(:author => Author.where(id: author.id)).to_a
+    fav2 = author.author_favorites.where(author: Author.where(id: author.id)).to_a
     assert_equal favs, fav2
   end
 
   def test_loading_the_association_target_should_keep_child_records_marked_for_destruction
-    ship = Ship.create!(:name => "The good ship Dollypop")
-    part = ship.parts.create!(:name => "Mast")
+    ship = Ship.create!(name: "The good ship Dollypop")
+    part = ship.parts.create!(name: "Mast")
     part.mark_for_destruction
-    ship.parts.send(:load_target)
     assert ship.parts[0].marked_for_destruction?
   end
 
   def test_loading_the_association_target_should_load_most_recent_attributes_for_child_records_marked_for_destruction
-    ship = Ship.create!(:name => "The good ship Dollypop")
-    part = ship.parts.create!(:name => "Mast")
+    ship = Ship.create!(name: "The good ship Dollypop")
+    part = ship.parts.create!(name: "Mast")
     part.mark_for_destruction
-    ShipPart.find(part.id).update_columns(name: 'Deck')
-    ship.parts.send(:load_target)
-    assert_equal 'Deck', ship.parts[0].name
+    ShipPart.find(part.id).update_columns(name: "Deck")
+    assert_equal "Deck", ship.parts[0].name
   end
 
-
   def test_include_with_order_works
-    assert_nothing_raised {Account.all.merge!(:order => 'id', :includes => :firm).first}
-    assert_nothing_raised {Account.all.merge!(:order => :id, :includes => :firm).first}
+    assert_nothing_raised { Account.all.merge!(order: "id", includes: :firm).first }
+    assert_nothing_raised { Account.all.merge!(order: :id, includes: :firm).first }
   end
 
   def test_bad_collection_keys
-    assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
+    assert_raise(ArgumentError, "ActiveRecord should have barked on bad collection keys") do
+      Class.new(ActiveRecord::Base).has_many(:wheels, name: "wheels")
     end
   end
 
   def test_should_construct_new_finder_sql_after_create
-    person = Person.new :first_name => 'clark'
+    person = Person.new first_name: "clark"
     assert_equal [], person.readers.to_a
     person.save!
-    reader = Reader.create! :person => person, :post => Post.new(:title => "foo", :body => "bar")
+    reader = Reader.create! person: person, post: Post.new(title: "foo", body: "bar")
     assert person.readers.find(reader.id)
   end
 
@@ -122,9 +119,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_includes firm.association_with_references.references_values, 'foo'
+    assert_includes firm.association_with_references.references_values, "foo"
   end
-
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
@@ -133,9 +129,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_push_does_not_load_target
     david = authors(:david)
 
-    david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
+    david.posts << (post = Post.new(title: "New on Edge", body: "More cool stuff!"))
     assert !david.posts.loaded?
-    assert david.posts.include?(post)
+    assert_includes david.posts, post
   end
 
   def test_push_has_many_through_does_not_load_target
@@ -143,35 +139,35 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     david.categories << categories(:technology)
     assert !david.categories.loaded?
-    assert david.categories.include?(categories(:technology))
+    assert_includes david.categories, categories(:technology)
   end
 
   def test_push_followed_by_save_does_not_load_target
     david = authors(:david)
 
-    david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
+    david.posts << (post = Post.new(title: "New on Edge", body: "More cool stuff!"))
     assert !david.posts.loaded?
     david.save
     assert !david.posts.loaded?
-    assert david.posts.include?(post)
+    assert_includes david.posts, post
   end
 
   def test_push_does_not_lose_additions_to_new_record
-    josh = Author.new(:name => "Josh")
-    josh.posts << Post.new(:title => "New on Edge", :body => "More cool stuff!")
+    josh = Author.new(name: "Josh")
+    josh.posts << Post.new(title: "New on Edge", body: "More cool stuff!")
     assert josh.posts.loaded?
     assert_equal 1, josh.posts.size
   end
 
   def test_append_behaves_like_push
-    josh = Author.new(:name => "Josh")
-    josh.posts.append Post.new(:title => "New on Edge", :body => "More cool stuff!")
+    josh = Author.new(name: "Josh")
+    josh.posts.append Post.new(title: "New on Edge", body: "More cool stuff!")
     assert josh.posts.loaded?
     assert_equal 1, josh.posts.size
   end
 
   def test_prepend_is_not_defined
-    josh = Author.new(:name => "Josh")
+    josh = Author.new(name: "Josh")
     assert_raises(NoMethodError) { josh.posts.prepend Post.new }
   end
 
@@ -183,25 +179,33 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert !david.projects.loaded?
   end
 
+  def test_load_does_load_target
+    david = developers(:david)
+
+    assert !david.projects.loaded?
+    david.projects.load
+    assert david.projects.loaded?
+  end
+
   def test_inspect_does_not_reload_a_not_yet_loaded_target
-    andreas = Developer.new :name => 'Andreas', :log => 'new developer added'
+    andreas = Developer.new name: "Andreas", log: "new developer added"
     assert !andreas.audit_logs.loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
   end
 
   def test_save_on_parent_saves_children
-    developer = Developer.create :name => "Bryan", :salary => 50_000
+    developer = Developer.create name: "Bryan", salary: 50_000
     assert_equal 1, developer.reload.audit_logs.size
   end
 
   def test_create_via_association_with_block
-    post = authors(:david).posts.create(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    post = authors(:david).posts.create(title: "New on Edge") { |p| p.body = "More cool stuff!" }
     assert_equal post.title, "New on Edge"
     assert_equal post.body, "More cool stuff!"
   end
 
   def test_create_with_bang_via_association_with_block
-    post = authors(:david).posts.create!(:title => "New on Edge") {|p| p.body = "More cool stuff!"}
+    post = authors(:david).posts.create!(title: "New on Edge") { |p| p.body = "More cool stuff!" }
     assert_equal post.title, "New on Edge"
     assert_equal post.body, "More cool stuff!"
   end
@@ -219,7 +223,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   def test_scoped_allows_conditions
-    assert developers(:david).projects.merge(where: 'foo').to_sql.include?('foo')
+    assert developers(:david).projects.merge(where: "foo").to_sql.include?("foo")
   end
 
   test "getting a scope from an association" do
@@ -248,6 +252,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
   test "first! works on loaded associations" do
     david = authors(:david)
     assert_equal david.posts.first, david.posts.reload.first!
+    assert david.posts.loaded?
+    assert_no_queries { david.posts.first! }
+  end
+
+  def test_pluck_uses_loaded_target
+    david = authors(:david)
+    assert_equal david.posts.pluck(:title), david.posts.load.pluck(:title)
+    assert david.posts.loaded?
+    assert_no_queries { david.posts.pluck(:title) }
   end
 
   def test_reset_unloads_target
@@ -264,18 +277,18 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   class DifferentPerson < ActiveRecord::Base; end
 
   class PeopleList < ActiveRecord::Base
-    has_and_belongs_to_many :has_and_belongs_to_many, :before_add => :enlist
-    has_many :has_many, :before_add => :enlist
+    has_and_belongs_to_many :has_and_belongs_to_many, before_add: :enlist
+    has_many :has_many, before_add: :enlist
     belongs_to :belongs_to
     has_one :has_one
   end
 
   class DifferentPeopleList < PeopleList
     # Different association with the same name, callbacks should be omitted here.
-    has_and_belongs_to_many :has_and_belongs_to_many, :class_name => 'DifferentPerson'
-    has_many :has_many, :class_name => 'DifferentPerson'
-    belongs_to :belongs_to, :class_name => 'DifferentPerson'
-    has_one :has_one, :class_name => 'DifferentPerson'
+    has_and_belongs_to_many :has_and_belongs_to_many, class_name: "DifferentPerson"
+    has_many :has_many, class_name: "DifferentPerson"
+    belongs_to :belongs_to, class_name: "DifferentPerson"
+    has_one :has_one, class_name: "DifferentPerson"
   end
 
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited

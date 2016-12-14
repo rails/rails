@@ -16,7 +16,7 @@ module ActiveRecord
 
       # Returns an array of all the attributes that have been specified as readonly.
       def readonly_attributes
-        self._attr_readonly
+        _attr_readonly
       end
     end
   end

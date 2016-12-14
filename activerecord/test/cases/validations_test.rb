@@ -1,11 +1,11 @@
 require "cases/helper"
-require 'models/topic'
-require 'models/reply'
-require 'models/person'
-require 'models/developer'
-require 'models/computer'
-require 'models/parrot'
-require 'models/company'
+require "models/topic"
+require "models/reply"
+require "models/person"
+require "models/developer"
+require "models/computer"
+require "models/parrot"
+require "models/company"
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -36,7 +36,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_valid_using_special_context
-    r = WrongReply.new(:title => "Valid title")
+    r = WrongReply.new(title: "Valid title")
     assert !r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
@@ -53,7 +53,7 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_invalid_using_multiple_contexts
-    r = WrongReply.new(:title => 'Wrong Create')
+    r = WrongReply.new(title: "Wrong Create")
     assert r.invalid?([:special_case, :create])
     assert_equal "Invalid", r.errors[:author_name].join
     assert_equal "is Wrong Create", r.errors[:title].join
@@ -95,7 +95,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.new.validate!(:special_case)
     end
-    r = WrongReply.new(:title => "Valid title", :author_name => "secret", :content => "Good")
+    r = WrongReply.new(title: "Valid title", author_name: "secret", content: "Good")
     assert r.validate!(:special_case)
   end
 
@@ -107,7 +107,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_exception_on_create_bang_with_block
     assert_raise(ActiveRecord::RecordInvalid) do
-      WrongReply.create!({ "title" => "OK" }) do |r|
+      WrongReply.create!("title" => "OK") do |r|
         r.content = nil
       end
     end
@@ -124,7 +124,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_save_without_validation
     reply = WrongReply.new
     assert !reply.save
-    assert reply.save(:validate => false)
+    assert reply.save(validate: false)
   end
 
   def test_validates_acceptance_of_with_non_existent_table
@@ -156,22 +156,20 @@ class ValidationsTest < ActiveRecord::TestCase
   end
 
   def test_numericality_validation_with_mutation
-    Topic.class_eval do
+    klass = Class.new(Topic) do
       attribute :wibble, :string
       validates_numericality_of :wibble, only_integer: true
     end
 
-    topic = Topic.new(wibble: '123-4567')
-    topic.wibble.gsub!('-', '')
+    topic = klass.new(wibble: "123-4567")
+    topic.wibble.gsub!("-", "")
 
     assert topic.valid?
-  ensure
-    Topic.reset_column_information
   end
 
   def test_acceptance_validator_doesnt_require_db_connection
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = 'posts'
+      self.table_name = "posts"
     end
     klass.reset_column_information
 

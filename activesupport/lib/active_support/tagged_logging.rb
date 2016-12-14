@@ -1,7 +1,7 @@
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/object/blank'
-require 'logger'
-require 'active_support/logger'
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/blank"
+require "logger"
+require "active_support/logger"
 
 module ActiveSupport
   # Wraps any standard Logger object to provide tagging capabilities.
@@ -48,13 +48,12 @@ module ActiveSupport
         Thread.current[thread_key] ||= []
       end
 
-      private
-        def tags_text
-          tags = current_tags
-          if tags.any?
-            tags.collect { |tag| "[#{tag}] " }.join
-          end
+      def tags_text
+        tags = current_tags
+        if tags.any?
+          tags.collect { |tag| "[#{tag}] " }.join
         end
+      end
     end
 
     def self.new(logger)

@@ -30,7 +30,7 @@ module Rails
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # The +add+ method accepts the following options as arguments:
-    # eager_load, autoload, autoload_once and glob.
+    # eager_load, autoload, autoload_once, and glob.
     #
     # Finally, the +Path+ object also provides a few helpers:
     #
@@ -45,7 +45,6 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        @current = nil
         @path = path
         @root = {}
       end
@@ -180,7 +179,7 @@ module Rails
       end
 
       def extensions # :nodoc:
-        $1.split(',') if @glob =~ /\{([\S]+)\}/
+        $1.split(",") if @glob =~ /\{([\S]+)\}/
       end
 
       # Expands all paths against the root and return all unique values.

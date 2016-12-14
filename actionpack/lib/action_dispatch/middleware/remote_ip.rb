@@ -1,4 +1,4 @@
-require 'ipaddr'
+require "ipaddr"
 
 module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
@@ -176,8 +176,6 @@ module ActionDispatch
           @proxies.any? { |proxy| proxy === ip }
         end
       end
-
     end
-
   end
 end

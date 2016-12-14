@@ -1,27 +1,27 @@
-require 'fileutils'
+require "fileutils"
 
 module Rails
   module DevCaching # :nodoc:
     class << self
-      FILE = 'tmp/caching-dev.txt'
+      FILE = "tmp/caching-dev.txt"
 
       def enable_by_file
-        FileUtils.mkdir_p('tmp')
+        FileUtils.mkdir_p("tmp")
 
         if File.exist?(FILE)
           delete_cache_file
-          puts 'Development mode is no longer being cached.'
+          puts "Development mode is no longer being cached."
         else
           create_cache_file
-          puts 'Development mode is now being cached.'
+          puts "Development mode is now being cached."
         end
 
-        FileUtils.touch 'tmp/restart.txt'
-        FileUtils.rm_f('tmp/pids/server.pid')
+        FileUtils.touch "tmp/restart.txt"
+        FileUtils.rm_f("tmp/pids/server.pid")
       end
 
       def enable_by_argument(caching)
-        FileUtils.mkdir_p('tmp')
+        FileUtils.mkdir_p("tmp")
 
         if caching
           create_cache_file

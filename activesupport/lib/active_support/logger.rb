@@ -1,6 +1,6 @@
-require 'active_support/logger_silence'
-require 'active_support/logger_thread_safe_level'
-require 'logger'
+require "active_support/logger_silence"
+require "active_support/logger_thread_safe_level"
+require "logger"
 
 module ActiveSupport
   class Logger < ::Logger
@@ -59,14 +59,14 @@ module ActiveSupport
         define_method(:silence) do |level = Logger::ERROR, &block|
           if logger.respond_to?(:silence)
             logger.silence(level) do
-              if respond_to?(:silence)
+              if defined?(super)
                 super(level, &block)
               else
                 block.call(self)
               end
             end
           else
-            if respond_to?(:silence)
+            if defined?(super)
               super(level, &block)
             else
               block.call(self)

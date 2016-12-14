@@ -1,11 +1,11 @@
-require 'active_support/core_ext/string/output_safety'
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   class OutputFlow #:nodoc:
     attr_reader :content
 
     def initialize
-      @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
+      @content = Hash.new { |h, k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
     # Called by _layout_for to read stored values.
@@ -23,7 +23,6 @@ module ActionView
       @content[key] << value
     end
     alias_method :append!, :append
-
   end
 
   class StreamingFlow < OutputFlow #:nodoc:
@@ -68,8 +67,8 @@ module ActionView
 
     private
 
-    def inside_fiber?
-      Fiber.current.object_id != @root
-    end
+      def inside_fiber?
+        Fiber.current.object_id != @root
+      end
   end
 end

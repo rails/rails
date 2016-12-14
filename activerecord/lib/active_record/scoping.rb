@@ -1,4 +1,4 @@
-require 'active_support/per_thread_registry'
+require "active_support/per_thread_registry"
 
 module ActiveRecord
   module Scoping
@@ -33,7 +33,7 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att,value|
+      self.class.scope_attributes.each do |att, value|
         send("#{att}=", value) if respond_to?("#{att}=")
       end
     end
@@ -94,11 +94,11 @@ module ActiveRecord
 
       private
 
-      def raise_invalid_scope_type!(scope_type)
-        if !VALID_SCOPE_TYPES.include?(scope_type)
-          raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
+        def raise_invalid_scope_type!(scope_type)
+          if !VALID_SCOPE_TYPES.include?(scope_type)
+            raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
+          end
         end
-      end
     end
   end
 end

@@ -1,17 +1,17 @@
-require 'abstract_unit'
+require "abstract_unit"
 
-ActionController::Base.helpers_path = File.expand_path('../../fixtures/helpers', __FILE__)
+ActionController::Base.helpers_path = File.expand_path("../../fixtures/helpers", __FILE__)
 
 module Fun
   class GamesController < ActionController::Base
     def render_hello_world
-      render :inline => "hello: <%= stratego %>"
+      render inline: "hello: <%= stratego %>"
     end
   end
 
   class PdfController < ActionController::Base
     def test
-      render :inline => "test: <%= foobar %>"
+      render inline: "test: <%= foobar %>"
     end
   end
 end
@@ -35,11 +35,11 @@ class JustMeController < ActionController::Base
   clear_helpers
 
   def flash
-    render :inline => "<h1><%= notice %></h1>"
+    render inline: "<h1><%= notice %></h1>"
   end
 
   def lib
-    render :inline => '<%= useful_function %>'
+    render inline: "<%= useful_function %>"
   end
 end
 
@@ -48,7 +48,7 @@ end
 
 class HelpersPathsController < ActionController::Base
   paths = ["helpers2_pack", "helpers1_pack"].map do |path|
-    File.join(File.expand_path('../../fixtures', __FILE__), path)
+    File.join(File.expand_path("../../fixtures", __FILE__), path)
   end
   $:.unshift(*paths)
 
@@ -56,12 +56,12 @@ class HelpersPathsController < ActionController::Base
   helper :all
 
   def index
-    render :inline => "<%= conflicting_helper %>"
+    render inline: "<%= conflicting_helper %>"
   end
 end
 
 class HelpersTypoController < ActionController::Base
-  path = File.expand_path('../../fixtures/helpers_typo', __FILE__)
+  path = File.expand_path("../../fixtures/helpers_typo", __FILE__)
   $:.unshift(path)
   self.helpers_path = path
 end
@@ -89,7 +89,7 @@ class HelpersTypoControllerTest < ActiveSupport::TestCase
   end
 
   def test_helper_typo_error_message
-    e = assert_raise(NameError) { HelpersTypoController.helper 'admin/users' }
+    e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
     assert_equal "Couldn't find Admin::UsersHelper, expected it to be defined in helpers/admin/users_helper.rb", e.message
   end
 
@@ -106,7 +106,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= 'A0').succ!.dup
+    @symbol = (@@counter ||= "A0").succ!.dup
 
     # Generate new controller class.
     controller_class_name = "Helper#{@symbol}Controller"
@@ -125,13 +125,13 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_helper_method
     assert_nothing_raised { @controller_class.helper_method :delegate_method }
-    assert master_helper_methods.include?(:delegate_method)
+    assert_includes master_helper_methods, :delegate_method
   end
 
   def test_helper_attr
     assert_nothing_raised { @controller_class.helper_attr :delegate_attr }
-    assert master_helper_methods.include?(:delegate_attr)
-    assert master_helper_methods.include?(:delegate_attr=)
+    assert_includes master_helper_methods, :delegate_attr
+    assert_includes master_helper_methods, :delegate_attr=
   end
 
   def call_controller(klass, action)
@@ -139,7 +139,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_for_nested_controller
-    assert_equal 'hello: Iz guuut!',
+    assert_equal "hello: Iz guuut!",
       call_controller(Fun::GamesController, "render_hello_world").last.body
   end
 
@@ -168,43 +168,43 @@ class HelperTest < ActiveSupport::TestCase
     methods = AllHelpersController._helpers.instance_methods
 
     # abc_helper.rb
-    assert methods.include?(:bare_a)
+    assert_includes methods, :bare_a
 
     # fun/games_helper.rb
-    assert methods.include?(:stratego)
+    assert_includes methods, :stratego
 
     # fun/pdf_helper.rb
-    assert methods.include?(:foobar)
+    assert_includes methods, :foobar
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_path = File.expand_path('../../fixtures/alternate_helpers', __FILE__)
+    @controller_class.helpers_path = File.expand_path("../../fixtures/alternate_helpers", __FILE__)
 
     # Reload helpers
     @controller_class._helpers = Module.new
     @controller_class.helper :all
 
     # helpers/abc_helper.rb should not be included
-    assert !master_helper_methods.include?(:bare_a)
+    assert_not_includes master_helper_methods, :bare_a
 
     # alternate_helpers/foo_helper.rb
-    assert master_helper_methods.include?(:baz)
+    assert_includes master_helper_methods, :baz
   end
 
   def test_helper_proxy
     methods = AllHelpersController.helpers.methods
 
     # Action View
-    assert methods.include?(:pluralize)
+    assert_includes methods, :pluralize
 
     # abc_helper.rb
-    assert methods.include?(:bare_a)
+    assert_includes methods, :bare_a
 
     # fun/games_helper.rb
-    assert methods.include?(:stratego)
+    assert_includes methods, :stratego
 
     # fun/pdf_helper.rb
-    assert methods.include?(:foobar)
+    assert_includes methods, :foobar
   end
 
   def test_helper_proxy_in_instance
@@ -224,9 +224,9 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_helper_proxy_config
-    AllHelpersController.config.my_var = 'smth'
+    AllHelpersController.config.my_var = "smth"
 
-    assert_equal 'smth', AllHelpersController.helpers.config.my_var
+    assert_equal "smth", AllHelpersController.helpers.config.my_var
   end
 
   private
@@ -243,31 +243,30 @@ class HelperTest < ActiveSupport::TestCase
     end
 
     def test_helper=(helper_module)
-      silence_warnings { self.class.const_set('TestHelper', helper_module) }
+      silence_warnings { self.class.const_set("TestHelper", helper_module) }
     end
 end
-
 
 class IsolatedHelpersTest < ActionController::TestCase
   class A < ActionController::Base
     def index
-      render :inline => '<%= shout %>'
+      render inline: "<%= shout %>"
     end
   end
 
   class B < A
-    helper { def shout; 'B' end }
+    helper { def shout; "B" end }
 
     def index
-      render :inline => '<%= shout %>'
+      render inline: "<%= shout %>"
     end
   end
 
   class C < A
-    helper { def shout; 'C' end }
+    helper { def shout; "C" end }
 
     def index
-      render :inline => '<%= shout %>'
+      render inline: "<%= shout %>"
     end
   end
 
@@ -277,7 +276,7 @@ class IsolatedHelpersTest < ActionController::TestCase
 
   def setup
     super
-    @request.action = 'index'
+    @request.action = "index"
   end
 
   def test_helper_in_a
@@ -285,10 +284,10 @@ class IsolatedHelpersTest < ActionController::TestCase
   end
 
   def test_helper_in_b
-    assert_equal 'B', call_controller(B, "index").last.body
+    assert_equal "B", call_controller(B, "index").last.body
   end
 
   def test_helper_in_c
-    assert_equal 'C', call_controller(C, "index").last.body
+    assert_equal "C", call_controller(C, "index").last.body
   end
 end

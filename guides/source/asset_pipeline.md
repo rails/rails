@@ -485,7 +485,7 @@ which contains these lines:
 
 Rails creates both `app/assets/javascripts/application.js` and
 `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new rails application. This is
+--skip-sprockets option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -585,6 +585,19 @@ When this option is true, the asset pipeline will check if all the assets loaded
 in your application are included in the `config.assets.precompile` list.
 If `config.assets.digest` is also true, the asset pipeline will require that
 all requests for assets include digests.
+
+### Raise an Error When an Asset is Not Found
+
+If you are using sprockets-rails >= 3.2.0 you can configure what happens
+when an asset lookup is performed and nothing is found. If you turn off "asset fallback"
+then an error will be raised when an asset cannot be found.
+
+```ruby
+config.assets.unknown_asset_fallback = false
+```
+
+If "asset fallback" is enabled then when an asset cannot be found the path will be
+output instead and no error raised. The asset fallback behavior is enabled by default.
 
 ### Turning Digests Off
 
@@ -724,7 +737,7 @@ If you have other manifests or individual stylesheets and JavaScript files to
 include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
 
 ```ruby
-Rails.application.config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
+Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
 NOTE. Always specify an expected compiled filename that ends with .js or .css,
@@ -1024,7 +1037,7 @@ to tell our CDN (and browser) that the asset is "public", that means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
-year. You can do this in your rails application by setting
+year. You can do this in your Rails application by setting
 
 ```
 config.public_file_server.headers = {
@@ -1109,9 +1122,9 @@ Windows you have a JavaScript runtime installed in your operating system.
 
 ### Serving GZipped version of assets
 
-By default, gzipped version of compiled assets will be generated, along 
-with the non-gzipped version of assets. Gzipped assets help reduce the transmission of 
-data over the wire. You can configure this by setting the `gzip` flag.
+By default, gzipped version of compiled assets will be generated, along with
+the non-gzipped version of assets. Gzipped assets help reduce the transmission
+of data over the wire. You can configure this by setting the `gzip` flag.
 
 ```ruby
 config.assets.gzip = false # disable gzipped assets generation
@@ -1214,35 +1227,25 @@ Sprockets.
 Making Your Library or Gem a Pre-Processor
 ------------------------------------------
 
-As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
-interface to different templating engines, your gem should just implement the
-Tilt template protocol. Normally, you would subclass `Tilt::Template` and
-reimplement the `prepare` method, which initializes your template, and the
-`evaluate` method, which returns the processed source. The original source is
-stored in `data`. Have a look at
-[`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
-sources to learn more.
+Sprockets uses Processors, Transformers, Compressors, and Exporters to extend
+Sprockets functionality. Have a look at
+[Extending Sprockets](https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md)
+to learn more. Here we registered a preprocessor to add a comment to the end
+of text/css (.css) files.
 
 ```ruby
-module BangBang
-  class Template < ::Tilt::Template
-    def prepare
-      # Do any initialization here
-    end
-
-    # Adds a "!" to original template.
-    def evaluate(scope, locals, &block)
-      "#{data}!"
-    end
+module AddComment
+  def self.call(input)
+    { data: input[:data] + "/* Hello From my sprockets extension */" }
   end
 end
 ```
 
-Now that you have a `Template` class, it's time to associate it with an
-extension for template files:
+Now that you have a module that modifies the input data, it's time to register
+it as a preprocessor for your mime type.
 
 ```ruby
-Sprockets.register_engine '.bang', BangBang::Template
+Sprockets.register_preprocessor 'text/css', AddComment
 ```
 
 Upgrading from Old Versions of Rails
@@ -1291,7 +1294,7 @@ config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all
 # non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+# config.assets.precompile += %w( admin.js admin.css )
 ```
 
 Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so

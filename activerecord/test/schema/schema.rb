@@ -21,7 +21,7 @@ ActiveRecord::Schema.define do
     t.string :settings, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, null: true, default: '', limit: 1024
+    t.string :preferences, null: true, default: "", limit: 1024
     t.string :json_data, null: true, limit: 1024
     t.string :json_data_empty, null: true, default: "", limit: 1024
     t.text :params
@@ -54,7 +54,7 @@ ActiveRecord::Schema.define do
 
   create_table :authors, force: true do |t|
     t.string :name, null: false
-    t.integer :author_address_id
+    t.bigint :author_address_id
     t.integer :author_address_extra_id
     t.string :organization_id
     t.string :owned_essay_id
@@ -98,7 +98,8 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
-    t.column :cover, :string, default: 'hard'
+    t.column :difficulty, :integer, default: 0
+    t.column :cover, :string, default: "hard"
   end
 
   create_table :booleans, force: true do |t|
@@ -123,6 +124,9 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
+  end
+
+  create_table :old_cars, id: :integer, force: true do |t|
   end
 
   create_table :carriers, force: true
@@ -196,10 +200,10 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
-    t.index [:firm_id, :type, :rating], name: "company_index"
+    t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
-    t.index :name, name: 'company_name_index', using: :btree
-    t.index 'lower(name)', name: "company_expression_index" if supports_expression_index?
+    t.index :name, name: "company_name_index", using: :btree
+    t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -298,11 +302,11 @@ ActiveRecord::Schema.define do
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
-    t.index [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
+    t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
   end
 
   create_table :engines, force: true do |t|
-    t.integer :car_id
+    t.bigint :car_id
   end
 
   create_table :entrants, force: true do |t|
@@ -390,6 +394,11 @@ ActiveRecord::Schema.define do
     t.integer :ideal_reference_id
   end
 
+  create_table :jobs_pool, force: true, id: false do |t|
+    t.references :job, null: false, index: true
+    t.references :user, null: false, index: true
+  end
+
   create_table :keyboards, force: true, id: false do |t|
     t.primary_key :key_number
     t.string      :name
@@ -430,10 +439,12 @@ ActiveRecord::Schema.define do
   end
 
   create_table :lock_without_defaults, force: true do |t|
+    t.column :title, :string
     t.column :lock_version, :integer
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
+    t.column :title, :string
     t.column :custom_lock_version, :integer
   end
 
@@ -889,15 +900,14 @@ ActiveRecord::Schema.define do
     t.column :label, :string
   end
 
-  create_table 'warehouse-things', force: true do |t|
+  create_table "warehouse-things", force: true do |t|
     t.integer :value
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) { }
+    create_table(t, force: true) {}
   end
 
-  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, force: true do |t|
     t.string  :name
   end
@@ -921,19 +931,19 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
-  create_table :wheels, force: true do |t|
-    t.references :wheelable, polymorphic: true
-  end
-
   create_table :zines, force: true do |t|
     t.string :title
   end
 
-  create_table :countries, force: true, id: false, primary_key: 'country_id' do |t|
+  create_table :wheels, force: true do |t|
+    t.references :wheelable, polymorphic: true
+  end
+
+  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
     t.string :country_id
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: 'treaty_id' do |t|
+  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
     t.string :treaty_id
     t.string :name
   end
@@ -954,9 +964,9 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   create_table :weirds, force: true do |t|
-    t.string 'a$b'
-    t.string 'なまえ'
-    t.string 'from'
+    t.string "a$b"
+    t.string "なまえ"
+    t.string "from"
   end
 
   create_table :nodes, force: true do |t|
@@ -997,7 +1007,7 @@ ActiveRecord::Schema.define do
   if supports_foreign_keys?
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, force: true do |t|
-      t.integer :fk_id, null: false
+      t.bigint :fk_id, null: false
     end
 
     create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
@@ -1010,7 +1020,7 @@ ActiveRecord::Schema.define do
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
-    t.string :string_with_default, default: 'the original default'
+    t.string :string_with_default, default: "the original default"
   end
 
   create_table :users, force: true do |t|

@@ -400,7 +400,7 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email,
          subject: 'Welcome to My Awesome Site') do |format|
       format.html { render 'another_template' }
-      format.text { render text: 'Render text' }
+      format.text { render plain: 'Render text' }
     end
   end
 end

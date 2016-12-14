@@ -1,6 +1,6 @@
 $: << File.expand_path("test", COMPONENT_ROOT)
 
-require 'bundler'
+require "bundler"
 Bundler.setup
 
 require "rails/test_unit/minitest_plugin"
@@ -13,3 +13,5 @@ module Rails
 end
 
 Rails::TestUnitReporter.executable = "bin/test"
+Minitest.run_via[:rails] = true
+require "active_support/testing/autorun"

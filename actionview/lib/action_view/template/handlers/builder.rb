@@ -15,12 +15,12 @@ module ActionView
 
       protected
 
-      def require_engine
-        @required ||= begin
-          require "builder"
-          true
+        def require_engine
+          @required ||= begin
+            require "builder"
+            true
+          end
         end
-      end
     end
   end
 end

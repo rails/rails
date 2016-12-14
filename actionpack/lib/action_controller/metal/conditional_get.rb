@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/keys'
+require "active_support/core_ext/hash/keys"
 
 module ActionController
   module ConditionalGet
@@ -232,20 +232,21 @@ module ActionController
     # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})
       response.cache_control.merge!(
-        :max_age         => seconds,
-        :public          => options.delete(:public),
-        :must_revalidate => options.delete(:must_revalidate)
+        max_age: seconds,
+        public: options.delete(:public),
+        must_revalidate: options.delete(:must_revalidate)
       )
       options.delete(:private)
 
-      response.cache_control[:extras] = options.map {|k,v| "#{k}=#{v}"}
+      response.cache_control[:extras] = options.map { |k, v| "#{k}=#{v}" }
       response.date = Time.now unless response.date?
     end
 
-    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt> so no caching should
-    # occur by the browser or intermediate caches (like caching proxy servers).
+    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt>. This means the
+    # resource will be marked as stale, so clients must always revalidate.
+    # Intermediate/browser caches may still store the asset.
     def expires_now
-      response.cache_control.replace(:no_cache => true)
+      response.cache_control.replace(no_cache: true)
     end
 
     # Cache or yield the block. The cache is supposed to never expire.

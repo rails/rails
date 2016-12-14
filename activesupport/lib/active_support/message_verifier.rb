@@ -1,6 +1,6 @@
-require 'base64'
-require 'active_support/core_ext/object/blank'
-require 'active_support/security_utils'
+require "base64"
+require "active_support/core_ext/object/blank"
+require "active_support/security_utils"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -34,9 +34,9 @@ module ActiveSupport
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
-      raise ArgumentError, 'Secret should not be nil.' unless secret
+      raise ArgumentError, "Secret should not be nil." unless secret
       @secret = secret
-      @digest = options[:digest] || 'SHA1'
+      @digest = options[:digest] || "SHA1"
       @serializer = options[:serializer] || Marshal
     end
 
@@ -83,7 +83,7 @@ module ActiveSupport
           data = signed_message.split("--".freeze)[0]
           @serializer.load(decode(data))
         rescue ArgumentError => argument_error
-          return if argument_error.message.include?('invalid base64')
+          return if argument_error.message.include?("invalid base64")
           raise
         end
       end
@@ -127,7 +127,7 @@ module ActiveSupport
       end
 
       def generate_digest(data)
-        require 'openssl' unless defined?(OpenSSL)
+        require "openssl" unless defined?(OpenSSL)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
       end
   end

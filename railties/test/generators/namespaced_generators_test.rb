@@ -1,8 +1,8 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/controller/controller_generator'
-require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/mailer/mailer_generator'
-require 'rails/generators/rails/scaffold/scaffold_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/controller/controller_generator"
+require "rails/generators/rails/model/model_generator"
+require "rails/generators/mailer/mailer_generator"
+require "rails/generators/rails/scaffold/scaffold_generator"
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   include GeneratorsTestHelper

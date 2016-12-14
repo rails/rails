@@ -13,16 +13,15 @@ module ActiveRecord
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
-    config.app_generators.orm :active_record, :migration => true,
-                                              :timestamps => true
+    config.app_generators.orm :active_record, migration: true,
+                                              timestamps: true
 
     config.action_dispatch.rescue_responses.merge!(
-      'ActiveRecord::RecordNotFound'   => :not_found,
-      'ActiveRecord::StaleObjectError' => :conflict,
-      'ActiveRecord::RecordInvalid'    => :unprocessable_entity,
-      'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
+      "ActiveRecord::RecordNotFound"   => :not_found,
+      "ActiveRecord::StaleObjectError" => :conflict,
+      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
+      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
     )
-
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
@@ -35,8 +34,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
 
           if defined?(ENGINE_ROOT) && engine = Rails::Engine.find(ENGINE_ROOT)
-            if engine.paths['db/migrate'].existent
-              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths['db/migrate'].to_a
+            if engine.paths["db/migrate"].existent
+              ActiveRecord::Tasks::DatabaseTasks.migrations_paths += engine.paths["db/migrate"].to_a
             end
           end
         end
@@ -83,15 +82,15 @@ module ActiveRecord
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
-              cache = Marshal.load File.binread filename
+              cache = YAML.load(File.read(filename))
               if cache.version == ActiveRecord::Migrator.current_version
                 self.connection.schema_cache = cache
                 self.connection_pool.schema_cache = cache.dup
               else
-                warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
@@ -102,14 +101,14 @@ module ActiveRecord
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
-          require 'active_record/relation/record_fetch_warning'
+          require "active_record/relation/record_fetch_warning"
         end
       end
     end
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k,v|
+        app.config.active_record.each do |k, v|
           send "#{k}=", v
         end
       end

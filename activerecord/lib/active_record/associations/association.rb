@@ -1,4 +1,4 @@
-require 'active_support/core_ext/array/wrap'
+require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   module Associations
@@ -19,7 +19,7 @@ module ActiveRecord
       attr_reader :owner, :target, :reflection
       attr_accessor :inversed
 
-      delegate :options, :to => :reflection
+      delegate :options, to: :reflection
 
       def initialize(owner, reflection)
         reflection.check_validity!
@@ -112,6 +112,15 @@ module ActiveRecord
         record
       end
 
+      # Remove the inverse association, if possible
+      def remove_inverse_instance(record)
+        if invertible_for?(record)
+          inverse = record.association(inverse_reflection_for(record).name)
+          inverse.target = nil
+          inverse.inversed = false
+        end
+      end
+
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
@@ -166,11 +175,19 @@ module ActiveRecord
       def initialize_attributes(record, except_from_scope_attributes = nil) #:nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
-        assigned_keys = record.changed
+        assigned_keys = record.changed_attribute_names_to_save
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
         attributes = create_scope.except(*(assigned_keys - skip_assign))
         record.assign_attributes(attributes)
         set_inverse_instance(record)
+      end
+
+      def create(attributes = {}, &block)
+        _create_record(attributes, &block)
+      end
+
+      def create!(attributes = {}, &block)
+        _create_record(attributes, true, &block)
       end
 
       private
@@ -246,7 +263,7 @@ module ActiveRecord
         # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
-        # This is only relevant to certain associations, which is why it returns nil by default.
+        # This is only relevant to certain associations, which is why it returns +nil+ by default.
         def stale_state
         end
 

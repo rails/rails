@@ -1,4 +1,4 @@
-require 'que'
+require "que"
 
 Que::Job.class_eval do
   class << self; alias_method :original_enqueue, :enqueue; end
@@ -9,6 +9,6 @@ Que::Job.class_eval do
       options.delete(:priority)
       args << options unless options.empty?
     end
-    self.run(*args)
+    run(*args)
   end
 end

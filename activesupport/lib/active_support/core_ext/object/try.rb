@@ -1,4 +1,4 @@
-require 'delegate'
+require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:

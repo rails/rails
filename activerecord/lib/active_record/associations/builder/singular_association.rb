@@ -8,7 +8,16 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_accessors(model, reflection)
       super
-      define_constructors(model.generated_association_methods, reflection.name) if reflection.constructable?
+      mixin = model.generated_association_methods
+      name = reflection.name
+
+      define_constructors(mixin, name) if reflection.constructable?
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def reload_#{name}
+          association(:#{name}).force_reload_reader
+        end
+      CODE
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association

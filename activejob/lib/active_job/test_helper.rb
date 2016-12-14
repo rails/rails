@@ -1,5 +1,5 @@
-require 'active_support/core_ext/class/subclasses'
-require 'active_support/core_ext/hash/keys'
+require "active_support/core_ext/class/subclasses"
+require "active_support/core_ext/hash/keys"
 
 module ActiveJob
   # Provides helper methods for testing Active Job
@@ -11,7 +11,7 @@ module ActiveJob
     def before_setup # :nodoc:
       test_adapter = queue_adapter_for_test
 
-      @old_queue_adapters = (ActiveJob::Base.subclasses << ActiveJob::Base).select do |klass|
+      @old_queue_adapters = (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
         # only override explicitly set adapters, a quirk of `class_attribute`
         klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
       end.map do |klass|
@@ -232,16 +232,16 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(args = {})
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
       original_enqueued_jobs_count = enqueued_jobs.count
-      args.assert_valid_keys(:job, :args, :at, :queue)
-      serialized_args = serialize_args_for_assertion(args)
+      expected = { job: job, args: args, at: at, queue: queue }.compact
+      serialized_args = serialize_args_for_assertion(expected)
       yield
       in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
-      matching_job = in_block_jobs.find do |job|
-        serialized_args.all? { |key, value| value == job[key] }
+      matching_job = in_block_jobs.find do |in_block_job|
+        serialized_args.all? { |key, value| value == in_block_job[key] }
       end
-      assert matching_job, "No enqueued job found with #{args}"
+      assert matching_job, "No enqueued job found with #{expected}"
       instantiate_job(matching_job)
     end
 
@@ -256,19 +256,38 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(args = {})
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil)
       original_performed_jobs_count = performed_jobs.count
-      args.assert_valid_keys(:job, :args, :at, :queue)
-      serialized_args = serialize_args_for_assertion(args)
+      expected = { job: job, args: args, at: at, queue: queue }.compact
+      serialized_args = serialize_args_for_assertion(expected)
       perform_enqueued_jobs { yield }
       in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
-      matching_job = in_block_jobs.find do |job|
-        serialized_args.all? { |key, value| value == job[key] }
+      matching_job = in_block_jobs.find do |in_block_job|
+        serialized_args.all? { |key, value| value == in_block_job[key] }
       end
-      assert matching_job, "No performed job found with #{args}"
+      assert matching_job, "No performed job found with #{expected}"
       instantiate_job(matching_job)
     end
 
+    # Performs all enqueued jobs in the duration of the block.
+    #
+    #   def test_perform_enqueued_jobs
+    #     perform_enqueued_jobs do
+    #       MyJob.perform_later(1, 2, 3)
+    #     end
+    #     assert_performed_jobs 1
+    #   end
+    #
+    # This method also supports filtering. If the +:only+ option is specified,
+    # then only the listed job(s) will be performed.
+    #
+    #   def test_perform_enqueued_jobs_with_only
+    #     perform_enqueued_jobs(only: MyJob) do
+    #       MyJob.perform_later(1, 2, 3) # will be performed
+    #       HelloJob.perform_later(1, 2, 3) # will not be perfomed
+    #     end
+    #     assert_performed_jobs 1
+    #   end
     def perform_enqueued_jobs(only: nil)
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
@@ -286,6 +305,11 @@ module ActiveJob
       end
     end
 
+    # Accesses the queue_adapter set by ActiveJob::Base.
+    #
+    #   def test_assert_job_has_custom_queue_adapter_set
+    #     assert_instance_of CustomQueueAdapter, HelloJob.queue_adapter
+    #   end
     def queue_adapter
       ActiveJob::Base.queue_adapter
     end

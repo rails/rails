@@ -1,7 +1,6 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/module/delegation'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/remove_method"
 
 module ActiveModel
   class Name
@@ -149,7 +148,7 @@ module ActiveModel
 
       raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
-      @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
+      @unnamespaced = @name.sub(/^#{namespace.name}::/, "") if namespace
       @klass        = klass
       @singular     = _singularize(@name)
       @plural       = ActiveSupport::Inflector.pluralize(@singular)
@@ -174,7 +173,7 @@ module ActiveModel
     #   BlogPost.model_name.human # => "Blog post"
     #
     # Specify +options+ with additional translating options.
-    def human(options={})
+    def human(options = {})
       return @human unless @klass.respond_to?(:lookup_ancestors) &&
                            @klass.respond_to?(:i18n_scope)
 
@@ -191,9 +190,9 @@ module ActiveModel
 
     private
 
-    def _singularize(string)
-      ActiveSupport::Inflector.underscore(string).tr('/'.freeze, '_'.freeze)
-    end
+      def _singularize(string)
+        ActiveSupport::Inflector.underscore(string).tr("/".freeze, "_".freeze)
+      end
   end
 
   # == Active \Model \Naming

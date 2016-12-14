@@ -26,7 +26,7 @@ module ActiveRecord
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
-        # * +class_name_or_coder+ - Optional, a coder object, which responds to `.load` / `.dump`
+        # * +class_name_or_coder+ - Optional, a coder object, which responds to +.load+ and +.dump+
         #   or a class name that the object type should be equal to.
         #
         # ==== Example
@@ -50,12 +50,12 @@ module ActiveRecord
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
           coder = if class_name_or_coder == ::JSON
-                    Coders::JSON
-                  elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-                    class_name_or_coder
-                  else
-                    Coders::YAMLColumn.new(class_name_or_coder)
-                  end
+            Coders::JSON
+          elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
+            class_name_or_coder
+          else
+            Coders::YAMLColumn.new(class_name_or_coder)
+          end
 
           decorate_attribute_type(attr_name, :serialize) do |type|
             Type::Serialized.new(type, coder)

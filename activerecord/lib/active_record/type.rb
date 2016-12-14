@@ -1,17 +1,20 @@
-require 'active_model/type'
+require "active_model/type"
 
-require 'active_record/type/internal/abstract_json'
-require 'active_record/type/internal/timezone'
+require "active_record/type/internal/abstract_json"
+require "active_record/type/internal/timezone"
 
-require 'active_record/type/date'
-require 'active_record/type/date_time'
-require 'active_record/type/time'
+require "active_record/type/date"
+require "active_record/type/date_time"
+require "active_record/type/decimal_without_scale"
+require "active_record/type/time"
+require "active_record/type/text"
+require "active_record/type/unsigned_integer"
 
-require 'active_record/type/serialized'
-require 'active_record/type/adapter_specific_registry'
+require "active_record/type/serialized"
+require "active_record/type/adapter_specific_registry"
 
-require 'active_record/type/type_map'
-require 'active_record/type/hash_lookup_type_map'
+require "active_record/type/type_map"
+require "active_record/type/hash_lookup_type_map"
 
 module ActiveRecord
   module Type
@@ -37,6 +40,10 @@ module ActiveRecord
         registry.lookup(*args, adapter: adapter, **kwargs)
       end
 
+      def default_value # :nodoc:
+        @default_value ||= Value.new
+      end
+
       private
 
       def current_adapter_name
@@ -49,12 +56,9 @@ module ActiveRecord
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
     Decimal = ActiveModel::Type::Decimal
-    DecimalWithoutScale = ActiveModel::Type::DecimalWithoutScale
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String
-    Text = ActiveModel::Type::Text
-    UnsignedInteger = ActiveModel::Type::UnsignedInteger
     Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)

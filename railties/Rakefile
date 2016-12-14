@@ -1,11 +1,11 @@
-require 'rake/testtask'
+require "rake/testtask"
 
-task :default => :test
+task default: :test
 
 task :package
 
 desc "Run all unit tests"
-task :test => 'test:isolated'
+task test: "test:isolated"
 
 namespace :test do
   task :isolated do
@@ -14,10 +14,11 @@ namespace :test do
     Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
       dash_i = [
-        'test',
-        'lib',
+        "test",
+        "lib",
         "#{File.dirname(__FILE__)}/../activesupport/lib",
         "#{File.dirname(__FILE__)}/../actionpack/lib",
+        "#{File.dirname(__FILE__)}/../actionview/lib",
         "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
       ruby "-w", "-I#{dash_i.join ':'}", file
@@ -25,9 +26,9 @@ namespace :test do
   end
 end
 
-Rake::TestTask.new('test:regular') do |t|
-  t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
-  t.pattern = 'test/**/*_test.rb'
+Rake::TestTask.new("test:regular") do |t|
+  t.libs << "test" << "#{File.dirname(__FILE__)}/../activesupport/lib"
+  t.pattern = "test/**/*_test.rb"
   t.warning = false
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)

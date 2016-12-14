@@ -50,7 +50,7 @@ class Role < ApplicationRecord
 end
 ```
 
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -81,10 +81,9 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `where`
 
-All of the above methods return an instance of `ActiveRecord::Relation`.
+Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
 The primary operation of `Model.find(options)` can be summarized as:
 
@@ -601,6 +600,7 @@ If you want to call `order` multiple times, subsequent orders will be appended t
 Client.order("orders_count ASC").order("created_at DESC")
 # SELECT * FROM clients ORDER BY orders_count ASC, created_at DESC
 ```
+WARNING: If you are using **MySQL 5.7.5** and above, then on selecting fields from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
 -------------------------
@@ -953,6 +953,9 @@ class Client < ApplicationRecord
 end
 ```
 
+NOTE: Please note that the optimistic locking will be ignored if you update the
+locking column's value.
+
 ### Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using `lock` when building a relation obtains an exclusive lock on the selected rows. Relations using `lock` are usually wrapped inside a transaction for preventing deadlock conditions.
@@ -1013,13 +1016,13 @@ There are multiple ways to use the `joins` method.
 You can just supply the raw SQL specifying the `JOIN` clause to `joins`:
 
 ```ruby
-Author.joins("INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'")
+Author.joins("INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'")
 ```
 
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'
+SELECT authors.* FROM authors INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'
 ```
 
 #### Using Array/Hash of Named Associations
@@ -1250,7 +1253,8 @@ articles, all the articles would still be loaded. By using `joins` (an INNER
 JOIN), the join conditions **must** match, otherwise no records will be
 returned.
 
-
+NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models.
+This is because it is ambiguous whether they should appear on the parent record, or the child.
 
 Scopes
 ------

@@ -1,9 +1,9 @@
-require 'cases/helper'
-require 'models/invoice'
-require 'models/line_item'
-require 'models/topic'
-require 'models/node'
-require 'models/tree'
+require "cases/helper"
+require "models/invoice"
+require "models/line_item"
+require "models/topic"
+require "models/node"
+require "models/tree"
 
 class TouchLaterTest < ActiveRecord::TestCase
   fixtures :nodes, :trees
@@ -22,6 +22,15 @@ class TouchLaterTest < ActiveRecord::TestCase
     invoice = Invoice.create!
     invoice.touch_later
     assert_not invoice.changed?
+  end
+
+  def test_touch_later_respects_no_touching_policy
+    time = Time.now.utc - 25.days
+    topic = Topic.create!(updated_at: time, created_at: time)
+    Topic.no_touching do
+      topic.touch_later
+    end
+    assert_equal time.to_i, topic.updated_at.to_i
   end
 
   def test_touch_later_update_the_attributes

@@ -1,11 +1,10 @@
-require 'rack/body_proxy'
-require 'rack/utils'
+require "rack/body_proxy"
+require "rack/utils"
 
 module ActiveSupport
   module Cache
     module Strategy
       module LocalCache
-
         #--
         # This class wraps up local storage for middlewares. Only the middleware method should
         # construct them.
@@ -13,9 +12,9 @@ module ActiveSupport
           attr_reader :name, :local_cache_key
 
           def initialize(name, local_cache_key)
-            @name             = name
+            @name = name
             @local_cache_key = local_cache_key
-            @app              = nil
+            @app = nil
           end
 
           def new(app)

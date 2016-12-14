@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/remove_method'
+require "abstract_unit"
+require "active_support/core_ext/module/remove_method"
 
 module RemoveMethodTests
   class A
@@ -26,26 +26,25 @@ module RemoveMethodTests
 end
 
 class RemoveMethodTest < ActiveSupport::TestCase
-
   def test_remove_method_from_an_object
-    RemoveMethodTests::A.class_eval{
-      self.remove_possible_method(:do_something)
+    RemoveMethodTests::A.class_eval {
+      remove_possible_method(:do_something)
     }
     assert !RemoveMethodTests::A.new.respond_to?(:do_something)
   end
 
   def test_remove_singleton_method_from_an_object
-    RemoveMethodTests::A.class_eval{
-      self.remove_possible_singleton_method(:do_something_else)
+    RemoveMethodTests::A.class_eval {
+      remove_possible_singleton_method(:do_something_else)
     }
     assert !RemoveMethodTests::A.respond_to?(:do_something_else)
   end
 
   def test_redefine_method_in_an_object
-    RemoveMethodTests::A.class_eval{
-      self.redefine_method(:do_something) { return 100 }
-      self.redefine_method(:do_something_protected) { return 100 }
-      self.redefine_method(:do_something_private) { return 100 }
+    RemoveMethodTests::A.class_eval {
+      redefine_method(:do_something) { return 100 }
+      redefine_method(:do_something_protected) { return 100 }
+      redefine_method(:do_something_private) { return 100 }
     }
     assert_equal 100, RemoveMethodTests::A.new.do_something
     assert_equal 100, RemoveMethodTests::A.new.send(:do_something_protected)
@@ -55,5 +54,4 @@ class RemoveMethodTest < ActiveSupport::TestCase
     assert RemoveMethodTests::A.protected_method_defined? :do_something_protected
     assert RemoveMethodTests::A.private_method_defined? :do_something_private
   end
-
 end

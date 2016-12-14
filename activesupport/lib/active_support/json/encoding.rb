@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/json'
-require 'active_support/core_ext/module/delegation'
+require "active_support/core_ext/object/json"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class << self
@@ -7,7 +7,7 @@ module ActiveSupport
       :time_precision, :time_precision=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :json_encoder, :json_encoder=,
-      :to => :'ActiveSupport::JSON::Encoding'
+      to: :'ActiveSupport::JSON::Encoding'
   end
 
   module JSON
@@ -40,9 +40,9 @@ module ActiveSupport
           ESCAPED_CHARS = {
             "\u2028" => '\u2028',
             "\u2029" => '\u2029',
-            '>'      => '\u003e',
-            '<'      => '\u003c',
-            '&'      => '\u0026',
+            ">"      => '\u003e',
+            "<"      => '\u003c',
+            "&"      => '\u0026',
             }
 
           ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
@@ -68,7 +68,8 @@ module ActiveSupport
             :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
 
           # Convert an object into a "JSON-ready" representation composed of
-          # primitives like Hash, Array, String, Numeric, and true/false/nil.
+          # primitives like Hash, Array, String, Numeric,
+          # and +true+/+false+/+nil+.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
           #
@@ -84,7 +85,7 @@ module ActiveSupport
             when String
               EscapedString.new(value)
             when Numeric, NilClass, TrueClass, FalseClass
-              value
+              value.as_json
             when Hash
               Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
             when Array

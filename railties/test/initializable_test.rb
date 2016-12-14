@@ -1,8 +1,7 @@
-require 'abstract_unit'
-require 'rails/initializable'
+require "abstract_unit"
+require "rails/initializable"
 
 module InitializableTests
-
   class Foo
     include Rails::Initializable
     attr_accessor :foo, :bar
@@ -220,8 +219,8 @@ module InitializableTests
   class WithArgsTest < ActiveSupport::TestCase
     test "running initializers with args" do
       $with_arg = nil
-      WithArgs.new.run_initializers(:default, 'foo')
-      assert_equal 'foo', $with_arg
+      WithArgs.new.run_initializers(:default, "foo")
+      assert_equal "foo", $with_arg
     end
   end
 

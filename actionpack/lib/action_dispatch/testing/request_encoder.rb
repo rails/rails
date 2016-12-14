@@ -1,10 +1,17 @@
 module ActionDispatch
   class RequestEncoder # :nodoc:
-    @encoders = {}
+    class IdentityEncoder
+      def content_type; end
+      def accept_header; end
+      def encode_params(params); params; end
+      def response_parser; -> body { body }; end
+    end
+
+    @encoders = { identity: IdentityEncoder.new }
 
     attr_reader :response_parser
 
-    def initialize(mime_name, param_encoder, response_parser, url_encoded_form = false)
+    def initialize(mime_name, param_encoder, response_parser)
       @mime = Mime[mime_name]
 
       unless @mime
@@ -12,21 +19,15 @@ module ActionDispatch
           "unregistered MIME Type: #{mime_name}. See `Mime::Type.register`."
       end
 
-      @url_encoded_form = url_encoded_form
-      @path_format      = ".#{@mime.symbol}" unless @url_encoded_form
-      @response_parser  = response_parser || -> body { body }
-      @param_encoder    = param_encoder   || :"to_#{@mime.symbol}".to_proc
-    end
-
-    def append_format_to(path)
-      if @url_encoded_form
-        path
-      else
-        path + @path_format
-      end
+      @response_parser = response_parser || -> body { body }
+      @param_encoder   = param_encoder   || :"to_#{@mime.symbol}".to_proc
     end
 
     def content_type
+      @mime.to_s
+    end
+
+    def accept_header
       @mime.to_s
     end
 
@@ -40,7 +41,7 @@ module ActionDispatch
     end
 
     def self.encoder(name)
-      @encoders[name] || WWWFormEncoder
+      @encoders[name] || @encoders[:identity]
     end
 
     def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil)
@@ -48,7 +49,5 @@ module ActionDispatch
     end
 
     register_encoder :json, response_parser: -> body { JSON.parse(body) }
-
-    WWWFormEncoder = new(:url_encoded_form, -> params { params }, nil, true)
   end
 end

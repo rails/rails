@@ -1,12 +1,4 @@
 module ActionController
-  class RedirectBackError < AbstractController::Error #:nodoc:
-    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
-
-    def initialize(message = nil)
-      super(message || DEFAULT_MESSAGE)
-    end
-  end
-
   module Redirecting
     extend ActiveSupport::Concern
 
@@ -24,10 +16,10 @@ module ActionController
     # === Examples:
     #
     #   redirect_to action: "show", id: 5
-    #   redirect_to post
+    #   redirect_to @post
     #   redirect_to "http://www.rubyonrails.org"
     #   redirect_to "/images/screenshot.jpg"
-    #   redirect_to articles_url
+    #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
     # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
@@ -77,11 +69,11 @@ module ActionController
     # is missing this header, the <tt>fallback_location</tt> will be used.
     #
     #   redirect_back fallback_location: { action: "show", id: 5 }
-    #   redirect_back fallback_location: post
+    #   redirect_back fallback_location: @post
     #   redirect_back fallback_location: "http://www.rubyonrails.org"
-    #   redirect_back fallback_location:  "/images/screenshot.jpg"
-    #   redirect_back fallback_location:  articles_url
-    #   redirect_back fallback_location:  proc { edit_post_url(@post) }
+    #   redirect_back fallback_location: "/images/screenshot.jpg"
+    #   redirect_back fallback_location: posts_url
+    #   redirect_back fallback_location: proc { edit_post_url(@post) }
     #
     # All options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
@@ -104,14 +96,6 @@ module ActionController
         options
       when String
         request.protocol + request.host_with_port + options
-      when :back
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          `redirect_to :back` is deprecated and will be removed from Rails 5.1.
-          Please use `redirect_back(fallback_location: fallback_location)` where
-          `fallback_location` represents the location to use if the request has
-          no HTTP referer information.
-        MESSAGE
-        request.headers["Referer"] or raise RedirectBackError
       when Proc
         _compute_redirect_to_location request, options.call
       else

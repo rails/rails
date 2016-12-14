@@ -1,11 +1,11 @@
-require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/ordered_options'
-require 'action_view/log_subscriber'
-require 'action_view/helpers'
-require 'action_view/context'
-require 'action_view/template'
-require 'action_view/lookup_context'
+require "active_support/core_ext/module/attr_internal"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/ordered_options"
+require "action_view/log_subscriber"
+require "action_view/helpers"
+require "action_view/context"
+require "action_view/template"
+require "action_view/lookup_context"
 
 module ActionView #:nodoc:
   # = Action View Base
@@ -141,7 +141,7 @@ module ActionView #:nodoc:
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    @@field_error_proc = Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
@@ -169,7 +169,7 @@ module ActionView #:nodoc:
     class_attribute :logger
 
     class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+      delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
 
       def cache_template_loading
         ActionView::Resolver.caching?
@@ -187,8 +187,8 @@ module ActionView #:nodoc:
     attr_accessor :view_renderer
     attr_internal :config, :assigns
 
-    delegate :lookup_context, :to => :view_renderer
-    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
+    delegate :lookup_context, to: :view_renderer
+    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }

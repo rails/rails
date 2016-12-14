@@ -1,5 +1,5 @@
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/regexp'
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
@@ -34,21 +34,24 @@ class Module
   #   end
   #
   #   Current.new.user # => NoMethodError
-  def thread_mattr_reader(*syms)
+  def thread_mattr_reader(*syms) # :nodoc:
     options = syms.extract_options!
 
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
+
+      # The following generated method concatenates `name` because we want it
+      # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}
-          Thread.current[:"attr_#{name}_#{sym}"]
+          Thread.current["attr_" + name + "_#{sym}"]
         end
       EOS
 
       unless options[:instance_reader] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
-            Thread.current[:"attr_#{name}_#{sym}"]
+            self.class.#{sym}
           end
         EOS
       end
@@ -74,20 +77,23 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms)
+  def thread_mattr_writer(*syms) # :nodoc:
     options = syms.extract_options!
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
+
+      # The following generated method concatenates `name` because we want it
+      # to work with inheritance via polymorphism.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          Thread.current[:"attr_#{name}_#{sym}"] = obj
+          Thread.current["attr_" + name + "_#{sym}"] = obj
         end
       EOS
 
       unless options[:instance_writer] == false || options[:instance_accessor] == false
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
-            Thread.current[:"attr_#{name}_#{sym}"] = obj
+            self.class.#{sym} = obj
           end
         EOS
       end
@@ -134,9 +140,9 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
-  def thread_mattr_accessor(*syms, &blk)
-    thread_mattr_reader(*syms, &blk)
-    thread_mattr_writer(*syms, &blk)
+  def thread_mattr_accessor(*syms)
+    thread_mattr_reader(*syms)
+    thread_mattr_writer(*syms)
   end
   alias :thread_cattr_accessor :thread_mattr_accessor
 end

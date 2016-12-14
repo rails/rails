@@ -88,7 +88,6 @@ module ActionDispatch
     end
 
     def delete(target)
-      target = get_class target
       middlewares.delete_if { |m| m.klass == target }
     end
 
@@ -102,32 +101,14 @@ module ActionDispatch
 
     private
 
-    def assert_index(index, where)
-      index = get_class index
-      i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
-      raise "No such middleware to insert #{where}: #{index.inspect}" unless i
-      i
-    end
-
-    def get_class(klass)
-      if klass.is_a?(String) || klass.is_a?(Symbol)
-        classcache = ActiveSupport::Dependencies::Reference
-        converted_klass = classcache[klass.to_s]
-        ActiveSupport::Deprecation.warn <<-eowarn
-Passing strings or symbols to the middleware builder is deprecated, please change
-them to actual class references.  For example:
-
-  "#{klass}" => #{converted_klass}
-
-        eowarn
-        converted_klass
-      else
-        klass
+      def assert_index(index, where)
+        i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
+        raise "No such middleware to insert #{where}: #{index.inspect}" unless i
+        i
       end
-    end
 
-    def build_middleware(klass, args, block)
-      Middleware.new(get_class(klass), args, block)
-    end
+      def build_middleware(klass, args, block)
+        Middleware.new(klass, args, block)
+      end
   end
 end

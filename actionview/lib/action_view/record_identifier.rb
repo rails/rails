@@ -1,5 +1,5 @@
-require 'active_support/core_ext/module'
-require 'action_view/model_naming'
+require "active_support/core_ext/module"
+require "action_view/model_naming"
 
 module ActionView
   # RecordIdentifier encapsulates methods used by various ActionView helpers
@@ -57,8 +57,8 @@ module ActionView
 
     include ModelNaming
 
-    JOIN = '_'.freeze
-    NEW = 'new'.freeze
+    JOIN = "_".freeze
+    NEW = "new".freeze
 
     # The DOM class convention is to use the singular form of an object or class.
     #

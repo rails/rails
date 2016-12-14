@@ -35,7 +35,7 @@ module ActiveRecord
 
       def test_returns_string_unless_starts_with_dash
         coder = YAMLColumn.new
-        assert_equal 'foo', coder.load("foo")
+        assert_equal "foo", coder.load("foo")
       end
 
       def test_load_handles_other_classes
@@ -45,7 +45,7 @@ module ActiveRecord
 
       def test_load_doesnt_swallow_yaml_exceptions
         coder = YAMLColumn.new
-        bad_yaml = '--- {'
+        bad_yaml = "--- {"
         assert_raises(Psych::SyntaxError) do
           coder.load(bad_yaml)
         end

@@ -240,12 +240,12 @@ WebNotificationsChannel.broadcast_to(
 ```
 
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter (Redis by default)'s pubsub queue under a separate
-broadcasting name for each user. For a user with an ID of 1, the broadcasting
-name would be `web_notifications_1`.
+subscription adapter (by default `redis` for production and `async` for development and 
+test environments)'s pubsub queue under a separate broadcasting name for each user. 
+For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
-`web_notifications_1` directly to the client by invoking the `received`
+`web_notifications:1` directly to the client by invoking the `received`
 callback.
 
 ### Subscriptions
@@ -313,7 +313,7 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
 ```ruby
 # Somewhere in your app this is called, perhaps
 # from a NewCommentJob.
-ChatChannel.broadcast_to(
+ActionCable.server.broadcast(
   "chat_#{room}",
   sent_by: 'Paul',
   body: 'This is a cool chat app.'
@@ -422,7 +422,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
@@ -510,10 +510,10 @@ WebNotificationsChannel.broadcast_to(
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
 subscription adapter's pubsub queue under a separate broadcasting name for each
 user. For a user with an ID of 1, the broadcasting name would be
-"web_notifications_1".
+`web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
-"web_notifications_1" directly to the client by invoking the `received`
+`web_notifications:1` directly to the client by invoking the `received`
 callback. The data passed as argument is the hash sent as the second parameter
 to the server-side broadcast call, JSON encoded for the trip across the wire,
 and unpacked for the data argument arriving to `received`.
