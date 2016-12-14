@@ -95,7 +95,7 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
-      DEFAULT_PID_PATH = File.expand_path("tmp/pids/server.pid").freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
 
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port.", banner: :port, default: 3000
@@ -141,7 +141,7 @@ module Rails
             config:             options[:config],
             environment:        environment,
             daemonize:          options[:daemon],
-            pid:                options[:pid],
+            pid:                pid,
             caching:            options["dev-caching"],
             restart_cmd:        restart_command
           }
@@ -163,6 +163,10 @@ module Rails
 
         def restart_command
           "bin/rails server #{@server} #{@original_options.join(" ")}"
+        end
+
+        def pid
+          File.expand_path(options[:pid])
         end
 
         def self.banner(*)
