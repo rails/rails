@@ -162,6 +162,10 @@ $ cd actionpack
 $ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
 
+### Railties Setup
+
+Some Railties tests depend on a JavaScript runtime environment, such as having [Node.js](https://nodejs.org/) installed.
+
 ### Active Record Setup
 
 Active Record's test suite runs three times: once for SQLite3, once for MySQL, and once for PostgreSQL. We are going to see now how to set up the environment for them.
