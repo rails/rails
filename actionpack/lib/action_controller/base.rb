@@ -250,7 +250,9 @@ module ActionController
       include mod
     end
     setup_renderer!
-
+    
+    protect_from_forgery with: :null_session
+    
     # Define some internal variables that should not be propagated to the view.
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + %i(
       @_params @_response @_request @_config @_url_options @_action_has_layout @_view_context_class
