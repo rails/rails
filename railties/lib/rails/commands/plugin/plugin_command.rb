@@ -11,7 +11,7 @@ module Rails
         "#{executable} new [options]"
       end
 
-      class_option :rc, type: :boolean, default: File.join("~", ".railsrc"),
+      class_option :rc, type: :string, default: File.join("~", ".railsrc"),
         desc: "Initialize the plugin command with previous defaults. Uses .railsrc in your home directory by default."
 
       class_option :no_rc, desc: "Skip evaluating .railsrc."
