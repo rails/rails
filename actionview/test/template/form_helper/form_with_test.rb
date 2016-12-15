@@ -116,6 +116,16 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     assert_dom_equal expected, output_buffer
   end
+
+  def test_form_with_with_block_in_erb_and_local_true
+    output_buffer = render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
+
+    expected = whole_form("http://www.example.com", local: true) do
+      "Hello world!"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
 end
 
 class FormWithActsLikeFormForTest < FormWithTest

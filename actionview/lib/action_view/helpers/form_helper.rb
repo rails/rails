@@ -2293,10 +2293,6 @@ module ActionView
           if options.key?(:skip_id)
             options[:include_id] = !options.delete(:skip_id)
           end
-
-          if options.key?(:local)
-            options[:remote] = !options.delete(:local)
-          end
         end
     end
   end
