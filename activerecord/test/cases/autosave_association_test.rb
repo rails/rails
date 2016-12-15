@@ -26,6 +26,7 @@ require "models/member_detail"
 require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
+require "models/entry"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -1721,5 +1722,36 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
 
     assert_equal 1, post.comments.count
     assert_equal 1, comment.post_comments_count
+  end
+end
+
+class TestAutosaveAssociationValidationErrorMessage < ActiveRecord::TestCase
+  Order.class_eval do
+    has_many :entries, index_errors: true
+    accepts_nested_attributes_for :entries
+  end
+
+  def setup
+    @order = Order.create!(entries_attributes: [
+      { title: "entry_1" },
+      { title: "entry_2" }])
+    @entry_1 = @order.entries.first
+    @entry_2 = @order.entries.last
+  end
+
+  def test_update_both_entries_with_invalid_second
+    @order.update(entries_attributes: [
+      { id: @entry_1.id, title: "entry_1_updted" },
+      { id: @entry_2.id, title: "" }])
+    assert_equal 1, @order.errors.count
+    assert_equal "entries[1].title", @order.errors.messages.keys.first.to_s
+  end
+
+  def test_update_only_second_entry_with_invalid_second
+    @order.update(entries_attributes: [
+      { id: @entry_1.id, title: "entry_1" },
+      { id: @entry_2.id, title: "" }])
+    assert_equal 1, @order.errors.count
+    assert_equal "entries[1].title", @order.errors.messages.keys.first.to_s
   end
 end
