@@ -211,9 +211,19 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_dirty_dirty_yaml_file
-    assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
     end
+    assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
+  end
+
+  def test_yaml_file_with_one_invalid_fixture
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+    end
+    assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
 
   def test_yaml_file_with_invalid_column
