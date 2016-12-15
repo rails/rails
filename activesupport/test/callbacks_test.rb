@@ -224,10 +224,51 @@ module CallbacksTest
     define_callbacks :save
   end
 
-  class AroundPerson < MySuper
+  class MySlate < MySuper
     attr_reader :history
     attr_accessor :save_fails
 
+    def initialize
+      @history = []
+    end
+
+    def save
+      run_callbacks :save do
+        raise "inside save" if save_fails
+        @history << "running"
+      end
+    end
+
+    def no; false; end
+    def yes; true; end
+
+    def method_missing(sym, *)
+      case sym
+      when /^log_(.*)/
+        @history << $1
+        nil
+      when /^wrap_(.*)/
+        @history << "wrap_#$1"
+        yield
+        @history << "unwrap_#$1"
+        nil
+      when /^double_(.*)/
+        @history << "first_#$1"
+        yield
+        @history << "second_#$1"
+        yield
+        @history << "third_#$1"
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(sym)
+      sym =~ /^(log|wrap)_/ || super
+    end
+  end
+
+  class AroundPerson < MySlate
     set_callback :save, :before, :nope,           if: :no
     set_callback :save, :before, :nope,           unless: :yes
     set_callback :save, :after,  :tweedle
@@ -241,9 +282,6 @@ module CallbacksTest
     set_callback :save, :around, :w0tyes,         if: :yes
     set_callback :save, :around, :w0tno,          if: :no
     set_callback :save, :around, :tweedle_deedle
-
-    def no; false; end
-    def yes; true; end
 
     def nope
       @history << "boom"
@@ -282,17 +320,6 @@ module CallbacksTest
       @history << "tweedle deedle pre"
       yield
       @history << "tweedle deedle post"
-    end
-
-    def initialize
-      @history = []
-    end
-
-    def save
-      run_callbacks :save do
-        raise "inside save" if save_fails
-        @history << "running"
-      end
     end
   end
 
@@ -405,6 +432,32 @@ module CallbacksTest
         "tweedle dum post",
         "tweedle"
       ], around.history
+    end
+  end
+
+  class DoubleYieldTest < ActiveSupport::TestCase
+    class DoubleYieldModel < MySlate
+      set_callback :save, :around, :wrap_outer
+      set_callback :save, :around, :double_trouble
+      set_callback :save, :around, :wrap_inner
+    end
+
+    def test_double_save
+      double = DoubleYieldModel.new
+      double.save
+      assert_equal [
+        "wrap_outer",
+        "first_trouble",
+        "wrap_inner",
+        "running",
+        "unwrap_inner",
+        "second_trouble",
+        "wrap_inner",
+        "running",
+        "unwrap_inner",
+        "third_trouble",
+        "unwrap_outer",
+      ], double.history
     end
   end
 
