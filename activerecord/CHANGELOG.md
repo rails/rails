@@ -1,3 +1,13 @@
+*   Notifications see frozen SQL string.
+
+    Fixes #23774
+
+    *Richard Monette*
+
+*   RuntimeErrors are no longer translated to ActiveRecord::StatementInvalid.
+
+    *Richard Monette*
+
 *   Change the schema cache format to use YAML instead of Marshal.
 
     *Kir Shatrov*
