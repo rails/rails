@@ -5,6 +5,8 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
+# Read http://guides.rubyonrails.org/app_servers.html for important information about choosing an app server before deploying to production.
+
 <% gemfile_entries.each do |gem| -%>
 <% if gem.comment -%>
 
