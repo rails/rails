@@ -1,7 +1,7 @@
 module ActiveModel
   module Type
-    module Helpers
-      class AcceptsMultiparameterTime < Module # :nodoc:
+    module Helpers # :nodoc: all
+      class AcceptsMultiparameterTime < Module
         def initialize(defaults: {})
           define_method(:cast) do |value|
             if value.is_a?(Hash)
