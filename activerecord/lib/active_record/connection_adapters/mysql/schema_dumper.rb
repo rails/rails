@@ -4,8 +4,8 @@ module ActiveRecord
       module ColumnDumper
         def column_spec_for_primary_key(column)
           spec = super
-          if column.type == :integer && !column.auto_increment?
-            spec[:default] = schema_default(column) || "nil"
+          if [:integer, :bigint].include?(schema_type(column)) && !column.auto_increment?
+            spec[:default] ||= schema_default(column) || "nil"
           end
           spec[:unsigned] = "true" if column.unsigned?
           spec

@@ -24,9 +24,8 @@ module ActiveRecord
           # Since 5.1 Postgres adapter uses bigserial type for primary
           # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
           # serial/int type instead -- the way it used to work before 5.1.
-          if options[:id].blank?
+          unless options.key?(:id)
             options[:id] = :integer
-            options[:auto_increment] = true
           end
 
           super
