@@ -162,7 +162,7 @@ GEM
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.10.0)
+    coffee-script-source (1.12.2)
     concurrent-ruby (1.0.2)
     connection_pool (2.2.0)
     cookiejar (0.3.3)
