@@ -109,16 +109,22 @@ module ActiveSupport
         invoke_sequence = Proc.new do
           skipped = nil
           while true
-            current, next_sequence = next_sequence, next_sequence.nested
+            current = next_sequence
             current.invoke_before(env)
             if current.final?
               env.value = !env.halted && (!block_given? || yield)
             elsif current.skip?(env)
               (skipped ||= []) << current
+              next_sequence = next_sequence.nested
               next
             else
-              target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
-              target.send(method, *arguments, &block)
+              next_sequence = next_sequence.nested
+              begin
+                target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                target.send(method, *arguments, &block)
+              ensure
+                next_sequence = current
+              end
             end
             current.invoke_after(env)
             skipped.pop.invoke_after(env) while skipped && skipped.first
