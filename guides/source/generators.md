@@ -451,6 +451,26 @@ $ rails new thud -m https://gist.github.com/radar/722911/raw/
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
 
+Adding Command Line Arguments
+-----------------------------
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](http://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+
+```
+class_option :scope, type: :string, default: 'read_products'
+```
+
+Now our generator can be invoked as follows:
+
+```bash
+rails generate initializer --scope write_products
+```
+
+The command line arguments are accessed through the `options` method inside the generator class. e.g:
+
+```ruby
+@scope = options['scope']
+```
+
 Generator methods
 -----------------
 
