@@ -1,7 +1,7 @@
 module ActiveModel
   module Type
-    module Helpers
-      module Mutable # :nodoc:
+    module Helpers # :nodoc: all
+      module Mutable
         def cast(value)
           deserialize(serialize(value))
         end

@@ -1,7 +1,7 @@
 module ActiveModel
   module Type
-    module Helpers
-      module Numeric # :nodoc:
+    module Helpers # :nodoc: all
+      module Numeric
         def cast(value)
           value = \
             case value
