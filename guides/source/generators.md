@@ -216,7 +216,7 @@ If we want to avoid generating the default `app/assets/stylesheets/scaffolds.scs
   end
 ```
 
-Our first customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds. We can achieve that by changing our configuration to the following:
+The next customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
 ```ruby
 config.generators do |g|
