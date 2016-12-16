@@ -284,6 +284,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "rescue with JavaScript format for JavaScript requests" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "action_dispatch.show_exceptions" => true,  "Accept" => "text/javascript" }
+    assert_response 500
+    assert_equal "text/javascript", response.content_type
+    assert_match(/alert\(\"RuntimeError\\npuke/, body)
+  end
+
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 

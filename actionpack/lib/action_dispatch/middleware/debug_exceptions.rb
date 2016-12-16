@@ -93,7 +93,10 @@ module ActionDispatch
         template = create_template(request, wrapper)
         file = "rescues/#{wrapper.rescue_template}"
 
-        if request.xhr?
+        if request.format == "text/javascript"
+          body = template.render(template: file, layout: "rescues/javascript_layout", formats: [:text])
+          format = "text/javascript"
+        elsif request.xhr?
           body = template.render(template: file, layout: false, formats: [:text])
           format = "text/plain"
         else
