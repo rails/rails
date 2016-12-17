@@ -5,8 +5,7 @@ module ActiveRecord
         delegate :extra, to: :sql_type_metadata, allow_nil: true
 
         def unsigned?
-          # enum and set types do not allow being defined as unsigned.
-          !/\A(?:enum|set)\b/.match?(sql_type) && /\bunsigned\b/.match?(sql_type)
+          /\bunsigned(?: zerofill)?\z/.match?(sql_type)
         end
 
         def case_sensitive?
