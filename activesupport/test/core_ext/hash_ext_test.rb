@@ -589,6 +589,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_compact
+    hash_contain_nil_value = @strings.merge("z" => nil)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
+    compacted_hash = hash.compact
+
+    assert_equal(@strings, compacted_hash)
+    assert_equal(hash_contain_nil_value, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, compacted_hash
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash
