@@ -210,9 +210,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      protected
+      private
 
-        def translate_offset(byte_offset) #:nodoc:
+        def translate_offset(byte_offset)
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ""
 
@@ -224,7 +224,7 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        def chars(string) #:nodoc:
+        def chars(string)
           self.class.new(string)
         end
     end

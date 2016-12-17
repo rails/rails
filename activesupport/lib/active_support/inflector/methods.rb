@@ -361,7 +361,7 @@ module ActiveSupport
       #
       #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
       #   const_regexp("::")            # => "::"
-      def const_regexp(camel_cased_word) #:nodoc:
+      def const_regexp(camel_cased_word)
         parts = camel_cased_word.split("::".freeze)
 
         return Regexp.escape(camel_cased_word) if parts.blank?

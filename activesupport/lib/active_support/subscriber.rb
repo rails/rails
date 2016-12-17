@@ -58,7 +58,9 @@ module ActiveSupport
 
       attr_reader :subscriber, :notifier, :namespace
 
-      def add_event_subscriber(event)
+      private
+
+      def add_event_subscriber(event) # :doc:
         return if %w{ start finish }.include?(event.to_s)
 
         pattern = "#{event}.#{namespace}"

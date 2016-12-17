@@ -36,7 +36,7 @@ module ActiveSupport
       #       render xml: exception, status: 500
       #     end
       #
-      #     protected
+      #     private
       #       def deny_access
       #         ...
       #       end
