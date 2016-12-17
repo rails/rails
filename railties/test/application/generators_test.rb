@@ -169,5 +169,20 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.text.erb"))
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
     end
+
+    test "ARGV is mutated as expected" do
+      require "#{app_path}/config/environment"
+      Rails::Command.const_set("APP_PATH", "rails/all")
+
+      FileUtils.cd(rails_root) do
+        ARGV = ["mailer", "notifier", "foo"]
+        Rails::Command.const_set("ARGV", ARGV)
+        Rails::Command.invoke :generate, ARGV
+
+        assert_equal ["notifier", "foo"], ARGV
+      end
+
+      Rails::Command.send(:remove_const, "APP_PATH")
+    end
   end
 end
