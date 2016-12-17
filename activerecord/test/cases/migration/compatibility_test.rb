@@ -1,4 +1,5 @@
 require "cases/helper"
+require "support/schema_dumping_helper"
 
 module ActiveRecord
   class Migration
@@ -108,6 +109,109 @@ module ActiveRecord
         end
         assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
+    end
+  end
+end
+
+class LegacyPrimaryKeyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  self.use_transactional_tests = false
+
+  class LegacyPrimaryKey < ActiveRecord::Base
+  end
+
+  def setup
+    @migration = nil
+    @verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.verbose = false
+  end
+
+  def teardown
+    @migration.migrate(:down) if @migration
+    ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::SchemaMigration.delete_all rescue nil
+    LegacyPrimaryKey.reset_column_information
+  end
+
+  def test_legacy_primary_key_should_be_auto_incremented
+    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      def change
+        create_table :legacy_primary_keys do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+    assert_not legacy_pk.bigint?
+    assert_not legacy_pk.null
+
+    record1 = LegacyPrimaryKey.create!
+    assert_not_nil record1.id
+
+    record1.destroy
+
+    record2 = LegacyPrimaryKey.create!
+    assert_not_nil record2.id
+    assert_operator record2.id, :>, record1.id
+  end
+
+  def test_legacy_integer_primary_key_should_not_be_auto_incremented
+    skip if current_adapter?(:SQLite3Adapter)
+
+    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      def change
+        create_table :legacy_primary_keys, id: :integer do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    assert_raises(ActiveRecord::NotNullViolation) do
+      LegacyPrimaryKey.create!
+    end
+
+    schema = dump_table_schema "legacy_primary_keys"
+    assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_legacy_bigint_primary_key_should_be_auto_incremented
+      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+        def change
+          create_table :legacy_primary_keys, id: :bigint
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+      assert legacy_pk.bigint?
+      assert legacy_pk.auto_increment?
+
+      schema = dump_table_schema "legacy_primary_keys"
+      assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
+    end
+  else
+    def test_legacy_bigint_primary_key_should_not_be_auto_incremented
+      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+        def change
+          create_table :legacy_primary_keys, id: :bigint do |t|
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      assert_raises(ActiveRecord::NotNullViolation) do
+        LegacyPrimaryKey.create!
+      end
+
+      schema = dump_table_schema "legacy_primary_keys"
+      assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
     end
   end
 end
