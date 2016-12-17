@@ -171,6 +171,9 @@ module ActionView
       #   to ",").
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
+      #   deriving the placement of delimiter. Helpful when using currency formats
+      #   like INR.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -186,6 +189,9 @@ module ActionView
       #   number_with_delimiter("112a")                          # => 112a
       #   number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
       #   # => 98 765 432,98
+      #
+      #   number_with_delimiter("123456.78",
+      #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)    # => "1,23,456.78"
       #
       #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
