@@ -346,42 +346,60 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 end
 
-class PrimaryKeyIntegerTest < ActiveRecord::TestCase
-  include SchemaDumpingHelper
+if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
+  class PrimaryKeyIntegerTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
 
-  self.use_transactional_tests = false
+    self.use_transactional_tests = false
 
-  class Widget < ActiveRecord::Base
-  end
-
-  setup do
-    @connection = ActiveRecord::Base.connection
-    @connection.create_table(:widgets, force: true)
-  end
-
-  teardown do
-    @connection.drop_table :widgets, if_exists: true
-    Widget.reset_column_information
-  end
-
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
-    test "schema dump primary key with bigserial" do
-      schema = dump_table_schema "widgets"
-      assert_match %r{create_table "widgets", force: :cascade}, schema
+    class Widget < ActiveRecord::Base
     end
-  end
 
-  test "primary key column type" do
-    column_type = Widget.type_for_attribute(Widget.primary_key)
-    assert_equal :integer, column_type.type
+    setup do
+      @connection = ActiveRecord::Base.connection
+      if current_adapter?(:PostgreSQLAdapter)
+        @connection.create_table(:widgets, id: :serial, force: true)
+      else
+        @connection.create_table(:widgets, id: :integer, force: true)
+      end
+    end
 
-    if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
-      assert_equal 8, column_type.limit
+    teardown do
+      @connection.drop_table :widgets, if_exists: true
+    end
+
+    test "primary key column type with serial/integer" do
+      column = @connection.columns(:widgets).find { |c| c.name == "id" }
+      assert_equal :integer, column.type
+      assert_not column.bigint?
+    end
+
+    test "primary key with serial/integer are automatically numbered" do
+      widget = Widget.create!
+      assert_not_nil widget.id
+    end
+
+    test "schema dump primary key with serial/integer" do
+      schema = dump_table_schema "widgets"
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match %r{create_table "widgets", id: :serial, force: :cascade}, schema
+      else
+        assert_match %r{create_table "widgets", id: :integer, force: :cascade}, schema
+      end
     end
 
     if current_adapter?(:Mysql2Adapter)
-      column = @connection.columns(:widgets).find { |c| c.name == "id" }
-      assert column.auto_increment?
+      test "primary key column type with options" do
+        @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        assert column.auto_increment?
+        assert_equal :integer, column.type
+        assert_equal 4, column.limit
+        assert column.unsigned?
+
+        schema = dump_table_schema "widgets"
+        assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+      end
     end
   end
 end
