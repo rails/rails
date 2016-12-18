@@ -34,8 +34,8 @@ module ActiveJob
   module Arguments
     extend self
     # :nodoc:
-    # Calls #uniq since Integer, Fixnum, and Bignum are all the same class on Ruby 2.4+
-    TYPE_WHITELIST = [ NilClass, String, Integer, Fixnum, Bignum, Float, BigDecimal, TrueClass, FalseClass ].uniq
+    TYPE_WHITELIST = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
+    TYPE_WHITELIST.push(Fixnum, Bignum) unless 1.class == Integer
 
     # Serializes a set of arguments. Whitelisted types are returned
     # as-is. Arrays/Hashes are serialized element by element.
