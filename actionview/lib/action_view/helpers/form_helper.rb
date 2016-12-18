@@ -521,7 +521,7 @@ module ActionView
       # By default +form_with+ attaches the <tt>data-remote</tt> attribute
       # submitting the form via an XMLHTTPRequest in the background if an
       # Unobtrusive JavaScript driver, like rails-ujs, is used. See the
-      # <tt>:remote</tt> option for more.
+      # <tt>:local</tt> option for more.
       #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
