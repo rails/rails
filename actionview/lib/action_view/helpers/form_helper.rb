@@ -1037,6 +1037,7 @@ module ActionView
       # to work with an object as a base, like
       # FormOptionHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
+        options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = true
 
         if model
@@ -1945,6 +1946,7 @@ module ActionView
 
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
+        options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = true
 
         convert_to_legacy_options(options)

@@ -935,6 +935,41 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
+  def test_fields_with_attributes_not_on_model
+    form_with(model: @post) do |f|
+      concat f.fields(:comment) { |c|
+        concat c.text_field :dont_exist_on_model
+      }
+    end
+
+    expected = whole_form("/posts/123", method: :patch) do
+      '<input type="text" name="post[comment][dont_exist_on_model]">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_with_attributes_not_on_model_deep_nested
+    @comment.save
+    form_with(scope: :posts) do |f|
+      f.fields("post[]", model: @post) do |f2|
+        f2.text_field(:id)
+        @post.comments.each do |comment|
+          concat f2.fields("comment[]", model: comment) { |c|
+            concat c.text_field(:dont_exist_on_model)
+          }
+        end
+      end
+    end
+
+    expected = whole_form do
+      '<input name="posts[post][0][comment][1][dont_exist_on_model]" type="text">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+
   def test_nested_fields
     @comment.body = "Hello World"
     form_with(model: @post) do |f|
