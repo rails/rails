@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-unless `which kindlerb`
-  abort "Please gem install kindlerb"
-end
-
+require 'kindlerb'
 require "nokogiri"
 require "fileutils"
 require "yaml"
@@ -28,10 +25,9 @@ module Kindle
       generate_document_metadata(mobi_outfile)
 
       puts "Creating MOBI document with kindlegen. This may take a while."
-      cmd = "kindlerb . > #{File.absolute_path logfile} 2>&1"
-      puts cmd
-      system(cmd)
-      puts "MOBI document generated at #{File.expand_path(mobi_outfile, output_dir)}"
+      if Kindlerb.run(output_dir)
+        puts "MOBI document generated at #{File.expand_path(mobi_outfile, output_dir)}"
+      end
     end
   end
 

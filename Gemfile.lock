@@ -213,7 +213,7 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (2.0.2)
-    kindlerb (1.0.1)
+    kindlerb (1.2.0)
       mustache
       nokogiri
     libxml-ruby (2.9.0)
@@ -396,7 +396,7 @@ DEPENDENCIES
   hiredis
   jquery-rails
   json (>= 2.0.0)
-  kindlerb (>= 1.0.1)
+  kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)

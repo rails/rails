@@ -13,8 +13,9 @@ namespace :guides do
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
     task :kindle do
-      unless `kindlerb -v 2> /dev/null` =~ /kindlerb 1.0.1/
-        abort "Please `gem install kindlerb` and make sure you have `kindlegen` in your PATH"
+      require 'kindlerb'
+      unless Kindlerb.kindlegen_available?
+        abort "Please run `setupkindlerb` to install kindlegen"
       end
       unless `convert` =~ /convert/
         abort "Please install ImageMagick`"
