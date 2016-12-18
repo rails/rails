@@ -1492,7 +1492,7 @@ module ActionView
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
           skip_enforcing_utf8: false, **options)
-          html_options = options.except(:index, :include_id, :skip_default_ids, :builder).merge(html)
+          html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           html_options[:enforce_utf8] = !skip_enforcing_utf8
 
