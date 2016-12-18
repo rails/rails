@@ -513,6 +513,17 @@ module ActionView
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
       #
+      #   # Though the fields don't have to correspond to model attributes:
+      #   <%= form_with model: Cat.new do |form| %>
+      #     <%= form.text_field :cats_dont_have_gills %>
+      #     <%= form.text_field :but_in_forms_they_can %>
+      #   <% end %>
+      #   # =>
+      #   <form action="/cats" method="post" data-remote="true">
+      #     <input type="text" name="cat[cats_dont_have_gills]">
+      #     <input type="text" name="cat[but_in_forms_they_can]">
+      #   </form>
+      #
       # The parameters in the forms are accessible in controllers according to
       # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
@@ -700,6 +711,7 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
+        options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = true
 
         if model
@@ -1626,7 +1638,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids) : {}
+        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
 
         convert_to_legacy_options(@options)
 

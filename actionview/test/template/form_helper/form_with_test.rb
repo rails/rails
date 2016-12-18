@@ -323,6 +323,75 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_only_url_on_create
+    form_with(url: "/posts") do |f|
+      concat f.label :title, "Label me"
+      concat f.text_field :title
+    end
+
+    expected = whole_form("/posts") do
+      '<label for="title">Label me</label>' +
+      '<input type="text" name="title">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_only_url_on_update
+    form_with(url: "/posts/123") do |f|
+      concat f.label :title, 'Label me'
+      concat f.text_field :title
+    end
+
+    expected = whole_form("/posts/123") do
+      '<label for="title">Label me</label>' +
+      '<input type="text" name="title">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_general_attributes
+    form_with(url: "/posts/123") do |f|
+      concat f.text_field :no_model_to_back_this_badboy
+    end
+
+    expected = whole_form("/posts/123") do
+      '<input type="text" name="no_model_to_back_this_badboy">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_attribute_not_on_model
+    form_with(model: @post) do |f|
+      concat f.text_field :this_dont_exist_on_post
+    end
+
+    expected = whole_form("/posts/123", method: :patch) do
+      '<input type="text" name="post[this_dont_exist_on_post]">'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_with_doesnt_call_private_or_protected_properties_on_form_object_skipping_value
+    obj = Class.new do
+      private def private_property
+        "That would be great."
+      end
+
+      protected def protected_property
+        "I believe you have my stapler."
+      end
+    end.new
+
+    form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
+      assert_dom_equal '<input type="hidden" name="other_name[private_property]">', f.hidden_field(:private_property)
+      assert_dom_equal '<input type="hidden" name="other_name[protected_property]">', f.hidden_field(:protected_property)
+    end
+  end
+
   def test_form_with_with_collection_radio_buttons
     post = Post.new
     def post.active; false; end
@@ -597,18 +666,6 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     assert_dom_equal expected, output_buffer
-  end
-
-  def test_form_tags_do_not_call_private_properties_on_form_object
-    obj = Class.new do
-      private def private_property
-        raise "This method should not be called."
-      end
-    end.new
-
-    form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
-      assert_raise(NoMethodError) { f.hidden_field(:private_property) }
-    end
   end
 
   def test_form_with_with_method_as_part_of_html_options

@@ -14,6 +14,7 @@ module ActionView
           @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
+          @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
           @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
         end
@@ -26,7 +27,11 @@ module ActionView
         private
 
           def value(object)
-            object.public_send @method_name if object
+            if @allow_method_names_outside_object
+              object.public_send @method_name if object && object.respond_to?(@method_name)
+            else
+              object.public_send @method_name if object
+            end
           end
 
           def value_before_type_cast(object)
@@ -93,7 +98,10 @@ module ActionView
 
           def tag_name(multiple = false, index = nil)
             # a little duplication to construct less strings
-            if index
+            case
+            when @object_name.empty?
+              "#{sanitized_method_name}#{"[]" if multiple}"
+            when index
               "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
             else
               "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
@@ -102,7 +110,10 @@ module ActionView
 
           def tag_id(index = nil)
             # a little duplication to construct less strings
-            if index
+            case
+            when @object_name.empty?
+              sanitized_method_name.dup
+            when index
               "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
             else
               "#{sanitized_object_name}_#{sanitized_method_name}"
