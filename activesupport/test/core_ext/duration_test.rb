@@ -21,7 +21,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(Fixnum)
+    assert 1.minute.instance_of?(1.class)
     assert 2.days.instance_of?(ActiveSupport::Duration)
     assert !3.second.instance_of?(Numeric)
   end
