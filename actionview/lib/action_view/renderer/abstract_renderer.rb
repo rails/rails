@@ -25,9 +25,9 @@ module ActionView
       raise NotImplementedError
     end
 
-    protected
+    private
 
-      def extract_details(options)
+      def extract_details(options) # :doc:
         @lookup_context.registered_details.each_with_object({}) do |key, details|
           value = options[key]
 
@@ -35,7 +35,7 @@ module ActionView
         end
       end
 
-      def instrument(name, **options)
+      def instrument(name, **options) # :doc:
         options[:identifier] ||= (@template && @template.identifier) || @path
 
         ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
@@ -43,7 +43,7 @@ module ActionView
         end
       end
 
-      def prepend_formats(formats)
+      def prepend_formats(formats) # :doc:
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js
 

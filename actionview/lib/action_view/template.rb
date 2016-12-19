@@ -231,11 +231,11 @@ module ActionView
       end
     end
 
-    protected
+    private
 
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
-      def compile!(view) #:nodoc:
+      def compile!(view)
         return if @compiled
 
         # Templates can be used concurrently in threaded environments
@@ -276,7 +276,7 @@ module ActionView
       # encode the source into <tt>Encoding.default_internal</tt>.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(mod) #:nodoc:
+      def compile(mod)
         encode!
         method_name = self.method_name
         code = @handler.call(self)
@@ -309,7 +309,7 @@ module ActionView
         ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
       end
 
-      def handle_render_error(view, e) #:nodoc:
+      def handle_render_error(view, e)
         if e.is_a?(Template::Error)
           e.sub_template_of(self)
           raise e
@@ -323,7 +323,7 @@ module ActionView
         end
       end
 
-      def locals_code #:nodoc:
+      def locals_code
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
@@ -333,7 +333,7 @@ module ActionView
         locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
-      def method_name #:nodoc:
+      protected def method_name #:nodoc:
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
           m.tr!("-".freeze, "_".freeze)
@@ -341,15 +341,13 @@ module ActionView
         end
       end
 
-      def identifier_method_name #:nodoc:
+      def identifier_method_name
         inspect.tr("^a-z_".freeze, "_".freeze)
       end
 
-      def instrument(action, &block)
+      def instrument(action, &block) # :doc:
         ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, instrument_payload, &block)
       end
-
-    private
 
       def instrument_render_template(&block)
         ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, instrument_payload, &block)
