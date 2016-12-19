@@ -43,7 +43,7 @@ module ActionView
       # * <tt>:extname</tt>  - Append a extention to the generated url unless the extension
       #   already exists. This only applies for relative urls.
       # * <tt>:protocol</tt>  - Sets the protocol of the generated url, this option only
-      #   apply when a relative url and +host+ options are provided.
+      #   applies when a relative url and +host+ options are provided.
       # * <tt>:host</tt>  - When a relative url is provided the host is added to the
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
