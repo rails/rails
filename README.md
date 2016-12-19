@@ -98,7 +98,7 @@ users.where((users[:bitmap] >> 1).gt(0)).project(Arel.sql('*'))
 # => SELECT * FROM "users"  WHERE ("users"."bitmap" >> 1) > 0
 
 users.where((~ users[:bitmap]).gt(0)).project(Arel.sql('*'))
-# => SELECT FROM "users" WHERE  ~ "users"."bitmap" > 0
+# => SELECT * FROM "users" WHERE  ~ "users"."bitmap" > 0
 ```
 
 Joins resemble SQL strongly:
