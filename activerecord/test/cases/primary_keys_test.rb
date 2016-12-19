@@ -129,12 +129,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 
-  def test_supports_primary_key
-    assert_nothing_raised do
-      ActiveRecord::Base.connection.supports_primary_key?
-    end
-  end
-
   if ActiveRecord::Base.connection.supports_primary_key?
     def test_primary_key_returns_value_if_it_exists
       klass = Class.new(ActiveRecord::Base) do
