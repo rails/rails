@@ -1,3 +1,7 @@
+*   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
+
+   *Daniel Deng*
+
 *   Add Webpack support in new apps via the --webpack option, which will delegate to the rails/webpacker gem.
 
     To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:

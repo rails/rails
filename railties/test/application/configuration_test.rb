@@ -78,6 +78,18 @@ module ApplicationTests
       end
     end
 
+    test "Rails.env falls back to development if RAILS_ENV is blank and RACK_ENV is nil" do
+      with_rails_env("") do
+        assert_equal "development", Rails.env
+      end
+    end
+
+    test "Rails.env falls back to development if RACK_ENV is blank and RAILS_ENV is nil" do
+      with_rack_env("") do
+        assert_equal "development", Rails.env
+      end
+    end
+
     test "By default logs tags are not set in development" do
       restore_default_config
 
