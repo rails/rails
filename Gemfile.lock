@@ -163,7 +163,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
-    concurrent-ruby (1.0.2)
+    concurrent-ruby (1.0.3)
     connection_pool (2.2.0)
     cookiejar (0.3.3)
     curses (1.0.2)
@@ -329,7 +329,7 @@ GEM
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.7.0)
+    sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-export (0.9.1)
