@@ -37,7 +37,7 @@ module Rails
         end
       end
 
-      # Rails finds namespaces similar to thor, it only adds one rule:
+      # Rails finds namespaces similar to Thor, it only adds one rule:
       #
       # Command names must end with "_command.rb". This is required because Rails
       # looks in load paths and loads the command just before it's going to be used.
