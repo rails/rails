@@ -1,3 +1,5 @@
+## Rails 5.0.1 (December 21, 2016) ##
+
 *   Restored correct `charset` behavior on `send_data` and `send_file`: while
     they should pass along any supplied value, they should not add a default.
 

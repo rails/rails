@@ -1,3 +1,8 @@
+## Rails 5.0.1 (December 21, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.1.rc2 (December 10, 2016) ##
 
 *   Correct resolution of associated class in `has_many :through`
