@@ -1,9 +1,9 @@
 require "cgi"
 
 module Rails
-  # This module helps build the runtime properties used to display in the
-  # Rails::InfoController responses. Including the active Rails version, Ruby
-  # version, Rack version, and so on.
+  # This module helps build the runtime properties that are displayed in
+  # Rails::InfoController responses. These include the active Rails version,
+  # Ruby version, Rack version, and so on.
   module Info
     mattr_accessor :properties
     class << (@@properties = [])
