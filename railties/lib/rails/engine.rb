@@ -549,7 +549,7 @@ module Rails
       load(seed_file) if seed_file
     end
 
-    # Add configured load paths to ruby load paths and remove duplicates.
+    # Add configured load paths to Ruby's load path, and remove duplicate entries.
     initializer :set_load_path, before: :bootstrap_hook do
       _all_load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
