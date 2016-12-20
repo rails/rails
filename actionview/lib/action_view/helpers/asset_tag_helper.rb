@@ -38,7 +38,7 @@ module ActionView
       # ==== Options
       #
       # When the last parameter is a hash you can add HTML attributes using that
-      # parameter. That options supports the following keys as well:
+      # parameter. The following options are supported:
       #
       # * <tt>:extname</tt>  - Append a extention to the generated url unless the extension
       #   already exists. This only applies for relative urls.
