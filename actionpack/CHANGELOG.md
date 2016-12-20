@@ -1,3 +1,11 @@
+*   Restored correct `charset` behavior on `send_data` and `send_file`: while
+    they should pass along any supplied value, they should not add a default.
+
+    Fixes #27344.
+
+    *Matthew Draper*
+
+
 ## Rails 5.0.1.rc2 (December 10, 2016) ##
 
 *   Move `cookies`, `flash`, and `session` methods back to
