@@ -2,12 +2,12 @@ module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
     # It allows you to collect information about how you want to structure your application
-    # paths by a Hash like API. It requires you to give a physical path on initialization.
+    # paths through a Hash-like API. It requires you to give a physical path on initialization.
     #
     #   root = Root.new "/rails"
     #   root.add "app/controllers", eager_load: true
     #
-    # The command above creates a new root object and adds "app/controllers" as a path.
+    # The above command creates a new root object and adds "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
