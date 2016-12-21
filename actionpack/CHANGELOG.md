@@ -1,3 +1,7 @@
+*   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`
+
+    *Julia López*
+
 *   Use accept header in integration tests with `as: :json`
 
     Instead of appending the `format` to the request path, Rails will figure
