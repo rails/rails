@@ -21,8 +21,10 @@ module ActiveModel
             case value
             when ::Float
               convert_float_to_big_decimal(value)
-            when ::Numeric, ::String
+            when ::Numeric
               BigDecimal(value, precision || BIGDECIMAL_PRECISION)
+            when ::String
+              value.to_d rescue BigDecimal(0)
             else
               if value.respond_to?(:to_d)
                 value.to_d
