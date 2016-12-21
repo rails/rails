@@ -4,6 +4,17 @@ module ActionDispatch
       mattr_accessor :perform_deep_munge
       self.perform_deep_munge = true
 
+      def self.each_param_value(params, &block)
+        case params
+        when Array
+          params.each { |element| each_param_value(element, &block) }
+        when Hash
+          params.each_value { |value| each_param_value(value, &block) }
+        when String
+          block.call params
+        end
+      end
+
       def self.normalize_encode_params(params)
         if perform_deep_munge
           NoNilParamEncoder.normalize_encode_params params
