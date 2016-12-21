@@ -27,6 +27,10 @@ module ActionController
       #
       #     def show
       #       @repo = Repository.find_by_filesystem_path params[:file_path]
+      #
+      #       # `repo_name` is guaranteed to be UTF-8, but was ASCII-8BIT, so
+      #       # tag it as such
+      #       @repo_name = params[:repo_name].force_encoding 'UTF-8'
       #     end
       #
       #     def index
