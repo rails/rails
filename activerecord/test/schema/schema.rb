@@ -1045,3 +1045,5 @@ Professor.connection.create_table :courses_professors, id: false, force: true do
   t.references :course
   t.references :professor
 end
+
+OtherDog.connection.create_table :dogs, force: true

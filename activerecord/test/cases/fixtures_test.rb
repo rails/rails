@@ -12,9 +12,11 @@ require 'models/company'
 require 'models/computer'
 require 'models/course'
 require 'models/developer'
+require "models/dog"
 require 'models/doubloon'
 require 'models/joke'
 require 'models/matey'
+require "models/other_dog"
 require 'models/parrot'
 require 'models/pirate'
 require 'models/post'
@@ -478,7 +480,6 @@ class SetupSubclassTest < SetupTest
     assert @second
   end
 end
-
 
 class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -970,5 +971,18 @@ class FixtureClassNamesTest < ActiveRecord::TestCase
 
   test "fixture_class_names returns nil for unregistered identifier" do
     assert_nil self.fixture_class_names['unregistered_identifier']
+  end
+end
+
+class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
+  fixtures :dogs, :other_dogs
+
+  test "fixtures are properly loaded" do
+    # Force loading the fixtures again to reproduce issue
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("dogs", "other_dogs")
+
+    assert_kind_of Dog, dogs(:sophie)
+    assert_kind_of OtherDog, other_dogs(:lassie)
   end
 end
