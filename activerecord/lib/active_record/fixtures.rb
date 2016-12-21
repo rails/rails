@@ -536,16 +536,16 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(requires_new: true) do
-            deleted_tables = Set.new
+            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
-                unless deleted_tables.include? table
+                unless deleted_tables[conn].include? table
                   conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
                 end
-                deleted_tables << table
+                deleted_tables[conn] << table
               end
 
               table_rows.each do |fixture_set_name, rows|
