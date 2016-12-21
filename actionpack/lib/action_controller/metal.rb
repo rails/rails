@@ -139,8 +139,8 @@ module ActionController
       end
     end
 
-    def self.encoding_for_param(action, param) # :nodoc:
-      ::Encoding::UTF_8
+    def self.binary_params_for?(action) # :nodoc:
+      false
     end
 
     # Delegates to the class' <tt>controller_name</tt>
