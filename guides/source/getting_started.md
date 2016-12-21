@@ -474,7 +474,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains `request.formats` which specifies
 the format of template to be served in response. It is set to `text/html` as we
 requested this page via browser, so Rails is looking for an HTML template.
-`request.variants` specifies what kind of physical devices would be served by
+`request.variant` specifies what kind of physical devices would be served by
 the response and helps Rails determine which template to use in the response.
 It is empty because no information has been provided.
 
