@@ -1,3 +1,15 @@
+## Rails 5.0.1 (December 21, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Ensure duration parsing is consistent across DST changes
 
     Previously `ActiveSupport::Duration.parse` used `Time.current` and

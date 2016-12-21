@@ -1,3 +1,27 @@
+## Rails 5.0.1 (December 21, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
+*   Correct resolution of associated class in `has_many :through`
+    associations' `*_ids` setters.
+
+    Fixes #27297.
+
+    *Matthew Draper*
+
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
+
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Fix that unsigned with zerofill is treated as signed.
 
     Fixes #27125.
@@ -21,8 +45,8 @@
     of `Article.category(true)` where `category` is a singular
     association.
 
-    The force reloading of the association reader was deprecated in
-    #20888. Unfortunately the suggested alternative of
+    The force reloading of the association reader was deprecated
+    in #20888. Unfortunately the suggested alternative of
     `article.reload.category` does not expose the same behavior.
 
     This patch adds a reader method with the prefix `reload_` for

@@ -1,3 +1,18 @@
+## Rails 5.0.1 (December 21, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
+*   No changes.
+
+
 ## Rails 5.0.0 (June 30, 2016) ##
 
 *   Exception handling: use `rescue_from` to handle exceptions raised by

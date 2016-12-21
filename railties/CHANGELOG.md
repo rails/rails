@@ -1,3 +1,22 @@
+*   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session
+
+    Fixes Issue #22742
+
+    *Tawan Sierek*
+
+
+## Rails 5.0.1 (December 21, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc2 (December 10, 2016) ##
+
+*   No changes.
+
+
+## Rails 5.0.1.rc1 (December 01, 2016) ##
+
 *   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
 
     *Tsukuru Tanimichi*
