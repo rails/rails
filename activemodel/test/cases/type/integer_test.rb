@@ -7,6 +7,7 @@ module ActiveModel
     class IntegerTest < ActiveModel::TestCase
       test "simple values" do
         type = Type::Integer.new
+        assert_nil type.cast("")
         assert_equal 1, type.cast(1)
         assert_equal 1, type.cast("1")
         assert_equal 1, type.cast("1ignore")
