@@ -2,6 +2,11 @@
 
     *David Faulkenberry*
 
+*   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
+    to false.
+
+    *utilum*
+
 *   Change return value of `NilClass#duplicable?`, `FalseClass#duplicable?`,
     `TrueClass#duplicable?`, `Symbol#duplicable?` and `Numeric#duplicable?`
     to true with Ruby 2.4+. These classes can dup with Ruby 2.4+.
