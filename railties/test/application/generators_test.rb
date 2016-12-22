@@ -177,7 +177,7 @@ module ApplicationTests
       FileUtils.cd(rails_root) do
         ARGV = ["mailer", "notifier", "foo"]
         Rails::Command.const_set("ARGV", ARGV)
-        Rails::Command.invoke :generate, ARGV
+        quietly { Rails::Command.invoke :generate, ARGV }
 
         assert_equal ["notifier", "foo"], ARGV
       end
