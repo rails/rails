@@ -35,6 +35,16 @@ module ActiveRecord
     #
     #   DatabaseTasks.create_current('production')
     module DatabaseTasks
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:structure:dump
+      mattr_accessor :structure_dump_flags, instance_accessor: false
+
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool when calling db:structure:load
+      mattr_accessor :structure_load_flags, instance_accessor: false
+
       extend self
 
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
@@ -204,13 +214,13 @@ module ActiveRecord
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:

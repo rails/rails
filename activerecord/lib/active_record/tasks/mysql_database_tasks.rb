@@ -53,21 +53,23 @@ module ActiveRecord
         connection.collation
       end
 
-      def structure_dump(filename)
+      def structure_dump(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
+        args.concat(Array(extra_flags)) if extra_flags
         args.concat(["#{configuration['database']}"])
 
         run_cmd("mysqldump", args, "dumping")
       end
 
-      def structure_load(filename)
+      def structure_load(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
+        args.concat(Array(extra_flags)) if extra_flags
 
         run_cmd("mysql", args, "loading")
       end

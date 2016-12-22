@@ -61,7 +61,7 @@ module ActiveRecord
       instance = klazz.new
 
       klazz.stubs(:new).returns instance
-      instance.expects(:structure_dump).with("awesome-file.sql")
+      instance.expects(:structure_dump).with("awesome-file.sql", nil)
 
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
@@ -411,7 +411,7 @@ module ActiveRecord
 
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_dump") do
-        eval("@#{v}").expects(:structure_dump).with("awesome-file.sql")
+        eval("@#{v}").expects(:structure_dump).with("awesome-file.sql", nil)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
       end
     end
@@ -422,7 +422,7 @@ module ActiveRecord
 
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_load") do
-        eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
+        eval("@#{v}").expects(:structure_load).with("awesome-file.sql", nil)
         ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
       end
     end
