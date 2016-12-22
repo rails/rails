@@ -422,4 +422,11 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).subsec
     assert_equal Rational(1, 2), DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 2)).subsec
   end
+
+  def test_minus
+    subtraction_result = DateTime.civil(2016, 12, 20) - DateTime.civil(2016, 12, 19, 17, 30)
+    assert_kind_of ActiveSupport::Duration, subtraction_result
+    assert_equal subtraction_result.to_i, 6 * 3_600 + 30 * 60
+    assert_equal subtraction_result.inspect, '6 hours and 30 minutes'
+  end
 end

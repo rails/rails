@@ -98,6 +98,8 @@ class Date
   def minus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       plus_with_duration(-other)
+    elsif self.class == other.class
+      subtract_for_duration(other)
     else
       minus_without_duration(other)
     end
@@ -140,4 +142,26 @@ class Date
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion
+
+  # Returns the Duration representing the time between the two Dates.
+  def subtract_for_duration(other)
+    factors = { seconds: 1 }
+    factors[:minutes] = factors[:seconds] * 60
+    factors[:hours] = factors[:minutes] * 60
+    factors[:days] = factors[:hours] * 24
+    factors[:weeks] = factors[:days] * 7
+    factors[:months] = factors[:days] * 30
+    factors[:years] = factors[:days] * 365.25
+    distance = if respond_to? :to_i
+      to_i - other.to_i
+    else to_time.to_i - other.to_time.to_i
+    end
+    remainder = distance
+    parts = factors.to_a.reverse.map do |time_type, factor|
+      quotient, remainder = remainder.divmod factor
+      [time_type, quotient]
+    end.reject{ |_, value| value.zero? }
+    ActiveSupport::Duration.new(distance, parts)
+  end
+
 end
