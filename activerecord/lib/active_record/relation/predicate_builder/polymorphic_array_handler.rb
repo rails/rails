@@ -21,7 +21,7 @@ module ActiveRecord
         end
       end
 
-      protected
+      private
 
         attr_reader :predicate_builder
     end

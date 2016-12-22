@@ -29,7 +29,7 @@ module ActiveRecord
         array_predicates.inject { |composite, predicate| composite.or(predicate) }
       end
 
-      protected
+      private
 
         attr_reader :predicate_builder
 
