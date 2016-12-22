@@ -411,6 +411,6 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
     subtraction_result = Date.new(2016, 12, 21) - Date.new(2016, 12, 20)
     assert_kind_of ActiveSupport::Duration, subtraction_result
     assert_equal subtraction_result.to_i, 24 * 3_600
-    assert_equal subtraction_result.inspect, '1 day'
+    assert_equal subtraction_result.inspect, "1 day"
   end
 end

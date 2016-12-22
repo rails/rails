@@ -160,8 +160,7 @@ class Date
     parts = factors.to_a.reverse.map do |time_type, factor|
       quotient, remainder = remainder.divmod factor
       [time_type, quotient]
-    end.reject{ |_, value| value.zero? }
+    end.reject { |_, value| value.zero? }
     ActiveSupport::Duration.new(distance, parts)
   end
-
 end
