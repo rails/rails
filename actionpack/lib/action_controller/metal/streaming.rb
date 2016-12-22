@@ -193,10 +193,10 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    protected
+    private
 
       # Set proper cache control and transfer encoding when streaming
-      def _process_options(options) #:nodoc:
+      def _process_options(options)
         super
         if options[:stream]
           if request.version == "HTTP/1.0"
@@ -210,7 +210,7 @@ module ActionController #:nodoc:
       end
 
       # Call render_body if we are streaming instead of usual +render+.
-      def _render_template(options) #:nodoc:
+      def _render_template(options)
         if options.delete(:stream)
           Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
         else

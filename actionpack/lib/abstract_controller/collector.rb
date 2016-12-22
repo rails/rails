@@ -19,7 +19,7 @@ module AbstractController
       generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
     end
 
-  protected
+  private
 
     def method_missing(symbol, &block)
       unless mime_constant = Mime[symbol]

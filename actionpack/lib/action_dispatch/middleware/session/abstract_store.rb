@@ -27,17 +27,16 @@ module ActionDispatch
         sid
       end
 
-    protected
+    private
 
-      def initialize_sid
+      def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
       end
 
-      private
-        def make_request(env)
-          ActionDispatch::Request.new env
-        end
+      def make_request(env)
+        ActionDispatch::Request.new env
+      end
     end
 
     module StaleSessionCheck
