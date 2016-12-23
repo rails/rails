@@ -2184,7 +2184,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
-  protected
+  private
     def hidden_fields(options = {})
       method = options[:method]
 

@@ -52,7 +52,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
-  protected
+  private
 
     def hidden_fields(method = nil)
       txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
