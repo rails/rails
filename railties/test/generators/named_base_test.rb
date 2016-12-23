@@ -131,7 +131,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin.foos",  :controller_i18n_scope
   end
 
-  protected
+  private
 
     def assert_name(generator, value, method)
       assert_equal value, generator.send(method)

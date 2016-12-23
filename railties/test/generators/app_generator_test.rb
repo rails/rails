@@ -788,7 +788,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 3, @sequence_step
   end
 
-  protected
+  private
 
     def stub_rails_application(root)
       Rails.application.config.root = root
