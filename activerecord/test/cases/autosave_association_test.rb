@@ -213,6 +213,63 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
   end
+
+  def test_has_one_autosave_value_is_symbol
+    assert_has_one_autosave_option_is_evaluated_to_true(FreakySymbolPirate)
+    assert_has_one_autosave_option_is_evaluated_to_false(FreakySymbolPirate)
+  end
+
+  private
+
+    def assert_has_one_autosave_option_is_evaluated_to_true(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_ship: true)
+
+      # When parent is not saved
+      ship = p.build_ship
+      assert_not_predicate p, :valid?
+      ship.name = "Nights Dirty Lightning"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate ship, :persisted?
+
+      # When parent is not saved
+      ship = p.build_ship
+      assert_not_predicate p, :valid?
+      ship.name = "Dirty Lightning"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate ship, :persisted?
+    end
+
+    def assert_has_one_autosave_option_is_evaluated_to_false(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_ship: false)
+
+      # When parent is not saved
+      ship = p.build_ship
+      assert_not_predicate p, :valid?
+      ship.name = "Nights Dirty Lightning"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate ship, :new_record?
+
+      # When parent is not saved
+      ship = p.build_ship
+      assert_not_predicate p, :valid?
+      ship.name = "Dirty Lightning"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate ship, :new_record?
+
+      # When autosave is set to truthy
+      p.autosave_ship = true
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate p.ship, :persisted?
+    end
 end
 
 class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
@@ -383,6 +440,62 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
 
     assert auditlog.valid?
   end
+
+  def test_belongs_to_autosave_value_is_symbol
+    assert_belongs_to_autosave_option_is_evaluated_to_true(FreakySymbolPirate)
+    assert_belongs_to_autosave_option_is_evaluated_to_false(FreakySymbolPirate)
+  end
+
+  private
+
+    def assert_belongs_to_autosave_option_is_evaluated_to_true(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_parrot: true)
+
+      # When parent is not saved
+      parrot = p.build_parrot
+      assert_not_predicate p, :valid?
+      parrot.name = "Posideons Killer"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate parrot, :persisted?
+
+      # When parent is saved
+      parrot = p.build_parrot
+      assert_not_predicate p, :valid?
+      parrot.name = "Killer"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate parrot, :persisted?
+    end
+
+    def assert_belongs_to_autosave_option_is_evaluated_to_false(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_parrot: false)
+
+      # When parent is not saved
+      parrot = p.build_parrot
+      assert_not_predicate p, :valid?
+      parrot.name = "Posideons Killer"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate parrot, :new_record?
+
+      # When parent is saved
+      parrot = p.build_parrot
+      assert_not_predicate p, :valid?
+      parrot.name = "Killer"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate parrot, :new_record?
+
+      p.autosave_parrot = true
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate parrot, :persisted?
+    end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
@@ -649,6 +762,65 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
   end
+
+  def test_has_many_autosave_value_is_symbol
+    assert_has_many_autosave_option_is_evaluated_to_true(FreakySymbolPirate)
+    assert_has_many_autosave_option_is_evaluated_to_false(FreakySymbolPirate)
+  end
+
+  private
+
+    def assert_has_many_autosave_option_is_evaluated_to_true(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_birds: true)
+
+      # When parent is not saved
+      bird = p.birds.new
+      assert_not_predicate p, :valid?
+      bird.name = "bob"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate bird, :persisted?
+
+      # When parent is saved
+      bird2 = p.birds.new
+      assert_not_predicate p, :valid?
+      bird2.name = "cookoo"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate bird, :persisted?
+      assert_predicate bird2, :persisted?
+    end
+
+    def assert_has_many_autosave_option_is_evaluated_to_false(pirate_model)
+      p = pirate_model.new(catchphrase: "Stop wastin' me time", autosave_birds: false)
+
+      # When parent is not saved
+      bird = p.birds.new
+      assert_not_predicate p, :valid?
+      bird.name = "bob"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate bird, :new_record?
+
+      # When parent is saved
+      bird2 = p.birds.new
+      assert_not_predicate p, :valid?
+      bird2.name = "cookoo"
+      assert_predicate p, :valid?
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate bird, :new_record?
+      assert_predicate bird2, :new_record?
+
+      p.autosave_birds = true
+      p.save!
+      assert_predicate p, :persisted?
+      assert_predicate bird, :persisted?
+      assert_predicate bird2, :persisted?
+    end
 end
 
 class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase

@@ -1,3 +1,7 @@
+*   Add Symbol/Proc support to association autosave.
+
+    *Raido Paaslepp*
+
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
 

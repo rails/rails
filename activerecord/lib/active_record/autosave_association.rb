@@ -19,6 +19,8 @@ module ActiveRecord
   # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present then new association records are
   # saved but the updated association records are not saved.
+  # When the <tt>:autosave</tt> option is Symbol or Proc then <tt>validate: true</tt>
+  # is required to validate belongs_to and has_one associations.
   #
   # == Validation
   #
@@ -293,7 +295,7 @@ module ActiveRecord
         begin
           @_nested_records_changed_for_autosave_already_called = true
           self.class._reflections.values.any? do |reflection|
-            if reflection.options[:autosave]
+            if autosave_value(reflection.options[:autosave])
               association = association_instance_get(reflection.name)
               association && Array.wrap(association.target).any?(&:changed_for_autosave?)
             end
@@ -316,7 +318,7 @@ module ActiveRecord
       # +reflection+.
       def validate_collection_association(reflection)
         if association = association_instance_get(reflection.name)
-          if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
+          if records = associated_records_to_validate_or_save(association, new_record?, autosave_value(reflection.options[:autosave]))
             records.each_with_index { |record, index| association_valid?(reflection, record, index) }
           end
         end
@@ -326,12 +328,12 @@ module ActiveRecord
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
-        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
+        return true if record.destroyed? || (autosave_value(reflection.options[:autosave]) && record.marked_for_destruction?)
 
         context = validation_context unless [:create, :update].include?(validation_context)
 
         unless valid = record.valid?(context)
-          if reflection.options[:autosave]
+          if autosave_value(reflection.options[:autosave])
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
             record.errors.each do |attribute, message|
@@ -381,7 +383,7 @@ module ActiveRecord
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
       def save_collection_association(reflection)
         if association = association_instance_get(reflection.name)
-          autosave = reflection.options[:autosave]
+          autosave = autosave_value(reflection.options[:autosave])
 
           # reconstruct the scope now that we know the owner's id
           association.reset_scope if association.respond_to?(:reset_scope)
@@ -414,6 +416,18 @@ module ActiveRecord
         end
       end
 
+      # Handles autosave value.
+      def autosave_value(value)
+        case value
+        when Symbol
+          send(value)
+        when Proc
+          value.call(self)
+        else
+          value
+        end
+      end
+
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled
       # on the association.
       #
@@ -427,7 +441,7 @@ module ActiveRecord
         record      = association && association.load_target
 
         if record && !record.destroyed?
-          autosave = reflection.options[:autosave]
+          autosave = autosave_value(reflection.options[:autosave])
 
           if autosave && record.marked_for_destruction?
             record.destroy
@@ -463,7 +477,7 @@ module ActiveRecord
 
         record = association.load_target
         if record && !record.destroyed?
-          autosave = reflection.options[:autosave]
+          autosave = autosave_value(reflection.options[:autosave])
 
           if autosave && record.marked_for_destruction?
             self[reflection.foreign_key] = nil

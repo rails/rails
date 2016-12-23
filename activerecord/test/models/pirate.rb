@@ -90,3 +90,12 @@ class FamousPirate < ActiveRecord::Base
   has_many :famous_ships
   validates_presence_of :catchphrase, on: :conference
 end
+
+class FreakySymbolPirate < ActiveRecord::Base
+  self.table_name = "pirates"
+
+  attr_accessor :autosave_parrot, :autosave_ship, :autosave_birds
+  belongs_to :parrot, autosave: :autosave_parrot, validate: true
+  has_one :ship, autosave: :autosave_ship, foreign_key: :pirate_id, validate: true
+  has_many :birds, autosave: :autosave_birds, foreign_key: :pirate_id
+end
