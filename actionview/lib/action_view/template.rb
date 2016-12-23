@@ -278,7 +278,6 @@ module ActionView
       # regardless of the original source encoding.
       def compile(mod)
         encode!
-        method_name = self.method_name
         code = @handler.call(self)
 
         # Make sure that the resulting String to be eval'd is in the
@@ -333,7 +332,7 @@ module ActionView
         locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
-      protected def method_name #:nodoc:
+      def method_name
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
           m.tr!("-".freeze, "_".freeze)
