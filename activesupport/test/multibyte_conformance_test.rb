@@ -82,7 +82,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
     end
   end
 
-  protected
+  private
     def each_line_of_norm_tests(&block)
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
         until f.eof?

@@ -40,7 +40,7 @@ module DescendantsTrackerTestCases
     end
   end
 
-  protected
+  private
 
     def assert_equal_sets(expected, actual)
       assert_equal Set.new(expected), Set.new(actual)

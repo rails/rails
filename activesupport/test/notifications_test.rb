@@ -273,7 +273,7 @@ module Notifications
       assert !not_child.parent_of?(parent)
     end
 
-    protected
+    private
       def random_id
         @random_id ||= SecureRandom.hex(10)
       end

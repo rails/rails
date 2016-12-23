@@ -452,7 +452,7 @@ EXPECTED
     assert_equal '{"number":null}', NaNNumber.new.to_json
   end
 
-  protected
+  private
 
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
