@@ -1220,7 +1220,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
   end
 
-  protected
+  private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
         def self.name

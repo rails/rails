@@ -186,7 +186,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  protected
+  private
 
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1

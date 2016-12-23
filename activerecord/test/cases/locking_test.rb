@@ -579,7 +579,7 @@ unless in_memory_db?
         assert first.end > second.end
       end
 
-      protected
+      private
 
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil

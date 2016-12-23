@@ -5,7 +5,7 @@ class Subject < ActiveRecord::Base
   # as otherwise synonym test was failing
   after_initialize :set_email_address
 
-  protected
+  private
     def set_email_address
       unless persisted?
         self.author_email_address = "test@test.com"

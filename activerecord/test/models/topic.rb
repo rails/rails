@@ -73,7 +73,7 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
-  protected
+  private
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
