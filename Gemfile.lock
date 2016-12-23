@@ -278,7 +278,7 @@ GEM
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
     rainbow (2.1.0)
-    rake (11.3.0)
+    rake (12.0.0)
     rb-fsevent (0.9.7)
     rdoc (5.0.0.beta2)
     redcarpet (3.2.3)
