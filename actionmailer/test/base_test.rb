@@ -829,7 +829,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "special indeed!", mail["X-Special-Header"].to_s
   end
 
-  protected
+  private
 
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
