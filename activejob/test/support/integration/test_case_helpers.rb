@@ -17,7 +17,7 @@ module TestCaseHelpers
     end
   end
 
-  protected
+  private
 
     def jobs_manager
       JobsManager.current_manager
