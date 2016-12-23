@@ -363,11 +363,11 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
-    protected
-
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
+
+    private
 
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)

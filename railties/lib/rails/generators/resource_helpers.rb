@@ -29,6 +29,8 @@ module Rails
 
         attr_reader :controller_name, :controller_file_name
 
+      private
+
         def controller_class_path
           if options[:model_name]
             @controller_class_path

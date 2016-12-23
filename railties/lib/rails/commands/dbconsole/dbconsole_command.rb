@@ -99,14 +99,14 @@ module Rails
       Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
     end
 
-    protected
-      def configurations
+    private
+      def configurations # :doc:
         require APP_PATH
         ActiveRecord::Base.configurations = Rails.application.config.database_configuration
         ActiveRecord::Base.configurations
       end
 
-      def find_cmd_and_exec(commands, *args)
+      def find_cmd_and_exec(commands, *args) # :doc:
         commands = Array(commands)
 
         dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
