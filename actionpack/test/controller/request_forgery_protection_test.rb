@@ -92,7 +92,7 @@ class PrependProtectForgeryBaseController < ActionController::Base
     render inline: "OK"
   end
 
-  protected
+  private
 
     def add_called_callback(name)
       @called_callbacks ||= []

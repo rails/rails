@@ -18,7 +18,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     ActionDispatch::Http::URL.url_for(options)
   end
 
-  protected
+  private
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil

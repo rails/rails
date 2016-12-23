@@ -273,7 +273,7 @@ class RespondToController < ActionController::Base
     end
   end
 
-  protected
+  private
     def set_layout
       case action_name
       when "all_types_with_layout", "iphone_with_html_response_type"
