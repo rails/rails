@@ -1751,8 +1751,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_file_field_generate_multipart
-    Post.send :attr_accessor, :file
-
     form_for(@post, html: { id: "create-post" }) do |f|
       concat f.file_field(:file)
     end
@@ -1765,8 +1763,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_fields_for_with_file_field_generate_multipart
-    Comment.send :attr_accessor, :file
-
     form_for(@post) do |f|
       concat f.fields_for(:comment, @post) { |c|
         concat c.file_field(:file)
