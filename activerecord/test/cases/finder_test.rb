@@ -1220,6 +1220,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
   end
 
+  test "limitable relation with group by" do
+    types = nil
+    assert_nothing_raised do
+      #it use distict select, !but for primary key, wich is not present in GROUP BY obviously
+      scope = Post.includes(:comments).where(Comment.arel_table[:body].matches('Special')).group(:type).limit(15)
+      types = scope.pluck(:type)
+    end
+  end
+
   protected
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
