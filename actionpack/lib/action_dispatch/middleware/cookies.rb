@@ -8,7 +8,7 @@ module ActionDispatch
   class Request
     def cookie_jar
       fetch_header("action_dispatch.cookies".freeze) do
-        self.cookie_jar = Cookies::CookieJar.build(self, cookies)
+        self.cookie_jar = Cookies::CookieJar.build(self, cookies, cookies_default_options: cookies_default_options)
       end
     end
 
@@ -57,6 +57,10 @@ module ActionDispatch
 
     def cookies_digest
       get_header Cookies::COOKIES_DIGEST
+    end
+
+    def cookies_default_options
+      get_header Cookies::COOKIES_DEFAULT_OPTIONS
     end
     # :startdoc:
   end
@@ -143,6 +147,10 @@ module ActionDispatch
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
+  #
+  # These options can be set by default for every cookie via:
+  #
+  #  Rails.application.config.action_dispatch.cookies_default_options = { path: "/admin/" }
   class Cookies
     HTTP_HEADER   = "Set-Cookie".freeze
     GENERATOR_KEY = "action_dispatch.key_generator".freeze
@@ -153,6 +161,7 @@ module ActionDispatch
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
     COOKIES_DIGEST = "action_dispatch.cookies_digest".freeze
+    COOKIES_DEFAULT_OPTIONS = "action_dispatch.cookies_default_options".freeze
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -283,20 +292,23 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
-      def self.build(req, cookies)
-        new(req).tap do |hash|
+      def self.build(req, cookies, cookies_default_options: nil)
+        new(req, cookies_default_options: cookies_default_options).tap do |hash|
           hash.update(cookies)
         end
       end
 
       attr_reader :request
 
-      def initialize(request)
+      def initialize(request, cookies_default_options: nil)
         @set_cookies = {}
         @delete_cookies = {}
         @request = request
         @cookies = {}
         @committed = false
+        @cookies_default_options = cookies_default_options || {}
+
+        @cookies_default_options.symbolize_keys!
       end
 
       def committed?; @committed; end
@@ -342,6 +354,7 @@ module ActionDispatch
       end
 
       def handle_options(options) #:nodoc:
+        options.reverse_merge!(@cookies_default_options)
         options[:path] ||= "/"
 
         if options[:domain] == :all || options[:domain] == "all"

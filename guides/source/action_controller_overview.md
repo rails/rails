@@ -659,6 +659,28 @@ manually when reading the values on subsequent requests.
 If you use the cookie session store, this would apply to the `session` and
 `flash` hash as well.
 
+You may also set cookie attributes, such as the path to which it applies:
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies[:commenter_name] = { value: "david", path: "/blog/" }
+  end
+end
+```
+
+Refer to the [API
+documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for a list of all available options. These can be set globally for all cookies
+in an initializer:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_default_options = {
+  path: "/blog/"
+}
+```
+
+
 Rendering XML and JSON data
 ---------------------------
 

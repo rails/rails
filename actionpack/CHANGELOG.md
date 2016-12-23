@@ -1,3 +1,11 @@
+*   Allow setting default values for cookie attributes globally.
+
+    Added new option `config.action_dispatch.cookies_default_options = {}`.
+    This allows cookie attributes such as `domain` and `path` to be set for
+    every cookie.
+
+    *Hugo Peixoto*
+
 *   Use accept header in integration tests with `as: :json`
 
     Instead of appending the `format` to the request path. Rails will figure
