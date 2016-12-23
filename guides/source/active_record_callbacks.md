@@ -36,7 +36,7 @@ class User < ApplicationRecord
 
   before_validation :ensure_login_has_a_value
 
-  protected
+  private
     def ensure_login_has_a_value
       if login.nil?
         self.login = email unless email.blank?
@@ -66,7 +66,7 @@ class User < ApplicationRecord
   # :on takes an array as well
   after_validation :set_location, on: [ :create, :update ]
 
-  protected
+  private
     def normalize_name
       self.name = name.downcase.titleize
     end
@@ -77,7 +77,7 @@ class User < ApplicationRecord
 end
 ```
 
-It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
+It is considered good practice to declare callback methods as private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
 Available Callbacks
 -------------------
