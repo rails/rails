@@ -360,34 +360,34 @@ module ActiveRecord
       end
       alias join_to_delete join_to_update
 
-      protected
+      private
 
         # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
+        def subquery_for(key, select) # :doc:
           subselect = select.clone
           subselect.projections = [key]
           subselect
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = [])
+        def select(sql, name = nil, binds = []) # :doc:
           exec_query(sql, name, binds, prepare: false)
         end
 
-        def select_prepared(sql, name = nil, binds = [])
+        def select_prepared(sql, name = nil, binds = []) # :doc:
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :doc:
           [sql, binds]
         end
 
-        def last_inserted_id(result)
+        def last_inserted_id(result) # :doc:
           row = result.rows.first
           row && row.first
         end
 
-        def binds_from_relation(relation, binds)
+        def binds_from_relation(relation, binds) # :doc:
           if relation.is_a?(Relation) && binds.empty?
             relation, binds = relation.arel, relation.bound_attributes
           end

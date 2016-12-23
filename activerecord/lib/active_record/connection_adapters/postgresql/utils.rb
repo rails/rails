@@ -34,7 +34,7 @@ module ActiveRecord
           parts.hash
         end
 
-        protected
+        private
           def unquote(part)
             if part && part.start_with?('"')
               part[1..-2]

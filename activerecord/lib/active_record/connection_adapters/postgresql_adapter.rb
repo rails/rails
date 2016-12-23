@@ -404,7 +404,7 @@ module ActiveRecord
         @connection.server_version
       end
 
-      protected
+      private
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
@@ -415,7 +415,7 @@ module ActiveRecord
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message) # :doc:
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
@@ -437,8 +437,6 @@ module ActiveRecord
             super
           end
         end
-
-      private
 
         def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)

@@ -4,13 +4,13 @@ module ActiveRecord
     module ThroughAssociation #:nodoc:
       delegate :source_reflection, :through_reflection, to: :reflection
 
-      protected
+      private
 
         # We merge in these scopes for two reasons:
         #
         #   1. To get the default_scope conditions for any of the other reflections in the chain
         #   2. To get the type conditions for any STI models in the chain
-        def target_scope
+        def target_scope # :doc:
           scope = super
           reflection.chain.drop(1).each do |reflection|
             relation = reflection.klass.all
@@ -20,8 +20,6 @@ module ActiveRecord
           end
           scope
         end
-
-      private
 
         # Construct attributes for :through pointing to owner and associate. This is used by the
         # methods which create and delete records on the association.

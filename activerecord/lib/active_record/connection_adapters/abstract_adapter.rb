@@ -499,9 +499,9 @@ module ActiveRecord
         result
       end
 
-      protected
+      private
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean
           register_class_with_limit m, %r(char)i,          Type::String
           register_class_with_limit m, %r(binary)i,        Type::Binary
@@ -532,37 +532,37 @@ module ActiveRecord
           end
         end
 
-        def reload_type_map # :nodoc:
+        def reload_type_map
           type_map.clear
           initialize_type_map(type_map)
         end
 
-        def register_class_with_limit(mapping, key, klass) # :nodoc:
+        def register_class_with_limit(mapping, key, klass)
           mapping.register_type(key) do |*args|
             limit = extract_limit(args.last)
             klass.new(limit: limit)
           end
         end
 
-        def register_class_with_precision(mapping, key, klass) # :nodoc:
+        def register_class_with_precision(mapping, key, klass)
           mapping.register_type(key) do |*args|
             precision = extract_precision(args.last)
             klass.new(precision: precision)
           end
         end
 
-        def extract_scale(sql_type) # :nodoc:
+        def extract_scale(sql_type)
           case sql_type
           when /\((\d+)\)/ then 0
           when /\((\d+)(,(\d+))\)/ then $3.to_i
           end
         end
 
-        def extract_precision(sql_type) # :nodoc:
+        def extract_precision(sql_type)
           $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
         end
 
-        def extract_limit(sql_type) # :nodoc:
+        def extract_limit(sql_type)
           case sql_type
           when /^bigint/i
             8
@@ -571,7 +571,7 @@ module ActiveRecord
           end
         end
 
-        def translate_exception_class(e, sql)
+        def translate_exception_class(e, sql) # :doc:
           begin
             message = "#{e.class.name}: #{e.message}: #{sql}"
           rescue Encoding::CompatibilityError
@@ -583,7 +583,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -596,7 +596,7 @@ module ActiveRecord
           raise translate_exception_class(e, sql)
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message) # :doc:
           # override in derived class
           case exception
           when RuntimeError
@@ -606,11 +606,11 @@ module ActiveRecord
           end
         end
 
-        def without_prepared_statement?(binds)
+        def without_prepared_statement?(binds) # :doc:
           !prepared_statements || binds.empty?
         end
 
-        def column_for(table_name, column_name) # :nodoc:
+        def column_for(table_name, column_name)
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")

@@ -50,9 +50,9 @@ module ActiveRecord
         attribute_in_database(self.class.primary_key)
       end
 
-      protected
+      private
 
-        def attribute_method?(attr_name)
+        def attribute_method?(attr_name) # :doc:
           attr_name == "id" || super
         end
 

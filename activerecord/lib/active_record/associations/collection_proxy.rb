@@ -1126,19 +1126,17 @@ module ActiveRecord
         self
       end
 
-      protected
-
-        def find_nth_with_limit(index, limit)
-          load_target if find_from_target?
-          super
-        end
-
-        def find_nth_from_last(index)
-          load_target if find_from_target?
-          super
-        end
-
       private
+
+        def find_nth_with_limit(index, limit) # :doc:
+          load_target if find_from_target?
+          super
+        end
+
+        def find_nth_from_last(index) # :doc:
+          load_target if find_from_target?
+          super
+        end
 
         def null_scope?
           @association.null_scope?

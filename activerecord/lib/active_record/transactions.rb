@@ -407,10 +407,10 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
-      def remember_transaction_record_state #:nodoc:
+      def remember_transaction_record_state
         @_start_transaction_state[:id] = id
         @_start_transaction_state.reverse_merge!(
           new_record: @new_record,
@@ -421,18 +421,18 @@ module ActiveRecord
       end
 
       # Clear the new record state and id of a record.
-      def clear_transaction_record_state #:nodoc:
+      def clear_transaction_record_state
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
       end
 
       # Force to clear the transaction record state.
-      def force_clear_transaction_record_state #:nodoc:
+      def force_clear_transaction_record_state
         @_start_transaction_state.clear
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-      def restore_transaction_record_state(force = false) #:nodoc:
+      def restore_transaction_record_state(force = false)
         unless @_start_transaction_state.empty?
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
           if transaction_level < 1 || force
@@ -450,12 +450,12 @@ module ActiveRecord
       end
 
       # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-      def transaction_record_state(state) #:nodoc:
+      def transaction_record_state(state)
         @_start_transaction_state[state]
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-      def transaction_include_any_action?(actions) #:nodoc:
+      def transaction_include_any_action?(actions)
         actions.any? do |action|
           case action
           when :create
@@ -468,8 +468,6 @@ module ActiveRecord
           end
         end
       end
-
-    private
 
       def set_transaction_state(state)
         @transaction_state = state

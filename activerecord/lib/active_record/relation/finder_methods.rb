@@ -439,9 +439,9 @@ module ActiveRecord
         reflections.none?(&:collection?)
       end
 
-    protected
+      private
 
-      def find_with_ids(*ids)
+      def find_with_ids(*ids) # :doc:
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
         expects_array = ids.first.kind_of?(Array)
@@ -462,7 +462,7 @@ module ActiveRecord
         raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
       end
 
-      def find_one(id)
+      def find_one(id) # :doc:
         if ActiveRecord::Base === id
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -479,7 +479,7 @@ module ActiveRecord
         record
       end
 
-      def find_some(ids)
+      def find_some(ids) # :doc:
         return find_some_ordered(ids) unless order_values.present?
 
         result = where(primary_key => ids).to_a
@@ -503,7 +503,7 @@ module ActiveRecord
         end
       end
 
-      def find_some_ordered(ids)
+      def find_some_ordered(ids) # :doc:
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
         result = except(:limit, :offset).where(primary_key => ids).records
@@ -518,7 +518,7 @@ module ActiveRecord
         end
       end
 
-      def find_take
+      def find_take # :doc:
         if loaded?
           records.first
         else
@@ -526,7 +526,7 @@ module ActiveRecord
         end
       end
 
-      def find_take_with_limit(limit)
+      def find_take_with_limit(limit) # :doc:
         if loaded?
           records.take(limit)
         else
@@ -534,11 +534,11 @@ module ActiveRecord
         end
       end
 
-      def find_nth(index)
+      def find_nth(index) # :doc:
         @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
       end
 
-      def find_nth_with_limit(index, limit)
+      def find_nth_with_limit(index, limit) # :doc:
         if loaded?
           records[index, limit] || []
         else
@@ -553,7 +553,7 @@ module ActiveRecord
         end
       end
 
-      def find_nth_from_last(index)
+      def find_nth_from_last(index) # :doc:
         if loaded?
           records[-index]
         else
@@ -571,8 +571,6 @@ module ActiveRecord
           # e.g., reverse_order.offset(index-1).first
         end
       end
-
-    private
 
       def find_last(limit)
         limit ? records.last(limit) : records.last

@@ -12,6 +12,8 @@ module ActiveRecord
 
       attr_internal :db_runtime
 
+    private
+
       def process_action(action, *args)
         # We also need to reset the runtime before each action
         # because of queries in middleware or in cases we are streaming
