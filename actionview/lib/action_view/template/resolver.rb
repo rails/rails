@@ -177,7 +177,7 @@ module ActionView
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but if the key is present, check if the
     # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals) #:nodoc:
+    def cached(key, path_info, details, locals)
       name, prefix, partial = path_info
       locals = locals.map(&:to_s).sort!
 
@@ -191,7 +191,7 @@ module ActionView
     end
 
     # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals) #:nodoc:
+    def decorate(templates, path_info, details, locals)
       cached = nil
       templates.each do |t|
         t.locals         = locals

@@ -24,7 +24,7 @@ module ActionView
             builder.check_box + builder.label
           end
 
-          def hidden_field_name #:nodoc:
+          def hidden_field_name
             "#{super}[]"
           end
       end

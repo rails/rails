@@ -215,7 +215,7 @@ module ActionView
 
     private
 
-      def fragment_name_with_digest(name, virtual_path) #:nodoc:
+      def fragment_name_with_digest(name, virtual_path)
         virtual_path ||= @virtual_path
         if virtual_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
@@ -226,7 +226,7 @@ module ActionView
         end
       end
 
-      def fragment_for(name = {}, options = nil, &block) #:nodoc:
+      def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
           @cache_hit = true
           content
@@ -236,11 +236,11 @@ module ActionView
         end
       end
 
-      def read_fragment_for(name, options) #:nodoc:
+      def read_fragment_for(name, options)
         controller.read_fragment(name, options)
       end
 
-      def write_fragment_for(name, options) #:nodoc:
+      def write_fragment_for(name, options)
         # VIEW TODO: Make #capture usable outside of ERB
         # This dance is needed because Builder can't use capture
         pos = output_buffer.length
