@@ -63,7 +63,7 @@ module ActiveRecord
         #   sanitize_sql_for_order("id ASC")
         #   # => "id ASC"
         def sanitize_sql_for_order(condition)
-          if condition.is_a?(Array) && condition.first.to_s.include?("?")
+          if condition.is_a?(Array) && condition.any? && condition.first.to_s.include?("?".freeze)
             sanitize_sql_array(condition)
           else
             condition
