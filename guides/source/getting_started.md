@@ -827,7 +827,7 @@ NOTE: A frequent practice is to place the standard CRUD actions in each
 controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
 and `destroy`. You may use any order you choose, but keep in mind that these
 are public methods; as mentioned earlier in this guide, they must be placed
-before any private method in the controller in order to work.
+before declaring `private` visibility in the controller.
 
 Given that, let's add the `show` action, as follows:
 
