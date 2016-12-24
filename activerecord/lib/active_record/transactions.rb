@@ -471,11 +471,11 @@ module ActiveRecord
 
     private
 
-      def set_transaction_state(state) # :nodoc:
+      def set_transaction_state(state)
         @transaction_state = state
       end
 
-      def has_transactional_callbacks? # :nodoc:
+      def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
       end
 

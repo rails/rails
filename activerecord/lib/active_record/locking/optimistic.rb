@@ -69,7 +69,7 @@ module ActiveRecord
           send(lock_col + "=", previous_lock_value + 1)
         end
 
-        def _create_record(attribute_names = self.attribute_names, *) # :nodoc:
+        def _create_record(attribute_names = self.attribute_names, *)
           if locking_enabled?
             # We always want to persist the locking version, even if we don't detect
             # a change from the default, since the database might have no default
@@ -78,7 +78,7 @@ module ActiveRecord
           super
         end
 
-        def _update_record(attribute_names = self.attribute_names) #:nodoc:
+        def _update_record(attribute_names = self.attribute_names)
           return super unless locking_enabled?
 
           lock_col = self.class.locking_column

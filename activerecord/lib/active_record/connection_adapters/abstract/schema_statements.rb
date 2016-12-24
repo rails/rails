@@ -1262,7 +1262,7 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
-        def index_name_options(column_names) # :nodoc:
+        def index_name_options(column_names)
           if column_names.is_a?(String)
             column_names = column_names.scan(/\w+/).join("_")
           end
@@ -1270,7 +1270,7 @@ module ActiveRecord
           { column: column_names }
         end
 
-        def foreign_key_name(table_name, options) # :nodoc:
+        def foreign_key_name(table_name, options)
           identifier = "#{table_name}_#{options.fetch(:column)}_fk"
           hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
           options.fetch(:name) do
@@ -1278,7 +1278,7 @@ module ActiveRecord
           end
         end
 
-        def validate_index_length!(table_name, new_name, internal = false) # :nodoc:
+        def validate_index_length!(table_name, new_name, internal = false)
           max_index_length = internal ? index_name_length : allowed_index_name_length
 
           if new_name.length > max_index_length
