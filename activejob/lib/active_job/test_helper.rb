@@ -315,15 +315,15 @@ module ActiveJob
     end
 
     private
-      def clear_enqueued_jobs # :nodoc:
+      def clear_enqueued_jobs
         enqueued_jobs.clear
       end
 
-      def clear_performed_jobs # :nodoc:
+      def clear_performed_jobs
         performed_jobs.clear
       end
 
-      def enqueued_jobs_size(only: nil) # :nodoc:
+      def enqueued_jobs_size(only: nil)
         if only
           enqueued_jobs.count { |job| Array(only).include?(job.fetch(:job)) }
         else
@@ -331,14 +331,14 @@ module ActiveJob
         end
       end
 
-      def serialize_args_for_assertion(args) # :nodoc:
+      def serialize_args_for_assertion(args)
         args.dup.tap do |serialized_args|
           serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
           serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
         end
       end
 
-      def instantiate_job(payload) # :nodoc:
+      def instantiate_job(payload)
         job = payload[:job].new(*payload[:args])
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
