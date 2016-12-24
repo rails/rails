@@ -511,7 +511,7 @@ module ActiveSupport
 
       private
         # Merges the default options with ones specific to a method call.
-        def merged_options(call_options) # :nodoc:
+        def merged_options(call_options)
           if call_options
             options.merge(call_options)
           else
@@ -522,7 +522,7 @@ module ActiveSupport
         # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key) # :nodoc:
+        def expanded_key(key)
           return key.cache_key.to_s if key.respond_to?(:cache_key)
 
           case key
