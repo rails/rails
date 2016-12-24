@@ -30,7 +30,7 @@ rule
     | dot
     ;
   slash
-    : SLASH              { Slash.new('/') }
+    : SLASH              { Slash.new(val.first) }
     ;
   symbol
     : SYMBOL             { Symbol.new(val.first) }
@@ -45,5 +45,6 @@ rule
 end
 
 ---- header
+# :stopdoc:
 
-require 'action_dispatch/journey/parser_extras'
+require "action_dispatch/journey/parser_extras"
