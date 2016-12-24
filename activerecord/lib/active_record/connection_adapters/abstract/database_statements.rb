@@ -315,20 +315,49 @@ module ActiveRecord
             raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
           end
         end
+        value_list = binds_to_values(binds)
+
         key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = binds.map(&:value_for_database).map do |value|
-          begin
-            quote(value)
-          rescue TypeError
-            quote(YAML.dump(value))
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
+      end
+
+      DefaultValue = Object.new
+      def insert_fixtures(rows, table_name)
+        return if rows.empty?
+
+        columns = schema_cache.columns_hash(table_name)
+
+        value_lists = rows.map do |fixture|
+          fixture = fixture.stringify_keys
+
+          unknown_columns = fixture.keys - columns.keys
+          if unknown_columns.any?
+            raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
           end
+
+          binds = columns.map do |name, column|
+            if fixture.key?(name)
+              value = fixture[name]
+              type = lookup_cast_type_from_column(column)
+              Relation::QueryAttribute.new(name, value, type)
+            else
+              DefaultValue
+            end
+          end
+          binds_to_values(binds)
         end
 
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
+        key_list = columns.keys.map { |name| quote_column_name(name) }
+        sql_batches = value_lists.map { |value_list| "(#{value_list.join(', ')})" }.join(',')
+        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES #{sql_batches}", 'Fixture Insert'
       end
 
       def empty_insert_statement_value
         "DEFAULT VALUES"
+      end
+
+      def default_insert_value
+        "DEFAULT"
       end
 
       # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
@@ -361,6 +390,21 @@ module ActiveRecord
       alias join_to_delete join_to_update
 
       protected
+
+        def binds_to_values(binds)
+          binds.map do |bind|
+            if bind == DefaultValue
+              default_insert_value
+            else
+              value = bind.value_for_database
+              begin
+                quote(value)
+              rescue TypeError
+                quote(YAML.dump(value))
+              end
+            end
+          end
+        end
 
         # Returns a subquery for the given key using the join information.
         def subquery_for(key, select)

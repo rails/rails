@@ -431,6 +431,12 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
+        end
+      end
+
       protected
 
         def table_structure(table_name) # :nodoc:
