@@ -275,38 +275,37 @@ module Rails
       end
     end
 
-    protected
-      def self.print_list(base, namespaces)
-        namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
-        super
+    def self.print_list(base, namespaces)
+      namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
+      super
+    end
+
+    # Try fallbacks for the given base.
+    def self.invoke_fallbacks_for(name, base) #:nodoc:
+      return nil unless base && fallbacks[base.to_sym]
+      invoked_fallbacks = []
+
+      Array(fallbacks[base.to_sym]).each do |fallback|
+        next if invoked_fallbacks.include?(fallback)
+        invoked_fallbacks << fallback
+
+        klass = find_by_namespace(name, fallback)
+        return klass if klass
       end
 
-      # Try fallbacks for the given base.
-      def self.invoke_fallbacks_for(name, base) #:nodoc:
-        return nil unless base && fallbacks[base.to_sym]
-        invoked_fallbacks = []
+      nil
+    end
 
-        Array(fallbacks[base.to_sym]).each do |fallback|
-          next if invoked_fallbacks.include?(fallback)
-          invoked_fallbacks << fallback
+    def self.command_type
+      @command_type ||= "generator"
+    end
 
-          klass = find_by_namespace(name, fallback)
-          return klass if klass
-        end
+    def self.lookup_paths
+      @lookup_paths ||= %w( rails/generators generators )
+    end
 
-        nil
-      end
-
-      def self.command_type
-        @command_type ||= "generator"
-      end
-
-      def self.lookup_paths
-        @lookup_paths ||= %w( rails/generators generators )
-      end
-
-      def self.file_lookup_paths
-        @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_generator.rb" ]
-      end
+    def self.file_lookup_paths
+      @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_generator.rb" ]
+    end
   end
 end
