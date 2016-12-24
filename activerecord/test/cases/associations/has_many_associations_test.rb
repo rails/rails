@@ -187,7 +187,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ship.parts.clear
     part.reload
 
-    assert_equal nil, part.ship
+    assert_nil part.ship
     assert !part.updated_at_changed?
   end
 

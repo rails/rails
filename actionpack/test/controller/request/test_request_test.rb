@@ -8,7 +8,7 @@ class ActionController::TestRequestTest < ActionController::TestCase
 
   def test_mutating_session_options_does_not_affect_default_options
     @request.session_options[:myparam] = 123
-    assert_equal nil, ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
+    assert_nil ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
   end
 
   def test_content_length_has_bytes_count_value

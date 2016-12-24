@@ -141,7 +141,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     permitted = params.permit(:a, c: [], b: [])
     assert_equal 1, permitted[:a]
     assert_equal [1, 2, 3], permitted[:b]
-    assert_equal nil, permitted[:c]
+    assert_nil permitted[:c]
   end
 
   test "key to empty array: arrays of permitted scalars pass" do
@@ -216,7 +216,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "fetch with a default value of a hash does not mutate the object" do
     params = ActionController::Parameters.new({})
     params.fetch :foo, {}
-    assert_equal nil, params[:foo]
+    assert_nil params[:foo]
   end
 
   test "hashes in array values get wrapped" do
@@ -254,8 +254,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
-    assert_equal nil, @params.fetch(:foo, nil)
-    assert_equal nil, @params.fetch(:foo) { nil }
+    assert_nil @params.fetch(:foo, nil)
+    assert_nil @params.fetch(:foo) { nil }
   end
 
   test "KeyError in fetch block should not be covered up" do

@@ -210,7 +210,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     def test_pk_and_sequence_for_uuid_primary_key
       pk, seq = connection.pk_and_sequence_for("pg_uuids")
       assert_equal "id", pk
-      assert_equal nil, seq
+      assert_nil seq
     end
 
     def test_schema_dumper_for_uuid_primary_key

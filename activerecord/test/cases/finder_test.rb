@@ -488,12 +488,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fourth), Topic.offset(1).second_to_last
     assert_equal topics(:fourth), Topic.offset(2).second_to_last
     assert_equal topics(:fourth), Topic.offset(3).second_to_last
-    assert_equal nil, Topic.offset(4).second_to_last
-    assert_equal nil, Topic.offset(5).second_to_last
+    assert_nil Topic.offset(4).second_to_last
+    assert_nil Topic.offset(5).second_to_last
 
     #test with limit
-    # assert_equal nil, Topic.limit(1).second # TODO: currently failing
-    assert_equal nil, Topic.limit(1).second_to_last
+    # assert_nil Topic.limit(1).second # TODO: currently failing
+    assert_nil Topic.limit(1).second_to_last
   end
 
   def test_second_to_last_have_primary_key_order_by_default
@@ -516,15 +516,15 @@ class FinderTest < ActiveRecord::TestCase
     # test with offset
     assert_equal topics(:third), Topic.offset(1).third_to_last
     assert_equal topics(:third), Topic.offset(2).third_to_last
-    assert_equal nil, Topic.offset(3).third_to_last
-    assert_equal nil, Topic.offset(4).third_to_last
-    assert_equal nil, Topic.offset(5).third_to_last
+    assert_nil Topic.offset(3).third_to_last
+    assert_nil Topic.offset(4).third_to_last
+    assert_nil Topic.offset(5).third_to_last
 
     # test with limit
-    # assert_equal nil, Topic.limit(1).third # TODO: currently failing
-    assert_equal nil, Topic.limit(1).third_to_last
-    # assert_equal nil, Topic.limit(2).third # TODO: currently failing
-    assert_equal nil, Topic.limit(2).third_to_last
+    # assert_nil Topic.limit(1).third # TODO: currently failing
+    assert_nil Topic.limit(1).third_to_last
+    # assert_nil Topic.limit(2).third # TODO: currently failing
+    assert_nil Topic.limit(2).third_to_last
   end
 
   def test_third_to_last_have_primary_key_order_by_default
@@ -1166,7 +1166,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "find_by returns nil if the record is missing" do
-    assert_equal nil, Post.find_by("1 = 0")
+    assert_nil Post.find_by("1 = 0")
   end
 
   test "find_by with associations" do

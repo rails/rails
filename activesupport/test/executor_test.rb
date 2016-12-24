@@ -105,7 +105,7 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.wrap {}
 
-    assert_equal nil, supplied_state
+    assert_nil supplied_state
   end
 
   def test_exception_skips_uninvoked_hook

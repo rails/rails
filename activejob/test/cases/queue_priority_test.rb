@@ -3,7 +3,7 @@ require "jobs/hello_job"
 
 class QueuePriorityTest < ActiveSupport::TestCase
   test "priority unset by default" do
-    assert_equal nil, HelloJob.priority
+    assert_nil HelloJob.priority
   end
 
   test "uses given priority" do

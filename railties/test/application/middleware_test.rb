@@ -246,7 +246,7 @@ module ApplicationTests
       get "/", {}, "HTTP_IF_NONE_MATCH" => etag
       assert_equal 304, last_response.status
       assert_equal "", last_response.body
-      assert_equal nil, last_response.headers["Content-Type"]
+      assert_nil last_response.headers["Content-Type"]
       assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
       assert_equal etag, last_response.headers["Etag"]
 
@@ -255,7 +255,7 @@ module ApplicationTests
       assert_equal "", last_response.body
       assert_equal "text/plain; charset=utf-8", last_response.headers["Content-Type"]
       assert_equal "no-cache", last_response.headers["Cache-Control"]
-      assert_equal nil, last_response.headers["Etag"]
+      assert_nil last_response.headers["Etag"]
     end
 
     test "ORIGINAL_FULLPATH is passed to env" do

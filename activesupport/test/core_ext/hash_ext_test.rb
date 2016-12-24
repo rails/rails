@@ -390,8 +390,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal true, hash[:b]
     assert_equal false, hash[:c]
-    assert_equal nil, hash[:d]
-    assert_equal nil, hash[:e]
+    assert_nil hash[:d]
+    assert_nil hash[:e]
   end
 
   def test_indifferent_reading_with_nonnil_default
@@ -404,7 +404,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal true, hash[:b]
     assert_equal false, hash[:c]
-    assert_equal nil, hash[:d]
+    assert_nil hash[:d]
     assert_equal 1, hash[:e]
   end
 
@@ -933,8 +933,8 @@ class HashExtTest < ActiveSupport::TestCase
     extracted = original.extract!(:a, :x)
 
     assert_equal expected, extracted
-    assert_equal nil, extracted[:a]
-    assert_equal nil, extracted[:x]
+    assert_nil extracted[:a]
+    assert_nil extracted[:x]
   end
 
   def test_indifferent_extract
@@ -1595,7 +1595,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_should_return_nil_if_no_key_is_supplied
     hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
-    assert_equal nil, hash_wia.default
+    assert_nil hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key

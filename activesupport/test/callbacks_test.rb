@@ -887,7 +887,7 @@ module CallbacksTest
     def test_returning_false_does_not_halt_callback_if_config_variable_is_not_set
       obj = CallbackFalseTerminator.new
       obj.save
-      assert_equal nil, obj.halted
+      assert_nil obj.halted
       assert obj.saved
     end
   end
@@ -900,7 +900,7 @@ module CallbacksTest
     def test_returning_false_does_not_halt_callback_if_config_variable_is_true
       obj = CallbackFalseTerminator.new
       obj.save
-      assert_equal nil, obj.halted
+      assert_nil obj.halted
       assert obj.saved
     end
   end
@@ -913,7 +913,7 @@ module CallbacksTest
     def test_returning_false_does_not_halt_callback_if_config_variable_is_false
       obj = CallbackFalseTerminator.new
       obj.save
-      assert_equal nil, obj.halted
+      assert_nil obj.halted
       assert obj.saved
     end
   end

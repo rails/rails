@@ -339,7 +339,7 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#at with Regex, returns the matching portion of the string" do
     assert_equal "lo", "hello".at(/lo/)
-    assert_equal nil, "hello".at(/nonexisting/)
+    assert_nil "hello".at(/nonexisting/)
   end
 
   test "#from with positive Integer, returns substring from the given position to the end" do
