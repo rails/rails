@@ -996,65 +996,65 @@ module ActionDispatch
         end
 
         private
-          def merge_path_scope(parent, child) #:nodoc:
+          def merge_path_scope(parent, child)
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_shallow_path_scope(parent, child) #:nodoc:
+          def merge_shallow_path_scope(parent, child)
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_as_scope(parent, child) #:nodoc:
+          def merge_as_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_shallow_prefix_scope(parent, child) #:nodoc:
+          def merge_shallow_prefix_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_module_scope(parent, child) #:nodoc:
+          def merge_module_scope(parent, child)
             parent ? "#{parent}/#{child}" : child
           end
 
-          def merge_controller_scope(parent, child) #:nodoc:
+          def merge_controller_scope(parent, child)
             child
           end
 
-          def merge_action_scope(parent, child) #:nodoc:
+          def merge_action_scope(parent, child)
             child
           end
 
-          def merge_via_scope(parent, child) #:nodoc:
+          def merge_via_scope(parent, child)
             child
           end
 
-          def merge_format_scope(parent, child) #:nodoc:
+          def merge_format_scope(parent, child)
             child
           end
 
-          def merge_path_names_scope(parent, child) #:nodoc:
+          def merge_path_names_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_constraints_scope(parent, child) #:nodoc:
+          def merge_constraints_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_defaults_scope(parent, child) #:nodoc:
+          def merge_defaults_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_blocks_scope(parent, child) #:nodoc:
+          def merge_blocks_scope(parent, child)
             merged = parent ? parent.dup : []
             merged << child if child
             merged
           end
 
-          def merge_options_scope(parent, child) #:nodoc:
+          def merge_options_scope(parent, child)
             (parent || {}).merge(child)
           end
 
-          def merge_shallow_scope(parent, child) #:nodoc:
+          def merge_shallow_scope(parent, child)
             child ? true : false
           end
 
@@ -1868,7 +1868,7 @@ module ActionDispatch
             path =~ %r{^/?[-\w]+/[-\w/]+$}
           end
 
-          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
             if on = options.delete(:on)
               send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
             else
@@ -1883,7 +1883,7 @@ module ActionDispatch
             end
           end
 
-          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints)
             path = path_for_action(action, _path)
             raise ArgumentError, "path is required" if path.blank?
 
