@@ -35,29 +35,29 @@ module ActiveRecord
 
       private
 
-        def attributes_with_index # :doc:
+        def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }
         end
 
         # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
-        def generate_application_record # :doc:
+        def generate_application_record
           if self.behavior == :invoke && !application_record_exist?
             template "application_record.rb", application_record_file_name
           end
         end
 
         # Used by the migration template to determine the parent name of the model
-        def parent_class_name # :doc:
+        def parent_class_name
           options[:parent] || "ApplicationRecord"
         end
 
-        def application_record_exist? # :doc:
+        def application_record_exist?
           file_exist = nil
           in_root { file_exist = File.exist?(application_record_file_name) }
           file_exist
         end
 
-        def application_record_file_name # :doc:
+        def application_record_file_name
           @application_record_file_name ||= if mountable_engine?
             "app/models/#{namespaced_path}/application_record.rb"
           else

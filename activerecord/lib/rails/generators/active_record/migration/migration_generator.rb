@@ -23,7 +23,7 @@ module ActiveRecord
         # Sets the default migration template that is being used for the generation of the migration.
         # Depending on command line arguments, the migration template and the table name instance
         # variables are set up.
-        def set_local_assigns! # :doc:
+        def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name
           when /^(add|remove)_.*_(?:to|from)_(.*)/
@@ -42,13 +42,13 @@ module ActiveRecord
           end
         end
 
-        def set_index_names # :doc:
+        def set_index_names
           attributes.each_with_index do |attr, i|
             attr.index_name = [attr, attributes[i - 1]].map { |a| index_name_for(a) }
           end
         end
 
-        def index_name_for(attribute) # :doc:
+        def index_name_for(attribute)
           if attribute.foreign_key?
             attribute.name
           else

@@ -135,7 +135,7 @@ module ActiveRecord
       attr_reader :original_attribute
       alias_method :assigned?, :original_attribute
 
-      def original_value_for_database # :doc:
+      def original_value_for_database
         if assigned?
           original_attribute.original_value_for_database
         else
@@ -144,17 +144,17 @@ module ActiveRecord
       end
 
     private
-      def initialize_dup(other) # :doc:
+      def initialize_dup(other)
         if defined?(@value) && @value.duplicable?
           @value = @value.dup
         end
       end
 
-      def changed_from_assignment? # :doc:
+      def changed_from_assignment?
         assigned? && type.changed?(original_value, value, value_before_type_cast)
       end
 
-      def _original_value_for_database # :doc:
+      def _original_value_for_database
         type.serialize(original_value)
       end
 

@@ -83,7 +83,7 @@ module ActiveRecord
         end
       end
 
-      def scope_relation(record, relation) # :doc:
+      def scope_relation(record, relation)
         Array(options[:scope]).each do |scope_item|
           scope_value = if record.class._reflect_on_association(scope_item)
             record.association(scope_item).reader
@@ -96,7 +96,7 @@ module ActiveRecord
         relation
       end
 
-      def map_enum_attribute(klass, attribute, value) # :doc:
+      def map_enum_attribute(klass, attribute, value)
         mapping = klass.defined_enums[attribute.to_s]
         value = mapping[value] if value && mapping
         value
