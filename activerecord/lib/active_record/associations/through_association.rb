@@ -10,7 +10,7 @@ module ActiveRecord
         #
         #   1. To get the default_scope conditions for any of the other reflections in the chain
         #   2. To get the type conditions for any STI models in the chain
-        def target_scope # :doc:
+        def target_scope
           scope = super
           reflection.chain.drop(1).each do |reflection|
             relation = reflection.klass.all
