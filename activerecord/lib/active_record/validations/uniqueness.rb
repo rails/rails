@@ -74,15 +74,19 @@ module ActiveRecord
       end
 
       def scope_relation(record, relation)
+        scope = {}
         Array(options[:scope]).each do |scope_item|
-          scope_value = if record.class._reflect_on_association(scope_item)
-            record.association(scope_item).reader
+          attrs = []
+          if reflection = record.class._reflect_on_association(scope_item)
+            attrs << reflection.foreign_key
+            attrs << reflection.foreign_type if reflection.polymorphic?
           else
-            record._read_attribute(scope_item)
+            attrs << scope_item
           end
-          relation = relation.where(scope_item => scope_value)
+          attrs.each { |attr| scope[attr] = record._read_attribute(attr) }
         end
 
+        relation.where!(scope) unless scope.empty?
         relation
       end
 
