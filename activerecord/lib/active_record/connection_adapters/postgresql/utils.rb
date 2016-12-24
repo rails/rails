@@ -34,6 +34,12 @@ module ActiveRecord
           parts.hash
         end
 
+        protected
+
+          def parts
+            @parts ||= [@schema, @identifier].compact
+          end
+
         private
           def unquote(part)
             if part && part.start_with?('"')
@@ -41,10 +47,6 @@ module ActiveRecord
             else
               part
             end
-          end
-
-          def parts
-            @parts ||= [@schema, @identifier].compact
           end
       end
 
