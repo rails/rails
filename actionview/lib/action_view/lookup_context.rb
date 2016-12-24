@@ -53,12 +53,18 @@ module ActionView
     register_detail(:variants) { [] }
     register_detail(:handlers) { Template::Handlers.extensions }
 
-    class DetailsKey #:nodoc:
-      alias :eql? :equal?
+    module PerExecutionDigestCacheExpiry
+      def self.before(target)
+        DetailsKey.clear
+      end
+    end
+
+    module DetailsKey #:nodoc:
+      module_function
 
       @details_keys = Concurrent::Map.new
 
-      def self.get(details)
+      def get(details)
         if details[:formats]
           details = details.dup
           details[:formats] &= Template::Types.symbols
@@ -66,11 +72,11 @@ module ActionView
         @details_keys[details] ||= Concurrent::Map.new
       end
 
-      def self.clear
+      def clear
         @details_keys.clear
       end
 
-      def self.digest_caches
+      def digest_caches
         @details_keys.values
       end
     end
@@ -112,22 +118,17 @@ module ActionView
         @view_paths = ActionView::PathSet.new(Array(paths))
       end
 
-      def find(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
+      %i(
+        find
+        find_file
+        find_all
+        exists?
+      ).each do |method|
+        define_method method do |name, prefixes = [], partial = false, keys = [], **options|
+          @view_paths.public_send(method, *args_for_lookup(name, prefixes, partial, keys, options))
+        end
       end
       alias :find_template :find
-
-      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
-
-      def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
-
-      def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
