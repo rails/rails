@@ -46,7 +46,7 @@ env:
 rvm:
   - 2.2.6
   - 2.3.3
-  - 2.4.0-rc1
+  - 2.4.0
   - ruby-head
 
 matrix:
