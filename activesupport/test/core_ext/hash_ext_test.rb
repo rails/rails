@@ -1017,7 +1017,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal({}, h)
 
     h = @symbols.dup
-    assert_equal(nil, h.compact!)
+    assert_nil(h.compact!)
     assert_equal(@symbols, h)
   end
 

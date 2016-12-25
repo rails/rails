@@ -71,12 +71,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
 
   def test_treat_blank_uuid_as_nil
     UUIDType.create! guid: ""
-    assert_equal(nil, UUIDType.last.guid)
+    assert_nil(UUIDType.last.guid)
   end
 
   def test_treat_invalid_uuid_as_nil
     uuid = UUIDType.create! guid: "foobar"
-    assert_equal(nil, uuid.guid)
+    assert_nil(uuid.guid)
   end
 
   def test_invalid_uuid_dont_modify_before_type_cast
