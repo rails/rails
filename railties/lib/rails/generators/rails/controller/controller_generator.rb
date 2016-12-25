@@ -44,7 +44,8 @@ module Rails
 
           # Create route
           #     get 'baz/index'
-          route = indent(%{  get '#{file_name}/#{action}'\n}, depth * 2)
+          leading_spaces = depth.zero? ? "" : "  "
+          route = indent(%{#{leading_spaces}get '#{file_name}/#{action}'\n}, depth * 2)
 
           # Create `end` ladder
           #   end
