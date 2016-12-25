@@ -536,11 +536,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_deleting
     get_hash = proc { { a: "foo" }.with_indifferent_access }
     hash = get_hash.call
-    assert_equal hash.delete(:a), "foo"
-    assert_equal hash.delete(:a), nil
+    assert_equal "foo", hash.delete(:a)
+    assert_equal nil, hash.delete(:a)
     hash = get_hash.call
-    assert_equal hash.delete("a"), "foo"
-    assert_equal hash.delete("a"), nil
+    assert_equal "foo", hash.delete("a")
+    assert_equal nil, hash.delete("a")
   end
 
   def test_indifferent_select
