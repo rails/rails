@@ -44,7 +44,7 @@ env:
 rvm:
   - 2.2.5
   - 2.3.1
-  - ruby-head
+  - 2.4.0
 
 matrix:
   include:
@@ -60,7 +60,6 @@ matrix:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
   allow_failures:
-    - rvm: ruby-head
     - rvm: jruby-9.0.5.0
   fast_finish: true
 
