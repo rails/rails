@@ -111,7 +111,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_strings, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_transform_keys!
@@ -127,7 +127,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({"a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys
@@ -167,7 +167,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @symbols, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_symbolize_keys!
@@ -183,7 +183,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @nested_symbols, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
@@ -243,7 +243,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.stringify_keys!
     assert_equal @strings, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_stringify_keys!
@@ -259,7 +259,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_stringify_keys!
     assert_equal @nested_strings, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
@@ -414,11 +414,11 @@ class HashExtTest < ActiveSupport::TestCase
     hash["b"] = 2
     hash[3] = 3
 
-    assert_equal hash["a"], 1
-    assert_equal hash["b"], 2
-    assert_equal hash[:a], 1
-    assert_equal hash[:b], 2
-    assert_equal hash[3], 3
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash["b"]
+    assert_equal 1, hash[:a]
+    assert_equal 2, hash[:b]
+    assert_equal 3, hash[3]
   end
 
   def test_indifferent_update
@@ -430,16 +430,16 @@ class HashExtTest < ActiveSupport::TestCase
     updated_with_symbols = hash.update(@symbols)
     updated_with_mixed = hash.update(@mixed)
 
-    assert_equal updated_with_strings[:a], 1
-    assert_equal updated_with_strings["a"], 1
-    assert_equal updated_with_strings["b"], 2
+    assert_equal 1, updated_with_strings[:a]
+    assert_equal 1, updated_with_strings["a"]
+    assert_equal 2, updated_with_strings["b"]
 
-    assert_equal updated_with_symbols[:a], 1
-    assert_equal updated_with_symbols["b"], 2
-    assert_equal updated_with_symbols[:b], 2
+    assert_equal 1, updated_with_symbols[:a]
+    assert_equal 2, updated_with_symbols["b"]
+    assert_equal 2, updated_with_symbols[:b]
 
-    assert_equal updated_with_mixed[:a], 1
-    assert_equal updated_with_mixed["b"], 2
+    assert_equal 1, updated_with_mixed[:a]
+    assert_equal 2, updated_with_mixed["b"]
 
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
@@ -447,7 +447,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     hash.update HashByConversion.new(a: 1)
-    assert_equal hash["a"], 1
+    assert_equal 1, hash["a"]
   end
 
   def test_indifferent_merging
@@ -472,7 +472,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_merge_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     merged = hash.merge HashByConversion.new(a: 1)
-    assert_equal merged["a"], 1
+    assert_equal 1, merged["a"]
   end
 
   def test_indifferent_replace

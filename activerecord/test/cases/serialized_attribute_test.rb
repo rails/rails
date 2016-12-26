@@ -185,14 +185,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.new(content: true)
     assert topic.save
     topic = topic.reload
-    assert_equal topic.content, true
+    assert_equal true, topic.content
   end
 
   def test_serialized_boolean_value_false
     topic = Topic.new(content: false)
     assert topic.save
     topic = topic.reload
-    assert_equal topic.content, false
+    assert_equal false, topic.content
   end
 
   def test_serialize_with_coder
@@ -211,7 +211,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.save!
     topic.reload
     assert_kind_of some_class, topic.content
-    assert_equal topic.content, some_class.new("my value")
+    assert_equal some_class.new("my value"), topic.content
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available

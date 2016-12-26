@@ -17,8 +17,8 @@ class ActionController::TestRequestTest < ActionController::TestCase
     @request.set_header "CONTENT_TYPE", "application/json"
     @request.assign_parameters(@routes, "test", "create", non_ascii_parameters,
                                "/test", [:data, :controller, :action])
-    assert_equal(@request.get_header("CONTENT_LENGTH"),
-                 StringIO.new(non_ascii_parameters.to_json).length.to_s)
+    assert_equal(StringIO.new(non_ascii_parameters.to_json).length.to_s,
+                 @request.get_header("CONTENT_LENGTH"))
   end
 
   ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS.each_key do |option|

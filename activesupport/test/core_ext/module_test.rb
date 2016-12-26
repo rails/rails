@@ -210,21 +210,21 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_prefix
     invoice = Invoice.new(@david)
-    assert_equal invoice.client_name, "David"
-    assert_equal invoice.client_street, "Paulina"
-    assert_equal invoice.client_city, "Chicago"
+    assert_equal "David", invoice.client_name
+    assert_equal "Paulina", invoice.client_street
+    assert_equal "Chicago", invoice.client_city
   end
 
   def test_delegation_custom_prefix
     invoice = Invoice.new(@david)
-    assert_equal invoice.customer_name, "David"
-    assert_equal invoice.customer_street, "Paulina"
-    assert_equal invoice.customer_city, "Chicago"
+    assert_equal "David", invoice.customer_name
+    assert_equal "Paulina", invoice.customer_street
+    assert_equal "Chicago", invoice.customer_city
   end
 
   def test_delegation_prefix_with_nil_or_false
-    assert_equal Developer.new(@david).name, "David"
-    assert_equal Tester.new(@david).name, "David"
+    assert_equal "David", Developer.new(@david).name
+    assert_equal "David", Tester.new(@david).name
   end
 
   def test_delegation_prefix_with_instance_variable
@@ -240,7 +240,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_with_allow_nil
     rails = Project.new("Rails", Someone.new("David"))
-    assert_equal rails.name, "David"
+    assert_equal "David", rails.name
   end
 
   def test_delegation_with_allow_nil_and_nil_value
