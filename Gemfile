@@ -29,9 +29,6 @@ gem "bcrypt", "~> 3.1.11", require: false
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
 
-# Track stable branch of sass because it doesn't have circular require warnings.
-gem "sass", github: "sass/sass", branch: "stable", require: false
-
 # FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
