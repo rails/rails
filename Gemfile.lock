@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/QueueClassic/queue_classic.git
-  revision: 1ef197b9db8149a895e59077badcb5b94d4c8b44
+  revision: 51d56ca6fa2fdf1eeffdffd702ae1cc0940b5156
   branch: master
   specs:
     queue_classic (3.2.0.RC1)
-      pg (>= 0.17, < 0.19)
+      pg (>= 0.17, < 0.20)
 
 GIT
   remote: https://github.com/matthewd/rb-inotify.git
@@ -13,13 +13,6 @@ GIT
   specs:
     rb-inotify (0.9.7)
       ffi (>= 0.5.0)
-
-GIT
-  remote: https://github.com/sass/sass.git
-  revision: 7716e67f3507c6f65878c69aa49ec358ebf675c7
-  branch: stable
-  specs:
-    sass (3.4.22)
 
 PATH
   remote: .
@@ -83,11 +76,13 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.4.0)
+    addressable (2.5.0)
+      public_suffix (~> 2.0, >= 2.0.2)
     amq-protocol (2.0.1)
     arel (7.1.4)
-    backburner (1.3.0)
+    backburner (1.3.1)
       beaneater (~> 1.0)
+      concurrent-ruby (~> 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.11)
     bcrypt (3.1.11-x64-mingw32)
@@ -109,18 +104,18 @@ GEM
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
     builder (3.2.2)
-    bunny (2.2.2)
+    bunny (2.6.2)
       amq-protocol (>= 2.0.1)
-    byebug (9.0.5)
+    byebug (9.0.6)
     coffee-rails (4.2.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.2.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.10.0)
-    concurrent-ruby (1.0.2)
-    connection_pool (2.2.0)
+    coffee-script-source (1.12.2)
+    concurrent-ruby (1.0.3)
+    connection_pool (2.2.1)
     cookiejar (0.3.3)
     curses (1.0.2)
     daemons (1.2.4)
@@ -143,11 +138,9 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubis (2.7.0)
-    eventmachine (1.2.0.1)
-    eventmachine (1.2.0.1-x64-mingw32)
-    eventmachine (1.2.0.1-x86-mingw32)
+    eventmachine (1.2.1)
     execjs (2.7.0)
-    faye (1.2.2)
+    faye (1.2.3)
       cookiejar (>= 0.3.0)
       em-http-request (>= 0.3.0)
       eventmachine (>= 0.12.0)
@@ -155,7 +148,7 @@ GEM
       multi_json (>= 1.0.0)
       rack (>= 1.0.0)
       websocket-driver (>= 0.5.1)
-    faye-websocket (0.10.4)
+    faye-websocket (0.10.5)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.14)
@@ -170,7 +163,7 @@ GEM
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
-    json (1.8.3)
+    json (2.0.2)
     kindlerb (0.1.1)
       mustache
       nokogiri
@@ -193,25 +186,22 @@ GEM
     mono_logger (1.1.0)
     multi_json (1.12.1)
     mustache (1.0.3)
-    mysql2 (0.4.4)
-    mysql2 (0.4.4-x64-mingw32)
-    mysql2 (0.4.4-x86-mingw32)
+    mysql2 (0.4.5)
+    mysql2 (0.4.5-x64-mingw32)
+    mysql2 (0.4.5-x86-mingw32)
     nio4r (1.2.1)
-    nokogiri (1.6.8)
+    nokogiri (1.6.8.1)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
-    nokogiri (1.6.8-x64-mingw32)
+    nokogiri (1.6.8.1-x64-mingw32)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
-    nokogiri (1.6.8-x86-mingw32)
+    nokogiri (1.6.8.1-x86-mingw32)
       mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
-    pg (0.18.4)
-    pg (0.18.4-x64-mingw32)
-    pg (0.18.4-x86-mingw32)
-    pkg-config (1.1.7)
-    psych (2.1.1)
-    puma (3.6.0)
+    pg (0.19.0)
+    pg (0.19.0-x64-mingw32)
+    pg (0.19.0-x86-mingw32)
+    psych (2.2.2)
+    public_suffix (2.0.4)
+    puma (3.6.2)
     qu (0.2.0)
       multi_json
     qu-redis (0.2.0)
@@ -232,12 +222,11 @@ GEM
       nokogiri (~> 1.6.0)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rake (11.2.2)
-    rb-fsevent (0.9.7)
-    rdoc (4.2.2)
-      json (~> 1.4)
+    rake (12.0.0)
+    rb-fsevent (0.9.8)
+    rdoc (5.0.0)
     redcarpet (3.2.3)
-    redis (3.3.1)
+    redis (3.3.2)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
     resque (1.25.2)
@@ -251,34 +240,35 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.2)
-    rufus-scheduler (3.2.2)
+    rufus-scheduler (3.3.1)
+      tzinfo
+    sass (3.4.23)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
       sass (~> 3.1)
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    sdoc (0.4.1)
-      json (~> 1.7, >= 1.7.7)
-      rdoc (~> 4.0)
-    sequel (4.38.0)
+    sdoc (1.0.0.rc1)
+      rdoc (= 5.0.0)
+    sequel (4.41.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (4.2.0)
+    sidekiq (4.2.7)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
-      rack-protection (~> 1.5)
+      rack-protection (>= 1.5.0)
       redis (~> 3.2, >= 3.2.1)
     sigdump (0.2.4)
     simple_uuid (0.4.0)
     sinatra (1.0)
       rack (>= 1.0)
-    sneakers (2.3.5)
-      bunny (~> 2.2.0)
+    sneakers (2.4.0)
+      bunny (~> 2.6)
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.7.0)
+    sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-export (0.9.1)
@@ -289,14 +279,14 @@ GEM
     sqlite3 (1.3.12)
     sqlite3 (1.3.12-x64-mingw32)
     sqlite3 (1.3.12-x86-mingw32)
-    stackprof (0.2.9)
+    stackprof (0.2.10)
     sucker_punch (2.0.2)
       concurrent-ruby (~> 1.0.0)
     thin (1.7.0)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (0.19.1)
+    thor (0.19.4)
     thread (0.1.7)
     thread_safe (0.3.5)
     tilt (2.0.5)
@@ -305,16 +295,16 @@ GEM
     turbolinks-source (5.0.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2016.6)
+    tzinfo-data (1.2016.10)
       tzinfo (>= 1.0.0)
-    uglifier (3.0.2)
+    uglifier (3.0.4)
       execjs (>= 0.3.0, < 3)
     useragent (0.16.8)
     vegas (0.1.11)
       rack (>= 1.0.0)
-    w3c_validators (1.2)
-      json
-      nokogiri
+    w3c_validators (1.3.1)
+      json (~> 2.0)
+      nokogiri (~> 1.6)
     wdm (0.1.1)
     websocket-driver (0.6.4)
       websocket-extensions (>= 0.1.0)
@@ -363,9 +353,8 @@ DEPENDENCIES
   redis
   resque (< 1.26)
   resque-scheduler
-  sass!
   sass-rails
-  sdoc (~> 0.4.0)
+  sdoc (~> 1.0.0.rc1)
   sequel
   sidekiq
   sneakers
@@ -379,4 +368,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.13.6
+   1.13.7
