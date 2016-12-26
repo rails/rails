@@ -139,6 +139,8 @@ GEM
       eventmachine (>= 1.0.0.beta.4)
     erubis (2.7.0)
     eventmachine (1.2.1)
+    eventmachine (1.2.1-x64-mingw32)
+    eventmachine (1.2.1-x86-mingw32)
     execjs (2.7.0)
     faye (1.2.3)
       cookiejar (>= 0.3.0)
