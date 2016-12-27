@@ -84,7 +84,7 @@ module ActionDispatch
         PASS_NOT_FOUND
       end
     end
-    #key? method returns boolean value
+    #key? method returns a boolean value
     #returns true if 'key'(the parameter) has been set accordingly
     def key?(key)
       has_header? key
