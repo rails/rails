@@ -552,15 +552,15 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_added_action_to_inheritance_graph
-    assert_equal [ :ensure_login ], TestController.before_actions
+    assert_equal [ :verify_authenticity_token, :ensure_login ], TestController.before_actions
   end
 
   def test_base_class_in_isolation
-    assert_equal [ ], ActionController::Base.before_actions
+    assert_equal [ :verify_authenticity_token ], ActionController::Base.before_actions
   end
 
   def test_prepending_action
-    assert_equal [ :wonderful_life, :ensure_login ], PrependingController.before_actions
+    assert_equal [ :wonderful_life, :verify_authenticity_token, :ensure_login ], PrependingController.before_actions
   end
 
   def test_running_actions
