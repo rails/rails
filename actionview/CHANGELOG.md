@@ -1,3 +1,9 @@
+*   Return correct object name in form helper method after `fields_for`.
+
+    Fixes #26931.
+
+    *Yuji Yaginuma*
+
 *   Use `ActionView::Resolver.caching?` (`config.action_view.cache_template_loading`)
     to enable template recompilation.
 

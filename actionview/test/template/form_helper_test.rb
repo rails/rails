@@ -2262,11 +2262,13 @@ class FormHelperTest < ActionView::TestCase
       concat f.fields_for("comment[]", @comment) { |c|
         concat c.text_field(:name)
       }
+      concat f.text_field(:body)
     end
 
     expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
       "<input name='post[123][title]' type='text' id='post_123_title' value='Hello World' />" +
-      "<input name='post[123][comment][][name]' type='text' id='post_123_comment__name' value='new comment' />"
+      "<input name='post[123][comment][][name]' type='text' id='post_123_comment__name' value='new comment' />" +
+      "<input name='post[123][body]' type='text' id='post_123_body' value='Back to the hill and over it again!' />"
     end
 
     assert_dom_equal expected, output_buffer
