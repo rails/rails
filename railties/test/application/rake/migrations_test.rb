@@ -59,7 +59,7 @@ module ApplicationTests
 
       test 'migration status when schema migrations table is not present' do
         output = Dir.chdir(app_path){ `rake db:migrate:status 2>&1` }
-        assert_equal "Schema migrations table does not exist yet.\n", output
+        assert_equal "Schema migrations table does not exist yet.\n", output.gsub(/.* warning: .*\n/, "")
       end
 
       test 'test migration status' do

@@ -150,7 +150,7 @@ module ApplicationTests
           `bundle exec rails runner 'ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }'`
 
           stderr_output = capture(:stderr) { `bundle exec rake db:structure:dump` }
-          assert_empty stderr_output
+          assert_empty stderr_output.gsub(/.* warning: .*\n/, "")
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE \"posts\"/, structure_dump)
         end
