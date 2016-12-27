@@ -430,12 +430,23 @@ module ActiveRecord
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
 
-        yield(record) if block_given?
+        begin
+          if index
+            record_was = target[index]
+            target[index] = record
+          else
+            target << record
+          end
 
-        if index
-          @target[index] = record
-        else
-          append_record(record)
+          yield(record) if block_given?
+        rescue
+          if index
+            target[index] = record_was
+          else
+            target.delete(record)
+          end
+
+          raise
         end
 
         callback(:after_add, record) unless skip_callbacks
@@ -657,10 +668,6 @@ module ActiveRecord
           collection.send(type, *args).tap do |record|
             set_inverse_instance record if record.is_a? ActiveRecord::Base
           end
-        end
-
-        def append_record(record)
-          @target << record unless @target.include?(record)
         end
     end
   end
