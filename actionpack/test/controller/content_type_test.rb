@@ -1,6 +1,8 @@
 require "abstract_unit"
 
 class OldContentTypeController < ActionController::Base
+  self.allow_forgery_protection = false
+
   # :ported:
   def render_content_type_from_body
     response.content_type = Mime[:rss]

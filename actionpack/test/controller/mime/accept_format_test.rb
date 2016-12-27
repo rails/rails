@@ -1,6 +1,8 @@
 require "abstract_unit"
 
 class StarStarMimeController < ActionController::Base
+  self.allow_forgery_protection = false
+
   layout nil
 
   def index
@@ -29,6 +31,8 @@ class StarStarMimeControllerTest < ActionController::TestCase
 end
 
 class AbstractPostController < ActionController::Base
+  self.allow_forgery_protection = false
+
   self.view_paths = File.dirname(__FILE__) + "/../../fixtures/post_test/"
 end
 
