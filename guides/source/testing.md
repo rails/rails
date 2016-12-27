@@ -8,7 +8,7 @@ This guide covers built-in mechanisms in Rails for testing your application.
 After reading this guide, you will know:
 
 * Rails testing terminology.
-* How to write unit, functional, and integration tests for your application.
+* How to write unit, functional, integration, and system tests for your application.
 * Other popular testing approaches and plugins.
 
 --------------------------------------------------------------------------------
@@ -33,17 +33,24 @@ Rails creates a `test` directory for you as soon as you create a Rails project u
 
 ```bash
 $ ls -F test
-controllers/    helpers/        mailers/        test_helper.rb
-fixtures/       integration/    models/
+controllers/           helpers/               mailers/               system/                test_helper.rb
+fixtures/              integration/           models/                system_test_helper.rb
 ```
 
 The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
+
+The system test directory holds system tests, also known as acceptance tests.
+System tests inherit from Capybara and perform in browser tests for your
+application.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` directory.
 
 A `jobs` directory will also be created when an associated test is first generated.
 
 The `test_helper.rb` file holds the default configuration for your tests.
+
+The `system_test_helper.rb` holds the default configuration for your system
+tests.
 
 
 ### The Test Environment
@@ -358,6 +365,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * [`ActionView::TestCase`](http://api.rubyonrails.org/classes/ActionView/TestCase.html)
 * [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
 * [`ActiveJob::TestCase`](http://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
+* [`ActionSystemTestCase`](http://api.rubyonrails.org/classes/ActionSystemTest.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
@@ -587,6 +595,246 @@ create  test/fixtures/articles.yml
 
 Model tests don't have their own superclass like `ActionMailer::TestCase` instead they inherit from [`ActiveSupport::TestCase`](http://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
 
+System Testing
+--------------
+
+System tests are full-browser acceptance tests that inherit from Capybara.
+System tests allow for running tests in either a real browser or a headless
+browser for testing full user interactions with your application.
+
+For creating Rails system tests, you use the `test/system` directory in your
+application. Rails provides a generator to create a system test skeleton for us.
+
+```bash
+$ bin/rails generate system_test users_create_test.rb
+      invoke test_unit
+      create test/system/users_create_test.rb
+```
+
+Here's what a freshly-generated system test looks like:
+
+```ruby
+require 'test_helper'
+
+class UsersCreateTest < ActionSystemTestCase
+  # test "the truth" do
+  #   assert true
+  # end
+end
+```
+
+Here the test is inheriting from `ActionSystemTestCase`. This allows for no-setup
+Capybara integration with Selenium Webdriver.
+
+### Changing the default settings
+
+Capybara requires that a driver be selected. Rails defaults to the Selenium
+Driver and provides default settings to Capyara and Selenium so that system
+tests work out of the box with no required configuration on your part.
+
+Some may prefer to use a headless driver so Rails provides a shim to set other
+drivers for Capybara with minimal configuration.
+
+In the `system_test_helper.rb` that is generated with the application or test
+you can set the driver:
+
+```ruby
+require 'test_helper'
+
+class ActionSystemTestCase < ActionSystemTest::Base
+  ActionSystemTest.driver = :poltergeist
+end
+```
+
+The drivers that Rails and Capybara support are `:rack_test`, `:poltergeist`,
+`:capybara_webkit`, and of course `:selenium`.
+
+For selenium you can choose either the Rails configured driver `:rails_selenium`
+or `:selenium`. The `:selenium` driver inherits from `CabybaraDriver` and is
+the vanilla setup of selenium with Capybara if you don't want to use the
+Rails defaults.
+
+The default settings for `:rails_selenium` driver uses the Chrome browser,
+sets the server to Puma on port 28100 and the screen size to 1400 x 1400.
+
+You can change the default settings by initializing a new driver object.
+
+```ruby
+require 'test_helper'
+
+class ActionSystemTestCase < ActionSystemTest::Base
+  ActionSystemTest.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
+    browser: :firefox,
+    server: :webkit
+  )
+end
+```
+
+The shim for other Capybara drivers provide some defaults such as driver name
+server, and port. To change any of those settings, you can initialize a new
+`CapybaraDriver` object.
+
+```ruby
+require 'test_helper'
+
+class ActionSystemTestCase < ActionSystemTest::Base
+  ActionSystemTest.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
+    driver: :poltergeist,
+    server: :webrick
+  )
+end
+```
+
+If your Capybara configuration requires more setup than provided by Rails, all
+of that configuration can be put into the `system_test_helper.rb` file provided
+by Rails.
+
+Please see Capybara's documentation for additional settings.
+
+### Helpers Available for System Tests
+
+`ActionSystemTest` provides a few helpers in addition to those provided previously
+by Rails or by Capybara.
+
+The `ScreenshotHelper` is a helper designed to capture screenshots of your test.
+This can be helpful for viewing the browser at the point a test failed, or
+to view screenshots later for debugging.
+
+Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
+`take_failed_screenshot` is automatically included in the `system_test_helper.rb`
+file and will take a screenshot only if the test fails.
+
+The `take_screenshot` helper method can be included anywhere in your tests to
+take a screenshot of the browser.
+
+A method is provided by the drivers to determine whether the driver is capable
+of taking screenshots. The `RackTest` driver for example does not support
+screenshots. `supports_screenshots?` checks whether the driver supports
+screenshots:
+
+```ruby
+ActionSystemTest.driver.supports_screenshots?
+=> true
+```
+
+The `ActiveJobSetup` helper configures your system tests for handling Active Job.
+
+Two helper methods are included in the setup and teardown blocks in the
+`system_test_helper.rb` file. `set_queue_adapter_to_async` sets your Active Job
+queue adapter to the async adapter and remembers the original adapter.
+
+In teardown the `reset_queue_adapter_to_original` method resets the Active Job
+queue adapter back to the adapter your application has set for other environments.
+
+This is helpful for ensuring that jobs run async so that the test's that rely
+on job code are correctly tested at the time they run.
+
+If you don't want these helper methods you can remove them from the setup and
+teardown code in your `system_test_helper.rb`.
+
+The `AssertionsHelper` provides two helper methods for assertions. In Capybara
+you can assert that a selector does or does not exist, but often you have cases
+where you need to assert the same selector exsits multiple times with different
+values. For example, if you have 6 avatars on the page and you want to assert
+that each of them has the respective title for each person you can use
+`assert_all_of_selectors` and pass the selector, items you are asserting exist,
+and options.
+
+```ruby
+assert_all_of_selectors(:avatar, 'Eileen', 'Jeremy')
+assert_all_of_selectors(:avatar, 'Eileen', 'Jeremy', visible: all)
+```
+
+You can also assert that none of the selectors match with
+`assert_none_of_selectors`:
+
+```ruby
+assert_none_of_selectors(:avatar, 'Tom', 'Dan')
+assert_none_of_selectors(:avatar, 'Tom', 'Dan')
+```
+
+### Implementing a system test
+
+Now we're going to add a system test to our blog application. We'll demonstrate
+writing a system test by visiting the index page and creating a new blog article.
+
+If you used the scaffold generator, a system test skeleton is automatically
+created for you. If you did not use the generator start by creating a system
+test skeleton.
+
+```bash
+$ bin/rails generate system_test articles
+```
+
+It should have created a test file placeholder for us. With the output of the
+previous command we should see:
+
+```bash
+      invoke  test_unit
+      create    test/system/articles_test.rb
+```
+
+Now let's open that file and write our first assertion:
+
+```ruby
+require 'system_test_helper'
+
+class UsersTest < ActionSystemTestCase
+  test "viewing the index" do
+    visit articles_path
+    assert_text "h1", "Articles"
+  end
+end
+```
+
+The test should see that there is an h1 on the articles index and pass.
+
+Run the system tests.
+
+```bash
+bin/rails test:system
+```
+
+#### Creating articles system test
+
+Now let's test the flow for creating a new article in our blog.
+
+```ruby
+test "creating an article" do
+  visit articles_path
+
+  click_on "New Article"
+
+  fill_in "Title", with: "Creating an Article"
+  fill_in "Body", with: "Created this article successfully!"
+
+  click_on "Create Article"
+
+  assert_text "Creating an Article"
+end
+```
+
+The first step is to call `visit articles_path`. This will take the test to the
+articles index page.
+
+Then the `click_on "New Article"` will find the "New Article" button on the
+index page. This will redirect the browser to `/articles/new`.
+
+Then the test will fill in the title and body of the article with the specified
+text. Once the fields are filled in "Create Article" is clicked on which will
+send a POST request to create the new article in the database.
+
+We will be redirected back to the the articles index page and there we assert
+that the text from the article title is on the articles index page.
+
+#### Taking it further
+
+The beauty of system testing is that it is similar to integration testing in
+that it tests the user's interaction with your controller, model, and view, but
+system testing is much more robust and actually tests your application as if
+a real user were using it. Going forward you can test anything that the user
+themselves would do in your application such as commenting, deleting articles,
+publishing draft articles, etc.
 
 Integration Testing
 -------------------
