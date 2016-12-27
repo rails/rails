@@ -36,7 +36,7 @@ gem 'uglifier', '>= 1.3.0', require: false
 gem 'mime-types', '< 3', require: false
 
 group :doc do
-  gem 'sdoc', '~> 0.4.0'
+  gem 'sdoc', '>= 1.0.0.rc1', '< 1.1'
   gem 'redcarpet', '~> 3.1.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb', '0.1.1'
@@ -98,8 +98,13 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.15.0'
-    gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.4.0'
+  end
+end
+
+platforms :mri_19, :mri_20, :mri_21, :mri_22, :mri_23 do
+  group :db do
+    gem 'mysql', '>= 2.9.0'
   end
 end
 
