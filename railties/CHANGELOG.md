@@ -5,9 +5,9 @@
       rails new myapp --webpack
 
     To generate a new app that has Webpack + React configured and an example intalled:
-    
+
       rails new myapp --webpack=react
-    
+
     *DHH*
 
 *   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.

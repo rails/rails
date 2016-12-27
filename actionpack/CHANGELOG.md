@@ -4,7 +4,7 @@
     out the format from the header instead.
 
     This allows devs to use `:as` on routes that don't have a format.
-    
+
     Fixes #27144.
 
     *Kasper Timm Hansen*
