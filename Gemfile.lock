@@ -267,7 +267,6 @@ DEPENDENCIES
   mustache (~> 0.99.8)
   mysql (>= 2.9.0)
   mysql2 (>= 0.4.0)
-  nokogiri (>= 1.4.5)
   pg (>= 0.15.0)
   psych (~> 2.0)
   qu-rails!

@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+ruby "~> #{RUBY_VERSION}" if ENV["TRAVIS"]
+
 git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
   "https://github.com/#{repo_name}.git"
@@ -88,8 +90,6 @@ group :test do
 end
 
 platforms :ruby do
-  gem 'nokogiri', '>= 1.4.5'
-
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
 
