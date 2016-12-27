@@ -2,11 +2,11 @@
 
     To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:
 
-      rails new myapp --webpack
+      `rails new myapp --webpack`
 
     To generate a new app that has Webpack + React configured and an example intalled:
 
-      rails new myapp --webpack=react
+      `rails new myapp --webpack=react`
 
     *DHH*
 
