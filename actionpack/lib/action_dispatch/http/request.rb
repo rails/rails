@@ -84,6 +84,8 @@ module ActionDispatch
       end
     end
 
+    #returns boolean value
+    #returns true if 'key'(the parameter) has been set accordingly
     def key?(key)
       has_header? key
     end
