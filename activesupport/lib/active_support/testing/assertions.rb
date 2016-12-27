@@ -3,22 +3,6 @@ module ActiveSupport
     module Assertions
       UNTRACKED = Object.new # :nodoc:
 
-      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
-      # +nil+ or +false+. "Truthy" means "considered true in a conditional"
-      # like <tt>if foo</tt>.
-      #
-      #   assert_not nil    # => true
-      #   assert_not false  # => true
-      #   assert_not 'foo'  # => Expected "foo" to be nil or false
-      #
-      # An error message can be specified.
-      #
-      #   assert_not foo, 'foo should be false'
-      def assert_not(object, message = nil)
-        message ||= "Expected #{mu_pp(object)} to be nil or false"
-        assert !object, message
-      end
-
       # Assertion that the block should not raise an exception.
       #
       # Passes if evaluated code in the yielded block raises no exception.
