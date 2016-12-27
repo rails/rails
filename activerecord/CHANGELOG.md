@@ -1,10 +1,10 @@
 *   Notifications see frozen SQL string.
 
-    Fixes #23774
+    Fixes #23774.
 
     *Richard Monette*
 
-*   RuntimeErrors are no longer translated to ActiveRecord::StatementInvalid.
+*   RuntimeErrors are no longer translated to `ActiveRecord::StatementInvalid`.
 
     *Richard Monette*
 
