@@ -2475,7 +2475,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "double insertion of new object to association when same association used in the after create callback of a new object" do
     reset_callbacks(:save, Bulb) do
-      Bulb.after_save { |record| record.car.bulbs.to_a }
+      Bulb.after_save { |record| record.car.bulbs.load }
       car = Car.create!
       car.bulbs << Bulb.new
       assert_equal 1, car.bulbs.size
