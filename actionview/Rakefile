@@ -8,7 +8,7 @@ task package: "assets:compile"
 # Run the unit tests
 
 desc "Run all unit tests"
-task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
+task test: ["test:template", "test:integration:action_pack", "test:integration:active_record", "test:integration:ujs"]
 
 namespace :test do
   task :isolated do
@@ -43,13 +43,29 @@ namespace :test do
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
+
+    desc "UJS Integration Tests"
+    task :ujs do
+      if phantomjs = which("phantomjs")
+        process = start_process
+        puts "Web server process started..."
+        fail "Failed due to timeout running server process" unless wait_for_process(4567)
+        puts "Running tests with phantomjs..."
+        output = `#{phantomjs} test/ujs/runner.js http://localhost:4567`
+        puts output.lines.grep(/passed/)
+        fail "UJS tests failed" unless $?.success?
+        stop_process(process)
+      else
+        puts "Skipping UJS tests because PhantomJS was not detected in PATH"
+      end
+    end
   end
 end
 
 namespace :ujs do
   desc "Starts the test server"
   task :server do
-    system 'bundle exec rackup test/ujs/config.ru -p 4567 -s puma'
+    system "bundle exec rackup test/ujs/config.ru -p 4567 -s puma"
   end
 end
 
@@ -65,4 +81,53 @@ task :lines do
   load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
+end
+
+def which(cmd)
+  exts = ENV["PATHEXT"] ? ENV["PATHEXT"].split(";") : [""]
+  ENV["PATH"].split(File::PATH_SEPARATOR).each do |path|
+    exts.each { |ext|
+      exe = "#{path}/#{cmd}#{ext}"
+      return exe if File.executable? exe
+    }
+  end
+  return nil
+end
+
+def start_process
+  require "childprocess"
+  FileUtils.mkdir_p("test/ujs/log")
+  args = %w(ruby -S bundle exec rackup test/ujs/config.ru -p 4567 -s puma)
+  process = ChildProcess.build(*args)
+  process.start
+  process
+end
+
+def stop_process(process)
+  begin
+    process.poll_for_exit(5)
+  rescue ChildProcess::TimeoutError
+    process.stop
+  end
+end
+
+def wait_for_process(port, timeout = 5)
+  timestamp = Time.now.to_i + timeout
+  while true
+    if port_busy?(port)
+      return true
+    elsif Time.now.to_i > timestamp
+      puts "timed out after #{timeout} seconds"
+      return false
+    end
+  end
+end
+
+# TODO: Test this in a Windows machine.
+def port_busy?(port)
+  if RbConfig::CONFIG["host_os"] =~ /msdos|mswin|djgpp|mingw|windows/
+    `netstat -an | findstr ":#{port}.*:[^:]*$"` != ""
+  else
+    `lsof -i :#{port}` != ""
+  end
 end

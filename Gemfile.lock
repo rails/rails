@@ -379,6 +379,7 @@ DEPENDENCIES
   blade
   blade-sauce_labs_plugin
   byebug
+  childprocess
   coffee-rails
   dalli (>= 2.2.1)
   delayed_job!

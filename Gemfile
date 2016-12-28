@@ -95,6 +95,7 @@ group :test do
   end
 
   gem "benchmark-ips"
+  gem "childprocess"
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
