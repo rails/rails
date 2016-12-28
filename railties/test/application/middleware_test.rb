@@ -30,10 +30,10 @@ module ApplicationTests
         "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
-        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
+        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::Migration::CheckPending",
@@ -58,10 +58,10 @@ module ApplicationTests
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "ActionDispatch::RequestId",
-        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
+        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "Rack::Head",
