@@ -1,3 +1,9 @@
+*   Raise error when has_many through is defined before through association
+
+    Fixes #26834
+
+    *Chris Holmes*
+
 *   Deprecate passing `name` to `indexes`.
 
     *Ryuta Kamizono*

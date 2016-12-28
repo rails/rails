@@ -1231,4 +1231,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     TenantMembership.current_member = nil
   end
+
+  def test_incorrectly_ordered_through_associations
+    assert_raises(ActiveRecord::HasManyThroughOrderError) do
+      DeveloperWithIncorrectlyOrderedHasManyThrough.create(
+        companies: [Company.create]
+      )
+    end
+  end
 end

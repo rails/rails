@@ -931,6 +931,14 @@ module ActiveRecord
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
+        if parent_reflection.nil?
+          reflections = active_record.reflections.keys.map(&:to_sym)
+
+          if reflections.index(through_reflection.name) > reflections.index(name)
+            raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)
+          end
+        end
+
         check_validity_of_inverse!
       end
 
