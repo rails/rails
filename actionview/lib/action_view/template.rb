@@ -140,7 +140,7 @@ module ActionView
     end
 
     # Returns whether the underlying handler supports streaming. If so,
-    # a streaming buffer *may* be passed when it start rendering.
+    # a streaming buffer *may* be passed when it starts rendering.
     def supports_streaming?
       handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
     end
