@@ -107,10 +107,12 @@ class ActionCable.Connection
 
     close: (event) ->
       ActionCable.log("WebSocket onclose event")
-      return if @disconnected
-      @disconnected = true
-      @monitor.recordDisconnect()
-      @subscriptions.notifyAll("disconnected", {willAttemptReconnect: @monitor.isRunning()})
+      if @disconnected
+        @subscriptions.notifyAll("failed", {code: event.code, willAttemptReconnect: @monitor.isRunning()})
+      else
+        @disconnected = true
+        @monitor.recordDisconnect()
+        @subscriptions.notifyAll("disconnected", {willAttemptReconnect: @monitor.isRunning()})
 
     error: ->
       ActionCable.log("WebSocket onerror event")
