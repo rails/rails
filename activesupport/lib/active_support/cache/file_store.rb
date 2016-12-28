@@ -66,7 +66,7 @@ module ActiveSupport
         end
       end
 
-      protected
+      private
 
         def read_entry(key, options)
           if File.exist?(key)
@@ -98,9 +98,8 @@ module ActiveSupport
           end
         end
 
-      private
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
+        def lock_file(file_name, &block)
           if File.exist?(file_name)
             File.open(file_name, "r+") do |f|
               begin

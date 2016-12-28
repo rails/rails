@@ -4,7 +4,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        protected
+        private
 
           # We want to generate the methods via module_eval rather than
           # define_method, because define_method is slower on dispatch.
@@ -24,7 +24,7 @@ module ActiveRecord
           # to allocate an object on each call to the attribute method.
           # Making it frozen means that it doesn't get duped when used to
           # key the @attributes in read_attribute.
-          def define_method_attribute(name)
+          def define_method_attribute(name) # :doc:
             safe_name = name.unpack("h*".freeze).first
             temp_method = "__temp__#{safe_name}"
 

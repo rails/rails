@@ -643,18 +643,20 @@ module Rails
 
     protected
 
-      def load_config_initializer(initializer)
-        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
-          load(initializer)
-        end
-      end
-
       def run_tasks_blocks(*) #:nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
 
-      def has_migrations? #:nodoc:
+    private
+
+      def load_config_initializer(initializer) # :doc:
+        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
+          load(initializer)
+        end
+      end
+
+      def has_migrations?
         paths["db/migrate"].existent.any?
       end
 
@@ -671,23 +673,21 @@ module Rails
         Pathname.new File.realpath root
       end
 
-      def default_middleware_stack #:nodoc:
+      def default_middleware_stack
         ActionDispatch::MiddlewareStack.new
       end
 
-      def _all_autoload_once_paths #:nodoc:
+      def _all_autoload_once_paths
         config.autoload_once_paths
       end
 
-      def _all_autoload_paths #:nodoc:
+      def _all_autoload_paths
         @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
       end
 
-      def _all_load_paths #:nodoc:
+      def _all_load_paths
         @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
       end
-
-    private
 
       def build_request(env)
         env.merge!(env_config)

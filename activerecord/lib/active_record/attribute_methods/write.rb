@@ -8,9 +8,9 @@ module ActiveRecord
       end
 
       module ClassMethods
-        protected
+        private
 
-          def define_method_attribute=(name)
+          def define_method_attribute=(name) # :doc:
             safe_name = name.unpack("h*".freeze).first
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 

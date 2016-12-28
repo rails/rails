@@ -2,6 +2,7 @@ require "active_support/logger"
 require "models/college"
 require "models/course"
 require "models/professor"
+require "models/other_dog"
 
 module ARTest
   def self.connection_name

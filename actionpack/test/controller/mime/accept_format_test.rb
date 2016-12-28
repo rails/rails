@@ -40,7 +40,7 @@ class PostController < AbstractPostController
     respond_to(:html, :iphone, :js)
   end
 
-protected
+private
 
   def with_iphone
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"

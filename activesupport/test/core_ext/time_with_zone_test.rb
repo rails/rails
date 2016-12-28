@@ -1057,7 +1057,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = -9.hours
     assert_equal ActiveSupport::TimeZone["Alaska"], Time.zone
     Time.zone = nil
-    assert_equal nil, Time.zone
+    assert_nil Time.zone
   end
 
   def test_time_zone_getter_and_setter_with_zone_default_set

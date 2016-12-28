@@ -27,9 +27,9 @@ module Rails
         end
       end
 
-    protected
+      private
 
-      def call_app(request, env)
+      def call_app(request, env) # :doc:
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.start "request.action_dispatch", request: request
         logger.info { started_request_message(request) }
@@ -44,7 +44,7 @@ module Rails
       end
 
       # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
-      def started_request_message(request)
+      def started_request_message(request) # :doc:
         'Started %s "%s" for %s at %s' % [
           request.request_method,
           request.filtered_path,
@@ -52,7 +52,7 @@ module Rails
           Time.now.to_default_s ]
       end
 
-      def compute_tags(request)
+      def compute_tags(request) # :doc:
         @taggers.collect do |tag|
           case tag
           when Proc
@@ -65,16 +65,14 @@ module Rails
         end
       end
 
-      private
+      def finish(request)
+        instrumenter = ActiveSupport::Notifications.instrumenter
+        instrumenter.finish "request.action_dispatch", request: request
+      end
 
-        def finish(request)
-          instrumenter = ActiveSupport::Notifications.instrumenter
-          instrumenter.finish "request.action_dispatch", request: request
-        end
-
-        def logger
-          Rails.logger
-        end
+      def logger
+        Rails.logger
+      end
     end
   end
 end

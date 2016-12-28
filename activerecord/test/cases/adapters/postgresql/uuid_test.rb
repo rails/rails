@@ -71,12 +71,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
 
   def test_treat_blank_uuid_as_nil
     UUIDType.create! guid: ""
-    assert_equal(nil, UUIDType.last.guid)
+    assert_nil(UUIDType.last.guid)
   end
 
   def test_treat_invalid_uuid_as_nil
     uuid = UUIDType.create! guid: "foobar"
-    assert_equal(nil, uuid.guid)
+    assert_nil(uuid.guid)
   end
 
   def test_invalid_uuid_dont_modify_before_type_cast
@@ -210,7 +210,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     def test_pk_and_sequence_for_uuid_primary_key
       pk, seq = connection.pk_and_sequence_for("pg_uuids")
       assert_equal "id", pk
-      assert_equal nil, seq
+      assert_nil seq
     end
 
     def test_schema_dumper_for_uuid_primary_key

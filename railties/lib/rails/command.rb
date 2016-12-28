@@ -82,16 +82,16 @@ module Rails
         [[ "rails", rails ]] + groups.sort.to_a
       end
 
-      protected
-        def command_type
+      private
+        def command_type # :doc:
           @command_type ||= "command"
         end
 
-        def lookup_paths
+        def lookup_paths # :doc:
           @lookup_paths ||= %w( rails/commands commands )
         end
 
-        def file_lookup_paths
+        def file_lookup_paths # :doc:
           @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_command.rb" ]
         end
     end

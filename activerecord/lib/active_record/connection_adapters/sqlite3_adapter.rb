@@ -431,16 +431,16 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
+      private
 
-        def table_structure(table_name) # :nodoc:
+        def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
 
-        def alter_table(table_name, options = {}) #:nodoc:
+        def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
           caller = lambda { |definition| yield definition if block_given? }
 
@@ -451,12 +451,12 @@ module ActiveRecord
           end
         end
 
-        def move_table(from, to, options = {}, &block) #:nodoc:
+        def move_table(from, to, options = {}, &block)
           copy_table(from, to, options, &block)
           drop_table(from)
         end
 
-        def copy_table(from, to, options = {}) #:nodoc:
+        def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
           create_table(to, options) do |definition|
@@ -482,7 +482,7 @@ module ActiveRecord
             options[:rename] || {})
         end
 
-        def copy_table_indexes(from, to, rename = {}) #:nodoc:
+        def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
             if to == "a#{from}"
@@ -505,7 +505,7 @@ module ActiveRecord
           end
         end
 
-        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
+        def copy_table_contents(from, to, columns, rename = {})
           column_mappings = Hash[columns.map { |name| [name, name] }]
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
@@ -518,11 +518,11 @@ module ActiveRecord
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
-        def sqlite_version
+        def sqlite_version # :doc:
           @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message)
+        def translate_exception(exception, message) # :doc:
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
@@ -537,7 +537,6 @@ module ActiveRecord
           end
         end
 
-      private
         COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)

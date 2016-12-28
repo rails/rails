@@ -121,3 +121,23 @@ class Method
     false
   end
 end
+
+class Complex
+  # Complexes are not duplicable:
+  #
+  # Complex(1).duplicable? # => false
+  # Complex(1).dup         # => TypeError: can't copy Complex
+  def duplicable?
+    false
+  end
+end
+
+class Rational
+  # Rationals are not duplicable:
+  #
+  # Rational(1).duplicable? # => false
+  # Rational(1).dup         # => TypeError: can't copy Rational
+  def duplicable?
+    false
+  end
+end

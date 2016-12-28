@@ -299,14 +299,14 @@ module ActiveRecord
 
       private
 
-        def cached_find_by_statement(key, &block) # :nodoc:
+        def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache[key] || cache.synchronize {
             cache[key] ||= StatementCache.create(connection, &block)
           }
         end
 
-        def relation # :nodoc:
+        def relation
           relation = Relation.create(self, arel_table, predicate_builder)
 
           if finder_needs_type_condition? && !ignore_default_scope?
@@ -316,7 +316,7 @@ module ActiveRecord
           end
         end
 
-        def table_metadata # :nodoc:
+        def table_metadata
           TableMetadata.new(self, arel_table)
         end
     end

@@ -86,8 +86,8 @@ class ReflectionTest < ActiveRecord::TestCase
     column = @first.column_for_attribute("attribute_that_doesnt_exist")
     assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
     assert_equal "attribute_that_doesnt_exist", column.name
-    assert_equal nil, column.sql_type
-    assert_equal nil, column.type
+    assert_nil column.sql_type
+    assert_nil column.type
   end
 
   def test_non_existent_types_are_identity_types

@@ -34,19 +34,19 @@ env:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
     - "GEM=railties"
-    - "GEM=ap"
-    - "GEM=ac"
-    - "GEM=ac:integration"
+    - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
     - "GEM=guides"
+    - "GEM=ac:integration"
 
 rvm:
   - 2.2.6
   - 2.3.3
+  - 2.4.0
   - ruby-head
 
 matrix:
@@ -85,6 +85,7 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.5.0
+    - env: "GEM=ac:integration"
   fast_finish: true
 
 notifications:

@@ -25,7 +25,7 @@ module ActiveRecord
       attributes = builder.build_from_database(foo: "3.3")
 
       assert_equal "3.3", attributes[:foo].value_before_type_cast
-      assert_equal nil, attributes[:bar].value_before_type_cast
+      assert_nil attributes[:bar].value_before_type_cast
       assert_equal :bar, attributes[:bar].name
     end
 

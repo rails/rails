@@ -338,7 +338,7 @@ module ActionView
         #
         # ==== Returns
         # * <tt>String</tt> - A template name
-        def _implied_layout_name # :nodoc:
+        def _implied_layout_name
           controller_path
         end
     end

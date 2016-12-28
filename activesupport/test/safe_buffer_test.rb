@@ -175,6 +175,6 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "Should not affect frozen objects when accessing characters" do
     x = "Hello".html_safe
-    assert_equal x[/a/, 1], nil
+    assert_nil x[/a/, 1]
   end
 end

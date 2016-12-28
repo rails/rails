@@ -5,10 +5,10 @@ require "active_support/core_ext/numeric/time"
 
 class DuplicableTest < ActiveSupport::TestCase
   if RUBY_VERSION >= "2.4.0"
-    RAISE_DUP = [method(:puts)]
+    RAISE_DUP = [method(:puts), Complex(1), Rational(1)]
     ALLOW_DUP = ["1", Object.new, /foo/, [], {}, Time.now, Class.new, Module.new, BigDecimal.new("4.56"), nil, false, true, :symbol, 1, 2.3]
   else
-    RAISE_DUP = [nil, false, true, :symbol, 1, 2.3, method(:puts)]
+    RAISE_DUP = [nil, false, true, :symbol, 1, 2.3, method(:puts), Complex(1), Rational(1)]
     ALLOW_DUP = ["1", Object.new, /foo/, [], {}, Time.now, Class.new, Module.new, BigDecimal.new("4.56")]
   end
 

@@ -622,7 +622,7 @@ class BasicsTest < ActiveRecord::TestCase
       Topic.find(topic.id).destroy
     end
 
-    assert_equal nil, Topic.find_by_id(topic.id)
+    assert_nil Topic.find_by_id(topic.id)
   end
 
   def test_comparison_with_different_objects

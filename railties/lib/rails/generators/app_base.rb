@@ -108,9 +108,9 @@ module Rails
         convert_database_option_for_jruby
       end
 
-    protected
+    private
 
-      def gemfile_entry(name, *args)
+      def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
         github = options[:github]
@@ -126,7 +126,7 @@ module Rails
         self
       end
 
-      def gemfile_entries
+      def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
          webserver_gemfile_entry,
@@ -139,13 +139,13 @@ module Rails
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
-      def add_gem_entry_filter
+      def add_gem_entry_filter # :doc:
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
       end
 
-      def builder
+      def builder # :doc:
         @builder ||= begin
           builder_class = get_builder_class
           builder_class.include(ActionMethods)
@@ -153,24 +153,24 @@ module Rails
         end
       end
 
-      def build(meth, *args)
+      def build(meth, *args) # :doc:
         builder.send(meth, *args) if builder.respond_to?(meth)
       end
 
-      def create_root
+      def create_root # :doc:
         valid_const?
 
         empty_directory "."
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      def apply_rails_template
+      def apply_rails_template # :doc:
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def set_default_accessors!
+      def set_default_accessors! # :doc:
         self.destination_root = File.expand_path(app_path, destination_root)
         self.rails_template = \
           case options[:template]
@@ -183,32 +183,32 @@ module Rails
           end
       end
 
-      def database_gemfile_entry
+      def database_gemfile_entry # :doc:
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
                             "Use #{options[:database]} as the database for Active Record"
       end
 
-      def webserver_gemfile_entry
+      def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
         GemfileEntry.new("puma", "~> 3.0", comment)
       end
 
-      def include_all_railties?
+      def include_all_railties? # :doc:
         options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
       end
 
-      def comment_if(value)
+      def comment_if(value) # :doc:
         options[value] ? "# " : ""
       end
 
-      def keeps?
+      def keeps? # :doc:
         !options[:skip_keeps]
       end
 
-      def sqlite3?
+      def sqlite3? # :doc:
         !options[:skip_active_record] && options[:database] == "sqlite3"
       end
 

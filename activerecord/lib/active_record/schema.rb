@@ -61,7 +61,7 @@ module ActiveRecord
       #
       #   ActiveRecord::Schema.new.migrations_paths
       #   # => ["db/migrate"] # Rails migration path by default.
-      def migrations_paths # :nodoc:
+      def migrations_paths
         ActiveRecord::Migrator.migrations_paths
       end
   end

@@ -1057,7 +1057,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.parent = nil
     comment.save!
 
-    assert_equal nil, comment.reload.parent
+    assert_nil comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
   end
 

@@ -13,9 +13,9 @@ module ActionView
           ";xml.target!;"
       end
 
-      protected
+      private
 
-        def require_engine
+        def require_engine # :doc:
           @required ||= begin
             require "builder"
             true

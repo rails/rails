@@ -82,7 +82,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_set_record_to_nil_should_delete_association
     @member.club = nil
     @member.reload
-    assert_equal nil, @member.current_membership
+    assert_nil @member.current_membership
     assert_nil @member.club
   end
 
@@ -110,12 +110,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     # conditions on the through table
     assert_equal clubs(:moustache_club), Member.all.merge!(includes: :favourite_club).find(@member.id).favourite_club
     memberships(:membership_of_favourite_club).update_columns(favourite: false)
-    assert_equal nil,                    Member.all.merge!(includes: :favourite_club).find(@member.id).reload.favourite_club
+    assert_nil Member.all.merge!(includes: :favourite_club).find(@member.id).reload.favourite_club
 
     # conditions on the source table
     assert_equal clubs(:moustache_club), Member.all.merge!(includes: :hairy_club).find(@member.id).hairy_club
     clubs(:moustache_club).update_columns(name: "Association of Clean-Shaven Persons")
-    assert_equal nil,                    Member.all.merge!(includes: :hairy_club).find(@member.id).reload.hairy_club
+    assert_nil Member.all.merge!(includes: :hairy_club).find(@member.id).reload.hairy_club
   end
 
   def test_has_one_through_polymorphic_with_source_type

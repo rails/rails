@@ -61,7 +61,7 @@ module ActiveSupport
 
       def test_safe_get_constantizes_doesnt_fail_on_invalid_names
         assert @cache.empty?
-        assert_equal nil, @cache.safe_get("OmgTotallyInvalidConstantName")
+        assert_nil @cache.safe_get("OmgTotallyInvalidConstantName")
       end
 
       def test_new_rejects_strings

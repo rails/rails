@@ -227,7 +227,9 @@ module ActionDispatch # :nodoc:
       return unless content_type
       new_header_info = parse_content_type(content_type.to_s)
       prev_header_info = parsed_content_type_header
-      set_content_type new_header_info.mime_type, new_header_info.charset || prev_header_info.charset || self.class.default_charset
+      charset = new_header_info.charset || prev_header_info.charset
+      charset ||= self.class.default_charset unless prev_header_info.mime_type
+      set_content_type new_header_info.mime_type, charset
     end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
