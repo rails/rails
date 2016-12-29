@@ -645,12 +645,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    firm = Firm.find(1)
-
-    assert_deprecated { firm.account(true) }
-  end
-
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"

@@ -1204,12 +1204,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil Club.new.special_favourites.distinct_value
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    post = Post.find(1)
-
-    assert_deprecated { post.people(true) }
-  end
-
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
     member = Member.create!
     club = Club.create!

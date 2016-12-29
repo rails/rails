@@ -1,3 +1,7 @@
+*   Remove deprecated force reload argument in singular and collection association readers.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
     `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
 

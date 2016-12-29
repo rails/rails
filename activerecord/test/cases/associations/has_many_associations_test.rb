@@ -2462,12 +2462,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    company = Company.find(1)
-
-    assert_deprecated { company.clients_of_firm(true) }
-  end
-
   class AuthorWithErrorDestroyingAssociation < ActiveRecord::Base
     self.table_name = "authors"
     has_many :posts_with_error_destroying,

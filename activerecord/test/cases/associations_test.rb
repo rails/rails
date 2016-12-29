@@ -88,10 +88,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert firm.clients.empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    ActiveSupport::Deprecation.silence do
-      assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
-      assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
-    end
+    firm.clients.reload
+
+    assert !firm.clients.empty?, "New firm should have reloaded client objects"
+    assert_equal 1, firm.clients.size, "New firm should have reloaded clients count"
   end
 
   def test_using_limitable_reflections_helper
@@ -102,19 +102,6 @@ class AssociationsTest < ActiveRecord::TestCase
     assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
     assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
     assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
-  end
-
-  def test_force_reload_is_uncached
-    firm = Firm.create!("name" => "A New Firm, Inc")
-    Client.create!("name" => "TheClient.com", :firm => firm)
-
-    ActiveSupport::Deprecation.silence do
-      ActiveRecord::Base.cache do
-        firm.clients.each {}
-        assert_queries(0) { assert_not_nil firm.clients.each {} }
-        assert_queries(1) { assert_not_nil firm.clients(true).each {} }
-      end
-    end
   end
 
   def test_association_with_references
