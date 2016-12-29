@@ -120,19 +120,6 @@ module Arel
           sql.must_be_like %{ 'f' = 'f' }
         end
 
-        it 'should use the column to quote' do
-          table = Table.new(:users)
-          val = Nodes.build_quoted('1-fooo', table[:id])
-          sql = compile Nodes::Equality.new(table[:id], val)
-          sql.must_be_like %{ "users"."id" = 1 }
-        end
-
-        it 'should use the column to quote integers' do
-          table = Table.new(:users)
-          sql = compile table[:name].eq(0)
-          sql.must_be_like %{ "users"."name" = '0' }
-        end
-
         it 'should handle nil' do
           sql = compile Nodes::Equality.new(@table[:name], nil)
           sql.must_be_like %{ "users"."name" IS NULL }
@@ -191,24 +178,15 @@ module Arel
       it "should quote LIMIT without column type coercion" do
         table = Table.new(:users)
         sc = table.where(table[:name].eq(0)).take(1).ast
-        assert_match(/WHERE "users"."name" = '0' LIMIT 1/, compile(sc))
+        assert_match(/WHERE "users"."name" = 0 LIMIT 1/, compile(sc))
       end
 
       it "should visit_DateTime" do
-        called_with = nil
-        @conn.connection.extend(Module.new {
-          define_method(:quote) do |thing, column|
-            called_with = column
-            super(thing, column)
-          end
-        })
-
         dt = DateTime.now
         table = Table.new(:users)
         test = table[:created_at].eq dt
         sql = compile test
 
-        assert_equal "created_at", called_with.name
         sql.must_be_like %{"users"."created_at" = '#{dt.strftime("%Y-%m-%d %H:%M:%S")}'}
       end
 
@@ -252,20 +230,11 @@ module Arel
       end
 
       it "should visit_Date" do
-        called_with = nil
-        @conn.connection.extend(Module.new {
-          define_method(:quote) do |thing, column|
-            called_with = column
-            super(thing, column)
-          end
-        })
-
         dt = Date.today
         table = Table.new(:users)
         test = table[:created_at].eq dt
         sql = compile test
 
-        assert_equal "created_at", called_with.name
         sql.must_be_like %{"users"."created_at" = '#{dt.strftime("%Y-%m-%d")}'}
       end
 
@@ -427,25 +396,6 @@ module Arel
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
-
-        it 'uses the same column for escaping values' do
-        @attr = Table.new(:users)[:name]
-          visitor = Class.new(ToSql) do
-            attr_accessor :expected
-
-            def quote value, column = nil
-              raise unless column == expected
-              super
-            end
-          end
-          vals = %w{ a b c }.map { |x| Nodes.build_quoted(x, @attr) }
-          in_node = Nodes::In.new @attr, vals
-          visitor = visitor.new(Table.engine.connection)
-          visitor.expected = Table.engine.connection.columns(:users).find { |x|
-            x.name == 'name'
-          }
-          visitor.accept(in_node, Collectors::SQLString.new).value.must_equal %("users"."name" IN ('a', 'b', 'c'))
-        end
       end
 
       describe "Nodes::InfixOperation" do
@@ -574,25 +524,6 @@ module Arel
             "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
           }
         end
-
-        it 'uses the same column for escaping values' do
-        @attr = Table.new(:users)[:name]
-          visitor = Class.new(ToSql) do
-            attr_accessor :expected
-
-            def quote value, column = nil
-              raise unless column == expected
-              super
-            end
-          end
-          vals = %w{ a b c }.map { |x| Nodes.build_quoted(x, @attr) }
-          in_node = Nodes::NotIn.new @attr, vals
-          visitor = visitor.new(Table.engine.connection)
-          visitor.expected = Table.engine.connection.columns(:users).find { |x|
-            x.name == 'name'
-          }
-          compile(in_node).must_equal %("users"."name" NOT IN ('a', 'b', 'c'))
-        end
       end
 
       describe 'Constants' do
@@ -615,7 +546,7 @@ module Arel
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias('zomgusers')[:id].eq '3'
           compile(test).must_be_like %{
-            "zomgusers"."id" = 3
+            "zomgusers"."id" = '3'
           }
         end
       end

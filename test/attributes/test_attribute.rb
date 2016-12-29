@@ -996,14 +996,6 @@ module Arel
         assert table.able_to_type_cast?
         condition.to_sql.must_equal %("foo"."id" = 1 AND "foo"."other_id" = '2')
       end
-
-      it 'falls back to using the connection adapter for type casting' do
-        table = Table.new(:users)
-        condition = table["id"].eq("1")
-
-        refute table.able_to_type_cast?
-        condition.to_sql.must_equal %("users"."id" = 1)
-      end
     end
   end
 end
