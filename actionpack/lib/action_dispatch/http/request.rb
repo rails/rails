@@ -87,7 +87,7 @@ module ActionDispatch
 
     # Returns true if the request has a header matching the given key parameter.
     #
-    #    request.key? :ip_spoofing_check #=> true
+    #    request.key? :ip_spoofing_check # => true
     def key?(key)
       has_header? key
     end
