@@ -906,7 +906,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          @connection.query "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
+          execute "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
 
         def column_definitions(table_name) # :nodoc:
