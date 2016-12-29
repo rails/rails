@@ -408,5 +408,9 @@
 
     *Ralin Chimev*
 
+*   Removing deprecation of `use_transactional_fixtures`
+
+    *Brandon Weiss
+
 
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activerecord/CHANGELOG.md) for previous changes.
