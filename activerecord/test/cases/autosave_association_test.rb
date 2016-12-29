@@ -1391,6 +1391,14 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_equal "Squawky", parrot.reload.name
   end
 
+  def test_should_not_update_children_when_parent_creation_with_no_reason
+    parrot = Parrot.create!(name: "Polly")
+    assert_equal 0, parrot.updated_count
+
+    Pirate.create!(parrot_ids: [parrot.id], catchphrase: "Arrrr")
+    assert_equal 0, parrot.reload.updated_count
+  end
+
   def test_should_automatically_validate_the_associated_models
     @pirate.send(@association_name).each { |child| child.name = "" }
 
