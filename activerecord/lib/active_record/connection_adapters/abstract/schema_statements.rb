@@ -43,7 +43,7 @@ module ActiveRecord
       end
 
       # Returns an array of table names defined in the database.
-      def tables(name = nil)
+      def tables
         raise NotImplementedError, "#tables is not implemented"
       end
 

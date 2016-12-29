@@ -788,13 +788,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [1], posts(:welcome).comments.select { |c| c.id == 1 }.map(&:id)
   end
 
-  def test_select_with_block_and_specific_attributes
-    assert_deprecated do
-      comments = posts(:welcome).comments.select(:id, :body) { |c| c.id == 1 }
-      assert_equal [1], comments.map(&:id)
-    end
-  end
-
   def test_select_without_foreign_key
     assert_equal companies(:first_firm).accounts.first.credit_limit, companies(:first_firm).accounts.select(:credit_limit).first.credit_limit
   end
@@ -1580,26 +1573,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedWithExceptionFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
-  end
-
-  def test_restrict_with_error_is_deprecated_using_key_many
-    I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations :en, activerecord: { errors: { messages: { restrict_dependent_destroy: { many: "message for deprecated key" } } } }
-
-    firm = RestrictedWithErrorFirm.create!(name: "restrict")
-    firm.companies.create(name: "child")
-
-    assert !firm.companies.empty?
-
-    assert_deprecated { firm.destroy }
-
-    assert !firm.errors.empty?
-
-    assert_equal "message for deprecated key", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(name: "restrict")
-    assert firm.companies.exists?(name: "child")
-  ensure
-    I18n.backend.reload!
   end
 
   def test_restrict_with_error
@@ -2480,12 +2453,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       car.bulbs << Bulb.new
       assert_equal 1, car.bulbs.size
     end
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    company = Company.find(1)
-
-    assert_deprecated { company.clients_of_firm(true) }
   end
 
   class AuthorWithErrorDestroyingAssociation < ActiveRecord::Base

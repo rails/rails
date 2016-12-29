@@ -259,47 +259,34 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = nil) # :nodoc:
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #tables currently returns both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
-          Use #data_sources instead.
-        MSG
-
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing arguments to #tables is deprecated without replacement.
-          MSG
-        end
-
-        data_sources
+      def tables # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def data_sources
+      def data_sources # :nodoc:
         select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def table_exists?(table_name)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #table_exists? currently checks both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
-          Use #data_source_exists? instead.
-        MSG
-
-        data_source_exists?(table_name)
+      def views # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def data_source_exists?(table_name)
+      def table_exists?(table_name) # :nodoc:
+        return false unless table_name.present?
+
+        sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'"
+        sql << " AND name = #{quote(table_name)}"
+
+        select_values(sql, "SCHEMA").any?
+      end
+
+      def data_source_exists?(table_name) # :nodoc:
         return false unless table_name.present?
 
         sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
         sql << " AND name = #{quote(table_name)}"
 
         select_values(sql, "SCHEMA").any?
-      end
-
-      def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:

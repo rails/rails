@@ -267,9 +267,9 @@ module ActiveRecord
 
       def test_tables
         with_example_table do
-          ActiveSupport::Deprecation.silence { assert_equal %w{ ex }, @conn.tables }
+          assert_equal %w{ ex }, @conn.tables
           with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer", "people" do
-            ActiveSupport::Deprecation.silence { assert_equal %w{ ex people }.sort, @conn.tables.sort }
+            assert_equal %w{ ex people }.sort, @conn.tables.sort
           end
         end
       end
@@ -277,12 +277,10 @@ module ActiveRecord
       def test_tables_logs_name
         sql = <<-SQL
           SELECT name FROM sqlite_master
-          WHERE type IN ('table','view') AND name <> 'sqlite_sequence'
+          WHERE type = 'table' AND name <> 'sqlite_sequence'
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
-          ActiveSupport::Deprecation.silence do
-            @conn.tables("hello")
-          end
+          @conn.tables
         end
       end
 
@@ -298,12 +296,10 @@ module ActiveRecord
         with_example_table do
           sql = <<-SQL
             SELECT name FROM sqlite_master
-            WHERE type IN ('table','view') AND name <> 'sqlite_sequence' AND name = 'ex'
+            WHERE type = 'table' AND name <> 'sqlite_sequence' AND name = 'ex'
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
-            ActiveSupport::Deprecation.silence do
-              assert @conn.table_exists?("ex")
-            end
+            assert @conn.table_exists?("ex")
           end
         end
       end

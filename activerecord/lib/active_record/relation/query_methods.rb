@@ -76,7 +76,7 @@ module ActiveRecord
     end
 
     def bound_attributes
-      if limit_value && !string_containing_comma?(limit_value)
+      if limit_value
         limit_bind = Attribute.with_cast_value(
           "LIMIT".freeze,
           connection.sanitize_limit(limit_value),
@@ -243,9 +243,7 @@ module ActiveRecord
     def select(*fields)
       if block_given?
         if fields.any?
-          ActiveSupport::Deprecation.warn(<<-WARNING.squish)
-            When select is called with a block, it ignores other arguments. This behavior is now deprecated and will result in an ArgumentError in Rails 5.1. You can safely remove the arguments to resolve the deprecation warning because they do not have any effect on the output of the call to the select method with a block.
-          WARNING
+          raise ArgumentError, "`select' with block doesn't take arguments."
         end
 
         return super()
@@ -690,13 +688,6 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
-      if string_containing_comma?(value)
-        # Remove `string_containing_comma?` when removing this deprecation
-        ActiveSupport::Deprecation.warn(<<-WARNING.squish)
-          Passing a string to limit in the form "1,2" is deprecated and will be
-          removed in Rails 5.1. Please call `offset` explicitly instead.
-        WARNING
-      end
       self.limit_value = value
       self
     end
@@ -958,13 +949,7 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        if limit_value
-          if string_containing_comma?(limit_value)
-            arel.take(connection.sanitize_limit(limit_value))
-          else
-            arel.take(Arel::Nodes::BindParam.new)
-          end
-        end
+        arel.take(Arel::Nodes::BindParam.new) if limit_value
         arel.skip(Arel::Nodes::BindParam.new) if offset_value
         arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
@@ -1191,10 +1176,6 @@ module ActiveRecord
         @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
       end
       alias having_clause_factory where_clause_factory
-
-      def string_containing_comma?(value)
-        ::String === value && value.include?(",")
-      end
 
       def default_value_for(name)
         case name

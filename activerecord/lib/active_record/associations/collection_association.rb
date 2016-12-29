@@ -25,16 +25,8 @@ module ActiveRecord
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
-      def reader(force_reload = false)
-        if force_reload
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an argument to force an association to reload is now
-            deprecated and will be removed in Rails 5.1. Please call `reload`
-            on the result collection proxy instead.
-          MSG
-
-          klass.uncached { reload }
-        elsif stale_target?
+      def reader
+        if stale_target?
           reload
         end
 

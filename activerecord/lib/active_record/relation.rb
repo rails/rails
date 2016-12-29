@@ -446,16 +446,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all.
-        MESSAGE
-        where(conditions).destroy_all
-      else
-        records.each(&:destroy).tap { reset }
-      end
+    def destroy_all
+      records.each(&:destroy).tap { reset }
     end
 
     # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -503,7 +495,7 @@ module ActiveRecord
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
-    def delete_all(conditions = nil)
+    def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = get_value(method)
         SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
@@ -512,27 +504,19 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all.
-        MESSAGE
-        where(conditions).delete_all
+      stmt = Arel::DeleteManager.new
+      stmt.from(table)
+
+      if has_join_values?
+        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
-        stmt = Arel::DeleteManager.new
-        stmt.from(table)
-
-        if has_join_values?
-          @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
-        else
-          stmt.wheres = arel.constraints
-        end
-
-        affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
-
-        reset
-        affected
+        stmt.wheres = arel.constraints
       end
+
+      affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
+
+      reset
+      affected
     end
 
     # Deletes the row with a primary key matching the +id+ argument, using a

@@ -107,14 +107,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
-    def test_limit_with_comma
-      assert_deprecated do
-        assert Topic.limit("1,2").to_a
-      end
-    end
-  end
-
   def test_many_mutations
     car = Car.new name: "<3<3<3"
     car.engines_count = 0
@@ -144,10 +136,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_deprecated do
-      assert_raises(ArgumentError) do
-        Topic.limit("1, 7 procedure help()").to_a
-      end
+    assert_raises(ArgumentError) do
+      Topic.limit("1, 7 procedure help()").to_a
     end
   end
 

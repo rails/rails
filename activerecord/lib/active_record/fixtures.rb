@@ -862,12 +862,9 @@ module ActiveRecord
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_tests
-      class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
       class_attribute :config
-
-      singleton_class.deprecate "use_transactional_fixtures=" => "use use_transactional_tests= instead"
 
       self.fixture_table_names = []
       self.use_instantiated_fixtures = false
@@ -875,16 +872,7 @@ module ActiveRecord
       self.config = ActiveRecord::Base
 
       self.fixture_class_names = {}
-
-      silence_warnings do
-        define_singleton_method :use_transactional_tests do
-          if use_transactional_fixtures.nil?
-            true
-          else
-            use_transactional_fixtures
-          end
-        end
-      end
+      self.use_transactional_tests = true
     end
 
     module ClassMethods

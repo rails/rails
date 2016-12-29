@@ -840,15 +840,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author, authors.first
   end
 
-  class Mary < Author; end
-
-  def test_find_by_classname
-    Author.create!(name: Mary.name)
-    assert_deprecated do
-      assert_equal 1, Author.where(name: Mary).size
-    end
-  end
-
   def test_find_by_id_with_list_of_ar
     author = Author.first
     authors = Author.find_by_id([author])
@@ -1013,23 +1004,11 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
-  def test_destroy_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.destroy_all(name: "David") }
-    end
-  end
-
   def test_delete_all
     davids = Author.where(name: "David")
 
     assert_difference("Author.count", -1) { davids.delete_all }
     assert ! davids.loaded?
-  end
-
-  def test_delete_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.delete_all(name: "David") }
-    end
   end
 
   def test_delete_all_loaded

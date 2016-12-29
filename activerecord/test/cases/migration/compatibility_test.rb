@@ -55,7 +55,7 @@ module ActiveRecord
       end
 
       def test_references_does_not_add_index_by_default
-        migration = Class.new(ActiveRecord::Migration) {
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
             create_table :more_testings do |t|
               t.references :foo
@@ -73,7 +73,7 @@ module ActiveRecord
       end
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_of_create_table
-        migration = Class.new(ActiveRecord::Migration) {
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
             create_table :more_testings do |t|
               t.timestamps
@@ -90,7 +90,7 @@ module ActiveRecord
       end
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
-        migration = Class.new(ActiveRecord::Migration) {
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
             add_timestamps :testings
           end
@@ -102,15 +102,9 @@ module ActiveRecord
         assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
       end
 
-      def test_legacy_migrations_get_deprecation_warning_when_run
-        migration = Class.new(ActiveRecord::Migration) {
-          def up
-            add_column :testings, :baz, :string
-          end
-        }
-
-        assert_deprecated do
-          migration.migrate :up
+      def test_legacy_migrations_raises_exception_when_inherited
+        assert_raises(StandardError) do
+          Class.new(ActiveRecord::Migration)
         end
       end
     end

@@ -90,7 +90,7 @@ module ActiveRecord
     end
 
     def test_tables_logs_name
-      ActiveSupport::Deprecation.silence { @connection.tables("hello") }
+      @connection.tables
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -100,7 +100,7 @@ module ActiveRecord
     end
 
     def test_table_exists_logs_name
-      ActiveSupport::Deprecation.silence { @connection.table_exists?("items") }
+      @connection.table_exists?("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 

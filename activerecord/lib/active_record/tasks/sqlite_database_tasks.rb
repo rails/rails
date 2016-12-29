@@ -21,7 +21,7 @@ module ActiveRecord
 
         FileUtils.rm(file)
       rescue Errno::ENOENT => error
-        raise NoDatabaseError.new(error.message, error)
+        raise NoDatabaseError.new(error.message)
       end
 
       def purge

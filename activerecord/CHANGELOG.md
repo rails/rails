@@ -1,3 +1,77 @@
+*   Remove deprecated `#use_transactional_fixtures` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#raise_in_transactional_callbacks` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#load_schema_for`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated conditions parameter from `#destroy_all` and `#delete_all`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing arguments to `#select` when a block is provided.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to query using commas on LIMIT.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a class as a value in a query.
+
+    *Rafael Mendonça França*
+
+*   Raises `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
+    order.
+
+    *Rafael Mendonça França*
+
+*   Raises when a through association has an ambiguous reflection name.
+
+    *Rafael Mendonça França*
+
+*   Raises when `ActiveRecord::Migration` is inherited directly.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+    and `ActiveRecord::StatementInvalid#original_exception`.
+
+    *Rafael Mendonça França*
+
+*   `#tables` and `#table_exists?` and returns only tables and not views.
+
+    All the deprecations on those methods were removed.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `name` argument from `#tables`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a column to `#quote`.
+
+    *Rafael Mendonça França*
+
+*   Set `:time` as a timezone aware type and remove deprecation when the values is not
+    explictly set.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated force reload argument in singular and collection association readers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+    `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
+
+    *Rafael Mendonça França*
+
 *   Allow passing extra flags to `db:structure:load` and `db:structure:dump`
 
     Introduces `ActiveRecord::Tasks::DatabaseTasks.structure_(load|dump)_flags` to customize the
