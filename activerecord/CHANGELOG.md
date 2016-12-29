@@ -1,3 +1,7 @@
+*   Remove deprecated support to query using commas on LIMIT.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing a class as a value in a query.
 
     *Rafael Mendonça França*
