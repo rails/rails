@@ -152,8 +152,11 @@ module ActionDispatch
           _routes = @routes
 
           @controller.singleton_class.include(_routes.url_helpers)
-          @controller.view_context_class = Class.new(@controller.view_context_class) do
-            include _routes.url_helpers
+
+          if @controller.respond_to? :view_context_class
+            @controller.view_context_class = Class.new(@controller.view_context_class) do
+              include _routes.url_helpers
+            end
           end
         end
         yield @routes

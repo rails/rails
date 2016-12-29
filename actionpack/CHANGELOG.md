@@ -1,34 +1,6 @@
-## Rails 5.0.1 (December 21, 2016) ##
+*   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`
 
-*   Restored correct `charset` behavior on `send_data` and `send_file`: while
-    they should pass along any supplied value, they should not add a default.
-
-    Fixes #27344.
-
-    *Matthew Draper*
-
-
-## Rails 5.0.1.rc2 (December 10, 2016) ##
-
-*   Move `cookies`, `flash`, and `session` methods back to
-    `ActionDispatch::Integration::Session`.
-
-    *Matthew Draper*
-
-*   Do not reset in `ActionDispatch::IntegrationTest#open_session`; doing so
-    is incompatible with existing (unintended) API usage.
-
-    *Sean Griffin*
-
-
-## Rails 5.0.1.rc1 (December 01, 2016) ##
-
-*   Fixed error caused by `force_ssl_redirect` when `session_store` is
-    enabled.
-
-    Fixes #19679
-
-    *Taishi Kasuga*
+    *Julia López*
 
 *   Use accept header in integration tests with `as: :json`
 
