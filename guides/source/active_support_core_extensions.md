@@ -135,10 +135,10 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby 2.4 most objects can be duplicated throuh `dup` or `clone`, except 
-method objects and certain numbers. Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols, as well as instances of `Float`, `Fixnum` 
-and `Bignum`.
+In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
+methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
+`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+and `Bignum` instances.
 
 ```ruby
 "foo".dup           # => "foo"
@@ -147,8 +147,7 @@ and `Bignum`.
 Complex(0).dup      # => TypeError: can't copy Complex
 ```
 
-Active Support provides `duplicable?` to programmatically query an object about 
-this property:
+Active Support provides `duplicable?` to query an object about this:
 
 ```ruby
 "foo".duplicable?           # => true
@@ -158,10 +157,11 @@ Complex(1).duplicable?      # => false
 1.method(:+).duplicable?    # => false
 ```
 
-`duplicable?` returns the correct result for the version of Ruby used.
+`duplicable?` matches Ruby's `dup` according to the Ruby version.
+
+So in 2.4:
 
 ```ruby
-# version 2.4
 nil.dup                 # => nil
 :my_symbol.dup          # => :my_symbol
 1.dup                   # => 1
@@ -169,8 +169,11 @@ nil.dup                 # => nil
 nil.duplicable?         # => true
 :my_symbol.duplicable?  # => true
 1.duplicable?           # => true
+```
 
-# version 2.2 and 2.3
+Whereas in 2.2 and 2.3:
+
+```ruby
 nil.dup                 # => TypeError: can't dup NilClass
 :my_symbol.dup          # => TypeError: can't dup Symbol
 1.dup                   # => TypeError: can't dup Fixnum
