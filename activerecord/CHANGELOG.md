@@ -1,3 +1,10 @@
+*   Allow passing extra flags to `db:structure:load` and `db:structure:dump`
+
+    Introduces `ActiveRecord::Tasks::DatabaseTasks.structure_(load|dump)_flags` to customize the
+    eventual commands run against the database, e.g. mysqldump/pg_dump.
+
+    *Kir Shatrov*
+
 *   Notifications see frozen SQL string.
 
     Fixes #23774.
