@@ -19,12 +19,11 @@ module Rails
 
       hook_for :template_engine, :test_framework
 
-      protected
-        def file_name
+      private
+        def file_name # :doc:
           @_file_name ||= super.gsub(/_mailer/i, "")
         end
 
-      private
         def application_mailer_file_name
           @_application_mailer_file_name ||= if mountable_engine?
             "app/mailers/#{namespaced_path}/application_mailer.rb"

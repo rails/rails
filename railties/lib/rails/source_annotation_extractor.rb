@@ -116,7 +116,7 @@ class SourceAnnotationExtractor
   # Otherwise it returns an empty hash.
   def extract_annotations_from(file, pattern)
     lineno = 0
-    result = File.readlines(file).inject([]) do |list, line|
+    result = File.readlines(file, encoding: Encoding::BINARY).inject([]) do |list, line|
       lineno += 1
       next list unless line =~ pattern
       list << Annotation.new(lineno, $1, $2)

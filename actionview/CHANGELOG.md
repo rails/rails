@@ -1,3 +1,17 @@
+*   Return correct object name in form helper method after `fields_for`.
+
+    Fixes #26931.
+
+    *Yuji Yaginuma*
+
+*   Use `ActionView::Resolver.caching?` (`config.action_view.cache_template_loading`)
+    to enable template recompilation.
+
+    Before it was enabled by `consider_all_requests_local`, which caused
+    recompilation in tests.
+
+    *Max Melentiev*
+
 *   Add `form_with` to unify `form_tag` and `form_for` usage.
 
     Used like `form_tag` (where just the open tag is output):

@@ -442,7 +442,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries(ignore_none: false) do
       assert_equal 0, Developer.none.count
       assert_equal 0, Developer.none.calculate(:count, nil)
-      assert_equal nil, Developer.none.calculate(:average, "salary")
+      assert_nil Developer.none.calculate(:average, "salary")
     end
   end
 
@@ -485,28 +485,28 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_average
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
   end
 
   def test_null_relation_minimum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
   end
 
   def test_null_relation_maximum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
   end
 
   def test_null_relation_in_where_condition
@@ -1814,7 +1814,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by returns nil if the record is missing" do
-    assert_equal nil, Post.all.find_by("1 = 0")
+    assert_nil Post.all.find_by("1 = 0")
   end
 
   test "find_by doesn't have implicit ordering" do

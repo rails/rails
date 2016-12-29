@@ -39,7 +39,7 @@ module ActionView
 
     initializer "action_view.per_request_digest_cache" do |app|
       ActiveSupport.on_load(:action_view) do
-        if app.config.consider_all_requests_local
+        unless ActionView::Resolver.caching?
           app.executor.to_run ActionView::Digestor::PerExecutionDigestCacheExpiry
         end
       end

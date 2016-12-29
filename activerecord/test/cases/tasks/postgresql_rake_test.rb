@@ -74,7 +74,7 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_when_database_created_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stdout.string, "Created database 'my-app-db'\n"
+        assert_equal "Created database 'my-app-db'\n", $stdout.string
       end
 
       def test_create_when_database_exists_outputs_info_to_stderr
@@ -84,7 +84,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stderr.string, "Database 'my-app-db' already exists\n"
+        assert_equal "Database 'my-app-db' already exists\n", $stderr.string
       end
     end
 
@@ -126,7 +126,7 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_when_database_dropped_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.drop @configuration
 
-        assert_equal $stdout.string, "Dropped database 'my-app-db'\n"
+        assert_equal "Dropped database 'my-app-db'\n", $stdout.string
       end
     end
 

@@ -100,11 +100,11 @@ HTML
     end
 
     def test_xml_output
-      response.content_type = "application/xml"
+      response.content_type = params[:response_as]
       render plain: <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
+  <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
 </root>
 XML
     end
@@ -374,18 +374,18 @@ XML
     assert_equal "OK", @response.body
   end
 
+  def test_should_impose_childless_html_tags_in_html
+    process :test_xml_output, params: { response_as: "text/html" }
+
+    # <area> auto-closes, so the <p> becomes a sibling
+    assert_select "root > area + p"
+  end
+
   def test_should_not_impose_childless_html_tags_in_xml
-    process :test_xml_output
+    process :test_xml_output, params: { response_as: "application/xml" }
 
-    begin
-      $stderr = StringIO.new
-      assert_select "area" #This will cause a warning if content is processed as HTML
-      $stderr.rewind && err = $stderr.read
-    ensure
-      $stderr = STDERR
-    end
-
-    assert err.empty?, err.inspect
+    # <area> is not special, so the <p> is its child
+    assert_select "root > area > p"
   end
 
   def test_assert_generates

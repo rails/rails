@@ -21,8 +21,6 @@ module I18n
       I18n::Railtie.initialize_i18n(app)
     end
 
-  protected
-
     @i18n_inited = false
 
     # Setup i18n configuration.

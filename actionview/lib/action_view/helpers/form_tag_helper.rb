@@ -461,7 +461,7 @@ module ActionView
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,
-      # <tt>reset</tt>button or a generic button which can be used in
+      # <tt>reset</tt> button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
       # the button tag does allow for richer labels such as images and emphasis,

@@ -402,7 +402,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal nil, reference.reload.job_id
+    assert_nil reference.reload.job_id
   ensure
     Reference.make_comments = false
   end
@@ -423,7 +423,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     # Check that the destroy callback on Reference did not run
-    assert_equal nil, person.reload.comments
+    assert_nil person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -485,7 +485,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     references.each do |reference|
-      assert_equal nil, reference.reload.job_id
+      assert_nil reference.reload.job_id
     end
   end
 
@@ -902,6 +902,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     ids = [Client.first.name, "unknown client"]
     e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
     assert_match(/Couldn't find all Clients with 'name'/, e.message)
+  end
+
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause

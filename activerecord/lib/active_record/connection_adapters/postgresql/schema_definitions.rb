@@ -42,7 +42,16 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:default] = options.fetch(:default, "gen_random_uuid()") if type == :uuid
+          if type == :uuid
+            options[:default] = options.fetch(:default, "gen_random_uuid()")
+          elsif options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
+            type = if type == :bigint || options[:limit] == 8
+              :bigserial
+            else
+              :serial
+            end
+          end
+
           super
         end
 

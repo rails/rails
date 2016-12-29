@@ -283,15 +283,15 @@ module ActiveRecord
 
   private
 
-    def create_or_update(*) #:nodoc:
+    def create_or_update(*)
       _run_save_callbacks { super }
     end
 
-    def _create_record #:nodoc:
+    def _create_record
       _run_create_callbacks { super }
     end
 
-    def _update_record(*) #:nodoc:
+    def _update_record(*)
       _run_update_callbacks { super }
     end
   end

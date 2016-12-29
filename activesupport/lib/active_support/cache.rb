@@ -471,12 +471,12 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
-      protected
+      private
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
         # matches namespaced keys.
-        def key_matcher(pattern, options)
+        def key_matcher(pattern, options) # :doc:
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
@@ -493,25 +493,24 @@ module ActiveSupport
 
         # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           raise NotImplementedError.new
         end
 
         # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           raise NotImplementedError.new
         end
 
-      private
         # Merges the default options with ones specific to a method call.
-        def merged_options(call_options) # :nodoc:
+        def merged_options(call_options)
           if call_options
             options.merge(call_options)
           else
@@ -522,7 +521,7 @@ module ActiveSupport
         # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key) # :nodoc:
+        def expanded_key(key)
           return key.cache_key.to_s if key.respond_to?(:cache_key)
 
           case key

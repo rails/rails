@@ -92,7 +92,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "attribute keys on a new instance" do
     t = Topic.new
-    assert_equal nil, t.title, "The topics table has a title column, so it should be nil"
+    assert_nil t.title, "The topics table has a title column, so it should be nil"
     assert_raise(NoMethodError) { t.title2 }
   end
 
@@ -156,7 +156,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     keyboard = Keyboard.create
     keyboard.key_number = "10"
     assert_equal "10", keyboard.id_before_type_cast
-    assert_equal nil, keyboard.read_attribute_before_type_cast("id")
+    assert_nil keyboard.read_attribute_before_type_cast("id")
     assert_equal "10", keyboard.read_attribute_before_type_cast("key_number")
     assert_equal "10", keyboard.read_attribute_before_type_cast(:key_number)
   end
@@ -213,7 +213,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       record.written_on = "345643456"
       assert_equal "345643456", record.written_on_before_type_cast
-      assert_equal nil, record.written_on
+      assert_nil record.written_on
 
       record.written_on = "2009-10-11 12:13:14"
       assert_equal "2009-10-11 12:13:14", record.written_on_before_type_cast
@@ -319,6 +319,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Still another topic: part 4", topic.title
   end
 
+  test "write_attribute can write aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+    topic.write_attribute :heading, "New topic"
+
+    assert_equal "New topic", topic.title
+  end
+
   test "read_attribute" do
     topic = Topic.new
     topic.title = "Don't change the topic"
@@ -327,6 +334,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal "Don't change the topic", topic.read_attribute(:title)
     assert_equal "Don't change the topic", topic[:title]
+  end
+
+  test "read_attribute can read aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attribute("heading")
+    assert_equal "Don't change the topic", topic["heading"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:heading)
+    assert_equal "Don't change the topic", topic[:heading]
   end
 
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
@@ -737,7 +754,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "time zone-aware attributes do not recurse infinitely on invalid values" do
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new(bonus_time: [])
-      assert_equal nil, record.bonus_time
+      assert_nil record.bonus_time
     end
   end
 

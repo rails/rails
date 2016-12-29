@@ -26,7 +26,7 @@ module ActiveSupport
     class MemCacheStore < Store
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
-        protected
+        private
           def read_entry(key, options)
             entry = super
             if options[:raw] && local_cache && entry
@@ -35,7 +35,7 @@ module ActiveSupport
             entry
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_entry(key, entry, options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
               raw_entry.expires_at = entry.expires_at
@@ -143,14 +143,14 @@ module ActiveSupport
         @data.stats
       end
 
-      protected
+      private
         # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           rescue_error_with(nil) { deserialize_entry(@data.get(key, options)) }
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
@@ -164,11 +164,9 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           rescue_error_with(false) { @data.delete(key) }
         end
-
-      private
 
         # Memcache keys are binaries. So we need to force their encoding to binary
         # before applying the regular expression to ensure we are escaping all

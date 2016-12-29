@@ -37,9 +37,9 @@ module Rails
         end
         alias :exists? :existing_migration
 
-        protected
+        private
 
-          def on_conflict_behavior
+          def on_conflict_behavior # :doc:
             options = base.options.merge(config)
             if identical?
               say_status :identical, :blue, relative_existing_migration
@@ -60,7 +60,7 @@ module Rails
             end
           end
 
-          def say_status(status, color, message = relative_destination)
+          def say_status(status, color, message = relative_destination) # :doc:
             base.shell.say_status(status, message, color) if config[:verbose]
           end
       end

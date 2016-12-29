@@ -27,45 +27,43 @@ module Rails
         end
       end
 
-    protected
+      private
 
-      def call_app(request, env)
-        instrumenter = ActiveSupport::Notifications.instrumenter
-        instrumenter.start "request.action_dispatch", request: request
-        logger.info { started_request_message(request) }
-        resp = @app.call(env)
-        resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
-        resp
-      rescue Exception
-        finish(request)
-        raise
-      ensure
-        ActiveSupport::LogSubscriber.flush_all!
-      end
+        def call_app(request, env) # :doc:
+          instrumenter = ActiveSupport::Notifications.instrumenter
+          instrumenter.start "request.action_dispatch", request: request
+          logger.info { started_request_message(request) }
+          resp = @app.call(env)
+          resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
+          resp
+        rescue Exception
+          finish(request)
+          raise
+        ensure
+          ActiveSupport::LogSubscriber.flush_all!
+        end
 
-      # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
-      def started_request_message(request)
-        'Started %s "%s" for %s at %s' % [
-          request.request_method,
-          request.filtered_path,
-          request.ip,
-          Time.now.to_default_s ]
-      end
+        # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
+        def started_request_message(request) # :doc:
+          'Started %s "%s" for %s at %s' % [
+            request.request_method,
+            request.filtered_path,
+            request.ip,
+            Time.now.to_default_s ]
+        end
 
-      def compute_tags(request)
-        @taggers.collect do |tag|
-          case tag
-          when Proc
-            tag.call(request)
-          when Symbol
-            request.send(tag)
-          else
-            tag
+        def compute_tags(request) # :doc:
+          @taggers.collect do |tag|
+            case tag
+            when Proc
+              tag.call(request)
+            when Symbol
+              request.send(tag)
+            else
+              tag
+            end
           end
         end
-      end
-
-      private
 
         def finish(request)
           instrumenter = ActiveSupport::Notifications.instrumenter

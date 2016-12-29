@@ -13,6 +13,11 @@ class Parrot < ActiveRecord::Base
   def cancel_save_callback_method
     throw(:abort)
   end
+
+  before_update :increment_updated_count
+  def increment_updated_count
+    self.updated_count += 1
+  end
 end
 
 class LiveParrot < Parrot

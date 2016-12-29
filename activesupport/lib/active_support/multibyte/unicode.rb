@@ -358,7 +358,7 @@ module ActiveSupport
 
       private
 
-        def apply_mapping(string, mapping) #:nodoc:
+        def apply_mapping(string, mapping)
           database.codepoints
           string.each_codepoint.map do |codepoint|
             cp = database.codepoints[codepoint]

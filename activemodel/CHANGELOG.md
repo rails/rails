@@ -1,3 +1,7 @@
+*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+
+    *Iain Beeston*
+
 *   Allow indifferent access in `ActiveModel::Errors`.
 
     `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.

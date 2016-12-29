@@ -40,7 +40,7 @@ GIT
 
 GIT
   remote: https://github.com/resque/resque.git
-  revision: 20d885065ac19e7f7d7a982f4ed1296083db0300
+  revision: 835a4a7e61a2e33832dbf11975ecfab54af293c6
   specs:
     resque (1.27.0)
       mono_logger (~> 1.0)
@@ -49,19 +49,12 @@ GIT
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
 
-GIT
-  remote: https://github.com/sass/sass.git
-  revision: 7716e67f3507c6f65878c69aa49ec358ebf675c7
-  branch: stable
-  specs:
-    sass (3.4.22)
-
 PATH
   remote: .
   specs:
     actioncable (5.1.0.alpha)
       actionpack (= 5.1.0.alpha)
-      nio4r (~> 1.2)
+      nio4r (~> 2.0)
       websocket-driver (~> 0.6.1)
     actionmailer (5.1.0.alpha)
       actionpack (= 5.1.0.alpha)
@@ -121,7 +114,7 @@ GEM
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
     amq-protocol (2.0.1)
-    arel (7.1.2)
+    arel (7.1.4)
     ast (2.3.0)
     backburner (1.3.1)
       beaneater (~> 1.0)
@@ -132,7 +125,7 @@ GEM
     bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
     benchmark-ips (2.7.2)
-    blade (0.6.1)
+    blade (0.7.0)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (~> 2.0.1)
       coffee-script
@@ -141,17 +134,16 @@ GEM
       eventmachine
       faye
       sprockets (>= 3.0)
-      sprockets-export (~> 0.9.1)
       thin (>= 1.6.0)
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (2.0.1)
-    blade-sauce_labs_plugin (0.6.1)
+    blade-sauce_labs_plugin (0.6.2)
       childprocess
       faraday
       selenium-webdriver
     builder (3.2.2)
-    bunny (2.2.2)
+    bunny (2.6.2)
       amq-protocol (>= 2.0.1)
     byebug (9.0.6)
     childprocess (0.5.9)
@@ -162,9 +154,9 @@ GEM
     coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.10.0)
-    concurrent-ruby (1.0.2)
-    connection_pool (2.2.0)
+    coffee-script-source (1.12.2)
+    concurrent-ruby (1.0.4)
+    connection_pool (2.2.1)
     cookiejar (0.3.3)
     curses (1.0.2)
     daemons (1.2.4)
@@ -201,8 +193,6 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.14)
-    ffi (1.9.14-x64-mingw32)
-    ffi (1.9.14-x86-mingw32)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
     hiredis (0.6.1)
@@ -213,7 +203,7 @@ GEM
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
     json (2.0.2)
-    kindlerb (1.0.1)
+    kindlerb (1.2.0)
       mustache
       nokogiri
     libxml-ruby (2.9.0)
@@ -241,22 +231,22 @@ GEM
     mysql2 (0.4.5)
     mysql2 (0.4.5-x64-mingw32)
     mysql2 (0.4.5-x86-mingw32)
-    nio4r (1.2.1)
-    nokogiri (1.6.8.1)
+    nio4r (2.0.0)
+    nokogiri (1.7.0)
       mini_portile2 (~> 2.1.0)
-    nokogiri (1.6.8.1-x64-mingw32)
+    nokogiri (1.7.0-x64-mingw32)
       mini_portile2 (~> 2.1.0)
-    nokogiri (1.6.8.1-x86-mingw32)
+    nokogiri (1.7.0-x86-mingw32)
       mini_portile2 (~> 2.1.0)
-    parser (2.3.2.0)
+    parser (2.3.3.1)
       ast (~> 2.2)
     pg (0.19.0)
     pg (0.19.0-x64-mingw32)
     pg (0.19.0-x86-mingw32)
     powerpack (0.1.1)
-    psych (2.1.1)
+    psych (2.2.2)
     public_suffix (2.0.4)
-    puma (3.6.0)
+    puma (3.6.2)
     qu (0.2.0)
       multi_json
     qu-redis (0.2.0)
@@ -272,17 +262,17 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
-    rails-dom-testing (2.0.1)
+    rails-dom-testing (2.0.2)
       activesupport (>= 4.2.0, < 6.0)
-      nokogiri (~> 1.6.0)
+      nokogiri (~> 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
     rainbow (2.1.0)
-    rake (11.3.0)
-    rb-fsevent (0.9.7)
-    rdoc (5.0.0.beta2)
+    rake (12.0.0)
+    rb-fsevent (0.9.8)
+    rdoc (5.0.0)
     redcarpet (3.2.3)
-    redis (3.3.1)
+    redis (3.3.2)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
     resque-scheduler (4.3.0)
@@ -290,49 +280,50 @@ GEM
       redis (~> 3.3)
       resque (~> 1.26)
       rufus-scheduler (~> 3.2)
-    rubocop (0.45.0)
+    rubocop (0.46.0)
       parser (>= 2.3.1.1, < 3.0)
       powerpack (~> 0.1)
       rainbow (>= 1.99.1, < 3.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.8.1)
-    ruby_dep (1.4.0)
+    ruby_dep (1.5.0)
     rubyzip (1.2.0)
-    rufus-scheduler (3.2.2)
+    rufus-scheduler (3.3.1)
+      tzinfo
+    sass (3.4.23)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
       sass (~> 3.1)
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
-    sdoc (1.0.0.beta2)
-      rdoc (= 5.0.0.beta2)
-    selenium-webdriver (3.0.1)
+    sdoc (1.0.0.rc1)
+      rdoc (= 5.0.0)
+    selenium-webdriver (3.0.5)
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
       websocket (~> 1.0)
-    sequel (4.39.0)
+    sequel (4.41.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (4.2.2)
+    sidekiq (4.2.7)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
-      rack-protection (~> 1.5)
+      rack-protection (>= 1.5.0)
       redis (~> 3.2, >= 3.2.1)
     sigdump (0.2.4)
     simple_uuid (0.4.0)
     sinatra (1.0)
       rack (>= 1.0)
-    sneakers (2.3.5)
-      bunny (~> 2.2.0)
+    sneakers (2.4.0)
+      bunny (~> 2.6)
       serverengine (~> 1.5.11)
       thor
       thread (~> 0.1.7)
-    sprockets (3.7.0)
+    sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-export (0.9.1)
     sprockets-rails (3.2.0)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
@@ -347,7 +338,7 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (0.19.1)
+    thor (0.19.4)
     thread (0.1.7)
     thread_safe (0.3.5)
     tilt (2.0.5)
@@ -356,17 +347,17 @@ GEM
     turbolinks-source (5.0.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    tzinfo-data (1.2016.7)
+    tzinfo-data (1.2016.10)
       tzinfo (>= 1.0.0)
-    uglifier (3.0.2)
+    uglifier (3.0.4)
       execjs (>= 0.3.0, < 3)
-    unicode-display_width (1.1.1)
+    unicode-display_width (1.1.2)
     useragent (0.16.8)
     vegas (0.1.11)
       rack (>= 1.0.0)
-    w3c_validators (1.2)
-      json
-      nokogiri
+    w3c_validators (1.3.1)
+      json (~> 2.0)
+      nokogiri (~> 1.6)
     wdm (0.1.1)
     websocket (1.2.3)
     websocket-driver (0.6.4)
@@ -396,7 +387,7 @@ DEPENDENCIES
   hiredis
   jquery-rails
   json (>= 2.0.0)
-  kindlerb (>= 1.0.1)
+  kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
@@ -419,9 +410,8 @@ DEPENDENCIES
   resque!
   resque-scheduler
   rubocop
-  sass!
   sass-rails
-  sdoc (= 1.0.0.beta2)
+  sdoc (= 1.0.0.rc1)
   sequel
   sidekiq
   sneakers
@@ -436,4 +426,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.13.6
+   1.13.7

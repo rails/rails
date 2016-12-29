@@ -159,9 +159,9 @@ module ActiveSupport
 
     delegate :<=>, to: :value
 
-    protected
+    private
 
-      def sum(sign, time = ::Time.current) #:nodoc:
+      def sum(sign, time = ::Time.current)
         parts.inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
@@ -179,9 +179,7 @@ module ActiveSupport
         end
       end
 
-    private
-
-      def method_missing(method, *args, &block) #:nodoc:
+      def method_missing(method, *args, &block)
         value.send(method, *args, &block)
       end
   end

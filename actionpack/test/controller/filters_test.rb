@@ -55,7 +55,7 @@ class FilterTest < ActionController::TestCase
       end
     end
 
-    protected
+    private
       (1..3).each do |i|
         define_method "try_#{i}" do
           instance_variable_set :@try, i
@@ -296,7 +296,7 @@ class FilterTest < ActionController::TestCase
       render inline: "ran action"
     end
 
-    protected
+    private
       def find_user
         @ran_filter ||= []
         @ran_filter << "find_user"
@@ -428,7 +428,7 @@ class FilterTest < ActionController::TestCase
       render plain: "bar"
     end
 
-    protected
+    private
       def first
         @first = true
       end
@@ -1040,7 +1040,7 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     assert_equal 3, controller.instance_variable_get(:@try)
   end
 
-  protected
+  private
     def test_process(controller, action = "show")
       @controller = controller.is_a?(Class) ? controller.new : controller
       process(action)

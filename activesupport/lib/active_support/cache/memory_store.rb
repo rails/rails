@@ -104,15 +104,15 @@ module ActiveSupport
         @monitor.synchronize(&block)
       end
 
-      protected
+      private
 
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry) # :nodoc:
+        def cached_size(key, entry)
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           entry = @data[key]
           synchronize do
             if entry
@@ -124,7 +124,7 @@ module ActiveSupport
           entry
         end
 
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           entry.dup_value!
           synchronize do
             old_entry = @data[key]
@@ -141,7 +141,7 @@ module ActiveSupport
           end
         end
 
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           synchronize do
             @key_access.delete(key)
             entry = @data.delete(key)
@@ -149,8 +149,6 @@ module ActiveSupport
             !!entry
           end
         end
-
-      private
 
         def modify_value(name, amount, options)
           synchronize do

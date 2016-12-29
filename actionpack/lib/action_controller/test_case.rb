@@ -3,6 +3,7 @@ require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/hash/keys"
+require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
 require "rails-dom-testing"
 
@@ -513,8 +514,6 @@ module ActionController
         ensure
           @request = @controller.request
           @response = @controller.response
-
-          @request.delete_header "HTTP_COOKIE"
 
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?

@@ -12,7 +12,7 @@ module Rails
 
       hook_for :test_framework
 
-      protected
+      private
 
         def generator_dir
           if options[:namespace]

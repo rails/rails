@@ -52,13 +52,11 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        protected
+        private
 
           def last_inserted_id(result)
             @connection.last_id
           end
-
-        private
 
           def select_result(sql, name = nil, binds = [])
             if without_prepared_statement?(binds)

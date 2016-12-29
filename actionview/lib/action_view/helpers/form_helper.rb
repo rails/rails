@@ -513,6 +513,17 @@ module ActionView
       #     <input type="text" name="post[title]" value="<the title of the post>">
       #   </form>
       #
+      #   # Though the fields don't have to correspond to model attributes:
+      #   <%= form_with model: Cat.new do |form| %>
+      #     <%= form.text_field :cats_dont_have_gills %>
+      #     <%= form.text_field :but_in_forms_they_can %>
+      #   <% end %>
+      #   # =>
+      #   <form action="/cats" method="post" data-remote="true">
+      #     <input type="text" name="cat[cats_dont_have_gills]">
+      #     <input type="text" name="cat[but_in_forms_they_can]">
+      #   </form>
+      #
       # The parameters in the forms are accessible in controllers according to
       # their name nesting. So inputs named +title+ and <tt>post[title]</tt> are
       # accessible as <tt>params[:title]</tt> and <tt>params[:post][:title]</tt>
@@ -521,7 +532,7 @@ module ActionView
       # By default +form_with+ attaches the <tt>data-remote</tt> attribute
       # submitting the form via an XMLHTTPRequest in the background if an
       # Unobtrusive JavaScript driver, like rails-ujs, is used. See the
-      # <tt>:remote</tt> option for more.
+      # <tt>:local</tt> option for more.
       #
       # For ease of comparison the examples above left out the submit button,
       # as well as the auto generated hidden fields that enable UTF-8 support
@@ -594,6 +605,16 @@ module ActionView
       #   <% end %>
       #
       # Where <tt>@document = Document.find(params[:id])</tt>.
+      #
+      # When using labels +form_with+ requires setting the id on the field being
+      # labelled:
+      #
+      #   <%= form_with(model: @post) do |form| %>
+      #     <%= form.label :title %>
+      #     <%= form.text_field :title, id: :post_title %>
+      #   <% end %>
+      #
+      # See +label+ for more on how the +for+ attribute is derived.
       #
       # === Mixing with other form helpers
       #
@@ -690,6 +711,9 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
+        options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = true
+
         if model
           url ||= polymorphic_path(model, format: format)
 
@@ -964,14 +988,14 @@ module ActionView
       #   <%= fields :comment do |fields| %>
       #     <%= fields.text_field :body %>
       #   <% end %>
-      #   # => <input type="text" name="comment[body] id="comment_body">
+      #   # => <input type="text" name="comment[body]>
       #
       #   # Using a model infers the scope and assigns field values:
       #   <%= fields model: Comment.new(body: "full bodied") do |fields| %<
       #     <%= fields.text_field :body %>
       #   <% end %>
       #   # =>
-      #   <input type="text" name="comment[body] id="comment_body" value="full bodied">
+      #   <input type="text" name="comment[body] value="full bodied">
       #
       #   # Using +fields+ with +form_with+:
       #   <%= form_with model: @post do |form| %>
@@ -985,6 +1009,16 @@ module ActionView
       # Much like +form_with+ a FormBuilder instance associated with the scope
       # or model is yielded, so any generated field names are prefixed with
       # either the passed scope or the scope inferred from the <tt>:model</tt>.
+      #
+      # When using labels +fields+ requires setting the id on the field being
+      # labelled:
+      #
+      #   <%= fields :comment do |fields| %>
+      #     <%= fields.label :body %>
+      #     <%= fields.text_field :body, id: :comment_body %>
+      #   <% end %>
+      #
+      # See +label+ for more on how the +for+ attribute is derived.
       #
       # === Mixing with other form helpers
       #
@@ -1003,7 +1037,9 @@ module ActionView
       # to work with an object as a base, like
       # FormOptionHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
-        # TODO: Remove when ids and classes are no longer output by default.
+        options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = true
+
         if model
           scope ||= model_name_from_record_or_class(model).param_key
         end
@@ -1469,7 +1505,7 @@ module ActionView
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
           skip_enforcing_utf8: false, **options)
-          html_options = options.except(:index, :include_id, :builder).merge(html)
+          html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           html_options[:enforce_utf8] = !skip_enforcing_utf8
 
@@ -1603,7 +1639,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @default_options = @options ? @options.slice(:index, :namespace) : {}
+        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
 
         convert_to_legacy_options(@options)
 
@@ -1888,10 +1924,11 @@ module ActionView
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
+        object_name = @object_name
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          self.object_name = @object_name.to_s.sub(/\[\]$/, "")
+          object_name = object_name.to_s.sub(/\[\]$/, "")
           @auto_index
         end
 
@@ -1910,6 +1947,9 @@ module ActionView
 
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
+        options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = true
+
         convert_to_legacy_options(options)
 
         fields_for(scope || model, model, **options, &block)
@@ -2267,10 +2307,6 @@ module ActionView
         def convert_to_legacy_options(options)
           if options.key?(:skip_id)
             options[:include_id] = !options.delete(:skip_id)
-          end
-
-          if options.key?(:local)
-            options[:remote] = !options.delete(:local)
           end
         end
     end

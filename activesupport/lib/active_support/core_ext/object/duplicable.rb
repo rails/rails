@@ -1,7 +1,7 @@
 #--
-# Most objects are cloneable, but not all. For example you can't dup +nil+:
+# Most objects are cloneable, but not all. For example you can't dup methods:
 #
-#   nil.dup # => TypeError: can't dup NilClass
+#   method(:puts).dup # => TypeError: allocator undefined for Method
 #
 # Classes may signal their instances are not duplicable removing +dup+/+clone+
 # or raising exceptions from them. So, to dup an arbitrary object you normally
@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbol, number, method objects;
+  # False for method objects;
   # true otherwise.
   def duplicable?
     true
@@ -27,52 +27,77 @@ class Object
 end
 
 class NilClass
-  # +nil+ is not duplicable:
-  #
-  #   nil.duplicable? # => false
-  #   nil.dup         # => TypeError: can't dup NilClass
-  def duplicable?
-    false
+  begin
+    nil.dup
+  rescue TypeError
+
+    # +nil+ is not duplicable:
+    #
+    #   nil.duplicable? # => false
+    #   nil.dup         # => TypeError: can't dup NilClass
+    def duplicable?
+      false
+    end
   end
 end
 
 class FalseClass
-  # +false+ is not duplicable:
-  #
-  #   false.duplicable? # => false
-  #   false.dup         # => TypeError: can't dup FalseClass
-  def duplicable?
-    false
+  begin
+    false.dup
+  rescue TypeError
+
+    # +false+ is not duplicable:
+    #
+    #   false.duplicable? # => false
+    #   false.dup         # => TypeError: can't dup FalseClass
+    def duplicable?
+      false
+    end
   end
 end
 
 class TrueClass
-  # +true+ is not duplicable:
-  #
-  #   true.duplicable? # => false
-  #   true.dup         # => TypeError: can't dup TrueClass
-  def duplicable?
-    false
+  begin
+    true.dup
+  rescue TypeError
+
+    # +true+ is not duplicable:
+    #
+    #   true.duplicable? # => false
+    #   true.dup         # => TypeError: can't dup TrueClass
+    def duplicable?
+      false
+    end
   end
 end
 
 class Symbol
-  # Symbols are not duplicable:
-  #
-  #   :my_symbol.duplicable? # => false
-  #   :my_symbol.dup         # => TypeError: can't dup Symbol
-  def duplicable?
-    false
+  begin
+    :symbol.dup
+  rescue TypeError
+
+    # Symbols are not duplicable:
+    #
+    #   :my_symbol.duplicable? # => false
+    #   :my_symbol.dup         # => TypeError: can't dup Symbol
+    def duplicable?
+      false
+    end
   end
 end
 
 class Numeric
-  # Numbers are not duplicable:
-  #
-  #  3.duplicable? # => false
-  #  3.dup         # => TypeError: can't dup Integer
-  def duplicable?
-    false
+  begin
+    1.dup
+  rescue TypeError
+
+    # Numbers are not duplicable:
+    #
+    #  3.duplicable? # => false
+    #  3.dup         # => TypeError: can't dup Integer
+    def duplicable?
+      false
+    end
   end
 end
 
@@ -92,6 +117,26 @@ class Method
   #
   #  method(:puts).duplicable? # => false
   #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  def duplicable?
+    false
+  end
+end
+
+class Complex
+  # Complexes are not duplicable:
+  #
+  # Complex(1).duplicable? # => false
+  # Complex(1).dup         # => TypeError: can't copy Complex
+  def duplicable?
+    false
+  end
+end
+
+class Rational
+  # Rationals are not duplicable:
+  #
+  # Rational(1).duplicable? # => false
+  # Rational(1).dup         # => TypeError: can't copy Rational
   def duplicable?
     false
   end

@@ -36,11 +36,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
       private
 
-      def should_be_cool
-        unless self.first_name == "cool"
-          errors.add :first_name, "not cool"
+        def should_be_cool
+          unless self.first_name == "cool"
+            errors.add :first_name, "not cool"
+          end
         end
-      end
     }
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"
@@ -1391,6 +1391,14 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_equal "Squawky", parrot.reload.name
   end
 
+  def test_should_not_update_children_when_parent_creation_with_no_reason
+    parrot = Parrot.create!(name: "Polly")
+    assert_equal 0, parrot.updated_count
+
+    Pirate.create!(parrot_ids: [parrot.id], catchphrase: "Arrrr")
+    assert_equal 0, parrot.reload.updated_count
+  end
+
   def test_should_automatically_validate_the_associated_models
     @pirate.send(@association_name).each { |child| child.name = "" }
 
@@ -1697,5 +1705,29 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
   def test_autosave_with_touch_should_not_raise_system_stack_error
     invoice = Invoice.create
     assert_nothing_raised { invoice.line_items.create(amount: 10) }
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::TestCase
+  class Post < ActiveRecord::Base
+    has_many :comments, inverse_of: :post
+  end
+
+  class Comment < ActiveRecord::Base
+    belongs_to :post, inverse_of: :comments
+
+    attr_accessor :post_comments_count
+    after_save do
+      self.post_comments_count = post.comments.count
+    end
+  end
+
+  def test_after_save_callback_with_autosave
+    post = Post.new(title: "Test", body: "...")
+    comment = post.comments.build(body: "...")
+    post.save!
+
+    assert_equal 1, post.comments.count
+    assert_equal 1, comment.post_comments_count
   end
 end

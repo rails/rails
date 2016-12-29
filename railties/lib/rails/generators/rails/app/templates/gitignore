@@ -21,7 +21,7 @@
 !/tmp/.keep
 <% end -%>
 
-<% if options[:yarn] -%>
+<% unless options[:skip_yarn] -%>
 /vendor/node_modules
 
 <% end -%>

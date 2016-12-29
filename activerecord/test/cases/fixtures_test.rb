@@ -12,9 +12,11 @@ require "models/company"
 require "models/computer"
 require "models/course"
 require "models/developer"
+require "models/dog"
 require "models/doubloon"
 require "models/joke"
 require "models/matey"
+require "models/other_dog"
 require "models/parrot"
 require "models/pirate"
 require "models/post"
@@ -211,9 +213,19 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_dirty_dirty_yaml_file
-    assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
     end
+    assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
+  end
+
+  def test_yaml_file_with_one_invalid_fixture
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+    end
+    assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
 
   def test_yaml_file_with_invalid_column
@@ -1009,5 +1021,18 @@ class FixtureClassNamesTest < ActiveRecord::TestCase
 
   test "fixture_class_names returns nil for unregistered identifier" do
     assert_nil fixture_class_names["unregistered_identifier"]
+  end
+end
+
+class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
+  fixtures :dogs, :other_dogs
+
+  test "fixtures are properly loaded" do
+    # Force loading the fixtures again to reproduce issue
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("dogs", "other_dogs")
+
+    assert_kind_of Dog, dogs(:sophie)
+    assert_kind_of OtherDog, other_dogs(:lassie)
   end
 end

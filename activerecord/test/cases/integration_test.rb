@@ -15,7 +15,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_to_param_returns_nil_if_not_persisted
     client = Client.new
-    assert_equal nil, client.to_param
+    assert_nil client.to_param
   end
 
   def test_to_param_returns_id_if_not_persisted_but_id_is_set
@@ -89,7 +89,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_to_param_class_method_uses_default_if_not_persisted
     firm = Firm.new(name: "Fancy Shirts")
-    assert_equal nil, firm.to_param
+    assert_nil firm.to_param
   end
 
   def test_to_param_with_no_arguments

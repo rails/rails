@@ -33,13 +33,13 @@ module ActiveRecord
         end
       end
 
-    protected
+    private
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
       # (self), to the first non-abstract class. Since classes don't know
       # their subclasses, we have to build the hierarchy between self and
       # the record's class.
-      def find_finder_class_for(record) #:nodoc:
+      def find_finder_class_for(record)
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
@@ -49,7 +49,7 @@ module ActiveRecord
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 
-      def build_relation(klass, attribute, value) # :nodoc:
+      def build_relation(klass, attribute, value)
         if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
           value = value.attributes[reflection.klass.primary_key] unless value.nil?

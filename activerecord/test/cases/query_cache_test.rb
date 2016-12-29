@@ -202,6 +202,20 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveSupport::Notifications.unsubscribe subscriber
   end
 
+  def test_query_cache_does_not_allow_sql_key_mutation
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+      payload[:sql].downcase!
+    end
+
+    assert_raises RuntimeError do
+      ActiveRecord::Base.cache do
+        assert_queries(1) { Task.find(1); Task.find(1) }
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe subscriber
+  end
+
   def test_cache_is_flat
     Task.cache do
       assert_queries(1) { Topic.find(1); Topic.find(1); }

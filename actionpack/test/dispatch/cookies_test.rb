@@ -272,6 +272,10 @@ class CookiesTest < ActionController::TestCase
     def noop
       head :ok
     end
+
+    def encrypted_cookie
+      cookies.encrypted["foo"]
+    end
   end
 
   tests TestController
@@ -940,8 +944,8 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "user_id=45"
     get :get_signed_cookie
 
-    assert_equal nil, @controller.send(:cookies).signed[:user_id]
-    assert_equal nil, @response.cookies["user_id"]
+    assert_nil @controller.send(:cookies).signed[:user_id]
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_legacy_signed_cookie_is_treated_as_nil_by_encrypted_cookie_jar_if_tampered
@@ -951,8 +955,8 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "foo=baz"
     get :get_encrypted_cookie
 
-    assert_equal nil, @controller.send(:cookies).encrypted[:foo]
-    assert_equal nil, @response.cookies["foo"]
+    assert_nil @controller.send(:cookies).encrypted[:foo]
+    assert_nil @response.cookies["foo"]
   end
 
   def test_cookie_with_all_domain_option
@@ -1187,6 +1191,12 @@ class CookiesTest < ActionController::TestCase
     get :noop
     assert_equal "david", cookies["user_name"]
     assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_are_not_cleared
+    cookies.encrypted["foo"] = "bar"
+    get :noop
+    assert_equal "bar", @controller.encrypted_cookie
   end
 
   private

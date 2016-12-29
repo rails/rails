@@ -50,7 +50,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_equal @request.filtered_parameters, "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }, @request.filtered_parameters)
     end
   end
 

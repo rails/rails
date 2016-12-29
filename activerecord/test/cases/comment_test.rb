@@ -2,7 +2,6 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_comments?
-
   class CommentTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
@@ -102,6 +101,7 @@ if ActiveRecord::Base.connection.supports_comments?
       # Do all the stuff from other tests
       @connection.add_column    :commenteds, :rating, :integer, comment: "I am running out of imagination"
       @connection.change_column :commenteds, :content, :string, comment: "Whoa, content describes itself!"
+      @connection.change_column :commenteds, :content, :string
       @connection.change_column :commenteds, :obvious, :string, comment: nil
       @connection.add_index     :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
 
@@ -135,5 +135,4 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_no_match %r[t\.string\s+"absent_comment", comment:\n], output
     end
   end
-
 end

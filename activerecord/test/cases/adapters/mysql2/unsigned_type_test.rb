@@ -15,6 +15,7 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
       t.bigint  :unsigned_bigint,  unsigned: true
       t.float   :unsigned_float,   unsigned: true
       t.decimal :unsigned_decimal, unsigned: true, precision: 10, scale: 2
+      t.column  :unsigned_zerofill, "int unsigned zerofill"
     end
   end
 
@@ -34,10 +35,10 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
     assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_bigint: -10)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_float: -10.0)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_decimal: -10.0)
     end
   end
@@ -48,7 +49,6 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
       t.unsigned_bigint  :unsigned_bigint_t
       t.unsigned_float   :unsigned_float_t
       t.unsigned_decimal :unsigned_decimal_t, precision: 10, scale: 2
-      t.column :unsigned_zerofill, "int unsigned zerofill"
     end
 
     @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|

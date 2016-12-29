@@ -1,3 +1,61 @@
+*   Notifications see frozen SQL string.
+
+    Fixes #23774.
+
+    *Richard Monette*
+
+*   RuntimeErrors are no longer translated to `ActiveRecord::StatementInvalid`.
+
+    *Richard Monette*
+
+*   Change the schema cache format to use YAML instead of Marshal.
+
+    *Kir Shatrov*
+
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::RangeError` when values that executed are out of range.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::NotNullViolation` when a record cannot be inserted
+    or updated because it would violate a not null constraint.
+
+    *Ryuta Kamizono*
+
+*   Emulate db trigger behaviour for after_commit :destroy, :update.
+
+    Race conditions can occur when an ActiveRecord is destroyed
+    twice or destroyed and updated. The callbacks should only be
+    triggered once, similar to a SQL database trigger.
+
+    *Stefan Budeanu*
+
+*   Moved `DecimalWithoutScale`, `Text`, and `UnsignedInteger` from Active Model to Active Record.
+
+    *Iain Beeston*
+
+*   Fix `write_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    *Prathamesh Sonpatki*
+
+*   Fix `read_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    Fixes #26417.
+
+    *Prathamesh Sonpatki*
+
+*   PostgreSQL & MySQL: Use big integer as primary key type for new tables.
+
+    *Jon McCartie*, *Pavel Pravosud*
+
 *   Change the type argument of `ActiveRecord::Base#attribute` to be optional.
     The default is now `ActiveRecord::Type::Value.new`, which provides no type
     casting behavior.
@@ -14,7 +72,7 @@
 
     *Sergey Alekseev*
 
-*   Raise ActiveRecord::RecordNotFound from collection `*_ids` setters
+*   Raise `ActiveRecord::RecordNotFound` from collection `*_ids` setters
     for unknown IDs with a better error message.
 
     Changes the collection `*_ids` setters to cast provided IDs the data
@@ -54,7 +112,7 @@
 
     *Jon Moss*
 
-*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
+*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
 
     Example:
 
@@ -101,7 +159,7 @@
 
 *   Fixed: Optimistic locking does not work well with `null` in the database.
 
-    Fixes #26024
+    Fixes #26024.
 
     *bogdanvlviv*
 
@@ -110,7 +168,7 @@
 
     *Edho Arief*
 
-*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
+*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`.
 
     *Trung Duc Tran*
 
@@ -214,7 +272,7 @@
     successfully rolled back when the column was given and invalid column
     type.
 
-    Fixes #26087
+    Fixes #26087.
 
     *Travis O'Neill*
 
@@ -244,7 +302,7 @@
     *Takeshi Akima*
 
 *   Virtual attributes will no longer raise when read on models loaded from the
-    database
+    database.
 
     *Sean Griffin*
 

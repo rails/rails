@@ -286,7 +286,7 @@ task default: :test
         @namespaced_name ||= name.tr("-", "/")
       end
 
-    protected
+    private
 
       def create_dummy_app(path = nil)
         dummy_path(path) if path

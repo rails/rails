@@ -614,7 +614,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
     end
 
@@ -630,7 +630,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_raise ArgumentError, /\AA secret is required/ do
         app.key_generator
       end
@@ -1204,7 +1204,7 @@ module ApplicationTests
         application.config.session_store :disabled
       end
 
-      assert_equal nil, app.config.session_store
+      assert_nil app.config.session_store
     end
 
     test "default session store initializer sets session store to cookie store" do

@@ -289,7 +289,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end

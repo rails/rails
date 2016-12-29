@@ -23,7 +23,7 @@ module Rails
         generate_application_cable_files
       end
 
-      protected
+      private
         def file_name
           @_file_name ||= super.gsub(/_channel/i, "")
         end

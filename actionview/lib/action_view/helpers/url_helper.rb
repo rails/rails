@@ -105,10 +105,9 @@ module ActionView
       #   driver to prompt with the question specified (in this case, the
       #   resulting text would be <tt>question?</tt>. If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      #   name for a disabled version of the link. This feature is provided by
+      #   the unobtrusive JavaScript driver.
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
@@ -615,7 +614,7 @@ module ActionView
         #
         #   to_form_params({ name: 'Denmark' }, 'country')
         #   # => [{name: 'country[name]', value: 'Denmark'}]
-        def to_form_params(attribute, namespace = nil) # :nodoc:
+        def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
             unless attribute.permitted?
               raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \

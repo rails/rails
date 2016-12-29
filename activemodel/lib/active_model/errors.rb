@@ -419,12 +419,19 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-    def marshal_dump
+    def marshal_dump # :nodoc:
       [@base, without_default_proc(@messages), without_default_proc(@details)]
     end
 
-    def marshal_load(array)
+    def marshal_load(array) # :nodoc:
       @base, @messages, @details = array
+      apply_default_array(@messages)
+      apply_default_array(@details)
+    end
+
+    def init_with(coder) # :nodoc:
+      coder.map.each { |k, v| instance_variable_set(:"@#{k}", v) }
+      @details ||= {}
       apply_default_array(@messages)
       apply_default_array(@details)
     end

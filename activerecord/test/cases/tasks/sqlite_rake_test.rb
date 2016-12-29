@@ -34,7 +34,7 @@ if current_adapter?(:SQLite3Adapter)
       def test_when_db_created_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
 
-        assert_equal $stdout.string, "Created database '#{@database}'\n"
+        assert_equal "Created database '#{@database}'\n", $stdout.string
       end
 
       def test_db_create_when_file_exists
@@ -42,7 +42,7 @@ if current_adapter?(:SQLite3Adapter)
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
 
-        assert_equal $stderr.string, "Database '#{@database}' already exists\n"
+        assert_equal "Database '#{@database}' already exists\n", $stderr.string
       end
 
       def test_db_create_with_file_does_nothing
@@ -128,7 +128,7 @@ if current_adapter?(:SQLite3Adapter)
       def test_when_db_dropped_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
 
-        assert_equal $stdout.string, "Dropped database '#{@database}'\n"
+        assert_equal "Dropped database '#{@database}'\n", $stdout.string
       end
     end
 

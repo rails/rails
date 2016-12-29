@@ -152,37 +152,37 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_string_parameterized_normal
     StringToParameterized.each do |normal, slugged|
-      assert_equal(normal.parameterize, slugged)
+      assert_equal(slugged, normal.parameterize)
     end
   end
 
   def test_string_parameterized_normal_preserve_case
     StringToParameterizedPreserveCase.each do |normal, slugged|
-      assert_equal(normal.parameterize(preserve_case: true), slugged)
+      assert_equal(slugged, normal.parameterize(preserve_case: true))
     end
   end
 
   def test_string_parameterized_no_separator
     StringToParameterizeWithNoSeparator.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: ""), slugged)
+      assert_equal(slugged, normal.parameterize(separator: ""))
     end
   end
 
   def test_string_parameterized_no_separator_preserve_case
     StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: "", preserve_case: true), slugged)
+      assert_equal(slugged, normal.parameterize(separator: "", preserve_case: true))
     end
   end
 
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: "_"), slugged)
+      assert_equal(slugged, normal.parameterize(separator: "_"))
     end
   end
 
   def test_string_parameterized_underscore_preserve_case
     StringToParameterizePreserceCaseWithUnderscore.each do |normal, slugged|
-      assert_equal(normal.parameterize(separator: "_", preserve_case: true), slugged)
+      assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
     end
   end
 
@@ -283,7 +283,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_truncate_words_with_complex_string
     Timeout.timeout(10) do
       complex_string = "aa aa aaa aa aaa aaa aaa aa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaaa aaaaa aaaaa aaaaaa aa aa aa aaa aa  aaa aa aa aa aa a aaa aaa \n a aaa <<s"
-      assert_equal complex_string.truncate_words(80), complex_string
+      assert_equal complex_string, complex_string.truncate_words(80)
     end
   rescue Timeout::Error
     assert false
@@ -339,7 +339,7 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#at with Regex, returns the matching portion of the string" do
     assert_equal "lo", "hello".at(/lo/)
-    assert_equal nil, "hello".at(/nonexisting/)
+    assert_nil "hello".at(/nonexisting/)
   end
 
   test "#from with positive Integer, returns substring from the given position to the end" do
@@ -710,14 +710,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "Prepending safe onto unsafe yields unsafe" do
     @string.prepend "other".html_safe
     assert !@string.html_safe?
-    assert_equal @string, "otherhello"
+    assert_equal "otherhello", @string
   end
 
   test "Prepending unsafe onto safe yields escaped safe" do
     other = "other".html_safe
     other.prepend "<foo>"
     assert other.html_safe?
-    assert_equal other, "&lt;foo&gt;other"
+    assert_equal "&lt;foo&gt;other", other
   end
 
   test "Concatting safe onto unsafe yields unsafe" do

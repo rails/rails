@@ -61,29 +61,29 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
-      def is_number?(raw_value)
+      def is_number?(raw_value) # :doc:
         !parse_raw_value_as_a_number(raw_value).nil?
       rescue ArgumentError, TypeError
         false
       end
 
-      def parse_raw_value_as_a_number(raw_value)
+      def parse_raw_value_as_a_number(raw_value) # :doc:
         Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
-      def is_integer?(raw_value)
+      def is_integer?(raw_value) # :doc:
         /\A[+-]?\d+\z/ === raw_value.to_s
       end
 
-      def filtered_options(value)
+      def filtered_options(value) # :doc:
         filtered = options.except(*RESERVED_OPTIONS)
         filtered[:value] = value
         filtered
       end
 
-      def allow_only_integer?(record)
+      def allow_only_integer?(record) # :doc:
         case options[:only_integer]
         when Symbol
           record.send(options[:only_integer])
@@ -94,12 +94,10 @@ module ActiveModel
         end
       end
 
-      private
-
-        def record_attribute_changed_in_place?(record, attr_name)
-          record.respond_to?(:attribute_changed_in_place?) &&
-            record.attribute_changed_in_place?(attr_name.to_s)
-        end
+      def record_attribute_changed_in_place?(record, attr_name)
+        record.respond_to?(:attribute_changed_in_place?) &&
+          record.attribute_changed_in_place?(attr_name.to_s)
+      end
     end
 
     module HelperMethods

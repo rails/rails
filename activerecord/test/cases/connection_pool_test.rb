@@ -501,11 +501,11 @@ module ActiveRecord
                 first_thread.join(2)
                 second_thread.join(2)
 
-                puts '---'
+                puts "---"
                 p [first_thread, second_thread]
                 p pool.stat
                 p pool.connections.map(&:owner)
-                puts '<<<'
+                puts "<<<"
                 puts
               end
 

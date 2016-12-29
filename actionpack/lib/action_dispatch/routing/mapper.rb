@@ -996,65 +996,65 @@ module ActionDispatch
         end
 
         private
-          def merge_path_scope(parent, child) #:nodoc:
+          def merge_path_scope(parent, child)
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_shallow_path_scope(parent, child) #:nodoc:
+          def merge_shallow_path_scope(parent, child)
             Mapper.normalize_path("#{parent}/#{child}")
           end
 
-          def merge_as_scope(parent, child) #:nodoc:
+          def merge_as_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_shallow_prefix_scope(parent, child) #:nodoc:
+          def merge_shallow_prefix_scope(parent, child)
             parent ? "#{parent}_#{child}" : child
           end
 
-          def merge_module_scope(parent, child) #:nodoc:
+          def merge_module_scope(parent, child)
             parent ? "#{parent}/#{child}" : child
           end
 
-          def merge_controller_scope(parent, child) #:nodoc:
+          def merge_controller_scope(parent, child)
             child
           end
 
-          def merge_action_scope(parent, child) #:nodoc:
+          def merge_action_scope(parent, child)
             child
           end
 
-          def merge_via_scope(parent, child) #:nodoc:
+          def merge_via_scope(parent, child)
             child
           end
 
-          def merge_format_scope(parent, child) #:nodoc:
+          def merge_format_scope(parent, child)
             child
           end
 
-          def merge_path_names_scope(parent, child) #:nodoc:
+          def merge_path_names_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_constraints_scope(parent, child) #:nodoc:
+          def merge_constraints_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_defaults_scope(parent, child) #:nodoc:
+          def merge_defaults_scope(parent, child)
             merge_options_scope(parent, child)
           end
 
-          def merge_blocks_scope(parent, child) #:nodoc:
+          def merge_blocks_scope(parent, child)
             merged = parent ? parent.dup : []
             merged << child if child
             merged
           end
 
-          def merge_options_scope(parent, child) #:nodoc:
+          def merge_options_scope(parent, child)
             (parent || {}).merge(child)
           end
 
-          def merge_shallow_scope(parent, child) #:nodoc:
+          def merge_shallow_scope(parent, child)
             child ? true : false
           end
 
@@ -1619,13 +1619,13 @@ module ActionDispatch
           end
         end
 
-        protected
+        private
 
-          def parent_resource #:nodoc:
+          def parent_resource
             @scope[:scope_level_resource]
           end
 
-          def apply_common_behavior_for(method, resources, options, &block) #:nodoc:
+          def apply_common_behavior_for(method, resources, options, &block)
             if resources.length > 1
               resources.each { |r| send(method, r, options, &block) }
               return true
@@ -1658,39 +1658,39 @@ module ActionDispatch
             false
           end
 
-          def apply_action_options(options) # :nodoc:
+          def apply_action_options(options)
             return options if action_options? options
             options.merge scope_action_options
           end
 
-          def action_options?(options) #:nodoc:
+          def action_options?(options)
             options[:only] || options[:except]
           end
 
-          def scope_action_options #:nodoc:
+          def scope_action_options
             @scope[:action_options] || {}
           end
 
-          def resource_scope? #:nodoc:
+          def resource_scope?
             @scope.resource_scope?
           end
 
-          def resource_method_scope? #:nodoc:
+          def resource_method_scope?
             @scope.resource_method_scope?
           end
 
-          def nested_scope? #:nodoc:
+          def nested_scope?
             @scope.nested?
           end
 
-          def with_scope_level(kind)
+          def with_scope_level(kind) # :doc:
             @scope = @scope.new_level(kind)
             yield
           ensure
             @scope = @scope.parent
           end
 
-          def resource_scope(resource) #:nodoc:
+          def resource_scope(resource)
             @scope = @scope.new(scope_level_resource: resource)
 
             controller(resource.resource_scope) { yield }
@@ -1698,7 +1698,7 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def nested_options #:nodoc:
+          def nested_options
             options = { as: parent_resource.member_name }
             options[:constraints] = {
               parent_resource.nested_param => param_constraint
@@ -1707,25 +1707,25 @@ module ActionDispatch
             options
           end
 
-          def shallow_nesting_depth #:nodoc:
+          def shallow_nesting_depth
             @scope.find_all { |node|
               node.frame[:scope_level_resource]
             }.count { |node| node.frame[:scope_level_resource].shallow? }
           end
 
-          def param_constraint? #:nodoc:
+          def param_constraint?
             @scope[:constraints] && @scope[:constraints][parent_resource.param].is_a?(Regexp)
           end
 
-          def param_constraint #:nodoc:
+          def param_constraint
             @scope[:constraints][parent_resource.param]
           end
 
-          def canonical_action?(action) #:nodoc:
+          def canonical_action?(action)
             resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
-          def shallow_scope #:nodoc:
+          def shallow_scope
             scope = { as: @scope[:shallow_prefix],
                       path: @scope[:shallow_path] }
             @scope = @scope.new scope
@@ -1735,7 +1735,7 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def path_for_action(action, path) #:nodoc:
+          def path_for_action(action, path)
             return "#{@scope[:path]}/#{path}" if path
 
             if canonical_action?(action)
@@ -1745,11 +1745,11 @@ module ActionDispatch
             end
           end
 
-          def action_path(name) #:nodoc:
+          def action_path(name)
             @scope[:path_names][name.to_sym] || name
           end
 
-          def prefix_name_for_action(as, action) #:nodoc:
+          def prefix_name_for_action(as, action)
             if as
               prefix = as
             elsif !canonical_action?(action)
@@ -1761,7 +1761,7 @@ module ActionDispatch
             end
           end
 
-          def name_for_action(as, action) #:nodoc:
+          def name_for_action(as, action)
             prefix = prefix_name_for_action(as, action)
             name_prefix = @scope[:as]
 
@@ -1787,7 +1787,7 @@ module ActionDispatch
             end
           end
 
-          def set_member_mappings_for_resource
+          def set_member_mappings_for_resource # :doc:
             member do
               get :edit if parent_resource.actions.include?(:edit)
               get :show if parent_resource.actions.include?(:show)
@@ -1799,11 +1799,9 @@ module ActionDispatch
             end
           end
 
-          def api_only?
+          def api_only? # :doc:
             @set.api_only?
           end
-
-        private
 
           def path_scope(path)
             @scope = @scope.new(path: merge_path_scope(@scope[:path], path))
@@ -1868,7 +1866,7 @@ module ActionDispatch
             path =~ %r{^/?[-\w]+/[-\w/]+$}
           end
 
-          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
             if on = options.delete(:on)
               send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
             else
@@ -1883,7 +1881,7 @@ module ActionDispatch
             end
           end
 
-          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints) # :nodoc:
+          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints)
             path = path_for_action(action, _path)
             raise ArgumentError, "path is required" if path.blank?
 

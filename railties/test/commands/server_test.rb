@@ -66,7 +66,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
   def test_caching_without_option
     args = []
     options = parse_arguments(args)
-    assert_equal nil, options[:caching]
+    assert_nil options[:caching]
   end
 
   def test_caching_with_option

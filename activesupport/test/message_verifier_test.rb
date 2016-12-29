@@ -80,6 +80,6 @@ class MessageVerifierTest < ActiveSupport::TestCase
     exception = assert_raise(ArgumentError) do
       ActiveSupport::MessageVerifier.new(nil)
     end
-    assert_equal exception.message, "Secret should not be nil."
+    assert_equal "Secret should not be nil.", exception.message
   end
 end

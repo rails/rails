@@ -182,6 +182,14 @@ module ActiveRecord
       assert_not_nil error.cause
     end
 
+    def test_not_null_violations_are_translated_to_specific_exception
+      error = assert_raises(ActiveRecord::NotNullViolation) do
+        Post.create
+      end
+
+      assert_not_nil error.cause
+    end
+
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::InvalidForeignKey) do
@@ -214,6 +222,14 @@ module ActiveRecord
       def test_value_limit_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::ValueTooLong) do
           Event.create(title: "abcdefgh")
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.connection.create("INSERT INTO books(author_id) VALUES (2147483648)")
         end
 
         assert_not_nil error.cause
@@ -269,13 +285,13 @@ module ActiveRecord
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
-        error = assert_raise ActiveRecord::StatementInvalid do
+        error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
             raise "ы".force_encoding(Encoding::ASCII_8BIT)
           end
         end
 
-        assert_not_nil error.cause
+        assert_not_nil error.message
       end
     end
 

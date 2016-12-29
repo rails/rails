@@ -52,7 +52,7 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
-      assert_equal nil, controller.response_body
+      assert_nil controller.response_body
     end
   end
 

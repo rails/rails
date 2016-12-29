@@ -70,7 +70,7 @@ module ActiveRecord
       ADAPTER_NAME = "PostgreSQL".freeze
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "serial primary key",
+        primary_key: "bigserial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
@@ -404,10 +404,12 @@ module ActiveRecord
         @connection.server_version
       end
 
-      protected
+      private
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
+        NOT_NULL_VIOLATION    = "23502"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
@@ -423,6 +425,10 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message)
+          when NOT_NULL_VIOLATION
+            NotNullViolation.new(message)
           when SERIALIZATION_FAILURE
             SerializationFailure.new(message)
           when DEADLOCK_DETECTED
@@ -432,9 +438,7 @@ module ActiveRecord
           end
         end
 
-      private
-
-        def get_oid_type(oid, fmod, column_name, sql_type = "") # :nodoc:
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)
             load_additional_types(type_map, [oid])
           end
@@ -447,7 +451,7 @@ module ActiveRecord
           }
         end
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           register_class_with_limit m, "int2", Type::Integer
           register_class_with_limit m, "int4", Type::Integer
           register_class_with_limit m, "int8", Type::Integer
@@ -515,7 +519,7 @@ module ActiveRecord
           load_additional_types(m)
         end
 
-        def extract_limit(sql_type) # :nodoc:
+        def extract_limit(sql_type)
           case sql_type
           when /^bigint/i, /^int8/i
             8
@@ -527,7 +531,7 @@ module ActiveRecord
         end
 
         # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(default) # :nodoc:
+        def extract_value_from_default(default)
           case default
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
@@ -553,15 +557,15 @@ module ActiveRecord
           end
         end
 
-        def extract_default_function(default_value, default) # :nodoc:
+        def extract_default_function(default_value, default)
           default if has_default_function?(default_value, default)
         end
 
-        def has_default_function?(default_value, default) # :nodoc:
+        def has_default_function?(default_value, default)
           !default_value && (%r{\w+\(.*\)|\(.*\)::\w+} === default)
         end
 
-        def load_additional_types(type_map, oids = nil) # :nodoc:
+        def load_additional_types(type_map, oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if supports_ranges?
@@ -729,7 +733,7 @@ module ActiveRecord
         end
 
         # Returns the current ID of a table's sequence.
-        def last_insert_id_result(sequence_name) # :nodoc:
+        def last_insert_id_result(sequence_name)
           exec_query("SELECT currval('#{sequence_name}')", "SQL")
         end
 
@@ -751,7 +755,7 @@ module ActiveRecord
         # Query implementation notes:
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
-        def column_definitions(table_name) # :nodoc:
+        def column_definitions(table_name)
           query(<<-end_sql, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
@@ -766,12 +770,12 @@ module ActiveRecord
           end_sql
         end
 
-        def extract_table_ref_from_insert_sql(sql) # :nodoc:
+        def extract_table_ref_from_insert_sql(sql)
           sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]
           $1.strip if $1
         end
 
-        def create_table_definition(*args) # :nodoc:
+        def create_table_definition(*args)
           PostgreSQL::TableDefinition.new(*args)
         end
 

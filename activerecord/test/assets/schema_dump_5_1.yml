@@ -1,0 +1,345 @@
+--- !ruby/object:ActiveRecord::ConnectionAdapters::SchemaCache
+columns:
+  posts:
+  - &1 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: id
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: INTEGER
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': false
+    default: 
+    default_function: 
+    collation: 
+    comment: 
+  - &2 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: author_id
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: 
+    default_function: 
+    collation: 
+    comment: 
+  - &3 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: title
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: varchar
+      type: :string
+      limit: 
+      precision: 
+      scale: 
+    'null': false
+    default: 
+    default_function: 
+    collation: 
+    comment: 
+  - &4 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: body
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: text
+      type: :text
+      limit: 
+      precision: 
+      scale: 
+    'null': false
+    default: 
+    default_function: 
+    collation: 
+    comment: 
+  - &5 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: type
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: varchar
+      type: :string
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: 
+    default_function: 
+    collation: 
+    comment: 
+  - &6 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: comments_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+  - &7 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: taggings_with_delete_all_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+  - &8 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: taggings_with_destroy_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+  - &9 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: tags_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+  - &10 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: tags_with_destroy_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+  - &11 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: tags_with_nullify_count
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: integer
+      type: :integer
+      limit: 
+      precision: 
+      scale: 
+    'null': true
+    default: '0'
+    default_function: 
+    collation: 
+    comment: 
+columns_hash:
+  posts:
+    id: *1
+    author_id: *2
+    title: *3
+    body: *4
+    type: *5
+    comments_count: *6
+    taggings_with_delete_all_count: *7
+    taggings_with_destroy_count: *8
+    tags_count: *9
+    tags_with_destroy_count: *10
+    tags_with_nullify_count: *11
+primary_keys:
+  posts: id
+data_sources:
+  ar_internal_metadata: true
+  table_with_autoincrement: true
+  accounts: true
+  admin_accounts: true
+  admin_users: true
+  aircraft: true
+  articles: true
+  articles_magazines: true
+  articles_tags: true
+  audit_logs: true
+  authors: true
+  author_addresses: true
+  author_favorites: true
+  auto_id_tests: true
+  binaries: true
+  birds: true
+  books: true
+  booleans: true
+  bulbs: true
+  CamelCase: true
+  cars: true
+  carriers: true
+  categories: true
+  categories_posts: true
+  categorizations: true
+  citations: true
+  clubs: true
+  collections: true
+  colnametests: true
+  columns: true
+  comments: true
+  companies: true
+  content: true
+  content_positions: true
+  vegetables: true
+  computers: true
+  computers_developers: true
+  contracts: true
+  customers: true
+  customer_carriers: true
+  dashboards: true
+  developers: true
+  developers_projects: true
+  dog_lovers: true
+  dogs: true
+  doubloons: true
+  edges: true
+  engines: true
+  entrants: true
+  essays: true
+  events: true
+  eyes: true
+  funny_jokes: true
+  cold_jokes: true
+  friendships: true
+  goofy_string_id: true
+  having: true
+  guids: true
+  guitars: true
+  inept_wizards: true
+  integer_limits: true
+  invoices: true
+  iris: true
+  items: true
+  jobs: true
+  jobs_pool: true
+  keyboards: true
+  legacy_things: true
+  lessons: true
+  lessons_students: true
+  students: true
+  lint_models: true
+  line_items: true
+  lions: true
+  lock_without_defaults: true
+  lock_without_defaults_cust: true
+  magazines: true
+  mateys: true
+  members: true
+  member_details: true
+  member_friends: true
+  memberships: true
+  member_types: true
+  mentors: true
+  minivans: true
+  minimalistics: true
+  mixed_case_monkeys: true
+  mixins: true
+  movies: true
+  notifications: true
+  numeric_data: true
+  orders: true
+  organizations: true
+  owners: true
+  paint_colors: true
+  paint_textures: true
+  parrots: true
+  parrots_pirates: true
+  parrots_treasures: true
+  people: true
+  peoples_treasures: true
+  personal_legacy_things: true
+  pets: true
+  pets_treasures: true
+  pirates: true
+  posts: true
+  serialized_posts: true
+  images: true
+  price_estimates: true
+  products: true
+  product_types: true
+  projects: true
+  randomly_named_table1: true
+  randomly_named_table2: true
+  randomly_named_table3: true
+  ratings: true
+  readers: true
+  references: true
+  shape_expressions: true
+  ships: true
+  ship_parts: true
+  prisoners: true
+  shop_accounts: true
+  speedometers: true
+  sponsors: true
+  string_key_objects: true
+  subscribers: true
+  subscriptions: true
+  tags: true
+  taggings: true
+  tasks: true
+  topics: true
+  toys: true
+  traffic_lights: true
+  treasures: true
+  tuning_pegs: true
+  tyres: true
+  variants: true
+  vertices: true
+  warehouse-things: true
+  circles: true
+  squares: true
+  triangles: true
+  non_poly_ones: true
+  non_poly_twos: true
+  men: true
+  faces: true
+  interests: true
+  zines: true
+  wheels: true
+  countries: true
+  treaties: true
+  countries_treaties: true
+  liquid: true
+  molecules: true
+  electrons: true
+  weirds: true
+  nodes: true
+  trees: true
+  hotels: true
+  departments: true
+  cake_designers: true
+  drink_designers: true
+  chefs: true
+  recipes: true
+  records: true
+  overloaded_types: true
+  users: true
+  test_with_keyword_column_name: true
+  fk_test_has_pk: true
+  fk_test_has_fk: true
+version: 0

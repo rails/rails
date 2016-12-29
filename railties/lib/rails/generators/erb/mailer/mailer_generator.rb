@@ -26,7 +26,7 @@ module Erb # :nodoc:
         end
       end
 
-      protected
+      private
 
         def formats
           [:text, :html]

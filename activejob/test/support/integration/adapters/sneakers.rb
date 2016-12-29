@@ -73,7 +73,7 @@ module SneakersJobsManager
     true
   end
 
-  protected
+  private
     def bunny_publisher
       @bunny_publisher ||= begin
         p = ActiveJob::QueueAdapters::SneakersAdapter::JobWrapper.send(:publisher)

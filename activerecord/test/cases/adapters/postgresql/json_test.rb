@@ -110,7 +110,7 @@ module PostgresqlJSONSharedTestCases
   def test_null_json
     @connection.execute "insert into json_data_type (payload) VALUES(null)"
     x = JsonDataType.first
-    assert_equal(nil, x.payload)
+    assert_nil(x.payload)
   end
 
   def test_select_nil_json_after_create
@@ -122,7 +122,7 @@ module PostgresqlJSONSharedTestCases
   def test_select_nil_json_after_update
     json = JsonDataType.create(payload: "foo")
     x = JsonDataType.where(payload: nil).first
-    assert_equal(nil, x)
+    assert_nil(x)
 
     json.update_attributes payload: nil
     x = JsonDataType.where(payload: nil).first

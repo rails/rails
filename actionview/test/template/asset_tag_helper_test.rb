@@ -630,7 +630,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_return_nothing_if_asset_host_isnt_configured
-    assert_equal nil, compute_asset_host("foo")
+    assert_nil compute_asset_host("foo")
   end
 
   def test_should_current_request_host_is_always_returned_for_request
