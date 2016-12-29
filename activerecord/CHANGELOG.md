@@ -1,3 +1,7 @@
+*   Raises when a through association has an ambiguous reflection name.
+
+    *Rafael Mendonça França*
+
 *   Raises when `ActiveRecord::Migration` is inherited directly.
 
     *Rafael Mendonça França*

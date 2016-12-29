@@ -107,6 +107,21 @@ module ActiveRecord
     end
   end
 
+  class AmbiguousSourceReflectionForThroughAssociation < ActiveRecordError # :nodoc:
+    def initialize(klass, macro, association_name, options, possible_sources)
+      example_options = options.dup
+      example_options[:source] = possible_sources.first
+
+      super("Ambiguous source reflection for through association. Please " \
+            "specify a :source directive on your declaration like:\n" \
+            "\n" \
+            "  class #{klass} < ActiveRecord::Base\n" \
+            "    #{macro} :#{association_name}, #{example_options}\n" \
+            "  end"
+           )
+    end
+  end
+
   class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection #:nodoc:
   end
 
