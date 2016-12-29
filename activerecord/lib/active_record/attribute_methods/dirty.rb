@@ -226,6 +226,11 @@ module ActiveRecord
         super
       end
 
+      def changed?(*)
+        emit_warning_if_needed("changed?", "saved_changes?")
+        super
+      end
+
       def changed(*)
         emit_warning_if_needed("changed", "saved_changes.keys")
         super
