@@ -267,14 +267,14 @@ module Arel
       end
 
       it "should visit_Arel_Nodes_Assignment" do
-	column = @table["id"]
-	node = Nodes::Assignment.new(
-            Nodes::UnqualifiedColumn.new(column),
-            Nodes::UnqualifiedColumn.new(column)
-          )
+        column = @table["id"]
+        node = Nodes::Assignment.new(
+          Nodes::UnqualifiedColumn.new(column),
+          Nodes::UnqualifiedColumn.new(column)
+        )
         compile(node).must_be_like %{
-	  "id" = "id"
-	}
+          "id" = "id"
+        }
       end
 
       it "should visit visit_Arel_Attributes_Time" do
