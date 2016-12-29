@@ -166,8 +166,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
   test "token_and_options returns nil with no value after the equal sign" do
     actual = ActionController::HttpAuthentication::Token.token_and_options(malformed_request).first
-    expected = nil
-    assert_equal(expected, actual)
+    assert_nil actual
   end
 
   test "raw_params returns a tuple of two key value pair strings" do

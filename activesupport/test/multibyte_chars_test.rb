@@ -231,7 +231,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 0, @chars.index("こに")
     assert_equal 2, @chars.index("ち")
     assert_equal 2, @chars.index("ち", -2)
-    assert_equal nil, @chars.index("ち", -1)
+    assert_nil @chars.index("ち", -1)
     assert_equal 3, @chars.index("わ")
     assert_equal 5, "ééxééx".mb_chars.index("x", 4)
   end
@@ -390,11 +390,11 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_should_take_character_offsets
-    assert_equal nil, "".mb_chars.slice(0)
+    assert_nil "".mb_chars.slice(0)
     assert_equal "こ", @chars.slice(0)
     assert_equal "わ", @chars.slice(3)
-    assert_equal nil, "".mb_chars.slice(-1..1)
-    assert_equal nil, "".mb_chars.slice(-1, 1)
+    assert_nil "".mb_chars.slice(-1..1)
+    assert_nil "".mb_chars.slice(-1, 1)
     assert_equal "", "".mb_chars.slice(0..10)
     assert_equal "にちわ", @chars.slice(1..3)
     assert_equal "にちわ", @chars.slice(1, 3)
@@ -403,10 +403,10 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal "", @chars.slice(4..10)
     assert_equal "に", @chars.slice(/に/u)
     assert_equal "にち", @chars.slice(/に./u)
-    assert_equal nil, @chars.slice(/unknown/u)
+    assert_nil @chars.slice(/unknown/u)
     assert_equal "にち", @chars.slice(/(にち)/u, 1)
-    assert_equal nil, @chars.slice(/(にち)/u, 2)
-    assert_equal nil, @chars.slice(7..6)
+    assert_nil @chars.slice(/(にち)/u, 2)
+    assert_nil @chars.slice(7..6)
   end
 
   def test_slice_bang_returns_sliced_out_substring
@@ -414,12 +414,12 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_bang_returns_nil_on_out_of_bound_arguments
-    assert_equal nil, @chars.mb_chars.slice!(9..10)
+    assert_nil @chars.mb_chars.slice!(9..10)
   end
 
   def test_slice_bang_removes_the_slice_from_the_receiver
     chars = "úüù".mb_chars
-    chars.slice!(0,2)
+    chars.slice!(0, 2)
     assert_equal "ù", chars
   end
 
@@ -512,7 +512,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     { "аБвг аБвг" => "Абвг абвг",
       "аБвг АБВГ" => "Абвг абвг",
       "АБВГ АБВГ" => "Абвг абвг",
-      "" => "" }.each do |f,t|
+      "" => "" }.each do |f, t|
       assert_equal t, chars(f).capitalize
     end
   end
@@ -600,10 +600,10 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     ].pack("U*")
 
     assert_equal_codepoints "", chars("").normalize
-    assert_equal_codepoints [44,105,106,328,323].pack("U*"), chars(comp_str).normalize(:kc).to_s
-    assert_equal_codepoints [44,307,328,323].pack("U*"), chars(comp_str).normalize(:c).to_s
-    assert_equal_codepoints [44,307,110,780,78,769].pack("U*"), chars(comp_str).normalize(:d).to_s
-    assert_equal_codepoints [44,105,106,110,780,78,769].pack("U*"), chars(comp_str).normalize(:kd).to_s
+    assert_equal_codepoints [44, 105, 106, 328, 323].pack("U*"), chars(comp_str).normalize(:kc).to_s
+    assert_equal_codepoints [44, 307, 328, 323].pack("U*"), chars(comp_str).normalize(:c).to_s
+    assert_equal_codepoints [44, 307, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:d).to_s
+    assert_equal_codepoints [44, 105, 106, 110, 780, 78, 769].pack("U*"), chars(comp_str).normalize(:kd).to_s
   end
 
   def test_should_compute_grapheme_length

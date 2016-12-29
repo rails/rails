@@ -109,7 +109,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).
@@ -183,7 +183,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).

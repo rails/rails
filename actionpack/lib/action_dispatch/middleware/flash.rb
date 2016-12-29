@@ -129,7 +129,7 @@ module ActionDispatch
       end
 
       # Builds a hash containing the flashes to keep for the next request.
-      # If there are none to keep, returns nil.
+      # If there are none to keep, returns +nil+.
       def to_session_value #:nodoc:
         flashes_to_keep = @flashes.except(*@discard)
         return nil if flashes_to_keep.empty?
@@ -281,7 +281,8 @@ module ActionDispatch
           @now
         end
 
-        def stringify_array(array)
+      private
+        def stringify_array(array) # :doc:
           array.map do |item|
             item.kind_of?(Symbol) ? item.to_s : item
           end

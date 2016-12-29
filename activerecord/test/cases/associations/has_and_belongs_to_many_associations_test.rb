@@ -86,6 +86,10 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
+class DeveloperWithConstantClassName < Developer
+  has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+end
+
 class DeveloperWithExtendOption < Developer
   module NamedExtension
     def category
@@ -249,8 +253,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !p.persisted?
     assert aredridel.save
     assert aredridel.persisted?
-    assert_equal no_of_devels+1, Developer.count
-    assert_equal no_of_projects+1, Project.count
+    assert_equal no_of_devels + 1, Developer.count
+    assert_equal no_of_projects + 1, Project.count
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects.reload.size
   end
@@ -379,7 +383,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     dev.projects << projects(:active_record)
 
     assert_equal 3, dev.projects.size
-    assert_equal 1, dev.projects.distinct.size
+    assert_equal 1, dev.projects.uniq.size
   end
 
   def test_distinct_before_the_fact
@@ -939,7 +943,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_with_symbol_class_name
     assert_nothing_raised do
-      DeveloperWithSymbolClassName.new
+      developer = DeveloperWithSymbolClassName.new
+      developer.projects
+    end
+  end
+
+  def test_with_constant_class_name
+    assert_nothing_raised do
+      developer = DeveloperWithConstantClassName.new
+      developer.projects
     end
   end
 
@@ -999,5 +1011,18 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_association_name_is_the_same_as_join_table_name
     user = User.create!
     assert_nothing_raised { user.jobs_pool.clear }
+  end
+
+  def test_has_and_belongs_to_many_while_partial_writes_false
+    begin
+      original_partial_writes = ActiveRecord::Base.partial_writes
+      ActiveRecord::Base.partial_writes = false
+      developer = Developer.new(name: "Mehmet Emin İNAÇ")
+      developer.projects << Project.new(name: "Bounty")
+
+      assert developer.save
+    ensure
+      ActiveRecord::Base.partial_writes = original_partial_writes
+    end
   end
 end

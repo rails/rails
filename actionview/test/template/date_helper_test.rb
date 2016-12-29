@@ -18,7 +18,7 @@ class DateHelperTest < ActionView::TestCase
     end
   end
 
-  def assert_distance_of_time_in_words(from, to=nil)
+  def assert_distance_of_time_in_words(from, to = nil)
     to ||= from
 
     # 0..1 minute with :include_seconds => true
@@ -167,9 +167,9 @@ class DateHelperTest < ActionView::TestCase
 
   def test_distance_in_words_with_integers
     assert_equal "1 minute", distance_of_time_in_words(59)
-    assert_equal "about 1 hour", distance_of_time_in_words(60*60)
+    assert_equal "about 1 hour", distance_of_time_in_words(60 * 60)
     assert_equal "1 minute", distance_of_time_in_words(0, 59)
-    assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    assert_equal "about 1 hour", distance_of_time_in_words(60 * 60, 0)
     assert_equal "about 3 years", distance_of_time_in_words(10**8)
     assert_equal "about 3 years", distance_of_time_in_words(0, 10**8)
   end
@@ -385,7 +385,7 @@ class DateHelperTest < ActionView::TestCase
     month_names = %w(Januar Februar Marts April Maj Juni Juli August September Oktober November December)
 
     expected = %(<select id="date_month" name="date[month]">\n)
-    1.upto(12) { |month| expected << %(<option value="#{month}"#{' selected="selected"' if month == 8}>#{month_names[month-1]}</option>\n) }
+    1.upto(12) { |month| expected << %(<option value="#{month}"#{' selected="selected"' if month == 8}>#{month_names[month - 1]}</option>\n) }
     expected << "</select>\n"
 
     assert_dom_equal expected, select_month(Time.mktime(2003, 8, 16), use_month_names: month_names)
@@ -848,7 +848,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16" selected="selected">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    expected <<  %(<select id="date_first_year" name="date[first][year]">\n)
+    expected << %(<select id="date_first_year" name="date[first][year]">\n)
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"
 
@@ -881,8 +881,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_with_no_start_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+1) do |y|
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 1) do |y|
       if y == Date.today.year
         expected << %(<option value="#{y}" selected="selected">#{y}</option>\n)
       else
@@ -900,12 +900,12 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, select_date(
-      Time.mktime(Date.today.year, 8, 16), end_year: Date.today.year+1, prefix: "date[first]"
+      Time.mktime(Date.today.year, 8, 16), end_year: Date.today.year + 1, prefix: "date[first]"
     )
   end
 
   def test_select_date_with_no_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
     2003.upto(2008) do |y|
       if y == 2003
         expected << %(<option value="#{y}" selected="selected">#{y}</option>\n)
@@ -929,8 +929,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_with_no_start_or_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) do |y|
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) do |y|
       if y == Date.today.year
         expected << %(<option value="#{y}" selected="selected">#{y}</option>\n)
       else
@@ -969,8 +969,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_with_zero_value_and_no_start_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+1) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 1) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -981,7 +981,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(0, end_year: Date.today.year+1, prefix: "date[first]")
+    assert_dom_equal expected, select_date(0, end_year: Date.today.year + 1, prefix: "date[first]")
   end
 
   def test_select_date_with_zero_value_and_no_end_year
@@ -1002,8 +1002,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_with_zero_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -1018,8 +1018,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_with_nil_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -1286,8 +1286,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_datetime_with_nil_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -1709,7 +1709,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_time_with_generic_with_css_classes
-    expected  = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
+    expected = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
     expected << %(<input name="date[month]" id="date_month" value="8" type="hidden" />\n)
     expected << %(<input name="date[day]" id="date_day" value="16" type="hidden" />\n)
 
@@ -1733,7 +1733,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_time_with_custom_with_css_classes
-    expected  = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
+    expected = %(<input name="date[year]" id="date_year" value="2003" type="hidden" />\n)
     expected << %(<input name="date[month]" id="date_month" value="8" type="hidden" />\n)
     expected << %(<input name="date[day]" id="date_day" value="16" type="hidden" />\n)
 
@@ -1851,7 +1851,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
 
-    expected <<  %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
     expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
     expected << "</select>\n"
 
@@ -1882,7 +1882,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
 
-    expected <<  %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
+    expected << %{<select id="post_written_on_2i" name="post[written_on(2i)]">\n}
     expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
     expected << "</select>\n"
 
@@ -1901,7 +1901,7 @@ class DateHelperTest < ActionView::TestCase
 
     expected = "<input type=\"hidden\" id=\"post_written_on_3i\" disabled=\"disabled\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
 
-    expected <<  %{<select id="post_written_on_2i" disabled="disabled" name="post[written_on(2i)]">\n}
+    expected << %{<select id="post_written_on_2i" disabled="disabled" name="post[written_on(2i)]">\n}
     expected << %{<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n}
     expected << "</select>\n"
 
@@ -2003,7 +2003,7 @@ class DateHelperTest < ActionView::TestCase
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
 
-    expected =  %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
+    expected = %{<select id="post_written_on_3i" name="post[written_on(3i)]">\n}
     1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 15}>#{i}</option>\n) }
     expected << "</select>\n"
 
@@ -2011,7 +2011,7 @@ class DateHelperTest < ActionView::TestCase
     1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
     expected << "</select>\n"
 
-    expected <<  %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
     expected << "</select>\n"
 
@@ -2021,8 +2021,8 @@ class DateHelperTest < ActionView::TestCase
   def test_date_select_with_nil
     @post = Post.new
 
-    start_year = Time.now.year-5
-    end_year   = Time.now.year+5
+    start_year = Time.now.year - 5
+    end_year   = Time.now.year + 5
     expected =   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     start_year.upto(end_year) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == Time.now.year}>#{i}</option>\n) }
     expected << "</select>\n"
@@ -2041,8 +2041,8 @@ class DateHelperTest < ActionView::TestCase
   def test_date_select_with_nil_and_blank
     @post = Post.new
 
-    start_year = Time.now.year-5
-    end_year   = Time.now.year+5
+    start_year = Time.now.year - 5
+    end_year   = Time.now.year + 5
     expected =   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << "<option value=\"\"></option>\n"
     start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
@@ -2064,11 +2064,11 @@ class DateHelperTest < ActionView::TestCase
   def test_date_select_with_nil_and_blank_and_order
     @post = Post.new
 
-    start_year = Time.now.year-5
-    end_year   = Time.now.year+5
+    start_year = Time.now.year - 5
+    end_year   = Time.now.year + 5
 
     expected = '<input name="post[written_on(3i)]" type="hidden" id="post_written_on_3i" value="1"/>' + "\n"
-    expected <<   %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << "<option value=\"\"></option>\n"
     start_year.upto(end_year) { |i| expected << %(<option value="#{i}">#{i}</option>\n) }
     expected << "</select>\n"
@@ -2084,8 +2084,8 @@ class DateHelperTest < ActionView::TestCase
   def test_date_select_with_nil_and_blank_and_discard_month
     @post = Post.new
 
-    start_year = Time.now.year-5
-    end_year   = Time.now.year+5
+    start_year = Time.now.year - 5
+    end_year   = Time.now.year + 5
 
     expected = %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
     expected << "<option value=\"\"></option>\n"
@@ -2782,7 +2782,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_datetime_select_with_infinity # Float
     @post = Post.new
-    @post.updated_at = (-1.0/0)
+    @post.updated_at = (-1.0 / 0)
     datetime_select("post", "updated_at")
   end
 
@@ -2903,8 +2903,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_date_select_with_zero_value_and_no_start_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+1) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 1) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -2915,7 +2915,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_date(0, end_year: Date.today.year+1, prefix: "date[first]")
+    assert_dom_equal expected, select_date(0, end_year: Date.today.year + 1, prefix: "date[first]")
   end
 
   def test_date_select_with_zero_value_and_no_end_year
@@ -2936,8 +2936,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_date_select_with_zero_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -2952,8 +2952,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_date_select_with_nil_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)
@@ -2968,8 +2968,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_datetime_select_with_nil_value_and_no_start_and_end_year
-    expected =  %(<select id="date_first_year" name="date[first][year]">\n)
-    (Date.today.year-5).upto(Date.today.year+5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
+    expected = %(<select id="date_first_year" name="date[first][year]">\n)
+    (Date.today.year - 5).upto(Date.today.year + 5) { |y| expected << %(<option value="#{y}">#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select id="date_first_month" name="date[first][month]">\n)

@@ -50,7 +50,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_equal @request.filtered_parameters, "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }, @request.filtered_parameters)
     end
   end
 
@@ -210,6 +210,16 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters(
         "user" => {}
       )
+    end
+  end
+
+  def test_handles_empty_content_type
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = nil
+      _controller_class.dispatch(:parse, @request, @response)
+
+      assert_equal 200, @response.status
+      assert_equal "", @response.body
     end
   end
 end

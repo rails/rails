@@ -30,8 +30,14 @@ module Rails
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         type: :string, aliases: "-j", default: "jquery",
+        class_option :javascript,         type: :string, aliases: "-j",
                                           desc: "Preconfigure for selected JavaScript library"
+
+        class_option :webpack,            type: :string, default: nil,
+                                          desc: "Preconfigure for app-like JavaScript with Webpack"
+
+        class_option :skip_yarn,          type: :boolean, default: false,
+                                          desc: "Don't use Yarn for managing JavaScript dependencies"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
@@ -67,6 +73,9 @@ module Rails
         class_option :skip_listen,        type: :boolean, default: false,
                                           desc: "Don't generate configuration that depends on the listen gem"
 
+        class_option :skip_coffee,        type: :boolean, default: false,
+                                          desc: "Don't use CoffeeScript"
+
         class_option :skip_javascript,    type: :boolean, aliases: "-J", default: false,
                                           desc: "Skip JavaScript files"
 
@@ -99,9 +108,9 @@ module Rails
         convert_database_option_for_jruby
       end
 
-    protected
+    private
 
-      def gemfile_entry(name, *args)
+      def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
         github = options[:github]
@@ -117,11 +126,12 @@ module Rails
         self
       end
 
-      def gemfile_entries
+      def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
          webserver_gemfile_entry,
          assets_gemfile_entry,
+         webpacker_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
@@ -129,13 +139,13 @@ module Rails
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
-      def add_gem_entry_filter
+      def add_gem_entry_filter # :doc:
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
       end
 
-      def builder
+      def builder # :doc:
         @builder ||= begin
           builder_class = get_builder_class
           builder_class.include(ActionMethods)
@@ -143,24 +153,24 @@ module Rails
         end
       end
 
-      def build(meth, *args)
+      def build(meth, *args) # :doc:
         builder.send(meth, *args) if builder.respond_to?(meth)
       end
 
-      def create_root
+      def create_root # :doc:
         valid_const?
 
         empty_directory "."
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      def apply_rails_template
+      def apply_rails_template # :doc:
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def set_default_accessors!
+      def set_default_accessors! # :doc:
         self.destination_root = File.expand_path(app_path, destination_root)
         self.rails_template = \
           case options[:template]
@@ -173,32 +183,32 @@ module Rails
           end
       end
 
-      def database_gemfile_entry
+      def database_gemfile_entry # :doc:
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
                             "Use #{options[:database]} as the database for Active Record"
       end
 
-      def webserver_gemfile_entry
+      def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
         GemfileEntry.new("puma", "~> 3.0", comment)
       end
 
-      def include_all_railties?
+      def include_all_railties? # :doc:
         options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
       end
 
-      def comment_if(value)
+      def comment_if(value) # :doc:
         options[value] ? "# " : ""
       end
 
-      def keeps?
+      def keeps? # :doc:
         !options[:skip_keeps]
       end
 
-      def sqlite3?
+      def sqlite3? # :doc:
         !options[:skip_active_record] && options[:database] == "sqlite3"
       end
 
@@ -309,6 +319,13 @@ module Rails
         gems
       end
 
+      def webpacker_gemfile_entry
+        return [] unless options[:webpack]
+
+        comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        GemfileEntry.github "webpacker", "rails/webpacker", nil, comment
+      end
+
       def jbuilder_gemfile_entry
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
@@ -322,9 +339,13 @@ module Rails
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
-          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                       "Use #{options[:javascript]} as the JavaScript library")
+          gems = [javascript_runtime_gemfile_entry]
+          gems << coffee_gemfile_entry unless options[:skip_coffee]
+
+          if options[:javascript]
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+              "Use #{options[:javascript]} as the JavaScript library")
+          end
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",
@@ -402,6 +423,13 @@ module Rails
 
       def run_bundle
         bundle_command("install") if bundle_install?
+      end
+
+      def run_webpack
+        if !(webpack = options[:webpack]).nil?
+          rails_command "webpacker:install"
+          rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
+        end
       end
 
       def generate_spring_binstubs

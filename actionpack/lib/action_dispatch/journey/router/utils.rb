@@ -58,12 +58,12 @@ module ActionDispatch
             uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
           end
 
-          protected
-            def escape(component, pattern)
+          private
+            def escape(component, pattern) # :doc:
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
-            def percent_encode(unsafe)
+            def percent_encode(unsafe) # :doc:
               safe = EMPTY.dup
               unsafe.each_byte { |b| safe << DEC2HEX[b] }
               safe

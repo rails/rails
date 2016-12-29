@@ -11,6 +11,8 @@ module ActiveRecord
     end
 
     setup do
+      @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
+
       @connection = ActiveRecord::Base.connection
 
       @connection.transaction do
@@ -25,6 +27,8 @@ module ActiveRecord
 
     teardown do
       @connection.drop_table "samples", if_exists: true
+
+      Thread.abort_on_exception = @abort
     end
 
     test "raises SerializationFailure when a serialization failure occurs" do
@@ -85,7 +89,7 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       def with_warning_suppression
         log_level = ActiveRecord::Base.connection.client_min_messages

@@ -24,6 +24,16 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
     assert_equal locals.inspect, render(file: "test/render_file_inspect_local_assigns", locals: locals)
   end
 
+  def test_template_with_delegation_reserved_keywords
+    locals = {
+      _: "one",
+      arg: "two",
+      args: "three",
+      block: "four",
+    }
+    assert_equal "one two three four", render(file: "test/test_template_with_delegation_reserved_keywords", locals: locals)
+  end
+
   def test_template_with_unicode_identifier
     assert_equal "🎂", render(file: "test/render_file_unicode_local", locals: { 🎃: "🎂" })
   end

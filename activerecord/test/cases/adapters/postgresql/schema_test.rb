@@ -383,7 +383,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       pk, seq = @connection.pk_and_sequence_for(given)
       assert_equal "id", pk, "primary key should be found when table referenced as #{given}"
       assert_equal pg_name.new(SCHEMA_NAME, "#{PK_TABLE_NAME}_id_seq"), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
-      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
+      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     end
   end
 
@@ -393,7 +393,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       SCHEMA_NAME                              => SCHEMA_NAME,
       %(#{SCHEMA2_NAME},#{SCHEMA_NAME},public) => SCHEMA2_NAME,
       %(public,#{SCHEMA2_NAME},#{SCHEMA_NAME}) => "public"
-    }.each do |given,expect|
+    }.each do |given, expect|
       with_schema_search_path(given) { assert_equal expect, @connection.current_schema }
     end
   end
@@ -418,7 +418,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       SCHEMA_NAME  => true,
       SCHEMA2_NAME => true,
       "darkside"   => false
-    }.each do |given,expect|
+    }.each do |given, expect|
       assert_equal expect, @connection.schema_exists?(given)
     end
   end

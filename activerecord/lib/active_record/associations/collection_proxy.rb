@@ -106,12 +106,6 @@ module ActiveRecord
       #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      #
-      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
-      #   # => [
-      #   #      #<Pet id: 2, name: "Spook">,
-      #   #      #<Pet id: 3, name: "Choo-Choo">
-      #   #    ]
 
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
@@ -724,6 +718,12 @@ module ActiveRecord
         @association.destroy(*records)
       end
 
+      ##
+      # :method: distinct
+      #
+      # :call-seq:
+      #   distinct(value = true)
+      #
       # Specifies whether the records should be unique or not.
       #
       #   class Person < ActiveRecord::Base
@@ -738,10 +738,17 @@ module ActiveRecord
       #
       #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
-      def distinct
-        @association.distinct
+      #
+      #   person.pets.select(:name).distinct.distinct(false)
+      #   # => [
+      #   #      #<Pet name: "Fancy-Fancy">,
+      #   #      #<Pet name: "Fancy-Fancy">
+      #   #    ]
+
+      #--
+      def uniq
+        load_target.uniq
       end
-      alias uniq distinct
 
       def calculate(operation, column_name)
         null_scope? ? scope.calculate(operation, column_name) : super
@@ -1119,7 +1126,7 @@ module ActiveRecord
         self
       end
 
-      protected
+      private
 
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
@@ -1130,8 +1137,6 @@ module ActiveRecord
           load_target if find_from_target?
           super
         end
-
-      private
 
         def null_scope?
           @association.null_scope?

@@ -159,16 +159,36 @@ module ApplicationTests
         end
       RUBY
       expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
                          " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
                          "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
+                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
                          "                PATCH  /admin/post(.:format)      admin/posts#update",
                          "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
 
       output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
       assert_equal expected_output, output
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
+    end
+
+    def test_singular_resource_output_in_rake_routes
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resource :post
+        end
+      RUBY
+
+      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
+                         " new_post GET    /post/new(.:format)  posts#new",
+                         "edit_post GET    /post/edit(.:format) posts#edit",
+                         "     post GET    /post(.:format)      posts#show",
+                         "          PATCH  /post(.:format)      posts#update",
+                         "          PUT    /post(.:format)      posts#update",
+                         "          DELETE /post(.:format)      posts#destroy",
+                         "          POST   /post(.:format)      posts#create\n"].join("\n")
 
       output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
       assert_equal expected_output, output
@@ -367,14 +387,14 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates

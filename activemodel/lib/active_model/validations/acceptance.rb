@@ -24,7 +24,7 @@ module ActiveModel
 
         class LazilyDefineAttributes < Module
           def initialize(attribute_definition)
-            define_method(:respond_to_missing?) do |method_name, include_private=false|
+            define_method(:respond_to_missing?) do |method_name, include_private = false|
               super(method_name, include_private) || attribute_definition.matches?(method_name)
             end
 
@@ -56,6 +56,8 @@ module ActiveModel
             klass.send(:attr_writer, *attr_writers)
           end
 
+          # TODO Change this to private once we've dropped Ruby 2.2 support.
+          # Workaround for Ruby 2.2 "private attribute?" warning.
           protected
 
             attr_reader :attributes

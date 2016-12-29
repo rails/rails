@@ -23,7 +23,7 @@ module ActionDispatch
   #     `180.days` (recommended).
   #   * `subdomains`: Set to `true` to tell the browser to apply these settings
   #     to all subdomains. This protects your cookies from interception by a
-  #     vulnerable site on a subdomain. Defaults to `false`.
+  #     vulnerable site on a subdomain. Defaults to `true`.
   #   * `preload`: Advertise that this site may be included in browsers'
   #     preloaded HSTS lists. HSTS protects your site on every visit *except the
   #     first visit* since it hasn't seen your HSTS header yet. To close this

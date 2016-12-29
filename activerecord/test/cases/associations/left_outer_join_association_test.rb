@@ -5,7 +5,6 @@ require "models/author"
 require "models/essay"
 require "models/categorization"
 require "models/person"
-require "active_support/core_ext/regexp"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :essays, :posts, :comments, :categorizations, :people

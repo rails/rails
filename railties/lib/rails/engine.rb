@@ -436,7 +436,7 @@ module Rails
 
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
-    def load_console(app=self)
+    def load_console(app = self)
       require "rails/console/app"
       require "rails/console/helpers"
       run_console_blocks(app)
@@ -445,14 +445,14 @@ module Rails
 
     # Load Rails runner and invoke the registered hooks.
     # Check <tt>Rails::Railtie.runner</tt> for more info.
-    def load_runner(app=self)
+    def load_runner(app = self)
       run_runner_blocks(app)
       self
     end
 
     # Load Rake, railties tasks and invoke the registered hooks.
     # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
-    def load_tasks(app=self)
+    def load_tasks(app = self)
       require "rake"
       run_tasks_blocks(app)
       self
@@ -460,7 +460,7 @@ module Rails
 
     # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
-    def load_generators(app=self)
+    def load_generators(app = self)
       require "rails/generators"
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
@@ -643,22 +643,24 @@ module Rails
 
     protected
 
-      def load_config_initializer(initializer)
-        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
-          load(initializer)
-        end
-      end
-
       def run_tasks_blocks(*) #:nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
 
-      def has_migrations? #:nodoc:
+    private
+
+      def load_config_initializer(initializer) # :doc:
+        ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
+          load(initializer)
+        end
+      end
+
+      def has_migrations?
         paths["db/migrate"].existent.any?
       end
 
-      def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
+      def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
 
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
@@ -671,23 +673,21 @@ module Rails
         Pathname.new File.realpath root
       end
 
-      def default_middleware_stack #:nodoc:
+      def default_middleware_stack
         ActionDispatch::MiddlewareStack.new
       end
 
-      def _all_autoload_once_paths #:nodoc:
+      def _all_autoload_once_paths
         config.autoload_once_paths
       end
 
-      def _all_autoload_paths #:nodoc:
+      def _all_autoload_paths
         @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
       end
 
-      def _all_load_paths #:nodoc:
+      def _all_load_paths
         @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
       end
-
-    private
 
       def build_request(env)
         env.merge!(env_config)

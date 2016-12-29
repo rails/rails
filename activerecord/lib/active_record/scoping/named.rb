@@ -42,7 +42,7 @@ module ActiveRecord
         # Adds a class method for retrieving and querying objects.
         # The method is intended to return an ActiveRecord::Relation
         # object, which is composable with other scopes.
-        # If it returns nil or false, an
+        # If it returns +nil+ or +false+, an
         # {all}[rdoc-ref:Scoping::Named::ClassMethods#all] scope is returned instead.
         #
         # A \scope represents a narrowing of a database query, such as
@@ -171,14 +171,14 @@ module ActiveRecord
           end
         end
 
-      protected
+        private
 
-        def valid_scope_name?(name)
-          if respond_to?(name, true) && logger
-            logger.warn "Creating scope :#{name}. " \
-                        "Overwriting existing method #{self.name}.#{name}."
+          def valid_scope_name?(name)
+            if respond_to?(name, true) && logger
+              logger.warn "Creating scope :#{name}. " \
+                "Overwriting existing method #{self.name}.#{name}."
+            end
           end
-        end
       end
     end
   end

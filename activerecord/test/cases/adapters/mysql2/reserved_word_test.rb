@@ -30,11 +30,11 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
     # we call execute directly here (and do similar below) because ActiveRecord::Base#create_table()
     # will fail with these table names if these test cases fail
 
-    create_tables_directly "group"=>"id int auto_increment primary key, `order` varchar(255), select_id int",
-      "select"=>"id int auto_increment primary key",
-      "values"=>"id int auto_increment primary key, group_id int",
-      "distinct"=>"id int auto_increment primary key",
-      "distinct_select"=>"distinct_id int, select_id int"
+    create_tables_directly "group" => "id int auto_increment primary key, `order` varchar(255), select_id int",
+      "select" => "id int auto_increment primary key",
+      "values" => "id int auto_increment primary key, group_id int",
+      "distinct" => "id int auto_increment primary key",
+      "distinct_select" => "distinct_id int, select_id int"
   end
 
   teardown do
@@ -143,7 +143,7 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
     end
 
     # custom create table, uses execute on connection to create a table, note: escapes table_name, does NOT escape columns
-    def create_tables_directly (tables, connection = @connection)
+    def create_tables_directly(tables, connection = @connection)
       tables.each do |table_name, column_properties|
         connection.execute("CREATE TABLE `#{table_name}` ( #{column_properties} )")
       end

@@ -35,7 +35,7 @@ module ActiveRecord
         end
 
         default = schema_default(column) if column.has_default?
-        spec[:default]   = default unless default.nil?
+        spec[:default] = default unless default.nil?
 
         spec[:null] = "false" unless column.null
 
@@ -56,7 +56,7 @@ module ActiveRecord
       private
 
         def default_primary_key?(column)
-          schema_type(column) == :integer
+          schema_type(column) == :bigint
         end
 
         def schema_type(column)

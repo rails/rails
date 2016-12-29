@@ -20,7 +20,7 @@ class GzipTest < ActiveSupport::TestCase
   end
 
   def test_compress_should_return_gzipped_string_by_compression_level
-    source_string = "Hello World"*100
+    source_string = "Hello World" * 100
 
     gzipped_by_speed = ActiveSupport::Gzip.compress(source_string, Zlib::BEST_SPEED)
     assert_equal 1, Zlib::GzipReader.new(StringIO.new(gzipped_by_speed)).level

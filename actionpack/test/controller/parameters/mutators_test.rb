@@ -45,11 +45,11 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "keep_if retains permitted status" do
     @params.permit!
-    assert @params.keep_if { |k,v| k == "person" }.permitted?
+    assert @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "keep_if retains unpermitted status" do
-    assert_not @params.keep_if { |k,v| k == "person" }.permitted?
+    assert_not @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "reject! retains permitted status" do

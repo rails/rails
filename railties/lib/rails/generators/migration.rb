@@ -52,7 +52,7 @@ module Rails
       #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
       def migration_template(source, destination, config = {})
-        source  = File.expand_path(find_in_source_paths(source.to_s))
+        source = File.expand_path(find_in_source_paths(source.to_s))
 
         set_migration_assigns!(destination)
         context = instance_eval("binding")

@@ -614,7 +614,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
     end
 
@@ -630,10 +630,24 @@ module ApplicationTests
       app "development"
 
       assert_equal "", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_raise ArgumentError, /\AA secret is required/ do
         app.key_generator
       end
+    end
+
+    test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
+      app_file "config/secrets.yml", <<-YAML
+        development:
+          smtp_settings:
+            address: "smtp.example.com"
+            user_name: "postmaster@example.com"
+            password: "697361616320736c6f616e2028656c6f7265737429"
+      YAML
+
+      app "development"
+
+      assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
     end
 
     test "protect from forgery is the default in a new app" do
@@ -1043,7 +1057,7 @@ module ApplicationTests
 
       app "development"
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_equal "permitted", last_response.body
     end
 
@@ -1067,7 +1081,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
@@ -1107,7 +1121,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }, format: "json"
+      post "/posts", post: { "title" => "zomg" }, format: "json"
       assert_equal 200, last_response.status
     end
 
@@ -1190,7 +1204,7 @@ module ApplicationTests
         application.config.session_store :disabled
       end
 
-      assert_equal nil, app.config.session_store
+      assert_nil app.config.session_store
     end
 
     test "default session store initializer sets session store to cookie store" do
@@ -1517,6 +1531,25 @@ module ApplicationTests
       app "development"
 
       assert_equal :default, Rails.configuration.debug_exception_response_format
+    end
+
+    test "controller force_ssl declaration can be used even if session_store is disabled" do
+      make_basic_app do |application|
+        application.config.session_store :disabled
+      end
+
+      class ::OmgController < ActionController::Base
+        force_ssl
+
+        def index
+          render plain: "Yay! You're on Rails!"
+        end
+      end
+
+      get "/"
+
+      assert_equal 301, last_response.status
+      assert_equal "https://example.org/", last_response.location
     end
   end
 end

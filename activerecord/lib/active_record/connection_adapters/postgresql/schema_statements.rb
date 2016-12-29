@@ -86,7 +86,7 @@ module ActiveRecord
             SELECT c.relname
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('r', 'v','m') -- (r)elation/table, (v)iew, (m)aterialized view
+            WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
             AND n.nspname = ANY (current_schemas(false))
           SQL
         end
@@ -108,13 +108,13 @@ module ActiveRecord
           name = Utils.extract_schema_qualified_name(name.to_s)
           return false unless name.identifier
 
-          select_value(<<-SQL, "SCHEMA").to_i > 0
-              SELECT COUNT(*)
+          select_values(<<-SQL, "SCHEMA").any?
+              SELECT c.relname
               FROM pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
               WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
-              AND c.relname = '#{name.identifier}'
-              AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
+              AND c.relname = #{quote(name.identifier)}
+              AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
           SQL
         end
 
@@ -137,8 +137,8 @@ module ActiveRecord
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
-            AND c.relname = '#{name.identifier}'
-            AND n.nspname = #{name.schema ? "'#{name.schema}'" : 'ANY (current_schemas(false))'}
+            AND c.relname = #{quote(name.identifier)}
+            AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
           SQL
         end
 
@@ -221,21 +221,23 @@ module ActiveRecord
           end.compact
         end
 
-        # Returns the list of all column definitions for a table.
-        def columns(table_name) # :nodoc:
-          table_name = table_name.to_s
-          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation, comment|
-            oid = oid.to_i
-            fmod = fmod.to_i
-            type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
-            default_value = extract_value_from_default(default)
-            default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, table_name, default_function, collation, comment: comment.presence)
-          end
-        end
-
-        def new_column(*args) # :nodoc:
-          PostgreSQLColumn.new(*args)
+        def new_column_from_field(table_name, field) # :nondoc:
+          column_name, type, default, notnull, oid, fmod, collation, comment = field
+          oid = oid.to_i
+          fmod = fmod.to_i
+          type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
+          default_value = extract_value_from_default(default)
+          default_function = extract_default_function(default_value, default)
+          PostgreSQLColumn.new(
+            column_name,
+            default_value,
+            type_metadata,
+            !notnull,
+            table_name,
+            default_function,
+            collation,
+            comment: comment.presence
+          )
         end
 
         def table_options(table_name) # :nodoc:
@@ -441,7 +443,7 @@ module ActiveRecord
             WITH pk_constraint AS (
               SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
               WHERE contype = 'p'
-                AND conrelid = '#{quote_table_name(table_name)}'::regclass
+                AND conrelid = #{quote(quote_table_name(table_name))}::regclass
             ), cons AS (
               SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
             )

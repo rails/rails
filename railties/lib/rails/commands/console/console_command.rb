@@ -64,7 +64,7 @@ module Rails
   end
 
   module Command
-    class ConsoleCommand < Base
+    class ConsoleCommand < Base # :nodoc:
       include EnvironmentArgument
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: false,

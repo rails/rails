@@ -102,7 +102,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_only_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(only: %w(name))
     end
 
@@ -113,7 +113,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_except_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(except: %w(age))
     end
 
@@ -137,7 +137,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     @contact = ContactSti.new(@contact.attributes)
     assert_equal "ContactSti", @contact.type
 
-    def @contact.serializable_hash(options={})
+    def @contact.serializable_hash(options = {})
       super({ except: %w(age) }.merge!(options))
     end
 
@@ -243,7 +243,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     assert !@david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
-    assert_equal %r{"favorite_quote":}.match(json).size, 1
+    assert_equal 1, %r{"favorite_quote":}.match(json).size
   end
 
   def test_should_allow_only_option_for_list_of_authors

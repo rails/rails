@@ -174,7 +174,7 @@ module ActiveRecord
                         columns_hash.include?(inheritance_column) ||
                         ids.first.kind_of?(Array)
 
-        id  = ids.first
+        id = ids.first
         if ActiveRecord::Base === id
           id = id.id
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -194,7 +194,7 @@ module ActiveRecord
                                    name, primary_key, id)
         end
         record
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
                                  name, primary_key)
       end
@@ -223,7 +223,7 @@ module ActiveRecord
           statement.execute(hash.values, self, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue RangeError
+        rescue ::RangeError
           nil
         end
       end
@@ -299,14 +299,14 @@ module ActiveRecord
 
       private
 
-        def cached_find_by_statement(key, &block) # :nodoc:
+        def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache[key] || cache.synchronize {
             cache[key] ||= StatementCache.create(connection, &block)
           }
         end
 
-        def relation # :nodoc:
+        def relation
           relation = Relation.create(self, arel_table, predicate_builder)
 
           if finder_needs_type_condition? && !ignore_default_scope?
@@ -316,7 +316,7 @@ module ActiveRecord
           end
         end
 
-        def table_metadata # :nodoc:
+        def table_metadata
           TableMetadata.new(self, arel_table)
         end
     end
@@ -330,8 +330,8 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      @attributes = self.class._default_attributes.deep_dup
       self.class.define_attribute_methods
+      @attributes = self.class._default_attributes.deep_dup
 
       init_internals
       initialize_internals_callback
@@ -538,7 +538,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.flatten.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     private

@@ -23,9 +23,13 @@ module Rails
         assign_controller_names!(controller_name.pluralize)
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :controller_name, :controller_file_name
+
+      private
 
         def controller_class_path
           if options[:model_name]
@@ -73,7 +77,7 @@ module Rails
         end
 
         # Initialize ORM::Generators::ActiveModel to access instance methods.
-        def orm_instance(name=singular_table_name)
+        def orm_instance(name = singular_table_name)
           @orm_instance ||= orm_class.new(name)
         end
     end

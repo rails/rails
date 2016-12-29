@@ -1,4 +1,3 @@
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module DynamicMatchers #:nodoc:

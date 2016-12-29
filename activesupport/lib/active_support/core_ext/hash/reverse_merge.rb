@@ -16,7 +16,7 @@ class Hash
   # Destructive +reverse_merge+.
   def reverse_merge!(other_hash)
     # right wins if there is no left
-    merge!( other_hash ) { |key,left,right| left }
+    merge!(other_hash) { |key, left, right| left }
   end
   alias_method :reverse_update, :reverse_merge!
 end

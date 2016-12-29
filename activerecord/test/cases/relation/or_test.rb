@@ -79,7 +79,7 @@ module ActiveRecord
       expected = Post.where("id = 1 or id = 2").to_a
       p = Post.where("id = 1")
       p.load
-      assert_equal p.loaded?, true
+      assert_equal true, p.loaded?
       assert_equal expected, p.or(Post.where("id = 2")).to_a
     end
 

@@ -3,8 +3,8 @@ require "rails/test_unit/minitest_plugin"
 
 module Rails
   module Command
-    class TestCommand < Base
-      def help # :nodoc:
+    class TestCommand < Base # :nodoc:
+      def help
         perform # Hand over help printing to minitest.
       end
 

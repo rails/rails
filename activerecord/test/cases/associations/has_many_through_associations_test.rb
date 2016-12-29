@@ -75,7 +75,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     posts = person_prime.includes(:posts).first.posts
 
     assert_operator posts.length, :>, 1
-    posts.each_cons(2) do |left,right|
+    posts.each_cons(2) do |left, right|
       assert_operator left.id, :>, right.id
     end
   end
@@ -402,7 +402,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal nil, reference.reload.job_id
+    assert_nil reference.reload.job_id
   ensure
     Reference.make_comments = false
   end
@@ -423,7 +423,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     # Check that the destroy callback on Reference did not run
-    assert_equal nil, person.reload.comments
+    assert_nil person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -485,7 +485,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     references.each do |reference|
-      assert_equal nil, reference.reload.job_id
+      assert_nil reference.reload.job_id
     end
   end
 
@@ -702,7 +702,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Bob"],
       [:added, :before, "Lary"],
       [:added, :after, "Lary"]
-    ],log.last(6)
+    ], log.last(6)
 
     post.people_with_callbacks.build(first_name: "Ted")
     assert_equal [
@@ -716,7 +716,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Sam"]
     ], log.last(2)
 
-    post.people_with_callbacks = [people(:michael),people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
+    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
     assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
       [:added, :before, "Julian"],
@@ -883,10 +883,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   end
 
+  def test_collection_singular_ids_setter_with_changed_primary_key
+    company = companies(:first_firm)
+    client = companies(:first_client)
+    company.clients_using_primary_key_ids = [client.name]
+    assert_equal [client], company.clients_using_primary_key
+  end
+
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
-    ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids= ids }
+    ids = [Developer.first.id, -9999]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
+    assert_match(/Couldn't find all Developers with 'id'/, e.message)
+  end
+
+  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
+    company = companies(:first_firm)
+    ids = [Client.first.name, "unknown client"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
+    assert_match(/Couldn't find all Clients with 'name'/, e.message)
+  end
+
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause

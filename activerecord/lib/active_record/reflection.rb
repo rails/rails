@@ -136,8 +136,8 @@ module ActiveRecord
     #         BelongsToReflection
     #         HasAndBelongsToManyReflection
     #     ThroughReflection
-    #       PolymorphicReflection
-    #         RuntimeReflection
+    #     PolymorphicReflection
+    #       RuntimeReflection
     class AbstractReflection # :nodoc:
       def through_reflection?
         false
@@ -282,11 +282,6 @@ module ActiveRecord
       end
 
       def autosave=(autosave)
-        # autosave and inverse_of do not get along together nowadays. They may
-        # for example cause double saves. Thus, we disable this flag. If in the
-        # future those two flags are known to work well together, this could be
-        # removed.
-        @automatic_inverse_of = false
         @options[:autosave] = autosave
         parent_reflection = self.parent_reflection
         if parent_reflection
@@ -400,6 +395,10 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         options[:primary_key] || primary_key(klass || self.klass)
+      end
+
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
       end
 
       def active_record_primary_key
@@ -541,14 +540,10 @@ module ActiveRecord
 
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
-        # nil.
+        # +nil+.
         def inverse_name
           options.fetch(:inverse_of) do
-            if @automatic_inverse_of == false
-              nil
-            else
-              @automatic_inverse_of ||= automatic_inverse_of
-            end
+            @automatic_inverse_of ||= automatic_inverse_of
           end
         end
 
@@ -712,7 +707,7 @@ module ActiveRecord
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection
-        @klass         = delegate_reflection.options[:anonymous_class]
+        @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
       end
 
@@ -855,6 +850,10 @@ module ActiveRecord
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
+      end
+
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
       #   class Post < ActiveRecord::Base
@@ -988,7 +987,7 @@ module ActiveRecord
         delegate(*delegate_methods, to: :delegate_reflection)
     end
 
-    class PolymorphicReflection < ThroughReflection # :nodoc:
+    class PolymorphicReflection < AbstractReflection # :nodoc:
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection

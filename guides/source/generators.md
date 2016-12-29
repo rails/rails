@@ -208,7 +208,15 @@ $ bin/rails generate scaffold User name:string
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
-Our first customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds. We can achieve that by changing our configuration to the following:
+If we want to avoid generating the default `app/assets/stylesheets/scaffolds.scss` file when scaffolding a new resource we can disable `scaffold_stylesheet`:
+
+```ruby
+  config.generators do |g|
+    g.scaffold_stylesheet false
+  end
+```
+
+The next customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
 ```ruby
 config.generators do |g|
@@ -450,6 +458,26 @@ $ rails new thud -m https://gist.github.com/radar/722911/raw/
 ```
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
+
+Adding Command Line Arguments
+-----------------------------
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](http://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+
+```
+class_option :scope, type: :string, default: 'read_products'
+```
+
+Now our generator can be invoked as follows:
+
+```bash
+rails generate initializer --scope write_products
+```
+
+The command line arguments are accessed through the `options` method inside the generator class. e.g:
+
+```ruby
+@scope = options['scope']
+```
 
 Generator methods
 -----------------

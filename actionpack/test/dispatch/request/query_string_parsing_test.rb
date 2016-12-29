@@ -97,7 +97,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     assert_parses({ "action" => { "foo" => { "bar" => nil } } }, "action[foo][bar]")
     assert_parses({ "action" => { "foo" => { "bar" => [] } } }, "action[foo][bar][]")
     assert_parses({ "action" => { "foo" => [] } }, "action[foo][]")
-    assert_parses({ "action"=>{ "foo"=>[{ "bar"=>nil }] } }, "action[foo][][bar]")
+    assert_parses({ "action" => { "foo" => [{ "bar" => nil }] } }, "action[foo][][bar]")
   end
 
   def test_array_parses_without_nil
@@ -114,7 +114,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       assert_parses({ "action" => { "foo" => { "bar" => [nil] } } }, "action[foo][bar][]")
       assert_parses({ "action" => { "foo" => [nil] } }, "action[foo][]")
       assert_parses({ "action" => { "foo" => [{ "bar" => nil }] } }, "action[foo][][bar]")
-      assert_parses({ "action" => ["1",nil] }, "action[]=1&action[]")
+      assert_parses({ "action" => ["1", nil] }, "action[]=1&action[]")
     ensure
       ActionDispatch::Request::Utils.perform_deep_munge = old_perform_deep_munge
     end

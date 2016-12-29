@@ -137,6 +137,6 @@ class RescuableTest < ActiveSupport::TestCase
 
   def test_rescue_falls_back_to_exception_cause
     @stargate.dispatch :fall_back_to_cause
-    assert_equal "unhandled RuntimeError with a handleable cause", @stargate.result
+    assert_equal "dex", @stargate.result
   end
 end

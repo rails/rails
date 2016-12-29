@@ -16,7 +16,7 @@ module ActiveJob
       #       post.to_feed!
       #     end
       #   end
-      def queue_as(part_name=nil, &block)
+      def queue_as(part_name = nil, &block)
         if block_given?
           self.queue_name = block
         else

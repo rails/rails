@@ -12,9 +12,9 @@ module ActiveSupport
           attr_reader :name, :local_cache_key
 
           def initialize(name, local_cache_key)
-            @name             = name
+            @name = name
             @local_cache_key = local_cache_key
-            @app              = nil
+            @app = nil
           end
 
           def new(app)

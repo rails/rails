@@ -996,15 +996,13 @@ module ActiveRecord
       def insert_versions_sql(versions) # :nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        if supports_multi_insert?
+        if versions.is_a?(Array)
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
           sql << versions.map { |v| "('#{v}')" }.join(",\n")
           sql << ";\n\n"
           sql
         else
-          versions.map { |version|
-            "INSERT INTO #{sm_table} (version) VALUES ('#{version}');"
-          }.join "\n\n"
+          "INSERT INTO #{sm_table} (version) VALUES ('#{versions}');"
         end
       end
 
@@ -1042,7 +1040,13 @@ module ActiveRecord
           if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+          if supports_multi_insert?
+            execute insert_versions_sql(inserting)
+          else
+            inserting.each do |v|
+              execute insert_versions_sql(v)
+            end
+          end
         end
       end
 
@@ -1116,7 +1120,7 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
-        if column_name.is_a?(String) && /\W/ === column_name
+        if column_name.is_a?(String) && /\W/.match?(column_name)
           column_names = column_name
         else
           column_names = Array(column_name)
@@ -1165,12 +1169,13 @@ module ActiveRecord
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
-      protected
+      private
 
         def add_index_sort_order(quoted_columns, **options)
           if order = options[:order]
             case order
             when Hash
+              order = order.symbolize_keys
               quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
             when String
               quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
@@ -1198,10 +1203,6 @@ module ActiveRecord
 
         def index_name_for_remove(table_name, options = {})
           return options[:name] if can_remove_index_by_name?(options)
-
-          # if the adapter doesn't support the indexes call the best we can do
-          # is return the default index name for the options provided
-          return index_name(table_name, options) unless respond_to?(:indexes)
 
           checks = []
 
@@ -1252,7 +1253,6 @@ module ActiveRecord
           end
         end
 
-      private
         def create_table_definition(*args)
           TableDefinition.new(*args)
         end
@@ -1261,7 +1261,7 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
-        def index_name_options(column_names) # :nodoc:
+        def index_name_options(column_names)
           if column_names.is_a?(String)
             column_names = column_names.scan(/\w+/).join("_")
           end
@@ -1269,7 +1269,7 @@ module ActiveRecord
           { column: column_names }
         end
 
-        def foreign_key_name(table_name, options) # :nodoc:
+        def foreign_key_name(table_name, options)
           identifier = "#{table_name}_#{options.fetch(:column)}_fk"
           hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
           options.fetch(:name) do
@@ -1277,7 +1277,7 @@ module ActiveRecord
           end
         end
 
-        def validate_index_length!(table_name, new_name, internal = false) # :nodoc:
+        def validate_index_length!(table_name, new_name, internal = false)
           max_index_length = internal ? index_name_length : allowed_index_name_length
 
           if new_name.length > max_index_length

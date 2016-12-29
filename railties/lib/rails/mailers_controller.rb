@@ -40,12 +40,12 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
   end
 
-  protected
-    def show_previews?
+  private
+    def show_previews? # :doc:
       ActionMailer::Base.show_previews
     end
 
-    def find_preview
+    def find_preview # :doc:
       candidates = []
       params[:path].to_s.scan(%r{/|$}) { candidates << $` }
       preview = candidates.detect { |candidate| ActionMailer::Preview.exists?(candidate) }
@@ -57,7 +57,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       end
     end
 
-    def find_preferred_part(*formats)
+    def find_preferred_part(*formats) # :doc:
       formats.each do |format|
         if part = @email.find_first_mime_type(format)
           return part
@@ -69,7 +69,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       end
     end
 
-    def find_part(format)
+    def find_part(format) # :doc:
       if part = @email.find_first_mime_type(format)
         part
       elsif @email.mime_type == format

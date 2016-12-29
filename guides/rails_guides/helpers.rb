@@ -26,7 +26,7 @@ module RailsGuides
       documents.reject { |document| document["work_in_progress"] }
     end
 
-    def docs_for_menu(position=nil)
+    def docs_for_menu(position = nil)
       if position.nil?
         documents_by_section
       elsif position == "L"

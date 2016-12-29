@@ -207,7 +207,7 @@ module ActiveSupport
     def demodulize(path)
       path = path.to_s
       if i = path.rindex("::")
-        path[(i+2)..-1]
+        path[(i + 2)..-1]
       else
         path
       end
@@ -274,7 +274,7 @@ module ActiveSupport
 
           # Go down the ancestors to check if it is owned directly. The check
           # stops when we reach Object or the end of ancestors tree.
-          constant = constant.ancestors.inject do |const, ancestor|
+          constant = constant.ancestors.inject(constant) do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)
             const
@@ -361,12 +361,12 @@ module ActiveSupport
       #
       #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
       #   const_regexp("::")            # => "::"
-      def const_regexp(camel_cased_word) #:nodoc:
+      def const_regexp(camel_cased_word)
         parts = camel_cased_word.split("::".freeze)
 
         return Regexp.escape(camel_cased_word) if parts.blank?
 
-        last  = parts.pop
+        last = parts.pop
 
         parts.reverse.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"

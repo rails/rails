@@ -24,7 +24,7 @@ module ActiveRecord
     sqlite3:    :sqlite_tasks
   }
 
-  class DatabaseTasksUtilsTask< ActiveRecord::TestCase
+  class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
       ActiveRecord::Migrator.stubs(:current_version).returns(1)
 

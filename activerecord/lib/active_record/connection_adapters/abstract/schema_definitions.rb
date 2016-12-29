@@ -71,7 +71,7 @@ module ActiveRecord
         polymorphic: false,
         index: true,
         foreign_key: false,
-        type: :integer,
+        type: :bigint,
         **options
       )
         @name = name
@@ -100,6 +100,8 @@ module ActiveRecord
         end
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
@@ -475,7 +477,7 @@ module ActiveRecord
 
       # Checks to see if a column exists.
       #
-      # t.string(:name) unless t.column_exists?(:name, :string)
+      #  t.string(:name) unless t.column_exists?(:name, :string)
       #
       # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
       def column_exists?(column_name, type = nil, options = {})
@@ -496,9 +498,9 @@ module ActiveRecord
 
       # Checks to see if an index exists.
       #
-      # unless t.index_exists?(:branch_id)
-      #   t.index(:branch_id)
-      # end
+      #  unless t.index_exists?(:branch_id)
+      #    t.index(:branch_id)
+      #  end
       #
       # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
       def index_exists?(column_name, options = {})

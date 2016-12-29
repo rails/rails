@@ -113,7 +113,7 @@ module ActiveSupport
       #   XML element to extract attributes from.
       def get_attributes(element)
         attributes = {}
-        element.attributes.each { |n,v| attributes[n] = v }
+        element.attributes.each { |n, v| attributes[n] = v }
         attributes
       end
 

@@ -3,11 +3,9 @@ module ActiveRecord
     module MySQL
       module ColumnDumper
         def column_spec_for_primary_key(column)
-          if column.bigint?
-            spec = { id: :bigint.inspect }
-            spec[:default] = schema_default(column) || "nil" unless column.auto_increment?
-          else
-            spec = super
+          spec = super
+          if column.type == :integer && !column.auto_increment?
+            spec[:default] = schema_default(column) || "nil"
           end
           spec[:unsigned] = "true" if column.unsigned?
           spec
@@ -38,7 +36,7 @@ module ActiveRecord
           end
 
           def schema_precision(column)
-            super unless /time/ === column.sql_type && column.precision == 0
+            super unless /time/.match?(column.sql_type) && column.precision == 0
           end
 
           def schema_collation(column)

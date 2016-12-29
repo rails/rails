@@ -82,15 +82,15 @@ module ActiveRecord
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
-              cache = Marshal.load File.binread filename
+              cache = YAML.load(File.read(filename))
               if cache.version == ActiveRecord::Migrator.current_version
                 self.connection.schema_cache = cache
                 self.connection_pool.schema_cache = cache.dup
               else
-                warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
@@ -108,7 +108,7 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k,v|
+        app.config.active_record.each do |k, v|
           send "#{k}=", v
         end
       end

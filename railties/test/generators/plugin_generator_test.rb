@@ -100,6 +100,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generating_adds_dummy_app_in_full_mode_without_sprockets
+    run_generator [destination_root, "-S", "--full"]
+
+    assert_file "test/dummy/config/environments/production.rb" do |contents|
+      assert_no_match(/config\.assets/, contents)
+    end
+  end
+
   def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
     run_generator [destination_root, "-T", "--mountable", "--dummy-path", "my_dummy_app"]
     assert_file "Rakefile", /APP_RAKEFILE/
@@ -499,7 +507,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
       assert_match_sqlite3(contents)
-      assert_no_match(/# gem "jquery-rails"/, contents)
     end
   end
 
@@ -707,7 +714,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  protected
+  private
 
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }

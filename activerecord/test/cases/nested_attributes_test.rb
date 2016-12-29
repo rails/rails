@@ -971,7 +971,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   def test_attr_accessor_of_child_should_be_value_provided_during_update
     @owner = owners(:ashley)
     @pet1 = pets(:chew)
-    attributes = { pets_attributes: { "1"=> { id: @pet1.id,
+    attributes = { pets_attributes: { "1" => { id: @pet1.id,
                                                 name: "Foo2",
                                                 current_user: "John",
                                                 _destroy: true } } }
@@ -1030,13 +1030,13 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
   end
 
   test "if association is not loaded and association record is saved and then in memory record attributes should be saved" do
-    @ship.parts_attributes=[{ id: @part.id,name: "Deck" }]
+    @ship.parts_attributes = [{ id: @part.id, name: "Deck" }]
     assert_equal 1, @ship.association(:parts).target.size
     assert_equal "Deck", @ship.parts[0].name
   end
 
   test "if association is not loaded and child doesn't change and I am saving a grandchild then in memory record should be used" do
-    @ship.parts_attributes=[{ id: @part.id,trinkets_attributes: [{ id: @trinket.id, name: "Ruby" }] }]
+    @ship.parts_attributes = [{ id: @part.id, trinkets_attributes: [{ id: @trinket.id, name: "Ruby" }] }]
     assert_equal 1, @ship.association(:parts).target.size
     assert_equal "Mast", @ship.parts[0].name
     assert_no_difference("@ship.parts[0].association(:trinkets).target.size") do

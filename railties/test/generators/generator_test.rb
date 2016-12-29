@@ -20,7 +20,7 @@ module Rails
       end
 
       def test_construction
-        klass     = make_builder_class
+        klass = make_builder_class
         assert klass.start(["new", "blah"])
       end
 

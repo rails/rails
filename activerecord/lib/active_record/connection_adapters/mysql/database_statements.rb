@@ -52,13 +52,11 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        protected
+        private
 
           def last_inserted_id(result)
             @connection.last_id
           end
-
-        private
 
           def select_result(sql, name = nil, binds = [])
             if without_prepared_statement?(binds)
@@ -86,7 +84,9 @@ module ActiveRecord
               end
 
               begin
-                result = stmt.execute(*type_casted_binds)
+                result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                  stmt.execute(*type_casted_binds)
+                end
               rescue Mysql2::Error => e
                 if cache_stmt
                   @statements.delete(sql)

@@ -1,3 +1,51 @@
+*   Use accept header in integration tests with `as: :json`
+
+    Instead of appending the `format` to the request path, Rails will figure
+    out the format from the header instead.
+
+    This allows devs to use `:as` on routes that don't have a format.
+
+    Fixes #27144.
+
+    *Kasper Timm Hansen*
+
+*   Reset a new session directly after its creation in `ActionDispatch::IntegrationTest#open_session`.
+
+    Fixes #22742.
+
+    *Tawan Sierek*
+
+*   Fixes incorrect output from rails routes when using singular resources.
+
+    Fixes #26606.
+
+    *Erick Reyna*
+
+*   Fixes multiple calls to `logger.fatal` instead of a single call,
+    for every line in an exception backtrace, when printing trace
+    from `DebugExceptions` middleware.
+
+    Fixes #26134.
+
+    *Vipul A M*
+
+*   Add support for arbitrary hashes in strong parameters:
+
+    ```ruby
+    params.permit(preferences: {})
+    ```
+
+    *Xavier Noria*
+
+*   Add `ActionController::Parameters#merge!`, which behaves the same as `Hash#merge!`.
+
+    *Yuji Yaginuma*
+
+*   Allow keys not found in `RACK_KEY_TRANSLATION` for setting the environment when rendering
+    arbitrary templates.
+
+    *Sammy Larbi*
+
 *   Remove deprecated support to non-keyword arguments in `ActionDispatch::IntegrationTest#process`,
     `#get`, `#post`, `#patch`, `#put`, `#delete`, and `#head`.
 

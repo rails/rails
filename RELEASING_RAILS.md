@@ -103,17 +103,19 @@ branch.
 Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
 
-Verify that Action Cable's package.json is updated with the RC version.
+Verify that Action Cable and Action View's package.json files are updated with
+the RC version.
 
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
 ### Release to RubyGems and NPM.
 
-IMPORTANT: The Action Cable client is released as an NPM package, so you must
-have Node.js installed, have an NPM account (npmjs.com), and be an actioncable
-package owner (`npm owner ls actioncable`) to do a full release. Do not release
-until you're set up with NPM!
+IMPORTANT: The Action Cable client and Action View's UJS adapter are released
+as NPM packages, so you must have Node.js installed, have an NPM account
+(npmjs.com), and be a package owner for `actioncable` and `rails-ujs` (you can
+check this via `npm owner ls actioncable` and `npm owner ls rails-ujs`) in
+order to do a full release. Do not release until you're set up with NPM!
 
 Run `rake release`. This will populate the gemspecs and NPM package.json with
 the current RAILS_VERSION, commit the changes, tag it, and push the gems to
@@ -179,7 +181,7 @@ more explanation on a particular step, see the RC steps.
 Today, do this stuff in this order:
 
 * Apply security patches to the release branch
-* Update CHANGELOG with security fixes.
+* Update CHANGELOG with security fixes
 * Update RAILS_VERSION to remove the rc
 * Build and test the gem
 * Release the gems
@@ -206,7 +208,7 @@ so we need to give them the security fixes in patch form.
 
 * Blog announcements
 * Twitter announcements
-* Merge the release branch to the stable branch.
+* Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 
 ## Misc

@@ -45,7 +45,6 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        @current = nil
         @path = path
         @root = {}
       end

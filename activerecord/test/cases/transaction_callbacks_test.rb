@@ -243,14 +243,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint
-    def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def @first.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def @first.commits(i = 0); @commits ||= 0; @commits += i if i; end
     @first.after_rollback_block { |r| r.rollbacks(1) }
     @first.after_commit_block { |r| r.commits(1) }
 
     second = TopicWithCallbacks.find(3)
-    def second.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def second.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def second.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def second.commits(i = 0); @commits ||= 0; @commits += i if i; end
     second.after_rollback_block { |r| r.rollbacks(1) }
     second.after_commit_block { |r| r.commits(1) }
 
@@ -269,8 +269,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint_when_release_savepoint_fails
-    def @first.rollbacks(i=0); @rollbacks ||= 0; @rollbacks += i if i; end
-    def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
+    def @first.rollbacks(i = 0); @rollbacks ||= 0; @rollbacks += i if i; end
+    def @first.commits(i = 0); @commits ||= 0; @commits += i if i; end
 
     @first.after_rollback_block { |r| r.rollbacks(1) }
     @first.after_commit_block { |r| r.commits(1) }
@@ -446,6 +446,51 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
 
     assert_equal "before commit title", topic.title
     assert_equal "before commit title", topic.reload.title
+  end
+end
+
+class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
+  class TopicWithHistory < ActiveRecord::Base
+    self.table_name = :topics
+
+    def self.clear_history
+      @@history = []
+    end
+
+    def self.history
+      @@history ||= []
+    end
+  end
+
+  class TopicWithCallbacksOnDestroy < TopicWithHistory
+    after_commit(on: :destroy) { |record| record.class.history << :destroy }
+  end
+
+  class TopicWithCallbacksOnUpdate < TopicWithHistory
+    after_commit(on: :update) { |record| record.class.history << :update }
+  end
+
+  def test_trigger_once_on_multiple_deletions
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
+    topic.destroy
+    topic_clone.destroy
+
+    assert_equal [:destroy], TopicWithCallbacksOnDestroy.history
+  end
+
+  def test_trigger_on_update_where_row_was_deleted
+    TopicWithCallbacksOnUpdate.clear_history
+    topic = TopicWithCallbacksOnUpdate.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnUpdate.find(topic.id)
+    topic.destroy
+    topic_clone.author_name = "Test Author"
+    topic_clone.save
+
+    assert_equal [], TopicWithCallbacksOnUpdate.history
   end
 end
 

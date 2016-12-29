@@ -6,7 +6,7 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
-        @pool    = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
       def test_establish_connection_uses_spec_name

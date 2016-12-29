@@ -7,7 +7,7 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
   class ::BadRouteRequestController < ActionController::Base
     include Routes.url_helpers
     def index
-      render text: foo_path
+      render plain: foo_path
     end
 
     def foo

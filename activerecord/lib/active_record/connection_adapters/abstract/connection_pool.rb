@@ -69,7 +69,7 @@ module ActiveRecord
     #   threads, which can occur if a programmer forgets to close a
     #   connection at the end of a thread or a thread dies unexpectedly.
     #   Regardless of this setting, the Reaper will be invoked before every
-    #   blocking wait. (Default nil, which means don't schedule the Reaper).
+    #   blocking wait. (Default +nil+, which means don't schedule the Reaper).
     #
     #--
     # Synchronization policy:
@@ -116,7 +116,7 @@ module ActiveRecord
           end
         end
 
-        # If +element+ is in the queue, remove and return it, or nil.
+        # If +element+ is in the queue, remove and return it, or +nil+.
         def delete(element)
           synchronize do
             @queue.delete(element)
@@ -135,7 +135,7 @@ module ActiveRecord
         # If +timeout+ is not given, remove and return the head the
         # queue if the number of available elements is strictly
         # greater than the number of threads currently waiting (that
-        # is, don't jump ahead in line).  Otherwise, return nil.
+        # is, don't jump ahead in line).  Otherwise, return +nil+.
         #
         # If +timeout+ is given, block if there is no element
         # available, waiting up to +timeout+ seconds for an element to
@@ -171,14 +171,14 @@ module ActiveRecord
             @queue.size > @num_waiting
           end
 
-          # Removes and returns the head of the queue if possible, or nil.
+          # Removes and returns the head of the queue if possible, or +nil+.
           def remove
             @queue.shift
           end
 
           # Remove and return the head the queue if the number of
           # available elements is strictly greater than the number of
-          # threads currently waiting.  Otherwise, return nil.
+          # threads currently waiting.  Otherwise, return +nil+.
           def no_wait_poll
             remove if can_remove_no_wait?
           end
@@ -282,7 +282,7 @@ module ActiveRecord
       end
 
       # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
-      # A reaper instantiated with a nil frequency will never reap the
+      # A reaper instantiated with a +nil+ frequency will never reap the
       # connection pool.
       #
       # Configure the frequency by setting "reaping_frequency" in your
@@ -307,6 +307,7 @@ module ActiveRecord
       end
 
       include MonitorMixin
+      include QueryCache::ConnectionPoolConfiguration
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
       attr_reader :spec, :connections, :size, :reaper
@@ -349,8 +350,7 @@ module ActiveRecord
         # currently in the process of independently establishing connections to the DB.
         @now_connecting = 0
 
-        # A boolean toggle that allows/disallows new connections.
-        @new_cons_enabled = true
+        @threads_blocking_new_connections = 0
 
         @available = ConnectionLeasingQueue.new self
       end
@@ -445,8 +445,6 @@ module ActiveRecord
       #   connections in the pool within a timeout interval (default duration is
       #   <tt>spec.config[:checkout_timeout] * 2</tt> seconds).
       def clear_reloadable_connections(raise_on_acquisition_timeout = true)
-        num_new_conns_required = 0
-
         with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
           synchronize do
             @connections.each do |conn|
@@ -457,24 +455,9 @@ module ActiveRecord
               conn.disconnect! if conn.requires_reloading?
             end
             @connections.delete_if(&:requires_reloading?)
-
             @available.clear
-
-            if @connections.size < @size
-              # because of the pruning done by this method, we might be running
-              # low on connections, while threads stuck in queue are helpless
-              # (not being able to establish new connections for themselves),
-              # see also more detailed explanation in +remove+
-              num_new_conns_required = num_waiting_in_queue - @connections.size
-            end
-
-            @connections.each do |conn|
-              @available.add conn
-            end
           end
         end
-
-        bulk_make_new_connections(num_new_conns_required) if num_new_conns_required > 0
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -581,6 +564,24 @@ module ActiveRecord
         @available.num_waiting
       end
 
+      # Return connection pool's usage statistic
+      # Example:
+      #
+      #    ActiveRecord::Base.connection_pool.stat # => { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
+      def stat
+        synchronize do
+          {
+            size: size,
+            connections: @connections.size,
+            busy: @connections.count { |c| c.in_use? && c.owner.alive? },
+            dead: @connections.count { |c| c.in_use? && !c.owner.alive? },
+            idle: @connections.count { |c| !c.in_use? },
+            waiting: num_waiting_in_queue,
+            checkout_timeout: checkout_timeout
+          }
+        end
+      end
+
       private
         #--
         # this is unfortunately not concurrent
@@ -681,13 +682,32 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          previous_value = nil
           synchronize do
-            previous_value, @new_cons_enabled = @new_cons_enabled, false
+            @threads_blocking_new_connections += 1
           end
+
           yield
         ensure
-          synchronize { @new_cons_enabled = previous_value }
+          num_new_conns_required = 0
+
+          synchronize do
+            @threads_blocking_new_connections -= 1
+
+            if @threads_blocking_new_connections.zero?
+              @available.clear
+
+              num_new_conns_required = num_waiting_in_queue
+
+              @connections.each do |conn|
+                next if conn.in_use?
+
+                @available.add conn
+                num_new_conns_required -= 1
+              end
+            end
+          end
+
+          bulk_make_new_connections(num_new_conns_required) if num_new_conns_required > 0
         end
 
         # Acquire a connection by one of 1) immediately removing one
@@ -739,7 +759,7 @@ module ActiveRecord
           # and increment @now_connecting, to prevent overstepping this pool's @size
           # constraint
           do_checkout = synchronize do
-            if @new_cons_enabled && (@connections.size + @now_connecting) < @size
+            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @size
               @now_connecting += 1
             end
           end
@@ -833,7 +853,7 @@ module ActiveRecord
     class ConnectionHandler
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h,k|
+        @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
           h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
       end

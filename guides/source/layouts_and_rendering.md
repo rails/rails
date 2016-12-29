@@ -1082,7 +1082,7 @@ definitions for several similar resources:
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(@q) do |f| %>
+    <%= form_for(search) do |f| %>
       <h1>Search form:</h1>
       <fieldset>
         <%= yield f %>
@@ -1280,7 +1280,7 @@ When rendering collections it is also possible to use the `:layout` option:
 <%= render partial: "product", collection: @products, layout: "special_layout" %>
 ```
 
-The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they are within the partial.
 
 ### Using Nested Layouts
 

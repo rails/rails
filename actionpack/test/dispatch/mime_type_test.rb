@@ -89,7 +89,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   #  (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; InfoPath.1)
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
-    expect = ["image/gif", "image/x-xbitmap", "image/jpeg","image/pjpeg", "application/x-shockwave-flash", "application/vnd.ms-excel", "application/vnd.ms-powerpoint", "application/msword", "pronto/1.00.00", "sslvpn/1.00.00.00", "*/*"]
+    expect = ["image/gif", "image/x-xbitmap", "image/jpeg", "image/pjpeg", "application/x-shockwave-flash", "application/vnd.ms-excel", "application/vnd.ms-powerpoint", "application/msword", "pronto/1.00.00", "sslvpn/1.00.00.00", "*/*"]
     assert_equal expect.map(&:to_s), Mime::Type.parse(accept).map(&:to_s)
   end
 

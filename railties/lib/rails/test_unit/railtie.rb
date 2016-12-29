@@ -14,7 +14,9 @@ module Rails
     end
 
     initializer "test_unit.line_filtering" do
-      ActiveSupport::TestCase.extend Rails::LineFiltering
+      ActiveSupport.on_load(:active_support_test_case) {
+        ActiveSupport::TestCase.extend Rails::LineFiltering
+      }
     end
 
     rake_tasks do

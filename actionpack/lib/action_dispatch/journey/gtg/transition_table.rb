@@ -12,7 +12,7 @@ module ActionDispatch
           @regexp_states = {}
           @string_states = {}
           @accepting     = {}
-          @memos         = Hash.new { |h,k| h[k] = [] }
+          @memos         = Hash.new { |h, k| h[k] = [] }
         end
 
         def add_accepting(state)
@@ -56,7 +56,7 @@ module ActionDispatch
         end
 
         def as_json(options = nil)
-          simple_regexp = Hash.new { |h,k| h[k] = {} }
+          simple_regexp = Hash.new { |h, k| h[k] = {} }
 
           @regexp_states.each do |from, hash|
             hash.each do |re, to|

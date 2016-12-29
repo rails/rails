@@ -1,4 +1,3 @@
-require "active_support/core_ext/regexp"
 require "action_view/template/resolver"
 
 module ActionView #:nodoc:
@@ -9,7 +8,7 @@ module ActionView #:nodoc:
   class FixtureResolver < PathResolver
     attr_reader :hash
 
-    def initialize(hash = {}, pattern=nil)
+    def initialize(hash = {}, pattern = nil)
       super(pattern)
       @hash = hash
     end

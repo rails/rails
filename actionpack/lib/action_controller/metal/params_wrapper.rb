@@ -135,7 +135,7 @@ module ActionController
         #
         # This method also does namespace lookup. Foo::Bar::UsersController will
         # try to find Foo::Bar::User, Foo::User and finally User.
-        def _default_wrap_model #:nodoc:
+        def _default_wrap_model
           return nil if klass.anonymous?
           model_name = klass.name.sub(/Controller$/, "").classify
 
@@ -205,7 +205,7 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
         opts.model = model
         opts.klass = self
 

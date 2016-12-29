@@ -71,7 +71,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
   def test_message_obeys_strict_encoding
     bad_encoding_characters = "\n!@#"
-    message, iv = @encryptor.encrypt_and_sign("This is a very \n\nhumble string"+bad_encoding_characters)
+    message, iv = @encryptor.encrypt_and_sign("This is a very \n\nhumble string" + bad_encoding_characters)
 
     assert_not_decrypted("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")
     assert_not_verified("#{::Base64.encode64 message.to_s}--#{::Base64.encode64 iv.to_s}")

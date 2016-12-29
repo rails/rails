@@ -325,7 +325,7 @@ should support caching.
 
 #### Configure the Output of `db:structure:dump`
 
-If you're using `schema_search_path` or other PostgreSQL extentions, you can control how the schema is
+If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
 dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
 
     config.active_record.dump_schemas = :all
@@ -1277,6 +1277,10 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 ### Active Support
 
 Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
+
+#### Cache
+
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](http://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 

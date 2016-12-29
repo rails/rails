@@ -136,7 +136,7 @@ class Build
   end
 end
 
-if ENV["GEM"]=="aj:integration"
+if ENV["GEM"] == "aj:integration"
   ENV["QC_DATABASE_URL"]  = "postgres://postgres@localhost/active_jobs_qc_int_test"
   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end

@@ -28,7 +28,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scope_breaks_caching_on_collections
     author = authors :david
     ids = author.reload.special_posts_with_default_scope.map(&:id)
-    assert_equal [1,5,6], ids.sort
+    assert_equal [1, 5, 6], ids.sort
     scoped_posts = SpecialPostWithDefaultScope.unscoped do
       author = authors :david
       author.reload.special_posts_with_default_scope.to_a
@@ -277,7 +277,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
         assert_equal "David", Developer.first.name
 
         Developer.unscoped.where("name = 'Maiha'") do
-          assert_equal nil, Developer.first
+          assert_nil Developer.first
         end
 
         # ensure that scoping is restored

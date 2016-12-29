@@ -28,7 +28,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
   def test_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+    t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
     assert t.invalid?
 
     t.title_confirmation = "We should be confirmed"
@@ -61,7 +61,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
       Topic.validates_confirmation_of(:title)
 
-      t = Topic.new("title" => "We should be confirmed","title_confirmation" => "")
+      t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
       assert t.invalid?
       assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
     ensure

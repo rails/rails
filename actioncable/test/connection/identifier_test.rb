@@ -53,7 +53,7 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     end
   end
 
-  protected
+  private
     def open_connection_with_stubbed_pubsub
       server = TestServer.new
       server.stubs(:adapter).returns(stub_everything("adapter"))

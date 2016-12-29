@@ -178,7 +178,7 @@ class ReloaderTest < ActiveSupport::TestCase
   def test_cleanup_callbacks_are_called_on_exceptions
     cleaned = false
     assert_deprecated do
-      Reloader.to_cleanup { cleaned  = true }
+      Reloader.to_cleanup { cleaned = true }
     end
 
     begin

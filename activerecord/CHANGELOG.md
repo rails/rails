@@ -1,13 +1,174 @@
+*   Notifications see frozen SQL string.
+
+    Fixes #23774.
+
+    *Richard Monette*
+
+*   RuntimeErrors are no longer translated to `ActiveRecord::StatementInvalid`.
+
+    *Richard Monette*
+
+*   Change the schema cache format to use YAML instead of Marshal.
+
+    *Kir Shatrov*
+
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::RangeError` when values that executed are out of range.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::NotNullViolation` when a record cannot be inserted
+    or updated because it would violate a not null constraint.
+
+    *Ryuta Kamizono*
+
+*   Emulate db trigger behaviour for after_commit :destroy, :update.
+
+    Race conditions can occur when an ActiveRecord is destroyed
+    twice or destroyed and updated. The callbacks should only be
+    triggered once, similar to a SQL database trigger.
+
+    *Stefan Budeanu*
+
+*   Moved `DecimalWithoutScale`, `Text`, and `UnsignedInteger` from Active Model to Active Record.
+
+    *Iain Beeston*
+
+*   Fix `write_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    *Prathamesh Sonpatki*
+
+*   Fix `read_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    Fixes #26417.
+
+    *Prathamesh Sonpatki*
+
+*   PostgreSQL & MySQL: Use big integer as primary key type for new tables.
+
+    *Jon McCartie*, *Pavel Pravosud*
+
+*   Change the type argument of `ActiveRecord::Base#attribute` to be optional.
+    The default is now `ActiveRecord::Type::Value.new`, which provides no type
+    casting behavior.
+
+    *Sean Griffin*
+
+*   Fix that unsigned with zerofill is treated as signed.
+
+    Fixes #27125.
+
+    *Ryuta Kamizono*
+
+*   Fix the uniqueness validation scope with a polymorphic association.
+
+    *Sergey Alekseev*
+
+*   Raise `ActiveRecord::RecordNotFound` from collection `*_ids` setters
+    for unknown IDs with a better error message.
+
+    Changes the collection `*_ids` setters to cast provided IDs the data
+    type of the primary key set in the association, not the model
+    primary key.
+
+    *Dominic Cleal*
+
+*   For PostgreSQL >= 9.4 use `pgcrypto`'s `gen_random_uuid()` instead of
+    `uuid-ossp`'s UUID generation function.
+
+    *Yuji Yaginuma*, *Yaw Boakye*
+
+*   Introduce `Model#reload_<association>` to bring back the behavior
+    of `Article.category(true)` where `category` is a singular
+    association.
+
+    The force reloading of the association reader was deprecated
+    in #20888. Unfortunately the suggested alternative of
+    `article.reload.category` does not expose the same behavior.
+
+    This patch adds a reader method with the prefix `reload_` for
+    singular associations. This method has the same semantics as
+    passing true to the association reader used to have.
+
+    *Yves Senn*
+
+*   Make sure eager loading `ActiveRecord::Associations` also loads
+    constants defined in `ActiveRecord::Associations::Preloader`.
+
+    *Yves Senn*
+
+*   Allow `ActionController::Parameters`-like objects to be passed as
+    values for Postgres HStore columns.
+
+    Fixes #26904.
+
+    *Jon Moss*
+
+*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
+
+    Example:
+
+        ActiveRecord::Base.connection_pool.stat # =>
+        { size: 15, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }
+
+    *Pavel Evstigneev*
+
+*   Avoid `unscope(:order)` when `limit_value` is presented for `count`
+    and `exists?`.
+
+    If `limit_value` is presented, records fetching order is very important
+    for performance. We should not unscope the order in the case.
+
+    *Ryuta Kamizono*
+
+*   Fix an Active Record `DateTime` field `NoMethodError` caused by incomplete
+    datetime.
+
+    Fixes #24195.
+
+    *Sen Zhang*
+
+*   Allow `slice` to take an array of methods(without the need for splatting).
+
+    *Cohen Carlisle*
+
+*   Improved partial writes with HABTM and has many through associations
+    to fire database query only if relation has been changed.
+
+    Fixes #19663.
+
+    *Mehmet Emin İNAÇ*
+
+*   Deprecate passing arguments and block at the same time to
+    `ActiveRecord::QueryMethods#select`.
+
+    *Prathamesh Sonpatki*
+
+*   Optimistic locking: Added ability to update `locking_column` value.
+    Ignore optimistic locking if trying to update with new `locking_column` value.
+
+    *bogdanvlviv*
+
+*   Fixed: Optimistic locking does not work well with `null` in the database.
+
+    Fixes #26024.
+
+    *bogdanvlviv*
+
 *   Fixed support for case insensitive comparisons of `text` columns in
     PostgreSQL.
 
     *Edho Arief*
 
-*   Made ActiveRecord consistently use `ActiveRecord::Type` (not `ActiveModel::Type`)
-
-    *Iain Beeston*
-
-*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
+*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`.
 
     *Trung Duc Tran*
 
@@ -111,7 +272,7 @@
     successfully rolled back when the column was given and invalid column
     type.
 
-    Fixes #26087
+    Fixes #26087.
 
     *Travis O'Neill*
 
@@ -141,7 +302,7 @@
     *Takeshi Akima*
 
 *   Virtual attributes will no longer raise when read on models loaded from the
-    database
+    database.
 
     *Sean Griffin*
 

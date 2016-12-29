@@ -1,6 +1,5 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/regexp"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
@@ -36,18 +35,37 @@ module ActionView
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
+      # ==== Options
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. The following options are supported:
+      #
+      # * <tt>:extname</tt>  - Append a extention to the generated url unless the extension
+      #   already exists. This only applies for relative urls.
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated url, this option only
+      #   applies when a relative url and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative url is provided the host is added to the
+      #   that path.
+      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      #   when it is set to true.
+      #
+      # ==== Examples
+      #
       #   javascript_include_tag "xmlhr"
-      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.debug-1284139606.js"></script>
+      #
+      #   javascript_include_tag "xmlhr", host: "localhost", protocol: "https"
+      #   # => <script src="https://localhost/assets/xmlhr.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "template.jst", extname: false
-      #   # => <script src="/assets/template.jst?1284139606"></script>
+      #   # => <script src="/assets/template.debug-1284139606.jst"></script>
       #
       #   javascript_include_tag "xmlhr.js"
-      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools"
-      #   # => <script src="/assets/common.javascript?1284139606"></script>
-      #   #    <script src="/elsewhere/cools.js?1423139606"></script>
+      #   # => <script src="/assets/common.javascript.debug-1284139606.js"></script>
+      #   #    <script src="/elsewhere/cools.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "http://www.example.com/xmlhr"
       #   # => <script src="http://www.example.com/xmlhr"></script>
@@ -169,7 +187,7 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source="favicon.ico", options={})
+      def favicon_link_tag(source = "favicon.ico", options = {})
         tag("link", {
           rel: "shortcut icon",
           type: "image/x-icon",
@@ -207,7 +225,7 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
-      def image_tag(source, options={})
+      def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 

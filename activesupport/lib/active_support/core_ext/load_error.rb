@@ -27,5 +27,3 @@ class LoadError
     location.sub(/\.rb$/, "".freeze) == path.sub(/\.rb$/, "".freeze)
   end
 end
-
-MissingSourceFile = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("MissingSourceFile", "LoadError")

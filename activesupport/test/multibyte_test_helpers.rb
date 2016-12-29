@@ -33,7 +33,7 @@ module MultibyteTestHelpers
     str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
   end
 
-  def assert_equal_codepoints(expected, actual, message=nil)
+  def assert_equal_codepoints(expected, actual, message = nil)
     assert_equal(inspect_codepoints(expected), inspect_codepoints(actual), message)
   end
 end

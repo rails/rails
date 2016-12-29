@@ -36,11 +36,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
       private
 
-      def should_be_cool
-        unless self.first_name == "cool"
-          errors.add :first_name, "not cool"
+        def should_be_cool
+          unless self.first_name == "cool"
+            errors.add :first_name, "not cool"
+          end
         end
-      end
     }
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"
@@ -792,6 +792,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     end
 
     @ship.pirate.catchphrase = "Changed Catchphrase"
+    @ship.name_will_change!
 
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
@@ -1130,7 +1131,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_queries(0) { @ship.save! }
 
     @parrot = @pirate.parrots.create(name: "some_name")
-    @parrot.name="changed_name"
+    @parrot.name = "changed_name"
     assert_queries(1) { @ship.save! }
     assert_queries(0) { @ship.save! }
   end
@@ -1696,5 +1697,29 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
   def test_autosave_with_touch_should_not_raise_system_stack_error
     invoice = Invoice.create
     assert_nothing_raised { invoice.line_items.create(amount: 10) }
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::TestCase
+  class Post < ActiveRecord::Base
+    has_many :comments, inverse_of: :post
+  end
+
+  class Comment < ActiveRecord::Base
+    belongs_to :post, inverse_of: :comments
+
+    attr_accessor :post_comments_count
+    after_save do
+      self.post_comments_count = post.comments.count
+    end
+  end
+
+  def test_after_save_callback_with_autosave
+    post = Post.new(title: "Test", body: "...")
+    comment = post.comments.build(body: "...")
+    post.save!
+
+    assert_equal 1, post.comments.count
+    assert_equal 1, comment.post_comments_count
   end
 end

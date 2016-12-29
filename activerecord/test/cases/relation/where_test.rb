@@ -64,12 +64,12 @@ module ActiveRecord
     end
 
     def test_belongs_to_array_value_where
-      assert_equal Post.where(author_id: [1,2]).to_sql, Post.where(author: [1,2]).to_sql
+      assert_equal Post.where(author_id: [1, 2]).to_sql, Post.where(author: [1, 2]).to_sql
     end
 
     def test_belongs_to_nested_relation_where
-      expected = Post.where(author_id: Author.where(id: [1,2])).to_sql
-      actual   = Post.where(author:    Author.where(id: [1,2])).to_sql
+      expected = Post.where(author_id: Author.where(id: [1, 2])).to_sql
+      actual   = Post.where(author:    Author.where(id: [1, 2])).to_sql
 
       assert_equal expected, actual
     end
@@ -87,7 +87,7 @@ module ActiveRecord
     def test_belongs_to_nested_where_with_relation
       author = authors(:david)
 
-      expected = Author.where(id: author ).joins(:posts)
+      expected = Author.where(id: author).joins(:posts)
       actual   = Author.where(posts: { author_id: Author.where(id: author.id) }).joins(:posts)
 
       assert_equal expected.to_a, actual.to_a
@@ -127,8 +127,8 @@ module ActiveRecord
     end
 
     def test_polymorphic_nested_relation_where
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1,2]))
-      actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1, 2]))
+      actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
     end

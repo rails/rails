@@ -417,7 +417,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionDispatch::IntegrationTest` instead.
     ([commit](https://github.com/rails/rails/commit/4414c5d1795e815b102571425974a8b1d46d932d))
 
-*   Rails will only generate "weak", instead of strong ETags.
+*   Rails generates weak ETags by default.
     ([Pull Request](https://github.com/rails/rails/pull/17573))
 
 *   Controller actions without an explicit `render` call and with no
@@ -453,6 +453,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     `ActionController::Live`.
     ([More details in this issue](https://github.com/rails/rails/issues/25581))
 
+*   Introduce `Response#strong_etag=` and `#weak_etag=` and analogous
+    options for `fresh_when` and `stale?`.
+    ([Pull Request](https://github.com/rails/rails/pull/24387))
 
 Action View
 -------------
@@ -582,7 +585,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     gem. ([Pull Request](https://github.com/rails/rails/pull/21161))
 
 *   Removed support for the legacy `mysql` database adapter from core. Most users should
-    be able to use `mysql2`. It will be converted to a separate gem when when we find someone
+    be able to use `mysql2`. It will be converted to a separate gem when we find someone
     to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642),
     [Pull Request 2](https://github.com/rails/rails/pull/22715))
 
@@ -1000,7 +1003,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `#on_weekend?`, `#on_weekday?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
     `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/18335))
+    ([Pull Request](https://github.com/rails/rails/pull/18335),
+     [Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Added `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
     and `DateTime`.
@@ -1050,9 +1054,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Added `Array#second_to_last` and `Array#third_to_last` methods.
     ([Pull Request](https://github.com/rails/rails/pull/23583))
-
-*   Added `#on_weekday?` method to `Date`, `Time`, and `DateTime`.
-    ([Pull Request](https://github.com/rails/rails/pull/23687))
 
 *   Publish `ActiveSupport::Executor` and `ActiveSupport::Reloader` APIs to allow
     components and libraries to manage, and participate in, the execution of

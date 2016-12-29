@@ -1,7 +1,6 @@
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:
@@ -278,8 +277,10 @@ module ActiveRecord
   #
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
-  #   default value for +column_name+ defined by +default+ on +table_name+.
+  # * <tt>change_column_default(table_name, column_name, default_or_changes)</tt>:
+  #   Sets a default value for +column_name+ defined by +default_or_changes+ on
+  #   +table_name+. Passing a hash containing <tt>:from</tt> and <tt>:to</tt>
+  #   as +default_or_changes+ will make this change reversible in the migration.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
@@ -768,7 +769,7 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time   = nil
+      time = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
@@ -796,7 +797,7 @@ module ActiveRecord
       @connection = nil
     end
 
-    def write(text="")
+    def write(text = "")
       puts(text) if verbose
     end
 
@@ -806,7 +807,7 @@ module ActiveRecord
       write "== %s %s" % [text, "=" * length]
     end
 
-    def say(message, subitem=false)
+    def say(message, subitem = false)
       write "#{subitem ? "   ->" : "--"} #{message}"
     end
 
@@ -990,11 +991,11 @@ module ActiveRecord
         end
       end
 
-      def rollback(migrations_paths, steps=1)
+      def rollback(migrations_paths, steps = 1)
         move(:down, migrations_paths, steps)
       end
 
-      def forward(migrations_paths, steps=1)
+      def forward(migrations_paths, steps = 1)
         move(:up, migrations_paths, steps)
       end
 
@@ -1231,10 +1232,10 @@ module ActiveRecord
       end
 
       def validate(migrations)
-        name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
+        name , = migrations.group_by(&:name).find { |_, v| v.length > 1 }
         raise DuplicateMigrationNameError.new(name) if name
 
-        version ,= migrations.group_by(&:version).find { |_,v| v.length > 1 }
+        version , = migrations.group_by(&:version).find { |_, v| v.length > 1 }
         raise DuplicateMigrationVersionError.new(version) if version
       end
 

@@ -9,7 +9,6 @@ require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/type_metadata"
 
 require "active_support/core_ext/string/strip"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -40,7 +39,7 @@ module ActiveRecord
       self.emulate_booleans = true
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "int auto_increment PRIMARY KEY",
+        primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
@@ -216,7 +215,11 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
-        log(sql, name) { @connection.query(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.query(sql)
+          end
+        end
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -388,25 +391,21 @@ module ActiveRecord
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part]) if row[:Sub_part]
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
           end
         end
 
         indexes
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-            default, default_function = nil, field[:Default]
-          else
-            default, default_function = field[:Default], nil
-          end
-          new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
+      def new_column_from_field(table_name, field) # :nodoc:
+        type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
+        if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
+          default, default_function = nil, field[:Default]
+        else
+          default, default_function = field[:Default], nil
         end
+        new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
       end
 
       def table_comment(table_name) # :nodoc:
@@ -650,9 +649,9 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
-      protected
+      private
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
@@ -692,9 +691,9 @@ module ActiveRecord
           end
         end
 
-        def register_integer_type(mapping, key, options) # :nodoc:
+        def register_integer_type(mapping, key, options)
           mapping.register_type(key) do |sql_type|
-            if /\bunsigned\z/ === sql_type
+            if /\bunsigned\b/.match?(sql_type)
               Type::UnsignedInteger.new(options)
             else
               Type::Integer.new(options)
@@ -703,7 +702,7 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          if /time/ === sql_type
+          if /time/.match?(sql_type)
             super || 0
           else
             super
@@ -718,6 +717,7 @@ module ActiveRecord
           if length = options[:length]
             case length
             when Hash
+              length = length.symbolize_keys
               quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
             when Integer
               quoted_columns.each { |name, column| column << "(#{length})" }
@@ -734,9 +734,14 @@ module ActiveRecord
 
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
+        ER_NOT_NULL_VIOLATION   = 1048
+        ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
+        ER_OUT_OF_RANGE         = 1264
         ER_LOCK_DEADLOCK        = 1213
+        ER_CANNOT_ADD_FOREIGN   = 1215
+        ER_CANNOT_CREATE_TABLE  = 1005
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -744,8 +749,20 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
+          when ER_CANNOT_ADD_FOREIGN
+            mismatched_foreign_key(message)
+          when ER_CANNOT_CREATE_TABLE
+            if message.include?("errno: 150")
+              mismatched_foreign_key(message)
+            else
+              super
+            end
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
+          when ER_OUT_OF_RANGE
+            RangeError.new(message)
+          when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
+            NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           else
@@ -768,6 +785,10 @@ module ActiveRecord
 
           unless options.has_key?(:null)
             options[:null] = column.null
+          end
+
+          unless options.key?(:comment)
+            options[:comment] = column.comment
           end
 
           td = create_table_definition(table_name)
@@ -815,8 +836,6 @@ module ActiveRecord
         def remove_timestamps_sql(table_name, options = {})
           [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
         end
-
-      private
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery. Ugh!
@@ -887,7 +906,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          @connection.query  "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
+          execute "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
 
         def column_definitions(table_name) # :nodoc:
@@ -909,6 +928,18 @@ module ActiveRecord
 
         def create_table_definition(*args) # :nodoc:
           MySQL::TableDefinition.new(*args)
+        end
+
+        def mismatched_foreign_key(message)
+          parts = message.scan(/`(\w+)`[ $)]/).flatten
+          MismatchedForeignKey.new(
+            self,
+            message: message,
+            table: parts[0],
+            foreign_key: parts[1],
+            target_table: parts[2],
+            primary_key: parts[3],
+          )
         end
 
         def extract_schema_qualified_name(string) # :nodoc:

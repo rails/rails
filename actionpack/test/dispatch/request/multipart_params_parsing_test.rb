@@ -129,7 +129,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     params = parse_multipart("none")
     assert_equal %w(submit-name), params.keys.sort
     assert_equal "Larry", params["submit-name"]
-    assert_equal nil, params["files"]
+    assert_nil params["files"]
   end
 
   test "parses empty upload file" do
@@ -142,7 +142,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "uploads and reads binary file" do
     with_test_routing do
-      fixture = FIXTURE_PATH + "/mona_lisa.jpg"
+      fixture = FIXTURE_PATH + "/ruby_on_rails.jpg"
       params = { uploaded_data: fixture_file_upload(fixture, "image/jpg") }
       post "/read", params: params
     end

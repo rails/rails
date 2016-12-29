@@ -50,11 +50,11 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     end
   end
 
-  def encode( text, charset="UTF-8" )
-    quoted_printable( text, charset )
+  def encode(text, charset = "UTF-8")
+    quoted_printable(text, charset)
   end
 
-  def new_mail( charset="UTF-8" )
+  def new_mail(charset = "UTF-8")
     mail = Mail.new
     mail.mime_version = "1.0"
     if charset
@@ -81,7 +81,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     AppRoutes.draw do
       ActiveSupport::Deprecation.silence do
         get ":controller(/:action(/:id))"
-        get "/welcome"  => "foo#bar", as: "welcome"
+        get "/welcome" => "foo#bar", as: "welcome"
         get "/dummy_model" => "foo#baz", as: "dummy_model"
       end
     end

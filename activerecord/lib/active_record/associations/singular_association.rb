@@ -30,6 +30,13 @@ module ActiveRecord
         record
       end
 
+      # Implements the reload reader method, e.g. foo.reload_bar for
+      # Foo.has_one :bar
+      def force_reload_reader
+        klass.uncached { reload }
+        target
+      end
+
       private
 
         def create_scope
@@ -51,6 +58,8 @@ module ActiveRecord
           sc.execute(binds, klass, conn) do |record|
             set_inverse_instance record
           end.first
+        rescue ::RangeError
+          nil
         end
 
         def replace(record)

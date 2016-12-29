@@ -1,7 +1,7 @@
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
-      def initialize(options={})
+      def initialize(options = {})
         super
       end
 
@@ -52,7 +52,7 @@ HTML
             "ruby; html-script: true"
           when "html"
             "xml" # HTML is understood, but there are .xml rules in the CSS
-            else
+          else
             "plain"
           end
         end

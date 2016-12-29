@@ -35,7 +35,7 @@ module ActiveRecord
         return target unless target || record
 
         assigning_another_record = target != record
-        if assigning_another_record || record.changed?
+        if assigning_another_record || record.has_changes_to_save?
           save &&= owner.persisted?
 
           transaction_if(save) do
@@ -86,8 +86,9 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroy
-            else
+          else
             nullify_owner_attributes(target)
+            remove_inverse_instance(target)
 
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)

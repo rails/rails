@@ -316,7 +316,7 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_nil
     assert @cache.write("foo", nil)
-    assert_equal nil, @cache.read("foo")
+    assert_nil @cache.read("foo")
   end
 
   def test_should_read_and_write_false
@@ -464,7 +464,7 @@ module CacheStoreBehavior
 
     Time.stub(:now, Time.at(time)) do
       result = @cache.fetch("foo") do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -476,7 +476,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar", expires_in: 60)
     Time.stub(:now, time + 71) do
       result = @cache.fetch("foo", race_condition_ttl: 10) do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -565,12 +565,6 @@ module CacheStoreBehavior
     assert_not @events[0].payload[:hit]
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
-  end
-
-  def test_can_call_deprecated_namesaced_key
-    assert_deprecated "`namespaced_key` is deprecated" do
-      @cache.send(:namespaced_key, 111, {})
-    end
   end
 end
 
@@ -681,9 +675,9 @@ module LocalCacheBehavior
 
   def test_local_cache_of_read_nil
     @cache.with_local_cache do
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
       @cache.send(:bypass_local_cache) { @cache.write "foo", "bar" }
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
     end
   end
 
@@ -746,15 +740,6 @@ module LocalCacheBehavior
     }
     app = @cache.middleware.new(app)
     app.call({})
-  end
-
-  def test_can_call_deprecated_set_cache_value
-    @cache.with_local_cache do
-      assert_deprecated "`set_cache_value` is deprecated" do
-        @cache.send(:set_cache_value, 1, "foo", :ignored, {})
-      end
-      assert_equal 1, @cache.read("foo")
-    end
   end
 end
 
@@ -838,8 +823,8 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   def test_long_uri_encoded_keys
-    @cache.write("%"*870, 1)
-    assert_equal 1, @cache.read("%"*870)
+    @cache.write("%" * 870, 1)
+    assert_equal 1, @cache.read("%" * 870)
   end
 
   def test_key_transformation
@@ -859,7 +844,7 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:normalize_key, key, {})
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname + ".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname + '.lock').length}"
     end
   end
 
@@ -917,12 +902,6 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
-  end
-
-  def test_can_call_deprecated_key_file_path
-    assert_deprecated "`key_file_path` is deprecated" do
-      assert_equal 111, @cache.send(:key_file_path, 111)
-    end
   end
 end
 
@@ -1004,7 +983,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def test_pruning_is_capped_at_a_max_time
-    def @cache.delete_entry (*args)
+    def @cache.delete_entry(*args)
       sleep(0.01)
       super
     end
@@ -1097,12 +1076,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_not_equal value.object_id, @cache.read("foo").object_id
     value << "bingo"
     assert_not_equal value, @cache.read("foo")
-  end
-
-  def test_can_call_deprecated_escape_key
-    assert_deprecated "`escape_key` is deprecated" do
-      assert_equal 111, @cache.send(:escape_key, 111)
-    end
   end
 end
 

@@ -1,3 +1,121 @@
+*   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
+    to false.
+
+    *utilum*
+
+*   Change return value of `NilClass#duplicable?`, `FalseClass#duplicable?`,
+    `TrueClass#duplicable?`, `Symbol#duplicable?` and `Numeric#duplicable?`
+    to true with Ruby 2.4+. These classes can dup with Ruby 2.4+.
+
+    *Yuji Yaginuma*
+
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+
+    *Andrew White*
+
+*   Remove deprecated separator argument from `parameterize`
+
+    *Andrew White*
+
+*   Remove deprecated method `Numeric#to_formatted_s`
+
+    *Andrew White*
+
+*   Remove deprecated method `alias_method_chain`
+
+    *Andrew White*
+
+*   Remove deprecated constant `MissingSourceFile`
+
+    *Andrew White*
+
+*   Remove deprecated methods `Module.qualified_const_defined?`,
+    `Module.qualified_const_get` and `Module.qualified_const_set`
+
+    *Andrew White*
+
+*   Remove deprecated `:prefix` option from `number_to_human_size`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/struct.rb`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+
+    *Andrew White*
+
+*   Remove deprecated method `Module.local_constants`
+
+    *Andrew White*
+
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
+
+    *Andrew White*
+
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
+
+    *Andrew White*
+
+*   Ensure duration parsing is consistent across DST changes
+
+    Previously `ActiveSupport::Duration.parse` used `Time.current` and
+    `Time#advance` to calculate the number of seconds in the duration
+    from an arbitrary collection of parts. However as `advance` tries to
+    be consistent across DST boundaries this meant that either the
+    duration was shorter or longer depending on the time of year.
+
+    This was fixed by using an absolute reference point in UTC which
+    isn't subject to DST transitions. An arbitrary date of Jan 1st, 2000
+    was chosen for no other reason that it seemed appropriate.
+
+    Additionally, duration parsing should now be marginally faster as we
+    are no longer creating instances of `ActiveSupport::TimeWithZone`
+    every time we parse a duration string.
+
+    Fixes #26941.
+
+    *Andrew White*
+
+*   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
+    will continue to get these methods from Active Support as before.
+
+    *Prathamesh Sonpatki*
+
+*   Fix `ActiveSupport::TimeZone#strptime`.
+    Support for timestamps in format of seconds (%s) and milliseconds (%Q).
+
+    Fixes #26840.
+
+    *Lev Denisov*
+
+*   Fix `DateAndTime::Calculations#copy_time_to`. Copy `nsec` instead of `usec`.
+
+    Jumping forward or backward between weeks now preserves nanosecond digits.
+
+    *Josua Schmid*
+
 *   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
 
     Previously calls to `in` were being sent to the non-DST aware
@@ -8,10 +126,10 @@
         Time.zone = "US/Eastern"
 
         t = Time.zone.local(2016,11,6,1)
-        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00
 
         t.in(1.hour)
-        # => Sun, 06 Nov 2016 01:00:00 EST -05:00 
+        # => Sun, 06 Nov 2016 01:00:00 EST -05:00
 
     Fixes #26580.
 
@@ -106,12 +224,6 @@
         end
 
     *Genadi Samokovarov*
-
-*   Add `:fallback_string` option to `Array#to_sentence`. If an empty array
-    calls the function and a fallback string option is set then it returns the
-    fallback string other than an empty string.
-
-    *Mohamed Osama*
 
 *   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
     given time doesn't match the format. The error is the same as the one given

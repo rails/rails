@@ -3,6 +3,8 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/schema_creation"
+require "active_record/connection_adapters/sqlite3/schema_definitions"
+require "active_record/connection_adapters/sqlite3/schema_dumper"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -52,6 +54,7 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
+      include SQLite3::ColumnDumper
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -73,6 +76,10 @@ module ActiveRecord
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
+      end
+
+      def update_table_definition(table_name, base) # :nodoc:
+        SQLite3::Table.new(table_name, base)
       end
 
       def schema_creation # :nodoc:
@@ -191,30 +198,32 @@ module ActiveRecord
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
-          # Don't cache statements if they are not prepared
-          unless prepare
-            stmt    = @connection.prepare(sql)
-            begin
-              cols    = stmt.columns
-              unless without_prepared_statement?(binds)
-                stmt.bind_params(type_casted_binds)
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            # Don't cache statements if they are not prepared
+            unless prepare
+              stmt = @connection.prepare(sql)
+              begin
+                cols = stmt.columns
+                unless without_prepared_statement?(binds)
+                  stmt.bind_params(type_casted_binds)
+                end
+                records = stmt.to_a
+              ensure
+                stmt.close
               end
+            else
+              cache = @statements[sql] ||= {
+                stmt: @connection.prepare(sql)
+              }
+              stmt = cache[:stmt]
+              cols = cache[:cols] ||= stmt.columns
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
               records = stmt.to_a
-            ensure
-              stmt.close
             end
-          else
-            cache = @statements[sql] ||= {
-              stmt: @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-            cols = cache[:cols] ||= stmt.columns
-            stmt.reset!
-            stmt.bind_params(type_casted_binds)
-            records = stmt.to_a
-          end
 
-          ActiveRecord::Result.new(cols, records)
+            ActiveRecord::Result.new(cols, records)
+          end
         end
       end
 
@@ -229,19 +238,23 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.execute(sql)
+          end
+        end
       end
 
       def begin_db_transaction #:nodoc:
-        log("begin transaction",nil) { @connection.transaction }
+        log("begin transaction", nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        log("commit transaction",nil) { @connection.commit }
+        log("commit transaction", nil) { @connection.commit }
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        log("rollback transaction",nil) { @connection.rollback }
+        log("rollback transaction", nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
@@ -298,24 +311,20 @@ module ActiveRecord
         select_values(sql, "SCHEMA").any?
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        table_structure(table_name).map do |field|
-          case field["dflt_value"]
-          when /^null$/i
-            field["dflt_value"] = nil
-          when /^'(.*)'$/m
-            field["dflt_value"] = $1.gsub("''", "'")
-          when /^"(.*)"$/m
-            field["dflt_value"] = $1.gsub('""', '"')
-          end
-
-          collation = field["collation"]
-          sql_type = field["type"]
-          type_metadata = fetch_type_metadata(sql_type)
-          new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
+      def new_column_from_field(table_name, field) # :nondoc:
+        case field["dflt_value"]
+        when /^null$/i
+          field["dflt_value"] = nil
+        when /^'(.*)'$/m
+          field["dflt_value"] = $1.gsub("''", "'")
+        when /^"(.*)"$/m
+          field["dflt_value"] = $1.gsub('""', '"')
         end
+
+        collation = field["collation"]
+        sql_type = field["type"]
+        type_metadata = fetch_type_metadata(sql_type)
+        new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
       end
 
       # Returns an array of indexes for the given table.
@@ -410,7 +419,7 @@ module ActiveRecord
             self.default = options[:default] if include_default
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
-            self.scale   = options[:scale] if options.include?(:scale)
+            self.scale = options[:scale] if options.include?(:scale)
             self.collation = options[:collation] if options.include?(:collation)
           end
         end
@@ -422,15 +431,16 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
+      private
 
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
+        alias column_definitions table_structure
 
-        def alter_table(table_name, options = {}) #:nodoc:
+        def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
           caller = lambda { |definition| yield definition if block_given? }
 
@@ -441,12 +451,12 @@ module ActiveRecord
           end
         end
 
-        def move_table(from, to, options = {}, &block) #:nodoc:
+        def move_table(from, to, options = {}, &block)
           copy_table(from, to, options, &block)
           drop_table(from)
         end
 
-        def copy_table(from, to, options = {}) #:nodoc:
+        def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
           create_table(to, options) do |definition|
@@ -472,7 +482,7 @@ module ActiveRecord
             options[:rename] || {})
         end
 
-        def copy_table_indexes(from, to, rename = {}) #:nodoc:
+        def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
             if to == "a#{from}"
@@ -495,7 +505,7 @@ module ActiveRecord
           end
         end
 
-        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
+        def copy_table_contents(from, to, columns, rename = {})
           column_mappings = Hash[columns.map { |name| [name, name] }]
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
@@ -520,20 +530,23 @@ module ActiveRecord
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message)
+          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+            NotNullViolation.new(message)
           else
             super
           end
         end
 
-      private
         COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
-          sql            = "SELECT sql FROM
-                              (SELECT * FROM sqlite_master UNION ALL
-                               SELECT * FROM sqlite_temp_master)
-                            WHERE type='table' and name='#{ table_name }' \;"
+          sql = <<-SQL
+            SELECT sql FROM
+              (SELECT * FROM sqlite_master UNION ALL
+               SELECT * FROM sqlite_temp_master)
+            WHERE type = 'table' AND name = #{quote(table_name)}
+          SQL
 
           # Result will have following sample string
           # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -563,6 +576,10 @@ module ActiveRecord
           else
             basic_structure.to_hash
           end
+        end
+
+        def create_table_definition(*args)
+          SQLite3::TableDefinition.new(*args)
         end
     end
   end

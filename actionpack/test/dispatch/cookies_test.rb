@@ -43,7 +43,7 @@ class CookieJarTest < ActiveSupport::TestCase
   def test_each
     request.cookie_jar["foo"] = :bar
     list = []
-    request.cookie_jar.each do |k,v|
+    request.cookie_jar.each do |k, v|
       list << [k, v]
     end
 
@@ -52,7 +52,7 @@ class CookieJarTest < ActiveSupport::TestCase
 
   def test_enumerable
     request.cookie_jar["foo"] = :bar
-    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    actual = request.cookie_jar.map { |k, v| [k.to_s, v.to_s] }
     assert_equal [["foo", "bar"]], actual
   end
 
@@ -95,17 +95,17 @@ class CookiesTest < ActionController::TestCase
     end
 
     def authenticate_for_fourteen_days
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def set_multiple_cookies
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       cookies["login"]     = "XJ-122"
       head :ok
     end
@@ -205,7 +205,7 @@ class CookiesTest < ActionController::TestCase
 
     def delete_and_set_cookie
       cookies.delete :user_name
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
@@ -271,6 +271,10 @@ class CookiesTest < ActionController::TestCase
 
     def noop
       head :ok
+    end
+
+    def encrypted_cookie
+      cookies.encrypted["foo"]
     end
   end
 
@@ -940,8 +944,8 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "user_id=45"
     get :get_signed_cookie
 
-    assert_equal nil, @controller.send(:cookies).signed[:user_id]
-    assert_equal nil, @response.cookies["user_id"]
+    assert_nil @controller.send(:cookies).signed[:user_id]
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_legacy_signed_cookie_is_treated_as_nil_by_encrypted_cookie_jar_if_tampered
@@ -951,8 +955,8 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "foo=baz"
     get :get_encrypted_cookie
 
-    assert_equal nil, @controller.send(:cookies).encrypted[:foo]
-    assert_equal nil, @response.cookies["foo"]
+    assert_nil @controller.send(:cookies).encrypted[:foo]
+    assert_nil @response.cookies["foo"]
   end
 
   def test_cookie_with_all_domain_option
@@ -1187,6 +1191,12 @@ class CookiesTest < ActionController::TestCase
     get :noop
     assert_equal "david", cookies["user_name"]
     assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_are_not_cleared
+    cookies.encrypted["foo"] = "bar"
+    get :noop
+    assert_equal "bar", @controller.encrypted_cookie
   end
 
   private

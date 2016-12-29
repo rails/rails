@@ -98,7 +98,7 @@ module ActionView
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
-        distance_in_minutes = ((to_time - from_time)/60.0).round
+        distance_in_minutes = ((to_time - from_time) / 60.0).round
         distance_in_seconds = (to_time - from_time).round
 
         I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
@@ -220,7 +220,7 @@ module ActionView
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
-      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
+      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
       # * <tt>:selected</tt>          - Set a date that overrides the actual value.
       # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
       # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
@@ -267,7 +267,7 @@ module ActionView
       #   date_select("article", "written_on", default: 3.days.from_now)
       #
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
-      #   # which is set in the form with todays date, regardless of the value in the Active Record object.
+      #   # which is set in the form with today's date, regardless of the value in the Active Record object.
       #   date_select("article", "written_on", selected: Date.today)
       #
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
@@ -866,7 +866,7 @@ module ActionView
         end
 
         # Returns translated month names, but also ensures that a custom month
-        # name array has a leading nil element.
+        # name array has a leading +nil+ element.
         def month_names
           @month_names ||= begin
             month_names = @options[:use_month_names] || translated_month_names

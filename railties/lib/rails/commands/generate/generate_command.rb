@@ -2,8 +2,8 @@ require "rails/generators"
 
 module Rails
   module Command
-    class GenerateCommand < Base
-      def help # :nodoc:
+    class GenerateCommand < Base # :nodoc:
+      def help
         Rails::Generators.help self.class.command_name
       end
 
@@ -13,6 +13,8 @@ module Rails
 
         require_application_and_environment!
         load_generators
+
+        ARGV.shift
 
         Rails::Generators.invoke generator, args, behavior: :invoke, destination_root: Rails::Command.root
       end

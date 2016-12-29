@@ -111,7 +111,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_strings, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_transform_keys!
@@ -127,7 +127,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys
@@ -167,7 +167,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @symbols, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_symbolize_keys!
@@ -183,7 +183,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @nested_symbols, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized
@@ -243,7 +243,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.stringify_keys!
     assert_equal @strings, transformed_hash
-    assert_equal @mixed, :a => 1, "b" => 2
+    assert_equal({ :a => 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_stringify_keys!
@@ -259,7 +259,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_stringify_keys!
     assert_equal @nested_strings, transformed_hash
-    assert_equal @nested_mixed, "a" => { b: { "c" => 3 } }
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys_for_hash_with_indifferent_access
@@ -390,8 +390,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal true, hash[:b]
     assert_equal false, hash[:c]
-    assert_equal nil, hash[:d]
-    assert_equal nil, hash[:e]
+    assert_nil hash[:d]
+    assert_nil hash[:e]
   end
 
   def test_indifferent_reading_with_nonnil_default
@@ -404,7 +404,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal true, hash[:b]
     assert_equal false, hash[:c]
-    assert_equal nil, hash[:d]
+    assert_nil hash[:d]
     assert_equal 1, hash[:e]
   end
 
@@ -414,11 +414,11 @@ class HashExtTest < ActiveSupport::TestCase
     hash["b"] = 2
     hash[3] = 3
 
-    assert_equal hash["a"], 1
-    assert_equal hash["b"], 2
-    assert_equal hash[:a], 1
-    assert_equal hash[:b], 2
-    assert_equal hash[3], 3
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash["b"]
+    assert_equal 1, hash[:a]
+    assert_equal 2, hash[:b]
+    assert_equal 3, hash[3]
   end
 
   def test_indifferent_update
@@ -430,16 +430,16 @@ class HashExtTest < ActiveSupport::TestCase
     updated_with_symbols = hash.update(@symbols)
     updated_with_mixed = hash.update(@mixed)
 
-    assert_equal updated_with_strings[:a], 1
-    assert_equal updated_with_strings["a"], 1
-    assert_equal updated_with_strings["b"], 2
+    assert_equal 1, updated_with_strings[:a]
+    assert_equal 1, updated_with_strings["a"]
+    assert_equal 2, updated_with_strings["b"]
 
-    assert_equal updated_with_symbols[:a], 1
-    assert_equal updated_with_symbols["b"], 2
-    assert_equal updated_with_symbols[:b], 2
+    assert_equal 1, updated_with_symbols[:a]
+    assert_equal 2, updated_with_symbols["b"]
+    assert_equal 2, updated_with_symbols[:b]
 
-    assert_equal updated_with_mixed[:a], 1
-    assert_equal updated_with_mixed["b"], 2
+    assert_equal 1, updated_with_mixed[:a]
+    assert_equal 2, updated_with_mixed["b"]
 
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
@@ -447,7 +447,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     hash.update HashByConversion.new(a: 1)
-    assert_equal hash["a"], 1
+    assert_equal 1, hash["a"]
   end
 
   def test_indifferent_merging
@@ -472,7 +472,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_merge_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     merged = hash.merge HashByConversion.new(a: 1)
-    assert_equal merged["a"], 1
+    assert_equal 1, merged["a"]
   end
 
   def test_indifferent_replace
@@ -536,15 +536,15 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_deleting
     get_hash = proc { { a: "foo" }.with_indifferent_access }
     hash = get_hash.call
-    assert_equal hash.delete(:a), "foo"
-    assert_equal hash.delete(:a), nil
+    assert_equal "foo", hash.delete(:a)
+    assert_nil hash.delete(:a)
     hash = get_hash.call
-    assert_equal hash.delete("a"), "foo"
-    assert_equal hash.delete("a"), nil
+    assert_equal "foo", hash.delete("a")
+    assert_nil hash.delete("a")
   end
 
   def test_indifferent_select
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| v == 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -556,21 +556,21 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_select_returns_a_hash_when_unchanged
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k,v| true }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).select { |k, v| true }
 
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.select! { |k,v| v == 1 }
+    indifferent_strings.select! { |k, v| v == 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
   def test_indifferent_reject
-    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k,v| v != 1 }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).reject { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
@@ -583,7 +583,7 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_indifferent_reject_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
-    indifferent_strings.reject! { |k,v| v != 1 }
+    indifferent_strings.reject! { |k, v| v != 1 }
 
     assert_equal({ "a" => 1 }, indifferent_strings)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
@@ -759,9 +759,9 @@ class HashExtTest < ActiveSupport::TestCase
     hash_1 = { a: "a", b: "b", c: { c1: "c1", c2: "c2", c3: { d1: "d1" } } }
     hash_2 = { a: 1, c: { c1: 2, c3: { d2: "d2" } } }
     expected = { a: [:a, "a", 1], b: "b", c: { c1: [:c1, "c1", 2], c2: "c2", c3: { d1: "d1", d2: "d2" } } }
-    assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
 
-    hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -933,8 +933,8 @@ class HashExtTest < ActiveSupport::TestCase
     extracted = original.extract!(:a, :x)
 
     assert_equal expected, extracted
-    assert_equal nil, extracted[:a]
-    assert_equal nil, extracted[:x]
+    assert_nil extracted[:a]
+    assert_nil extracted[:x]
   end
 
   def test_indifferent_extract
@@ -1017,7 +1017,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal({}, h)
 
     h = @symbols.dup
-    assert_equal(nil, h.compact!)
+    assert_nil(h.compact!)
     assert_equal(@symbols, h)
   end
 
@@ -1049,13 +1049,6 @@ class HashExtTest < ActiveSupport::TestCase
     hash.default_proc = proc { |h, k| raise "walrus" }
 
     assert_nothing_raised { hash.to_hash }
-  end
-
-  def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
-    hash = Hash.new
-    hash.default_proc = proc { |h, k| raise "walrus" }
-
-    assert_deprecated { HashWithIndifferentAccess.new_from_hash_copying_default(hash) }
   end
 
   def test_new_with_to_hash_conversion_copies_default
@@ -1227,8 +1220,8 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_timezoned_attributes
     xml = {
-      created_at: Time.utc(1999,2,2),
-      local_created_at: Time.utc(1999,2,2).in_time_zone("Eastern Time (US & Canada)")
+      created_at: Time.utc(1999, 2, 2),
+      local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
     }.to_xml(@xml_options)
     assert_match %r{<created-at type=\"dateTime\">1999-02-02T00:00:00Z</created-at>}, xml
     assert_match %r{<local-created-at type=\"dateTime\">1999-02-01T19:00:00-05:00</local-created-at>}, xml
@@ -1537,7 +1530,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       weight: 0.5,
       chunky: true,
       price: BigDecimal("12.50"),
-      expires_at: Time.utc(2007,12,25,12,34,56),
+      expires_at: Time.utc(2007, 12, 25, 12, 34, 56),
       notes: "",
       illustration: "babe.png",
       caption: "That'll do, pig."
@@ -1596,13 +1589,13 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_should_use_default_proc_for_unknown_key
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
     assert_equal 3, hash_wia[:new_key]
   end
 
   def test_should_return_nil_if_no_key_is_supplied
-    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
-    assert_equal nil, hash_wia.default
+    hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
+    assert_nil hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key

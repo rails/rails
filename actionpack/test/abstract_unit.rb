@@ -351,7 +351,7 @@ class ResourcesController < ActionController::Base
 end
 
 class CommentsController < ResourcesController; end
-class AccountsController <  ResourcesController; end
+class AccountsController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
 # Skips the current run on Rubinius using Minitest::Assertions#skip

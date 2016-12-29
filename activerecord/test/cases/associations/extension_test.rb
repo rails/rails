@@ -45,7 +45,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     # Marshaling an association shouldn't make it unusable by wiping its reflection.
     assert_not_nil david.association(:projects).reflection
 
-    david_too  = Marshal.load(marshalled)
+    david_too = Marshal.load(marshalled)
     assert_equal projects(:action_controller), david_too.projects.find_most_recent
   end
 

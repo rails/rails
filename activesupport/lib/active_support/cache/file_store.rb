@@ -66,7 +66,7 @@ module ActiveSupport
         end
       end
 
-      protected
+      private
 
         def read_entry(key, options)
           if File.exist?(key)
@@ -98,9 +98,8 @@ module ActiveSupport
           end
         end
 
-      private
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
+        def lock_file(file_name, &block)
           if File.exist?(file_name)
             File.open(file_name, "r+") do |f|
               begin
@@ -136,14 +135,6 @@ module ActiveSupport
           end until fname.blank?
 
           File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
-        end
-
-        def key_file_path(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `key_file_path` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
-          key
         end
 
         # Translate a file path into a key.

@@ -2,6 +2,37 @@
 
     *Yuji Yaginuma*
 
+*   Add Webpack support in new apps via the --webpack option, which will delegate to the rails/webpacker gem.
+
+    To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:
+
+      `rails new myapp --webpack`
+
+    To generate a new app that has Webpack + React configured and an example intalled:
+
+      `rails new myapp --webpack=react`
+
+    *DHH*
+
+*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+
+    *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
+
+*   Removed jquery-rails from default stack, instead rails-ujs that is shipped
+    with Action View is included as default UJS adapter.
+
+    *Guillermo Iguaran*
+
+*   The config file `secrets.yml` is now loaded in with all keys as symbols.
+    This allows secrets files to contain more complex information without all
+    child keys being strings while parent keys are symbols.
+
+    *Isaac Sloan*
+
+*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+
+    *Tsukuru Tanimichi*
+
 *   Allow the use of listen's 3.1.x branch
 
     *Esteban Santana Santana*

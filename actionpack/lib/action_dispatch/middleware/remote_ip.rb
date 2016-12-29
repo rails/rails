@@ -153,9 +153,9 @@ module ActionDispatch
         @ip ||= calculate_ip
       end
 
-    protected
+    private
 
-      def ips_from(header)
+      def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings
         ips = header.strip.split(/[,\s]+/)
@@ -171,7 +171,7 @@ module ActionDispatch
         end
       end
 
-      def filter_proxies(ips)
+      def filter_proxies(ips) # :doc:
         ips.reject do |ip|
           @proxies.any? { |proxy| proxy === ip }
         end

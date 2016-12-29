@@ -4,7 +4,8 @@ require "support/job_buffer"
 ActiveSupport.halt_callback_chains_on_return_false = false
 GlobalID.app = "aj"
 
-@adapter  = ENV["AJ_ADAPTER"] || "inline"
+@adapter = ENV["AJ_ADAPTER"] || "inline"
+puts "Using #{@adapter}"
 
 if ENV["AJ_INTEGRATION_TESTS"]
   require "support/integration/helper"

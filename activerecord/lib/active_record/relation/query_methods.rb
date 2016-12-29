@@ -4,7 +4,6 @@ require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 require "active_support/core_ext/string/filters"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   module QueryMethods
@@ -242,7 +241,16 @@ module ActiveRecord
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
     def select(*fields)
-      return super if block_given?
+      if block_given?
+        if fields.any?
+          ActiveSupport::Deprecation.warn(<<-WARNING.squish)
+            When select is called with a block, it ignores other arguments. This behavior is now deprecated and will result in an ArgumentError in Rails 5.1. You can safely remove the arguments to resolve the deprecation warning because they do not have any effect on the output of the call to the select method with a block.
+          WARNING
+        end
+
+        return super()
+      end
+
       raise ArgumentError, "Call this with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
@@ -755,7 +763,7 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      spawn.none!
     end
 
     def none! # :nodoc:

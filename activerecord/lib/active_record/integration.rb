@@ -15,9 +15,9 @@ module ActiveRecord
       self.cache_timestamp_format = :usec
     end
 
-    # Returns a String, which Action Pack uses for constructing a URL to this
-    # object. The default implementation returns this record's id as a String,
-    # or nil if this record's unsaved.
+    # Returns a +String+, which Action Pack uses for constructing a URL to this
+    # object. The default implementation returns this record's id as a +String+,
+    # or +nil+ if this record's unsaved.
     #
     # For example, suppose that you have a User model, and that you have a
     # <tt>resources :users</tt> route. Normally, +user_path+ will

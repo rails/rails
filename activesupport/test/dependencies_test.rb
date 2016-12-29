@@ -121,7 +121,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       silence_warnings { require_dependency filename }
       assert_equal 2, $check_warnings_load_count
-      assert_equal nil, $checked_verbose, "After first load warnings should be left alone."
+      assert_nil $checked_verbose, "After first load warnings should be left alone."
 
       assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.clear
@@ -526,8 +526,8 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_file_search
     with_loading "dependencies" do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three")
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three.rb")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three.rb")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one.rb")
     end
@@ -757,14 +757,14 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
   def test_new_constants_in_with_a_single_constant
     assert_equal ["Hello"], ActiveSupport::Dependencies.new_constants_in(Object) {
                               Object.const_set :Hello, 10
                             }.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:Hello)
   end
@@ -781,7 +781,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
 
     assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:OuterBefore, :Inner, :OuterAfter)
   end
@@ -800,7 +800,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end
@@ -818,7 +818,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end

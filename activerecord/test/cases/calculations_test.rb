@@ -92,14 +92,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_group_by_field
     c = Account.group(:firm_id).sum(:credit_limit)
-    [1,6,2].each do |firm_id|
+    [1, 6, 2].each do |firm_id|
       assert_includes c.keys, firm_id, "Group #{c.inspect} does not contain firm_id #{firm_id}"
     end
   end
 
   def test_should_group_by_arel_attribute
     c = Account.group(Account.arel_table[:firm_id]).sum(:credit_limit)
-    [1,6,2].each do |firm_id|
+    [1, 6, 2].each do |firm_id|
       assert_includes c.keys, firm_id, "Group #{c.inspect} does not contain firm_id #{firm_id}"
     end
   end
@@ -453,7 +453,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_field_in_joined_table_with_group_by
     c = Account.group("accounts.firm_id").joins(:firm).count("companies.id")
 
-    [1,6,2,9].each { |firm_id| assert_includes c.keys, firm_id }
+    [1, 6, 2, 9].each { |firm_id| assert_includes c.keys, firm_id }
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
@@ -572,7 +572,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck
-    assert_equal [1,2,3,4,5], Topic.order(:id).pluck(:id)
+    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
   end
 
   def test_pluck_without_column_names
@@ -608,7 +608,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_qualified_column_name
-    assert_equal [1,2,3,4,5], Topic.order(:id).pluck("topics.id")
+    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck("topics.id")
   end
 
   def test_pluck_auto_table_name_prefix
@@ -688,7 +688,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_replaces_select_clause
     taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
+    assert_equal [1, 2, 3, 4, 5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
   end
 

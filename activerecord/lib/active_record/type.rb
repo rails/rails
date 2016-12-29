@@ -1,13 +1,14 @@
 require "active_model/type"
-require "active_record/type/helpers"
-require "active_record/type/value"
 
 require "active_record/type/internal/abstract_json"
 require "active_record/type/internal/timezone"
 
 require "active_record/type/date"
 require "active_record/type/date_time"
+require "active_record/type/decimal_without_scale"
 require "active_record/type/time"
+require "active_record/type/text"
+require "active_record/type/unsigned_integer"
 
 require "active_record/type/serialized"
 require "active_record/type/adapter_specific_registry"
@@ -50,16 +51,15 @@ module ActiveRecord
       end
     end
 
+    Helpers = ActiveModel::Type::Helpers
     BigInteger = ActiveModel::Type::BigInteger
     Binary = ActiveModel::Type::Binary
     Boolean = ActiveModel::Type::Boolean
     Decimal = ActiveModel::Type::Decimal
-    DecimalWithoutScale = ActiveModel::Type::DecimalWithoutScale
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
     String = ActiveModel::Type::String
-    Text = ActiveModel::Type::Text
-    UnsignedInteger = ActiveModel::Type::UnsignedInteger
+    Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)

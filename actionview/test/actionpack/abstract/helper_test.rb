@@ -109,7 +109,7 @@ module AbstractController
     class InvalidHelpersTest < ActiveSupport::TestCase
       def test_controller_raise_error_about_real_require_problem
         e = assert_raise(LoadError) { AbstractInvalidHelpers.helper(:invalid_require) }
-        assert_equal "No such file to load -- very_invalid_file_name", e.message
+        assert_equal "No such file to load -- very_invalid_file_name.rb", e.message
       end
 
       def test_controller_raise_error_about_missing_helper

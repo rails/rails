@@ -148,12 +148,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*limit: 4}, output
     end
 
-    if current_adapter?(:SQLite3Adapter)
-      assert_match %r{c_int_5.*limit: 5}, output
-      assert_match %r{c_int_6.*limit: 6}, output
-      assert_match %r{c_int_7.*limit: 7}, output
-      assert_match %r{c_int_8.*limit: 8}, output
-    elsif current_adapter?(:OracleAdapter)
+    if current_adapter?(:SQLite3Adapter, :OracleAdapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
@@ -346,7 +341,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       create_table("dogs") do |t|
         t.column :name, :string
-        t.column :owner_id, :integer
+        t.column :owner_id, :bigint
         t.index [:name]
         t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
       end
@@ -451,7 +446,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_float_column_infinity_default
     skip unless current_adapter?(:PostgreSQLAdapter)
-    output = dump_table_schema('infinity_defaults')
+    output = dump_table_schema("infinity_defaults")
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
   end

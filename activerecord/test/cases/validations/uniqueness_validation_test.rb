@@ -6,6 +6,9 @@ require "models/guid"
 require "models/event"
 require "models/dashboard"
 require "models/uuid_item"
+require "models/author"
+require "models/person"
+require "models/essay"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -161,6 +164,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
     assert !r2.valid?, "Saving r2 first time"
+  end
+
+  def test_validate_uniqueness_with_polymorphic_object_scope
+    Essay.validates_uniqueness_of(:name, scope: :writer)
+
+    a = Author.create(name: "Sergey")
+    p = Person.create(first_name: "Sergey")
+
+    e1 = a.essays.create(name: "Essay")
+    assert e1.valid?, "Saving e1"
+
+    e2 = p.essays.create(name: "Essay")
+    assert e2.valid?, "Saving e2"
   end
 
   def test_validate_uniqueness_with_composed_attribute_scope

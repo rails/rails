@@ -265,17 +265,6 @@ module ActiveRecord
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
-    module ClassMethods # :nodoc:
-      include ActiveModel::Callbacks
-    end
-
-    included do
-      include ActiveModel::Validations::Callbacks
-
-      define_model_callbacks :initialize, :find, :touch, only: :after
-      define_model_callbacks :save, :create, :update, :destroy
-    end
-
     def destroy #:nodoc:
       @_destroy_callback_already_called ||= false
       return if @_destroy_callback_already_called
@@ -294,15 +283,15 @@ module ActiveRecord
 
   private
 
-    def create_or_update(*) #:nodoc:
+    def create_or_update(*)
       _run_save_callbacks { super }
     end
 
-    def _create_record #:nodoc:
+    def _create_record
       _run_create_callbacks { super }
     end
 
-    def _update_record(*) #:nodoc:
+    def _update_record(*)
       _run_update_callbacks { super }
     end
   end

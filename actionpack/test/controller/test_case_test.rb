@@ -100,11 +100,11 @@ HTML
     end
 
     def test_xml_output
-      response.content_type = "application/xml"
+      response.content_type = params[:response_as]
       render plain: <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
+  <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
 </root>
 XML
     end
@@ -231,7 +231,7 @@ XML
 
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_document_body_with_post
@@ -374,18 +374,18 @@ XML
     assert_equal "OK", @response.body
   end
 
+  def test_should_impose_childless_html_tags_in_html
+    process :test_xml_output, params: { response_as: "text/html" }
+
+    # <area> auto-closes, so the <p> becomes a sibling
+    assert_select "root > area + p"
+  end
+
   def test_should_not_impose_childless_html_tags_in_xml
-    process :test_xml_output
+    process :test_xml_output, params: { response_as: "application/xml" }
 
-    begin
-      $stderr = StringIO.new
-      assert_select "area" #This will cause a warning if content is processed as HTML
-      $stderr.rewind && err = $stderr.read
-    ensure
-      $stderr = STDERR
-    end
-
-    assert err.empty?
+    # <area> is not special, so the <p> is its child
+    assert_select "root > area > p"
   end
 
   def test_assert_generates
@@ -651,7 +651,7 @@ XML
   def test_xhr_with_params
     get :test_params, params: { id: 1 }, xhr: true
 
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_xhr_with_session
@@ -753,10 +753,10 @@ XML
 
   def test_multiple_mixed_method_process_should_scrub_rack_input
     post :test_params, params: { id: 1, foo: "an foo" }
-    assert_equal({ "id"=>"1", "foo" => "an foo", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "foo" => "an foo", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
 
     get :test_params, params: { bar: "an bar" }
-    assert_equal({ "bar"=>"an bar", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "bar" => "an bar", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   %w(controller response request).each do |variable|
@@ -781,7 +781,7 @@ XML
   READ_PLAIN = "r:binary"
 
   def test_test_uploaded_file
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/png"
     expected = File.read(path)
@@ -801,13 +801,13 @@ XML
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
     TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("/mona_lisa.jpg", "image/png")
-      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+      uploaded_file = fixture_file_upload("/ruby_on_rails.jpg", "image/png")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_test_uploaded_file_with_binary
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/png"
 
@@ -819,7 +819,7 @@ XML
   end
 
   def test_fixture_file_upload_with_binary
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/jpg"
 
@@ -831,44 +831,44 @@ XML
   end
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
-    file = fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
     assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
   end
 
   def test_fixture_file_upload
     post :test_file_upload,
       params: {
-        file: fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
       }
-    assert_equal "159528", @response.body
+    assert_equal "45142", @response.body
   end
 
   def test_fixture_file_upload_relative_to_fixture_path
     TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
-      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+      uploaded_file = fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
     TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
-      uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
-      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+    assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end
 
   def test_action_dispatch_uploaded_file_upload
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     post :test_file_upload, params: {
       file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
     }
-    assert_equal "159528", @response.body
+    assert_equal "45142", @response.body
   end
 
   def test_test_uploaded_file_exception_when_file_doesnt_exist

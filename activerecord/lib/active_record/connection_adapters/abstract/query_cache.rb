@@ -4,6 +4,9 @@ module ActiveRecord
       class << self
         def included(base) #:nodoc:
           dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
+
+          base.set_callback :checkout, :after, :configure_query_cache!
+          base.set_callback :checkin, :after, :disable_query_cache!
         end
 
         def dirties_query_cache(base, *method_names)
@@ -18,11 +21,32 @@ module ActiveRecord
         end
       end
 
+      module ConnectionPoolConfiguration
+        def initialize(*)
+          super
+          @query_cache_enabled = Concurrent::Map.new { false }
+        end
+
+        def enable_query_cache!
+          @query_cache_enabled[connection_cache_key(Thread.current)] = true
+          connection.enable_query_cache! if active_connection?
+        end
+
+        def disable_query_cache!
+          @query_cache_enabled.delete connection_cache_key(Thread.current)
+          connection.disable_query_cache! if active_connection?
+        end
+
+        def query_cache_enabled
+          @query_cache_enabled[connection_cache_key(Thread.current)]
+        end
+      end
+
       attr_reader :query_cache, :query_cache_enabled
 
       def initialize(*)
         super
-        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
+        @query_cache         = Hash.new { |h, sql| h[sql] = {} }
         @query_cache_enabled = false
       end
 
@@ -41,6 +65,7 @@ module ActiveRecord
 
       def disable_query_cache!
         @query_cache_enabled = false
+        clear_query_cache
       end
 
       # Disable the query cache within the block.
@@ -95,6 +120,10 @@ module ActiveRecord
         # queries should not be cached.
         def locked?(arel)
           arel.respond_to?(:locked) && arel.locked
+        end
+
+        def configure_query_cache!
+          enable_query_cache! if pool.query_cache_enabled
         end
     end
   end

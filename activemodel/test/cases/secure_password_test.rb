@@ -179,7 +179,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "setting a nil password should clear an existing password" do
     @existing_user.password = nil
-    assert_equal nil, @existing_user.password_digest
+    assert_nil @existing_user.password_digest
   end
 
   test "authenticate" do

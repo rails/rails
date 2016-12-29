@@ -5,7 +5,6 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
-require "active_support/core_ext/regexp"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -51,7 +50,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_equal nil, DeveloperCalledDavid.create!.name
+    assert_nil DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
@@ -315,7 +314,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(salary: nil).salary
+    assert_nil PoorDeveloperCalledJamis.create!(salary: nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(name: "David").salary
   end
 

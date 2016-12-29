@@ -70,7 +70,7 @@ module ActiveRecord
       ADAPTER_NAME = "PostgreSQL".freeze
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "serial primary key",
+        primary_key: "bigserial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
@@ -315,6 +315,10 @@ module ActiveRecord
         postgresql_version >= 90300
       end
 
+      def supports_pgcrypto_uuid?
+        postgresql_version >= 90400
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
@@ -400,10 +404,12 @@ module ActiveRecord
         @connection.server_version
       end
 
-      protected
+      private
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
+        NUMERIC_VALUE_OUT_OF_RANGE = "22003"
+        NOT_NULL_VIOLATION    = "23502"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
         SERIALIZATION_FAILURE = "40001"
@@ -419,6 +425,10 @@ module ActiveRecord
             InvalidForeignKey.new(message)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message)
+          when NUMERIC_VALUE_OUT_OF_RANGE
+            RangeError.new(message)
+          when NOT_NULL_VIOLATION
+            NotNullViolation.new(message)
           when SERIALIZATION_FAILURE
             SerializationFailure.new(message)
           when DEADLOCK_DETECTED
@@ -428,9 +438,7 @@ module ActiveRecord
           end
         end
 
-      private
-
-        def get_oid_type(oid, fmod, column_name, sql_type = "") # :nodoc:
+        def get_oid_type(oid, fmod, column_name, sql_type = "")
           if !type_map.key?(oid)
             load_additional_types(type_map, [oid])
           end
@@ -443,7 +451,7 @@ module ActiveRecord
           }
         end
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           register_class_with_limit m, "int2", Type::Integer
           register_class_with_limit m, "int4", Type::Integer
           register_class_with_limit m, "int8", Type::Integer
@@ -511,7 +519,7 @@ module ActiveRecord
           load_additional_types(m)
         end
 
-        def extract_limit(sql_type) # :nodoc:
+        def extract_limit(sql_type)
           case sql_type
           when /^bigint/i, /^int8/i
             8
@@ -523,7 +531,7 @@ module ActiveRecord
         end
 
         # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(default) # :nodoc:
+        def extract_value_from_default(default)
           case default
             # Quoted types
           when /\A[\(B]?'(.*)'.*::"?([\w. ]+)"?(?:\[\])?\z/m
@@ -549,15 +557,15 @@ module ActiveRecord
           end
         end
 
-        def extract_default_function(default_value, default) # :nodoc:
+        def extract_default_function(default_value, default)
           default if has_default_function?(default_value, default)
         end
 
-        def has_default_function?(default_value, default) # :nodoc:
+        def has_default_function?(default_value, default)
           !default_value && (%r{\w+\(.*\)|\(.*\)::\w+} === default)
         end
 
-        def load_additional_types(type_map, oids = nil) # :nodoc:
+        def load_additional_types(type_map, oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if supports_ranges?
@@ -601,7 +609,11 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds)
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds) { @connection.async_exec(sql, type_casted_binds) }
+          log(sql, name, binds, type_casted_binds) do
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.async_exec(sql, type_casted_binds)
+            end
+          end
         end
 
         def exec_cache(sql, name, binds)
@@ -609,7 +621,9 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, stmt_key) do
-            @connection.exec_prepared(stmt_key, type_casted_binds)
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              @connection.exec_prepared(stmt_key, type_casted_binds)
+            end
           end
         rescue ActiveRecord::StatementInvalid => e
           raise unless is_cached_plan_failure?(e)
@@ -719,7 +733,7 @@ module ActiveRecord
         end
 
         # Returns the current ID of a table's sequence.
-        def last_insert_id_result(sequence_name) # :nodoc:
+        def last_insert_id_result(sequence_name)
           exec_query("SELECT currval('#{sequence_name}')", "SQL")
         end
 
@@ -741,7 +755,7 @@ module ActiveRecord
         # Query implementation notes:
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
-        def column_definitions(table_name) # :nodoc:
+        def column_definitions(table_name)
           query(<<-end_sql, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
@@ -750,18 +764,18 @@ module ActiveRecord
                      col_description(a.attrelid, a.attnum) AS comment
                 FROM pg_attribute a LEFT JOIN pg_attrdef d
                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-               WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
+               WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
           end_sql
         end
 
-        def extract_table_ref_from_insert_sql(sql) # :nodoc:
+        def extract_table_ref_from_insert_sql(sql)
           sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]
           $1.strip if $1
         end
 
-        def create_table_definition(*args) # :nodoc:
+        def create_table_definition(*args)
           PostgreSQL::TableDefinition.new(*args)
         end
 
@@ -792,7 +806,6 @@ module ActiveRecord
           map[Integer] = PG::TextEncoder::Integer.new
           map[TrueClass] = PG::TextEncoder::Boolean.new
           map[FalseClass] = PG::TextEncoder::Boolean.new
-          map[Float] = PG::TextEncoder::Float.new
           @connection.type_map_for_queries = map
         end
 

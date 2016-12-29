@@ -66,7 +66,7 @@ module ActionDispatch
         end
 
         def path_for(options)
-          path  = options[:script_name].to_s.chomp("/".freeze)
+          path = options[:script_name].to_s.chomp("/".freeze)
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
@@ -80,7 +80,7 @@ module ActionDispatch
 
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
-          params.reject! { |_,v| v.to_param.nil? }
+          params.reject! { |_, v| v.to_param.nil? }
           query = params.to_query
           path << "?#{query}" unless query.empty?
         end

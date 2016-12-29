@@ -285,10 +285,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_failing_create!
-    client  = Client.create!(name: "Jimmy")
+    client = Client.create!(name: "Jimmy")
     assert_raise(ActiveRecord::RecordInvalid) { client.create_account! }
     assert_not_nil client.account
     assert client.account.new_record?
+  end
+
+  def test_reloading_the_belonging_object
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_equal "ODEGY", odegy_account.reload_firm.name
   end
 
   def test_natural_assignment_to_nil
@@ -346,7 +356,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_with_select
     assert_equal 1, Company.find(2).firm_with_select.attributes.size
-    assert_equal 1, Company.all.merge!(includes: :firm_with_select ).find(2).firm_with_select.attributes.size
+    assert_equal 1, Company.all.merge!(includes: :firm_with_select).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_without_counter_cache_option
@@ -1047,7 +1057,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.parent = nil
     comment.save!
 
-    assert_equal nil, comment.reload.parent
+    assert_nil comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
   end
 
@@ -1060,6 +1070,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     comment.save!
     assert_equal 1, parent.reload.children_count
+  end
+
+  def test_belongs_to_with_out_of_range_value_assigning
+    model = Class.new(Comment) do
+      def self.name; "Temp"; end
+      validates :post, presence: true
+    end
+
+    comment = model.new
+    comment.post_id = 9223372036854775808 # out of range in the bigint
+
+    assert_nil comment.post
+    assert_not comment.valid?
+    assert_equal [{ error: :blank }], comment.errors.details[:post]
   end
 
   def test_polymorphic_with_custom_primary_key

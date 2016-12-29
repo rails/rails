@@ -88,7 +88,7 @@ module ActiveRecord
   #     assert_equal "Ruby on Rails", @rubyonrails.name
   #   end
   #
-  # In order to use these methods to access fixtured data within your testcases, you must specify one of the
+  # In order to use these methods to access fixtured data within your test cases, you must specify one of the
   # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
@@ -103,7 +103,7 @@ module ActiveRecord
   #
   # = Dynamic fixtures with ERB
   #
-  # Some times you don't care about the content of the fixtures as much as you care about the volume.
+  # Sometimes you don't care about the content of the fixtures as much as you care about the volume.
   # In these cases, you can mix ERB in with your YAML fixtures to create a bunch of fixtures for load
   # testing, like:
   #
@@ -415,9 +415,9 @@ module ActiveRecord
     # possibly in a folder with the same name.
     #++
 
-    MAX_ID = 2 ** 30 - 1
+    MAX_ID = 2**30 - 1
 
-    @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
+    @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
 
     def self.default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
       config.pluralize_table_names ?
@@ -536,16 +536,16 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(requires_new: true) do
-            deleted_tables = Set.new
+            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
-                unless deleted_tables.include? table
+                unless deleted_tables[conn].include? table
                   conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
                 end
-                deleted_tables << table
+                deleted_tables[conn] << table
               end
 
               table_rows.each do |fixture_set_name, rows|
@@ -597,18 +597,18 @@ module ActiveRecord
 
       @fixtures = read_fixture_files(path)
 
-      @connection  = connection
+      @connection = connection
 
-      @table_name = ( model_class.respond_to?(:table_name) ?
+      @table_name = (model_class.respond_to?(:table_name) ?
                       model_class.table_name :
-                      self.class.default_fixture_table_name(name, config) )
+                      self.class.default_fixture_table_name(name, config))
     end
 
     def [](x)
       fixtures[x]
     end
 
-    def []=(k,v)
+    def []=(k, v)
       fixtures[k] = v
     end
 
@@ -629,7 +629,7 @@ module ActiveRecord
       fixtures.delete("DEFAULTS")
 
       # track any join tables we need to insert later
-      rows = Hash.new { |h,table| h[table] = [] }
+      rows = Hash.new { |h, table| h[table] = [] }
 
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash

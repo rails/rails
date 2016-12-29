@@ -272,28 +272,10 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_parameterize_with_custom_separator_deprecated
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
-    StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
-      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '_'` instead./i) do
-        assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, "_"))
-      end
-    end
-  end
-
   def test_parameterize_with_multi_character_separator
     jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
-    end
-  end
-
-  def test_parameterize_with_multi_character_separator_deprecated
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '__sep__'` instead./i) do
-        assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, "__sep__"))
-      end
     end
   end
 

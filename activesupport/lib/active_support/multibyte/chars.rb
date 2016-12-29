@@ -87,7 +87,7 @@ module ActiveSupport #:nodoc:
       end
 
       # Works like <tt>String#slice!</tt>, but returns an instance of
-      # Chars, or nil if the string was not modified. The string will not be
+      # Chars, or +nil+ if the string was not modified. The string will not be
       # modified if the range given is out of bounds
       #
       #   string = 'Welcome'
@@ -210,9 +210,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      protected
+      private
 
-        def translate_offset(byte_offset) #:nodoc:
+        def translate_offset(byte_offset)
           return nil if byte_offset.nil?
           return 0   if @wrapped_string == ""
 
@@ -224,7 +224,7 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        def chars(string) #:nodoc:
+        def chars(string)
           self.class.new(string)
         end
     end

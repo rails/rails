@@ -65,18 +65,18 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_execute_after_disconnect
     @connection.disconnect!
-    error = assert_raise(ActiveRecord::StatementInvalid) do
+
+    assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
-    assert_match(/closed MySQL connection/, error.message)
   end
 
   def test_quote_after_disconnect
     @connection.disconnect!
-    error = assert_raise(Mysql2::Error) do
+
+    assert_raise(Mysql2::Error) do
       @connection.quote("string")
     end
-    assert_match(/closed MySQL connection/, error.message)
   end
 
   def test_active_after_disconnect
@@ -122,7 +122,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_passing_arbitary_flags_to_adapter
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
-      assert_equal (Mysql2::Client::COMPRESS |  Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+      assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
     end
   end
 
@@ -186,7 +186,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  protected
+  private
 
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1

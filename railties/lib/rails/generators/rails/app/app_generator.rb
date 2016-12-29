@@ -56,7 +56,7 @@ module Rails
     def app
       directory "app"
 
-      keep_file  "app/assets/images"
+      keep_file "app/assets/images"
       empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
       keep_file  "app/controllers/concerns"
@@ -151,18 +151,11 @@ module Rails
     end
 
     def vendor
-      vendor_javascripts
-      vendor_stylesheets
-    end
+      empty_directory_with_keep_file "vendor"
 
-    def vendor_javascripts
-      unless options[:skip_javascript]
-        empty_directory_with_keep_file "vendor/assets/javascripts"
+      unless options[:skip_yarn]
+        template "package.json", "vendor/package.json"
       end
-    end
-
-    def vendor_stylesheets
-      empty_directory_with_keep_file "vendor/assets/stylesheets"
     end
   end
 
@@ -193,9 +186,11 @@ module Rails
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets to be skipped when generating API only apps.
+        # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
-        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
+        if options[:api]
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+        end
       end
 
       public_task :set_default_accessors!
@@ -205,8 +200,8 @@ module Rails
         build(:readme)
         build(:rakefile)
         build(:configru)
-        build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gitignore)   unless options[:skip_git]
+        build(:gemfile)     unless options[:skip_gemfile]
       end
 
       def create_app_files
@@ -241,6 +236,7 @@ module Rails
       end
 
       def create_db_files
+        return if options[:skip_active_record]
         build(:db)
       end
 
@@ -266,6 +262,10 @@ module Rails
 
       def create_vendor_files
         build(:vendor)
+
+        if options[:skip_yarn]
+          remove_file "vendor/package.json"
+        end
       end
 
       def delete_app_assets_if_api_option
@@ -273,7 +273,6 @@ module Rails
           remove_dir "app/assets"
           remove_dir "lib/assets"
           remove_dir "tmp/cache/assets"
-          remove_dir "vendor/assets"
         end
       end
 
@@ -349,22 +348,26 @@ module Rails
         end
       end
 
+      def delete_bin_yarn_if_api_option
+        remove_file "bin/yarn" if options[:api]
+      end
+
       def finish_template
         build(:leftovers)
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_spring_binstubs
+      public_task :run_webpack, :generate_spring_binstubs
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
       end
 
-    protected
-
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
+
+    private
 
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
@@ -422,7 +425,7 @@ module Rails
           "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+        ].find { |f| File.exist?(f) } unless Gem.win_platform?
       end
 
       def get_builder_class

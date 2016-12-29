@@ -75,7 +75,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     test_copy_table "binaries", "binaries2"
   end
 
-protected
+private
   def copy_table(from, to, options = {})
     @connection.copy_table(from, to, { temporary: true }.merge(options))
   end

@@ -3,7 +3,7 @@ require "cases/helper"
 class TestFixturesTest < ActiveRecord::TestCase
   setup do
     @klass = Class.new
-    @klass.send(:include, ActiveRecord::TestFixtures)
+    @klass.include(ActiveRecord::TestFixtures)
   end
 
   def test_deprecated_use_transactional_fixtures=

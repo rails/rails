@@ -12,7 +12,7 @@ module ActiveRecord
 
     private
 
-      def _assign_attributes(attributes) # :nodoc:
+      def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}
 

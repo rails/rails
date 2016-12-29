@@ -81,7 +81,7 @@ module RailsGuides
             error_summary += "\n  #{name}"
             error_detail += "\n\n  #{name} has #{errors.size} validation error(s):\n"
             errors.each do |error|
-              error_detail += "\n    "+error.to_s.delete("\n")
+              error_detail += "\n    " + error.to_s.delete("\n")
             end
           end
 

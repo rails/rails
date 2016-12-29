@@ -474,7 +474,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains `request.formats` which specifies
 the format of template to be served in response. It is set to `text/html` as we
 requested this page via browser, so Rails is looking for an HTML template.
-`request.variants` specifies what kind of physical devices would be served by
+`request.variant` specifies what kind of physical devices would be served by
 the response and helps Rails determine which template to use in the response.
 It is empty because no information has been provided.
 
@@ -827,7 +827,7 @@ NOTE: A frequent practice is to place the standard CRUD actions in each
 controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
 and `destroy`. You may use any order you choose, but keep in mind that these
 are public methods; as mentioned earlier in this guide, they must be placed
-before any private or protected method in the controller in order to work.
+before declaring `private` visibility in the controller.
 
 Given that, let's add the `show` action, as follows:
 
@@ -1157,7 +1157,7 @@ it look as follows:
 ```html+erb
 <h1>Edit article</h1>
 
-<%= form_for :article, url: article_path(@article), method: :patch do |f| %>
+<%= form_for(@article) do |f| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1195,14 +1195,15 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `method: :patch` option tells Rails that we want this form to be submitted
+Passing the article object to the method, will automagically create url for submitting the edited article form. 
+This option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
 The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
 symbol (`:article`) with the same name as the instance variable (`@article`)
-also automagically leads to the same behavior. This is what is happening here.
+also automagically leads to the same behavior.
 More details can be found in [form_for documentation]
 (http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
@@ -1655,8 +1656,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
+| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
+| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back

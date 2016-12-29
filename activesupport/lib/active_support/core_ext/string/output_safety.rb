@@ -202,7 +202,7 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = Hash[args.map { |k,arg| [k, html_escape_interpolated_argument(arg)] }]
+        escaped_args = Hash[args.map { |k, arg| [k, html_escape_interpolated_argument(arg)] }]
       else
         escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end

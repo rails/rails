@@ -1,6 +1,3 @@
-require "active_support/concern"
-require "active_support/core_ext/regexp"
-
 module ActiveRecord
   module Delegation # :nodoc:
     module DelegateCache # :nodoc:
@@ -81,7 +78,7 @@ module ActiveRecord
         end
       end
 
-      protected
+      private
 
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)

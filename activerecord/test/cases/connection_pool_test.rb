@@ -184,14 +184,14 @@ module ActiveRecord
 
       def test_checkout_behaviour
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-        connection = pool.connection
-        assert_not_nil connection
+        main_connection = pool.connection
+        assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            connection = pool.connection
-            assert_not_nil connection
-            connection.close
+            thread_connection = pool.connection
+            assert_not_nil thread_connection
+            thread_connection.close
           end
         end
 
@@ -455,49 +455,63 @@ module ActiveRecord
         with_single_connection_pool do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
             conn               = pool.connection # drain the only available connection
-            second_thread_done = Concurrent::CountDownLatch.new
+            second_thread_done = Concurrent::Event.new
 
-            # create a first_thread and let it get into the FIFO queue first
-            first_thread = Thread.new do
-              pool.with_connection { second_thread_done.wait }
+            begin
+              # create a first_thread and let it get into the FIFO queue first
+              first_thread = Thread.new do
+                pool.with_connection { second_thread_done.wait }
+              end
+
+              # wait for first_thread to get in queue
+              Thread.pass until pool.num_waiting_in_queue == 1
+
+              # create a different, later thread, that will attempt to do a "group action",
+              # but because of the group action semantics it should be able to preempt the
+              # first_thread when a connection is made available
+              second_thread = Thread.new do
+                pool.send(group_action_method)
+                second_thread_done.set
+              end
+
+              # wait for second_thread to get in queue
+              Thread.pass until pool.num_waiting_in_queue == 2
+
+              # return the only available connection
+              pool.checkin(conn)
+
+              # if the second_thread is not able to preempt the first_thread,
+              # they will temporarily (until either of them timeouts with ConnectionTimeoutError)
+              # deadlock and a join(2) timeout will be reached
+              assert second_thread.join(2), "#{group_action_method} is not able to preempt other waiting threads"
+
+            ensure
+              # post test clean up
+              failed = !second_thread_done.set?
+
+              if failed
+                second_thread_done.set
+
+                puts
+                puts ">>> test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads / #{group_action_method}"
+                p [first_thread, second_thread]
+                p pool.stat
+                p pool.connections.map(&:owner)
+
+                first_thread.join(2)
+                second_thread.join(2)
+
+                puts "---"
+                p [first_thread, second_thread]
+                p pool.stat
+                p pool.connections.map(&:owner)
+                puts "<<<"
+                puts
+              end
+
+              first_thread.join(10) || raise("first_thread got stuck")
+              second_thread.join(10) || raise("second_thread got stuck")
             end
-
-            # wait for first_thread to get in queue
-            Thread.pass until pool.num_waiting_in_queue == 1
-
-            # create a different, later thread, that will attempt to do a "group action",
-            # but because of the group action semantics it should be able to preempt the
-            # first_thread when a connection is made available
-            second_thread = Thread.new do
-              pool.send(group_action_method)
-              second_thread_done.count_down
-            end
-
-            # wait for second_thread to get in queue
-            Thread.pass until pool.num_waiting_in_queue == 2
-
-            # return the only available connection
-            pool.checkin(conn)
-
-            # if the second_thread is not able to preempt the first_thread,
-            # they will temporarily (until either of them timeouts with ConnectionTimeoutError)
-            # deadlock and a join(2) timeout will be reached
-            failed = true unless second_thread.join(2)
-
-            #--- post test clean up start
-            second_thread_done.count_down if failed
-
-            # after `pool.disconnect()` the first thread will be left stuck in queue, no need to wait for
-            # it to timeout with ConnectionTimeoutError
-            if (group_action_method == :disconnect || group_action_method == :disconnect!) && pool.num_waiting_in_queue > 0
-              pool.with_connection {} # create a new connection in case there are threads still stuck in a queue
-            end
-
-            first_thread.join
-            second_thread.join
-            #--- post test clean up end
-
-            flunk "#{group_action_method} is not able to preempt other waiting threads" if failed
           end
         end
       end
@@ -523,6 +537,26 @@ module ActiveRecord
           end
 
           assert_equal 0, pool.num_waiting_in_queue
+        end
+      end
+
+      def test_connection_pool_stat
+        with_single_connection_pool do |pool|
+          pool.with_connection do |connection|
+            stats = pool.stat
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          end
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+
+          Thread.new do
+            pool.checkout
+            Thread.current.kill
+          end.join
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
         end
       end
 

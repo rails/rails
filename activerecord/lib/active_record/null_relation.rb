@@ -41,12 +41,11 @@ module ActiveRecord
     end
 
     def calculate(operation, _column_name)
-      if [:count, :sum].include? operation
+      case operation
+      when :count, :sum
         group_values.any? ? Hash.new : 0
-      elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
-        Hash.new
-      else
-        nil
+      when :average, :minimum, :maximum
+        group_values.any? ? Hash.new : nil
       end
     end
 

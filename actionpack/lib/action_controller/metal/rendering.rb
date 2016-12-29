@@ -67,20 +67,20 @@ module ActionController
       end
 
       def _set_rendered_content_type(format)
-        unless response.content_type
+        if format && !response.content_type
           self.content_type = format.to_s
         end
       end
 
       # Normalize arguments by catching blocks and setting them on :update.
-      def _normalize_args(action=nil, options={}, &blk) #:nodoc:
+      def _normalize_args(action = nil, options = {}, &blk)
         options = super
         options[:update] = blk if block_given?
         options
       end
 
       # Normalize both text and status options.
-      def _normalize_options(options) #:nodoc:
+      def _normalize_options(options)
         _normalize_text(options)
 
         if options[:html]
@@ -103,7 +103,7 @@ module ActionController
       end
 
       # Process controller specific options, as status, content-type and location.
-      def _process_options(options) #:nodoc:
+      def _process_options(options)
         status, content_type, location = options.values_at(:status, :content_type, :location)
 
         self.status = status if status

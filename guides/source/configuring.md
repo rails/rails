@@ -110,7 +110,7 @@ numbers. By default, Rails filters out passwords by adding `Rails.application.co
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://edgeapi.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
-* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
+* `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
 * `config.log_level` defines the verbosity of the Rails logger. This option
 defaults to `:debug` for all environments. The available log levels are: `:debug`,
@@ -175,9 +175,11 @@ pipeline is enabled. It is set to `true` by default.
 
 * `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to a file named `manifest-<random>.json` in the `config.assets.prefix` directory within the public folder.
 
-* `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default.
+* `config.assets.digest` enables the use of SHA256 fingerprints in asset names. Set to `true` by default.
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
+
+* `config.assets.version` is an option string that is used in SHA256 hash generation. This can be changed to force all files to be recompiled.
 
 * `config.assets.compile` is a boolean that can be used to turn on live Sprockets compilation in production.
 
@@ -1181,7 +1183,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties and engines.
 
-* `set_routes_reloader`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
+* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 

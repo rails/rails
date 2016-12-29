@@ -11,20 +11,21 @@ module ViewBehavior
   end
 
   class Ebook < ActiveRecord::Base
+    self.table_name = "ebooks'"
     self.primary_key = "id"
   end
 
   def setup
     super
     @connection = ActiveRecord::Base.connection
-    create_view "ebooks", <<-SQL
+    create_view "ebooks'", <<-SQL
       SELECT id, name, status FROM books WHERE format = 'ebook'
     SQL
   end
 
   def teardown
     super
-    drop_view "ebooks"
+    drop_view "ebooks'"
   end
 
   def test_reading
@@ -66,15 +67,20 @@ module ViewBehavior
 
   def test_does_not_assume_id_column_as_primary_key
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "ebooks"
+      self.table_name = "ebooks'"
     end
     assert_nil model.primary_key
   end
 
   def test_does_not_dump_view_as_table
-    schema = dump_table_schema "ebooks"
-    assert_no_match %r{create_table "ebooks"}, schema
+    schema = dump_table_schema "ebooks'"
+    assert_no_match %r{create_table "ebooks'"}, schema
   end
+
+  private
+    def quote_table_name(name)
+      @connection.quote_table_name(name)
+    end
 end
 
 if ActiveRecord::Base.connection.supports_views?
@@ -83,11 +89,11 @@ if ActiveRecord::Base.connection.supports_views?
 
     private
       def create_view(name, query)
-        @connection.execute "CREATE VIEW #{name} AS #{query}"
+        @connection.execute "CREATE VIEW #{quote_table_name(name)} AS #{query}"
       end
 
       def drop_view(name)
-        @connection.execute "DROP VIEW #{name}" if @connection.view_exists? name
+        @connection.execute "DROP VIEW #{quote_table_name(name)}" if @connection.view_exists? name
       end
   end
 
@@ -206,11 +212,11 @@ if ActiveRecord::Base.connection.respond_to?(:supports_materialized_views?) &&
 
     private
       def create_view(name, query)
-        @connection.execute "CREATE MATERIALIZED VIEW #{name} AS #{query}"
+        @connection.execute "CREATE MATERIALIZED VIEW #{quote_table_name(name)} AS #{query}"
       end
 
       def drop_view(name)
-        @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.view_exists? name
+        @connection.execute "DROP MATERIALIZED VIEW #{quote_table_name(name)}" if @connection.view_exists? name
       end
   end
 end

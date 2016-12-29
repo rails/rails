@@ -28,7 +28,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           class_name = options.fetch(:class_name) {
             name.to_s.camelize.singularize
           }
-          KnownClass.new lhs_class, class_name
+          KnownClass.new lhs_class, class_name.to_s
         end
       end
     end
@@ -78,9 +78,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         private
 
-        def self.suppress_composite_primary_key(pk)
-          pk unless pk.is_a?(Array)
-        end
+          def self.suppress_composite_primary_key(pk)
+            pk unless pk.is_a?(Array)
+          end
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"

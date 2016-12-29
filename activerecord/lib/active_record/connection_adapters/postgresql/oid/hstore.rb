@@ -12,8 +12,8 @@ module ActiveRecord
           def deserialize(value)
             if value.is_a?(::String)
               ::Hash[value.scan(HstorePair).map { |k, v|
-                v = v.upcase == "NULL" ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
-                k = k.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')
+                v = v.upcase == "NULL" ? nil : v.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
+                k = k.gsub(/\A"(.*)"\Z/m, '\1').gsub(/\\(.)/, '\1')
                 [k, v]
               }]
             else
@@ -24,6 +24,8 @@ module ActiveRecord
           def serialize(value)
             if value.is_a?(::Hash)
               value.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(", ")
+            elsif value.respond_to?(:to_unsafe_h)
+              serialize(value.to_unsafe_h)
             else
               value
             end

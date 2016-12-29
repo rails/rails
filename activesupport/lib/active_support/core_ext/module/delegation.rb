@@ -6,11 +6,12 @@ class Module
   # option is not used.
   class DelegationError < NoMethodError; end
 
+  RUBY_RESERVED_KEYWORDS = %w(alias and BEGIN begin break case class def defined? do
+  else elsif END end ensure false for if in module next nil not or redo rescue retry
+  return self super then true undef unless until when while yield)
+  DELEGATION_RESERVED_KEYWORDS = %w(_ arg args block)
   DELEGATION_RESERVED_METHOD_NAMES = Set.new(
-    %w(_ arg args alias and BEGIN begin block break case class def defined? do
-       else elsif END end ensure false for if in module next nil not or redo
-       rescue retry return self super then true undef unless until when while
-       yield)
+    RUBY_RESERVED_KEYWORDS + DELEGATION_RESERVED_KEYWORDS
   ).freeze
 
   # Provides a +delegate+ class method to easily expose contained objects'

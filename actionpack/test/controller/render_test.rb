@@ -368,7 +368,7 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_date_header_when_expires_in
-    time = Time.mktime(2011,10,30)
+    time = Time.mktime(2011, 10, 30)
     Time.stub :now, time do
       get :conditional_hello_with_expires_in
       assert_equal Time.now.httpdate, @response.headers["Date"]

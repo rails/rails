@@ -46,7 +46,7 @@ module ActiveRecord
       end
 
       # Returns the maximum number of elements in an IN (x,y,z) clause.
-      # nil means no limit.
+      # +nil+ means no limit.
       def in_clause_length
         nil
       end

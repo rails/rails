@@ -32,7 +32,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
 
     timers.each_with_index do |timer, i|
       assert_kind_of Proc, timer[0]
-      assert_equal i+1, timer[1][:every]
+      assert_equal i + 1, timer[1][:every]
     end
   end
 

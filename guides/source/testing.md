@@ -322,7 +322,6 @@ specify to make your test failure messages clearer.
 | `assert_not_operator( obj1, operator, [obj2], [msg] )`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate ( obj, predicate, [msg] )`                     | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true, e.g. assert_send [@user, :full_name, 'Sam Smith']. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive &
@@ -414,7 +413,7 @@ You can also run an entire directory of tests by providing the path to the direc
 $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
-The test runner provides lot of other features too like failing fast, deferring test output
+The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
@@ -800,6 +799,13 @@ end
 
 Now you can try running all the tests and they should pass.
 
+NOTE: If you followed the steps in the Basic Authentication section, you'll need to add the following to the `setup` block to get all the tests passing:
+
+```ruby
+request.headers['Authorization'] = ActionController::HttpAuthentication::Basic.
+  encode_credentials('dhh', 'secret')
+```
+
 ### Available Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of request. There are 6 request types supported in Rails functional tests:
@@ -859,7 +865,7 @@ You also have access to three instance variables in your functional tests, after
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   test "should get index" do
     get articles_url
-        
+
     assert_equal "index", @controller.action_name
     assert_equal "application/x-www-form-urlencoded", @request.media_type
     assert_match "Articles", @response.body    

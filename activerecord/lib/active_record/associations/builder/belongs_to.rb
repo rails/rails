@@ -35,17 +35,17 @@ module ActiveRecord::Associations::Builder # :nodoc:
             @_after_create_counter_called = false
           elsif (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record?
+          elsif saved_change_to_attribute?(foreign_key) && !new_record?
             if reflection.polymorphic?
-              model     = attribute(reflection.foreign_type).try(:constantize)
-              model_was = attribute_was(reflection.foreign_type).try(:constantize)
+              model     = attribute_in_database(reflection.foreign_type).try(:constantize)
+              model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
             else
               model     = reflection.klass
               model_was = reflection.klass
             end
 
-            foreign_key_was = attribute_was foreign_key
-            foreign_key     = attribute foreign_key
+            foreign_key_was = attribute_before_last_save foreign_key
+            foreign_key     = attribute_in_database foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
               model.increment_counter(cache_column, foreign_key)
@@ -70,14 +70,16 @@ module ActiveRecord::Associations::Builder # :nodoc:
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def self.touch_record(o, foreign_key, name, touch, touch_method) # :nodoc:
-      old_foreign_id = o.changed_attributes[foreign_key]
+    def self.touch_record(o, changes, foreign_key, name, touch, touch_method) # :nodoc:
+      old_foreign_id = changes[foreign_key] && changes[foreign_key].first
 
       if old_foreign_id
         association = o.association(name)
         reflection = association.reflection
         if reflection.polymorphic?
-          klass = o.public_send("#{reflection.foreign_type}_was").constantize
+          foreign_type = reflection.foreign_type
+          klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
+          klass = klass.constantize
         else
           klass = association.klass
         end
@@ -107,13 +109,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       n           = reflection.name
       touch       = reflection.options[:touch]
 
-      callback = lambda { |record|
-        BelongsTo.touch_record(record, foreign_key, n, touch, belongs_to_touch_method)
-      }
+      callback = lambda { |changes_method| lambda { |record|
+        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
+      }}
 
-      model.after_save    callback, if: :changed?
-      model.after_touch   callback
-      model.after_destroy callback
+      model.after_save    callback.(:saved_changes), if: :saved_changes?
+      model.after_touch   callback.(:changes_to_save)
+      model.after_destroy callback.(:changes_to_save)
     end
 
     def self.add_destroy_callbacks(model, reflection)

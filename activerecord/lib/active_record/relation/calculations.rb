@@ -223,17 +223,17 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-        relation = unscope(:order)
-
         column_alias = column_name
 
-        if operation == "count" && (relation.limit_value || relation.offset_value)
+        if operation == "count" && (limit_value || offset_value)
           # Shortcut when limit is zero.
-          return 0 if relation.limit_value == 0
+          return 0 if limit_value == 0
 
-          query_builder = build_count_subquery(relation, column_name, distinct)
+          query_builder = build_count_subquery(spawn, column_name, distinct)
         else
+          # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+          relation = unscope(:order)
+
           column = aggregate_column(column_name)
 
           select_value = operation_over_aggregate_column(column, operation, distinct)

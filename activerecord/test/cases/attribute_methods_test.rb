@@ -92,7 +92,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "attribute keys on a new instance" do
     t = Topic.new
-    assert_equal nil, t.title, "The topics table has a title column, so it should be nil"
+    assert_nil t.title, "The topics table has a title column, so it should be nil"
     assert_raise(NoMethodError) { t.title2 }
   end
 
@@ -156,7 +156,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     keyboard = Keyboard.create
     keyboard.key_number = "10"
     assert_equal "10", keyboard.id_before_type_cast
-    assert_equal nil, keyboard.read_attribute_before_type_cast("id")
+    assert_nil keyboard.read_attribute_before_type_cast("id")
     assert_equal "10", keyboard.read_attribute_before_type_cast("key_number")
     assert_equal "10", keyboard.read_attribute_before_type_cast(:key_number)
   end
@@ -213,7 +213,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
       record.written_on = "345643456"
       assert_equal "345643456", record.written_on_before_type_cast
-      assert_equal nil, record.written_on
+      assert_nil record.written_on
 
       record.written_on = "2009-10-11 12:13:14"
       assert_equal "2009-10-11 12:13:14", record.written_on_before_type_cast
@@ -294,7 +294,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
 
-    topic.attributes= new_topic_values
+    topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
   end
 
@@ -319,6 +319,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Still another topic: part 4", topic.title
   end
 
+  test "write_attribute can write aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+    topic.write_attribute :heading, "New topic"
+
+    assert_equal "New topic", topic.title
+  end
+
   test "read_attribute" do
     topic = Topic.new
     topic.title = "Don't change the topic"
@@ -327,6 +334,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal "Don't change the topic", topic.read_attribute(:title)
     assert_equal "Don't change the topic", topic[:title]
+  end
+
+  test "read_attribute can read aliased attributes as well" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attribute("heading")
+    assert_equal "Don't change the topic", topic["heading"]
+
+    assert_equal "Don't change the topic", topic.read_attribute(:heading)
+    assert_equal "Don't change the topic", topic[:heading]
   end
 
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
@@ -609,7 +626,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     utc_time = Time.utc(2008, 1, 1)
     cst_time = utc_time.in_time_zone("Central Time (US & Canada)")
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = cst_time
       assert_equal utc_time, record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
@@ -633,7 +650,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     (-11..13).each do |timezone_offset|
       time_string = utc_time.in_time_zone(timezone_offset).to_s
       in_time_zone "Pacific Time (US & Canada)" do
-        record   = @target.new
+        record = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
         assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
@@ -654,7 +671,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "setting a time zone-aware attribute to a blank string returns nil" do
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = " "
       assert_nil record.written_on
       assert_nil record[:written_on]
@@ -665,7 +682,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     time_string = "Tue Jan 01 00:00:00 2008"
     (-11..13).each do |timezone_offset|
       in_time_zone timezone_offset do
-        record   = @target.new
+        record = @target.new
         record.written_on = time_string
         assert_equal Time.zone.parse(time_string), record.written_on
         assert_equal ActiveSupport::TimeZone[timezone_offset], record.written_on.time_zone
@@ -677,7 +694,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "setting a time zone-aware datetime in the current time zone" do
     utc_time = Time.utc(2008, 1, 1)
     in_time_zone "Pacific Time (US & Canada)" do
-      record   = @target.new
+      record = @target.new
       record.written_on = utc_time.in_time_zone
       assert_equal utc_time, record.written_on
       assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.written_on.time_zone
@@ -737,7 +754,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "time zone-aware attributes do not recurse infinitely on invalid values" do
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new(bonus_time: [])
-      assert_equal nil, record.bonus_time
+      assert_nil record.bonus_time
     end
   end
 

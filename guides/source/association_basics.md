@@ -1994,11 +1994,9 @@ The `collection.delete` method removes one or more objects from the collection b
 @part.assemblies.delete(@assembly1)
 ```
 
-WARNING: This does not trigger callbacks on the join records.
-
 ##### `collection.destroy(object, ...)`
 
-The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each record in the join table, including running callbacks. This does not destroy the objects.
+The `collection.destroy` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 ```ruby
 @part.assemblies.destroy(@assembly1)

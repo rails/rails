@@ -107,7 +107,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_time_attribute
-    myobj = Time.local(2008,1,1,1,0)
+    myobj = Time.local(2008, 1, 1, 1, 0)
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
   end
@@ -185,14 +185,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.new(content: true)
     assert topic.save
     topic = topic.reload
-    assert_equal topic.content, true
+    assert_equal true, topic.content
   end
 
   def test_serialized_boolean_value_false
     topic = Topic.new(content: false)
     assert topic.save
     topic = topic.reload
-    assert_equal topic.content, false
+    assert_equal false, topic.content
   end
 
   def test_serialize_with_coder
@@ -211,7 +211,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.save!
     topic.reload
     assert_kind_of some_class, topic.content
-    assert_equal topic.content, some_class.new("my value")
+    assert_equal some_class.new("my value"), topic.content
   end
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
@@ -313,8 +313,8 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       return if value.nil?
       value.gsub(" encoded", "")
     end
-    type = Class.new(ActiveRecord::Type::Value) do
-      include ActiveRecord::Type::Helpers::Mutable
+    type = Class.new(ActiveModel::Type::Value) do
+      include ActiveModel::Type::Helpers::Mutable
 
       def serialize(value)
         return if value.nil?

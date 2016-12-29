@@ -14,6 +14,7 @@ module ActiveRecord
           def self.decorate_matching_attribute_types(*); end
           def self.initialize_generated_modules; end
 
+          include ActiveRecord::DefineCallbacks
           include ActiveRecord::AttributeMethods
 
           def self.attribute_names

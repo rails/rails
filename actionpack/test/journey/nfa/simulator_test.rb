@@ -80,7 +80,7 @@ module ActionDispatch
 
           ast = Nodes::Or.new routes
 
-          nfa   = Journey::NFA::Builder.new ast
+          nfa = Journey::NFA::Builder.new ast
           sim = Simulator.new nfa.transition_table
           md = sim.match "/articles"
           assert_equal [asts.first], md.memos

@@ -109,16 +109,22 @@ module ActiveSupport
         invoke_sequence = Proc.new do
           skipped = nil
           while true
-            current, next_sequence = next_sequence, next_sequence.nested
+            current = next_sequence
             current.invoke_before(env)
             if current.final?
               env.value = !env.halted && (!block_given? || yield)
             elsif current.skip?(env)
               (skipped ||= []) << current
+              next_sequence = next_sequence.nested
               next
             else
-              expanded = current.expand_call_template(env, invoke_sequence)
-              expanded.shift.send(*expanded, &expanded.shift)
+              next_sequence = next_sequence.nested
+              begin
+                target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                target.send(method, *arguments, &block)
+              ensure
+                next_sequence = current
+              end
             end
             current.invoke_after(env)
             skipped.pop.invoke_after(env) while skipped && skipped.first
@@ -293,7 +299,7 @@ module ActiveSupport
         attr_reader :chain_config
 
         def initialize(name, filter, kind, options, chain_config)
-          @chain_config  = chain_config
+          @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
@@ -410,8 +416,8 @@ module ActiveSupport
         # values.
         def make_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            target.send(method, *arguments, &block)
           end
         end
 
@@ -419,8 +425,8 @@ module ActiveSupport
         # values, but then return the boolean inverse of that result.
         def inverted_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            ! c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            ! target.send(method, *arguments, &block)
           end
         end
 

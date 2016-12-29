@@ -35,7 +35,7 @@ module ActiveRecord
             if value.is_a?(::Array)
               result = @pg_encoder.encode(type_cast_array(value, :serialize))
               if encoding = determine_encoding_of_strings(value)
-                result.encode!(encoding)
+                result.force_encoding(encoding)
               end
               result
             else

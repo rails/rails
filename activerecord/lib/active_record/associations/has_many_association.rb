@@ -72,7 +72,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if reflection.has_cached_counter?
-            owner._read_attribute reflection.counter_cache_column
+            owner._read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count
           end

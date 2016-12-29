@@ -1,5 +1,4 @@
 require "concurrent/map"
-require "active_support/core_ext/regexp"
 require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
@@ -99,7 +98,7 @@ module ActionView
   #
   #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
-  # If the given <tt>:collection</tt> is nil or empty, <tt>render</tt> will return nil. This will allow you
+  # If the given <tt>:collection</tt> is +nil+ or empty, <tt>render</tt> will return nil. This will allow you
   # to specify a text which will displayed instead by using this form:
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
@@ -358,7 +357,7 @@ module ActionView
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)
-        @view   = context
+        @view = context
         @options = options
         @block   = block
 

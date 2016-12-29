@@ -41,7 +41,7 @@ module ActiveRecord
     class PartialQuery < Query # :nodoc:
       def initialize(values)
         @values = values
-        @indexes = values.each_with_index.find_all { |thing,i|
+        @indexes = values.each_with_index.find_all { |thing, i|
           Arel::Nodes::BindParam === thing
         }.map(&:last)
       end
@@ -68,7 +68,7 @@ module ActiveRecord
 
     class BindMap # :nodoc:
       def initialize(bound_attributes)
-        @indexes   = []
+        @indexes = []
         @bound_attributes = bound_attributes
 
         bound_attributes.each_with_index do |attr, i|
@@ -80,7 +80,7 @@ module ActiveRecord
 
       def bind(values)
         bas = @bound_attributes.dup
-        @indexes.each_with_index { |offset,i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        @indexes.each_with_index { |offset, i| bas[offset] = bas[offset].with_cast_value(values[i]) }
         bas
       end
     end

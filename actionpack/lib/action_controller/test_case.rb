@@ -3,6 +3,7 @@ require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/hash/keys"
+require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
 require "rails-dom-testing"
 
@@ -112,8 +113,9 @@ module ActionController
           end
         end
 
-        set_header "CONTENT_LENGTH", data.length.to_s
-        set_header "rack.input", StringIO.new(data)
+        data_stream = StringIO.new(data)
+        set_header "CONTENT_LENGTH", data_stream.length.to_s
+        set_header "rack.input", data_stream
       end
 
       fetch_header("PATH_INFO") do |k|
@@ -512,8 +514,6 @@ module ActionController
         ensure
           @request = @controller.request
           @response = @controller.response
-
-          @request.delete_header "HTTP_COOKIE"
 
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?

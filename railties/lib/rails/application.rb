@@ -274,7 +274,7 @@ module Rails
     # Sends the initializers to the +initializer+ method defined in the
     # Rails::Initializable module. Each Rails::Application class has its own
     # set of initializers, as defined by the Initializable module.
-    def initializer(name, opts={}, &block)
+    def initializer(name, opts = {}, &block)
       self.class.initializer(name, opts, &block)
     end
 
@@ -347,7 +347,7 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group=:default) #:nodoc:
+    def initialize!(group = :default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
@@ -394,8 +394,8 @@ module Rails
           shared_secrets = all_secrets["shared"]
           env_secrets    = all_secrets[Rails.env]
 
-          secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+          secrets.merge!(shared_secrets.deep_symbolize_keys) if shared_secrets
+          secrets.merge!(env_secrets.deep_symbolize_keys) if env_secrets
         end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set

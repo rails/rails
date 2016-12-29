@@ -65,5 +65,7 @@ module ActiveSupport
     alias :assert_not_predicate :refute_predicate
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
+
+    ActiveSupport.run_load_hooks(:active_support_test_case, self)
   end
 end

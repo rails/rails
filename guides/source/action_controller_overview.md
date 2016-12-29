@@ -258,6 +258,17 @@ scalar values, map the key to an empty array:
 params.permit(id: [])
 ```
 
+Sometimes it is not possible or convenient to declare the valid keys of
+a hash parameter or its internal structure. Just map to an empty hash:
+
+```ruby
+params.permit(preferences: {})
+```
+
+but be careful because this opens the door to arbitrary input. In this
+case, `permit` ensures values in the returned structure are permitted
+scalars and filters out anything else.
+
 To whitelist an entire hash of parameters, the `permit!` method can be
 used:
 
@@ -265,9 +276,10 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any sub-hash of it as
-permitted. Extreme care should be taken when using `permit!`, as it
-will allow all current and future model attributes to be mass-assigned.
+This marks the `:log_entry` parameters hash and any sub-hash of it as
+permitted and does not check for permitted scalars, anything is accepted.
+Extreme care should be taken when using `permit!`, as it will allow all current
+and future model attributes to be mass-assigned.
 
 #### Nested Parameters
 

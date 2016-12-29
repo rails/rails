@@ -110,6 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
+      attribute = attribute.to_sym
       messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
@@ -121,8 +122,9 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(key)
-      details.delete(key)
-      messages.delete(key)
+      attribute = key.to_sym
+      details.delete(attribute)
+      messages.delete(attribute)
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
@@ -211,7 +213,7 @@ module ActiveModel
     #   #    <error>name can't be blank</error>
     #   #    <error>name must be specified</error>
     #   #  </errors>
-    def to_xml(options={})
+    def to_xml(options = {})
       to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
     end
 
@@ -221,7 +223,7 @@ module ActiveModel
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
-    def as_json(options=nil)
+    def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
 
@@ -342,6 +344,7 @@ module ActiveModel
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
+      attribute = attribute.to_sym
       messages[attribute].map { |message| full_message(attribute, message) }
     end
 
@@ -416,12 +419,19 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-    def marshal_dump
+    def marshal_dump # :nodoc:
       [@base, without_default_proc(@messages), without_default_proc(@details)]
     end
 
-    def marshal_load(array)
+    def marshal_load(array) # :nodoc:
       @base, @messages, @details = array
+      apply_default_array(@messages)
+      apply_default_array(@details)
+    end
+
+    def init_with(coder) # :nodoc:
+      coder.map.each { |k, v| instance_variable_set(:"@#{k}", v) }
+      @details ||= {}
       apply_default_array(@messages)
       apply_default_array(@details)
     end

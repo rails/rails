@@ -28,7 +28,7 @@ module SharedGeneratorTests
 
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
-    default_files.each { |path| assert_no_file File.join("testapp",path) }
+    default_files.each { |path| assert_no_file File.join("testapp", path) }
   end
 
   def test_invalid_database_option_raises_an_error

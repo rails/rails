@@ -10,9 +10,9 @@ module ActiveRecord
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
           collected = visitor.accept(arel.ast, collector)
-          collected.compile(binds, self)
+          collected.compile(binds, self).freeze
         else
-          arel
+          arel.dup.freeze
         end
       end
 
@@ -115,7 +115,7 @@ module ActiveRecord
 
       # Executes an INSERT query and returns the new record's ID
       #
-      # +id_value+ will be returned unless the value is nil, in
+      # +id_value+ will be returned unless the value is +nil+, in
       # which case the database will attempt to calculate the last inserted
       # id and return that value.
       #
@@ -360,7 +360,7 @@ module ActiveRecord
       end
       alias join_to_delete join_to_update
 
-      protected
+      private
 
         # Returns a subquery for the given key using the join information.
         def subquery_for(key, select)

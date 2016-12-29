@@ -224,6 +224,11 @@ module ActiveRecord
       autoload :AliasTracker
     end
 
+    def self.eager_load!
+      super
+      Preloader.eager_load!
+    end
+
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
       association = association_instance_get(name)
@@ -255,16 +260,16 @@ module ActiveRecord
 
     private
       # Clears out the association cache.
-      def clear_association_cache # :nodoc:
+      def clear_association_cache
         @association_cache.clear if persisted?
       end
 
-      def init_internals # :nodoc:
+      def init_internals
         @association_cache = {}
         super
       end
 
-      # Returns the specified association instance if it exists, nil otherwise.
+      # Returns the specified association instance if it exists, +nil+ otherwise.
       def association_instance_get(name)
         @association_cache[name]
       end

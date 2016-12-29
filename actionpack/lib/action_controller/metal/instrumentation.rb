@@ -46,7 +46,7 @@ module ActionController
       render_output
     end
 
-    def send_file(path, options={})
+    def send_file(path, options = {})
       ActiveSupport::Notifications.instrument("send_file.action_controller",
         options.merge(path: path)) do
         super
@@ -83,14 +83,14 @@ module ActionController
     #   end
     #
     # :api: plugin
-    def cleanup_view_runtime #:nodoc:
+    def cleanup_view_runtime
       yield
     end
 
     # Every time after an action is processed, this method is invoked
     # with the payload, so you can add more information.
     # :api: plugin
-    def append_info_to_payload(payload) #:nodoc:
+    def append_info_to_payload(payload)
       payload[:view_runtime] = view_runtime
     end
 

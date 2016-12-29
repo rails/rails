@@ -2,8 +2,8 @@ require "active_support/core_ext/time/zones"
 
 module ActiveModel
   module Type
-    module Helpers
-      module TimeValue # :nodoc:
+    module Helpers # :nodoc: all
+      module TimeValue
         def serialize(value)
           value = apply_seconds_precision(value)
 
@@ -33,8 +33,8 @@ module ActiveModel
         def apply_seconds_precision(value)
           return value unless precision && value.respond_to?(:usec)
           number_of_insignificant_digits = 6 - precision
-          round_power = 10 ** number_of_insignificant_digits
-          value.change(usec: value.usec / round_power * round_power)
+          round_power = 10**number_of_insignificant_digits
+          value.change(usec: value.usec - value.usec % round_power)
         end
 
         def type_cast_for_schema(value)

@@ -1,6 +1,5 @@
 require "action_view/rendering"
 require "active_support/core_ext/module/remove_method"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -92,16 +91,16 @@ module ActionView
   #     layout false
   #
   # In these examples, we have three implicit lookup scenarios:
-  # * The BankController uses the "bank" layout.
-  # * The ExchangeController uses the "exchange" layout.
-  # * The CurrencyController inherits the layout from BankController.
+  # * The +BankController+ uses the "bank" layout.
+  # * The +ExchangeController+ uses the "exchange" layout.
+  # * The +CurrencyController+ inherits the layout from BankController.
   #
   # However, when a layout is explicitly set, the explicitly set layout wins:
-  # * The InformationController uses the "information" layout, explicitly set.
-  # * The TellerController also uses the "information" layout, because the parent explicitly set it.
-  # * The EmployeeController uses the "employee" layout, because it set the layout to nil, resetting the parent configuration.
-  # * The VaultController chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
-  # * The TillController does not use a layout at all.
+  # * The +InformationController+ uses the "information" layout, explicitly set.
+  # * The +TellerController+ also uses the "information" layout, because the parent explicitly set it.
+  # * The +EmployeeController+ uses the "employee" layout, because it set the layout to +nil+, resetting the parent configuration.
+  # * The +VaultController+ chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
+  # * The +TillController+ does not use a layout at all.
   #
   # == Types of layouts
   #
@@ -149,8 +148,8 @@ module ActionView
   # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
   # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
-  # Setting the layout to nil forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
-  # Setting it to nil is useful to re-enable template lookup overriding a previous configuration set in the parent:
+  # Setting the layout to +nil+ forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
+  # Setting it to +nil+ is useful to re-enable template lookup overriding a previous configuration set in the parent:
   #
   #     class ApplicationController < ActionController::Base
   #       layout "application"
@@ -255,7 +254,7 @@ module ActionView
       # true::   raise an ArgumentError
       # nil::    Force default layout behavior with inheritance
       #
-      # Return value of Proc & Symbol arguments should be String, false, true or nil
+      # Return value of +Proc+ and +Symbol+ arguments should be +String+, +false+, +true+ or +nil+
       # with the same meaning as described above.
       # ==== Parameters
       # * <tt>layout</tt> - The layout to use.
@@ -339,7 +338,7 @@ module ActionView
         #
         # ==== Returns
         # * <tt>String</tt> - A template name
-        def _implied_layout_name # :nodoc:
+        def _implied_layout_name
           controller_path
         end
     end
@@ -405,11 +404,11 @@ module ActionView
     #
     # ==== Parameters
     # * <tt>formats</tt> - The formats accepted to this layout
-    # * <tt>require_layout</tt> - If set to true and layout is not found,
-    #   an +ArgumentError+ exception is raised (defaults to false)
+    # * <tt>require_layout</tt> - If set to +true+ and layout is not found,
+    #   an +ArgumentError+ exception is raised (defaults to +false+)
     #
     # ==== Returns
-    # * <tt>template</tt> - The template object for the default layout (or nil)
+    # * <tt>template</tt> - The template object for the default layout (or +nil+)
     def _default_layout(formats, require_layout = false)
       begin
         value = _layout(formats) if action_has_layout?
