@@ -1,3 +1,7 @@
+* Enhancements
+
+  * Remove deprecated type casting support in Arel
+
 === 7.1.1 / 2016-07-27
 
 * Bug Fixes

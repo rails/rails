@@ -59,16 +59,7 @@ module FakeRecord
       self
     end
 
-    def quote thing, column = nil
-      if column && !thing.nil?
-        case column.type
-        when :integer
-          thing = thing.to_i
-        when :string
-          thing = thing.to_s
-        end
-      end
-
+    def quote thing
       case thing
       when DateTime
         "'#{thing.strftime("%Y-%m-%d %H:%M:%S")}'"
@@ -116,8 +107,8 @@ module FakeRecord
       connection
     end
 
-    def quote thing, column = nil
-      connection.quote thing, column
+    def quote thing
+      connection.quote thing
     end
   end
 

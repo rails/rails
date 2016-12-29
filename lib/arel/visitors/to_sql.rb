@@ -76,10 +76,6 @@ module Arel
 
       private
 
-      def schema_cache
-        @connection.schema_cache
-      end
-
       def visit_Arel_Nodes_DeleteStatement o, collector
         collector << 'DELETE FROM '
         collector = visit o.relation, collector
@@ -170,24 +166,6 @@ module Arel
         collector << "FALSE"
       end
 
-      def table_exists? name
-        schema_cache.data_source_exists?(name)
-      end
-
-      def column_for attr
-        return unless attr
-        name    = attr.name.to_s
-        table   = attr.relation.table_name
-
-        return nil unless table_exists? table
-
-        column_cache(table)[name]
-      end
-
-      def column_cache(table)
-        schema_cache.columns_hash(table)
-      end
-
       def visit_Arel_Nodes_Values o, collector
         collector << "VALUES ("
 
@@ -197,7 +175,7 @@ module Arel
           when Nodes::SqlLiteral, Nodes::BindParam
             collector = visit value, collector
           else
-            collector << quote(value, attr && column_for(attr)).to_s
+            collector << quote(value).to_s
           end
           unless i == len
             collector << COMMA
@@ -653,7 +631,7 @@ module Arel
         else
           collector = visit o.left, collector
           collector << " = "
-          collector << quote(o.right, column_for(o.left)).to_s
+          collector << quote(o.right).to_s
         end
       end
 
@@ -749,7 +727,7 @@ module Arel
         if a && a.able_to_type_cast?
           quote(a.type_cast_for_database(o))
         else
-          quote(o, column_for(a))
+          quote(o)
         end
       end
 
@@ -793,12 +771,9 @@ module Arel
       end
       alias :visit_Set :visit_Array
 
-      def quote value, column = nil
+      def quote value
         return value if Arel::Nodes::SqlLiteral === value
-        if column
-          print_type_cast_deprecation
-        end
-        @connection.quote value, column
+        @connection.quote value
       end
 
       def quote_table_name name
@@ -845,20 +820,6 @@ module Arel
           visit o.alias, collector
         else
           collector
-        end
-      end
-
-      def print_type_cast_deprecation
-        unless defined?($arel_silence_type_casting_deprecation) && $arel_silence_type_casting_deprecation
-          warn <<-eowarn
-Arel performing automatic type casting is deprecated, and will be removed in Arel 8.0. If you are seeing this, it is because you are manually passing a value to an Arel predicate, and the `Arel::Table` object was constructed manually. The easiest way to remove this warning is to use an `Arel::Table` object returned from calling `arel_table` on an ActiveRecord::Base subclass.
-
-If you're certain the value is already of the right type, change `attribute.eq(value)` to `attribute.eq(Arel::Nodes::Quoted.new(value))` (you will be able to remove that in Arel 8.0, it is only required to silence this deprecation warning).
-
-You can also silence this warning globally by setting `$arel_silence_type_casting_deprecation` to `true`. (Do NOT do this if you are a library author)
-
-If you are passing user input to a predicate, you must either give an appropriate type caster object to the `Arel::Table`, or manually cast the value before passing it to Arel.
-          eowarn
         end
       end
     end
