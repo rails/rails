@@ -43,7 +43,7 @@ module ActiveRecord
         create true
       end
 
-      def structure_dump(filename)
+      def structure_dump(filename, extra_flags)
         set_psql_env
 
         search_path = \
@@ -57,6 +57,7 @@ module ActiveRecord
           end
 
         args = ["-s", "-x", "-O", "-f", filename]
+        args.concat(Array(extra_flags)) if extra_flags
         unless search_path.blank?
           args += search_path.split(",").map do |part|
             "--schema=#{part.strip}"
@@ -67,9 +68,11 @@ module ActiveRecord
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
-      def structure_load(filename)
+      def structure_load(filename, extra_flags)
         set_psql_env
-        args = [ "-v", ON_ERROR_STOP_1, "-q", "-f", filename, configuration["database"] ]
+        args = ["-v", ON_ERROR_STOP_1, "-q", "-f", filename]
+        args.concat(Array(extra_flags)) if extra_flags
+        args << configuration["database"]
         run_cmd("psql", args, "loading")
       end
 
