@@ -1,4 +1,4 @@
-*   Remove deprecated conditions parameter from `#destroy_all`.
+*   Remove deprecated conditions parameter from `#destroy_all` and `#delete_all`.
 
     *Rafael Mendonça França*
 

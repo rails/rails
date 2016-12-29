@@ -1011,12 +1011,6 @@ class RelationTest < ActiveRecord::TestCase
     assert ! davids.loaded?
   end
 
-  def test_delete_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.delete_all(name: "David") }
-    end
-  end
-
   def test_delete_all_loaded
     davids = Author.where(name: "David")
 
