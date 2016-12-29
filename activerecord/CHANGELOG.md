@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a class as a value in a query.
+
+    *Rafael Mendonça França*
+
 *   Raises `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
     order.
 

@@ -840,15 +840,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author, authors.first
   end
 
-  class Mary < Author; end
-
-  def test_find_by_classname
-    Author.create!(name: Mary.name)
-    assert_deprecated do
-      assert_equal 1, Author.where(name: Mary).size
-    end
-  end
-
   def test_find_by_id_with_list_of_ar
     author = Author.first
     authors = Author.find_by_id([author])
