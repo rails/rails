@@ -1,3 +1,8 @@
+*   Raises `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
+    order.
+
+    *Rafael Mendonça França*
+
 *   Raises when a through association has an ambiguous reflection name.
 
     *Rafael Mendonça França*

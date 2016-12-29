@@ -592,7 +592,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_with_irreversible_order
-    assert_deprecated do
+    assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("coalesce(author_name, title)").last
     end
   end
