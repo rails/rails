@@ -1,3 +1,8 @@
+*   Set `:time` as a timezone aware type and remove deprecation when the values is not
+    explictly set.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated force reload argument in singular and collection association readers.
 
     *Rafael Mendonça França*
