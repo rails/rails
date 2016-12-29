@@ -71,13 +71,7 @@ module ActiveRecord
         end
 
         # Returns the list of all tables in the schema search path.
-        def tables(name = nil)
-          if name
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing arguments to #tables is deprecated without replacement.
-            MSG
-          end
-
+        def tables
           select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", "SCHEMA")
         end
 

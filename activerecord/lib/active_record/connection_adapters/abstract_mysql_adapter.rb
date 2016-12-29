@@ -310,18 +310,12 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def tables(name = nil) # :nodoc:
+      def tables # :nodoc:
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           #tables currently returns both tables and views.
           This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
           Use #data_sources instead.
         MSG
-
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing arguments to #tables is deprecated without replacement.
-          MSG
-        end
 
         data_sources
       end

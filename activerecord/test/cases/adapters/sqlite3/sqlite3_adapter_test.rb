@@ -280,9 +280,7 @@ module ActiveRecord
           WHERE type IN ('table','view') AND name <> 'sqlite_sequence'
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
-          ActiveSupport::Deprecation.silence do
-            @conn.tables("hello")
-          end
+          @conn.tables
         end
       end
 

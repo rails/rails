@@ -300,10 +300,6 @@ module ActiveRecord
         assert_deprecated { @connection.tables }
       end
     end
-
-    def test_passing_arguments_to_tables_is_deprecated
-      assert_deprecated { @connection.tables(:books) }
-    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase

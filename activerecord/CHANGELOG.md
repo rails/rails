@@ -1,3 +1,7 @@
+*   Remove deprecated `name` argument from `#tables`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing a column to `#quote`.
 
     *Rafael Mendonça França*
