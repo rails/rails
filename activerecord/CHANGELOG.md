@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing arguments to `#select` when a block is provided.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to query using commas on LIMIT.
 
     *Rafael Mendonça França*

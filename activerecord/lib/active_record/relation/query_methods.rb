@@ -243,9 +243,7 @@ module ActiveRecord
     def select(*fields)
       if block_given?
         if fields.any?
-          ActiveSupport::Deprecation.warn(<<-WARNING.squish)
-            When select is called with a block, it ignores other arguments. This behavior is now deprecated and will result in an ArgumentError in Rails 5.1. You can safely remove the arguments to resolve the deprecation warning because they do not have any effect on the output of the call to the select method with a block.
-          WARNING
+          raise ArgumentError, "`select' with block doesn't take arguments."
         end
 
         return super()
