@@ -170,7 +170,7 @@ module Arel
         collector << "VALUES ("
 
         len = o.expressions.length - 1
-        o.expressions.zip(o.columns).each_with_index { |(value, attr), i|
+        o.expressions.each_with_index { |value, i|
           case value
           when Nodes::SqlLiteral, Nodes::BindParam
             collector = visit value, collector
