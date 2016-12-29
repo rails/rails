@@ -36,11 +36,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
       private
 
-      def should_be_cool
-        unless self.first_name == "cool"
-          errors.add :first_name, "not cool"
+        def should_be_cool
+          unless self.first_name == "cool"
+            errors.add :first_name, "not cool"
+          end
         end
-      end
     }
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"

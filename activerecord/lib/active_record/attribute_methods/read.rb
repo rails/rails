@@ -24,7 +24,7 @@ module ActiveRecord
           # to allocate an object on each call to the attribute method.
           # Making it frozen means that it doesn't get duped when used to
           # key the @attributes in read_attribute.
-          def define_method_attribute(name) # :doc:
+          def define_method_attribute(name)
             safe_name = name.unpack("h*".freeze).first
             temp_method = "__temp__#{safe_name}"
 

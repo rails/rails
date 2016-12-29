@@ -518,11 +518,11 @@ module ActiveRecord
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
-        def sqlite_version # :doc:
+        def sqlite_version
           @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
         end
 
-        def translate_exception(exception, message) # :doc:
+        def translate_exception(exception, message)
           case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*

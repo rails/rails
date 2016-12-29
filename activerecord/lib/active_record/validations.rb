@@ -70,11 +70,11 @@ module ActiveRecord
 
   private
 
-    def default_validation_context # :doc:
+    def default_validation_context
       new_record? ? :create : :update
     end
 
-    def raise_validation_error # :doc:
+    def raise_validation_error
       raise(RecordInvalid.new(self))
     end
 

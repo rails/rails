@@ -54,7 +54,7 @@ module ActiveRecord
 
         private
 
-          def last_inserted_id(result) # :doc:
+          def last_inserted_id(result)
             @connection.last_id
           end
 

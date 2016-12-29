@@ -127,7 +127,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
-    assert_equal({"a" => { b: { "c" => 3 } } }, @nested_mixed)
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
   def test_symbolize_keys

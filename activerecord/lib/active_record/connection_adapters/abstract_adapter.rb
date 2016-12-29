@@ -571,7 +571,7 @@ module ActiveRecord
           end
         end
 
-        def translate_exception_class(e, sql) # :doc:
+        def translate_exception_class(e, sql)
           begin
             message = "#{e.class.name}: #{e.message}: #{sql}"
           rescue Encoding::CompatibilityError
@@ -596,7 +596,7 @@ module ActiveRecord
           raise translate_exception_class(e, sql)
         end
 
-        def translate_exception(exception, message) # :doc:
+        def translate_exception(exception, message)
           # override in derived class
           case exception
           when RuntimeError
@@ -606,7 +606,7 @@ module ActiveRecord
           end
         end
 
-        def without_prepared_statement?(binds) # :doc:
+        def without_prepared_statement?(binds)
           !prepared_statements || binds.empty?
         end
 

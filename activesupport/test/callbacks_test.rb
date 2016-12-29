@@ -1040,7 +1040,7 @@ module CallbacksTest
         set_callback :foo, :before, :foo, if: callback
         def run; run_callbacks :foo; end
         private
-        def foo; end
+          def foo; end
       }
       object = klass.new
       object.run

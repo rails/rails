@@ -415,7 +415,7 @@ module ActiveRecord
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
 
-        def translate_exception(exception, message) # :doc:
+        def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)

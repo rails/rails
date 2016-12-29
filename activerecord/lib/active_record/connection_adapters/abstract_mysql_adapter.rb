@@ -701,7 +701,7 @@ module ActiveRecord
           end
         end
 
-        def extract_precision(sql_type) # :doc:
+        def extract_precision(sql_type)
           if /time/.match?(sql_type)
             super || 0
           else
@@ -709,11 +709,11 @@ module ActiveRecord
           end
         end
 
-        def fetch_type_metadata(sql_type, extra = "") # :doc:
+        def fetch_type_metadata(sql_type, extra = "")
           MySQL::TypeMetadata.new(super(sql_type), extra: extra)
         end
 
-        def add_index_length(quoted_columns, **options) # :doc:
+        def add_index_length(quoted_columns, **options)
           if length = options[:length]
             case length
             when Hash
@@ -727,7 +727,7 @@ module ActiveRecord
           quoted_columns
         end
 
-        def add_options_for_index_columns(quoted_columns, **options) # :doc:
+        def add_options_for_index_columns(quoted_columns, **options)
           quoted_columns = add_index_length(quoted_columns, options)
           super
         end
@@ -743,7 +743,7 @@ module ActiveRecord
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
 
-        def translate_exception(exception, message) # :doc:
+        def translate_exception(exception, message)
           case error_number(exception)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message)
@@ -770,13 +770,13 @@ module ActiveRecord
           end
         end
 
-        def add_column_sql(table_name, column_name, type, options = {}) # :doc:
+        def add_column_sql(table_name, column_name, type, options = {})
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, options)
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
-        def change_column_sql(table_name, column_name, type, options = {}) # :doc:
+        def change_column_sql(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
 
           unless options_include_default?(options)
@@ -796,7 +796,7 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def rename_column_sql(table_name, column_name, new_column_name) # :doc:
+        def rename_column_sql(table_name, column_name, new_column_name)
           column  = column_for(table_name, column_name)
           options = {
             default: column.default,
@@ -810,30 +810,30 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def remove_column_sql(table_name, column_name, type = nil, options = {}) # :doc:
+        def remove_column_sql(table_name, column_name, type = nil, options = {})
           "DROP #{quote_column_name(column_name)}"
         end
 
-        def remove_columns_sql(table_name, *column_names) # :doc:
+        def remove_columns_sql(table_name, *column_names)
           column_names.map { |column_name| remove_column_sql(table_name, column_name) }
         end
 
-        def add_index_sql(table_name, column_name, options = {}) # :doc:
+        def add_index_sql(table_name, column_name, options = {})
           index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end
 
-        def remove_index_sql(table_name, options = {}) # :doc:
+        def remove_index_sql(table_name, options = {})
           index_name = index_name_for_remove(table_name, options)
           "DROP INDEX #{index_name}"
         end
 
-        def add_timestamps_sql(table_name, options = {}) # :doc:
+        def add_timestamps_sql(table_name, options = {})
           [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
         end
 
-        def remove_timestamps_sql(table_name, options = {}) # :doc:
+        def remove_timestamps_sql(table_name, options = {})
           [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
         end
 

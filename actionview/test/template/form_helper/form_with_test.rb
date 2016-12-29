@@ -339,7 +339,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_only_url_on_update
     form_with(url: "/posts/123") do |f|
-      concat f.label :title, 'Label me'
+      concat f.label :title, "Label me"
       concat f.text_field :title
     end
 
@@ -964,7 +964,6 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, output_buffer
   end
-
 
   def test_nested_fields
     @comment.body = "Hello World"

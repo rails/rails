@@ -52,7 +52,7 @@ module ActiveRecord
 
       private
 
-        def attribute_method?(attr_name) # :doc:
+        def attribute_method?(attr_name)
           attr_name == "id" || super
         end
 

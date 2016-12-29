@@ -694,31 +694,31 @@ class FormTagHelperTest < ActionView::TestCase
   def test_text_area_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     text_area_tag "body", "hello world", options
-    assert_equal({option: "random_option"}, options)
+    assert_equal({ option: "random_option" }, options)
   end
 
   def test_submit_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     submit_tag "submit value", options
-    assert_equal({option: "random_option"}, options)
+    assert_equal({ option: "random_option" }, options)
   end
 
   def test_button_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     button_tag "button value", options
-    assert_equal({option: "random_option"}, options)
+    assert_equal({ option: "random_option" }, options)
   end
 
   def test_image_submit_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     image_submit_tag "submit source", options
-    assert_equal({option: "random_option"}, options)
+    assert_equal({ option: "random_option" }, options)
   end
 
   def test_image_label_tag_options_symbolize_keys_side_effects
     options = { option: "random_option" }
     label_tag "submit source", "title", options
-    assert_equal({option: "random_option"}, options)
+    assert_equal({ option: "random_option" }, options)
   end
 
   def protect_against_forgery?

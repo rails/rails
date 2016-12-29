@@ -1829,9 +1829,9 @@ class FormHelperTest < ActionView::TestCase
     obj = Class.new do
       private
 
-      def private_property
-        raise "This method should not be called."
-      end
+        def private_property
+          raise "This method should not be called."
+        end
     end.new
 
     form_for(obj, as: "other_name", url: "/", html: { id: "edit-other-name" }) do |f|

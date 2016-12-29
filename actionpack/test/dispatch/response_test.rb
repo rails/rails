@@ -111,7 +111,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_empty_content_type_returns_nil
-    @response.headers['Content-Type'] = ""
+    @response.headers["Content-Type"] = ""
     assert_nil @response.content_type
   end
 

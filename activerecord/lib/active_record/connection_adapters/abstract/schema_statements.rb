@@ -1171,7 +1171,7 @@ module ActiveRecord
 
       private
 
-        def add_index_sort_order(quoted_columns, **options) # :doc:
+        def add_index_sort_order(quoted_columns, **options)
           if order = options[:order]
             case order
             when Hash
@@ -1186,7 +1186,7 @@ module ActiveRecord
         end
 
         # Overridden by the MySQL adapter for supporting index lengths
-        def add_options_for_index_columns(quoted_columns, **options) # :doc:
+        def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
             quoted_columns = add_index_sort_order(quoted_columns, options)
           end
@@ -1194,14 +1194,14 @@ module ActiveRecord
           quoted_columns
         end
 
-        def quoted_columns_for_index(column_names, **options) # :doc:
+        def quoted_columns_for_index(column_names, **options)
           return [column_names] if column_names.is_a?(String)
 
           quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
           add_options_for_index_columns(quoted_columns, options).values
         end
 
-        def index_name_for_remove(table_name, options = {}) # :doc:
+        def index_name_for_remove(table_name, options = {})
           return options[:name] if can_remove_index_by_name?(options)
 
           checks = []
@@ -1231,7 +1231,7 @@ module ActiveRecord
           end
         end
 
-        def rename_table_indexes(table_name, new_name) # :doc:
+        def rename_table_indexes(table_name, new_name)
           indexes(new_name).each do |index|
             generated_index_name = index_name(table_name, column: index.columns)
             if generated_index_name == index.name
@@ -1240,7 +1240,7 @@ module ActiveRecord
           end
         end
 
-        def rename_column_indexes(table_name, column_name, new_column_name) # :doc:
+        def rename_column_indexes(table_name, column_name, new_column_name)
           column_name, new_column_name = column_name.to_s, new_column_name.to_s
           indexes(table_name).each do |index|
             next unless index.columns.include?(new_column_name)

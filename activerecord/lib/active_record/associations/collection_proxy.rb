@@ -1128,12 +1128,12 @@ module ActiveRecord
 
       private
 
-        def find_nth_with_limit(index, limit) # :doc:
+        def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super
         end
 
-        def find_nth_from_last(index) # :doc:
+        def find_nth_from_last(index)
           load_target if find_from_target?
           super
         end

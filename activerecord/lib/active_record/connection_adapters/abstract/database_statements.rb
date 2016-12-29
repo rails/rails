@@ -363,31 +363,31 @@ module ActiveRecord
       private
 
         # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select) # :doc:
+        def subquery_for(key, select)
           subselect = select.clone
           subselect.projections = [key]
           subselect
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = []) # :doc:
+        def select(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: false)
         end
 
-        def select_prepared(sql, name = nil, binds = []) # :doc:
+        def select_prepared(sql, name = nil, binds = [])
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds) # :doc:
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
           [sql, binds]
         end
 
-        def last_inserted_id(result) # :doc:
+        def last_inserted_id(result)
           row = result.rows.first
           row && row.first
         end
 
-        def binds_from_relation(relation, binds) # :doc:
+        def binds_from_relation(relation, binds)
           if relation.is_a?(Relation) && binds.empty?
             relation, binds = relation.arel, relation.bound_attributes
           end

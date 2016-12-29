@@ -73,7 +73,7 @@ module ActiveSupport
             begin
               BigDecimal(number)
             rescue ArgumentError
-              BigDecimal('0')
+              BigDecimal("0")
             end
           else
             BigDecimal(number)
