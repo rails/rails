@@ -1,3 +1,7 @@
+*   Raises when `ActiveRecord::Migration` is inherited directly.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
     and `ActiveRecord::StatementInvalid#original_exception`.
 
