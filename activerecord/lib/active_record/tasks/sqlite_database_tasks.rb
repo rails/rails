@@ -37,13 +37,13 @@ module ActiveRecord
 
       def structure_dump(filename, extra_flags)
         dbfile = configuration["database"]
-        flags = extra_flags.try!(:join, " ")
+        flags = extra_flags.join(" ") if extra_flags
         `sqlite3 #{flags} #{dbfile} .schema > #{filename}`
       end
 
       def structure_load(filename, extra_flags)
         dbfile = configuration["database"]
-        flags = extra_flags.try!(:join, " ")
+        flags = extra_flags.join(" ") if extra_flags
         `sqlite3 #{flags} #{dbfile} < "#{filename}"`
       end
 
