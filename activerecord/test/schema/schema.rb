@@ -574,6 +574,7 @@ ActiveRecord::Schema.define do
     t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
+    t.column :updated_count, :integer, default: 0
     if subsecond_precision_supported?
       t.column :created_at, :datetime, precision: 0
       t.column :created_on, :datetime, precision: 0
