@@ -92,7 +92,11 @@ module ActionDispatch
           else
             routes = non_recursive(cache, options)
 
-            hash = routes.group_by { |_, r| r.score(options) }
+            supplied_keys = options.each_with_object({}) do |(k, v), h|
+              h[k.to_s] = true if v
+            end
+
+            hash = routes.group_by { |_, r| r.score(supplied_keys) }
 
             hash.keys.sort.reverse_each do |score|
               break if score < 0
