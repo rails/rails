@@ -38,7 +38,7 @@ module ActiveRecord
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
-        if record.new_record? || record.has_changes_to_save?
+        if record.new_record? || record.changed?
           if raise
             record.save!(validate: validate)
           else
