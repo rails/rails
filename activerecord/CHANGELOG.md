@@ -1,3 +1,8 @@
+*   Remove deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+    and `ActiveRecord::StatementInvalid#original_exception`.
+
+    *Rafael Mendonça França*
+
 *   `#tables` and `#table_exists?` and returns only tables and not views.
 
     All the deprecations on those methods were removed.
