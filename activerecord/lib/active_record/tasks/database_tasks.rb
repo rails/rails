@@ -241,14 +241,6 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
       end
 
-      def load_schema_for(*args)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          This method was renamed to `#load_schema` and will be removed in the future.
-          Use `#load_schema` instead.
-        MSG
-        load_schema(*args)
-      end
-
       def schema_file(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby

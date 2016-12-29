@@ -1,3 +1,7 @@
+*   Remove deprecated `#load_schema_for`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated conditions parameter from `#destroy_all` and `#delete_all`.
 
     *Rafael Mendonça França*
