@@ -1,3 +1,10 @@
+*   Return correct object name in form helper method after `fields_for`.
+
+    Fixes #26931.
+
+    *Yuji Yaginuma*
+
+
 ## Rails 5.0.1 (December 21, 2016) ##
 
 *   No changes.
