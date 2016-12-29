@@ -446,16 +446,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all.
-        MESSAGE
-        where(conditions).destroy_all
-      else
-        records.each(&:destroy).tap { reset }
-      end
+    def destroy_all
+      records.each(&:destroy).tap { reset }
     end
 
     # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,

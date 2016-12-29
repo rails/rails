@@ -1,3 +1,7 @@
+*   Remove deprecated conditions parameter from `#destroy_all`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing arguments to `#select` when a block is provided.
 
     *Rafael Mendonça França*
