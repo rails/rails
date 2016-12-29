@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveSupport::Deprecation.silence { rename_table :octopi, :test_models if connection.table_exists? :octopi }
+        rename_table :octopi, :test_models if connection.table_exists? :octopi
         super
       end
 
@@ -82,7 +82,7 @@ module ActiveRecord
         def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
           connection.create_table :cats, id: :uuid
           assert_nothing_raised { rename_table :cats, :felines }
-          ActiveSupport::Deprecation.silence { assert connection.table_exists? :felines }
+          assert connection.table_exists? :felines
         ensure
           connection.drop_table :cats, if_exists: true
           connection.drop_table :felines, if_exists: true

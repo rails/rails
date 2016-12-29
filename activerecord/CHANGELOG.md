@@ -1,3 +1,9 @@
+*   `#tables` and `#table_exists?` and returns only tables and not views.
+
+    All the deprecations on those methods were removed.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `name` argument from `#tables`.
 
     *Rafael Mendonça França*
