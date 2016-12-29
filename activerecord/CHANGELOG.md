@@ -1,3 +1,7 @@
+*   Remove deprecated `#raise_in_transactional_callbacks` configuration.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `#load_schema_for`.
 
     *Rafael Mendonça França*
