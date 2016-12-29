@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a column to `#quote`.
+
+    *Rafael Mendonça França*
+
 *   Set `:time` as a timezone aware type and remove deprecation when the values is not
     explictly set.
 
