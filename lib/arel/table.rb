@@ -13,7 +13,6 @@ module Arel
 
     def initialize(name, as: nil, type_caster: nil)
       @name    = name.to_s
-      @columns = nil
       @type_caster = type_caster
 
       # Sometime AR sends an :as parameter to table, to let the table know
@@ -106,16 +105,5 @@ module Arel
     protected
 
     attr_reader :type_caster
-
-    private
-
-    def attributes_for columns
-      return nil unless columns
-
-      columns.map do |column|
-        Attributes.for(column).new self, column.name.to_sym
-      end
-    end
-
   end
 end
