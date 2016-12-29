@@ -19,7 +19,7 @@ PATH
   specs:
     actioncable (5.0.1)
       actionpack (= 5.0.1)
-      nio4r (~> 1.2)
+      nio4r (>= 1.2, < 3.0)
       websocket-driver (~> 0.6.1)
     actionmailer (5.0.1)
       actionpack (= 5.0.1)
