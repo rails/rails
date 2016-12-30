@@ -1,3 +1,10 @@
+*   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
+    calling `ActiveRecord::Dirty#changed_in_place?`
+
+    Fixes #27502.
+
+    *Jon Moss*
+
 *   Respect precision option for arrays of timestamps.
 
     Fixes #27514.
