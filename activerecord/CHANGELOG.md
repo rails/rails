@@ -1,3 +1,10 @@
+*   Add option to update specified timestamp columns when incrementing,
+    decrementing, resetting, or updating counter caches.
+
+    Fixes #26724.
+
+    *Jarred Trost*
+
 *   Remove deprecated `#uniq`, `#uniq!`, and `#uniq_value`.
 
     *Ryuta Kamizono*
