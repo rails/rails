@@ -1369,12 +1369,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_uniq_delegates_to_scoped
-    assert_deprecated do
-      assert_equal Bird.all.distinct, Bird.uniq
-    end
-  end
-
   def test_distinct_delegates_to_scoped
     assert_equal Bird.all.distinct, Bird.distinct
   end

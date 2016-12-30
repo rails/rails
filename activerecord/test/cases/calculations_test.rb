@@ -421,10 +421,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
-
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).uniq.count
-    end
   end
 
   def test_count_with_aliased_attribute

@@ -839,16 +839,12 @@ module ActiveRecord
     def distinct(value = true)
       spawn.distinct!(value)
     end
-    alias uniq distinct
-    deprecate uniq: :distinct
 
     # Like #distinct, but modifies relation in place.
     def distinct!(value = true) # :nodoc:
       self.distinct_value = value
       self
     end
-    alias uniq! distinct!
-    deprecate uniq!: :distinct!
 
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
