@@ -1,9 +1,9 @@
-*   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`
+*   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`.
 
     *Julia López*
 
+
 ## Rails 5.0.1 (December 21, 2016) ##
-*   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`
 
 *   Restored correct `charset` behavior on `send_data` and `send_file`: while
     they should pass along any supplied value, they should not add a default.
@@ -31,7 +31,7 @@
 *   Fixed error caused by `force_ssl_redirect` when `session_store` is
     enabled.
 
-    Fixes #19679
+    Fixes #19679.
 
     *Taishi Kasuga*
 
