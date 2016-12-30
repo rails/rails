@@ -44,7 +44,7 @@
 
     *Rafael Mendonça França*
 
-*   `#tables` and `#table_exists?` and returns only tables and not views.
+*   `#tables` and `#table_exists?` return only tables and not views.
 
     All the deprecations on those methods were removed.
 
