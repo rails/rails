@@ -1,3 +1,10 @@
+*   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
+    calling `ActiveRecord::Dirty#changed_in_place?`
+
+    Fixes #27502.
+
+    *Jon Moss*
+
 *   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`
     and `.exists?`.
 
