@@ -28,9 +28,7 @@ module Rails
 
             return @rake_tasks if defined?(@rake_tasks)
 
-            ActiveSupport::Deprecation.silence do
-              require_application_and_environment!
-            end
+            require_application_and_environment!
 
             Rake::TaskManager.record_task_metadata = true
             Rake.application.instance_variable_set(:@name, "rails")
