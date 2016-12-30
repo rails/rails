@@ -1633,17 +1633,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["Foo", "Foo"], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq(true).map(&:name) }
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
-
-    assert_deprecated do
-      assert_equal ["Foo", "Foo"], query.uniq(true).uniq(false).map(&:name)
-    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank

@@ -1,3 +1,7 @@
+*   Remove deprecated `#uniq`, `#uniq!`, and `#uniq_value`.
+
+    *Ryuta Kamizono*
+
 *   Remove deprecated `#insert_sql`, `#update_sql`, and `#delete_sql`.
 
     *Ryuta Kamizono*
