@@ -1,4 +1,7 @@
 module Enumerable
+  if instance_methods.include?(:sum)
+    alias :orig_sum :sum
+  end
   # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
