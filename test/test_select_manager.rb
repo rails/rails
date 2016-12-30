@@ -1198,7 +1198,7 @@ module Arel
         manager.ast.cores.last.set_quantifier.class.must_equal Arel::Nodes::Distinct
 
         manager.distinct(false)
-        manager.ast.cores.last.set_quantifier.must_equal nil
+        manager.ast.cores.last.set_quantifier.must_be_nil
       end
 
       it "chains" do
@@ -1217,7 +1217,7 @@ module Arel
         manager.ast.cores.last.set_quantifier.must_equal Arel::Nodes::DistinctOn.new(table['id'])
 
         manager.distinct_on(false)
-        manager.ast.cores.last.set_quantifier.must_equal nil
+        manager.ast.cores.last.set_quantifier.must_be_nil
       end
 
       it "chains" do
