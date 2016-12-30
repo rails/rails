@@ -26,16 +26,16 @@
 
     *Rafael Mendonça França*
 
-*   Raises `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
+*   Raise `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
     order.
 
     *Rafael Mendonça França*
 
-*   Raises when a through association has an ambiguous reflection name.
+*   Raise when a `has_many :through` association has an ambiguous reflection name.
 
     *Rafael Mendonça França*
 
-*   Raises when `ActiveRecord::Migration` is inherited directly.
+*   Raise when `ActiveRecord::Migration` is inherited directly.
 
     *Rafael Mendonça França*
 
@@ -58,8 +58,8 @@
 
     *Rafael Mendonça França*
 
-*   Set `:time` as a timezone aware type and remove deprecation when the values is not
-    explictly set.
+*   Set `:time` as a timezone aware type and remove deprecation when
+    `config.active_record.time_zone_aware_types` is not explictly set.
 
     *Rafael Mendonça França*
 
