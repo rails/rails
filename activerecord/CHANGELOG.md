@@ -43,7 +43,7 @@
 
     *Rafael Mendonça França*
 
-*   Raise when `ActiveRecord::Migration` is inherited directly.
+*   Raise when `ActiveRecord::Migration` is inherited from directly.
 
     *Rafael Mendonça França*
 
