@@ -41,10 +41,8 @@ module Rails
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
-
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
-          # Must come after Rack::MethodOverride to properly log overridden methods
-          # Must come after ActionDispatch::RemoteIP to properly log ip address
+
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format

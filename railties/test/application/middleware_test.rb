@@ -30,8 +30,8 @@ module ApplicationTests
         "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
-        "ActionDispatch::RemoteIp", # Must come before Rails::Rack::Logger to properly log request_id
-        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
+        "ActionDispatch::RemoteIp",
+        "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::Reloader",
@@ -59,7 +59,7 @@ module ApplicationTests
         "Rack::Runtime",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
-        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
+        "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
         "ActionDispatch::Reloader",
@@ -68,6 +68,37 @@ module ApplicationTests
         "Rack::ConditionalGet",
         "Rack::ETag"
       ], middleware
+    end
+
+    test "middleware dependencies" do
+      boot!
+
+      # The following array-of-arrays describes dependencies between
+      # middlewares: the first item in each list depends on the
+      # remaining items (and therefore must occur later in the
+      # middleware stack).
+
+      dependencies = [
+        # Logger needs a fully "corrected" request environment
+        %w(Rails::Rack::Logger Rack::MethodOverride ActionDispatch::RequestId ActionDispatch::RemoteIp),
+
+        # Serving public/ doesn't invoke user code, so it should skip
+        # locks etc
+        %w(ActionDispatch::Executor ActionDispatch::Static),
+
+        # Errors during reload must be reported
+        %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
+
+        # Outright dependencies
+        %w(ActionDispatch::Static Rack::Sendfile),
+        %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
+        %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
+      ]
+
+      require "tsort"
+      sorted = TSort.tsort((middleware | dependencies.flatten).method(:each),
+                           lambda { |n, &b| dependencies.each { |m, *ds| ds.each(&b) if m == n } })
+      assert_equal sorted, middleware
     end
 
     test "Rack::Cache is not included by default" do
