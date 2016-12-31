@@ -994,6 +994,8 @@ module ActiveRecord
       end
 
       def insert_versions_sql(versions) # :nodoc:
+        return unless versions.any?
+
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         if versions.is_a?(Array)
