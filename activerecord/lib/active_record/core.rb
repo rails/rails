@@ -239,7 +239,9 @@ module ActiveRecord
       def generated_association_methods
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
+          private_constant :GeneratedAssociationMethods
           include mod
+
           mod
         end
       end
