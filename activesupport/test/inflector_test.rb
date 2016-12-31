@@ -31,6 +31,14 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
 
+  def test_pluralize_for_words_with_non_ascii_characters
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable "猫"
+    end
+    assert_equal "猫", ActiveSupport::Inflector.pluralize("猫")
+    ActiveSupport::Inflector.inflections.uncountables.pop
+  end
+
   ActiveSupport::Inflector.inflections.uncountable.each do |word|
     define_method "test_uncountability_of_#{word}" do
       assert_equal word, ActiveSupport::Inflector.singularize(word)
