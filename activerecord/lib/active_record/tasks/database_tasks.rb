@@ -275,6 +275,16 @@ module ActiveRecord
         end
       end
 
+      # Dumps the schema cache in YAML format for the connection into the file
+      #
+      # ==== Examples:
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      def dump_schema_cache(conn, filename)
+        conn.schema_cache.clear!
+        conn.data_sources.each { |table| conn.schema_cache.add(table) }
+        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+      end
+
       private
 
         def class_for_adapter(adapter)
