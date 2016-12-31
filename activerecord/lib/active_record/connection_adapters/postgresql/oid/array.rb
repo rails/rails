@@ -6,7 +6,7 @@ module ActiveRecord
           include Type::Helpers::Mutable
 
           attr_reader :subtype, :delimiter
-          delegate :type, :user_input_in_time_zone, :limit, to: :subtype
+          delegate :type, :user_input_in_time_zone, :limit, :precision, :scale, to: :subtype
 
           def initialize(subtype, delimiter = ",")
             @subtype = subtype
