@@ -42,9 +42,6 @@ module Rails
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        type: :boolean, aliases: "-B", default: false,
-                                          desc: "Don't run bundle install"
-
         class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
                                           desc: "Skip .gitignore file"
 

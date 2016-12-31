@@ -175,6 +175,9 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
+                                 desc: "Don't run bundle install"
+
       def initialize(*args)
         super
 
