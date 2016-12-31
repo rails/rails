@@ -382,10 +382,9 @@ module ActiveRecord
       #     end
       #   end
       #
-      # If your model class is <tt>Project</tt>, then the module is
-      # named <tt>Project::GeneratedAssociationMethods</tt>. The +GeneratedAssociationMethods+ module is
-      # included in the model class immediately after the (anonymous) generated attributes methods
-      # module, meaning an association will override the methods for an attribute with the same name.
+      # The association methods module is included immediately after the
+      # generated attributes methods module, meaning an association will
+      # override the methods for an attribute with the same name.
       #
       # == Cardinality and associations
       #
