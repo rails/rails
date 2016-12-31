@@ -100,7 +100,13 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_for_nested_class_name
-    reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, { class_name: "MyApplication::Business::Company" }, ActiveRecord::Base)
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      nil,
+      nil,
+      { class_name: "MyApplication::Business::Company" },
+      Customer
+    )
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end

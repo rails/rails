@@ -1,3 +1,7 @@
+*   Optimize slow model instantiation when using STI and `store_full_sti_class = false` option.
+
+    *Konstantin Lazarev*
+
 *   Add `touch` option to counter cache modifying methods.
 
     Works when updating, resetting, incrementing and decrementing counters:
