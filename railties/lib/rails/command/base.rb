@@ -22,7 +22,7 @@ module Rails
 
         # Tries to get the description from a USAGE file one folder above the command
         # root.
-        def desc(usage = nil, description = nil)
+        def desc(usage = nil, description = nil, options = {})
           if usage
             super
           else
