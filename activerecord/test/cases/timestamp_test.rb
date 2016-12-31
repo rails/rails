@@ -432,32 +432,32 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_timestamp_attributes_for_create
     toy = Toy.first
-    assert_equal [:created_at, :created_on], toy.send(:timestamp_attributes_for_create)
+    assert_equal ["created_at", "created_on"], toy.send(:timestamp_attributes_for_create)
   end
 
   def test_timestamp_attributes_for_update
     toy = Toy.first
-    assert_equal [:updated_at, :updated_on], toy.send(:timestamp_attributes_for_update)
+    assert_equal ["updated_at", "updated_on"], toy.send(:timestamp_attributes_for_update)
   end
 
   def test_all_timestamp_attributes
     toy = Toy.first
-    assert_equal [:created_at, :created_on, :updated_at, :updated_on], toy.send(:all_timestamp_attributes)
+    assert_equal ["created_at", "created_on", "updated_at", "updated_on"], toy.send(:all_timestamp_attributes)
   end
 
   def test_timestamp_attributes_for_create_in_model
     toy = Toy.first
-    assert_equal [:created_at], toy.send(:timestamp_attributes_for_create_in_model)
+    assert_equal ["created_at"], toy.send(:timestamp_attributes_for_create_in_model)
   end
 
   def test_timestamp_attributes_for_update_in_model
     toy = Toy.first
-    assert_equal [:updated_at], toy.send(:timestamp_attributes_for_update_in_model)
+    assert_equal ["updated_at"], toy.send(:timestamp_attributes_for_update_in_model)
   end
 
   def test_all_timestamp_attributes_in_model
     toy = Toy.first
-    assert_equal [:created_at, :updated_at], toy.send(:all_timestamp_attributes_in_model)
+    assert_equal ["created_at", "updated_at"], toy.send(:all_timestamp_attributes_in_model)
   end
 
   def test_index_is_created_for_both_timestamps
