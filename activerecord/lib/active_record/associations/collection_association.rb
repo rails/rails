@@ -47,9 +47,7 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= (
             column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
