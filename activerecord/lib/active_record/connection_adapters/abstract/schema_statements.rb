@@ -994,15 +994,15 @@ module ActiveRecord
       end
 
       def insert_versions_sql(versions) # :nodoc:
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         if versions.is_a?(Array)
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.map { |v| "('#{v}')" }.join(",\n")
+          sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
           sql << ";\n\n"
           sql
         else
-          "INSERT INTO #{sm_table} (version) VALUES ('#{versions}');"
+          "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
         end
       end
 
@@ -1032,7 +1032,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
         end
 
         inserting = (versions - migrated).select { |v| v < version }
