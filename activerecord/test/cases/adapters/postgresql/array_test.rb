@@ -16,10 +16,11 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.transaction do
       @connection.create_table("pg_arrays") do |t|
-        t.string "tags", array: true
+        t.string "tags", array: true, limit: 255
         t.integer "ratings", array: true
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
+        t.decimal :decimals, array: true, default: [], precision: 10, scale: 2
       end
     end
     PgArray.reset_column_information
@@ -34,7 +35,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_column
     assert_equal :string, @column.type
-    assert_equal "character varying", @column.sql_type
+    assert_equal "character varying(255)", @column.sql_type
     assert @column.array?
     assert_not @type.binary?
 
@@ -110,8 +111,9 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "pg_arrays"
-    assert_match %r[t\.string\s+"tags",\s+array: true], output
+    assert_match %r[t\.string\s+"tags",\s+limit: 255,\s+array: true], output
     assert_match %r[t\.integer\s+"ratings",\s+array: true], output
+    assert_match %r[t\.decimal\s+"decimals",\s+precision: 10,\s+scale: 2,\s+default: \[\],\s+array: true], output
   end
 
   def test_select_with_strings
