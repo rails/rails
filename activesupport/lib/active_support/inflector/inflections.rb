@@ -1,5 +1,6 @@
 require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
+require "active_support/core_ext/regexp"
 require "active_support/i18n"
 
 module ActiveSupport
@@ -50,7 +51,7 @@ module ActiveSupport
         end
 
         def uncountable?(str)
-          @regex_array.any? { |regex| regex === str }
+          @regex_array.any? { |regex| regex.match? str }
         end
 
         private
