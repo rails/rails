@@ -130,6 +130,14 @@ module Rails
             end
           end
       end
+
+      def help
+        if command_name = self.class.command_name
+          self.class.command_help(shell, command_name)
+        else
+          super
+        end
+      end
     end
   end
 end
