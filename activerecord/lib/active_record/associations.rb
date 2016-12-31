@@ -369,13 +369,14 @@ module ActiveRecord
       #
       # === Overriding generated methods
       #
-      # Association methods are generated in a module that is included into the model class,
-      # which allows you to easily override with your own methods and call the original
-      # generated method with +super+. For example:
+      # Association methods are generated in a module included into the model
+      # class, making overrides easy. The original generated method can thus be
+      # called with +super+:
       #
       #   class Car < ActiveRecord::Base
       #     belongs_to :owner
       #     belongs_to :old_owner
+      #
       #     def owner=(new_owner)
       #       self.old_owner = self.owner
       #       super
