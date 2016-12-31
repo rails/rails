@@ -47,12 +47,9 @@ module ActiveRecord
 
           updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
 
-          touch_time = object.send(:current_time_from_proper_timezone)
-          resolve_timestamp_columns(object, touch).each do |column|
-            updates[column] = touch_time
-          end
-
-          unscoped.where(primary_key => object.id).update_all(updates)
+          unscoped.where(primary_key => object.id).update_all(
+            updates.merge(touch_updates(object, touch))
+          )
         end
         return true
       end
@@ -109,10 +106,7 @@ module ActiveRecord
 
         if touch
           object = find(id)
-          touch_time = object.send(:current_time_from_proper_timezone)
-          timestamps = resolve_timestamp_columns(object, touch)
-
-          timestamps.map do |column|
+          touch_updates(object, touch).map do |column, touch_time|
             updates << "#{connection.quote_column_name(column.to_s)} = #{connection.quote(touch_time)}"
           end
         end
@@ -144,7 +138,7 @@ module ActiveRecord
       #   # and update the updated_at value.
       #   DiscussionBoard.increment_counter(:posts_count, 5, touch: true)
       def increment_counter(counter_name, id, touch: nil)
-        update_counters(id, { counter_name => 1 }.merge(touch: touch))
+        update_counters(id, counter_name => 1, touch: touch)
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
@@ -169,16 +163,14 @@ module ActiveRecord
       #   # and update the updated_at value.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, touch: true)
       def decrement_counter(counter_name, id, touch: nil)
-        update_counters(id, { counter_name => -1 }.merge(touch: touch))
+        update_counters(id, counter_name => -1, touch: touch)
       end
 
       private
-        def resolve_timestamp_columns(object, touch)
-          if touch == true
-            object.send(:timestamp_attributes_for_update_in_model)
-          else
-            Array(touch)
-          end
+        def touch_updates(object, touch)
+          touch = object.send(:timestamp_attributes_for_update_in_model) if touch == true
+          touch_time = object.send(:current_time_from_proper_timezone)
+          Array(touch).map { |column| [ column, touch_time ] }.to_h
         end
     end
 

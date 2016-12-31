@@ -212,144 +212,135 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
-  test "does not update counters with touch: false" do
-    previous_updated_at = @topic.updated_at
-    Topic.update_counters(@topic.id, replies_count: -1, touch: false)
-    assert_equal previous_updated_at, @topic.reload.updated_at
+  test "update counters doesn't touch timestamps by default" do
+    @topic.update_column :updated_at, 5.minutes.ago
+    previously_updated_at = @topic.updated_at
+
+    Topic.update_counters(@topic.id, replies_count: -1)
+
+    assert_equal previously_updated_at, @topic.updated_at
   end
 
   test "update counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.update_counters(@topic.id, replies_count: -1, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.update_counters(@topic.id, replies_count: -1, touch: true)
+    end
   end
 
   test "update multiple counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: true)
+    end
   end
 
   test "reset counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.reset_counters(@topic.id, :replies, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.reset_counters(@topic.id, :replies, touch: true)
+    end
   end
 
   test "reset multiple counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-    Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: true)
+    end
   end
 
   test "increment counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.increment_counter(:replies_count, @topic.id, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.increment_counter(:replies_count, @topic.id, touch: true)
+    end
   end
 
   test "decrement counters with touch: true" do
-    previous_updated_at = @topic.updated_at
-    Topic.decrement_counter(:replies_count, @topic.id, touch: true)
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
+    assert_touching @topic, :updated_at do
+      Topic.decrement_counter(:replies_count, @topic.id, touch: true)
+    end
   end
 
   test "update counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.update_counters(@topic.id, replies_count: -1, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.update_counters(@topic.id, replies_count: -1, touch: :written_on)
+    end
   end
 
   test "update multiple counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: :written_on)
+    end
   end
 
   test "reset counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.reset_counters(@topic.id, :replies, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.reset_counters(@topic.id, :replies, touch: :written_on)
+    end
   end
 
   test "reset multiple counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-    Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: :written_on)
+    end
   end
 
   test "increment counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.increment_counter(:replies_count, @topic.id, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.increment_counter(:replies_count, @topic.id, touch: :written_on)
+    end
   end
 
   test "decrement counters with touch: :written_on" do
-    previous_written_on = @topic.written_on
-    Topic.decrement_counter(:replies_count, @topic.id, touch: :written_on)
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :written_on do
+      Topic.decrement_counter(:replies_count, @topic.id, touch: :written_on)
+    end
   end
 
   test "update counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.update_counters(@topic.id, replies_count: -1, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.update_counters(@topic.id, replies_count: -1, touch: %i( updated_at written_on ))
+    end
   end
 
   test "update multiple counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: %i( updated_at written_on ))
+    end
   end
 
   test "reset counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.reset_counters(@topic.id, :replies, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.reset_counters(@topic.id, :replies, touch: %i( updated_at written_on ))
+    end
   end
 
   test "reset multiple counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-    Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: %i( updated_at written_on ))
+    end
   end
 
   test "increment counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.increment_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.increment_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
+    end
   end
 
   test "decrement counters with touch: %i( updated_at written_on )" do
-    previous_updated_at = @topic.updated_at
-    previous_written_on = @topic.written_on
-
-    Topic.decrement_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
-
-    assert_not_equal previous_updated_at, @topic.reload.updated_at
-    assert_not_equal previous_written_on, @topic.reload.written_on
+    assert_touching @topic, :updated_at, :written_on do
+      Topic.decrement_counter(:replies_count, @topic.id, touch: %i( updated_at written_on ))
+    end
   end
+
+  private
+    def assert_touching(record, *attributes)
+      record.update_columns attributes.map { |attr| [ attr, 5.minutes.ago ] }.to_h
+      touch_times = attributes.map { |attr| [ attr, record.public_send(attr) ] }.to_h
+
+      yield
+
+      touch_times.each do |attr, previous_touch_time|
+        assert_operator previous_touch_time, :<, record.reload.public_send(attr)
+      end
+    end
 end

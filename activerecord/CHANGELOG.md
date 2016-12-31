@@ -1,5 +1,16 @@
-*   Add option to update specified timestamp columns when incrementing,
-    decrementing, resetting, or updating counter caches.
+*   Add `touch` option to counter cache modifying methods.
+
+    Works when updating, resetting, incrementing and decrementing counters:
+
+        # Touches `updated_at`/`updated_on`.
+        Topic.increment_counter(:messages_count, 1, touch: true)
+        Topic.decrement_counter(:messages_count, 1, touch: true)
+
+        # Touches `last_discussed_at`.
+        Topic.reset_counters(18, :messages, touch: :last_discussed_at)
+
+        # Touches `updated_at` and `last_discussed_at`.
+        Topic.update_counters(18, messages_count: 5, touch: %i( updated_at last_discussed_at ))
 
     Fixes #26724.
 
