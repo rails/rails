@@ -130,6 +130,10 @@ module Rails
             end
           end
       end
+
+      def help
+        self.class.command_help(shell, self.class.command_name)
+      end
     end
   end
 end
