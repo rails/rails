@@ -7,7 +7,8 @@ end
 
 gemfile(true) do
   source 'https://rubygems.org'
-  gem 'rails', github: 'rails/rails'
+  gem 'rails', github: 'rails/rails', branch: '5-0-stable'
+  gem 'arel', github: 'rails/arel', branch: '7-1-stable'
 end
 
 require 'active_support'
