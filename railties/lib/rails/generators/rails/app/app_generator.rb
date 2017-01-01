@@ -350,8 +350,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_api_option
-        remove_file "bin/yarn" if options[:api]
+      def delete_bin_yarn_if_skip_yarn_option
+        remove_file "bin/yarn" if options[:skip_yarn]
       end
 
       def finish_template
