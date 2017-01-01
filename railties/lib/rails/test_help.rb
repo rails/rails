@@ -16,7 +16,13 @@ if defined?(ActiveRecord::Base)
 
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
-    self.fixture_path = "#{Rails.root}/test/fixtures/"
+    self.fixture_path = if ENV["FIXTURES_PATH"]
+      "#{Rails.root}/#{ENV["FIXTURES_PATH"]}"
+    elsif File.exists?("#{Rails.root}/spec/fixtures/")
+      "#{Rails.root}/spec/fixtures/"
+    else
+      "#{Rails.root}/test/fixtures/"
+    end
     self.file_fixture_path = self.fixture_path + "files"
   end
 

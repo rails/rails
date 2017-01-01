@@ -88,6 +88,8 @@ module ActiveRecord
       def fixtures_path
         @fixtures_path ||= if ENV["FIXTURES_PATH"]
           File.join(root, ENV["FIXTURES_PATH"])
+        elsif File.exists?(File.join(root, "spec", "fixtures"))
+          File.join(root, "spec", "fixtures")
         else
           File.join(root, "test", "fixtures")
         end
