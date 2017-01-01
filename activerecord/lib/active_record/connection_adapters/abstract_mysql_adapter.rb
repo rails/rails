@@ -979,14 +979,22 @@ module ActiveRecord
         end
 
         class MysqlString < Type::String # :nodoc:
+          def serialize(value)
+            case value
+            when true then MySQL::Quoting::QUOTED_TRUE
+            when false then MySQL::Quoting::QUOTED_FALSE
+            else super
+            end
+          end
+
           private
 
-            def casted_true
-              MySQL::Quoting::QUOTED_TRUE
-            end
-
-            def casted_false
-              MySQL::Quoting::QUOTED_FALSE
+            def cast_value(value)
+              case value
+              when true then MySQL::Quoting::QUOTED_TRUE
+              when false then MySQL::Quoting::QUOTED_FALSE
+              else super
+              end
             end
         end
 
