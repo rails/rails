@@ -106,9 +106,7 @@ module ActiveRecord
 
         if touch
           object = find(id)
-          touch_updates(object, touch).each do |column, touch_time|
-            updates << "#{connection.quote_column_name(column.to_s)} = #{connection.quote(touch_time)}"
-          end
+          updates << object.class.send(:sanitize_sql_for_assignment, touch_updates(object, touch))
         end
 
         unscoped.where(primary_key => id).update_all updates.join(", ")
