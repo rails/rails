@@ -31,11 +31,29 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
 
-  def test_pluralize_for_words_with_non_ascii_characters
+  test "uncountability of ascii word" do
+    word = "HTTP"
     ActiveSupport::Inflector.inflections do |inflect|
-      inflect.uncountable "猫"
+      inflect.uncountable word
     end
-    assert_equal "猫", ActiveSupport::Inflector.pluralize("猫")
+
+    assert_equal word, ActiveSupport::Inflector.pluralize(word)
+    assert_equal word, ActiveSupport::Inflector.singularize(word)
+    assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
+
+    ActiveSupport::Inflector.inflections.uncountables.pop
+  end
+
+  test "uncountability of non-ascii word" do
+    word = "猫"
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable word
+    end
+
+    assert_equal word, ActiveSupport::Inflector.pluralize(word)
+    assert_equal word, ActiveSupport::Inflector.singularize(word)
+    assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
+
     ActiveSupport::Inflector.inflections.uncountables.pop
   end
 
@@ -514,13 +532,5 @@ class InflectorTest < ActiveSupport::TestCase
         assert_equal [], inflect.send(scope)
       end
     end
-  end
-
-  def test_inflections_with_uncountable_words
-    ActiveSupport::Inflector.inflections do |inflect|
-      inflect.uncountable "HTTP"
-    end
-
-    assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
   end
 end
