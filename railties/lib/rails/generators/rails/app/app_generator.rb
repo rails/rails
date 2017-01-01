@@ -323,7 +323,6 @@ module Rails
 
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
-          remove_file "app/mailers/application_mailer.rb"
           remove_file "app/views/layouts/mailer.html.erb"
           remove_file "app/views/layouts/mailer.text.erb"
           remove_dir "app/mailers"
