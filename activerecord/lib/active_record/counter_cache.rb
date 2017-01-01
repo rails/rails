@@ -46,11 +46,11 @@ module ActiveRecord
           counter_name = reflection.counter_cache_column
 
           updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
+          updates.merge!(touch_updates(object, touch)) if touch
 
-          unscoped.where(primary_key => object.id).update_all(
-            updates.merge(touch_updates(object, touch))
-          )
+          unscoped.where(primary_key => object.id).update_all(updates)
         end
+
         return true
       end
 
@@ -106,7 +106,7 @@ module ActiveRecord
 
         if touch
           object = find(id)
-          touch_updates(object, touch).map do |column, touch_time|
+          touch_updates(object, touch).each do |column, touch_time|
             updates << "#{connection.quote_column_name(column.to_s)} = #{connection.quote(touch_time)}"
           end
         end
