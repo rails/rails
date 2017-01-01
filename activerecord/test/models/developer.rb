@@ -251,7 +251,7 @@ class ThreadsafeDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
   def self.default_scope
-    sleep 0.05 if Thread.current[:long_default_scope]
+    Thread.current[:default_scope_delay].call
     limit(1)
   end
 end
