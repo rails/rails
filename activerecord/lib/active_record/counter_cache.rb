@@ -106,7 +106,7 @@ module ActiveRecord
 
         if touch
           object = find(id)
-          touch_updates(object, touch).map do |column, touch_time|
+          touch_updates(object, touch).each do |column, touch_time|
             updates << "#{connection.quote_column_name(column.to_s)} = #{connection.quote(touch_time)}"
           end
         end
