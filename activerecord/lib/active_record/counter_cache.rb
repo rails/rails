@@ -18,11 +18,11 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # For Post with id #1 records reset the comments_count
+      #   # For the Post with id #1, reset the comments_count
       #   Post.reset_counters(1, :comments)
       #
-      #   # For Post with id #1 records reset the comments_count
-      #   # and updates the +updated_at+ and/or +updated_on+ attributes.
+      #   # For the Post with id #1, reset the comments_count
+      #   # and update the +updated_at+ and/or +updated_on+ attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)
         object = find(id)
