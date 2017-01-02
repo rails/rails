@@ -54,9 +54,5 @@ module ActiveRecord
       def has_defer_touch_attrs?
         defined?(@_defer_touch_attrs) && @_defer_touch_attrs.present?
       end
-
-      def belongs_to_touch_method
-        :touch_later
-      end
   end
 end

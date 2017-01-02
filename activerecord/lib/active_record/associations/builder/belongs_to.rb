@@ -106,11 +106,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_touch_callbacks(model, reflection)
       foreign_key = reflection.foreign_key
-      n           = reflection.name
+      name        = reflection.name
       touch       = reflection.options[:touch]
 
       callback = lambda { |changes_method| lambda { |record|
-        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
+        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, name, touch, :touch_later)
       }}
 
       model.after_save    callback.(:saved_changes), if: :saved_changes?
