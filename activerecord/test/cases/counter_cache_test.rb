@@ -227,6 +227,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update counters of multiple records with touch: true" do
+    t1, t2 = topics(:first, :second)
+
+    assert_touching t1, :updated_at do
+      assert_difference ["t1.reload.replies_count", "t2.reload.replies_count"], 2 do
+        Topic.update_counters([t1.id, t2.id], replies_count: 2, touch: true)
+      end
+    end
+  end
+
   test "update multiple counters with touch: true" do
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: 2, unique_replies_count: 2, touch: true)

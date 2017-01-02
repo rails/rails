@@ -46,7 +46,7 @@ module ActiveRecord
           counter_name = reflection.counter_cache_column
 
           updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
-          updates.merge!(touch_updates(object, touch)) if touch
+          updates.merge!(touch_updates(touch)) if touch
 
           unscoped.where(primary_key => object.id).update_all(updates)
         end
@@ -105,8 +105,7 @@ module ActiveRecord
         end
 
         if touch
-          object = find(id)
-          updates << object.class.send(:sanitize_sql_for_assignment, touch_updates(object, touch))
+          updates << sanitize_sql_for_assignment(touch_updates(touch))
         end
 
         unscoped.where(primary_key => id).update_all updates.join(", ")
@@ -165,9 +164,9 @@ module ActiveRecord
       end
 
       private
-        def touch_updates(object, touch)
-          touch = object.send(:timestamp_attributes_for_update_in_model) if touch == true
-          touch_time = object.send(:current_time_from_proper_timezone)
+        def touch_updates(touch)
+          touch = timestamp_attributes_for_update_in_model if touch == true
+          touch_time = current_time_from_proper_timezone
           Array(touch).map { |column| [ column, touch_time ] }.to_h
         end
     end
