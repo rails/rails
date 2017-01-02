@@ -430,21 +430,6 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal person.born_at, nil
   end
 
-  def test_timestamp_attributes_for_create
-    toy = Toy.first
-    assert_equal ["created_at", "created_on"], toy.send(:timestamp_attributes_for_create)
-  end
-
-  def test_timestamp_attributes_for_update
-    toy = Toy.first
-    assert_equal ["updated_at", "updated_on"], toy.send(:timestamp_attributes_for_update)
-  end
-
-  def test_all_timestamp_attributes
-    toy = Toy.first
-    assert_equal ["created_at", "created_on", "updated_at", "updated_on"], toy.send(:all_timestamp_attributes)
-  end
-
   def test_timestamp_attributes_for_create_in_model
     toy = Toy.first
     assert_equal ["created_at"], toy.send(:timestamp_attributes_for_create_in_model)
