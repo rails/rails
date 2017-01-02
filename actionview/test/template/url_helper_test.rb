@@ -496,6 +496,15 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/")
   end
 
+  def test_current_page_considering_params
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(url_hash, check_parameters: true)
+    assert !current_page?(url_hash.merge(check_parameters: true))
+    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert !current_page?("http://www.example.com/", check_parameters: true)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
