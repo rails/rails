@@ -269,10 +269,7 @@ db_namespace = namespace :db do
       task dump: [:environment, :load_config] do
         conn = ActiveRecord::Base.connection
         filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
-
-        conn.schema_cache.clear!
-        conn.data_sources.each { |table| conn.schema_cache.add(table) }
-        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
       end
 
       desc "Clears a db/schema_cache.yml file."

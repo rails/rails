@@ -85,6 +85,16 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
+    def test_dump_schema_cache
+      path = "/tmp/my_schema_cache.yml"
+      ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
+      assert File.file?(path)
+    ensure
+      FileUtils.rm_rf(path)
+    end
+  end
+
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
       @configurations = { "development" => { "database" => "my-db" } }
