@@ -105,7 +105,7 @@ module ActiveRecord
         end
 
         if touch
-          object = find(id)
+          object = find(id.is_a?(Array) ? id.first : id)
           updates << object.class.send(:sanitize_sql_for_assignment, touch_updates(object, touch))
         end
 
