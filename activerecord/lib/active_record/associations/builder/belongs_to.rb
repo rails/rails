@@ -70,7 +70,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def self.touch_record(o, changes, foreign_key, name, touch, touch_method) # :nodoc:
+    def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:
       old_foreign_id = changes[foreign_key] && changes[foreign_key].first
 
       if old_foreign_id
@@ -87,9 +87,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         if old_record
           if touch != true
-            old_record.send(touch_method, touch)
+            old_record.touch_later(touch)
           else
-            old_record.send(touch_method)
+            old_record.touch_later
           end
         end
       end
@@ -97,9 +97,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
       record = o.send name
       if record && record.persisted?
         if touch != true
-          record.send(touch_method, touch)
+          record.touch_later(touch)
         else
-          record.send(touch_method)
+          record.touch_later
         end
       end
     end
@@ -110,7 +110,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       touch       = reflection.options[:touch]
 
       callback = lambda { |changes_method| lambda { |record|
-        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, name, touch, :touch_later)
+        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, name, touch)
       }}
 
       model.after_save    callback.(:saved_changes), if: :saved_changes?
