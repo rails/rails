@@ -44,7 +44,7 @@ module ApplicationTests
       Dir.chdir(app_path) do
         app_file 'db/schema.rb', ""
 
-        output = `bin/setup 2>&1`
+        output = `bin/setup 2>&1`.gsub(/.* warning: .*\n/, "")
         assert_equal(<<-OUTPUT, output)
 == Installing dependencies ==
 The Gemfile's dependencies are satisfied

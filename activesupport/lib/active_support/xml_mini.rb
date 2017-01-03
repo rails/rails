@@ -48,8 +48,8 @@ module ActiveSupport
       }
 
       # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless Fixnum == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless Bignum == Integer
+      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
+      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {
@@ -68,7 +68,17 @@ module ActiveSupport
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
-        "decimal"      => Proc.new { |number|  BigDecimal(number) },
+        "decimal"      => Proc.new do |number|
+          if String === number
+            begin
+              BigDecimal(number)
+            rescue ArgumentError
+              BigDecimal('0')
+            end
+          else
+            BigDecimal(number)
+          end
+        end,
         "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
         "yaml"         => Proc.new { |yaml|    YAML::load(yaml) rescue yaml },
