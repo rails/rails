@@ -1,3 +1,10 @@
+*   Respect precision option for arrays of timestamps.
+
+    Fixes #27514.
+
+    *Sean Griffin*
+
+
 ## Rails 5.0.1 (December 21, 2016) ##
 
 *   No changes.
