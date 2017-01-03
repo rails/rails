@@ -442,21 +442,9 @@ module ActionView
       #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
-        options = options.stringify_keys
+        options = options.deep_stringify_keys
         tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
-
-        if ActionView::Base.automatically_disable_submit_tag
-          unless tag_options["data-disable-with"] == false || (tag_options["data"] && tag_options["data"][:disable_with] == false)
-            disable_with_text = tag_options["data-disable-with"]
-            disable_with_text ||= tag_options["data"][:disable_with] if tag_options["data"]
-            disable_with_text ||= value.to_s.clone
-            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
-          else
-            tag_options["data"].delete(:disable_with) if tag_options["data"]
-          end
-          tag_options.delete("data-disable-with")
-        end
-
+        set_default_disable_with value, tag_options
         tag :input, tag_options
       end
 
@@ -897,6 +885,22 @@ module ActionView
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
           name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+        end
+
+        def set_default_disable_with(value, tag_options)
+          return unless ActionView::Base.automatically_disable_submit_tag
+          data = tag_options["data"]
+
+          unless tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
+            disable_with_text = tag_options["data-disable-with"]
+            disable_with_text ||= data["disable_with"] if data
+            disable_with_text ||= value.to_s.clone
+            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
+          else
+            data.delete("disable_with") if data
+          end
+
+          tag_options.delete("data-disable-with")
         end
     end
   end
