@@ -404,6 +404,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
+  def test_class_for_class_name
+    assert_deprecated do
+      assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm), :validate?
+    end
+  end
+
   def test_join_table
     category = Struct.new(:table_name, :pluralize_table_names).new("categories", true)
     product = Struct.new(:table_name, :pluralize_table_names).new("products", true)

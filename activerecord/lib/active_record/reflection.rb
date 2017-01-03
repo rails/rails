@@ -364,6 +364,17 @@ module ActiveRecord
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = {}
         @scope_lock = Mutex.new
+
+        if options[:class_name] && options[:class_name].class == Class
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a class to the `class_name` is deprecated and will raise
+            an ArgumentError in Rails 5.2. It eagerloads more classes than
+            necessary and potentially creates circular dependencies.
+
+            Please pass the class name as a string:
+            `belongs_to :client, class_name: 'Company'`
+          MSG
+        end
       end
 
       def association_scope_cache(conn, owner)

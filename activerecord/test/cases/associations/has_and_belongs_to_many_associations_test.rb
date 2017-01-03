@@ -86,8 +86,10 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
-class DeveloperWithConstantClassName < Developer
-  has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+ActiveSupport::Deprecation.silence do
+  class DeveloperWithConstantClassName < Developer
+    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+  end
 end
 
 class DeveloperWithExtendOption < Developer
