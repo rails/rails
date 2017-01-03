@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/module/remove_method'
 
 module DateAndTime
   module Compatibility
@@ -11,11 +12,17 @@ module DateAndTime
     # this to true, because the new behavior is preferred.
     mattr_accessor(:preserve_timezone, instance_writer: false) { false }
 
-    def to_time
-      if preserve_timezone
-        @_to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @_to_time_with_system_offset ||= getlocal
+    def self.included(base)
+      base.class_eval do
+        remove_possible_method :to_time
+
+        def to_time
+          if preserve_timezone
+            @_to_time_with_instance_offset ||= getlocal(utc_offset)
+          else
+            @_to_time_with_system_offset ||= getlocal
+          end
+        end
       end
     end
   end
