@@ -21,6 +21,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
         t.decimal :decimals, array: true, default: [], precision: 10, scale: 2
+        t.timestamp :timestamps, array: true, default: [], precision: 6
       end
     end
     PgArray.reset_column_information
@@ -213,7 +214,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute("tags").serialize(tags)
+    refute x.changed?
   end
 
   def test_quoting_non_standard_delimiters
@@ -221,9 +222,10 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
     comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ",")
     semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ";")
+    conn = PgArray.connection
 
-    assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
-    assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
+    assert_equal %({"hello,",world;}), conn.type_cast(comma_delim.serialize(strings))
+    assert_equal %({hello,;"world;"}), conn.type_cast(semicolon_delim.serialize(strings))
   end
 
   def test_mutate_array
@@ -317,6 +319,15 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     arrays_of_utf8_strings = %w(nový ファイル)
     assert_equal arrays_of_utf8_strings, @type.deserialize(@type.serialize(arrays_of_utf8_strings))
     assert_equal [arrays_of_utf8_strings], @type.deserialize(@type.serialize([arrays_of_utf8_strings]))
+  end
+
+  def test_precision_is_respected_on_timestamp_columns
+    time = Time.now.change(usec: 123)
+    record = PgArray.create!(timestamps: [time])
+
+    assert_equal 123, record.timestamps.first.usec
+    record.reload
+    assert_equal 123, record.timestamps.first.usec
   end
 
   private

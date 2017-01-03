@@ -1,3 +1,9 @@
+*   Respect precision option for arrays of timestamps.
+
+    Fixes #27514.
+
+    *Sean Griffin*
+
 *   Optimize slow model instantiation when using STI and `store_full_sti_class = false` option.
 
     *Konstantin Lazarev*
