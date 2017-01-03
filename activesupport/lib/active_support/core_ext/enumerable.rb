@@ -115,9 +115,14 @@ end
 # and fall back to the compatible implementation, but that's much slower than
 # just calling the compat method in the first place.
 if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
-  class Array
-    alias :orig_sum :sum
+  # Using Refinements here in order not to expose our internal method
+  using Module.new {
+    refine Array do
+      alias :orig_sum :sum
+    end
+  }
 
+  class Array
     def sum(init = nil, &block) #:nodoc:
       if init.is_a?(Numeric) || first.is_a?(Numeric)
         init ||= 0
