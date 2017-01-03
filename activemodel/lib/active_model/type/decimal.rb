@@ -5,8 +5,6 @@ module ActiveModel
     class Decimal < Value # :nodoc:
       include Helpers::Numeric
 
-      NUMERIC_STRING_PREFIX_REGEX = /\A-?\d+\.?\d*/.freeze
-
       def type
         :decimal
       end
@@ -25,8 +23,7 @@ module ActiveModel
             when ::Numeric
               BigDecimal(value, precision.to_i)
             when ::String
-              num_value = value[NUMERIC_STRING_PREFIX_REGEX] || "0"
-              BigDecimal(num_value, precision.to_i)
+              value.to_d rescue BigDecimal(0)
             else
               if value.respond_to?(:to_d)
                 value.to_d
