@@ -182,12 +182,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.rm("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_no_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
-    end
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_no_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
   end
 
   def test_rails_update_does_not_remove_to_time_preserves_timezone_if_already_present
@@ -196,12 +198,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.touch("#{app_root}/config/initializers/to_time_preserves_timezone.rb")
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
-    end
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file "#{app_root}/config/initializers/to_time_preserves_timezone.rb"
   end
 
   def test_application_names_are_not_singularized
