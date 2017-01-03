@@ -191,7 +191,7 @@
 
     *Sean Griffin*
 
-*   Fix that unsigned with zerofill is treated as signed.
+*   Don't treat unsigned integers with zerofill as signed.
 
     Fixes #27125.
 
