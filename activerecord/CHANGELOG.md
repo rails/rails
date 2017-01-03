@@ -1,3 +1,8 @@
+*   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`
+    and `.exists?`.
+
+    *Rafael Mendonça França*
+
 *   Respect precision option for arrays of timestamps.
 
     Fixes #27514.
