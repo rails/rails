@@ -19,7 +19,7 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     big_array = [123456789123456789]
 
     assert_raises(ActiveModel::RangeError) { int_array.serialize(big_array) }
-    assert_equal "{123456789123456789}", bigint_array.serialize(big_array)
+    assert_equal "{123456789123456789}", @connection.type_cast(bigint_array.serialize(big_array))
   end
 
   test "range types correctly respect registration of subtypes" do
