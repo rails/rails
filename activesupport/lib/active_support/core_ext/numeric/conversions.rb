@@ -122,7 +122,7 @@ class Numeric
     klass.send(:alias_method, :to_default_s, :to_s)
 
     # Ruby 2.4+ unifies Fixnum & Bignum into Integer.
-    if Integer == Fixnum
+    if 0.class == Integer
       next if klass == Fixnum || klass == Bignum
     end
 
