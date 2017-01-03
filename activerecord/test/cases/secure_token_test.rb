@@ -29,4 +29,13 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_equal "custom-secure-token", @user.token
   end
+
+  def test_generating_the_secure_token
+    @user = User.new
+    @user.generate_token
+    @user.generate_auth_token
+
+    assert_not_nil @user.token
+    assert_not_nil @user.auth_token
+  end
 end
