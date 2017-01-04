@@ -1,3 +1,7 @@
+*   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
+
+    *Daniel Deng*
+
 *   Remove deprecated `CONTROLLER` environment variable for `routes` task.
 
     *Rafael Mendonça França*
