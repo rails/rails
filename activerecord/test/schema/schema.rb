@@ -798,6 +798,20 @@ ActiveRecord::Schema.define do
     t.integer :car_id
   end
 
+  create_table :users, force: true do |t|
+    t.string :name
+  end
+
+  create_table :user_businesses, force: true do |t|
+    t.belongs_to :user
+    t.string :business_id, index: true
+  end
+
+  create_table :businesses, force: true do |t|
+    t.string :name
+    t.string :uuid
+  end
+
   create_table :variants, force: true do |t|
     t.references :product
     t.string     :name

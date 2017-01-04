@@ -26,12 +26,15 @@ require 'models/member'
 require 'models/membership'
 require 'models/club'
 require 'models/organization'
+require 'models/user'
+require 'models/user_business'
+require 'models/business'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations
+           :categories_posts, :clubs, :memberships, :organizations, :users, :businesses
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -1200,5 +1203,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [other_club], tenant_clubs
   ensure
     TenantMembership.current_member = nil
+  end
+
+  def test_singular_collection_ids_are_set_correctly
+    @user = users(:one)
+    assert @user.businesses.empty?
+    @user.business_ids = [businesses(:walmart).uuid]
+    assert @user.businesses.include?(businesses(:walmart))
   end
 end
