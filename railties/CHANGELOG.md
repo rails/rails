@@ -1,3 +1,7 @@
+*   Remove deprecated `CONTROLLER` environment variable for `routes` task.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated tasks: `rails:update`, `rails:template`, `rails:template:copy`,
     `rails:update:configs` and `rails:update:bin`.
 
