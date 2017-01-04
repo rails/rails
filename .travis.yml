@@ -32,7 +32,7 @@ rvm:
   - 2.0.0
   - 2.1.8
   - 2.2.6
-  - 2.3.2
+  - 2.3.3
 
 notifications:
   email: false
