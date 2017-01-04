@@ -1,3 +1,53 @@
+*   Make `getlocal` and `getutc` always return instances of `Time` for
+    `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
+    stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
+    was wrapping a `DateTime` instance. As a consequence of this the internal
+    time value in `ActiveSupport::TimeWithZone` is now always an instance of
+    `Time` in the UTC timezone, whether that's as the UTC time directly or
+    a representation of the local time in the timezone. There should be no
+    consequences of this internal change and if there are it's a bug due to
+    leaky abstractions.
+
+    *Andrew White*
+
+*   Add `DateTime#subsec` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add additional aliases for `DateTime#utc` to mirror the ones on
+    `ActiveSupport::TimeWithZone` and `Time`.
+
+    *Andrew White*
+
+*   Add `DateTime#localtime` to return an instance of `Time` in the system's
+    local timezone. Also aliased to `getlocal`.
+
+    *Andrew White*, *Yuichiro Kaneko*
+
+*   Add `Time#sec_fraction` to return the fraction of a second as a `Rational`.
+
+    *Andrew White*
+
+*   Add `ActiveSupport.to_time_preserves_timezone` config option to control
+    how `to_time` handles timezones. In Ruby 2.4+ the behavior will change
+    from converting to the local system timezone, to preserving the timezone
+    of the receiver. This config option defaults to false so that apps made
+    with earlier versions of Rails are not affected when upgrading, e.g:
+
+        >> ENV['TZ'] = 'US/Eastern'
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T06:23:12.000-04:00"
+
+        >> ActiveSupport.to_time_preserves_timezone = true
+
+        >> "2016-04-23T10:23:12.000Z".to_time
+        => "2016-04-23T10:23:12.000Z"
+
+    Fixes #24617.
+
+    *Andrew White*
+
 *   Add `init_with` to `ActiveSupport::TimeWithZone` and `ActiveSupport::TimeZone`
 
     It is helpful to be able to run apps concurrently written in successive

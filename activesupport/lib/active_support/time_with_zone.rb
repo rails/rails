@@ -1,5 +1,6 @@
 require 'active_support/values/time_zone'
 require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/date_and_time/compatibility'
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary
@@ -40,20 +41,21 @@ module ActiveSupport
       'Time'
     end
 
-    include Comparable
+    include Comparable, DateAndTime::Compatibility
     attr_reader :time_zone
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
-      @utc, @time_zone, @time = utc_time, time_zone, local_time
+      @utc = utc_time ? transfer_time_values_to_utc_constructor(utc_time) : nil
+      @time_zone, @time = time_zone, local_time
       @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 
-    # Returns a Time or DateTime instance that represents the time in +time_zone+.
+    # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
     def time
       @time ||= period.to_local(@utc)
     end
 
-    # Returns a Time or DateTime instance that represents the time in UTC.
+    # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
     def utc
       @utc ||= period.to_utc(@time)
     end
@@ -73,10 +75,9 @@ module ActiveSupport
       utc.in_time_zone(new_zone)
     end
 
-    # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
-    # system's <tt>ENV['TZ']</tt> zone.
+    # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
     def localtime(utc_offset = nil)
-      utc.respond_to?(:getlocal) ? utc.getlocal(utc_offset) : utc.to_time.getlocal(utc_offset)
+      utc.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
@@ -321,11 +322,6 @@ module ActiveSupport
       utc.to_r
     end
 
-    # Return an instance of Time in the system timezone.
-    def to_time
-      @to_time ||= utc.to_time
-    end
-
     def to_datetime
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
@@ -365,7 +361,6 @@ module ActiveSupport
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
-      # consistently respond false to acts_like?(:date), regardless of whether #time is a Time or DateTime
       return false if sym.to_sym == :acts_like_date?
       time.respond_to?(sym, include_priv)
     end
@@ -393,7 +388,7 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
-        ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec, Rational(time.nsec, 1000))
+        ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
       end
 
       def duration_of_variable_length?(obj)

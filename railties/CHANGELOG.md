@@ -1,3 +1,11 @@
+*   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
+    Active Support to preserve the receiver's timezone when calling `to_time`.
+    This matches the new behavior that will be part of Ruby 2.4.
+
+    Fixes #24617.
+
+    *Andrew White*
+
 *   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session
 
     Fixes Issue #22742

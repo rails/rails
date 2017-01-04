@@ -26,6 +26,7 @@ require "active_support/dependencies/autoload"
 require "active_support/version"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
+require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -79,6 +80,14 @@ module ActiveSupport
 
   def self.test_order # :nodoc:
     @@test_order
+  end
+
+  def self.to_time_preserves_timezone
+    DateAndTime::Compatibility.preserve_timezone
+  end
+
+  def self.to_time_preserves_timezone=(value)
+    DateAndTime::Compatibility.preserve_timezone = value
   end
 end
 
