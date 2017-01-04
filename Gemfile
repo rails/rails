@@ -79,6 +79,8 @@ platforms :ruby do
 
   if RUBY_VERSION < '1.9.3'
     gem 'nokogiri', '>= 1.4.5', '< 1.6'
+  elsif RUBY_VERSION < '2.1.0'
+    gem 'nokogiri', '>= 1.6.0', '< 1.7'
   else
     gem 'nokogiri', '>= 1.6.0'
   end
