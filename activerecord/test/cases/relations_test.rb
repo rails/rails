@@ -1617,7 +1617,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
-  def test_update_on_relation_passing_active_record_object_is_not_permited
+  def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
     assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
