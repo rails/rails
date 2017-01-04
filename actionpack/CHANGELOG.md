@@ -1,4 +1,4 @@
-*   Remove deprecated `Metal#env`.
+*   Remove deprecated `ActionController::Metal#env`.
 
     *Rafael Mendonça França*
 
