@@ -26,7 +26,7 @@ module Rails
 
         def application_mailer_file_name
           @_application_mailer_file_name ||= if mountable_engine?
-            "app/mailers/#{namespaced_path}/application_mailer.rb"
+            File.join("app/mailers", namespaced_path, "application_mailer.rb")
           else
             "app/mailers/application_mailer.rb"
           end
