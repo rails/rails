@@ -13,8 +13,9 @@ module ActiveRecord
         column_type = type_for_attribute(timestamp_column.to_s)
         column = "#{connection.quote_table_name("timestamps")}.#{connection.quote_column_name(timestamp_column)}"
 
-        query = "SELECT COUNT(*) AS #{connection.quote_column_name("size")}, MAX(#{column}) AS timestamp" \
-          " FROM (#{collection.unscope(:select).to_sql}) AS #{connection.quote_column_name("timestamps")}"
+        query = unscoped
+          .select("COUNT(*) AS #{connection.quote_column_name("size")}", "MAX(#{column}) AS timestamp")
+          .from(collection.unscope(:select, :order), "timestamps")
         result = connection.select_one(query)
 
         if result.blank?
