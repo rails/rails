@@ -22,7 +22,7 @@ module TestUnit # :nodoc:
       def fixture_name
         @fixture_name ||=
           if mountable_engine?
-            "%s_%s" % [namespaced_path.join("_"), table_name]
+            "%s_%s" % [namespaced_path, table_name]
           else
             table_name
           end

@@ -59,7 +59,7 @@ module ActiveRecord
 
         def application_record_file_name
           @application_record_file_name ||= if mountable_engine?
-            File.join("app/models", namespaced_path, "application_record.rb")
+            "app/models/#{namespaced_path}/application_record.rb"
           else
             "app/models/application_record.rb"
           end

@@ -95,11 +95,11 @@ module Rails
         end
 
         def namespaced_class_path # :doc:
-          @namespaced_class_path ||= namespaced_path + @class_path
+          @namespaced_class_path ||= [namespaced_path] + @class_path
         end
 
         def namespaced_path # :doc:
-          @namespaced_path ||= namespace.name.split("::").map(&:underscore)
+          @namespaced_path ||= namespace.name.split("::").first.underscore
         end
 
         def class_name # :doc:
