@@ -10,7 +10,7 @@ require "models/tagging"
 require "models/tag"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
+  fixtures :authors, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
            :taggings, :tags
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions

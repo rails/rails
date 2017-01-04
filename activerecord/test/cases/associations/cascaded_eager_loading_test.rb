@@ -12,7 +12,7 @@ require "models/vertex"
 require "models/edge"
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :mixins, :companies, :posts, :topics, :accounts, :comments,
+  fixtures :authors, :mixins, :companies, :posts, :topics, :accounts, :comments,
            :categorizations, :people, :categories, :edges, :vertices
 
   def test_eager_association_loading_with_cascaded_two_levels

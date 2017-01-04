@@ -230,6 +230,23 @@ module ActiveRecord
       end
     end
 
+    def test_disable_referential_integrity
+      assert_nothing_raised do
+        @connection.disable_referential_integrity do
+          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
+          if @connection.prefetch_primary_key?
+            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
+            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
+          else
+            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+          end
+          # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
+          # and will fail (at least on Oracle)
+          @connection.execute "DELETE FROM fk_test_has_fk"
+        end
+      end
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
@@ -301,23 +318,6 @@ module ActiveRecord
         assert @connection.transaction_open?
         @connection.disconnect!
         assert !@connection.transaction_open?
-      end
-    end
-
-    def test_disable_referential_integrity
-      assert_nothing_raised do
-        @connection.disable_referential_integrity do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-          # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
-          # and will fail (at least on Oracle)
-          @connection.execute "DELETE FROM fk_test_has_fk"
-        end
       end
     end
   end

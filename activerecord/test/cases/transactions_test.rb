@@ -10,7 +10,7 @@ require "models/movie"
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
-  fixtures :topics, :developers, :authors, :author_addresses, :posts
+  fixtures :topics, :developers, :authors, :posts
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)

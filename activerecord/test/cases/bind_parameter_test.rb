@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
-    fixtures :topics, :authors, :author_addresses, :posts
+    fixtures :topics, :authors, :posts
 
     class LogListener
       attr_accessor :calls

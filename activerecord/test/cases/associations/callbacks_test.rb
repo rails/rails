@@ -7,7 +7,7 @@ require "models/computer"
 require "models/company"
 
 class AssociationCallbacksTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :author_addresses, :projects, :developers
+  fixtures :posts, :authors, :projects, :developers
 
   def setup
     @david = authors(:david)

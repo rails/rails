@@ -24,7 +24,7 @@ require "models/membership"
 require "models/essay"
 
 class NestedThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
+  fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
            :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts,
            :categorizations, :memberships, :essays
