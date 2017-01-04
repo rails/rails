@@ -1,3 +1,7 @@
+*   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
+
+    *Daniel Deng*
+
 *   Reset a new session directly after its creation in ActionDispatch::IntegrationTest#open_session
 
     Fixes Issue #22742
