@@ -261,14 +261,13 @@ module Rails
       end
 
       def rails_version_specifier(gem_version = Rails.gem_version)
-        if gem_version.prerelease?
-          next_series = gem_version
-          next_series = next_series.bump while next_series.segments.size > 2
-
-          [">= #{gem_version}", "< #{next_series}"]
-        elsif gem_version.segments.size == 3
+        if gem_version.segments.size == 3 || gem_version.release.segments.size == 3
+          # ~> 1.2.3
+          # ~> 1.2.3.pre4
           "~> #{gem_version}"
         else
+          # ~> 1.2.3, >= 1.2.3.4
+          # ~> 1.2.3, >= 1.2.3.4.pre5
           patch = gem_version.segments[0, 3].join(".")
           ["~> #{patch}", ">= #{gem_version}"]
         end
