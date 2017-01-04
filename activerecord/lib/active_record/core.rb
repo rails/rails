@@ -196,12 +196,12 @@ module ActiveRecord
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || !(Hash === args.first) || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any?
 
         hash = args.first
 
-        return super if hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v
+        return super if !(Hash === hash) || hash.values.any? { |v|
+          v.nil? || Array === v || Hash === v || Relation === v || Base === v
         }
 
         # We can't cache Post.find_by(author: david) ...yet
