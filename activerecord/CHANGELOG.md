@@ -1,3 +1,8 @@
+*   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
+    SQL queries for association counting.
+
+    *Klas Eskilson*
+
 *   Deprecate locking records with unpersisted changes.
 
     *Marc Schütz*

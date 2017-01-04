@@ -2446,6 +2446,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [first_bulb, second_bulb], car.bulbs
   end
 
+  test "association size calculation works with default scoped selects when not previously fetched" do
+    firm = Firm.create!(name: "Firm")
+    5.times { firm.developers_with_select << Developer.create!(name: "Developer") }
+
+    same_firm = Firm.find(firm.id)
+    assert_equal 5, same_firm.developers_with_select.size
+  end
+
   test "double insertion of new object to association when same association used in the after create callback of a new object" do
     reset_callbacks(:save, Bulb) do
       Bulb.after_save { |record| record.car.bulbs.load }
