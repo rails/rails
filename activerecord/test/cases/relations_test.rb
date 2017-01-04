@@ -1617,9 +1617,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
-  def test_update_on_relation_passing_active_record_object_is_deprecated
+  def test_update_on_relation_passing_active_record_object_is_not_permited
     topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_deprecated(/update/) do
+    assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
   end

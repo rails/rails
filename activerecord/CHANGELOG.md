@@ -9,8 +9,8 @@
 
     *Jon Moss*
 
-*   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`
-    and `.exists?`.
+*   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`,
+    `.exists?` and `.update`.
 
     *Rafael Mendonça França*
 
