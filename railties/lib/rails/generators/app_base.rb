@@ -227,7 +227,7 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
+        "gem '#{options[:javascript]}-rails', '< 4'" unless options[:skip_javascript]
       end
 
       def javascript_runtime_gemfile_entry

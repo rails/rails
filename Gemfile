@@ -9,12 +9,7 @@ else
 end
 
 gem 'bcrypt-ruby', '~> 3.0.0'
-
-if RUBY_VERSION < '1.9.3'
-  gem 'jquery-rails', '< 4'
-else
-  gem 'jquery-rails'
-end
+gem 'jquery-rails', '< 4'
 
 if ENV['JOURNEY']
   gem 'journey', :path => ENV['JOURNEY']
