@@ -14,7 +14,7 @@ module ActiveRecord
         column = "#{connection.quote_table_name("timestamps")}.#{connection.quote_column_name(timestamp_column)}"
 
         query = unscoped
-          .select("COUNT(*) AS #{connection.quote_column_name("size")}", "MAX(#{column}) AS timestamp")
+          .select("COUNT(*) AS #{connection.quote_column_name("size")}", "MAX(#{column}) AS #{connection.quote_column_name("timestamp")}")
           .from(collection.unscope(:select, :order), "timestamps")
         result = connection.select_one(query)
 
