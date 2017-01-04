@@ -1,3 +1,7 @@
+*   Remove deprecated tasks: `db:test:clone`, `db:test:clone_schema`, `db:test:clone_structure`.
+
+    *Rafel Mendonça França*
+
 *   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
     calling `ActiveRecord::Dirty#changed_in_place?`
 

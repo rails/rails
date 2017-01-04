@@ -309,14 +309,6 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-
-    task :deprecated do
-      Rake.application.top_level_tasks.grep(/^db:test:/).each do |task|
-        $stderr.puts "WARNING: #{task} is deprecated. The Rails test helper now maintains " \
-                     "your test schema automatically, see the release notes for details."
-      end
-    end
-
     # desc "Recreate the test database from the current schema"
     task load: %w(db:test:purge) do
       case ActiveRecord::Base.schema_format
@@ -344,22 +336,6 @@ db_namespace = namespace :db do
     task load_structure: %w(db:test:purge) do
       ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Base.configurations["test"], :sql, ENV["SCHEMA"]
     end
-
-    # desc "Recreate the test database from a fresh schema"
-    task clone: %w(db:test:deprecated environment) do
-      case ActiveRecord::Base.schema_format
-      when :ruby
-        db_namespace["test:clone_schema"].invoke
-      when :sql
-        db_namespace["test:clone_structure"].invoke
-      end
-    end
-
-    # desc "Recreate the test database from a fresh schema.rb file"
-    task clone_schema: %w(db:test:deprecated db:schema:dump db:test:load_schema)
-
-    # desc "Recreate the test database from a fresh structure.sql file"
-    task clone_structure: %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
     task purge: %w(environment load_config check_protected_environments) do
