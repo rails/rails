@@ -195,11 +195,8 @@ module ActiveRecord
                                  name, primary_key)
       end
 
-      def find_by(*args) # :nodoc:
-        return super if scope_attributes? || !(Hash === args.first) || reflect_on_all_aggregations.any?
-
-        hash = args.first
-
+      def find_by(hash, *args) # :nodoc:
+        return super if scope_attributes? || !(Hash === hash) || reflect_on_all_aggregations.any?
         return super if hash.values.any? { |v|
           v.nil? || Array === v || Hash === v || Relation === v
         }
@@ -208,6 +205,7 @@ module ActiveRecord
         return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
 
         keys = hash.keys
+        values = hash.values.map! { |value| Base === value ? value.id : value }
 
         statement = cached_find_by_statement(keys) { |params|
           wheres = keys.each_with_object({}) { |param, o|
@@ -216,7 +214,7 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, self, connection).first
+          statement.execute(values, self, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         rescue ::RangeError
