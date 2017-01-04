@@ -1,3 +1,8 @@
+*   Remove deprecated tasks: `rails:update`, `rails:template`, `rails:template:copy`,
+    `rails:update:configs` and `rails:update:bin`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated file `rails/rack/debugger`.
 
     *Rafael Mendonça França*
