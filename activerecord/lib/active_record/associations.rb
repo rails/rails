@@ -97,6 +97,16 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughOrderError < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
+      if owner_class_name && reflection && through_reflection
+        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
+      else
+        super("Cannot have a has_many :through association before the through association is defined.")
+      end
+    end
+  end
+
   class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
