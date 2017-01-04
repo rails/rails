@@ -117,7 +117,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fourth Topic of the day", records[2].title
   end
 
-  def test_find_passing_active_record_object_is_deprecated
+  def test_find_passing_active_record_object_is_not_permitted
     assert_raises(ArgumentError) do
       Topic.find(Topic.last)
     end
@@ -167,7 +167,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, relation.exists?(false)
   end
 
-  def test_exists_passing_active_record_object_is_not_permited
+  def test_exists_passing_active_record_object_is_not_permitted
     assert_raises(ArgumentError) do
       Topic.exists?(Topic.new)
     end
