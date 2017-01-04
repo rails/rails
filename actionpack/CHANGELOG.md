@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionController::Metal.call`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionController::Metal#env`.
 
     *Rafael Mendonça França*

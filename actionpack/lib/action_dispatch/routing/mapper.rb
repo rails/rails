@@ -238,7 +238,7 @@ module ActionDispatch
               options[:controller] ||= /.+?/
             end
 
-            if to.respond_to? :call
+            if to.respond_to?(:action) || to.respond_to?(:call)
               options
             else
               to_endpoint = split_to to
@@ -290,16 +290,14 @@ module ActionDispatch
           end
 
           def app(blocks)
-            if to.is_a?(Class) && to < ActionController::Metal
+            if to.respond_to?(:action)
               Routing::RouteSet::StaticDispatcher.new to
+            elsif to.respond_to?(:call)
+              Constraints.new(to, blocks, Constraints::CALL)
+            elsif blocks.any?
+              Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
             else
-              if to.respond_to?(:call)
-                Constraints.new(to, blocks, Constraints::CALL)
-              elsif blocks.any?
-                Constraints.new(dispatcher(defaults.key?(:controller)), blocks, Constraints::SERVE)
-              else
-                dispatcher(defaults.key?(:controller))
-              end
+              dispatcher(defaults.key?(:controller))
             end
           end
 

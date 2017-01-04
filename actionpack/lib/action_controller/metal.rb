@@ -227,14 +227,6 @@ module ActionController
       middleware_stack
     end
 
-    # Makes the controller a Rack endpoint that runs the action in the given
-    # +env+'s +action_dispatch.request.path_parameters+ key.
-    def self.call(env)
-      req = ActionDispatch::Request.new env
-      action(req.path_parameters[:action]).call(env)
-    end
-    class << self; deprecate :call; end
-
     # Returns a Rack endpoint for the given action name.
     def self.action(name)
       if middleware_stack.any?
