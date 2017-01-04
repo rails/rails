@@ -13,6 +13,9 @@ services:
 
 addons:
   postgresql: "9.4"
+  apt:
+    packages:
+      - postgresql-9.4
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -82,6 +85,12 @@ matrix:
       jdk: oraclejdk8
       env:
         - "GEM=am,aj"
+    # Test with old (< 9.4.2) postgresql
+    - rvm: 2.3.3
+      env:
+        - "GEM=ar:postgresql"
+      addons:
+        postgresql: "9.4"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.5.0

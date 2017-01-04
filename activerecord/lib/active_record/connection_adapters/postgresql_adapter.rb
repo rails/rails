@@ -319,6 +319,12 @@ module ActiveRecord
         postgresql_version >= 90400
       end
 
+      # PostgreSQL 9.4 introduces ALTER TABLE ... ALTER CONSTRAINT but it has a bug and fixed in 9.4.2
+      # https://www.postgresql.org/docs/9.4/static/release-9-4-2.html
+      def supports_alter_constraint?
+        postgresql_version >= 90402
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
