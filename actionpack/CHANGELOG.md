@@ -1,3 +1,7 @@
+*   Remove deprecated `Metal#env`.
+
+    *Rafael Mendonça França*
+
 *   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`
 
     *Julia López*

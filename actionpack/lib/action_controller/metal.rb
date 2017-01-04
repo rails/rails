@@ -118,11 +118,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    def env
-      @_request.env
-    end
-    deprecate :env
-
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
     # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
