@@ -235,14 +235,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
   end
 
-  def test_button_to_with_permited_strong_params
+  def test_button_to_with_permitted_strong_params
     assert_dom_equal(
       %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
 
-  def test_button_to_with_unpermited_strong_params
+  def test_button_to_with_unpermitted_strong_params
     assert_raises(ArgumentError) do
       button_to("Hello", "http://www.example.com", params: FakeParams.new(false))
     end
