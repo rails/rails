@@ -19,7 +19,6 @@ module Rails
 
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
-            headers["Cache-Control".freeze] = config.static_cache_control if config.static_cache_control
 
             middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
           end

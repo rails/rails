@@ -1,4 +1,8 @@
-*  The `log:clear` task clear all environments log files by default.
+*   Remove deprecated `config.static_cache_control`.
+
+    *Rafael Mendonça França*
+
+*   The `log:clear` task clear all environments log files by default.
 
     *Yuji Yaginuma*
 
