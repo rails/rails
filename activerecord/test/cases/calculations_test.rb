@@ -13,9 +13,9 @@ require "models/speedometer"
 require "models/ship_part"
 require "models/treasure"
 require "models/developer"
+require "models/post"
 require "models/comment"
 require "models/rating"
-require "models/post"
 
 class NumericData < ActiveRecord::Base
   self.table_name = "numeric_data"
