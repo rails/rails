@@ -55,7 +55,7 @@ group :doc do
   # this is our own fork with the fix.
   gem 'sdoc',  :git => 'https://github.com/fxn/sdoc.git'
   gem 'RedCloth', '~> 4.2'
-  gem 'w3c_validators'
+  gem 'w3c_validators', '< 1.3'
 end
 
 # AS
