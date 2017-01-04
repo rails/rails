@@ -14,6 +14,8 @@ module Rails
         require_application_and_environment!
         load_generators
 
+        ARGV.shift
+
         Rails::Generators.invoke generator, args, behavior: :invoke, destination_root: Rails::Command.root
       end
     end

@@ -614,7 +614,7 @@ module ActionView
         #
         #   to_form_params({ name: 'Denmark' }, 'country')
         #   # => [{name: 'country[name]', value: 'Denmark'}]
-        def to_form_params(attribute, namespace = nil) # :nodoc:
+        def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
             unless attribute.permitted?
               raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \

@@ -121,7 +121,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       silence_warnings { require_dependency filename }
       assert_equal 2, $check_warnings_load_count
-      assert_equal nil, $checked_verbose, "After first load warnings should be left alone."
+      assert_nil $checked_verbose, "After first load warnings should be left alone."
 
       assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.clear
@@ -526,8 +526,8 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_file_search
     with_loading "dependencies" do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three")
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three.rb")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three.rb")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one.rb")
     end

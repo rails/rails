@@ -409,9 +409,9 @@ module ActiveRecord
 
       def test_drop_table_if_exists
         connection.create_table(:testings)
-        ActiveSupport::Deprecation.silence { assert connection.table_exists?(:testings) }
+        assert connection.table_exists?(:testings)
         connection.drop_table(:testings, if_exists: true)
-        ActiveSupport::Deprecation.silence { assert_not connection.table_exists?(:testings) }
+        assert_not connection.table_exists?(:testings)
       end
 
       def test_drop_table_if_exists_nothing_raised

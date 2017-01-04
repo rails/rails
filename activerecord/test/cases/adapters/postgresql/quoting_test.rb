@@ -36,7 +36,7 @@ module ActiveRecord
         def test_quote_bit_string
           value = "'); SELECT * FROM users; /*\n01\n*/--"
           type = OID::Bit.new
-          assert_equal nil, @conn.quote(type.serialize(value))
+          assert_nil @conn.quote(type.serialize(value))
         end
       end
     end

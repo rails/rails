@@ -1924,10 +1924,11 @@ module ActionView
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
+        object_name = @object_name
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          self.object_name = @object_name.to_s.sub(/\[\]$/, "")
+          object_name = object_name.to_s.sub(/\[\]$/, "")
           @auto_index
         end
 

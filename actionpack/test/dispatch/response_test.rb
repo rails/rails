@@ -74,7 +74,7 @@ class ResponseTest < ActiveSupport::TestCase
     @response.body = "Hello, World!"
 
     # even though there's no explicitly set content-type,
-    assert_equal nil, @response.content_type
+    assert_nil @response.content_type
 
     # after the action reads back @response.body,
     assert_equal "Hello, World!", @response.body
@@ -111,8 +111,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_empty_content_type_returns_nil
-    @response.headers['Content-Type'] = ""
-    assert_equal nil, @response.content_type
+    @response.headers["Content-Type"] = ""
+    assert_nil @response.content_type
   end
 
   test "simple output" do

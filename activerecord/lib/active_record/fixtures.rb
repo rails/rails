@@ -536,16 +536,16 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(requires_new: true) do
-            deleted_tables = Set.new
+            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
-                unless deleted_tables.include? table
+                unless deleted_tables[conn].include? table
                   conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
                 end
-                deleted_tables << table
+                deleted_tables[conn] << table
               end
 
               table_rows.each do |fixture_set_name, rows|
@@ -862,12 +862,9 @@ module ActiveRecord
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_tests
-      class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
       class_attribute :config
-
-      singleton_class.deprecate "use_transactional_fixtures=" => "use use_transactional_tests= instead"
 
       self.fixture_table_names = []
       self.use_instantiated_fixtures = false
@@ -875,16 +872,7 @@ module ActiveRecord
       self.config = ActiveRecord::Base
 
       self.fixture_class_names = {}
-
-      silence_warnings do
-        define_singleton_method :use_transactional_tests do
-          if use_transactional_fixtures.nil?
-            true
-          else
-            use_transactional_fixtures
-          end
-        end
-      end
+      self.use_transactional_tests = true
     end
 
     module ClassMethods

@@ -1,10 +1,147 @@
+*   Deprecate passing `name` to `indexes`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated tasks: `db:test:clone`, `db:test:clone_schema`, `db:test:clone_structure`.
+
+    *Rafel Mendonça França*
+
+*   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
+    calling `ActiveRecord::Dirty#changed_in_place?`.
+
+    Fixes #27502.
+
+    *Jon Moss*
+
+*   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`,
+    `.exists?` and `.update`.
+
+    *Rafael Mendonça França*
+
+*   Respect precision option for arrays of timestamps.
+
+    Fixes #27514.
+
+    *Sean Griffin*
+
+*   Optimize slow model instantiation when using STI and `store_full_sti_class = false` option.
+
+    *Konstantin Lazarev*
+
+*   Add `touch` option to counter cache modifying methods.
+
+    Works when updating, resetting, incrementing and decrementing counters:
+
+        # Touches `updated_at`/`updated_on`.
+        Topic.increment_counter(:messages_count, 1, touch: true)
+        Topic.decrement_counter(:messages_count, 1, touch: true)
+
+        # Touches `last_discussed_at`.
+        Topic.reset_counters(18, :messages, touch: :last_discussed_at)
+
+        # Touches `updated_at` and `last_discussed_at`.
+        Topic.update_counters(18, messages_count: 5, touch: %i( updated_at last_discussed_at ))
+
+    Fixes #26724.
+
+    *Jarred Trost*
+
+*   Remove deprecated `#uniq`, `#uniq!`, and `#uniq_value`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated `#insert_sql`, `#update_sql`, and `#delete_sql`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated `#use_transactional_fixtures` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#raise_in_transactional_callbacks` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#load_schema_for`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated conditions parameter from `#destroy_all` and `#delete_all`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing arguments to `#select` when a block is provided.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to query using commas on LIMIT.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a class as a value in a query.
+
+    *Rafael Mendonça França*
+
+*   Raise `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
+    order.
+
+    *Rafael Mendonça França*
+
+*   Raise when a `has_many :through` association has an ambiguous reflection name.
+
+    *Rafael Mendonça França*
+
+*   Raise when `ActiveRecord::Migration` is inherited from directly.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+    and `ActiveRecord::StatementInvalid#original_exception`.
+
+    *Rafael Mendonça França*
+
+*   `#tables` and `#table_exists?` return only tables and not views.
+
+    All the deprecations on those methods were removed.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `name` argument from `#tables`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a column to `#quote`.
+
+    *Rafael Mendonça França*
+
+*   Set `:time` as a timezone aware type and remove deprecation when
+    `config.active_record.time_zone_aware_types` is not explictly set.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated force reload argument in singular and collection association readers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+    `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
+
+    *Rafael Mendonça França*
+
+*   Allow passing extra flags to `db:structure:load` and `db:structure:dump`
+
+    Introduces `ActiveRecord::Tasks::DatabaseTasks.structure_(load|dump)_flags` to customize the
+    eventual commands run against the database, e.g. mysqldump/pg_dump.
+
+    *Kir Shatrov*
+
 *   Notifications see frozen SQL string.
 
-    Fixes #23774
+    Fixes #23774.
 
     *Richard Monette*
 
-*   RuntimeErrors are no longer translated to ActiveRecord::StatementInvalid.
+*   RuntimeErrors are no longer translated to `ActiveRecord::StatementInvalid`.
 
     *Richard Monette*
 
@@ -62,7 +199,7 @@
 
     *Sean Griffin*
 
-*   Fix that unsigned with zerofill is treated as signed.
+*   Don't treat unsigned integers with zerofill as signed.
 
     Fixes #27125.
 

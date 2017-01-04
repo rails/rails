@@ -12,7 +12,7 @@ module Remembered
 
   included do
     after_create :remember
-  protected
+  private
     def remember; self.class.remembered << self; end
   end
 

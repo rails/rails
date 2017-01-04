@@ -92,6 +92,8 @@ module ActiveRecord
               else
                 super
               end
+            when OID::Array::Data
+              _quote(encode_array(value))
             else
               super
             end
@@ -106,8 +108,35 @@ module ActiveRecord
               { value: value.to_s, format: 1 }
             when OID::Xml::Data, OID::Bit::Data
               value.to_s
+            when OID::Array::Data
+              encode_array(value)
             else
               super
+            end
+          end
+
+          def encode_array(array_data)
+            encoder = array_data.encoder
+            values = type_cast_array(array_data.values)
+
+            result = encoder.encode(values)
+            if encoding = determine_encoding_of_strings_in_array(values)
+              result.force_encoding(encoding)
+            end
+            result
+          end
+
+          def determine_encoding_of_strings_in_array(value)
+            case value
+            when ::Array then determine_encoding_of_strings_in_array(value.first)
+            when ::String then value.encoding
+            end
+          end
+
+          def type_cast_array(values)
+            case values
+            when ::Array then values.map { |item| type_cast_array(item) }
+            else _type_cast(values)
             end
           end
       end

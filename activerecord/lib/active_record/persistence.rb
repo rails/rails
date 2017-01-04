@@ -392,8 +392,8 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method finds record by its primary key (which could be assigned manually) and
-    # modifies the receiver in-place:
+    # This method finds the record by its primary key (which could be assigned
+    # manually) and modifies the receiver in-place:
     #
     #   account = Account.new
     #   # => #<Account id: nil, email: nil>

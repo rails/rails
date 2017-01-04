@@ -67,8 +67,8 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < "5.0.0"
-          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
+        if version < "5.1.10"
+          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.1.10."
         end
       end
 
@@ -310,45 +310,36 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def tables(name = nil) # :nodoc:
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #tables currently returns both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
-          Use #data_sources instead.
-        MSG
+      def tables # :nodoc:
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
+        sql << " AND table_schema = #{quote(@config[:database])}"
 
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing arguments to #tables is deprecated without replacement.
-          MSG
-        end
-
-        data_sources
+        select_values(sql, "SCHEMA")
       end
 
-      def data_sources
+      def views # :nodoc:
+        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
+      end
+
+      def data_sources # :nodoc:
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(@config[:database])}"
 
         select_values(sql, "SCHEMA")
       end
 
-      def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      def table_exists?(table_name) # :nodoc:
+        return false unless table_name.present?
+
+        schema, name = extract_schema_qualified_name(table_name)
+
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
+        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+
+        select_values(sql, "SCHEMA").any?
       end
 
-      def table_exists?(table_name)
-        # Update lib/active_record/internal_metadata.rb when this gets removed
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #table_exists? currently checks both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
-          Use #data_source_exists? instead.
-        MSG
-
-        data_source_exists?(table_name)
-      end
-
-      def data_source_exists?(table_name)
+      def data_source_exists?(table_name) # :nodoc:
         return false unless table_name.present?
 
         schema, name = extract_schema_qualified_name(table_name)
@@ -357,10 +348,6 @@ module ActiveRecord
         sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
         select_values(sql, "SCHEMA").any?
-      end
-
-      def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
@@ -374,8 +361,18 @@ module ActiveRecord
         select_values(sql, "SCHEMA").any?
       end
 
+      def truncate(table_name, name = nil)
+        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      end
+
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         indexes = []
         current_index = nil
         execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
@@ -649,9 +646,9 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
-      protected
+      private
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
@@ -691,7 +688,7 @@ module ActiveRecord
           end
         end
 
-        def register_integer_type(mapping, key, options) # :nodoc:
+        def register_integer_type(mapping, key, options)
           mapping.register_type(key) do |sql_type|
             if /\bunsigned\b/.match?(sql_type)
               Type::UnsignedInteger.new(options)
@@ -837,8 +834,6 @@ module ActiveRecord
           [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
         end
 
-      private
-
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery. Ugh!
         def subquery_for(key, select)
@@ -908,7 +903,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          @connection.query "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
+          execute "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
 
         def column_definitions(table_name) # :nodoc:

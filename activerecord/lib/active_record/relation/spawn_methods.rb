@@ -66,7 +66,7 @@ module ActiveRecord
 
     private
 
-      def relation_with(values) # :nodoc:
+      def relation_with(values)
         result = Relation.create(klass, table, predicate_builder, values)
         result.extend(*extending_values) if extending_values.any?
         result

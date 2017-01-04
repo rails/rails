@@ -243,7 +243,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     assert !@david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
-    assert_equal %r{"favorite_quote":}.match(json).size, 1
+    assert_equal 1, %r{"favorite_quote":}.match(json).size
   end
 
   def test_should_allow_only_option_for_list_of_authors

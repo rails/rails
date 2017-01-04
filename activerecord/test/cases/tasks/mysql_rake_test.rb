@@ -59,7 +59,7 @@ if current_adapter?(:Mysql2Adapter)
       def test_when_database_created_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stdout.string, "Created database 'my-app-db'\n"
+        assert_equal "Created database 'my-app-db'\n", $stdout.string
       end
 
       def test_create_when_database_exists_outputs_info_to_stderr
@@ -69,7 +69,7 @@ if current_adapter?(:Mysql2Adapter)
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stderr.string, "Database 'my-app-db' already exists\n"
+        assert_equal "Database 'my-app-db' already exists\n", $stderr.string
       end
     end
 
@@ -205,7 +205,7 @@ if current_adapter?(:Mysql2Adapter)
       def test_when_database_dropped_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.drop @configuration
 
-        assert_equal $stdout.string, "Dropped database 'my-app-db'\n"
+        assert_equal "Dropped database 'my-app-db'\n", $stdout.string
       end
     end
 
@@ -294,6 +294,17 @@ if current_adapter?(:Mysql2Adapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
       end
 
+      def test_structure_dump_with_extra_flags
+        filename = "awesome-file.sql"
+        expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--noop", "test-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+        end
+      end
+
       def test_warn_when_external_structure_dump_command_execution_fails
         filename = "awesome-file.sql"
         Kernel.expects(:system)
@@ -323,6 +334,15 @@ if current_adapter?(:Mysql2Adapter)
           @configuration.merge("sslca" => "ca.crt"),
           filename)
       end
+
+      private
+        def with_structure_dump_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
     end
 
     class MySQLStructureLoadTest < ActiveRecord::TestCase
@@ -335,11 +355,23 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_load
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
-          .returns(true)
+        expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", "--noop"]
 
-        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
       end
+
+      private
+        def with_structure_load_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        end
     end
   end
 end

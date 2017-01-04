@@ -487,6 +487,27 @@ module AbstractController
         end
       end
 
+      def test_default_params_first_empty
+        with_routing do |set|
+          set.draw do
+            get "(:param1)/test(/:param2)" => "index#index",
+              defaults: {
+                param1: 1,
+                param2: 2
+              },
+              constraints: {
+                param1: /\d*/,
+                param2: /\d+/
+              }
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = "www.basecamphq.com"
+
+          assert_equal "http://www.basecamphq.com/test", kls.new.url_for(controller: "index", param1: "1")
+        end
+      end
+
       private
         def extract_params(url)
           url.split("?", 2).last.split("&").sort

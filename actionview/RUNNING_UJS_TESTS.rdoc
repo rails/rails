@@ -4,4 +4,4 @@ Ensure that you can build the project and run tests.
 Run rake ujs:server first, and then run the web tests by
 visiting http://localhost:4567 in your browser.
 
-rake test:server
+rake ujs:server

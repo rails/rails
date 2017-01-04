@@ -69,7 +69,7 @@ module ActionDispatch
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
       def self.call(_); [404, { "X-Cascade" => "pass" }, []]; end
-      def self.encoding_for_param(action, param); ::Encoding::UTF_8; end
+      def self.binary_params_for?(action); false; end
     }
 
     def controller_class
@@ -85,6 +85,9 @@ module ActionDispatch
       end
     end
 
+    # Returns true if the request has a header matching the given key parameter.
+    #
+    #    request.key? :ip_spoofing_check # => true
     def key?(key)
       has_header? key
     end

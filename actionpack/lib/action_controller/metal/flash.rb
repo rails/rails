@@ -42,7 +42,7 @@ module ActionController #:nodoc:
       end
     end
 
-    protected
+    private
       def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
         self.class._flash_types.each do |flash_type|
           if type = response_status_and_flash.delete(flash_type)

@@ -13,7 +13,27 @@ module ActiveRecord
 
       V5_1 = Current
 
-      module FourTwoShared
+      class V5_0 < V5_1
+        def create_table(table_name, options = {})
+          if adapter_name == "PostgreSQL"
+            if options[:id] == :uuid && !options[:default]
+              options[:default] = "uuid_generate_v4()"
+            end
+          end
+
+          # Since 5.1 Postgres adapter uses bigserial type for primary
+          # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
+          # serial/int type instead -- the way it used to work before 5.1.
+          if options[:id].blank?
+            options[:id] = :integer
+            options[:auto_increment] = true
+          end
+
+          super
+        end
+      end
+
+      class V4_2 < V5_0
         module TableDefinition
           def references(*, **options)
             options[:index] ||= false
@@ -100,46 +120,6 @@ module ActiveRecord
 
             index_name
           end
-      end
-
-      class V5_0 < V5_1
-        def create_table(table_name, options = {})
-          if adapter_name == "PostgreSQL"
-            if options[:id] == :uuid && !options[:default]
-              options[:default] = "uuid_generate_v4()"
-            end
-          end
-
-          # Since 5.1 Postgres adapter uses bigserial type for primary
-          # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
-          # serial/int type instead -- the way it used to work before 5.1.
-          if options[:id].blank?
-            options[:id] = :integer
-            options[:auto_increment] = true
-          end
-
-          super
-        end
-      end
-
-      class V4_2 < V5_0
-        # 4.2 is defined as a module because it needs to be shared with
-        # Legacy. When the time comes, V5_0 should be defined straight
-        # in its class.
-        include FourTwoShared
-      end
-
-      module Legacy
-        include FourTwoShared
-
-        def migrate(*)
-          ActiveSupport::Deprecation.warn \
-            "Directly inheriting from ActiveRecord::Migration is deprecated. " \
-            "Please specify the Rails release the migration was written for:\n" \
-            "\n" \
-            "  class #{self.class.name} < ActiveRecord::Migration[4.2]"
-          super
-        end
       end
     end
   end

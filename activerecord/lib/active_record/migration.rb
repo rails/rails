@@ -522,7 +522,10 @@ module ActiveRecord
     def self.inherited(subclass) # :nodoc:
       super
       if subclass.superclass == Migration
-        subclass.include Compatibility::Legacy
+        raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
+          "Please specify the Rails release the migration was written for:\n" \
+          "\n" \
+          "  class #{self.class.name} < ActiveRecord::Migration[4.2]"
       end
     end
 
@@ -1026,12 +1029,10 @@ module ActiveRecord
       end
 
       def get_all_versions(connection = Base.connection)
-        ActiveSupport::Deprecation.silence do
-          if connection.table_exists?(schema_migrations_table_name)
-            SchemaMigration.all.map { |x| x.version.to_i }.sort
-          else
-            []
-          end
+        if connection.table_exists?(schema_migrations_table_name)
+          SchemaMigration.all.map { |x| x.version.to_i }.sort
+        else
+          []
         end
       end
 

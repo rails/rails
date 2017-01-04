@@ -5,7 +5,7 @@ class ErrorsTest < ActiveRecord::TestCase
     base = ActiveRecord::ActiveRecordError
     error_klasses = ObjectSpace.each_object(Class).select { |klass| klass < base }
 
-    error_klasses.each do |error_klass|
+    (error_klasses - [ActiveRecord::AmbiguousSourceReflectionForThroughAssociation]).each do |error_klass|
       begin
         error_klass.new.inspect
       rescue ArgumentError

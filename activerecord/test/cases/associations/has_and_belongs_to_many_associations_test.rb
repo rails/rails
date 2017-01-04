@@ -955,12 +955,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    developer = Developer.find(1)
-
-    assert_deprecated { developer.projects(true) }
-  end
-
   def test_alternate_database
     professor = Professor.create(name: "Plum")
     course = Course.create(name: "Forensics")

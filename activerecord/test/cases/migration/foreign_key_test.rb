@@ -101,7 +101,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           fk = foreign_keys.first
           if current_adapter?(:Mysql2Adapter)
             # ON DELETE RESTRICT is the default on MySQL
-            assert_equal nil, fk.on_delete
+            assert_nil fk.on_delete
           else
             assert_equal :restrict, fk.on_delete
           end

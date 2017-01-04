@@ -241,10 +241,17 @@ class SendFileTest < ActionController::TestCase
     assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
   end
 
+  def test_send_file_charset_with_type_options_key_without_charset
+    @controller = SendFileWithActionControllerLive.new
+    @controller.options = { type: "image/png" }
+    response = process("file")
+    assert_equal "image/png", response.headers["Content-Type"]
+  end
+
   def test_send_file_charset_with_content_type_options_key
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { content_type: "text/calendar" }
     response = process("file")
-    assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
+    assert_equal "text/calendar", response.headers["Content-Type"]
   end
 end

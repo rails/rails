@@ -316,7 +316,7 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_nil
     assert @cache.write("foo", nil)
-    assert_equal nil, @cache.read("foo")
+    assert_nil @cache.read("foo")
   end
 
   def test_should_read_and_write_false
@@ -464,7 +464,7 @@ module CacheStoreBehavior
 
     Time.stub(:now, Time.at(time)) do
       result = @cache.fetch("foo") do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -476,7 +476,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar", expires_in: 60)
     Time.stub(:now, time + 71) do
       result = @cache.fetch("foo", race_condition_ttl: 10) do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -675,9 +675,9 @@ module LocalCacheBehavior
 
   def test_local_cache_of_read_nil
     @cache.with_local_cache do
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
       @cache.send(:bypass_local_cache) { @cache.write "foo", "bar" }
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
     end
   end
 

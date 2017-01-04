@@ -474,7 +474,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains `request.formats` which specifies
 the format of template to be served in response. It is set to `text/html` as we
 requested this page via browser, so Rails is looking for an HTML template.
-`request.variants` specifies what kind of physical devices would be served by
+`request.variant` specifies what kind of physical devices would be served by
 the response and helps Rails determine which template to use in the response.
 It is empty because no information has been provided.
 
@@ -827,7 +827,7 @@ NOTE: A frequent practice is to place the standard CRUD actions in each
 controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
 and `destroy`. You may use any order you choose, but keep in mind that these
 are public methods; as mentioned earlier in this guide, they must be placed
-before any private or protected method in the controller in order to work.
+before declaring `private` visibility in the controller.
 
 Given that, let's add the `show` action, as follows:
 

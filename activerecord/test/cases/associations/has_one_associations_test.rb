@@ -186,25 +186,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert firm.account.present?
   end
 
-  def test_restrict_with_error_is_deprecated_using_key_one
-    I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations :en, activerecord: { errors: { messages: { restrict_dependent_destroy: { one: "message for deprecated key" } } } }
-
-    firm = RestrictedWithErrorFirm.create!(name: "restrict")
-    firm.create_account(credit_limit: 10)
-
-    assert_not_nil firm.account
-
-    assert_deprecated { firm.destroy }
-
-    assert !firm.errors.empty?
-    assert_equal "message for deprecated key", firm.errors[:base].first
-    assert RestrictedWithErrorFirm.exists?(name: "restrict")
-    assert firm.account.present?
-  ensure
-    I18n.backend.reload!
-  end
-
   def test_restrict_with_error
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
@@ -662,12 +643,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
         end
       end
     end
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    firm = Firm.find(1)
-
-    assert_deprecated { firm.account(true) }
   end
 
   class SpecialBook < ActiveRecord::Base

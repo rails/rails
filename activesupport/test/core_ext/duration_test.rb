@@ -196,7 +196,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised do
       1.minute.times { counter += 1 }
     end
-    assert_equal counter, 60
+    assert_equal 60, counter
   end
 
   def test_as_json
@@ -213,7 +213,7 @@ class DurationTest < ActiveSupport::TestCase
       when 1.day
         "ok"
       end
-    assert_equal cased, "ok"
+    assert_equal "ok", cased
   end
 
   def test_respond_to

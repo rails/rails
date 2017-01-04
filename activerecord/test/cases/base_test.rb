@@ -4,6 +4,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/category"
+require "models/categorization"
 require "models/company"
 require "models/customer"
 require "models/developer"
@@ -33,8 +34,6 @@ class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -45,8 +44,6 @@ class CreditCard < ActiveRecord::Base
   class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
@@ -55,12 +52,6 @@ class ReadonlyTitlePost < Post
 end
 
 class Weird < ActiveRecord::Base; end
-
-class Boolean < ActiveRecord::Base
-  def has_fun
-    super
-  end
-end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -107,14 +98,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
-    def test_limit_with_comma
-      assert_deprecated do
-        assert Topic.limit("1,2").to_a
-      end
-    end
-  end
-
   def test_many_mutations
     car = Car.new name: "<3<3<3"
     car.engines_count = 0
@@ -144,10 +127,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_deprecated do
-      assert_raises(ArgumentError) do
-        Topic.limit("1, 7 procedure help()").to_a
-      end
+    assert_raises(ArgumentError) do
+      Topic.limit("1, 7 procedure help()").to_a
     end
   end
 
@@ -622,7 +603,7 @@ class BasicsTest < ActiveRecord::TestCase
       Topic.find(topic.id).destroy
     end
 
-    assert_equal nil, Topic.find_by_id(topic.id)
+    assert_nil Topic.find_by_id(topic.id)
   end
 
   def test_comparison_with_different_objects
@@ -1376,12 +1357,6 @@ class BasicsTest < ActiveRecord::TestCase
     company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
       company.touch :updated_at
-    end
-  end
-
-  def test_uniq_delegates_to_scoped
-    assert_deprecated do
-      assert_equal Bird.all.distinct, Bird.uniq
     end
   end
 

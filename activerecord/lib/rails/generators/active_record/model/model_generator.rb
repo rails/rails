@@ -33,7 +33,7 @@ module ActiveRecord
 
       hook_for :test_framework
 
-      protected
+      private
 
         def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }

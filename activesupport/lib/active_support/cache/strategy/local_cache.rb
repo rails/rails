@@ -105,8 +105,8 @@ module ActiveSupport
           value
         end
 
-        protected
-          def read_entry(key, options) # :nodoc:
+        private
+          def read_entry(key, options)
             if cache = local_cache
               cache.fetch_entry(key) { super }
             else
@@ -114,17 +114,17 @@ module ActiveSupport
             end
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_entry(key, entry, options)
             local_cache.write_entry(key, entry, options) if local_cache
             super
           end
 
-          def delete_entry(key, options) # :nodoc:
+          def delete_entry(key, options)
             local_cache.delete_entry(key, options) if local_cache
             super
           end
 
-          def write_cache_value(name, value, options) # :nodoc:
+          def write_cache_value(name, value, options)
             name = normalize_key(name, options)
             cache = local_cache
             cache.mute do
@@ -135,8 +135,6 @@ module ActiveSupport
               end
             end
           end
-
-        private
 
           def local_cache_key
             @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym

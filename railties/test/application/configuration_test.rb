@@ -381,26 +381,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_files is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.serve_static_files = true
-        end
-
-        assert application.config.public_file_server.enabled
-      end
-    end
-
-    test "config.static_cache_control is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.static_cache_control = "public, max-age=60"
-        end
-
-        assert_equal application.config.static_cache_control, "public, max-age=60"
-      end
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
@@ -626,7 +606,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
     end
 
@@ -642,7 +622,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_raise ArgumentError, /\AA secret is required/ do
         app.key_generator
       end
@@ -1004,7 +984,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render plain: env["action_dispatch.show_exceptions"]
+          render plain: request.env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -1216,7 +1196,7 @@ module ApplicationTests
         application.config.session_store :disabled
       end
 
-      assert_equal nil, app.config.session_store
+      assert_nil app.config.session_store
     end
 
     test "default session store initializer sets session store to cookie store" do

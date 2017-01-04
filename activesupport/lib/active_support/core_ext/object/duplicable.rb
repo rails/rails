@@ -73,7 +73,8 @@ end
 
 class Symbol
   begin
-    :symbol.dup
+    :symbol.dup # Ruby 2.4.x.
+    'symbol_from_string'.to_sym.dup # Some symbols can't `dup` in Ruby 2.4.0.
   rescue TypeError
 
     # Symbols are not duplicable:
@@ -117,6 +118,26 @@ class Method
   #
   #  method(:puts).duplicable? # => false
   #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  def duplicable?
+    false
+  end
+end
+
+class Complex
+  # Complexes are not duplicable:
+  #
+  # Complex(1).duplicable? # => false
+  # Complex(1).dup         # => TypeError: can't copy Complex
+  def duplicable?
+    false
+  end
+end
+
+class Rational
+  # Rationals are not duplicable:
+  #
+  # Rational(1).duplicable? # => false
+  # Rational(1).dup         # => TypeError: can't copy Rational
   def duplicable?
     false
   end

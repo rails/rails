@@ -173,8 +173,8 @@ module Rails
         instance.configure(&block)
       end
 
-      protected
-        def generate_railtie_name(string) #:nodoc:
+      private
+        def generate_railtie_name(string)
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
         end
 
@@ -188,7 +188,6 @@ module Rails
           end
         end
 
-      private
         # receives an instance variable identifier, set the variable value if is
         # blank and append given block to value, which will be used later in
         # `#each_registered_block(type, &block)`

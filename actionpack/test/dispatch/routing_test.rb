@@ -4189,7 +4189,7 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
 
   test "parameters are reset between constraint checks" do
     get "/bar"
-    assert_equal nil, @request.params[:foo]
+    assert_nil @request.params[:foo]
     assert_equal "bar", @request.params[:bar]
   end
 end

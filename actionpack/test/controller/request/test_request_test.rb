@@ -8,7 +8,7 @@ class ActionController::TestRequestTest < ActionController::TestCase
 
   def test_mutating_session_options_does_not_affect_default_options
     @request.session_options[:myparam] = 123
-    assert_equal nil, ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
+    assert_nil ActionController::TestSession::DEFAULT_OPTIONS[:myparam]
   end
 
   def test_content_length_has_bytes_count_value
@@ -17,8 +17,8 @@ class ActionController::TestRequestTest < ActionController::TestCase
     @request.set_header "CONTENT_TYPE", "application/json"
     @request.assign_parameters(@routes, "test", "create", non_ascii_parameters,
                                "/test", [:data, :controller, :action])
-    assert_equal(@request.get_header("CONTENT_LENGTH"),
-                 StringIO.new(non_ascii_parameters.to_json).length.to_s)
+    assert_equal(StringIO.new(non_ascii_parameters.to_json).length.to_s,
+                 @request.get_header("CONTENT_LENGTH"))
   end
 
   ActionDispatch::Session::AbstractStore::DEFAULT_OPTIONS.each_key do |option|

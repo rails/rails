@@ -19,7 +19,6 @@ module Rails
 
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
-            headers["Cache-Control".freeze] = config.static_cache_control if config.static_cache_control
 
             middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
           end
@@ -41,12 +40,11 @@ module Rails
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
+          middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
-          # Must come after Rack::MethodOverride to properly log overridden methods
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
-          middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           unless config.cache_classes
             middleware.use ::ActionDispatch::Reloader, app.reloader

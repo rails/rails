@@ -90,17 +90,17 @@ module ActiveRecord
     end
 
     def test_tables_logs_name
-      ActiveSupport::Deprecation.silence { @connection.tables("hello") }
+      @connection.tables
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_indexes_logs_name
-      @connection.indexes("items", "hello")
+      assert_deprecated { @connection.indexes("items", "hello") }
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_exists_logs_name
-      ActiveSupport::Deprecation.silence { @connection.table_exists?("items") }
+      @connection.table_exists?("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -245,7 +245,7 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       def with_warning_suppression
         log_level = @connection.client_min_messages

@@ -705,7 +705,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  protected
+  private
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
     def new_isolated_reminder_class

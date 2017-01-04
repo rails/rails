@@ -890,7 +890,7 @@ YAML
 
       boot_rails
 
-      assert_equal AppTemplate.railtie_namespace, AppTemplate::Engine
+      assert_equal AppTemplate::Engine, AppTemplate.railtie_namespace
     end
 
     test "properly reload routes" do

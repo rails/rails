@@ -52,7 +52,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_case_nil
-    assert_equal(nil, @type.deserialize(nil))
+    assert_nil(@type.deserialize(nil))
   end
 
   def test_read_value
@@ -66,7 +66,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   def test_read_nil_value
     @connection.execute "insert into bytea_data_type (payload) VALUES (null)"
     record = ByteaDataType.first
-    assert_equal(nil, record.payload)
+    assert_nil(record.payload)
     record.delete
   end
 
@@ -106,8 +106,8 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   def test_write_nil
     record = ByteaDataType.create(payload: nil)
     assert_not record.new_record?
-    assert_equal(nil, record.payload)
-    assert_equal(nil, ByteaDataType.where(id: record.id).first.payload)
+    assert_nil(record.payload)
+    assert_nil(ByteaDataType.where(id: record.id).first.payload)
   end
 
   class Serializer
