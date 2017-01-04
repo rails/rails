@@ -972,7 +972,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render plain: env["action_dispatch.show_exceptions"]
+          render plain: request.env["action_dispatch.show_exceptions"]
         end
       end
 
