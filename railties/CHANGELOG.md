@@ -1,3 +1,7 @@
+*   Remove deprecated `config.serve_static_files`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.static_cache_control`.
 
     *Rafael Mendonça França*
