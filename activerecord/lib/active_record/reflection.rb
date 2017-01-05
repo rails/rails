@@ -969,8 +969,7 @@ module ActiveRecord
         end
       end
 
-      protected
-
+      private
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.send(:actual_source_reflection)
         end
@@ -981,7 +980,6 @@ module ActiveRecord
 
         def inverse_name; delegate_reflection.send(:inverse_name); end
 
-      private
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name

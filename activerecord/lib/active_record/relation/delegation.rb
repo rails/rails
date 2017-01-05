@@ -113,7 +113,7 @@ module ActiveRecord
         arel.respond_to?(method, include_private)
     end
 
-    protected
+    private
 
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)

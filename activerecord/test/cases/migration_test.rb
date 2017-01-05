@@ -887,7 +887,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal :datetime, column(:birthdate).type
     end
 
-    protected
+    private
 
       def with_bulk_change_table
         # Reset columns/indexes cache as we're changing the table
