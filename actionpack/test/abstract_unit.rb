@@ -259,9 +259,9 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = { "PATH_INFO"      => path,
-                "REQUEST_METHOD" => method,
-                "HTTP_HOST"      => host }
+      params = { "PATH_INFO" => path,
+                 "REQUEST_METHOD" => method,
+                 "HTTP_HOST" => host }
 
       routes.call(params)
     end

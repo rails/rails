@@ -214,7 +214,6 @@ module ApplicationTests
       assert_equal expected_output, output
     end
 
-
     def test_rails_routes_displays_message_when_no_routes_are_defined
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
