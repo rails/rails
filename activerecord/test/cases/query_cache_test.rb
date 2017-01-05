@@ -280,18 +280,18 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     # Warm up the cache by running the query
     assert_queries(1) do
-      assert_equal 0, Post.where(title: 'test').to_a.count
+      assert_equal 0, Post.where(title: "test").to_a.count
     end
 
     # Check that if the same query is run again, no queries are executed
     assert_queries(0) do
-      assert_equal 0, Post.where(title: 'test').to_a.count
+      assert_equal 0, Post.where(title: "test").to_a.count
     end
 
     ActiveRecord::Base.connection.uncached do
       # Check that new query is executed, avoiding the cache
       assert_queries(1) do
-        assert_equal 0, Post.where(title: 'test').to_a.count
+        assert_equal 0, Post.where(title: "test").to_a.count
       end
     end
   end
