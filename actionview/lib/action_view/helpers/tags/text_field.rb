@@ -17,7 +17,7 @@ module ActionView
 
         class << self
           def field_type
-            @field_type ||= self.name.split("::").last.sub("Field", "").downcase
+            @field_type ||= name.split("::").last.sub("Field", "").downcase
           end
         end
 

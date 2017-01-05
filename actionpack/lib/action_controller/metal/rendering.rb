@@ -114,7 +114,7 @@ module ActionController
 
         self.status = status if status
         self.content_type = content_type if content_type
-        self.headers["Location"] = url_for(location) if location
+        headers["Location"] = url_for(location) if location
 
         super
       end

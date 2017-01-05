@@ -656,7 +656,7 @@ module ActiveRecord
       end
 
       self.where_clause = self.where_clause.or(other.where_clause)
-      self.having_clause = self.having_clause.or(other.having_clause)
+      self.having_clause = having_clause.or(other.having_clause)
 
       self
     end

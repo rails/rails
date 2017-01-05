@@ -319,7 +319,7 @@ module ActionView
             name_clause
           end
 
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout(formats)
             if _conditional_layout?
               #{layout_definition}

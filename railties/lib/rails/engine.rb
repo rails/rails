@@ -380,7 +380,7 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod.name))
 
-        self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+        routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
@@ -573,7 +573,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      routing_paths = self.paths["config/routes.rb"].existent
+      routing_paths = paths["config/routes.rb"].existent
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)

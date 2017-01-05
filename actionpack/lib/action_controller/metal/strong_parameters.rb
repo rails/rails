@@ -150,7 +150,7 @@ module ActionController
     # permitted flag.
     def ==(other)
       if other.respond_to?(:permitted?)
-        self.permitted? == other.permitted? && self.parameters == other.parameters
+        permitted? == other.permitted? && parameters == other.parameters
       else
         @parameters == other
       end

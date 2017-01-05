@@ -131,7 +131,7 @@ module Rails
 
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
-        self.generators.colorize_logging = val
+        generators.colorize_logging = val
       end
 
       def session_store(new_session_store = nil, **options)

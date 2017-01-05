@@ -206,8 +206,8 @@ module ActionView
           view = @controller.view_context
           view.singleton_class.include(_helpers)
           view.extend(Locals)
-          view.rendered_views = self.rendered_views
-          view.output_buffer = self.output_buffer
+          view.rendered_views = rendered_views
+          view.output_buffer = output_buffer
           view
         end
       end

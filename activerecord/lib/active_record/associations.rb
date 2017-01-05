@@ -1857,7 +1857,7 @@ module ActiveRecord
           end
 
           has_many name, scope, hm_options, &extension
-          self._reflections[name.to_s].parent_reflection = habtm_reflection
+          _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end
   end

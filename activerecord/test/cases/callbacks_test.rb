@@ -125,11 +125,11 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   after_validation :after_validation_on_create_and_update, on: [ :create, :update ]
 
   def before_validation_on_create_and_update
-    history << "before_validation_on_#{self.validation_context}".to_sym
+    history << "before_validation_on_#{validation_context}".to_sym
   end
 
   def after_validation_on_create_and_update
-    history << "after_validation_on_#{self.validation_context}".to_sym
+    history << "after_validation_on_#{validation_context}".to_sym
   end
 
   def history

@@ -100,7 +100,7 @@ module ActiveRecord
         end
 
         def delete_or_nullify_all_records(method)
-          count = delete_count(method, self.scope)
+          count = delete_count(method, scope)
           update_counter(-count)
         end
 

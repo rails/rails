@@ -1012,7 +1012,7 @@ end
 
 class FixtureClassNamesTest < ActiveRecord::TestCase
   def setup
-    @saved_cache = self.fixture_class_names.dup
+    @saved_cache = fixture_class_names.dup
   end
 
   def teardown

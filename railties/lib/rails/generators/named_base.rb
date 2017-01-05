@@ -219,7 +219,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if self.respond_to?(:controller_class_name) # for ScaffoldBase
+            name = if respond_to?(:controller_class_name) # for ScaffoldBase
               controller_class_name
             else
               class_name

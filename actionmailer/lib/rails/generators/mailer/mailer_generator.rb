@@ -11,7 +11,7 @@ module Rails
         template "mailer.rb", File.join("app/mailers", class_path, "#{file_name}_mailer.rb")
 
         in_root do
-          if self.behavior == :invoke && !File.exist?(application_mailer_file_name)
+          if behavior == :invoke && !File.exist?(application_mailer_file_name)
             template "application_mailer.rb", application_mailer_file_name
           end
         end

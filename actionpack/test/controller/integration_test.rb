@@ -269,8 +269,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
-      self.cookies["cookie_1"] = "sugar"
-      self.cookies["cookie_2"] = "oatmeal"
+      cookies["cookie_1"] = "sugar"
+      cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)

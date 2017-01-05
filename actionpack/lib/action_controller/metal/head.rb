@@ -37,7 +37,7 @@ module ActionController
 
       if include_content?(response_code)
         self.content_type = content_type || (Mime[formats.first] if formats)
-        self.response.charset = false
+        response.charset = false
       end
 
       true

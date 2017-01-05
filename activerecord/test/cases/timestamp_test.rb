@@ -422,7 +422,7 @@ class TimestampTest < ActiveRecord::TestCase
       self.table_name = "people"
 
       before_create do
-        self.born_at = self.created_at
+        self.born_at = created_at
       end
     end
 

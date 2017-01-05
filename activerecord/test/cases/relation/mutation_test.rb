@@ -108,7 +108,7 @@ module ActiveRecord
     end
 
     test "#reorder!" do
-      @relation = self.relation.order("foo")
+      @relation = relation.order("foo")
 
       assert relation.reorder!("bar").equal?(relation)
       assert_equal ["bar"], relation.order_values

@@ -331,7 +331,7 @@ module Rails
         def self.prepare_for_invocation(name, value) #:nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
-          if value && constants = self.hooks[name]
+          if value && constants = hooks[name]
             value = name if TrueClass === value
             Rails::Generators.find_by_namespace(value, *constants)
           elsif klass = Rails::Generators.find_by_namespace(value)

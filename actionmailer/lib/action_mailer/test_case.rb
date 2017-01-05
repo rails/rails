@@ -57,7 +57,7 @@ module ActionMailer
         end
 
         def mailer_class
-          if mailer = self._mailer_class
+          if mailer = _mailer_class
             mailer
           else
             tests determine_default_mailer(name)

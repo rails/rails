@@ -450,7 +450,7 @@ module ActiveRecord
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
       if id
-        self.class.hash ^ self.id.hash
+        self.class.hash ^ id.hash
       else
         super
       end
@@ -472,7 +472,7 @@ module ActiveRecord
     # Allows sort on objects
     def <=>(other_object)
       if other_object.is_a?(self.class)
-        self.to_key <=> other_object.to_key
+        to_key <=> other_object.to_key
       else
         super
       end
