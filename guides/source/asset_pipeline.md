@@ -106,7 +106,7 @@ or in web browsers) to keep their own copy of the content. When the content is
 updated, the fingerprint will change. This will cause the remote clients to
 request a new copy of the content. This is generally known as _cache busting_.
 
-The technique sprockets uses for fingerprinting is to insert a hash of the
+The technique Sprockets uses for fingerprinting is to insert a hash of the
 content into the name, usually at the end. For example a CSS file `global.css`
 
 ```
@@ -744,7 +744,7 @@ NOTE. Always specify an expected compiled filename that ends with .js or .css,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
 The task also generates a `.sprockets-manifest-md5hash.json` (where `md5hash` is
-a MD5 hash) that contains a list with all your assets and their respective
+an MD5 hash) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
 
