@@ -394,13 +394,6 @@ module ActiveRecord
 
     protected
 
-      def clone_attribute_value(reader_method, attribute_name) # :nodoc:
-        value = send(reader_method, attribute_name)
-        value.duplicable? ? value.clone : value
-      rescue TypeError, NoMethodError
-        value
-      end
-
       def arel_attributes_with_values_for_create(attribute_names) # :nodoc:
         arel_attributes_with_values(attributes_for_create(attribute_names))
       end
