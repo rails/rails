@@ -527,6 +527,7 @@ module ActiveRecord
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{quote(schema)}
             AND fk.table_name = #{quote(name)}
+            AND rc.table_name = #{quote(name)}
         SQL
 
         fk_info.map do |row|
