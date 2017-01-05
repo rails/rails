@@ -42,7 +42,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "type casting string on a datetime column" do
-    record = PostgresqlInfinity.create!(datetime: 'infinity')
+    record = PostgresqlInfinity.create!(datetime: "infinity")
     record.reload
     assert_equal Float::INFINITY, record.datetime
   end
@@ -54,7 +54,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "type casting string on a date column" do
-    record = PostgresqlInfinity.create!(date: 'infinity')
+    record = PostgresqlInfinity.create!(date: "infinity")
     record.reload
     assert_equal Float::INFINITY, record.date
   end
@@ -88,7 +88,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
 
   test "where clause with infinite range (strings) on a datetime column" do
     record = PostgresqlInfinity.create!(datetime: Time.current)
-    found = PostgresqlInfinity.where(datetime: '-infinity'..'infinity').first
+    found = PostgresqlInfinity.where(datetime: "-infinity".."infinity").first
     assert_equal record, found
   end
 
@@ -100,7 +100,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
 
   test "where clause with infinite range (strings) on a date column" do
     record = PostgresqlInfinity.create!(date: Date.current)
-    found = PostgresqlInfinity.where(date: '-infinity'..'infinity').first
+    found = PostgresqlInfinity.where(date: "-infinity".."infinity").first
     assert_equal record, found
   end
 
