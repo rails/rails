@@ -1,3 +1,7 @@
+*   Add `check_parameters` option to `current_page?` which makes it more strict.
+
+    *Maksym Pugach*
+
 *   Return correct object name in form helper method after `fields_for`.
 
     Fixes #26931.
