@@ -1,3 +1,7 @@
+*   Ignore key order when checking whether JSONB columns have changed in PostgreSQL
+
+    *Bradley Priest*
+
 *   Add type caster to `RuntimeReflection#alias_name`
 
     Fixes #28959.

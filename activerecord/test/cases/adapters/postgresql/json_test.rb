@@ -202,6 +202,20 @@ module PostgresqlJSONSharedTestCases
 
     assert_equal({ "one" => "two", "three" => "four" }, json.payload)
     assert_not json.changed?
+
+    json.payload = { "three" => "four", "one" => "two" }
+    json.save!
+    json.reload
+
+    json.payload = { "three" => "four", "one" => "two" }
+    assert_not json.changed?
+
+    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    json.save!
+    json.reload
+
+    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    assert_not json.changed?
   end
 
   def test_assigning_string_literal
