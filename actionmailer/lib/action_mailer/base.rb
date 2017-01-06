@@ -922,7 +922,7 @@ module ActionMailer
       def collect_responses_from_text(headers)
         [{
           body: headers.delete(:body),
-          content_type: headers[:content_type] || self.class.default[:content_type] || "text/plain"
+          content_type: headers[:content_type] || "text/plain"
         }]
       end
 
