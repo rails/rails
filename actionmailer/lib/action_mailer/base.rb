@@ -208,6 +208,19 @@ module ActionMailer
   #       end
   #     end
   #
+  # You can also send attachments with html template, in this case you need to add body, attachments,
+  # and custom content type like this:
+  #
+  #     class NotifierMailer < ApplicationMailer
+  #       def welcome(recipient)
+  #         attachments["free_book.pdf"] = File.read("path/to/file.pdf")
+  #         mail(to: recipient,
+  #              subject: "New account information",
+  #              content_type: "text/html",
+  #              body: "<html><body>Hello there</body></html>")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -896,13 +909,17 @@ module ActionMailer
           yield(collector)
           collector.responses
         elsif headers[:body]
-          [{
-            body: headers.delete(:body),
-            content_type: self.class.default[:content_type] || "text/plain"
-          }]
+          collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_text(headers)
+        [{
+          body: headers.delete(:body),
+          content_type: headers[:content_type] || "text/plain"
+        }]
       end
 
       def collect_responses_from_templates(headers)
