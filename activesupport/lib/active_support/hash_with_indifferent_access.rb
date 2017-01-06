@@ -269,6 +269,10 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(*args, &block) }
     end
 
+    def compact
+      dup.compact!
+    end
+
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash = Hash.new
