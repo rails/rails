@@ -1,4 +1,5 @@
-*   Ignore key order when checking whether JSONB columns have changed in PostgreSQL
+*   Compare deserialized values for all JSON types when
+    calling `ActiveRecord::Dirty#changed_in_place?`.
 
     *Bradley Priest*
 
