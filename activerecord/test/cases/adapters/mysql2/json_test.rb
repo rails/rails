@@ -177,6 +177,25 @@ if ActiveRecord::Base.connection.supports_json?
       assert_not json.changed?
     end
 
+    def test_changes_in_place_ignores_key_order
+      json = JsonDataType.new
+      assert_not json.changed?
+
+      json.payload = { "three" => "four", "one" => "two" }
+      json.save!
+      json.reload
+
+      json.payload = { "three" => "four", "one" => "two" }
+      assert_not json.changed?
+
+      json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+      json.save!
+      json.reload
+
+      json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+      assert_not json.changed?
+    end
+
     def test_assigning_string_literal
       json = JsonDataType.create(payload: "foo")
       assert_equal "foo", json.payload

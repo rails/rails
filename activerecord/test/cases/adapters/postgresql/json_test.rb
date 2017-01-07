@@ -202,6 +202,11 @@ module PostgresqlJSONSharedTestCases
 
     assert_equal({ "one" => "two", "three" => "four" }, json.payload)
     assert_not json.changed?
+  end
+
+  def test_changes_in_place_ignores_key_order
+    json = JsonDataType.new
+    assert_not json.changed?
 
     json.payload = { "three" => "four", "one" => "two" }
     json.save!
