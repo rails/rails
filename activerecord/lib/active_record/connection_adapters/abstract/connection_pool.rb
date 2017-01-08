@@ -864,7 +864,7 @@ module ActiveRecord
       alias :connection_pools :connection_pool_list
 
       def establish_connection(config)
-        resolver = ConnectionSpecification::Resolver.new(Base.configurations)
+        resolver = ConnectionSpecification::Resolver.new(Base.local_configurations)
         spec = resolver.spec(config)
 
         remove_connection(spec.name)

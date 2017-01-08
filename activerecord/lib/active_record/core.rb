@@ -52,6 +52,34 @@ module ActiveRecord
         @@configurations
       end
 
+      class LegacyConfig
+        def initialize(configurations)
+          @configurations = configurations.to_hash
+        end
+
+        def to_hash
+          if !@configurations.key?('primary') && @configurations.key?('adapter')
+            @configurations = {'primary' => @configurations}
+          end
+          @configurations
+        end
+      end
+
+      ##
+      # Contains the database configuration used by active record to establish the connections to the database.
+      # This Hash has no enviroment knowlodge.
+      def self.local_configurations=(config)
+        if config
+          @@local_configurations = LegacyConfig.new(config).to_hash
+        else
+          @@local_configurations = nil
+        end
+      end
+      self.local_configurations = nil
+      def self.local_configurations
+        @@local_configurations || configurations
+      end
+
       ##
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
