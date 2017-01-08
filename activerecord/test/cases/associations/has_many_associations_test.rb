@@ -63,7 +63,7 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
       assert_equal 2, subscriber.subscriptions.size
     end
 
-    assert_equal subscriber.subscriptions, Subscription.where(subscriber_id: "webster132")
+    assert_equal Subscription.where(subscriber_id: "webster132"), subscriber.subscriptions
   end
 
   def test_association_primary_key_on_new_record_should_fetch_with_query
@@ -74,12 +74,23 @@ class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
       assert_equal 1, author.essays.size
     end
 
-    assert_equal author.essays, Essay.where(writer_id: "David")
+    assert_equal Essay.where(writer_id: "David"), author.essays
   end
 
   def test_has_many_custom_primary_key
     david = authors(:david)
-    assert_equal david.essays, Essay.where(writer_id: "David")
+    assert_equal Essay.where(writer_id: "David"), david.essays
+  end
+
+  def test_ids_on_unloaded_association_with_custom_primary_key
+    david = people(:david)
+    assert_equal Essay.where(writer_id: "David").pluck(:id), david.essay_ids
+  end
+
+  def test_ids_on_loaded_association_with_custom_primary_key
+    david = people(:david)
+    david.essays.load
+    assert_equal Essay.where(writer_id: "David").pluck(:id), david.essay_ids
   end
 
   def test_has_many_assignment_with_custom_primary_key
