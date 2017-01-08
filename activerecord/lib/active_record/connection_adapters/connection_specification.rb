@@ -130,7 +130,11 @@ module ActiveRecord
         attr_reader :configurations
 
         # Accepts a hash two layers deep, keys on the first layer represent
-        # environments such as "production". Keys must be strings.
+        # the specification name, such as "primary".
+        # User can input multiple databases config, thats why this is a two
+        # layer deep Hash.
+        #
+        # Keys must be strings.
         def initialize(configurations)
           @configurations = configurations
 
@@ -147,14 +151,14 @@ module ActiveRecord
         #
         # Full hash Configuration.
         #
-        #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-        #   Resolver.new(configurations).resolve(:production)
+        #   configurations = { "primary" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   Resolver.new(configurations).resolve(:primary)
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3"}
         #
         # Initialized with URL configuration strings.
         #
-        #   configurations = { "production" => "postgresql://localhost/foo" }
-        #   Resolver.new(configurations).resolve(:production)
+        #   configurations = { "primary" => "postgresql://localhost/foo" }
+        #   Resolver.new(configurations).resolve(:primary)
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
         #
         def resolve(config)
@@ -165,22 +169,17 @@ module ActiveRecord
           end
         end
 
-        # Expands each key in @configurations hash into fully resolved hash
-        def resolve_all
-          config = configurations.dup
-          config.each do |key, value|
-            config[key] = resolve(value) if value
-          end
-          config
-        end
-
         # Returns an instance of ConnectionSpecification for a given adapter.
-        # Accepts a hash one layer deep that contains all connection information.
+        # Accepts:
+        # - Hash: one layer deep Hash that contains all connection information
+        # - Symbol: a connection specification name, that will be looked-up
+        #           from the main configuration
+        # - String: a database url
         #
         # == Example
         #
-        #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-        #   spec = Resolver.new(config).spec(:production)
+        #   config = { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
+        #   spec = Resolver.new({}).spec(config)
         #   spec.adapter_method
         #   # => "sqlite3_connection"
         #   spec.config
@@ -218,7 +217,7 @@ module ActiveRecord
           #
           # Symbol representing current environment.
           #
-          #   Resolver.new("production" => {}).resolve_connection(:production)
+          #   Resolver.new("primary" => {}).resolve_connection(:primary)
           #   # => {}
           #
           # One layer deep hash of connection values.
@@ -242,11 +241,11 @@ module ActiveRecord
             end
           end
 
-          # Takes the environment such as +:production+ or +:development+.
+          # Takes the specification name such as +:primary+.
           # This requires that the @configurations was initialized with a key that
           # matches.
           #
-          #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
+          #   Resolver.new("primary" => {}).resolve_symbol_connection(:primary)
           #   # => {}
           #
           def resolve_symbol_connection(spec)
