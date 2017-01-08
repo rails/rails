@@ -6,10 +6,6 @@ class CallbackDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
   class << self
-    def callback_string(callback_method)
-      "history << [#{callback_method.to_sym.inspect}, :string]"
-    end
-
     def callback_proc(callback_method)
       Proc.new { |model| model.history << [callback_method, :proc] }
     end
@@ -33,7 +29,6 @@ class CallbackDeveloper < ActiveRecord::Base
   ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
     next if callback_method.to_s.start_with?("around_")
     define_callback_method(callback_method)
-    ActiveSupport::Deprecation.silence { send(callback_method, callback_string(callback_method)) }
     send(callback_method, callback_proc(callback_method))
     send(callback_method, callback_object(callback_method))
     send(callback_method) { |model| model.history << [callback_method, :block] }
@@ -178,7 +173,6 @@ class CallbacksTest < ActiveRecord::TestCase
     david = CallbackDeveloper.new
     assert_equal [
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
@@ -189,12 +183,10 @@ class CallbacksTest < ActiveRecord::TestCase
     david = CallbackDeveloper.find(1)
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
@@ -206,17 +198,14 @@ class CallbacksTest < ActiveRecord::TestCase
     david.valid?
     assert_equal [
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
       [ :after_validation,            :method ],
-      [ :after_validation,            :string ],
       [ :after_validation,            :proc   ],
       [ :after_validation,            :object ],
       [ :after_validation,            :block  ],
@@ -228,22 +217,18 @@ class CallbacksTest < ActiveRecord::TestCase
     david.valid?
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
       [ :after_validation,            :method ],
-      [ :after_validation,            :string ],
       [ :after_validation,            :proc   ],
       [ :after_validation,            :object ],
       [ :after_validation,            :block  ],
@@ -254,44 +239,36 @@ class CallbacksTest < ActiveRecord::TestCase
     david = CallbackDeveloper.create("name" => "David", "salary" => 1000000)
     assert_equal [
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
       [ :after_validation,            :method ],
-      [ :after_validation,            :string ],
       [ :after_validation,            :proc   ],
       [ :after_validation,            :object ],
       [ :after_validation,            :block  ],
       [ :before_save,                 :method ],
-      [ :before_save,                 :string ],
       [ :before_save,                 :proc   ],
       [ :before_save,                 :object ],
       [ :before_save,                 :block  ],
       [ :before_create,               :method ],
-      [ :before_create,               :string ],
       [ :before_create,               :proc   ],
       [ :before_create,               :object ],
       [ :before_create,               :block  ],
       [ :after_create,                :method ],
-      [ :after_create,                :string ],
       [ :after_create,                :proc   ],
       [ :after_create,                :object ],
       [ :after_create,                :block  ],
       [ :after_save,                  :method ],
-      [ :after_save,                  :string ],
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
       [ :after_save,                  :block  ],
       [ :after_commit,                :block  ],
       [ :after_commit,                :object ],
       [ :after_commit,                :proc   ],
-      [ :after_commit,                :string ],
       [ :after_commit,                :method ]
     ], david.history
   end
@@ -323,49 +300,40 @@ class CallbacksTest < ActiveRecord::TestCase
     david.save
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
       [ :after_validation,            :method ],
-      [ :after_validation,            :string ],
       [ :after_validation,            :proc   ],
       [ :after_validation,            :object ],
       [ :after_validation,            :block  ],
       [ :before_save,                 :method ],
-      [ :before_save,                 :string ],
       [ :before_save,                 :proc   ],
       [ :before_save,                 :object ],
       [ :before_save,                 :block  ],
       [ :before_update,               :method ],
-      [ :before_update,               :string ],
       [ :before_update,               :proc   ],
       [ :before_update,               :object ],
       [ :before_update,               :block  ],
       [ :after_update,                :method ],
-      [ :after_update,                :string ],
       [ :after_update,                :proc   ],
       [ :after_update,                :object ],
       [ :after_update,                :block  ],
       [ :after_save,                  :method ],
-      [ :after_save,                  :string ],
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
       [ :after_save,                  :block  ],
       [ :after_commit,                :block  ],
       [ :after_commit,                :object ],
       [ :after_commit,                :proc   ],
-      [ :after_commit,                :string ],
       [ :after_commit,                :method ]
     ], david.history
   end
@@ -399,29 +367,24 @@ class CallbacksTest < ActiveRecord::TestCase
     david.destroy
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_destroy,              :method ],
-      [ :before_destroy,              :string ],
       [ :before_destroy,              :proc   ],
       [ :before_destroy,              :object ],
       [ :before_destroy,              :block  ],
       [ :after_destroy,               :method ],
-      [ :after_destroy,               :string ],
       [ :after_destroy,               :proc   ],
       [ :after_destroy,               :object ],
       [ :after_destroy,               :block  ],
       [ :after_commit,                :block  ],
       [ :after_commit,                :object ],
       [ :after_commit,                :proc   ],
-      [ :after_commit,                :string ],
       [ :after_commit,                :method ]
     ], david.history
   end
@@ -431,12 +394,10 @@ class CallbacksTest < ActiveRecord::TestCase
     CallbackDeveloper.delete(david.id)
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
@@ -569,17 +530,14 @@ class CallbacksTest < ActiveRecord::TestCase
     assert_deprecated { david.save }
     assert_equal [
       [ :after_find,            :method ],
-      [ :after_find,            :string ],
       [ :after_find,            :proc   ],
       [ :after_find,            :object ],
       [ :after_find,            :block  ],
       [ :after_initialize,            :method ],
-      [ :after_initialize,            :string ],
       [ :after_initialize,            :proc   ],
       [ :after_initialize,            :object ],
       [ :after_initialize,            :block  ],
       [ :before_validation,           :method ],
-      [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
       [ :before_validation,           :block  ],
@@ -587,7 +545,6 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_rollback, :block  ],
       [ :after_rollback, :object ],
       [ :after_rollback, :proc   ],
-      [ :after_rollback, :string ],
       [ :after_rollback, :method ],
     ], david.history
   end
@@ -597,17 +554,14 @@ class CallbacksTest < ActiveRecord::TestCase
     david.save
     assert_equal [
       [ :after_find,        :method ],
-      [ :after_find,        :string ],
       [ :after_find,        :proc   ],
       [ :after_find,        :object ],
       [ :after_find,        :block  ],
       [ :after_initialize,  :method ],
-      [ :after_initialize,  :string ],
       [ :after_initialize,  :proc   ],
       [ :after_initialize,  :object ],
       [ :after_initialize,  :block  ],
       [ :before_validation, :method ],
-      [ :before_validation, :string ],
       [ :before_validation, :proc   ],
       [ :before_validation, :object ],
       [ :before_validation, :block  ],
@@ -615,7 +569,6 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_rollback,    :block  ],
       [ :after_rollback,    :object ],
       [ :after_rollback,    :proc   ],
-      [ :after_rollback,    :string ],
       [ :after_rollback,    :method ],
     ], david.history
   end
