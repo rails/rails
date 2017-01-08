@@ -340,6 +340,7 @@ class DurationTest < ActiveSupport::TestCase
         travel_to Time.utc(2016, 11, 4) do
           assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
           assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
+          assert_equal ActiveSupport::Duration.parse(3.years.iso8601).to_i, 3.years.to_i
         end
       end
     end
