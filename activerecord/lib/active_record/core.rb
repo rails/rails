@@ -50,7 +50,7 @@ module ActiveRecord
       # This Hash has no enviroment knowlodge.
       def self.local_configurations=(config)
         if config
-          @@local_configurations = LegacyConfigTransformer.new(config).to_hash
+          @@local_configurations = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
         else
           @@local_configurations = nil
         end

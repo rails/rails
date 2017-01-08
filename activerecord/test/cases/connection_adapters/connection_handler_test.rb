@@ -20,6 +20,37 @@ module ActiveRecord
         @handler.remove_connection("readonly")
       end
 
+      def test_establish_connection_using_local_configurations
+        config = {
+          "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
+          "primary"  =>  { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.local_configurations = ActiveRecord::Base.local_configurations, config
+
+        @handler.establish_connection(:primary)
+        @handler.establish_connection(:readonly)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
+        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.local_configurations = @prev_configs
+      end
+
+      def test_establish_connection_using_legacy_configurations
+        config = { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+        @prev_configs, ActiveRecord::Base.local_configurations = ActiveRecord::Base.local_configurations, config
+
+        @handler.establish_connection(:primary)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.local_configurations = @prev_configs
+      end
+
       def test_retrieve_connection
         assert @handler.retrieve_connection(@spec_name)
       end
