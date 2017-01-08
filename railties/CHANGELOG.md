@@ -1,3 +1,9 @@
+*   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
+
+    Fixes #27591.
+
+    *Prathamesh Sonpatki*
+
 *   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
 
     *Daniel Deng*

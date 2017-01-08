@@ -230,6 +230,12 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
         assert_match(/@user\.destroy/, m)
       end
     end
+
+    assert_no_file "app/views/users/index.html.erb"
+    assert_no_file "app/views/users/edit.html.erb"
+    assert_no_file "app/views/users/show.html.erb"
+    assert_no_file "app/views/users/new.html.erb"
+    assert_no_file "app/views/users/_form.html.erb"
   end
 
   def test_api_controller_tests
