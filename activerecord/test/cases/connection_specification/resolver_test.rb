@@ -126,4 +126,10 @@ class ConnectionSpecificationResolverTest < ActiveRecord::TestCase
     spec = spec("adapter" => "sqlite3")
     assert_equal "primary", spec.name, "should default to primary id"
   end
+
+  def test_resolve_nil
+    assert_raise(ActiveRecord::AdapterNotSpecified) do
+      resolve nil, {"primary" => {"adapter" => "sqlite3"}}
+    end
+  end
 end

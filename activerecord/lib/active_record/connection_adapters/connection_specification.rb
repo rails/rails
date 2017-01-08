@@ -160,8 +160,6 @@ module ActiveRecord
         def resolve(config)
           if config
             resolve_connection config
-          elsif env = ActiveRecord::ConnectionHandling::RAILS_ENV.call
-            resolve_symbol_connection env.to_sym
           else
             raise AdapterNotSpecified
           end
