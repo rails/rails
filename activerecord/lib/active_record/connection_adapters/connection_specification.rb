@@ -118,6 +118,12 @@ module ActiveRecord
         # environments such as "production". Keys must be strings.
         def initialize(configurations)
           @configurations = configurations
+
+          if url = ENV["DATABASE_URL"]
+            @configurations = configurations.dup
+            @configurations['primary'] ||= {}
+            @configurations['primary']['url'] ||= url
+          end
         end
 
         # Returns a hash with database connection information.
