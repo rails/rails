@@ -45,25 +45,12 @@ module ActiveRecord
       mattr_accessor :configurations, instance_writer: false
       self.configurations = {}
 
-      class LegacyConfig
-        def initialize(configurations)
-          @configurations = configurations.to_hash
-        end
-
-        def to_hash
-          if !@configurations.key?('primary') && @configurations.key?('adapter')
-            @configurations = {'primary' => @configurations}
-          end
-          @configurations
-        end
-      end
-
       ##
       # Contains the database configuration used by active record to establish the connections to the database.
       # This Hash has no enviroment knowlodge.
       def self.local_configurations=(config)
         if config
-          @@local_configurations = LegacyConfig.new(config).to_hash
+          @@local_configurations = LegacyConfigTransformer.new(config).to_hash
         else
           @@local_configurations = nil
         end

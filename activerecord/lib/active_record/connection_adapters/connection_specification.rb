@@ -17,6 +17,21 @@ module ActiveRecord
         @config.merge(name: @name)
       end
 
+      # Converts a one level connection config, to the new format
+      # which is a two level, such as: {'primary' => {'adapter' => 'foo'}}
+      class LegacyConfigTransformer # :nodoc:
+        def initialize(configurations)
+          @configurations = configurations.to_hash
+        end
+
+        def to_hash
+          if !@configurations.key?('primary') && @configurations.key?('adapter')
+            @configurations = {'primary' => @configurations}
+          end
+          @configurations
+        end
+      end
+
       # Expands a connection string into a hash.
       class ConnectionUrlResolver # :nodoc:
         # == Example
