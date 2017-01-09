@@ -49,11 +49,7 @@ module ActiveRecord
       # Contains the database configuration used by active record to establish the connections to the database.
       # This Hash has no enviroment knowlodge.
       def self.local_configurations=(config)
-        if config
-          @@local_configurations = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
-        else
-          @@local_configurations = nil
-        end
+        @@local_configurations = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
       end
       self.local_configurations = nil
       def self.local_configurations

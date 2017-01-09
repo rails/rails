@@ -286,8 +286,8 @@ module ActiveRecord
       # Return the primary configuration from a given environment
       def config_at(env)
         config = ActiveRecord::Base.configurations[env]
-        config= ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
-        config['primary']
+        config = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
+        config['primary'] if config
       end
 
       private

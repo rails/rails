@@ -21,10 +21,15 @@ module ActiveRecord
       # which is a two level, such as: {'primary' => {'adapter' => 'foo'}}
       class LegacyConfigTransformer # :nodoc:
         def initialize(configurations)
-          @configurations = configurations.to_hash
+          if configurations
+            @configurations = configurations.to_hash
+          else
+            @configurations = nil
+          end
         end
 
         def to_hash
+          return nil unless @configurations
           if !@configurations.key?('primary') && @configurations.key?('adapter')
             @configurations = {'primary' => @configurations}
           end
