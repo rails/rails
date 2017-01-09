@@ -341,14 +341,18 @@ module ActiveRecord
         end
       end
 
+      class ConnectionTestModel < ActiveRecord::Base
+      end
+
       def test_connection_notification_is_called
         payloads = []
         subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
           payloads << payload
         end
-        ActiveRecord::Base.establish_connection :arunit
+        ConnectionTestModel.establish_connection :arunit
+
         assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
-        assert_equal "primary", payloads[0][:spec_name]
+        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
