@@ -372,7 +372,7 @@ module ActiveRecord
             necessary and potentially creates circular dependencies.
 
             Please pass the class name as a string:
-            `belongs_to :client, class_name: 'Company'`
+            `#{macro} :#{name}, class_name: '#{options[:class_name]}'`
           MSG
         end
       end
