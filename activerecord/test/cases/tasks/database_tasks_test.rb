@@ -100,6 +100,8 @@ module ActiveRecord
       @configurations = { "development" => { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
+      ActiveRecord::Base.connection_handler.stubs(:establish_connection)
     end
 
     def test_ignores_configurations_without_databases
