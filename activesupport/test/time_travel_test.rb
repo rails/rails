@@ -3,6 +3,10 @@ require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
 
 class TimeTravelTest < ActiveSupport::TestCase
+  class TimeSubclass < ::Time; end
+  class DateSubclass < ::Date; end
+  class DateTimeSubclass < ::DateTime; end
+
   def test_time_helper_travel
     Time.stub(:now, Time.now) do
       begin
@@ -140,6 +144,21 @@ class TimeTravelTest < ActiveSupport::TestCase
         assert_equal 50, DateTime.now.sec
         assert_equal 0, DateTime.now.usec
       end
+    end
+  end
+
+  def test_time_helper_travel_with_time_subclass
+    assert_equal TimeSubclass, TimeSubclass.now.class
+    assert_equal DateSubclass, DateSubclass.today.class
+    assert_equal DateTimeSubclass, DateTimeSubclass.now.class
+
+    travel 1.day do
+      assert_equal TimeSubclass, TimeSubclass.now.class
+      assert_equal DateSubclass, DateSubclass.today.class
+      assert_equal DateTimeSubclass, DateTimeSubclass.now.class
+      assert_equal Time.now.to_s, TimeSubclass.now.to_s
+      assert_equal Date.today.to_s, DateSubclass.today.to_s
+      assert_equal DateTime.now.to_s, DateTimeSubclass.now.to_s
     end
   end
 end
