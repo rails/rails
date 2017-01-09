@@ -1,3 +1,8 @@
+*   Deprecate passing a class to the `class_name` because it eagerloads more classes than
+    necessary and potentially creates circular dependencies.
+
+    *Kir Shatrov*
+
 *   Raise error when has_many through is defined before through association
 
     Fixes #26834
