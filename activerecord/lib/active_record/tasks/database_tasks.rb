@@ -136,7 +136,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           create configuration
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        ActiveRecord::Base.establish_connection(config_at(environment))
       end
 
       def drop(*arguments)
@@ -206,7 +206,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           purge configuration
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        ActiveRecord::Base.establish_connection(config_at(environment))
       end
 
       def structure_dump(*arguments)
@@ -252,7 +252,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           load_schema configuration, format, file
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        ActiveRecord::Base.establish_connection(config_at(environment))
       end
 
       def check_schema_file(filename)
