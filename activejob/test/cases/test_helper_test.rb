@@ -110,6 +110,27 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_jobs_with_only_and_queue_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 1, only: HelloJob, queue: :some_queue do
+        HelloJob.set(queue: :some_queue).perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_queue_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 2, queue: :default do
+        HelloJob.perform_later
+        LoggingJob.perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.set(queue: :other_queue).perform_later
+      end
+    end
+  end
+
   def test_assert_enqueued_jobs_with_only_option_and_none_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_enqueued_jobs 1, only: HelloJob do
