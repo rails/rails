@@ -232,7 +232,7 @@ module ActiveRecord
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order)
+          relation = unscope(:order).distinct!(false)
 
           column = aggregate_column(column_name)
 
@@ -292,7 +292,7 @@ module ActiveRecord
           end
         }
 
-        relation = except(:group)
+        relation = except(:group).distinct!(false)
         relation.group_values  = group_fields
         relation.select_values = select_values
 

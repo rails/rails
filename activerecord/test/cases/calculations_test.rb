@@ -227,6 +227,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match "credit_limit, firm_name", e.message
   end
 
+  def test_apply_distinct_in_count
+    queries = assert_sql do
+      Account.distinct.count
+      Account.group(:firm_id).distinct.count
+    end
+
+    queries.each do |query|
+      assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
+    end
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
