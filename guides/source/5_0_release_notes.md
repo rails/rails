@@ -499,6 +499,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
     `datetime-local`.
     ([Pull Request](https://github.com/rails/rails/pull/25469))
 
+*   Allow blocks while rendering with the `render partial:` helper.
+    ([Pull Request](https://github.com/rails/rails/pull/17974))
+
 Action Mailer
 -------------
 
