@@ -551,5 +551,9 @@
 
     *Ralin Chimev*
 
+*   Reduce the edge case when ENV['VERSION'] is set can cause db:migrate rollback all
+    possible versions.
+
+    *Long Nguyen*
 
 Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activerecord/CHANGELOG.md) for previous changes.
