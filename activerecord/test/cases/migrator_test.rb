@@ -290,6 +290,27 @@ class MigratorTest < ActiveRecord::TestCase
     assert_equal [[:up, 1], [:up, 2], [:up, 3]], calls
   end
 
+  def test_migrator_output_when_running_multiple_migrations
+    _, migrator = migrator_class(3)
+
+    result = migrator.migrate("valid")
+    assert_equal(3, result.count)
+
+    # Nothing migrated from duplicate run
+    result = migrator.migrate("valid")
+    assert_equal(0, result.count)
+
+    result = migrator.rollback("valid")
+    assert_equal(1, result.count)
+  end
+
+  def test_migrator_output_when_running_single_migration
+    _, migrator = migrator_class(1)
+    result = migrator.run(:up, "valid", 1)
+
+    assert_equal(1, result.version)
+  end
+
   def test_migrator_rollback
     _, migrator = migrator_class(3)
 
