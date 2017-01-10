@@ -66,7 +66,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
           # with an empty schema etc, so we just stub out this schema on the fly.
-          new_pool.with_connection do |connection|
+          ActiveRecord::Base.connection_pool.with_connection do |connection|
             connection.create_table :tasks do |t|
               t.datetime :starting
               t.datetime :ending
