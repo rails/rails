@@ -437,11 +437,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_skip_git_is_given
-    run_generator [destination_root, "--skip-git"]
-    assert_no_file ".gitignore"
-  end
-
   def test_action_cable_redis_gems
     run_generator
     assert_file "Gemfile", /^# gem 'redis'/
