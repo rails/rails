@@ -208,6 +208,18 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
   end
 
+  def test_string_datetime_array_match_pg_behavior
+    date = Date.new(2017, 1, 2)
+    oid = OID::Array.new(ActiveRecord::Type::Date.new)
+
+    date_default = Date::DATE_FORMATS[:default]
+    Date::DATE_FORMATS[:default] = '%d.%m.%Y'
+
+    assert_equal "{'2017-01-02'}", oid.type_cast_for_database([date])
+
+    Date::DATE_FORMATS[:default] = date_default
+  end
+
   def test_quoting_non_standard_delimiters
     strings = ["hello,", "world;"]
     comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')

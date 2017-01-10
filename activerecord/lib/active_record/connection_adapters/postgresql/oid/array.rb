@@ -80,6 +80,7 @@ module ActiveRecord
                 value
               end
             when nil then "NULL"
+            when ::Date, ::DateTime, ::Time then subtype.type_cast_for_schema(value)
             else value
             end
           end
