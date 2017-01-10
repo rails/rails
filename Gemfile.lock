@@ -137,7 +137,7 @@ DEPENDENCIES
   mustache (~> 0.99.8)
   mysql (>= 2.9.0)
   mysql2 (>= 0.3.13, < 0.4)
-  nokogiri (>= 1.4.5)
+  nokogiri (>= 1.4.5, < 1.7.0)
   pg (>= 0.11.0)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
