@@ -1,3 +1,8 @@
+*   Initialize git repo when generating new app, if option `--skip-git`
+    is not provided.
+
+    *Dino Maric*
+
 *   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
 
     Fixes #27591.
