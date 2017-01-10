@@ -61,7 +61,8 @@ group :test do
 end
 
 platforms :ruby do
-  gem 'nokogiri', '>= 1.4.5'
+  # 1.7.0 drops support for Ruby 1.9.3 and 2.0.
+  gem 'nokogiri', '>= 1.4.5', '< 1.7.0'
 
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
@@ -77,7 +78,6 @@ platforms :ruby do
 end
 
 platforms :jruby do
-  gem 'json'
   if ENV['AR_JDBC']
     gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
     group :db do
