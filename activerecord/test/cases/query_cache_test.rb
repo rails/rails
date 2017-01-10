@@ -50,32 +50,36 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
+  private def with_temporary_connection_pool
+    old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+    new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+
+    yield
+  ensure
+    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+  end
+
   def test_query_cache_across_threads
-    ActiveRecord::Base.connection_pool.connections.each do |conn|
-      assert_cache :off, conn
-    end
+    with_temporary_connection_pool do
+      begin
+        if in_memory_db?
+          # Separate connections to an in-memory database create an entirely new database,
+          # with an empty schema etc, so we just stub out this schema on the fly.
+          new_pool.with_connection do |connection|
+            connection.create_table :tasks do |t|
+              t.datetime :starting
+              t.datetime :ending
+            end
+          end
+          ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
+        end
 
-    assert !ActiveRecord::Base.connection.nil?
-    assert_cache :off
+        ActiveRecord::Base.connection_pool.connections.each do |conn|
+          assert_cache :off, conn
+        end
 
-    middleware {
-      assert_cache :clean
-
-      Task.find 1
-      assert_cache :dirty
-
-      thread_1_connection = ActiveRecord::Base.connection
-      ActiveRecord::Base.clear_active_connections!
-      assert_cache :off, thread_1_connection
-
-      started = Concurrent::Event.new
-      checked = Concurrent::Event.new
-
-      thread_2_connection = nil
-      thread = Thread.new {
-        thread_2_connection = ActiveRecord::Base.connection
-
-        assert_equal thread_2_connection, thread_1_connection
+        assert !ActiveRecord::Base.connection.nil?
         assert_cache :off
 
         middleware {
@@ -84,29 +88,51 @@ class QueryCacheTest < ActiveRecord::TestCase
           Task.find 1
           assert_cache :dirty
 
-          started.set
-          checked.wait
-
+          thread_1_connection = ActiveRecord::Base.connection
           ActiveRecord::Base.clear_active_connections!
+          assert_cache :off, thread_1_connection
+
+          started = Concurrent::Event.new
+          checked = Concurrent::Event.new
+
+          thread_2_connection = nil
+          thread = Thread.new {
+            thread_2_connection = ActiveRecord::Base.connection
+
+            assert_equal thread_2_connection, thread_1_connection
+            assert_cache :off
+
+            middleware {
+              assert_cache :clean
+
+              Task.find 1
+              assert_cache :dirty
+
+              started.set
+              checked.wait
+
+              ActiveRecord::Base.clear_active_connections!
+            }.call({})
+          }
+
+          started.wait
+
+          thread_1_connection = ActiveRecord::Base.connection
+          assert_not_equal thread_1_connection, thread_2_connection
+          assert_cache :dirty, thread_2_connection
+          checked.set
+          thread.join
+
+          assert_cache :off, thread_2_connection
         }.call({})
-      }
 
-      started.wait
-
-      thread_1_connection = ActiveRecord::Base.connection
-      assert_not_equal thread_1_connection, thread_2_connection
-      assert_cache :dirty, thread_2_connection
-      checked.set
-      thread.join
-
-      assert_cache :off, thread_2_connection
-    }.call({})
-
-    ActiveRecord::Base.connection_pool.connections.each do |conn|
-      assert_cache :off, conn
+        ActiveRecord::Base.connection_pool.connections.each do |conn|
+          assert_cache :off, conn
+        end
+      ensure
+        ActiveRecord::Base.clear_all_connections!
+      end
     end
-  ensure
-    ActiveRecord::Base.clear_all_connections!
   end
 
   def test_middleware_delegates
@@ -349,37 +375,44 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_does_not_establish_connection_if_unconnected
-    ActiveRecord::Base.clear_active_connections!
-    refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    with_temporary_connection_pool do
+      ActiveRecord::Base.clear_active_connections!
+      refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
-    middleware {
-      refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
-    }.call({})
+      middleware {
+        refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
+      }.call({})
 
-    refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+      refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+    end
   end
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
-    ActiveRecord::Base.clear_active_connections!
-    refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+    with_temporary_connection_pool do
+      ActiveRecord::Base.clear_active_connections!
+      refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
-    middleware {
-      assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
-    }.call({})
+      middleware {
+        assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
+      }.call({})
+    end
   end
 
   def test_query_caching_is_local_to_the_current_thread
-    ActiveRecord::Base.clear_active_connections!
+    with_temporary_connection_pool do
+      ActiveRecord::Base.clear_active_connections!
 
-    middleware {
-      assert ActiveRecord::Base.connection_pool.query_cache_enabled
-      assert ActiveRecord::Base.connection.query_cache_enabled
+      middleware {
+        assert ActiveRecord::Base.connection_pool.query_cache_enabled
+        assert ActiveRecord::Base.connection.query_cache_enabled
 
-      Thread.new {
-        refute ActiveRecord::Base.connection_pool.query_cache_enabled
-        refute ActiveRecord::Base.connection.query_cache_enabled
-      }.join
-    }.call({})
+        Thread.new {
+          refute ActiveRecord::Base.connection_pool.query_cache_enabled
+          refute ActiveRecord::Base.connection.query_cache_enabled
+        }.join
+      }.call({})
+
+    end
   end
 
   private
