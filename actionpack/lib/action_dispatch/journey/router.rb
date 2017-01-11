@@ -22,6 +22,13 @@ module ActionDispatch
         @routes = routes
       end
 
+      def eager_load!
+        # Eagerly trigger the simulator's initialization so
+        # it doesn't happen during a request cycle.
+        simulator
+        nil
+      end
+
       def serve(req)
         find_routes(req).each do |match, parameters, route|
           set_params  = req.path_parameters

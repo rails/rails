@@ -349,6 +349,12 @@ module ActionDispatch
         @formatter = Journey::Formatter.new self
       end
 
+      def eager_load!
+        router.eager_load!
+        routes.each(&:eager_load!)
+        nil
+      end
+
       def relative_url_root
         @config.relative_url_root
       end
