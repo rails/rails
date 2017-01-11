@@ -81,7 +81,7 @@ module ActiveRecord
           RED
         when /transaction\s*\Z/i
           CYAN
-          else
+        else
           MAGENTA
         end
       end
