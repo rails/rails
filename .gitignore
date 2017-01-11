@@ -3,6 +3,7 @@
 
 .Gemfile
 .ruby-version
+.byebug_history
 debug.log
 pkg
 /.bundle
