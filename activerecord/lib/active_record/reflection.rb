@@ -321,7 +321,7 @@ module ActiveRecord
         end
     end
 
-    # Holds all the meta-data about an aggregation as it was specified in the
+    # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def mapping
@@ -330,7 +330,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about an association as it was specified in the
+    # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       # Returns the target association's class.
@@ -709,7 +709,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about a :through association as it was specified
+    # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection

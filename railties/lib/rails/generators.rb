@@ -218,7 +218,7 @@ module Rails
         [[ "rails", rails ]] + groups.sort.to_a
       end
 
-      # Rails finds namespaces similar to thor, it only adds one rule:
+      # Rails finds namespaces similar to Thor, it only adds one rule:
       #
       # Generators names must end with "_generator.rb". This is required because Rails
       # looks in load paths and loads the generator just before it's going to be used.
