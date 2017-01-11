@@ -1,18 +1,13 @@
 require "test_helper"
 require "stubs/test_server"
+require "stubs/test_client"
 require "active_support/core_ext/object/json"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
-    attr_reader :websocket, :subscriptions, :message_buffer, :connected
+    attr_reader :websocket, :subscriptions, :message_buffer
 
-    def connect
-      @connected = true
-    end
-
-    def disconnect
-      @connected = false
-    end
+    delegate :connected, to: :client
 
     def send_async(method, *args)
       send method, *args
@@ -78,9 +73,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.send :handle_open
       assert connection.connected
 
-      connection.subscriptions.expects(:unsubscribe_from_all)
       connection.send :handle_close
-
       assert ! connection.connected
       assert_equal [], @server.connections
     end

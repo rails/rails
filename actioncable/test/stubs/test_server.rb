@@ -1,4 +1,5 @@
 require "ostruct"
+require "stubs/test_client"
 
 class TestServer
   include ActionCable::Server::Connections
@@ -6,10 +7,13 @@ class TestServer
 
   attr_reader :logger, :config, :mutex
 
-  def initialize(subscription_adapter: SuccessAdapter)
+  def initialize(subscription_adapter: SuccessAdapter, connection_class: TestClient)
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
-    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
+    @config = OpenStruct.new(
+      log_tags: [],
+      subscription_adapter: subscription_adapter,
+      connection_class: -> { connection_class })
 
     @mutex = Monitor.new
   end

@@ -2,64 +2,24 @@ require "action_dispatch"
 
 module ActionCable
   module Connection
-    # For every WebSocket connection the Action Cable server accepts, a Connection object will be instantiated. This instance becomes the parent
-    # of all of the channel subscriptions that are created from there on. Incoming messages are then routed to these channel subscriptions
-    # based on an identifier sent by the Action Cable consumer. The Connection itself does not deal with any specific application logic beyond
-    # authentication and authorization.
-    #
-    # Here's a basic example:
-    #
-    #   module ApplicationCable
-    #     class Connection < ActionCable::Connection::Base
-    #       identified_by :current_user
-    #
-    #       def connect
-    #         self.current_user = find_verified_user
-    #         logger.add_tags current_user.name
-    #       end
-    #
-    #       def disconnect
-    #         # Any cleanup work needed when the cable connection is cut.
-    #       end
-    #
-    #       private
-    #         def find_verified_user
-    #           User.find_by_identity(cookies.signed[:identity_id]) ||
-    #             reject_unauthorized_connection
-    #         end
-    #     end
-    #   end
-    #
-    # First, we declare that this connection can be identified by its current_user. This allows us to later be able to find all connections
-    # established for that current_user (and potentially disconnect them). You can declare as many
-    # identification indexes as you like. Declaring an identification means that an attr_accessor is automatically set for that key.
-    #
-    # Second, we rely on the fact that the WebSocket connection is established with the cookies from the domain being sent along. This makes
-    # it easy to use signed cookies that were set when logging in via a web interface to authorize the WebSocket connection.
-    #
-    # Finally, we add a tag to the connection-specific logger with the name of the current user to easily distinguish their messages in the log.
-    #
-    # Pretty simple, eh?
-    class Base
-      include Identification
-      include InternalChannel
-      include Authorization
+    class Base # :nodoc:
+      attr_reader :server, :env, :client, :logger, :worker_pool, :protocol, :client
+      delegate :event_loop, :pubsub, :config, to: :server
 
-      attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
-      delegate :event_loop, :pubsub, to: :server
-
-      def initialize(server, env, coder: ActiveSupport::JSON)
-        @server, @env, @coder = server, env, coder
+      def initialize(server, env, client_class: nil, coder: ActiveSupport::JSON)
+        @server, @env = server, env
 
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
         @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop)
-        @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
         @_internal_subscriptions = nil
         @started_at = Time.now
+
+        client_class ||= config.connection_class.call
+        @client = client_class.new(self, coder: coder)
       end
 
       # Called by the server when a new WebSocket connection is established. This configures the callbacks intended for overwriting by the user.
@@ -88,8 +48,8 @@ module ActionCable
         end
       end
 
-      def transmit(cable_message) # :nodoc:
-        websocket.transmit encode(cable_message)
+      def transmit(websocket_message) # :nodoc:
+        websocket.transmit websocket_message
       end
 
       # Close the WebSocket connection.
@@ -106,9 +66,9 @@ module ActionCable
       # This can be returned by a health check against the connection.
       def statistics
         {
-          identifier: connection_identifier,
+          identifier: client.identifier,
           started_at: @started_at,
-          subscriptions: subscriptions.identifiers,
+          subscriptions: client.subscriptions.identifiers,
           request_id: @env["action_dispatch.request_id"]
         }
       end
@@ -153,23 +113,13 @@ module ActionCable
           request.cookie_jar
         end
 
-        def encode(cable_message)
-          @coder.encode cable_message
-        end
-
-        def decode(websocket_message)
-          @coder.decode websocket_message
-        end
-
         def handle_open
           @protocol = websocket.protocol
-          connect if respond_to?(:connect)
-          subscribe_to_internal_channel
-          send_welcome_message
+          client.handle_connect
 
           message_buffer.process!
           server.add_connection(self)
-        rescue ActionCable::Connection::Authorization::UnauthorizedError
+        rescue ActionCable::Client::Authorization::UnauthorizedError
           respond_to_invalid_request
         end
 
@@ -178,17 +128,7 @@ module ActionCable
 
           server.remove_connection(self)
 
-          subscriptions.unsubscribe_from_all
-          unsubscribe_from_internal_channel
-
-          disconnect if respond_to?(:disconnect)
-        end
-
-        def send_welcome_message
-          # Send welcome message to the internal connection monitor channel.
-          # This ensures the connection monitor state is reset after a successful
-          # websocket connection.
-          transmit type: ActionCable::INTERNAL[:message_types][:welcome]
+          client.handle_disconnect
         end
 
         def allow_request_origin?

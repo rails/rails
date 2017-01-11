@@ -1,5 +1,5 @@
 module ActionCable
-  module Connection
+  module Client
     module Authorization
       class UnauthorizedError < StandardError; end
 

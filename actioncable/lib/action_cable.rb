@@ -46,6 +46,7 @@ module ActionCable
 
   autoload :Server
   autoload :Connection
+  autoload :Client
   autoload :Channel
   autoload :RemoteConnections
   autoload :SubscriptionAdapter

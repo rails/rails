@@ -5,17 +5,11 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :connected, :websocket, :errors
 
+    delegate :connected, to: :client
+
     def initialize(*)
       super
       @errors = []
-    end
-
-    def connect
-      @connected = true
-    end
-
-    def disconnect
-      @connected = false
     end
 
     def send_async(method, *args)
