@@ -22,7 +22,7 @@ module Rails
 
       def initialize(*)
         super
-        self.encoding = "utf-8"
+        self.encoding                    = Encoding::UTF_8
         @allow_concurrency               = nil
         @consider_all_requests_local     = false
         @filter_parameters               = []
