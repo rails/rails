@@ -79,6 +79,23 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_uses_default_parsers
+    Mime::Type.register "application/custom", :custom
+    ActionDispatch::Request::DEFAULT_PARSERS[:custom] = Proc.new { |raw| { _custom: raw } }
+    with_test_route_set do
+      post "/",
+          params: '{"summary":"content...","title":"custom"}',
+          headers: { "CONTENT_TYPE" => "application/custom" }
+
+      assert_equal "_custom", @controller.response.body
+      assert @controller.params.has_key?(:_custom)
+      assert_equal '{"summary":"content...","title":"custom"}', @controller.params["_custom"]
+    end
+  ensure
+    ActionDispatch::Request::DEFAULT_PARSERS.delete :custom
+    Mime::Type.unregister :custom
+  end
+
   def test_use_json_with_empty_request
     with_test_route_set do
       assert_nothing_raised { post "/", headers: { "CONTENT_TYPE" => "application/json" } }

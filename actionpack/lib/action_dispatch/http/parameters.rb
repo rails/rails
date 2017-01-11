@@ -20,15 +20,11 @@ module ActionDispatch
         end
       end
 
-      included do
-        class << self
-          attr_reader :parameter_parsers
+      module ClassMethods
+        def parameter_parsers
+          @parameter_parsers ||= DEFAULT_PARSERS.transform_keys! { |key| key.respond_to?(:symbol) ? key.symbol : key }
         end
 
-        self.parameter_parsers = DEFAULT_PARSERS
-      end
-
-      module ClassMethods
         def parameter_parsers=(parsers) # :nodoc:
           @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
         end
