@@ -4,6 +4,9 @@ require "stubs/user"
 
 class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
+  end
+
+  class Client < ActionCable::Client::Base
     identified_by :current_user, :current_room
 
     def connect
@@ -15,13 +18,13 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
   test "multiple connection identifiers" do
     run_in_eventmachine do
       open_connection_with_stubbed_pubsub
-      assert_equal "Room#my-room:User#lifo", @connection.connection_identifier
+      assert_equal "Room#my-room:User#lifo", @client.identifier
     end
   end
 
   private
     def open_connection_with_stubbed_pubsub
-      server = TestServer.new
+      server = TestServer.new(connection_class: Client)
       server.stubs(:pubsub).returns(stub_everything("pubsub"))
 
       open_connection server: server
@@ -30,6 +33,7 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
     def open_connection(server:)
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
       @connection = Connection.new(server, env)
+      @client = @connection.client
 
       @connection.process
       @connection.send :handle_open

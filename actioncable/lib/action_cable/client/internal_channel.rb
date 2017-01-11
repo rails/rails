@@ -4,33 +4,31 @@ module ActionCable
     module InternalChannel
       extend ActiveSupport::Concern
 
+      INTERNAL_CHANNEL_ID = "_internal"
+
       private
         def internal_channel
-          "action_cable/#{connection_identifier}"
+          "action_cable/#{identifier}"
         end
 
         def subscribe_to_internal_channel
-          if connection_identifier.present?
+          if identifier.present?
             callback = -> (message) { process_internal_message decode(message) }
-            @_internal_subscriptions ||= []
-            @_internal_subscriptions << [ internal_channel, callback ]
-
-            server.event_loop.post { pubsub.subscribe(internal_channel, callback) }
-            logger.info "Registered connection (#{connection_identifier})"
+            streams.add(INTERNAL_CHANNEL_ID, internal_channel, callback) do
+              logger.info "Registered connection (#{connection_identifier})"
+            end
           end
         end
 
         def unsubscribe_from_internal_channel
-          if @_internal_subscriptions.present?
-            @_internal_subscriptions.each { |channel, callback| server.event_loop.post { pubsub.unsubscribe(channel, callback) } }
-          end
+          streams.remove_all INTERNAL_CHANNEL_ID
         end
 
         def process_internal_message(message)
           case message["type"]
           when "disconnect"
             logger.info "Removing connection (#{connection_identifier})"
-            websocket.close
+            connection.close
           end
         rescue Exception => e
           logger.error "There was an exception - #{e.class}(#{e.message})"

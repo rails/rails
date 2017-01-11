@@ -25,7 +25,7 @@ module ActionCable
       # Called by Rack to setup the server.
       def call(env)
         setup_heartbeat_timer
-        config.connection_class.call.new(self, env).process
+        Connection::Base.new(self, env).process
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.

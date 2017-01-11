@@ -98,8 +98,8 @@ module ActionCable
       include Naming
       include Broadcasting
 
-      attr_reader :params, :connection, :identifier
-      delegate :logger, to: :connection
+      attr_reader :params, :client, :identifier
+      delegate :logger, to: :client
 
       class << self
         # A list of method names that should be considered actions. This
@@ -137,8 +137,8 @@ module ActionCable
           end
       end
 
-      def initialize(connection, identifier, params = {})
-        @connection = connection
+      def initialize(client, identifier, params = {})
+        @client = client
         @identifier = identifier
         @params     = params
 
@@ -151,7 +151,7 @@ module ActionCable
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
 
-        delegate_connection_identifiers
+        delegate_client_identifiers
       end
 
       # Extract the action name from the passed data and process it via the channel. The process will ensure
@@ -170,7 +170,7 @@ module ActionCable
         end
       end
 
-      # This method is called after subscription has been added to the connection
+      # This method is called after subscription has been added to the client
       # and confirms or rejects the subscription.
       def subscribe_to_channel
         run_callbacks :subscribe do
@@ -181,7 +181,7 @@ module ActionCable
         ensure_confirmation_sent
       end
 
-      # Called by the cable connection when it's cut, so the channel has a chance to cleanup with callbacks.
+      # Called by the cable client when it's cut, so the channel has a chance to cleanup with callbacks.
       # This method is not intended to be called directly by the user. Instead, overwrite the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
         run_callbacks :unsubscribe do
@@ -196,7 +196,7 @@ module ActionCable
           # Override in subclasses
         end
 
-        # Called once a consumer has cut its cable connection. Can be used for cleaning up connections or marking
+        # Called once a consumer has cut its cable client. Can be used for cleaning up clients or marking
         # users as offline or the like.
         def unsubscribed # :doc:
           # Override in subclasses
@@ -209,7 +209,7 @@ module ActionCable
 
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
-            connection.transmit identifier: @identifier, message: data
+            client.transmit identifier: @identifier, message: data
           end
         end
 
@@ -239,10 +239,10 @@ module ActionCable
           @reject_subscription
         end
 
-        def delegate_connection_identifiers
-          connection.identifiers.each do |identifier|
+        def delegate_client_identifiers
+          client.identifiers.each do |identifier|
             define_singleton_method(identifier) do
-              connection.send(identifier)
+              client.send(identifier)
             end
           end
         end
@@ -278,14 +278,14 @@ module ActionCable
             logger.info "#{self.class.name} is transmitting the subscription confirmation"
 
             ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
-              connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
+              client.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
               @subscription_confirmation_sent = true
             end
           end
         end
 
         def reject_subscription
-          connection.subscriptions.remove_subscription self
+          client.subscriptions.remove_subscription self
           transmit_subscription_rejection
         end
 
@@ -293,7 +293,7 @@ module ActionCable
           logger.info "#{self.class.name} is transmitting the subscription rejection"
 
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
-            connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
+            client.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
         end
     end

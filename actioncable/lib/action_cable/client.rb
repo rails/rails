@@ -7,6 +7,7 @@ module ActionCable
       autoload :Base
       autoload :Identification
       autoload :InternalChannel
+      autoload :Streams
       autoload :Subscriptions
     end
   end

@@ -15,11 +15,12 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
   setup do
     @user = User.new "lifo"
     @connection = TestConnection.new(@user)
+    @client = @connection.client
   end
 
   test "subscription rejection" do
-    @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
-    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
+    @client.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
+    @channel = SecretChannel.new @client, "{id: 1}", id: 1
     @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
@@ -27,8 +28,8 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
   end
 
   test "does not execute action if subscription is rejected" do
-    @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
-    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
+    @client.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
+    @channel = SecretChannel.new @client, "{id: 1}", id: 1
     @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }

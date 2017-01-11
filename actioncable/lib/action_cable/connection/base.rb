@@ -42,7 +42,7 @@ module ActionCable
 
       def dispatch_websocket_message(websocket_message) #:nodoc:
         if websocket.alive?
-          subscriptions.execute_command decode(websocket_message)
+          client.handle_command websocket_message
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end

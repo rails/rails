@@ -79,14 +79,11 @@ module ActionCable
 
         # Build a stream handler by wrapping the user-provided callback with
         # a decoder or defaulting to a JSON-decoding retransmitter.
-        handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
-        streams << [ broadcasting, handler ]
+        handler = stream_handler(broadcasting, callback || block, coder: coder)
 
-        connection.server.event_loop.post do
-          pubsub.subscribe(broadcasting, handler, lambda do
-            ensure_confirmation_sent
-            logger.info "#{self.class.name} is streaming from #{broadcasting}"
-          end)
+        client.streams.add(identifier, broadcasting, handler) do
+          ensure_confirmation_sent
+          logger.info "#{self.class.name} is streaming from #{broadcasting}"
         end
       end
 
@@ -102,29 +99,11 @@ module ActionCable
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.
       def stop_all_streams
-        streams.each do |broadcasting, callback|
-          pubsub.unsubscribe broadcasting, callback
-          logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
-        end.clear
+        client.streams.remove_all(identifier)
+        logger.info "#{self.class.name} stopped streaming from all broadcastings"
       end
 
       private
-        delegate :pubsub, to: :connection
-
-        def streams
-          @_streams ||= []
-        end
-
-        # Always wrap the outermost handler to invoke the user handler on the
-        # worker pool rather than blocking the event loop.
-        def worker_pool_stream_handler(broadcasting, user_handler, coder: nil)
-          handler = stream_handler(broadcasting, user_handler, coder: coder)
-
-          -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
-          end
-        end
-
         # May be overridden to add instrumentation, logging, specialized error
         # handling, or other forms of handler decoration.
         #

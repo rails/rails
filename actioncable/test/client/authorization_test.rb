@@ -5,18 +5,20 @@ class ActionCable::Connection::AuthorizationTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket
 
-    def connect
-      reject_unauthorized_connection
-    end
-
     def send_async(method, *args)
       send method, *args
     end
   end
 
+  class Client < ActionCable::Client::Base
+    def connect
+      reject_unauthorized_connection
+    end
+  end
+
   test "unauthorized connection" do
     run_in_eventmachine do
-      server = TestServer.new
+      server = TestServer.new(connection_class: Client)
       server.config.allowed_request_origins = %w( http://rubyonrails.com )
 
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",

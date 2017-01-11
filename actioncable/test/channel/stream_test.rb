@@ -52,7 +52,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel = ChatChannel.new connection.client, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
@@ -64,7 +64,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = SymbolChannel.new connection, ""
+        channel = SymbolChannel.new connection.client, ""
         channel.subscribe_to_channel
 
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
@@ -77,7 +77,7 @@ module ActionCable::StreamTests
         connection = TestConnection.new
         connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
-        channel = ChatChannel.new connection, ""
+        channel = ChatChannel.new connection.client, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
       end
@@ -87,7 +87,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel = ChatChannel.new connection.client, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
         assert_nil connection.last_transmission
@@ -95,7 +95,7 @@ module ActionCable::StreamTests
         wait_for_async
 
         confirmation = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
-        connection.transmit(confirmation)
+        connection.client.transmit(confirmation)
 
         assert_equal confirmation, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
       end
@@ -105,7 +105,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
-        channel = ChatChannel.new connection, "test_channel"
+        channel = ChatChannel.new connection.client, "test_channel"
         channel.send_confirmation
         channel.send_confirmation
 

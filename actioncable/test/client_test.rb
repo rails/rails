@@ -263,7 +263,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal(1, app.connections.count)
       assert(app.remote_connections.where(identifier: identifier))
 
-      subscriptions = app.connections.first.subscriptions.send(:subscriptions)
+      subscriptions = app.connections.first.client.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
       channel = subscriptions.first[1]
       channel.expects(:unsubscribed)

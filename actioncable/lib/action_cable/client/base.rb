@@ -43,7 +43,7 @@ module ActionCable
       include Identification
       include InternalChannel
 
-      attr_reader :subscriptions
+      attr_reader :subscriptions, :streams
 
       delegate :logger, :request, :cookies, :close, to: :connection
 
@@ -52,23 +52,35 @@ module ActionCable
         @coder = coder
 
         @subscriptions = Subscriptions.new(self)
+        @streams = Streams.new(connection)
       end
 
       def handle_connect
         connect if respond_to?(:connect)
-        # subscribe_to_internal_channel
+        subscribe_to_internal_channel
         send_welcome_message
       end
 
       def handle_disconnect
-        # subscriptions.unsubscribe_from_all
-        # unsubscribe_from_internal_channel
+        subscriptions.unsubscribe_from_all
+        unsubscribe_from_internal_channel
 
         disconnect if respond_to?(:disconnect)
       end
 
+      def handle_command(websocket_message)
+        command = decode(websocket_message)
+        subscriptions.execute_command command
+      end
+
       def transmit(cable_message)
         connection.transmit encode(cable_message)
+      end
+
+      def start_periodic_timer(callback, every:)
+        connection.server.event_loop.timer every do
+          connection.worker_pool.async_exec self, connection: connection, &callback
+        end
       end
 
       private

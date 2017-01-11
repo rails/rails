@@ -108,7 +108,8 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     def setup_connection
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
       @connection = Connection.new(@server, env)
+      @client = @connection.client
 
-      @subscriptions = ActionCable::Connection::Subscriptions.new(@connection)
+      @subscriptions = ActionCable::Client::Subscriptions.new(@client)
     end
 end

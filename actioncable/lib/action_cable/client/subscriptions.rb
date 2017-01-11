@@ -2,11 +2,11 @@ require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
   module Client
-    # Collection class for all the channel subscriptions established on a given connection. Responsible for routing incoming commands that arrive on
-    # the connection to the proper channel.
+    # Collection class for all the channel subscriptions established on a given client. Responsible for routing incoming commands that arrive to
+    # the client to the proper channel.
     class Subscriptions # :nodoc:
-      def initialize(connection)
-        @connection = connection
+      def initialize(client)
+        @client = client
         @subscriptions = {}
       end
 
@@ -31,7 +31,7 @@ module ActionCable
         subscription_klass = id_options[:channel].safe_constantize
 
         if subscription_klass && ActionCable::Channel::Base >= subscription_klass
-          subscription = subscription_klass.new(connection, id_key, id_options)
+          subscription = subscription_klass.new(client, id_key, id_options)
           subscriptions[id_key] = subscription
           subscription.subscribe_to_channel
         else
@@ -64,10 +64,10 @@ module ActionCable
       # TODO Change this to private once we've dropped Ruby 2.2 support.
       # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
-        attr_reader :connection, :subscriptions
+        attr_reader :client, :subscriptions
 
       private
-        delegate :logger, to: :connection
+        delegate :logger, to: :client
 
         def find(data)
           if subscription = subscriptions[data["identifier"]]
