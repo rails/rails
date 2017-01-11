@@ -3,8 +3,6 @@ require "active_support/file_update_checker"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
-require "active_support/deprecation"
-
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
