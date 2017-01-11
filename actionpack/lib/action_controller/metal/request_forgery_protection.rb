@@ -3,10 +3,12 @@ require "action_controller/metal/exceptions"
 require "active_support/security_utils"
 
 module ActionController #:nodoc:
-  class InvalidAuthenticityToken < ActionControllerError #:nodoc:
+  # See +protect_from_forgery+
+  class InvalidAuthenticityToken < ActionControllerError
   end
 
-  class InvalidCrossOriginRequest < ActionControllerError #:nodoc:
+  # See +verify_same_origin_request+
+  class InvalidCrossOriginRequest < ActionControllerError
   end
 
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
