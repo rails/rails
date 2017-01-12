@@ -131,8 +131,8 @@ module ActionDispatch
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
-          raise IpSpoofAttackError, "IP spoofing attack?! " +
-            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " +
+          raise IpSpoofAttackError, "IP spoofing attack?! " \
+            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
             "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
