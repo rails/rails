@@ -651,6 +651,13 @@ XML
     assert_equal "json", @request.format
   end
 
+  def test_using_as_json_without_any_parameter_does_not_show_deprecation
+    assert_not_deprecated do
+      get :test_headers, as: :json
+    end
+    assert_equal "application/json", @request.headers["CONTENT_TYPE"]
+  end
+
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers['Content-Type'] = 'text/plain'
     post :render_body, params: { name: 'foo.txt' }
