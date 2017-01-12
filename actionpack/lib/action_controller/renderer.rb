@@ -60,7 +60,8 @@ module ActionController
     end
 
     # Accepts a custom Rack environment to render templates in.
-    # It will be merged with ActionController::Renderer.defaults
+    # It will be merged with the default Rack environment defined by
+    # +ActionController::Renderer::DEFAULTS+.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
