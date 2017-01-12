@@ -650,10 +650,11 @@ module ActionController
         end
       end
 
-      REQUEST_KWARGS = %i(params session flash method body xhr as)
+      REQUEST_KWARGS = %i(params session flash method body xhr)
+      FORMAT_KWARGS = %i(format as)
       def kwarg_request?(args)
         args[0].respond_to?(:keys) && (
-          (args[0].key?(:format) && args[0].keys.size == 1) ||
+          args[0].keys.all? { |k| FORMAT_KWARGS.include?(k) } ||
           args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
         )
       end
