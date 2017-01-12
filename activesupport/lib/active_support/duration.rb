@@ -7,7 +7,15 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
-    EPOCH = ::Time.utc(2000)
+    PARTS_IN_SECONDS = {
+      seconds:                               1, # Used in parse method for ease of handling part hashes with seconds
+      minutes:                              60,
+      hours:                           60 * 60,
+      days:                       24 * 60 * 60,
+      weeks:       7            * 24 * 60 * 60,
+      months:  ((365.2425 / 12) * 24 * 60 * 60).ceil, # 1 year is always 12 months long, no sense to bind it to days
+      years:    (365.2425       * 24 * 60 * 60).ceil, # Gregorian year length to account for the every 400 non-leap year
+    }.freeze
 
     attr_accessor :value, :parts
 
@@ -78,14 +86,14 @@ module ActiveSupport
     #   1.day.to_i      # => 86400
     #
     # Note that this conversion makes some assumptions about the
-    # duration of some periods, e.g. months are always 30 days
-    # and years are 365.25 days:
+    # duration of some periods, e.g. months are always 1/12 of year
+    # and years are 365.2425 days:
     #
-    #   # equivalent to 30.days.to_i
-    #   1.month.to_i    # => 2592000
+    #   # equivalent to (1.year / 12).to_i
+    #   1.month.to_i    # => 2629746
     #
-    #   # equivalent to 365.25.days.to_i
-    #   1.year.to_i     # => 31557600
+    #   # equivalent to 365.2425.days.to_i
+    #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
     # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
@@ -148,7 +156,10 @@ module ActiveSupport
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
     def self.parse(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parse!
-      new(EPOCH.advance(parts) - EPOCH, parts)
+      total_seconds = parts.inject(0) do |total, (part, value)|
+        total + value * PARTS_IN_SECONDS[part]
+      end
+      new(total_seconds, parts)
     end
 
     # Build ISO 8601 Duration string for this duration.

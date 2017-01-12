@@ -1,3 +1,28 @@
+*   Fix inconsistent results when parsing large durations and constructing durations from code
+
+        ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
+
+    Duration parsing made independent from any moment of time:
+    Fixed length in seconds is assigned to each duration part during parsing.
+
+    Changed duration of months and years in seconds to more accurate and logical:
+
+     1. The value of 365.2425 days in Gregorian year is more accurate
+        as it accounts for every 400th non-leap year.
+
+     2. Month's length is bound to year's duration, which makes
+        sensible comparisons like `12.months == 1.year` to be `true`
+        and nonsensical ones like `30.days == 1.month` to be `false`.
+
+    Calculations on times and dates with durations shouldn't be affected as
+    duration's numeric value isn't used in calculations, only parts are used.
+
+    Methods on `Numeric` like `2.days` now use these predefined durations
+    to avoid duplicating of duration constants through the codebase and
+    eliminate creation of intermediate durations.
+
+    *Andrey Novikov, Andrew White*
+
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
 
