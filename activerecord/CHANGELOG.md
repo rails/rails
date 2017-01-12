@@ -1,3 +1,7 @@
+*   Add the touch option to ActiveRecord#increment! and decrement!
+
+    *Hiroaki Izu*
+
 *   Deprecate passing a class to the `class_name` because it eagerloads more classes than
     necessary and potentially creates circular dependencies.
 
