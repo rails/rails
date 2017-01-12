@@ -22,6 +22,7 @@ module ActionDispatch
 
       included do
         class << self
+          # Returns the parameter parsers.
           attr_reader :parameter_parsers
         end
 
@@ -29,7 +30,16 @@ module ActionDispatch
       end
 
       module ClassMethods
-        def parameter_parsers=(parsers) # :nodoc:
+        # Configure the parameter parser for a given mime type.
+        #
+        # It accepts a hash where the key is the symbol of the mime type
+        # and the value is a proc.
+        #
+        #     original_parsers = ActionDispatch::Request.parameter_parsers
+        #     xml_parser = -> (raw_post) { Hash.from_xml(raw_post) || {} }
+        #     new_parsers = original_parsers.merge(xml: xml_parser)
+        #     ActionDispatch::Request.parameter_parsers = new_parsers
+        def parameter_parsers=(parsers)
           @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
         end
       end

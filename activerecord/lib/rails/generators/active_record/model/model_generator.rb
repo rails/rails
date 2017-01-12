@@ -33,7 +33,7 @@ module ActiveRecord
 
       hook_for :test_framework
 
-      protected
+      private
 
         def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }
@@ -41,7 +41,7 @@ module ActiveRecord
 
         # FIXME: Change this file to a symlink once RubyGems 2.5.0 is required.
         def generate_application_record
-          if self.behavior == :invoke && !application_record_exist?
+          if behavior == :invoke && !application_record_exist?
             template "application_record.rb", application_record_file_name
           end
         end

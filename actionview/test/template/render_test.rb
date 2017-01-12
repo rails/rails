@@ -220,15 +220,15 @@ module RenderTestCases
 
   def test_render_partial_with_invalid_option_as
     e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in") }
-    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
-      "make sure it starts with lowercase letter, " +
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
+      "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
     e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in") }
-    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
-      "make sure it starts with lowercase letter, " +
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
+      "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
@@ -424,7 +424,7 @@ module RenderTestCases
   end
 
   CustomHandler = lambda do |template|
-    "@output_buffer = ''\n" +
+    "@output_buffer = ''\n" \
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
@@ -475,11 +475,9 @@ module RenderTestCases
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers
-    ActiveSupport::Deprecation.silence do
-      %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
-        assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-        assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
-      end
+    %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
+      assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
+      assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
     end
   end
 

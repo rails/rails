@@ -175,6 +175,9 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
+                                 desc: "Don't run bundle install"
+
       def initialize(*args)
         super
 
@@ -320,7 +323,6 @@ module Rails
 
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
-          remove_file "app/mailers/application_mailer.rb"
           remove_file "app/views/layouts/mailer.html.erb"
           remove_file "app/views/layouts/mailer.text.erb"
           remove_dir "app/mailers"
@@ -348,8 +350,8 @@ module Rails
         end
       end
 
-      def delete_bin_yarn_if_api_option
-        remove_file "bin/yarn" if options[:api]
+      def delete_bin_yarn_if_skip_yarn_option
+        remove_file "bin/yarn" if options[:skip_yarn]
       end
 
       def finish_template
@@ -363,11 +365,11 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
-    protected
-
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
+
+    private
 
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)

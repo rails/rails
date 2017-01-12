@@ -5,19 +5,9 @@ module ActiveRecord
     module Quoting
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
-      def quote(value, column = nil)
+      def quote(value)
         # records are quoted as their primary key
         return value.quoted_id if value.respond_to?(:quoted_id)
-
-        if column
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing a column to `quote` has been deprecated. It is only used
-            for type casting, which should be handled elsewhere. See
-            https://github.com/rails/arel/commit/6160bfbda1d1781c3b08a33ec4955f170e95be11
-            for more information.
-          MSG
-          value = type_cast_from_column(column, value)
-        end
 
         _quote(value)
       end

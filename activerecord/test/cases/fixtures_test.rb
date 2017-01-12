@@ -7,6 +7,7 @@ require "models/binary"
 require "models/book"
 require "models/bulb"
 require "models/category"
+require "models/post"
 require "models/comment"
 require "models/company"
 require "models/computer"
@@ -19,7 +20,6 @@ require "models/matey"
 require "models/other_dog"
 require "models/parrot"
 require "models/pirate"
-require "models/post"
 require "models/randomly_named_c1"
 require "models/reply"
 require "models/ship"
@@ -1012,7 +1012,7 @@ end
 
 class FixtureClassNamesTest < ActiveRecord::TestCase
   def setup
-    @saved_cache = self.fixture_class_names.dup
+    @saved_cache = fixture_class_names.dup
   end
 
   def teardown

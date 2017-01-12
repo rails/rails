@@ -128,11 +128,22 @@ module ActiveRecord
       coder["value"] = value if defined?(@value)
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :original_attribute
       alias_method :assigned?, :original_attribute
 
+      def original_value_for_database
+        if assigned?
+          original_attribute.original_value_for_database
+        else
+          _original_value_for_database
+        end
+      end
+
+    private
       def initialize_dup(other)
         if defined?(@value) && @value.duplicable?
           @value = @value.dup
@@ -141,14 +152,6 @@ module ActiveRecord
 
       def changed_from_assignment?
         assigned? && type.changed?(original_value, value, value_before_type_cast)
-      end
-
-      def original_value_for_database
-        if assigned?
-          original_attribute.original_value_for_database
-        else
-          _original_value_for_database
-        end
       end
 
       def _original_value_for_database

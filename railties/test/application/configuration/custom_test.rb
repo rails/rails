@@ -28,7 +28,7 @@ module ApplicationTests
         assert_equal 3, x.payment_processing.retries
         assert_equal true, x.super_debugger
         assert_equal false, x.hyper_debugger
-        assert_equal nil, x.nil_debugger
+        assert_nil x.nil_debugger
         assert_nil x.i_do_not_exist.zomg
       end
 

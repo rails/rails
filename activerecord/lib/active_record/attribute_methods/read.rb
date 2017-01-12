@@ -4,7 +4,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        protected
+        private
 
           # We want to generate the methods via module_eval rather than
           # define_method, because define_method is slower on dispatch.

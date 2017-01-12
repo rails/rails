@@ -13,9 +13,9 @@ require "models/speedometer"
 require "models/ship_part"
 require "models/treasure"
 require "models/developer"
+require "models/post"
 require "models/comment"
 require "models/rating"
-require "models/post"
 
 class NumericData < ActiveRecord::Base
   self.table_name = "numeric_data"
@@ -421,10 +421,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
-
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).uniq.count
-    end
   end
 
   def test_count_with_aliased_attribute

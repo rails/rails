@@ -80,10 +80,13 @@ module ActiveRecord
         end
       end
 
-      def test_table_methods_deprecation
-        assert_deprecated { assert @cache.table_exists?("posts") }
-        assert_deprecated { assert @cache.tables("posts") }
-        assert_deprecated { @cache.clear_table_cache!("posts") }
+      def test_data_source_exist
+        assert @cache.data_source_exists?("posts")
+        assert_not @cache.data_source_exists?("foo")
+      end
+
+      def test_clear_data_source_cache
+        @cache.clear_data_source_cache!("posts")
       end
 
       private

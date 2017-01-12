@@ -1126,7 +1126,7 @@ module ActiveRecord
         self
       end
 
-      protected
+      private
 
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
@@ -1137,8 +1137,6 @@ module ActiveRecord
           load_target if find_from_target?
           super
         end
-
-      private
 
         def null_scope?
           @association.null_scope?

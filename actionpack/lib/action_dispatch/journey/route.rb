@@ -96,13 +96,18 @@ module ActionDispatch
         required_parts + required_defaults.keys
       end
 
-      def score(constraints)
+      def score(supplied_keys)
         required_keys = path.required_names
-        supplied_keys = constraints.map { |k, v| v && k.to_s }.compact
 
-        return -1 unless (required_keys - supplied_keys).empty?
+        required_keys.each do |k|
+          return -1 unless supplied_keys.include?(k)
+        end
 
-        score = (supplied_keys & path.names).length
+        score = 0
+        path.names.each do |k|
+          score += 1 if supplied_keys.include?(k)
+        end
+
         score + (required_defaults.length * 2)
       end
 

@@ -13,7 +13,7 @@ module Rails
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
 
         if options[:assets]
-          if self.behavior == :invoke
+          if behavior == :invoke
             template "assets/cable.js", "app/assets/javascripts/cable.js"
           end
 
@@ -23,14 +23,14 @@ module Rails
         generate_application_cable_files
       end
 
-      protected
+      private
         def file_name
           @_file_name ||= super.gsub(/_channel/i, "")
         end
 
         # FIXME: Change these files to symlinks once RubyGems 2.5.0 is required.
         def generate_application_cable_files
-          return if self.behavior != :invoke
+          return if behavior != :invoke
 
           files = [
             "application_cable/channel.rb",

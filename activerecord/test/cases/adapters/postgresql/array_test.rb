@@ -16,10 +16,12 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.transaction do
       @connection.create_table("pg_arrays") do |t|
-        t.string "tags", array: true
+        t.string "tags", array: true, limit: 255
         t.integer "ratings", array: true
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
+        t.decimal :decimals, array: true, default: [], precision: 10, scale: 2
+        t.timestamp :timestamps, array: true, default: [], precision: 6
       end
     end
     PgArray.reset_column_information
@@ -34,7 +36,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_column
     assert_equal :string, @column.type
-    assert_equal "character varying", @column.sql_type
+    assert_equal "character varying(255)", @column.sql_type
     assert @column.array?
     assert_not @type.binary?
 
@@ -110,8 +112,9 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "pg_arrays"
-    assert_match %r[t\.string\s+"tags",\s+array: true], output
+    assert_match %r[t\.string\s+"tags",\s+limit: 255,\s+array: true], output
     assert_match %r[t\.integer\s+"ratings",\s+array: true], output
+    assert_match %r[t\.decimal\s+"decimals",\s+precision: 10,\s+scale: 2,\s+default: \[\],\s+array: true], output
   end
 
   def test_select_with_strings
@@ -211,7 +214,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute("tags").serialize(tags)
+    refute x.changed?
   end
 
   def test_quoting_non_standard_delimiters
@@ -219,9 +222,10 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
     comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ",")
     semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ";")
+    conn = PgArray.connection
 
-    assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
-    assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
+    assert_equal %({"hello,",world;}), conn.type_cast(comma_delim.serialize(strings))
+    assert_equal %({hello,;"world;"}), conn.type_cast(semicolon_delim.serialize(strings))
   end
 
   def test_mutate_array
@@ -315,6 +319,15 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     arrays_of_utf8_strings = %w(nový ファイル)
     assert_equal arrays_of_utf8_strings, @type.deserialize(@type.serialize(arrays_of_utf8_strings))
     assert_equal [arrays_of_utf8_strings], @type.deserialize(@type.serialize([arrays_of_utf8_strings]))
+  end
+
+  def test_precision_is_respected_on_timestamp_columns
+    time = Time.now.change(usec: 123)
+    record = PgArray.create!(timestamps: [time])
+
+    assert_equal 123, record.timestamps.first.usec
+    record.reload
+    assert_equal 123, record.timestamps.first.usec
   end
 
   private

@@ -7,6 +7,8 @@ end
 
 gemspec
 
+gem "arel", github: "rails/arel"
+
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
@@ -29,9 +31,6 @@ gem "bcrypt", "~> 3.1.11", require: false
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
 
-# Track stable branch of sass because it doesn't have circular require warnings.
-gem "sass", github: "sass/sass", branch: "stable", require: false
-
 # FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
@@ -41,7 +40,7 @@ gem "json", ">= 2.0.0"
 gem "rubocop", require: false
 
 group :doc do
-  gem "sdoc", "1.0.0.beta2"
+  gem "sdoc", "1.0.0.rc1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"

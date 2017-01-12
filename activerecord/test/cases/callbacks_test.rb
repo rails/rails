@@ -125,11 +125,11 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   after_validation :after_validation_on_create_and_update, on: [ :create, :update ]
 
   def before_validation_on_create_and_update
-    history << "before_validation_on_#{self.validation_context}".to_sym
+    history << "before_validation_on_#{validation_context}".to_sym
   end
 
   def after_validation_on_create_and_update
-    history << "after_validation_on_#{self.validation_context}".to_sym
+    history << "after_validation_on_#{validation_context}".to_sym
   end
 
   def history
@@ -449,7 +449,7 @@ class CallbacksTest < ActiveRecord::TestCase
       assert david.valid?
       assert !david.save
       exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
-      assert_equal exc.record, david
+      assert_equal david, exc.record
       assert_equal "Failed to save the record", exc.message
     end
 
@@ -493,7 +493,7 @@ class CallbacksTest < ActiveRecord::TestCase
     assert_deprecated do
       assert !david.destroy
       exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
-      assert_equal exc.record, david
+      assert_equal david, exc.record
       assert_equal "Failed to destroy the record", exc.message
     end
     assert_not_nil ImmutableDeveloper.find_by_id(1)
@@ -527,7 +527,7 @@ class CallbacksTest < ActiveRecord::TestCase
     assert david.valid?
     assert !david.save
     exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
-    assert_equal exc.record, david
+    assert_equal david, exc.record
 
     david = DeveloperWithCanceledCallbacks.find(1)
     david.salary = 10_000_000
@@ -554,7 +554,7 @@ class CallbacksTest < ActiveRecord::TestCase
     david = DeveloperWithCanceledCallbacks.find(1)
     assert !david.destroy
     exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
-    assert_equal exc.record, david
+    assert_equal david, exc.record
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackHaltedDeveloper.find(1)

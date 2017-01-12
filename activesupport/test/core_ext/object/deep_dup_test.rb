@@ -6,7 +6,7 @@ class DeepDupTest < ActiveSupport::TestCase
     array = [1, [2, 3]]
     dup = array.deep_dup
     dup[1][2] = 4
-    assert_equal nil, array[1][2]
+    assert_nil array[1][2]
     assert_equal 4, dup[1][2]
   end
 
@@ -14,7 +14,7 @@ class DeepDupTest < ActiveSupport::TestCase
     hash = { a: { b: "b" } }
     dup = hash.deep_dup
     dup[:a][:c] = "c"
-    assert_equal nil, hash[:a][:c]
+    assert_nil hash[:a][:c]
     assert_equal "c", dup[:a][:c]
   end
 
@@ -22,7 +22,7 @@ class DeepDupTest < ActiveSupport::TestCase
     array = [1, { a: 2, b: 3 } ]
     dup = array.deep_dup
     dup[1][:c] = 4
-    assert_equal nil, array[1][:c]
+    assert_nil array[1][:c]
     assert_equal 4, dup[1][:c]
   end
 
@@ -30,7 +30,7 @@ class DeepDupTest < ActiveSupport::TestCase
     hash = { a: [1, 2] }
     dup = hash.deep_dup
     dup[:a][2] = "c"
-    assert_equal nil, hash[:a][2]
+    assert_nil hash[:a][2]
     assert_equal "c", dup[:a][2]
   end
 

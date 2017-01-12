@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'kindlerb'
+require "kindlerb"
 require "nokogiri"
 require "fileutils"
 require "yaml"

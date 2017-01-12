@@ -256,11 +256,11 @@ end
 
 class PerformedJobsTest < ActiveJob::TestCase
   def test_performed_enqueue_jobs_with_only_option_doesnt_leak_outside_the_block
-    assert_equal nil, queue_adapter.filter
+    assert_nil queue_adapter.filter
     perform_enqueued_jobs only: HelloJob do
       assert_equal HelloJob, queue_adapter.filter
     end
-    assert_equal nil, queue_adapter.filter
+    assert_nil queue_adapter.filter
   end
 
   def test_assert_performed_jobs

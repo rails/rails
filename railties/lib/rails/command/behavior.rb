@@ -16,13 +16,13 @@ module Rails
           @subclasses ||= []
         end
 
-        protected
+        private
 
           # This code is based directly on the Text gem implementation.
           # Copyright (c) 2006-2013 Paul Battley, Michael Neumann, Tim Fletcher.
           #
           # Returns a value representing the "cost" of transforming str1 into str2.
-          def levenshtein_distance(str1, str2)
+          def levenshtein_distance(str1, str2) # :doc:
             s = str1
             t = str2
             n = s.length
@@ -58,7 +58,7 @@ module Rails
           end
 
           # Prints a list of generators.
-          def print_list(base, namespaces) #:nodoc:
+          def print_list(base, namespaces)
             return if namespaces.empty?
             puts "#{base.camelize}:"
 
@@ -71,7 +71,7 @@ module Rails
 
           # Receives namespaces in an array and tries to find matching generators
           # in the load path.
-          def lookup(namespaces) #:nodoc:
+          def lookup(namespaces)
             paths = namespaces_to_paths(namespaces)
 
             paths.each do |raw_path|
@@ -91,7 +91,7 @@ module Rails
           end
 
           # This will try to load any command in the load path to show in help.
-          def lookup! #:nodoc:
+          def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
                 begin
@@ -107,7 +107,7 @@ module Rails
           # Convert namespaces to paths by replacing ":" for "/" and adding
           # an extra lookup. For example, "rails:model" should be searched
           # in both: "rails/model/model_generator" and "rails/model_generator".
-          def namespaces_to_paths(namespaces) #:nodoc:
+          def namespaces_to_paths(namespaces)
             paths = []
             namespaces.each do |namespace|
               pieces = namespace.split(":")

@@ -6,9 +6,9 @@ module ActiveModel
     class TimeTest < ActiveModel::TestCase
       def test_type_cast_time
         type = Type::Time.new
-        assert_equal nil, type.cast(nil)
-        assert_equal nil, type.cast("")
-        assert_equal nil, type.cast("ABC")
+        assert_nil type.cast(nil)
+        assert_nil type.cast("")
+        assert_nil type.cast("ABC")
 
         time_string = ::Time.now.utc.strftime("%T")
         assert_equal time_string, type.cast(time_string).strftime("%T")

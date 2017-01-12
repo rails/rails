@@ -36,11 +36,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
       private
 
-      def should_be_cool
-        unless self.first_name == "cool"
-          errors.add :first_name, "not cool"
+        def should_be_cool
+          unless first_name == "cool"
+            errors.add :first_name, "not cool"
+          end
         end
-      end
     }
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"
@@ -1389,6 +1389,14 @@ module AutosaveAssociationOnACollectionAssociationTests
     pirate.save!
 
     assert_equal "Squawky", parrot.reload.name
+  end
+
+  def test_should_not_update_children_when_parent_creation_with_no_reason
+    parrot = Parrot.create!(name: "Polly")
+    assert_equal 0, parrot.updated_count
+
+    Pirate.create!(parrot_ids: [parrot.id], catchphrase: "Arrrr")
+    assert_equal 0, parrot.reload.updated_count
   end
 
   def test_should_automatically_validate_the_associated_models

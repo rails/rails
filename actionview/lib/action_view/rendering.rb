@@ -91,7 +91,7 @@ module ActionView
 
       # Find and render a template based on the options given.
       # :api: private
-      def _render_template(options) #:nodoc:
+      def _render_template(options)
         variant = options.delete(:variant)
         assigns = options.delete(:assigns)
         context = view_context
@@ -104,7 +104,7 @@ module ActionView
       end
 
       # Assign the rendered format to look up context.
-      def _process_format(format) #:nodoc:
+      def _process_format(format)
         super
         lookup_context.formats = [format.to_sym]
         lookup_context.rendered_format = lookup_context.formats.first

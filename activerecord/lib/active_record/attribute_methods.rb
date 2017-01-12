@@ -394,27 +394,20 @@ module ActiveRecord
 
     protected
 
-      def clone_attribute_value(reader_method, attribute_name) # :nodoc:
-        value = send(reader_method, attribute_name)
-        value.duplicable? ? value.clone : value
-      rescue TypeError, NoMethodError
-        value
-      end
-
-      def arel_attributes_with_values_for_create(attribute_names) # :nodoc:
-        arel_attributes_with_values(attributes_for_create(attribute_names))
-      end
-
-      def arel_attributes_with_values_for_update(attribute_names) # :nodoc:
-        arel_attributes_with_values(attributes_for_update(attribute_names))
-      end
-
       def attribute_method?(attr_name) # :nodoc:
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
     private
+
+      def arel_attributes_with_values_for_create(attribute_names)
+        arel_attributes_with_values(attributes_for_create(attribute_names))
+      end
+
+      def arel_attributes_with_values_for_update(attribute_names)
+        arel_attributes_with_values(attributes_for_update(attribute_names))
+      end
 
       # Returns a Hash of the Arel::Attributes and attribute values that have been
       # typecasted for use in an Arel insert/update method.

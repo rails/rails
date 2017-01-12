@@ -11,7 +11,7 @@ module ActionController #:nodoc:
     DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
     DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
 
-    protected
+    private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
       # via the Rack::Sendfile middleware. The header to use is set via
       # +config.action_dispatch.x_sendfile_header+.
@@ -108,7 +108,6 @@ module ActionController #:nodoc:
         render options.slice(:status, :content_type).merge(body: data)
       end
 
-    private
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 

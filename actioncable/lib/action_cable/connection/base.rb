@@ -22,7 +22,7 @@ module ActionCable
     #         # Any cleanup work needed when the cable connection is cut.
     #       end
     #
-    #       protected
+    #       private
     #         def find_verified_user
     #           User.find_by_identity(cookies.signed[:identity_id]) ||
     #             reject_unauthorized_connection
@@ -133,9 +133,15 @@ module ActionCable
         send_async :handle_close
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
+        attr_reader :websocket
+        attr_reader :message_buffer
+
+      private
         # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
-        def request
+        def request # :doc:
           @request ||= begin
             environment = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
             ActionDispatch::Request.new(environment || env)
@@ -143,14 +149,10 @@ module ActionCable
         end
 
         # The cookies of the request that initiated the WebSocket connection. Useful for performing authorization checks.
-        def cookies
+        def cookies # :doc:
           request.cookie_jar
         end
 
-        attr_reader :websocket
-        attr_reader :message_buffer
-
-      private
         def encode(cable_message)
           @coder.encode cable_message
         end

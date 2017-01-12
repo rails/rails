@@ -86,8 +86,10 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
-class DeveloperWithConstantClassName < Developer
-  has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+ActiveSupport::Deprecation.silence do
+  class DeveloperWithConstantClassName < Developer
+    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+  end
 end
 
 class DeveloperWithExtendOption < Developer
@@ -953,12 +955,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       developer = DeveloperWithConstantClassName.new
       developer.projects
     end
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    developer = Developer.find(1)
-
-    assert_deprecated { developer.projects(true) }
   end
 
   def test_alternate_database

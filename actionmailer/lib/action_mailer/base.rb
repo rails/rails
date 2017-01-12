@@ -208,6 +208,19 @@ module ActionMailer
   #       end
   #     end
   #
+  # You can also send attachments with html template, in this case you need to add body, attachments,
+  # and custom content type like this:
+  #
+  #     class NotifierMailer < ApplicationMailer
+  #       def welcome(recipient)
+  #         attachments["free_book.pdf"] = File.read("path/to/file.pdf")
+  #         mail(to: recipient,
+  #              subject: "New account information",
+  #              content_type: "text/html",
+  #              body: "<html><body>Hello there</body></html>")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -544,9 +557,9 @@ module ActionMailer
         end
       end
 
-    protected
+    private
 
-      def set_payload_for_mail(payload, mail) #:nodoc:
+      def set_payload_for_mail(payload, mail)
         payload[:mailer]     = name
         payload[:message_id] = mail.message_id
         payload[:subject]    = mail.subject
@@ -558,7 +571,7 @@ module ActionMailer
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method_name, *args) # :nodoc:
+      def method_missing(method_name, *args)
         if action_methods.include?(method_name.to_s)
           MessageDelivery.new(self, method_name, *args)
         else
@@ -566,9 +579,7 @@ module ActionMailer
         end
       end
 
-    private
-
-      def respond_to_missing?(method, include_all = false) #:nodoc:
+      def respond_to_missing?(method, include_all = false)
         action_methods.include?(method.to_s)
       end
     end
@@ -830,7 +841,7 @@ module ActionMailer
       message
     end
 
-    protected
+    private
 
       # Used by #mail to set the content type of the message.
       #
@@ -841,7 +852,7 @@ module ActionMailer
       # If there is no content type passed in via headers, and there are no
       # attachments, or the message is multipart, then the default content type is
       # used.
-      def set_content_type(m, user_content_type, class_default)
+      def set_content_type(m, user_content_type, class_default) # :doc:
         params = m.content_type_parameters || {}
         case
         when user_content_type.present?
@@ -863,17 +874,15 @@ module ActionMailer
       # If it does not find a translation for the +subject+ under the specified scope it will default to a
       # humanized version of the <tt>action_name</tt>.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
-      def default_i18n_subject(interpolations = {})
+      def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")
         I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
       end
 
       # Emails do not support relative path links.
-      def self.supports_path?
+      def self.supports_path? # :doc:
         false
       end
-
-    private
 
       def apply_defaults(headers)
         default_values = self.class.default.map do |key, value|
@@ -900,13 +909,17 @@ module ActionMailer
           yield(collector)
           collector.responses
         elsif headers[:body]
-          [{
-            body: headers.delete(:body),
-            content_type: self.class.default[:content_type] || "text/plain"
-          }]
+          collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_text(headers)
+        [{
+          body: headers.delete(:body),
+          content_type: headers[:content_type] || "text/plain"
+        }]
       end
 
       def collect_responses_from_templates(headers)

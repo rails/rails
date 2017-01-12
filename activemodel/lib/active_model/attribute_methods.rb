@@ -334,12 +334,11 @@ module ActiveModel
         }.tap { |mod| include mod }
       end
 
-      protected
-        def instance_method_already_implemented?(method_name) #:nodoc:
+      private
+        def instance_method_already_implemented?(method_name)
           generated_attribute_methods.method_defined?(method_name)
         end
 
-      private
         # The methods +method_missing+ and +respond_to?+ of this module are
         # invoked often in a typical rails, both of which invoke the method
         # +matched_attribute_method+. The latter method iterates through an
@@ -349,11 +348,11 @@ module ActiveModel
         # used to alleviate the GC, which ultimately also speeds up the app
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
-        def attribute_method_matchers_cache #:nodoc:
+        def attribute_method_matchers_cache
           @attribute_method_matchers_cache ||= Concurrent::Map.new(initial_capacity: 4)
         end
 
-        def attribute_method_matchers_matching(method_name) #:nodoc:
+        def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
@@ -365,7 +364,7 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
+        def define_proxy_call(include_private, mod, name, send, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
@@ -458,12 +457,11 @@ module ActiveModel
       end
     end
 
-    protected
-      def attribute_method?(attr_name) #:nodoc:
+    private
+      def attribute_method?(attr_name)
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
-    private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def matched_attribute_method(method_name)

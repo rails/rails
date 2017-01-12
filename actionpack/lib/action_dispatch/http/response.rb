@@ -425,7 +425,7 @@ module ActionDispatch # :nodoc:
 
     def set_content_type(content_type, charset)
       type = (content_type || "").dup
-      type << "; charset=#{charset}" if charset
+      type << "; charset=#{charset.to_s.downcase}" if charset
       set_header CONTENT_TYPE, type
     end
 

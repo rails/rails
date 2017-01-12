@@ -341,14 +341,18 @@ module ActiveRecord
         end
       end
 
+      class ConnectionTestModel < ActiveRecord::Base
+      end
+
       def test_connection_notification_is_called
         payloads = []
         subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
           payloads << payload
         end
-        ActiveRecord::Base.establish_connection :arunit
+        ConnectionTestModel.establish_connection :arunit
+
         assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
-        assert_equal "primary", payloads[0][:spec_name]
+        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
@@ -395,7 +399,7 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk "pool unable to establish connections concurrently or implementation has " <<
+          flunk "pool unable to establish connections concurrently or implementation has " \
                 "changed, this test then needs to patch a different :new_connection method"
         ensure
           # clean up the threads
@@ -501,11 +505,11 @@ module ActiveRecord
                 first_thread.join(2)
                 second_thread.join(2)
 
-                puts '---'
+                puts "---"
                 p [first_thread, second_thread]
                 p pool.stat
                 p pool.connections.map(&:owner)
-                puts '<<<'
+                puts "<<<"
                 puts
               end
 

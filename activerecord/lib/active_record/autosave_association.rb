@@ -328,9 +328,9 @@ module ActiveRecord
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
-        validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
+        context = validation_context unless [:create, :update].include?(validation_context)
 
-        unless valid = record.valid?(validation_context)
+        unless valid = record.valid?(context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 

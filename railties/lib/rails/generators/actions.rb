@@ -260,23 +260,23 @@ module Rails
         @after_bundle_callbacks << block
       end
 
-      protected
+      private
 
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        def log(*args)
+        def log(*args) # :doc:
           if args.size == 1
             say args.first.to_s unless options.quiet?
           else
-            args << (self.behavior == :invoke ? :green : :red)
+            args << (behavior == :invoke ? :green : :red)
             say_status(*args)
           end
         end
 
         # Runs the supplied command using either "rake ..." or "rails ..."
         # based on the executor parameter provided.
-        def execute_command(executor, command, options = {})
+        def execute_command(executor, command, options = {}) # :doc:
           log executor, command
           env  = options[:env] || ENV["RAILS_ENV"] || "development"
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
@@ -284,7 +284,7 @@ module Rails
         end
 
         # Add an extension to the given name based on the platform.
-        def extify(name)
+        def extify(name) # :doc:
           if Gem.win_platform?
             "#{name}.bat"
           else
@@ -294,7 +294,7 @@ module Rails
 
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
-        def quote(value)
+        def quote(value) # :doc:
           return value.inspect unless value.is_a? String
 
           if value.include?("'")

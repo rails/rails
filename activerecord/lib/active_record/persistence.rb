@@ -338,10 +338,10 @@ module ActiveRecord
       self
     end
 
-    # Wrapper around #increment that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # Wrapper around #increment that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Returns +self+.
     def increment!(attribute, by = 1)
       increment(attribute, by)
       change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
@@ -357,10 +357,10 @@ module ActiveRecord
       increment(attribute, -by)
     end
 
-    # Wrapper around #decrement that saves the record. This method differs from
-    # its non-bang version in the sense that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # Wrapper around #decrement that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Returns +self+.
     def decrement!(attribute, by = 1)
       increment!(attribute, -by)
     end
@@ -392,8 +392,8 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method finds record by its primary key (which could be assigned manually) and
-    # modifies the receiver in-place:
+    # This method finds the record by its primary key (which could be assigned
+    # manually) and modifies the receiver in-place:
     #
     #   account = Account.new
     #   # => #<Account id: nil, email: nil>

@@ -50,7 +50,7 @@ module ActionController
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
     #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
-    def redirect_to(options = {}, response_status = {}) #:doc:
+    def redirect_to(options = {}, response_status = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 

@@ -219,7 +219,7 @@ module ApplicationTests
       end
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
-      assert ActiveRecord::Base.connection.schema_cache.tables("posts")
+      assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "expire schema cache dump" do
@@ -227,10 +227,8 @@ module ApplicationTests
         `rails generate model post title:string;
          bin/rails db:migrate db:schema:cache:dump db:rollback`
       end
-      silence_warnings {
-        require "#{app_path}/config/environment"
-        assert !ActiveRecord::Base.connection.schema_cache.tables("posts")
-      }
+      require "#{app_path}/config/environment"
+      assert !ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do

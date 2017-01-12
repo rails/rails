@@ -9,7 +9,7 @@ module ActiveRecord
       # available.
       def to_key
         sync_with_transaction_state
-        key = self.id
+        key = id
         [key] if key
       end
 
@@ -50,7 +50,7 @@ module ActiveRecord
         attribute_in_database(self.class.primary_key)
       end
 
-      protected
+      private
 
         def attribute_method?(attr_name)
           attr_name == "id" || super

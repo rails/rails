@@ -399,6 +399,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
+    ActiveRecord::Migrator.up(migrations_path)
   end
 
   def test_migration_sets_internal_metadata_even_when_fully_migrated
@@ -425,6 +426,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
+    ActiveRecord::Migrator.up(migrations_path)
   end
 
   def test_internal_metadata_stores_environment_when_other_data_exists
@@ -705,7 +707,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  protected
+  private
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
     def new_isolated_reminder_class
@@ -887,7 +889,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal :datetime, column(:birthdate).type
     end
 
-    protected
+    private
 
       def with_bulk_change_table
         # Reset columns/indexes cache as we're changing the table

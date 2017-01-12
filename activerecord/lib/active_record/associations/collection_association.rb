@@ -25,16 +25,8 @@ module ActiveRecord
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
-      def reader(force_reload = false)
-        if force_reload
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an argument to force an association to reload is now
-            deprecated and will be removed in Rails 5.1. Please call `reload`
-            on the result collection proxy instead.
-          MSG
-
-          klass.uncached { reload }
-        elsif stale_target?
+      def reader
+        if stale_target?
           reload
         end
 
@@ -55,9 +47,7 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= (
             column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
@@ -299,16 +289,28 @@ module ActiveRecord
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
 
-        yield(record) if block_given?
+        begin
+          if index
+            record_was = target[index]
+            target[index] = record
+          else
+            target << record
+          end
 
-        if index
-          @target[index] = record
-        else
-          append_record(record)
+          set_inverse_instance(record)
+
+          yield(record) if block_given?
+        rescue
+          if index
+            target[index] = record_was
+          else
+            target.delete(record)
+          end
+
+          raise
         end
 
         callback(:after_add, record) unless skip_callbacks
-        set_inverse_instance(record)
 
         record
       end
@@ -501,10 +503,6 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
-        end
-
-        def append_record(record)
-          @target << record unless @target.include?(record)
         end
     end
   end

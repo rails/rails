@@ -76,7 +76,7 @@ module ActiveSupport
         {}
       else
         data.ungetc(char)
-        document = self.document_class.new
+        document = document_class.new
         parser = Nokogiri::XML::SAX::Parser.new(document)
         parser.parse(data)
         document.hash

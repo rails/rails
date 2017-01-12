@@ -7,7 +7,8 @@ require "active_support/core_ext/regexp"
 class Module
   # Defines a class attribute and creates a class and instance reader methods.
   # The underlying class variable is set to +nil+, if it is not previously
-  # defined.
+  # defined. All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_reader :hair_colors
@@ -76,7 +77,9 @@ class Module
   alias :cattr_reader :mattr_reader
 
   # Defines a class attribute and creates a class and instance writer methods to
-  # allow assignment to the attribute.
+  # allow assignment to the attribute. All class and instance methods created
+  # will be public, even if this method is called with a private or protected
+  # access modifier.
   #
   #   module HairColors
   #     mattr_writer :hair_colors
@@ -142,6 +145,8 @@ class Module
   alias :cattr_writer :mattr_writer
 
   # Defines both class and instance accessors for class attributes.
+  # All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_accessor :hair_colors

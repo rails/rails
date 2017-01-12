@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       module ClassMethods
-        protected
+        private
 
           def define_method_attribute=(name)
             safe_name = name.unpack("h*".freeze).first

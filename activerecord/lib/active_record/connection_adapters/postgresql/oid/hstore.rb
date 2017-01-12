@@ -35,6 +35,14 @@ module ActiveRecord
             ActiveRecord::Store::StringKeyedHashAccessor
           end
 
+          # Will compare the Hash equivalents of +raw_old_value+ and +new_value+.
+          # By comparing hashes, this avoids an edge case where the order of
+          # the keys change between the two hashes, and they would not be marked
+          # as equal.
+          def changed_in_place?(raw_old_value, new_value)
+            deserialize(raw_old_value) != new_value
+          end
+
           private
 
             HstorePair = begin

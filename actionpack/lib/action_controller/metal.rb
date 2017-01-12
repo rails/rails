@@ -118,11 +118,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    def env
-      @_request.env
-    end
-    deprecate :env
-
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
     # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
@@ -231,14 +226,6 @@ module ActionController
     def self.middleware
       middleware_stack
     end
-
-    # Makes the controller a Rack endpoint that runs the action in the given
-    # +env+'s +action_dispatch.request.path_parameters+ key.
-    def self.call(env)
-      req = ActionDispatch::Request.new env
-      action(req.path_parameters[:action]).call(env)
-    end
-    class << self; deprecate :call; end
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name)

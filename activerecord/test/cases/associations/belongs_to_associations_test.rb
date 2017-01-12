@@ -1057,7 +1057,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.parent = nil
     comment.save!
 
-    assert_equal nil, comment.reload.parent
+    assert_nil comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
   end
 
@@ -1130,12 +1130,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    client = Client.find(3)
-
-    assert_deprecated { client.firm(true) }
   end
 end
 

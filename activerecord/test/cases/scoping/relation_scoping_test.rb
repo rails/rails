@@ -277,7 +277,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
         assert_equal "David", Developer.first.name
 
         Developer.unscoped.where("name = 'Maiha'") do
-          assert_equal nil, Developer.first
+          assert_nil Developer.first
         end
 
         # ensure that scoping is restored

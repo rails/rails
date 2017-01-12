@@ -269,6 +269,10 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(*args, &block) }
     end
 
+    def compact
+      dup.compact!
+    end
+
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash = Hash.new
@@ -280,12 +284,12 @@ module ActiveSupport
       _new_hash
     end
 
-    protected
-      def convert_key(key)
+    private
+      def convert_key(key) # :doc:
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, options = {})
+      def convert_value(value, options = {}) # :doc:
         if value.is_a? Hash
           if options[:for] == :to_hash
             value.to_hash
@@ -302,7 +306,7 @@ module ActiveSupport
         end
       end
 
-      def set_defaults(target)
+      def set_defaults(target) # :doc:
         if default_proc
           target.default_proc = default_proc.dup
         else

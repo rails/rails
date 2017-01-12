@@ -13,7 +13,7 @@ namespace :guides do
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
     task :kindle do
-      require 'kindlerb'
+      require "kindlerb"
       unless Kindlerb.kindlegen_available?
         abort "Please run `setupkindlerb` to install kindlegen"
       end

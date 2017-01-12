@@ -216,13 +216,11 @@ class Account < ActiveRecord::Base
 
   validate :check_empty_credit_limit
 
-  protected
+  private
 
     def check_empty_credit_limit
       errors.add("credit_limit", :blank) if credit_limit.blank?
     end
-
-  private
 
     def private_method
       "Sir, yes sir!"

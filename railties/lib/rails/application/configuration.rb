@@ -3,9 +3,6 @@ require "active_support/file_update_checker"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
-require "active_support/deprecation"
-require "active_support/core_ext/string/strip" # for strip_heredoc
-
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
@@ -19,11 +16,11 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
 
       attr_writer :log_level
-      attr_reader :encoding, :api_only, :static_cache_control
+      attr_reader :encoding, :api_only
 
       def initialize(*)
         super
-        self.encoding = "utf-8"
+        self.encoding                    = Encoding::UTF_8
         @allow_concurrency               = nil
         @consider_all_requests_local     = false
         @filter_parameters               = []
@@ -54,35 +51,6 @@ module Rails
         @debug_exception_response_format = nil
         @x                               = Custom.new
         @enable_dependency_loading       = false
-      end
-
-      def static_cache_control=(value)
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `config.static_cache_control` is deprecated and will be removed in Rails 5.1.
-          Please use
-          `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
-          instead.
-        eow
-
-        @static_cache_control = value
-      end
-
-      def serve_static_files
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `config.public_file_server.enabled` instead.
-        eow
-
-        @public_file_server.enabled
-      end
-
-      def serve_static_files=(value)
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `config.serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `config.public_file_server.enabled = #{value}` instead.
-        eow
-
-        @public_file_server.enabled = value
       end
 
       def encoding=(value)
@@ -161,7 +129,7 @@ module Rails
 
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
-        self.generators.colorize_logging = val
+        generators.colorize_logging = val
       end
 
       def session_store(new_session_store = nil, **options)

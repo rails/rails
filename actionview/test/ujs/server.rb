@@ -12,7 +12,7 @@ module UJS
       get "/rails-ujs.js" => Blade::Assets.environment
       get "/" => "tests#index"
       match "/echo" => "tests#echo", via: :all
-      get "/error" => proc {|env| [403, {}, []] }
+      get "/error" => proc { |env| [403, {}, []] }
     end
 
     config.cache_classes = false
@@ -26,7 +26,7 @@ module UJS
 end
 
 module TestsHelper
-  def jquery_link version
+  def jquery_link(version)
     if params[:version] == version
       "[#{version}]"
     else
@@ -34,7 +34,7 @@ module TestsHelper
     end
   end
 
-  def cdn_link cdn
+  def cdn_link(cdn)
     if params[:cdn] == cdn
       "[#{cdn}]"
     else
@@ -43,22 +43,22 @@ module TestsHelper
   end
 
   def jquery_src
-    if params[:version] == 'edge'
+    if params[:version] == "edge"
       "/vendor/jquery.js"
-    elsif params[:cdn] && params[:cdn] == 'googleapis'
+    elsif params[:cdn] && params[:cdn] == "googleapis"
       "https://ajax.googleapis.com/ajax/libs/jquery/#{params[:version]}/jquery.min.js"
     else
       "http://code.jquery.com/jquery-#{params[:version]}.js"
     end
   end
 
-  def test_to *names
+  def test_to(*names)
     names = ["/vendor/qunit.js", "settings"] + names
     names.map { |name| script_tag name }.join("\n").html_safe
   end
 
-  def script_tag src
-    src = "/test/#{src}.js" unless src.index('/')
+  def script_tag(src)
+    src = "/test/#{src}.js" unless src.index("/")
     %(<script src="#{src}" type="text/javascript"></script>).html_safe
   end
 
@@ -72,20 +72,20 @@ class TestsController < ActionController::Base
   layout "application"
 
   def index
-    params[:version] ||= ENV['JQUERY_VERSION'] || '1.11.0'
-    params[:cdn] ||= 'jquery'
+    params[:version] ||= ENV["JQUERY_VERSION"] || "1.11.0"
+    params[:cdn] ||= "jquery"
     render :index
   end
 
   def echo
-    data = { :params => params.to_unsafe_h }.update(request.env)
+    data = { params: params.to_unsafe_h }.update(request.env)
 
-    if params[:content_type] and params[:content]
+    if params[:content_type] && params[:content]
       render inline: params[:content], content_type: params[:content_type]
     elsif request.xhr?
       render json: JSON.generate(data)
     elsif params[:iframe]
-      payload = JSON.generate(data).gsub('<', '&lt;').gsub('>', '&gt;')
+      payload = JSON.generate(data).gsub("<", "&lt;").gsub(">", "&gt;")
       html = <<-HTML
         <script>
           if (window.top && window.top !== window)

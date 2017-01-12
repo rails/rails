@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/filters"
-
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -35,6 +33,16 @@ module ActiveRecord
     #
     #   DatabaseTasks.create_current('production')
     module DatabaseTasks
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:structure:dump
+      mattr_accessor :structure_dump_flags, instance_accessor: false
+
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool when calling db:structure:load
+      mattr_accessor :structure_load_flags, instance_accessor: false
+
       extend self
 
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
@@ -204,13 +212,13 @@ module ActiveRecord
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
@@ -229,14 +237,6 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
-      end
-
-      def load_schema_for(*args)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          This method was renamed to `#load_schema` and will be removed in the future.
-          Use `#load_schema` instead.
-        MSG
-        load_schema(*args)
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
@@ -267,10 +267,20 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " +
-                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" +
+          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
+                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
                 "Seed loader should respond to load_seed method"
         end
+      end
+
+      # Dumps the schema cache in YAML format for the connection into the file
+      #
+      # ==== Examples:
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      def dump_schema_cache(conn, filename)
+        conn.schema_cache.clear!
+        conn.data_sources.each { |table| conn.schema_cache.add(table) }
+        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
       end
 
       private

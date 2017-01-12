@@ -61,7 +61,7 @@ end
 
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
-  self.default_url_options[:host] = "example.com"
+  default_url_options[:host] = "example.com"
 
   def setup
     @project = Project.new

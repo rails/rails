@@ -95,18 +95,8 @@ module ActiveRecord
   #
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
-    def initialize(message = nil, original_exception = nil)
-      if original_exception
-        ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                        "Exceptions will automatically capture the original exception.", caller)
-      end
-
+    def initialize(message = nil)
       super(message || $!.try(:message))
-    end
-
-    def original_exception
-      ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-      cause
     end
   end
 

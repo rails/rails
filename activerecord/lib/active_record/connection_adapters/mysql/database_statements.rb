@@ -3,7 +3,7 @@ module ActiveRecord
     module MySQL
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
-        def select_all(arel, name = nil, binds = [], preparable: nil)
+        def select_all(arel, name = nil, binds = [], preparable: nil) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
             unprepared_statement { super }
           else
@@ -15,8 +15,8 @@ module ActiveRecord
 
         # Returns an array of arrays containing the field values.
         # Order is the same as that returned by +columns+.
-        def select_rows(sql, name = nil, binds = [])
-          select_result(sql, name, binds) do |result|
+        def select_rows(arel, name = nil, binds = []) # :nodoc:
+          select_result(arel, name, binds) do |result|
             @connection.next_result while @connection.more_results?
             result.to_a
           end
@@ -52,15 +52,15 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        protected
+        private
 
           def last_inserted_id(result)
             @connection.last_id
           end
 
-        private
-
-          def select_result(sql, name = nil, binds = [])
+          def select_result(arel, name, binds)
+            arel, binds = binds_from_relation(arel, binds)
+            sql = to_sql(arel, binds)
             if without_prepared_statement?(binds)
               execute_and_free(sql, name) { |result| yield result }
             else
