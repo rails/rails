@@ -7,20 +7,81 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
+    SECONDS_PER_MINUTE = 60
+    SECONDS_PER_HOUR   = 3600
+    SECONDS_PER_DAY    = 86400
+    SECONDS_PER_WEEK   = 604800
+    SECONDS_PER_MONTH  = 2629746  # 1/12 of a gregorian year
+    SECONDS_PER_YEAR   = 31556952 # length of a gregorian year (365.2425 days)
+
     PARTS_IN_SECONDS = {
-      seconds:                               1, # Used in parse method for ease of handling part hashes with seconds
-      minutes:                              60,
-      hours:                           60 * 60,
-      days:                       24 * 60 * 60,
-      weeks:       7            * 24 * 60 * 60,
-      months:  ((365.2425 / 12) * 24 * 60 * 60).ceil, # 1 year is always 12 months long, no sense to bind it to days
-      years:    (365.2425       * 24 * 60 * 60).ceil, # Gregorian year length to account for the every 400 non-leap year
+      seconds: 1,
+      minutes: SECONDS_PER_MINUTE,
+      hours:   SECONDS_PER_HOUR,
+      days:    SECONDS_PER_DAY,
+      weeks:   SECONDS_PER_WEEK,
+      months:  SECONDS_PER_MONTH,
+      years:   SECONDS_PER_YEAR
     }.freeze
 
     attr_accessor :value, :parts
 
     autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
     autoload :ISO8601Serializer, "active_support/duration/iso8601_serializer"
+
+    class << self
+      # Creates a new Duration from string formatted according to ISO 8601 Duration.
+      #
+      # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+      # This method allows negative parts to be present in pattern.
+      # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
+      def parse(iso8601duration)
+        parts = ISO8601Parser.new(iso8601duration).parse!
+        new(calculate_total_seconds(parts), parts)
+      end
+
+      def ===(other) #:nodoc:
+        other.is_a?(Duration)
+      rescue ::NoMethodError
+        false
+      end
+
+      def seconds(value) #:nodoc:
+        new(value, [[:seconds, value]])
+      end
+
+      def minutes(value) #:nodoc:
+        new(value * SECONDS_PER_MINUTE, [[:minutes, value]])
+      end
+
+      def hours(value) #:nodoc:
+        new(value * SECONDS_PER_HOUR, [[:hours, value]])
+      end
+
+      def days(value) #:nodoc:
+        new(value * SECONDS_PER_DAY, [[:days, value]])
+      end
+
+      def weeks(value) #:nodoc:
+        new(value * SECONDS_PER_WEEK, [[:weeks, value]])
+      end
+
+      def months(value) #:nodoc:
+        new(value * SECONDS_PER_MONTH, [[:months, value]])
+      end
+
+      def years(value) #:nodoc:
+        new(value * SECONDS_PER_YEAR, [[:years, value]])
+      end
+
+      private
+
+        def calculate_total_seconds(parts)
+          parts.inject(0) do |total, (part, value)|
+            total + value * PARTS_IN_SECONDS[part]
+          end
+        end
+    end
 
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts.to_h
@@ -113,12 +174,6 @@ module ActiveSupport
       @value.hash
     end
 
-    def self.===(other) #:nodoc:
-      other.is_a?(Duration)
-    rescue ::NoMethodError
-      false
-    end
-
     # Calculates a new Time or Date that is as far in the future
     # as this Duration represents.
     def since(time = ::Time.current)
@@ -147,19 +202,6 @@ module ActiveSupport
 
     def respond_to_missing?(method, include_private = false) #:nodoc:
       @value.respond_to?(method, include_private)
-    end
-
-    # Creates a new Duration from string formatted according to ISO 8601 Duration.
-    #
-    # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
-    # This method allows negative parts to be present in pattern.
-    # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
-    def self.parse(iso8601duration)
-      parts = ISO8601Parser.new(iso8601duration).parse!
-      total_seconds = parts.inject(0) do |total, (part, value)|
-        total + value * PARTS_IN_SECONDS[part]
-      end
-      new(total_seconds, parts)
     end
 
     # Build ISO 8601 Duration string for this duration.
