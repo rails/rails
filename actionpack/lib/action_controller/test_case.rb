@@ -389,7 +389,9 @@ module ActionController
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, **args)
-        process(action, method: "GET", **args)
+        res = process(action, method: "GET", **args)
+        cookies.update res.cookies
+        res
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
@@ -517,7 +519,6 @@ module ActionController
             unless @request.cookie_jar.committed?
               @request.cookie_jar.write(@response)
               cookies.update(@request.cookie_jar.instance_variable_get(:@cookies))
-              cookies.update(@response.cookies)
             end
           end
           @response.prepare!
