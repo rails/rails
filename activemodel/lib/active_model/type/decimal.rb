@@ -23,7 +23,7 @@ module ActiveModel
             when ::Numeric
               BigDecimal(value, precision.to_i)
             when ::String
-              value.to_d rescue BigDecimal(0)
+              value.to_d rescue nil
             else
               if value.respond_to?(:to_d)
                 value.to_d
