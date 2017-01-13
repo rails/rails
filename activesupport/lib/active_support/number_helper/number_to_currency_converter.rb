@@ -6,9 +6,12 @@ module ActiveSupport
       self.namespace = :currency
 
       def convert
-        number = self.number.to_s.strip
-        format = options[:format]
-
+        if number.is_a?(Float)
+          number = BigDecimal.new(self.number, 0).to_s.strip
+        else
+          number = self.number.to_s.strip
+        end
+        
         if number.to_f.negative?
           format = options[:negative_format]
           number = absolute_value(number)
