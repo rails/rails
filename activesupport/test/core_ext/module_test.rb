@@ -27,10 +27,10 @@ class Someone < Struct.new(:name, :place)
     'some_table'
   end
 
-  FAILED_DELEGATE_LINE = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
 
-  FAILED_DELEGATE_LINE_2 = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, :to => :place, :allow_nil => true
 end
 
