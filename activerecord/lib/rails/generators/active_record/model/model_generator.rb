@@ -17,7 +17,7 @@ module ActiveRecord
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
-        migration_template "../../migration/templates/create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
+        migration_template "../../migration/templates/create_table_migration.rb", File.join(db_migrate_path, "create_#{table_name}.rb")
       end
 
       def create_model_file
@@ -62,6 +62,14 @@ module ActiveRecord
             "app/models/#{namespaced_path}/application_record.rb"
           else
             "app/models/application_record.rb"
+          end
+        end
+
+        def db_migrate_path
+          if defined?(Rails) && Rails.application
+            Rails.application.config.paths["db/migrate"].to_ary.first
+          else
+            "db/migrate"
           end
         end
     end
