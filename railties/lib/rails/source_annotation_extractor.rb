@@ -13,7 +13,7 @@
 # start with the tag optionally followed by a colon. Everything up to the end
 # of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
-  class Annotation < Struct.new(:line, :tag, :text)
+  Annotation = Struct.new(:line, :tag, :text) do
     def self.directories
       @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
     end

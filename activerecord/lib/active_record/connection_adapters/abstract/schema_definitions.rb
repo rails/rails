@@ -3,29 +3,25 @@ module ActiveRecord
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
-    end
+    IndexDefinition = Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) #:nodoc:
+    ColumnDefinition = Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) do #:nodoc:
       def primary_key?
         primary_key || type.to_sym == :primary_key
       end
     end
 
-    class AddColumnDefinition < Struct.new(:column) # :nodoc:
-    end
+    AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    class ChangeColumnDefinition < Struct.new(:column, :name) #:nodoc:
-    end
+    ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
 
-    class PrimaryKeyDefinition < Struct.new(:name) # :nodoc:
-    end
+    PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
-    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
+    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do #:nodoc:
       def name
         options[:name]
       end

@@ -24,7 +24,7 @@ Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
 end
 
-class Someone < Struct.new(:name, :place)
+Someone = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, to: :place
   delegate :name=, to: :place, prefix: true
   delegate :upcase, to: "place.city"

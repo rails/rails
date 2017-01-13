@@ -23,7 +23,7 @@ module JSONTest
     end
   end
 
-  class MyStruct < Struct.new(:name, :value)
+  MyStruct = Struct.new(:name, :value) do
     def initialize(*)
       @unused = "unused instance variable"
       super
