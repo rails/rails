@@ -149,9 +149,13 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
+      puts klass
+
+      
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       definitions.each do |name, values|
+        raise ArgumentError, "Type of column #{name} should be Integer instead of #{klass.column_for_attribute(name).type}" if klass.column_for_attribute(name).type != :integer
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
