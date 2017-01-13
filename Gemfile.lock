@@ -147,7 +147,7 @@ GEM
       childprocess
       faraday
       selenium-webdriver
-    builder (3.2.2)
+    builder (3.2.3)
     bunny (2.6.2)
       amq-protocol (>= 2.0.1)
     byebug (9.0.6)
