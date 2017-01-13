@@ -73,7 +73,7 @@ module ActionController
 
     require "mutex_m"
 
-    Options = Struct.new(:name, :format, :include, :exclude, :klass, :model) do # :nodoc:
+    class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
 
       def self.from_hash(hash)
