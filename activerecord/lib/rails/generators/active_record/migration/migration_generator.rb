@@ -10,7 +10,7 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
       protected
@@ -67,6 +67,14 @@ module ActiveRecord
 
         def normalize_table_name(_table_name)
           pluralize_table_names? ? _table_name.pluralize : _table_name.singularize
+        end
+
+        def db_migrate_path
+          if defined?(Rails) && Rails.application
+            Rails.application.config.paths["db/migrate"].to_ary.first
+          else
+            "db/migrate"
+          end
         end
     end
   end

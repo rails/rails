@@ -1,3 +1,7 @@
+*   Place generated migrations into the path set by `config.paths["db/migrate"]`
+
+    *Kevin Glowacz*
+
 *   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
     calling `ActiveRecord::Dirty#changed_in_place?`
 
