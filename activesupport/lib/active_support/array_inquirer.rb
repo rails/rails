@@ -20,7 +20,7 @@ module ActiveSupport
     #   variants.any?(:phone, :tablet)     # => true
     #   variants.any?('phone', 'desktop')  # => true
     #   variants.any?(:desktop, :watch)    # => false
-    def any?(*candidates, &block)
+    def any?(*candidates)
       if candidates.none?
         super
       else
