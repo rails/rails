@@ -32,7 +32,7 @@ module ActiveSupport
 
     private
       def respond_to_missing?(name, include_private = false)
-        name[-1] == "?"
+        (name[-1] == "?") || super
       end
 
       def method_missing(name, *args)

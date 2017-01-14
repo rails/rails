@@ -38,4 +38,18 @@ class ArrayInquirerTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::ArrayInquirer, result
     assert_equal @array_inquirer, result
   end
+
+  def test_respond_to_fallback_to_array_respond_to
+    arr = ActiveSupport::ArrayInquirer.new([:x])
+    # This kind of emulates a situation that Array#respond_to_missing? is defined
+    arr.singleton_class.class_eval do
+      def respond_to_missing?(name, _include_private = false)
+        (name == :foo) || super
+      end
+    end
+
+    assert_respond_to arr, :can_you_hear_me?
+    assert_respond_to arr, :foo
+    assert_not_respond_to arr, :nope
+  end
 end

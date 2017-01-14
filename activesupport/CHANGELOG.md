@@ -1,3 +1,8 @@
+*   Fixed a bug that `ArrayInquirer#respond_to_missing?` does not fallback to
+    `Array#respond_to_missing?`.
+
+    *Akira Matsuda*
+
 *   Fix inconsistent results when parsing large durations and constructing durations from code
 
         ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
