@@ -26,6 +26,13 @@ class LengthValidationTest < ActiveModel::TestCase
     assert Topic.new("title" => "abcde").valid?
   end
 
+  def test_validates_length_of_with_proc
+    Topic.validates_length_of(:title, is: lambda { |topic| 5 })
+
+    assert Topic.new("title" => "ab").invalid?
+    assert Topic.new("title" => "abcde").valid?
+  end
+
   def test_validates_length_of_using_minimum
     Topic.validates_length_of :title, minimum: 5
 
