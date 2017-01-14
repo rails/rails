@@ -3,10 +3,10 @@ require "stubs/test_server"
 require "stubs/user"
 
 class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Socket < ActionCable::Socket::Base
   end
 
-  class Client < ActionCable::Client::Base
+  class Connection < ActionCable::Connection::Base
     identified_by :current_user, :current_room
 
     def connect
@@ -17,29 +17,29 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
 
   test "multiple connection identifiers" do
     run_in_eventmachine do
-      open_connection_with_stubbed_pubsub
-      assert_equal "Room#my-room:User#lifo", @client.identifier
+      open_socket_with_stubbed_pubsub
+      assert_equal "Room#my-room:User#lifo", @connection.identifier
     end
   end
 
   private
-    def open_connection_with_stubbed_pubsub
-      server = TestServer.new(connection_class: Client)
+    def open_socket_with_stubbed_pubsub
+      server = TestServer.new(connection_class: Connection)
       server.stubs(:pubsub).returns(stub_everything("pubsub"))
 
-      open_connection server: server
+      open_socket server: server
     end
 
-    def open_connection(server:)
+    def open_socket(server:)
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-      @connection = Connection.new(server, env)
-      @client = @connection.client
+      @socket = Socket.new(server, env)
+      @connection = @socket.connection
 
-      @connection.process
-      @connection.send :handle_open
+      @socket.process
+      @socket.send :handle_open
     end
 
-    def close_connection
-      @connection.send :handle_close
+    def close_socket
+      @socket.send :handle_close
     end
 end

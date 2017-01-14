@@ -1,7 +1,7 @@
 require "thread"
 
 module ActionCable
-  module Connection
+  module Socket
     #--
     # This class is heavily based on faye-websocket-ruby
     #

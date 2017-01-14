@@ -1,5 +1,5 @@
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 require "active_support/time"
 
@@ -22,7 +22,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
   end
 
   setup do
-    @connection = TestConnection.new
+    @socket = TestSocket.new
   end
 
   test "periodic timers definition" do
@@ -62,8 +62,8 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
   end
 
   test "timer start and stop" do
-    @connection.server.event_loop.expects(:timer).times(3).returns(stub(shutdown: nil))
-    channel = ChatChannel.new @connection.client, "{id: 1}", id: 1
+    @socket.server.event_loop.expects(:timer).times(3).returns(stub(shutdown: nil))
+    channel = ChatChannel.new @socket.connection, "{id: 1}", id: 1
 
     channel.subscribe_to_channel
     channel.unsubscribe_from_channel

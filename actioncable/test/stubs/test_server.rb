@@ -1,5 +1,5 @@
 require "ostruct"
-require "stubs/test_client"
+require "stubs/test_connection"
 
 class TestServer
   include ActionCable::Server::Connections
@@ -7,7 +7,7 @@ class TestServer
 
   attr_reader :logger, :config, :mutex
 
-  def initialize(subscription_adapter: SuccessAdapter, connection_class: TestClient)
+  def initialize(subscription_adapter: SuccessAdapter, connection_class: TestConnection)
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
 
     @config = OpenStruct.new(
@@ -23,7 +23,7 @@ class TestServer
   end
 
   def event_loop
-    @event_loop ||= ActionCable::Connection::StreamEventLoop.new.tap do |loop|
+    @event_loop ||= ActionCable::Server::StreamEventLoop.new.tap do |loop|
       loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
     end
   end

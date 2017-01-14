@@ -81,7 +81,7 @@ module ActionCable
         # a decoder or defaulting to a JSON-decoding retransmitter.
         handler = stream_handler(broadcasting, callback || block, coder: coder)
 
-        client.streams.add(identifier, broadcasting, handler) do
+        connection.streams.add(identifier, broadcasting, handler) do
           ensure_confirmation_sent
           logger.info "#{self.class.name} is streaming from #{broadcasting}"
         end
@@ -99,7 +99,7 @@ module ActionCable
 
       # Unsubscribes all streams associated with this channel from the pubsub queue.
       def stop_all_streams
-        client.streams.remove_all(identifier)
+        connection.streams.remove_all(identifier)
         logger.info "#{self.class.name} stopped streaming from all broadcastings"
       end
 

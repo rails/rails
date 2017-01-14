@@ -193,6 +193,18 @@ class ClientTest < ActionCable::TestCase
     end
   end
 
+  def test_ping
+    with_puma_server do |port|
+      c = websocket_client(port)
+      assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
+
+      # sleep for a little bit longer than beat interval
+      sleep 3.1
+      assert !c.pings.value.zero?
+      c.close
+    end
+  end
+
   def test_interacting_clients
     with_puma_server do |port|
       clients = concurrently(10.times) { websocket_client(port) }
@@ -263,7 +275,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal(1, app.connections.count)
       assert(app.remote_connections.where(identifier: identifier))
 
-      subscriptions = app.connections.first.client.subscriptions.send(:subscriptions)
+      subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
       channel = subscriptions.first[1]
       channel.expects(:unsubscribed)

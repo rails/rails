@@ -45,8 +45,8 @@ module ActionCable
   end
 
   autoload :Server
+  autoload :Socket
   autoload :Connection
-  autoload :Client
   autoload :Channel
   autoload :RemoteConnections
   autoload :SubscriptionAdapter

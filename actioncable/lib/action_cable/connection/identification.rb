@@ -1,7 +1,7 @@
 require "set"
 
 module ActionCable
-  module Client
+  module Connection
     module Identification
       extend ActiveSupport::Concern
 

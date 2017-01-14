@@ -1,9 +1,9 @@
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 module ActionCable::StreamTests
-  class Connection < ActionCable::Connection::Base
+  class Socket < ActionCable::Socket::Base
     attr_reader :websocket
 
     def send_async(method, *args)
@@ -50,34 +50,34 @@ module ActionCable::StreamTests
   class StreamTest < ActionCable::TestCase
     test "streaming start and stop" do
       run_in_eventmachine do
-        connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = ChatChannel.new connection.client, "{id: 1}", id: 1
+        socket = TestSocket.new
+        socket.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        channel = ChatChannel.new socket.connection, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
+        socket.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
       end
     end
 
     test "stream from non-string channel" do
       run_in_eventmachine do
-        connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = SymbolChannel.new connection.client, ""
+        socket = TestSocket.new
+        socket.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        channel = SymbolChannel.new socket.connection, ""
         channel.subscribe_to_channel
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
+        socket.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
         channel.unsubscribe_from_channel
       end
     end
 
     test "stream_for" do
       run_in_eventmachine do
-        connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        socket = TestSocket.new
+        socket.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
-        channel = ChatChannel.new connection.client, ""
+        channel = ChatChannel.new socket.connection, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
       end
@@ -85,36 +85,36 @@ module ActionCable::StreamTests
 
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        socket = TestSocket.new
 
-        channel = ChatChannel.new connection.client, "{id: 1}", id: 1
+        channel = ChatChannel.new socket.connection, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
-        assert_nil connection.last_transmission
+        assert_nil socket.last_transmission
 
         wait_for_async
 
         confirmation = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
-        connection.client.transmit(confirmation)
+        socket.connection.transmit(confirmation)
 
-        assert_equal confirmation, connection.last_transmission, "Did not receive subscription confirmation within 0.1s"
+        assert_equal confirmation, socket.last_transmission, "Did not receive subscription confirmation within 0.1s"
       end
     end
 
     test "subscription confirmation should only be sent out once" do
       run_in_eventmachine do
-        connection = TestConnection.new
+        socket = TestSocket.new
 
-        channel = ChatChannel.new connection.client, "test_channel"
+        channel = ChatChannel.new socket.connection, "test_channel"
         channel.send_confirmation
         channel.send_confirmation
 
         wait_for_async
 
         expected = { "identifier" => "test_channel", "type" => "confirm_subscription" }
-        assert_equal expected, connection.last_transmission, "Did not receive subscription confirmation"
+        assert_equal expected, socket.last_transmission, "Did not receive subscription confirmation"
 
-        assert_equal 1, connection.transmissions.size
+        assert_equal 1, socket.transmissions.size
       end
     end
   end
@@ -144,20 +144,20 @@ module ActionCable::StreamTests
 
     test "custom encoder" do
       run_in_eventmachine do
-        connection = open_connection
-        subscribe_to connection, identifiers: { id: 1 }
+        socket = open_socket
+        subscribe_to socket, identifiers: { id: 1 }
 
-        connection.websocket.expects(:transmit)
+        socket.websocket.expects(:transmit)
         @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
         wait_for_async
-        wait_for_executor connection.server.worker_pool.executor
+        wait_for_executor socket.server.worker_pool.executor
       end
     end
 
     test "user supplied callbacks are run through the worker pool" do
       run_in_eventmachine do
-        connection = open_connection
-        receive(connection, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { id: 1 })
+        socket = open_socket
+        receive(socket, command: "subscribe", channel: UserCallbackChannel.name, identifiers: { id: 1 })
 
         @server.broadcast "channel", {}
         wait_for_async
@@ -167,35 +167,35 @@ module ActionCable::StreamTests
 
     test "subscription confirmation should only be sent out once with muptiple stream_from" do
       run_in_eventmachine do
-        connection = open_connection
+        socket = open_socket
         expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
-        connection.websocket.expects(:transmit).with(expected.to_json)
-        receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+        socket.websocket.expects(:transmit).with(expected.to_json)
+        receive(socket, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
 
         wait_for_async
       end
     end
 
     private
-      def subscribe_to(connection, identifiers:)
-        receive connection, command: "subscribe", identifiers: identifiers
+      def subscribe_to(socket, identifiers:)
+        receive socket, command: "subscribe", identifiers: identifiers
       end
 
-      def open_connection
+      def open_socket
         env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
-        Connection.new(@server, env).tap do |connection|
-          connection.process
-          assert connection.websocket.possible?
+        Socket.new(@server, env).tap do |socket|
+          socket.process
+          assert socket.websocket.possible?
 
           wait_for_async
-          assert connection.websocket.alive?
+          assert socket.websocket.alive?
         end
       end
 
-      def receive(connection, command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
+      def receive(socket, command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
         identifier = JSON.generate(channel: channel, **identifiers)
-        connection.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
+        socket.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
         wait_for_async
       end
   end

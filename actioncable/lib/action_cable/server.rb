@@ -7,6 +7,7 @@ module ActionCable
       autoload :Broadcasting
       autoload :Connections
       autoload :Configuration
+      autoload :StreamEventLoop
 
       autoload :Worker
       autoload :ActiveRecordConnectionManagement, "action_cable/server/worker/active_record_connection_management"

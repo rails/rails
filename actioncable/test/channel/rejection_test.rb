@@ -1,5 +1,5 @@
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
@@ -14,29 +14,29 @@ class ActionCable::Channel::RejectionTest < ActiveSupport::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
-    @client = @connection.client
+    @socket = TestSocket.new(@user)
+    @connection = @socket.connection
   end
 
   test "subscription rejection" do
-    @client.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
-    @channel = SecretChannel.new @client, "{id: 1}", id: 1
+    @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
+    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
     @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
-    assert_equal expected, @connection.last_transmission
+    assert_equal expected, @socket.last_transmission
   end
 
   test "does not execute action if subscription is rejected" do
-    @client.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
-    @channel = SecretChannel.new @client, "{id: 1}", id: 1
+    @connection.expects(:subscriptions).returns mock().tap { |m| m.expects(:remove_subscription).with instance_of(SecretChannel) }
+    @channel = SecretChannel.new @connection, "{id: 1}", id: 1
     @channel.subscribe_to_channel
 
     expected = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
-    assert_equal expected, @connection.last_transmission
-    assert_equal 1, @connection.transmissions.size
+    assert_equal expected, @socket.last_transmission
+    assert_equal 1, @socket.transmissions.size
 
     @channel.perform_action("action" => :secret_action)
-    assert_equal 1, @connection.transmissions.size
+    assert_equal 1, @socket.transmissions.size
   end
 end

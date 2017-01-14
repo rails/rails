@@ -3,13 +3,12 @@ module ActionCable
     extend ActiveSupport::Autoload
 
     eager_autoload do
+      autoload :Authorization
       autoload :Base
-      autoload :ClientSocket
-      autoload :MessageBuffer
-      autoload :Stream
-      autoload :StreamEventLoop
-      autoload :TaggedLoggerProxy
-      autoload :WebSocket
+      autoload :Identification
+      autoload :InternalChannel
+      autoload :Streams
+      autoload :Subscriptions
     end
   end
 end

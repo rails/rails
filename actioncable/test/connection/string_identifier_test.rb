@@ -2,13 +2,13 @@ require "test_helper"
 require "stubs/test_server"
 
 class ActionCable::Connection::StringIdentifierTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Socket < ActionCable::Socket::Base
     def send_async(method, *args)
       send method, *args
     end
   end
 
-  class Client < ActionCable::Client::Base
+  class Connection < ActionCable::Connection::Base
     identified_by :current_token
 
     def connect
@@ -18,29 +18,29 @@ class ActionCable::Connection::StringIdentifierTest < ActionCable::TestCase
 
   test "connection identifier" do
     run_in_eventmachine do
-      open_connection_with_stubbed_pubsub
-      assert_equal "random-string", @client.identifier
+      open_socket_with_stubbed_pubsub
+      assert_equal "random-string", @connection.identifier
     end
   end
 
   private
-    def open_connection_with_stubbed_pubsub
-      @server = TestServer.new(connection_class: Client)
+    def open_socket_with_stubbed_pubsub
+      @server = TestServer.new(connection_class: Connection)
       @server.stubs(:pubsub).returns(stub_everything("pubsub"))
 
-      open_connection
+      open_socket
     end
 
-    def open_connection
+    def open_socket
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-      @connection = Connection.new(@server, env)
-      @client = @connection.client
+      @socket = Socket.new(@server, env)
+      @connection = @socket.connection
 
-      @connection.process
-      @connection.send :on_open
+      @socket.process
+      @socket.send :on_open
     end
 
-    def close_connection
-      @connection.send :on_close
+    def close_socket
+      @socket.send :on_close
     end
 end

@@ -58,7 +58,7 @@ module ActionCable
 
         def start_periodic_timers
           self.class.periodic_timers.each do |callback, options|
-            active_periodic_timers << client.start_periodic_timer(callback, every: options.fetch(:every))
+            active_periodic_timers << connection.start_periodic_timer(callback, every: options.fetch(:every))
           end
         end
 

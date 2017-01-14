@@ -1,9 +1,9 @@
 module ActionCable
-  module Client
+  module Connection
     # Collection class for all the client streams.
     class Streams
-      def initialize(connection)
-        @connection = connection
+      def initialize(socket)
+        @socket = socket
       end
       # Start streaming from broadcasting to the channel.
       # Optional callback can be probived to be invoked after successful subscription to the stream.
@@ -14,7 +14,7 @@ module ActionCable
 
         streams[channel_id] << [ broadcasting, worker_handler ]
 
-        connection.server.event_loop.post do
+        socket.server.event_loop.post do
           pubsub.subscribe(broadcasting, handler, callback)
         end
       end
@@ -28,9 +28,9 @@ module ActionCable
       end
 
       private
-        attr_reader :connection
+        attr_reader :socket
 
-        delegate :pubsub, to: :connection
+        delegate :pubsub, to: :socket
 
         def streams
           @_streams ||= {}
@@ -40,7 +40,7 @@ module ActionCable
         # worker pool rather than blocking the event loop.
         def worker_pool_stream_handler(handler)
           -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+            socket.worker_pool.async_invoke handler, :call, message, socket: socket
           end
         end
     end

@@ -1,13 +1,8 @@
 require "test_helper"
-require "stubs/test_connection"
 require "stubs/room"
 
 class ActionCable::Channel::BroadcastingTest < ActiveSupport::TestCase
   class ChatChannel < ActionCable::Channel::Base
-  end
-
-  setup do
-    @connection = TestConnection.new
   end
 
   test "broadcasts_to" do

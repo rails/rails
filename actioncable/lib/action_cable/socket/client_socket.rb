@@ -1,7 +1,7 @@
 require "websocket/driver"
 
 module ActionCable
-  module Connection
+  module Socket
     #--
     # This class is heavily based on faye-websocket-ruby
     #
@@ -49,7 +49,7 @@ module ActionCable
         @driver.on(:close)   { |e| begin_close(e.reason, e.code) }
         @driver.on(:error)   { |e| emit_error(e.message) }
 
-        @stream = ActionCable::Connection::Stream.new(@event_loop, self)
+        @stream = ActionCable::Socket::Stream.new(@event_loop, self)
       end
 
       def start_driver

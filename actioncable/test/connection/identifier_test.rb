@@ -3,10 +3,10 @@ require "stubs/test_server"
 require "stubs/user"
 
 class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+  class Socket < ActionCable::Socket::Base
   end
 
-  class Client < ActionCable::Client::Base
+  class Connection < ActionCable::Connection::Base
     identified_by :current_user
 
     public :process_internal_message
@@ -18,8 +18,8 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
 
   test "connection identifier" do
     run_in_eventmachine do
-      open_connection_with_stubbed_pubsub
-      assert_equal "User#lifo", @connection.client.identifier
+      open_socket_with_stubbed_pubsub
+      assert_equal "User#lifo", @socket.connection.identifier
     end
   end
 
@@ -29,50 +29,50 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
       pubsub.expects(:subscribe).with("action_cable/User#lifo", kind_of(Proc), kind_of(Proc))
       pubsub.expects(:unsubscribe).with("action_cable/User#lifo", kind_of(Proc))
 
-      server = TestServer.new(connection_class: Client)
+      server = TestServer.new(connection_class: Connection)
       server.stubs(:pubsub).returns(pubsub)
 
-      open_connection server: server
+      open_socket server: server
       close_connection
     end
   end
 
   test "processing disconnect message" do
     run_in_eventmachine do
-      open_connection_with_stubbed_pubsub
+      open_socket_with_stubbed_pubsub
 
-      @connection.expects(:close)
-      @client.process_internal_message "type" => "disconnect"
+      @socket.expects(:close)
+      @connection.process_internal_message "type" => "disconnect"
     end
   end
 
   test "processing invalid message" do
     run_in_eventmachine do
-      open_connection_with_stubbed_pubsub
+      open_socket_with_stubbed_pubsub
 
-      @connection.expects(:close).never
-      @client.process_internal_message "type" => "unknown"
+      @socket.expects(:close).never
+      @connection.process_internal_message "type" => "unknown"
     end
   end
 
   private
-    def open_connection_with_stubbed_pubsub
-      server = TestServer.new(connection_class: Client)
+    def open_socket_with_stubbed_pubsub
+      server = TestServer.new(connection_class: Connection)
       server.stubs(:adapter).returns(stub_everything("adapter"))
 
-      open_connection server: server
+      open_socket server: server
     end
 
-    def open_connection(server:)
+    def open_socket(server:)
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-      @connection = Connection.new(server, env)
-      @client = @connection.client
+      @socket = Socket.new(server, env)
+      @connection = @socket.connection
 
-      @connection.process
-      @connection.send :handle_open
+      @socket.process
+      @socket.send :handle_open
     end
 
     def close_connection
-      @connection.send :handle_close
+      @socket.send :handle_close
     end
 end

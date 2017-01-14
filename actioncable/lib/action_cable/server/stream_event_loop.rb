@@ -2,7 +2,7 @@ require "nio"
 require "thread"
 
 module ActionCable
-  module Connection
+  module Server
     class StreamEventLoop
       def initialize
         @nio = @executor = @thread = nil

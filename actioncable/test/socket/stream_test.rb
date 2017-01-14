@@ -1,11 +1,11 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Connection::StreamTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
-    attr_reader :connected, :websocket, :errors
+class ActionCable::Socket::StreamTest < ActionCable::TestCase
+  class Socket < ActionCable::Socket::Base
+    attr_reader :websocket, :errors
 
-    delegate :connected, to: :client
+    delegate :connected, to: :connection
 
     def initialize(*)
       super
@@ -29,30 +29,30 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
   [ EOFError, Errno::ECONNRESET ].each do |closed_exception|
     test "closes socket on #{closed_exception}" do
       run_in_eventmachine do
-        connection = open_connection
+        socket = open_socket
 
         # Internal hax = :(
-        client = connection.websocket.send(:websocket)
+        client = socket.websocket.send(:websocket)
         client.instance_variable_get("@stream").instance_variable_get("@rack_hijack_io").expects(:write).raises(closed_exception, "foo")
         client.expects(:client_gone)
 
         client.write("boo")
-        assert_equal [], connection.errors
+        assert_equal [], socket.errors
       end
     end
   end
 
   private
-    def open_connection
+    def open_socket
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
       env["rack.hijack"] = -> { env["rack.hijack_io"] = StringIO.new }
 
-      Connection.new(@server, env).tap do |connection|
-        connection.process
-        connection.send :handle_open
-        assert connection.connected
+      Socket.new(@server, env).tap do |socket|
+        socket.process
+        socket.send :handle_open
+        assert socket.connected
       end
     end
 end

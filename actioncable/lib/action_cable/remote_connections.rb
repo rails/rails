@@ -32,7 +32,7 @@ module ActionCable
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 
-        include Client::Identification, Client::InternalChannel
+        include Connection::Identification, Connection::InternalChannel
 
         def initialize(server, ids)
           @server = server

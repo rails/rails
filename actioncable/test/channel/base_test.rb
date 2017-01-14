@@ -1,5 +1,5 @@
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
@@ -73,8 +73,8 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   setup do
     @user = User.new "lifo"
-    @connection = TestConnection.new(@user)
-    @channel = ChatChannel.new @connection.client, "{id: 1}", id: 1
+    @socket = TestSocket.new(@user)
+    @channel = ChatChannel.new @socket.connection, "{id: 1}", id: 1
   end
 
   test "should subscribe to a channel" do
@@ -151,17 +151,17 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     @channel.perform_action "action" => :get_latest
 
     expected = { "identifier" => "{id: 1}", "message" => { "data" => "latest" } }
-    assert_equal expected, @connection.last_transmission
+    assert_equal expected, @socket.last_transmission
   end
 
   test "do not send subscription confirmation on initialize" do
-    assert_nil @connection.last_transmission
+    assert_nil @socket.last_transmission
   end
 
   test "subscription confirmation on subscribe_to_channel" do
     expected = { "identifier" => "{id: 1}", "type" => "confirm_subscription" }
     @channel.subscribe_to_channel
-    assert_equal expected, @connection.last_transmission
+    assert_equal expected, @socket.last_transmission
   end
 
   test "actions available on Channel" do
@@ -254,9 +254,9 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
 
   private
     def assert_logged(message)
-      old_logger = @connection.logger
+      old_logger = @socket.logger
       log = StringIO.new
-      @connection.instance_variable_set(:@logger, Logger.new(log))
+      @socket.instance_variable_set(:@logger, Logger.new(log))
 
       begin
         yield
@@ -264,7 +264,7 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
         log.rewind
         assert_match message, log.read
       ensure
-        @connection.instance_variable_set(:@logger, old_logger)
+        @socket.instance_variable_set(:@logger, old_logger)
       end
     end
 end

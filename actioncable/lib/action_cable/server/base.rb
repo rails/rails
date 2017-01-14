@@ -25,7 +25,7 @@ module ActionCable
       # Called by Rack to setup the server.
       def call(env)
         setup_heartbeat_timer
-        Connection::Base.new(self, env).process
+        Socket::Base.new(self, env).process
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
@@ -53,7 +53,7 @@ module ActionCable
       end
 
       def event_loop
-        @event_loop || @mutex.synchronize { @event_loop ||= ActionCable::Connection::StreamEventLoop.new }
+        @event_loop || @mutex.synchronize { @event_loop ||= StreamEventLoop.new }
       end
 
       # The worker pool is where we run connection callbacks and channel actions. We do as little as possible on the server's main thread.
