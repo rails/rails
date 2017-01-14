@@ -42,7 +42,7 @@ env:
     - "GEM=guides"
 
 rvm:
-  - 2.2.5
+  - 2.2.6
   - 2.3.1
   - 2.4.0
 
@@ -54,13 +54,13 @@ matrix:
         - "GEM=ar:mysql2"
       addons:
         mariadb: 10.0
-    - rvm: jruby-9.0.5.0
+    - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
   allow_failures:
-    - rvm: jruby-9.0.5.0
+    - rvm: jruby-9.1.7.0
   fast_finish: true
 
 notifications:
