@@ -166,14 +166,15 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
+    assert_equal 3, accounts.select("firm_id firm_id").count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     firm_id_attribute = Account.arel_table[:firm_id]
     assert_equal 3, accounts.count(firm_id_attribute)

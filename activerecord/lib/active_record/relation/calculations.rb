@@ -364,15 +364,14 @@ module ActiveRecord
       end
 
       def build_count_subquery(relation, column_name, distinct)
-        column_alias = Arel.sql("count_column")
         subquery_alias = Arel.sql("subquery_for_count")
 
-        aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
+        aliased_column = aggregate_column(column_name == :all ? "1" : column_name)
         relation.select_values = [aliased_column]
         subquery = relation.arel.as(subquery_alias)
 
         sm = Arel::SelectManager.new relation.engine
-        select_value = operation_over_aggregate_column(column_alias, "count", distinct)
+        select_value = operation_over_aggregate_column(Arel.star, "count", distinct)
         sm.project(select_value).from(subquery)
       end
   end
