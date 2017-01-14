@@ -377,7 +377,7 @@ In 2007 there was the first tailor-made trojan which stole information from an I
 
 Having one single place in the admin interface or Intranet, where the input has not been sanitized, makes the entire application vulnerable. Possible exploits include stealing the privileged administrator's cookie, injecting an iframe to steal the administrator's password or installing malicious software through browser security holes to take over the administrator's computer.
 
-Refer to the Injection section for countermeasures against XSS. It is _recommended to use the SafeErb plugin_ also in an Intranet or administration interface.
+Refer to the Injection section for countermeasures against XSS.
 
 **CSRF** Cross-Site Request Forgery (CSRF), also known as Cross-Site Reference Forgery (XSRF), is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 

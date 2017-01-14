@@ -28,6 +28,8 @@ module ActiveRecord
         predicate_builder.build_from_hash(queries)
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :predicate_builder
@@ -68,9 +70,6 @@ module ActiveRecord
           case value
           when Relation
             value.klass.base_class
-          when Array
-            val = value.compact.first
-            val.class.base_class if val.is_a?(Base)
           when Base
             value.class.base_class
           end

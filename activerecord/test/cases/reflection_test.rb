@@ -86,8 +86,8 @@ class ReflectionTest < ActiveRecord::TestCase
     column = @first.column_for_attribute("attribute_that_doesnt_exist")
     assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
     assert_equal "attribute_that_doesnt_exist", column.name
-    assert_equal nil, column.sql_type
-    assert_equal nil, column.type
+    assert_nil column.sql_type
+    assert_nil column.type
   end
 
   def test_non_existent_types_are_identity_types
@@ -100,7 +100,13 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_for_nested_class_name
-    reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, { class_name: "MyApplication::Business::Company" }, ActiveRecord::Base)
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      nil,
+      nil,
+      { class_name: "MyApplication::Business::Company" },
+      Customer
+    )
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
@@ -396,6 +402,12 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_symbol_for_class_name
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
+  end
+
+  def test_class_for_class_name
+    assert_deprecated do
+      assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm), :validate?
+    end
   end
 
   def test_join_table

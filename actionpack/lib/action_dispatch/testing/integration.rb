@@ -69,7 +69,7 @@ module ActionDispatch
       DEFAULT_HOST = "www.example.com"
 
       include Minitest::Assertions
-      include RequestHelpers, Assertions
+      include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
         delegate method, to: :response, allow_nil: true
@@ -145,8 +145,8 @@ module ActionDispatch
 
         self.host        = DEFAULT_HOST
         self.remote_addr = "127.0.0.1"
-        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
-                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
+        self.accept      = "text/xml,application/xml,application/xhtml+xml," \
+                           "text/html;q=0.9,text/plain;q=0.8,image/png," \
                            "*/*;q=0.5"
 
         unless defined? @named_routes_configured
@@ -211,7 +211,7 @@ module ActionDispatch
         end
 
         if path =~ %r{://}
-          path = build_expanded_path(path, request_encoder) do |location|
+          path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
             if url_host = location.host
@@ -220,8 +220,6 @@ module ActionDispatch
               host! url_host
             end
           end
-        elsif as
-          path = build_expanded_path(path, request_encoder)
         end
 
         hostname, port = host.split(":")
@@ -239,7 +237,7 @@ module ActionDispatch
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
           "CONTENT_TYPE"   => request_encoder.content_type,
-          "HTTP_ACCEPT"    => accept
+          "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
         wrapped_headers = Http::Headers.from_hash({})
@@ -291,10 +289,10 @@ module ActionDispatch
           "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
         end
 
-        def build_expanded_path(path, request_encoder)
+        def build_expanded_path(path)
           location = URI.parse(path)
           yield location if block_given?
-          path = request_encoder.append_format_to location.path
+          path = location.path
           location.query ? "#{path}?#{location.query}" : path
         end
     end
@@ -579,13 +577,15 @@ module ActionDispatch
   #     end
   #   end
   #
-  # The +as+ option sets the format to JSON, sets the content type to
+  # The +as+ option passes an "application/json" Accept header (thereby setting
+  # the request format to JSON unless overridden), sets the content type to
   # "application/json" and encodes the parameters as JSON.
   #
   # Calling +parsed_body+ on the response parses the response body based on the
   # last response MIME type.
   #
-  # For any custom MIME types you've registered, you can even add your own encoders with:
+  # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
+  # types you've registered, you can add your own encoders with:
   #
   #   ActionDispatch::IntegrationTest.register_encoder :wibble,
   #     param_encoder: -> params { params.to_wibble },
@@ -598,7 +598,7 @@ module ActionDispatch
   # Consult the Rails Testing Guide for more.
 
   class IntegrationTest < ActiveSupport::TestCase
-    include TestProcess
+    include TestProcess::FixtureFile
 
     module UrlOptions
       extend ActiveSupport::Concern

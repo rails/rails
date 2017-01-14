@@ -89,7 +89,7 @@ module ActionController
         end
 
         secure_url = ActionDispatch::Http::URL.url_for(options.slice(*URL_OPTIONS))
-        flash.keep if respond_to?(:flash)
+        flash.keep if respond_to?(:flash) && request.respond_to?(:flash)
         redirect_to secure_url, options.slice(*REDIRECT_OPTIONS)
       end
     end

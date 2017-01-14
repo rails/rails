@@ -19,7 +19,7 @@ module Rails # :nodoc:
         template "job.rb", File.join("app/jobs", class_path, "#{file_name}_job.rb")
 
         in_root do
-          if self.behavior == :invoke && !File.exist?(application_job_file_name)
+          if behavior == :invoke && !File.exist?(application_job_file_name)
             template "application_job.rb", application_job_file_name
           end
         end

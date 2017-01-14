@@ -449,6 +449,51 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   end
 end
 
+class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
+  class TopicWithHistory < ActiveRecord::Base
+    self.table_name = :topics
+
+    def self.clear_history
+      @@history = []
+    end
+
+    def self.history
+      @@history ||= []
+    end
+  end
+
+  class TopicWithCallbacksOnDestroy < TopicWithHistory
+    after_commit(on: :destroy) { |record| record.class.history << :destroy }
+  end
+
+  class TopicWithCallbacksOnUpdate < TopicWithHistory
+    after_commit(on: :update) { |record| record.class.history << :update }
+  end
+
+  def test_trigger_once_on_multiple_deletions
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
+    topic.destroy
+    topic_clone.destroy
+
+    assert_equal [:destroy], TopicWithCallbacksOnDestroy.history
+  end
+
+  def test_trigger_on_update_where_row_was_deleted
+    TopicWithCallbacksOnUpdate.clear_history
+    topic = TopicWithCallbacksOnUpdate.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnUpdate.find(topic.id)
+    topic.destroy
+    topic_clone.author_name = "Test Author"
+    topic_clone.save
+
+    assert_equal [], TopicWithCallbacksOnUpdate.history
+  end
+end
+
 class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
   class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
     self.table_name = :topics

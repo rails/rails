@@ -145,7 +145,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
         name.to_s == "foo" ? "pass" : super
       end
     end
-    @test.class.superclass.__send__(:include, mixin)
+    @test.class.superclass.include(mixin)
     begin
       assert_equal "pass", @test.foo
     ensure
@@ -269,8 +269,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
-      self.cookies["cookie_1"] = "sugar"
-      self.cookies["cookie_2"] = "oatmeal"
+      cookies["cookie_1"] = "sugar"
+      cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
@@ -289,7 +289,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -930,6 +930,10 @@ end
 
 class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
+    def foos
+      render plain: "ok"
+    end
+
     def foos_json
       render json: params.permit(:foo)
     end
@@ -958,10 +962,27 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success
-      assert_match "foos_json.json", request.path
       assert_equal "application/json", request.content_type
+      assert_equal "application/json", request.accepts.first.to_s
+      assert_equal :json, request.format.ref
       assert_equal({ "foo" => "fighters" }, request.request_parameters)
       assert_equal({ "foo" => "fighters" }, response.parsed_body)
+    end
+  end
+
+  def test_doesnt_mangle_request_path
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          post ":action" => FooController
+        end
+      end
+
+      post "/foos"
+      assert_equal "/foos", request.path
+
+      post "/foos_json", as: :json
+      assert_equal "/foos_json", request.path
     end
   end
 
@@ -979,8 +1000,10 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
     post_to_foos as: :wibble do
       assert_response :success
-      assert_match "foos_wibble.wibble", request.path
+      assert_equal "/foos_wibble", request.path
       assert_equal "text/wibble", request.content_type
+      assert_equal "text/wibble", request.accepts.first.to_s
+      assert_equal :wibble, request.format.ref
       assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
       assert_equal "ok", response.parsed_body
     end

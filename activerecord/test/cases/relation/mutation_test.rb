@@ -3,7 +3,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    class FakeKlass < Struct.new(:table_name, :name)
+    FakeKlass = Struct.new(:table_name, :name) do
       extend ActiveRecord::Delegation::DelegateCache
       inherited self
 
@@ -90,7 +90,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :uniq]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -108,7 +108,7 @@ module ActiveRecord
     end
 
     test "#reorder!" do
-      @relation = self.relation.order("foo")
+      @relation = relation.order("foo")
 
       assert relation.reorder!("bar").equal?(relation)
       assert_equal ["bar"], relation.order_values
@@ -160,22 +160,6 @@ module ActiveRecord
 
     test "distinct!" do
       relation.distinct! :foo
-      assert_equal :foo, relation.distinct_value
-
-      assert_deprecated do
-        assert_equal :foo, relation.uniq_value # deprecated access
-      end
-    end
-
-    test "uniq! was replaced by distinct!" do
-      assert_deprecated(/use distinct! instead/) do
-        relation.uniq! :foo
-      end
-
-      assert_deprecated(/use distinct_value instead/) do
-        assert_equal :foo, relation.uniq_value # deprecated access
-      end
-
       assert_equal :foo, relation.distinct_value
     end
   end

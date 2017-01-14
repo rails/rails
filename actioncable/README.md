@@ -51,7 +51,7 @@ module ApplicationCable
       self.current_user = find_verified_user
     end
 
-    protected
+    private
       def find_verified_user
         if current_user = User.find_by(id: cookies.signed[:user_id])
           current_user
@@ -535,6 +535,15 @@ cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
 cable.subscriptions.create 'AppearanceChannel',
     # normal channel code goes here...
 ```
+
+## Download and Installation
+
+The latest version of Action Cable can be installed with [RubyGems](#gem-usage),
+or with [npm](#npm-usage).
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actioncable
 
 ## License
 

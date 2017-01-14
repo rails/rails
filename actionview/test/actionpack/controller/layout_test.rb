@@ -252,7 +252,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
+unless Gem.win_platform?
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

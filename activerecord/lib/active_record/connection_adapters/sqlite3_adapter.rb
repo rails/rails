@@ -3,6 +3,8 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/schema_creation"
+require "active_record/connection_adapters/sqlite3/schema_definitions"
+require "active_record/connection_adapters/sqlite3/schema_dumper"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -52,6 +54,7 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
+      include SQLite3::ColumnDumper
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -73,6 +76,10 @@ module ActiveRecord
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
+      end
+
+      def update_table_definition(table_name, base) # :nodoc:
+        SQLite3::Table.new(table_name, base)
       end
 
       def schema_creation # :nodoc:
@@ -252,47 +259,34 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = nil) # :nodoc:
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #tables currently returns both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
-          Use #data_sources instead.
-        MSG
-
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing arguments to #tables is deprecated without replacement.
-          MSG
-        end
-
-        data_sources
+      def tables # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def data_sources
+      def data_sources # :nodoc:
         select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def table_exists?(table_name)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #table_exists? currently checks both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
-          Use #data_source_exists? instead.
-        MSG
-
-        data_source_exists?(table_name)
+      def views # :nodoc:
+        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
-      def data_source_exists?(table_name)
+      def table_exists?(table_name) # :nodoc:
+        return false unless table_name.present?
+
+        sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'"
+        sql << " AND name = #{quote(table_name)}"
+
+        select_values(sql, "SCHEMA").any?
+      end
+
+      def data_source_exists?(table_name) # :nodoc:
         return false unless table_name.present?
 
         sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
         sql << " AND name = #{quote(table_name)}"
 
         select_values(sql, "SCHEMA").any?
-      end
-
-      def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
@@ -322,6 +316,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
           sql = <<-SQL
             SELECT sql
@@ -424,16 +424,16 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
+      private
 
-        def table_structure(table_name) # :nodoc:
+        def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
 
-        def alter_table(table_name, options = {}) #:nodoc:
+        def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
           caller = lambda { |definition| yield definition if block_given? }
 
@@ -444,12 +444,12 @@ module ActiveRecord
           end
         end
 
-        def move_table(from, to, options = {}, &block) #:nodoc:
+        def move_table(from, to, options = {}, &block)
           copy_table(from, to, options, &block)
           drop_table(from)
         end
 
-        def copy_table(from, to, options = {}) #:nodoc:
+        def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
           create_table(to, options) do |definition|
@@ -475,7 +475,7 @@ module ActiveRecord
             options[:rename] || {})
         end
 
-        def copy_table_indexes(from, to, rename = {}) #:nodoc:
+        def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
             if to == "a#{from}"
@@ -498,7 +498,7 @@ module ActiveRecord
           end
         end
 
-        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
+        def copy_table_contents(from, to, columns, rename = {})
           column_mappings = Hash[columns.map { |name| [name, name] }]
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
@@ -523,12 +523,13 @@ module ActiveRecord
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message)
+          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+            NotNullViolation.new(message)
           else
             super
           end
         end
 
-      private
         COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
 
         def table_structure_with_collation(table_name, basic_structure)
@@ -568,6 +569,10 @@ module ActiveRecord
           else
             basic_structure.to_hash
           end
+        end
+
+        def create_table_definition(*args)
+          SQLite3::TableDefinition.new(*args)
         end
     end
   end

@@ -10,7 +10,6 @@ cache:
 services:
   - memcached
   - redis
-  - rabbitmq
 
 addons:
   postgresql: "9.4"
@@ -23,8 +22,6 @@ before_install:
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
 
 before_script:
-  - bundle update
-
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
   # Decodes to e.g. `export VARIABLE=VALUE`
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
@@ -37,41 +34,58 @@ env:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
     - "GEM=railties"
-    - "GEM=ap"
-    - "GEM=ac"
-    - "GEM=ac:integration"
+    - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
-    - "GEM=aj:integration"
     - "GEM=guides"
+    - "GEM=ac:integration"
 
 rvm:
   - 2.2.6
-  - 2.3.2
+  - 2.3.3
+  - 2.4.0
   - ruby-head
 
 matrix:
   include:
-    # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.2
+    - rvm: 2.2.6
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis
+        - rabbitmq
+    - rvm: 2.3.3
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis
+        - rabbitmq
+    - rvm: ruby-head
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis
+        - rabbitmq
+    - rvm: 2.3.3
       env:
-        - "GEM=ar:mysql2"
+        - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
-    - rvm: jruby-9.1.5.0
+    - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.5.0
+    - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
         - "GEM=am,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.5.0
+    - rvm: jruby-9.1.7.0
+    - env: "GEM=ac:integration"
   fast_finish: true
 
 notifications:

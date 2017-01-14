@@ -321,7 +321,7 @@ module ActiveRecord
         end
     end
 
-    # Holds all the meta-data about an aggregation as it was specified in the
+    # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def mapping
@@ -330,7 +330,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about an association as it was specified in the
+    # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       # Returns the target association's class.
@@ -364,6 +364,17 @@ module ActiveRecord
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = {}
         @scope_lock = Mutex.new
+
+        if options[:class_name] && options[:class_name].class == Class
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a class to the `class_name` is deprecated and will raise
+            an ArgumentError in Rails 5.2. It eagerloads more classes than
+            necessary and potentially creates circular dependencies.
+
+            Please pass the class name as a string:
+            `#{macro} :#{name}, class_name: '#{options[:class_name]}'`
+          MSG
+        end
       end
 
       def association_scope_cache(conn, owner)
@@ -395,6 +406,10 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         options[:primary_key] || primary_key(klass || self.klass)
+      end
+
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
       end
 
       def active_record_primary_key
@@ -694,7 +709,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about a :through association as it was specified
+    # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection
@@ -846,6 +861,10 @@ module ActiveRecord
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
+      def association_primary_key_type
+        klass.type_for_attribute(association_primary_key)
+      end
+
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
       #   class Post < ActiveRecord::Base
@@ -870,15 +889,13 @@ module ActiveRecord
         }
 
         if names.length > 1
-          example_options = options.dup
-          example_options[:source] = source_reflection_names.first
-          ActiveSupport::Deprecation.warn \
-            "Ambiguous source reflection for through association. Please " \
-            "specify a :source directive on your declaration like:\n" \
-            "\n" \
-            "  class #{active_record.name} < ActiveRecord::Base\n" \
-            "    #{macro} :#{name}, #{example_options}\n" \
-            "  end"
+          raise AmbiguousSourceReflectionForThroughAssociation.new(
+            active_record.name,
+            macro,
+            name,
+            options,
+            source_reflection_names
+          )
         end
 
         @source_reflection_name = names.first
@@ -925,6 +942,14 @@ module ActiveRecord
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
+        if parent_reflection.nil?
+          reflections = active_record.reflections.keys.map(&:to_sym)
+
+          if reflections.index(through_reflection.name) > reflections.index(name)
+            raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)
+          end
+        end
+
         check_validity_of_inverse!
       end
 
@@ -955,8 +980,7 @@ module ActiveRecord
         end
       end
 
-      protected
-
+      private
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.send(:actual_source_reflection)
         end
@@ -967,7 +991,6 @@ module ActiveRecord
 
         def inverse_name; delegate_reflection.send(:inverse_name); end
 
-      private
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name

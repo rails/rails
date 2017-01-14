@@ -1,4 +1,5 @@
 require "active_support/per_thread_registry"
+require "active_support/notifications"
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
@@ -51,11 +52,15 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
       attr_reader :subscriber, :notifier, :namespace
 
-      def add_event_subscriber(event)
+      private
+
+      def add_event_subscriber(event) # :doc:
         return if %w{ start finish }.include?(event.to_s)
 
         pattern = "#{event}.#{namespace}"

@@ -39,7 +39,7 @@ module ActiveRecord
       self.emulate_booleans = true
 
       NATIVE_DATABASE_TYPES = {
-        primary_key: "int auto_increment PRIMARY KEY",
+        primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
@@ -67,8 +67,8 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < "5.0.0"
-          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
+        if version < "5.1.10"
+          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.1.10."
         end
       end
 
@@ -310,45 +310,36 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def tables(name = nil) # :nodoc:
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #tables currently returns both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only return tables.
-          Use #data_sources instead.
-        MSG
+      def tables # :nodoc:
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
+        sql << " AND table_schema = #{quote(@config[:database])}"
 
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing arguments to #tables is deprecated without replacement.
-          MSG
-        end
-
-        data_sources
+        select_values(sql, "SCHEMA")
       end
 
-      def data_sources
+      def views # :nodoc:
+        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
+      end
+
+      def data_sources # :nodoc:
         sql = "SELECT table_name FROM information_schema.tables "
         sql << "WHERE table_schema = #{quote(@config[:database])}"
 
         select_values(sql, "SCHEMA")
       end
 
-      def truncate(table_name, name = nil)
-        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      def table_exists?(table_name) # :nodoc:
+        return false unless table_name.present?
+
+        schema, name = extract_schema_qualified_name(table_name)
+
+        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
+        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+
+        select_values(sql, "SCHEMA").any?
       end
 
-      def table_exists?(table_name)
-        # Update lib/active_record/internal_metadata.rb when this gets removed
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          #table_exists? currently checks both tables and views.
-          This behavior is deprecated and will be changed with Rails 5.1 to only check tables.
-          Use #data_source_exists? instead.
-        MSG
-
-        data_source_exists?(table_name)
-      end
-
-      def data_source_exists?(table_name)
+      def data_source_exists?(table_name) # :nodoc:
         return false unless table_name.present?
 
         schema, name = extract_schema_qualified_name(table_name)
@@ -357,10 +348,6 @@ module ActiveRecord
         sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
 
         select_values(sql, "SCHEMA").any?
-      end
-
-      def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
       end
 
       def view_exists?(view_name) # :nodoc:
@@ -374,8 +361,18 @@ module ActiveRecord
         select_values(sql, "SCHEMA").any?
       end
 
+      def truncate(table_name, name = nil)
+        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      end
+
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         indexes = []
         current_index = nil
         execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
@@ -530,6 +527,7 @@ module ActiveRecord
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{quote(schema)}
             AND fk.table_name = #{quote(name)}
+            AND rc.table_name = #{quote(name)}
         SQL
 
         fk_info.map do |row|
@@ -649,9 +647,9 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
-      protected
+      private
 
-        def initialize_type_map(m) # :nodoc:
+        def initialize_type_map(m)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
@@ -691,9 +689,9 @@ module ActiveRecord
           end
         end
 
-        def register_integer_type(mapping, key, options) # :nodoc:
+        def register_integer_type(mapping, key, options)
           mapping.register_type(key) do |sql_type|
-            if /\bunsigned\z/.match?(sql_type)
+            if /\bunsigned\b/.match?(sql_type)
               Type::UnsignedInteger.new(options)
             else
               Type::Integer.new(options)
@@ -717,6 +715,7 @@ module ActiveRecord
           if length = options[:length]
             case length
             when Hash
+              length = length.symbolize_keys
               quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
             when Integer
               quoted_columns.each { |name, column| column << "(#{length})" }
@@ -733,9 +732,14 @@ module ActiveRecord
 
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
+        ER_NOT_NULL_VIOLATION   = 1048
+        ER_DO_NOT_HAVE_DEFAULT  = 1364
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
+        ER_OUT_OF_RANGE         = 1264
         ER_LOCK_DEADLOCK        = 1213
+        ER_CANNOT_ADD_FOREIGN   = 1215
+        ER_CANNOT_CREATE_TABLE  = 1005
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -743,8 +747,20 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
+          when ER_CANNOT_ADD_FOREIGN
+            mismatched_foreign_key(message)
+          when ER_CANNOT_CREATE_TABLE
+            if message.include?("errno: 150")
+              mismatched_foreign_key(message)
+            else
+              super
+            end
           when ER_DATA_TOO_LONG
             ValueTooLong.new(message)
+          when ER_OUT_OF_RANGE
+            RangeError.new(message)
+          when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
+            NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           else
@@ -767,6 +783,10 @@ module ActiveRecord
 
           unless options.has_key?(:null)
             options[:null] = column.null
+          end
+
+          unless options.key?(:comment)
+            options[:comment] = column.comment
           end
 
           td = create_table_definition(table_name)
@@ -814,8 +834,6 @@ module ActiveRecord
         def remove_timestamps_sql(table_name, options = {})
           [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
         end
-
-      private
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery. Ugh!
@@ -886,7 +904,7 @@ module ActiveRecord
           end.compact.join(", ")
 
           # ...and send them all in one query
-          @connection.query "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
+          execute "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}"
         end
 
         def column_definitions(table_name) # :nodoc:
@@ -908,6 +926,18 @@ module ActiveRecord
 
         def create_table_definition(*args) # :nodoc:
           MySQL::TableDefinition.new(*args)
+        end
+
+        def mismatched_foreign_key(message)
+          parts = message.scan(/`(\w+)`[ $)]/).flatten
+          MismatchedForeignKey.new(
+            self,
+            message: message,
+            table: parts[0],
+            foreign_key: parts[1],
+            target_table: parts[2],
+            primary_key: parts[3],
+          )
         end
 
         def extract_schema_qualified_name(string) # :nodoc:

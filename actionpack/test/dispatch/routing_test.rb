@@ -1603,7 +1603,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "account/login", to: redirect("/login")
     end
 
-    previous_host, self.host = self.host, "www.example.com:3000"
+    previous_host, self.host = host, "www.example.com:3000"
 
     get "/account/login"
     verify_redirect "http://www.example.com:3000/login"
@@ -4189,7 +4189,7 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
 
   test "parameters are reset between constraint checks" do
     get "/bar"
-    assert_equal nil, @request.params[:foo]
+    assert_nil @request.params[:foo]
     assert_equal "bar", @request.params[:bar]
   end
 end

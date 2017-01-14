@@ -239,11 +239,11 @@ module Rails
         end
       end
 
-      protected
+      private
 
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
-        def class_collisions(*class_names) #:nodoc:
+        def class_collisions(*class_names)
           return unless behavior == :invoke
 
           class_names.flatten.each do |class_name|
@@ -256,15 +256,15 @@ module Rails
             last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
-              raise Error, "The name '#{class_name}' is either already used in your application " <<
-                           "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
+              raise Error, "The name '#{class_name}' is either already used in your application " \
+                           "or reserved by Ruby on Rails. Please choose an alternative and run "  \
                            "this generator again."
             end
           end
         end
 
         # Takes in an array of nested modules and extracts the last module
-        def extract_last_module(nesting)
+        def extract_last_module(nesting) # :doc:
           nesting.inject(Object) do |last_module, nest|
             break unless last_module.const_defined?(nest, false)
             last_module.const_get(nest)
@@ -272,12 +272,12 @@ module Rails
         end
 
         # Use Rails default banner.
-        def self.banner
+        def self.banner # :doc:
           "rails generate #{namespace.sub(/^rails:/, '')} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end
 
         # Sets the base_name taking into account the current class namespace.
-        def self.base_name
+        def self.base_name # :doc:
           @base_name ||= begin
             if base = name.to_s.split("::").first
               base.underscore
@@ -287,7 +287,7 @@ module Rails
 
         # Removes the namespaces and get the generator name. For example,
         # Rails::Generators::ModelGenerator will return "model" as generator name.
-        def self.generator_name
+        def self.generator_name # :doc:
           @generator_name ||= begin
             if generator = name.to_s.split("::").last
               generator.sub!(/Generator$/, "")
@@ -298,18 +298,18 @@ module Rails
 
         # Returns the default value for the option name given doing a lookup in
         # Rails::Generators.options.
-        def self.default_value_for_option(name, options)
+        def self.default_value_for_option(name, options) # :doc:
           default_for_option(Rails::Generators.options, name, options, options[:default])
         end
 
         # Returns default aliases for the option name given doing a lookup in
         # Rails::Generators.aliases.
-        def self.default_aliases_for_option(name, options)
+        def self.default_aliases_for_option(name, options) # :doc:
           default_for_option(Rails::Generators.aliases, name, options, options[:aliases])
         end
 
         # Returns default for the option name given doing a lookup in config.
-        def self.default_for_option(config, name, options, default)
+        def self.default_for_option(config, name, options, default) # :doc:
           if generator_name && (c = config[generator_name.to_sym]) && c.key?(name)
             c[name]
           elsif base_name && (c = config[base_name.to_sym]) && c.key?(name)
@@ -331,7 +331,7 @@ module Rails
         def self.prepare_for_invocation(name, value) #:nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
-          if value && constants = self.hooks[name]
+          if value && constants = hooks[name]
             value = name if TrueClass === value
             Rails::Generators.find_by_namespace(value, *constants)
           elsif klass = Rails::Generators.find_by_namespace(value)
@@ -343,7 +343,7 @@ module Rails
 
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
-        def self.add_shebang_option!
+        def self.add_shebang_option! # :doc:
           class_option :ruby, type: :string, aliases: "-r", default: Thor::Util.ruby_command,
                               desc: "Path to the Ruby binary of your choice", banner: "PATH"
 
@@ -361,7 +361,7 @@ module Rails
           }
         end
 
-        def self.usage_path
+        def self.usage_path # :doc:
           paths = [
             source_root && File.expand_path("../USAGE", source_root),
             default_generator_root && File.join(default_generator_root, "USAGE")
@@ -369,7 +369,7 @@ module Rails
           paths.compact.detect { |path| File.exist? path }
         end
 
-        def self.default_generator_root
+        def self.default_generator_root # :doc:
           path = File.expand_path(File.join(base_name, generator_name), base_root)
           path if File.exist?(path)
         end

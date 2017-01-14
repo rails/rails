@@ -181,7 +181,11 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
       destroy_associations
       self.class.connection.add_transaction_record(self)
-      destroy_row if persisted?
+      @_trigger_destroy_callback = if persisted?
+        destroy_row > 0
+      else
+        true
+      end
       @destroyed = true
       freeze
     end
@@ -334,10 +338,10 @@ module ActiveRecord
       self
     end
 
-    # Wrapper around #increment that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # Wrapper around #increment that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Returns +self+.
     def increment!(attribute, by = 1)
       increment(attribute, by)
       change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
@@ -353,10 +357,10 @@ module ActiveRecord
       increment(attribute, -by)
     end
 
-    # Wrapper around #decrement that saves the record. This method differs from
-    # its non-bang version in the sense that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
+    # Wrapper around #decrement that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Returns +self+.
     def decrement!(attribute, by = 1)
       increment!(attribute, -by)
     end
@@ -388,8 +392,8 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method finds record by its primary key (which could be assigned manually) and
-    # modifies the receiver in-place:
+    # This method finds the record by its primary key (which could be assigned
+    # manually) and modifies the receiver in-place:
     #
     #   account = Account.new
     #   # => #<Account id: nil, email: nil>
@@ -519,6 +523,7 @@ module ActiveRecord
           raise ActiveRecord::StaleObjectError.new(self, "touch")
         end
 
+        @_trigger_update_callback = result
         result
       else
         true
@@ -550,10 +555,13 @@ module ActiveRecord
     def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        0
+        rows_affected = 0
+        @_trigger_update_callback = true
       else
-        self.class.unscoped._update_record attributes_values, id, id_in_database
+        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        @_trigger_update_callback = rows_affected > 0
       end
+      rows_affected
     end
 
     # Creates a record with values matching those of the instance attributes

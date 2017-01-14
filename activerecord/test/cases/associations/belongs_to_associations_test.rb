@@ -291,6 +291,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert client.account.new_record?
   end
 
+  def test_reloading_the_belonging_object
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_equal "ODEGY", odegy_account.reload_firm.name
+  end
+
   def test_natural_assignment_to_nil
     client = Client.find(3)
     client.firm = nil
@@ -1047,7 +1057,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.parent = nil
     comment.save!
 
-    assert_equal nil, comment.reload.parent
+    assert_nil comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
   end
 
@@ -1060,6 +1070,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     comment.save!
     assert_equal 1, parent.reload.children_count
+  end
+
+  def test_belongs_to_with_out_of_range_value_assigning
+    model = Class.new(Comment) do
+      def self.name; "Temp"; end
+      validates :post, presence: true
+    end
+
+    comment = model.new
+    comment.post_id = 9223372036854775808 # out of range in the bigint
+
+    assert_nil comment.post
+    assert_not comment.valid?
+    assert_equal [{ error: :blank }], comment.errors.details[:post]
   end
 
   def test_polymorphic_with_custom_primary_key
@@ -1106,12 +1130,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    client = Client.find(3)
-
-    assert_deprecated { client.firm(true) }
   end
 end
 

@@ -56,7 +56,7 @@ module ActiveRecord
       private
 
         def default_primary_key?(column)
-          schema_type(column) == :integer
+          schema_type(column) == :bigint
         end
 
         def schema_type(column)

@@ -21,6 +21,16 @@ TestHelpers.consumerTest = (name, options = {}, callback) ->
       assert.equal clients.length, 1
       assert.equal clients[0].readyState, WebSocket.OPEN
 
+    server.broadcastTo = (subscription, data = {}, callback) ->
+      data.identifier = subscription.identifier
+
+      if data.message_type
+        data.type = ActionCable.INTERNAL.message_types[data.message_type]
+        delete data.message_type
+
+      server.send(JSON.stringify(data))
+      TestHelpers.defer(callback)
+
     done = ->
       consumer.disconnect()
       server.close()

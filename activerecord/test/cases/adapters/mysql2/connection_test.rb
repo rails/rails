@@ -66,9 +66,10 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    assert_raise(ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
+    assert_kind_of Mysql2::Error, error.cause
   end
 
   def test_quote_after_disconnect
@@ -186,7 +187,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  protected
+  private
 
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1

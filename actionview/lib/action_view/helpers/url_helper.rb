@@ -35,7 +35,7 @@ module ActionView
         when :back
           _back_url
         else
-          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " +
+          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " \
                                "routes or provide your own implementation"
         end
       end
@@ -105,10 +105,9 @@ module ActionView
       #   driver to prompt with the question specified (in this case, the
       #   resulting text would be <tt>question?</tt>. If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
-      #   used as the value for a disabled version of the submit
-      #   button when the form is submitted. This feature is provided
-      #   by the unobtrusive JavaScript driver.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      #   name for a disabled version of the link. This feature is provided by
+      #   the unobtrusive JavaScript driver.
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
@@ -518,6 +517,9 @@ module ActionView
       #   current_page?('http://www.example.com/shop/checkout')
       #   # => true
       #
+      #   current_page?('http://www.example.com/shop/checkout', check_parameters: true)
+      #   # => false
+      #
       #   current_page?('/shop/checkout')
       #   # => true
       #
@@ -531,7 +533,7 @@ module ActionView
       #
       # We can also pass in the symbol arguments instead of strings.
       #
-      def current_page?(options)
+      def current_page?(options, check_parameters: false)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
@@ -540,12 +542,14 @@ module ActionView
 
         return false unless request.get? || request.head?
 
+        check_parameters ||= !options.is_a?(String) && options.try(:delete, :check_parameters)
         url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
-        request_uri = url_string.index("?") ? request.fullpath : request.path
+        # the behaviour can be disabled with check_parameters: true
+        request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
@@ -615,7 +619,7 @@ module ActionView
         #
         #   to_form_params({ name: 'Denmark' }, 'country')
         #   # => [{name: 'country[name]', value: 'Denmark'}]
-        def to_form_params(attribute, namespace = nil) # :nodoc:
+        def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
             unless attribute.permitted?
               raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \

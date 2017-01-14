@@ -5,7 +5,7 @@ module ActiveRecord
         delegate :extra, to: :sql_type_metadata, allow_nil: true
 
         def unsigned?
-          /\bunsigned\z/.match?(sql_type)
+          /\bunsigned(?: zerofill)?\z/.match?(sql_type)
         end
 
         def case_sensitive?

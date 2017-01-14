@@ -260,7 +260,7 @@ module ActiveRecord
       end
 
       def act_on_ignored_order(error_on_ignore)
-        raise_error = (error_on_ignore.nil? ? self.klass.error_on_ignored_order : error_on_ignore)
+        raise_error = (error_on_ignore.nil? ? klass.error_on_ignored_order : error_on_ignore)
 
         if raise_error
           raise ArgumentError.new(ORDER_IGNORE_MESSAGE)

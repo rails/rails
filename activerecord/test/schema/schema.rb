@@ -54,7 +54,7 @@ ActiveRecord::Schema.define do
 
   create_table :authors, force: true do |t|
     t.string :name, null: false
-    t.integer :author_address_id
+    t.bigint :author_address_id
     t.integer :author_address_extra_id
     t.string :organization_id
     t.string :owned_essay_id
@@ -124,6 +124,9 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
+  end
+
+  create_table :old_cars, id: :integer, force: true do |t|
   end
 
   create_table :carriers, force: true
@@ -303,7 +306,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :engines, force: true do |t|
-    t.integer :car_id
+    t.bigint :car_id
   end
 
   create_table :entrants, force: true do |t|
@@ -571,6 +574,7 @@ ActiveRecord::Schema.define do
     t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
+    t.column :updated_count, :integer, default: 0
     if subsecond_precision_supported?
       t.column :created_at, :datetime, precision: 0
       t.column :created_on, :datetime, precision: 0
@@ -1004,7 +1008,7 @@ ActiveRecord::Schema.define do
   if supports_foreign_keys?
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, force: true do |t|
-      t.integer :fk_id, null: false
+      t.bigint :fk_id, null: false
     end
 
     create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
@@ -1047,3 +1051,5 @@ Professor.connection.create_table :courses_professors, id: false, force: true do
   t.references :course
   t.references :professor
 end
+
+OtherDog.connection.create_table :dogs, force: true

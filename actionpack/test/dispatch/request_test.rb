@@ -18,7 +18,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     ActionDispatch::Http::URL.url_for(options)
   end
 
-  protected
+  private
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
@@ -94,13 +94,13 @@ class RequestIP < BaseRequestTest
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,192.168.0.1"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 172.31.4.4, 10.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
   end
 
   test "remote ip spoof detection" do
@@ -154,7 +154,7 @@ class RequestIP < BaseRequestTest
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,::1"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::, fc01::, fdff"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
@@ -163,7 +163,7 @@ class RequestIP < BaseRequestTest
     assert_equal "FE00::", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
   end
 
   test "remote ip v6 spoof detection" do
@@ -200,7 +200,7 @@ class RequestIP < BaseRequestTest
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "67.205.106.73,unknown"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73"
     assert_equal "3.4.5.6", request.remote_ip
@@ -222,7 +222,7 @@ class RequestIP < BaseRequestTest
     assert_equal "::1", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
-    assert_equal nil, request.remote_ip
+    assert_nil request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
@@ -345,7 +345,7 @@ class RequestPort < BaseRequestTest
 
   test "optional port" do
     request = stub_request "HTTP_HOST" => "www.example.org:80"
-    assert_equal nil, request.optional_port
+    assert_nil request.optional_port
 
     request = stub_request "HTTP_HOST" => "www.example.org:8080"
     assert_equal 8080, request.optional_port
@@ -537,7 +537,7 @@ class RequestCGI < BaseRequestTest
 
     assert_equal "Basic", request.auth_type
     assert_equal 0, request.content_length
-    assert_equal nil, request.content_mime_type
+    assert_nil request.content_mime_type
     assert_equal "CGI/1.1", request.gateway_interface
     assert_equal "*/*", request.accept
     assert_equal "UTF-8", request.accept_charset
@@ -760,8 +760,8 @@ class RequestMethod < BaseRequestTest
   end
 
   test "post uneffected by local inflections" do
-    existing_acrnoyms = ActiveSupport::Inflector.inflections.acronyms.dup
-    existing_acrnoym_regex = ActiveSupport::Inflector.inflections.acronym_regex.dup
+    existing_acronyms = ActiveSupport::Inflector.inflections.acronyms.dup
+    existing_acronym_regex = ActiveSupport::Inflector.inflections.acronym_regex.dup
     begin
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.acronym "POS"
@@ -774,8 +774,8 @@ class RequestMethod < BaseRequestTest
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
-        inflect.send(:instance_variable_set, "@acronyms", existing_acrnoyms)
-        inflect.send(:instance_variable_set, "@acronym_regex", existing_acrnoym_regex)
+        inflect.send(:instance_variable_set, "@acronyms", existing_acronyms)
+        inflect.send(:instance_variable_set, "@acronym_regex", existing_acronym_regex)
       end
     end
   end
@@ -957,7 +957,7 @@ class RequestMimeType < BaseRequestTest
   end
 
   test "no content type" do
-    assert_equal nil, stub_request.content_mime_type
+    assert_nil stub_request.content_mime_type
   end
 
   test "content type is XML" do
@@ -978,7 +978,7 @@ class RequestMimeType < BaseRequestTest
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     )
 
-    assert_equal nil, request.negotiate_mime([Mime[:xml], Mime[:json]])
+    assert_nil request.negotiate_mime([Mime[:xml], Mime[:json]])
     assert_equal Mime[:html], request.negotiate_mime([Mime[:xml], Mime[:html]])
     assert_equal Mime[:html], request.negotiate_mime([Mime[:xml], Mime::ALL])
   end
@@ -1192,7 +1192,7 @@ class RequestEtag < BaseRequestTest
   test "doesn't match absent If-None-Match" do
     request = stub_request
 
-    assert_equal nil, request.if_none_match
+    assert_nil request.if_none_match
     assert_equal [], request.if_none_match_etags
 
     assert_not request.etag_matches?("foo")

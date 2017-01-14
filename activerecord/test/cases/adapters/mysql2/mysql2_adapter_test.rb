@@ -65,6 +65,19 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       @conn.columns_for_distinct("posts.id", [order])
   end
 
+  def test_errors_for_bigint_fks_on_integer_pk_table
+    # table old_cars has primary key of integer
+
+    error = assert_raises(ActiveRecord::MismatchedForeignKey) do
+      @conn.add_reference :engines, :old_car
+      @conn.add_foreign_key :engines, :old_cars
+    end
+
+    assert_match "Column `old_car_id` on table `engines` has a type of `bigint(20)`", error.message
+    assert_not_nil error.cause
+    @conn.exec_query("ALTER TABLE engines DROP COLUMN old_car_id")
+  end
+
   private
 
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)

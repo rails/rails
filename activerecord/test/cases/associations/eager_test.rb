@@ -241,7 +241,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = assert_queries(1) { Post.all.merge!(includes: { author_with_address: :author_address }).find(post.id) }
     # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
-      assert_equal nil, post.author_with_address
+      assert_nil post.author_with_address
     end
   end
 
@@ -250,7 +250,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     sponsor.update!(sponsorable: nil)
     sponsor = assert_queries(1) { Sponsor.all.merge!(includes: :sponsorable).find(sponsor.id) }
     assert_no_queries do
-      assert_equal nil, sponsor.sponsorable
+      assert_nil sponsor.sponsorable
     end
   end
 
@@ -261,7 +261,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_nothing_raised { Sponsor.all.merge!(includes: :sponsorable).find(sponsor.id) }
     end
     assert_no_queries do
-      assert_equal nil, sponsor.sponsorable
+      assert_nil sponsor.sponsorable
     end
   end
 

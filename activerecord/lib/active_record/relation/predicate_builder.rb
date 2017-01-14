@@ -4,7 +4,6 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/association_query_handler"
     require "active_record/relation/predicate_builder/base_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
-    require "active_record/relation/predicate_builder/class_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
     require "active_record/relation/predicate_builder/range_handler"
     require "active_record/relation/predicate_builder/relation_handler"
@@ -16,7 +15,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
@@ -66,6 +64,8 @@ module ActiveRecord
       handler_for(value).call(attribute, value)
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :table

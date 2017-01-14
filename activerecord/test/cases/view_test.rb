@@ -45,8 +45,7 @@ module ViewBehavior
 
   def test_table_exists
     view_name = Ebook.table_name
-    # TODO: switch this assertion around once we changed #tables to not return views.
-    ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }
+    assert_not @connection.table_exists?(view_name), "'#{view_name}' table should not exist"
   end
 
   def test_views_ara_valid_data_sources
@@ -131,8 +130,7 @@ if ActiveRecord::Base.connection.supports_views?
 
     def test_table_exists
       view_name = Paperback.table_name
-      # TODO: switch this assertion around once we changed #tables to not return views.
-      ActiveSupport::Deprecation.silence { assert @connection.table_exists?(view_name), "'#{view_name}' table should exist" }
+      assert_not @connection.table_exists?(view_name), "'#{view_name}' table should not exist"
     end
 
     def test_column_definitions
@@ -202,8 +200,8 @@ if ActiveRecord::Base.connection.supports_views?
         end
       end
     end
-  end # end fo `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)`
-end # end fo `if ActiveRecord::Base.connection.supports_views?`
+  end # end of `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)`
+end # end of `if ActiveRecord::Base.connection.supports_views?`
 
 if ActiveRecord::Base.connection.respond_to?(:supports_materialized_views?) &&
     ActiveRecord::Base.connection.supports_materialized_views?

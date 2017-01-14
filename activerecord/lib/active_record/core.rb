@@ -171,41 +171,37 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column) ||
-                        ids.first.kind_of?(Array)
+                        columns_hash.include?(inheritance_column)
 
         id = ids.first
-        if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
+
+        return super if id.kind_of?(Array) ||
+                         id.is_a?(ActiveRecord::Base)
 
         key = primary_key
 
         statement = cached_find_by_statement(key) { |params|
           where(key => params.bind).limit(1)
         }
+
         record = statement.execute([id], self, connection).first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
         end
         record
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
                                  name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || !(Hash === args.first) || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any?
 
         hash = args.first
 
-        return super if hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v
+        return super if !(Hash === hash) || hash.values.any? { |v|
+          v.nil? || Array === v || Hash === v || Relation === v || Base === v
         }
 
         # We can't cache Post.find_by(author: david) ...yet
@@ -223,7 +219,7 @@ module ActiveRecord
           statement.execute(hash.values, self, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue RangeError
+        rescue ::RangeError
           nil
         end
       end
@@ -239,7 +235,9 @@ module ActiveRecord
       def generated_association_methods
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
+          private_constant :GeneratedAssociationMethods
           include mod
+
           mod
         end
       end
@@ -299,14 +297,14 @@ module ActiveRecord
 
       private
 
-        def cached_find_by_statement(key, &block) # :nodoc:
+        def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache[key] || cache.synchronize {
             cache[key] ||= StatementCache.create(connection, &block)
           }
         end
 
-        def relation # :nodoc:
+        def relation
           relation = Relation.create(self, arel_table, predicate_builder)
 
           if finder_needs_type_condition? && !ignore_default_scope?
@@ -326,7 +324,7 @@ module ActiveRecord
           relation = Relation.create(self, arel_table, predicate_builder)
         end
 
-        def table_metadata # :nodoc:
+        def table_metadata
           TableMetadata.new(self, arel_table)
         end
     end
@@ -462,7 +460,7 @@ module ActiveRecord
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
       if id
-        self.class.hash ^ self.id.hash
+        self.class.hash ^ id.hash
       else
         super
       end
@@ -484,7 +482,7 @@ module ActiveRecord
     # Allows sort on objects
     def <=>(other_object)
       if other_object.is_a?(self.class)
-        self.to_key <=> other_object.to_key
+        to_key <=> other_object.to_key
       else
         super
       end

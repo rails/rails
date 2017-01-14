@@ -402,7 +402,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal nil, reference.reload.job_id
+    assert_nil reference.reload.job_id
   ensure
     Reference.make_comments = false
   end
@@ -423,7 +423,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     # Check that the destroy callback on Reference did not run
-    assert_equal nil, person.reload.comments
+    assert_nil person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -485,7 +485,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     references.each do |reference|
-      assert_equal nil, reference.reload.job_id
+      assert_nil reference.reload.job_id
     end
   end
 
@@ -883,10 +883,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   end
 
+  def test_collection_singular_ids_setter_with_changed_primary_key
+    company = companies(:first_firm)
+    client = companies(:first_client)
+    company.clients_using_primary_key_ids = [client.name]
+    assert_equal [client], company.clients_using_primary_key
+  end
+
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids = [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids = ids }
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
+    assert_match(/Couldn't find all Developers with 'id'/, e.message)
+  end
+
+  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
+    company = companies(:first_firm)
+    ids = [Client.first.name, "unknown client"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
+    assert_match(/Couldn't find all Clients with 'name'/, e.message)
+  end
+
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
@@ -1182,12 +1204,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil Club.new.special_favourites.distinct_value
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    post = Post.find(1)
-
-    assert_deprecated { post.people(true) }
-  end
-
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
     member = Member.create!
     club = Club.create!
@@ -1214,5 +1230,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [other_club], tenant_clubs
   ensure
     TenantMembership.current_member = nil
+  end
+
+  def test_incorrectly_ordered_through_associations
+    assert_raises(ActiveRecord::HasManyThroughOrderError) do
+      DeveloperWithIncorrectlyOrderedHasManyThrough.create(
+        companies: [Company.create]
+      )
+    end
   end
 end

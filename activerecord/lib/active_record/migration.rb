@@ -522,7 +522,10 @@ module ActiveRecord
     def self.inherited(subclass) # :nodoc:
       super
       if subclass.superclass == Migration
-        subclass.include Compatibility::Legacy
+        raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
+          "Please specify the Rails release the migration was written for:\n" \
+          "\n" \
+          "  class #{self.class.name} < ActiveRecord::Migration[4.2]"
       end
     end
 
@@ -689,7 +692,7 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
-    class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
       end
@@ -935,7 +938,7 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
+  MigrationProxy = Struct.new(:name, :version, :filename, :scope) do
     def initialize(name, version, filename, scope)
       super
       @migration = nil
@@ -1026,12 +1029,10 @@ module ActiveRecord
       end
 
       def get_all_versions(connection = Base.connection)
-        ActiveSupport::Deprecation.silence do
-          if connection.table_exists?(schema_migrations_table_name)
-            SchemaMigration.all.map { |x| x.version.to_i }.sort
-          else
-            []
-          end
+        if connection.table_exists?(schema_migrations_table_name)
+          SchemaMigration.all.map { |x| x.version.to_i }.sort
+        else
+          []
         end
       end
 
@@ -1169,9 +1170,10 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        execute_migration_in_transaction(migration, @direction)
+        result = execute_migration_in_transaction(migration, @direction)
 
         record_environment
+        result
       end
 
       # Used for running multiple migrations up to or down to a certain value.
@@ -1180,11 +1182,12 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        runnable.each do |migration|
+        result = runnable.each do |migration|
           execute_migration_in_transaction(migration, @direction)
         end
 
         record_environment
+        result
       end
 
       # Stores the current environment in the database.

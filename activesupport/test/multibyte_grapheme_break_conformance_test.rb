@@ -28,7 +28,7 @@ class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
     end
   end
 
-  protected
+  private
     def each_line_of_break_tests(&block)
       lines = 0
       max_test_lines = 0 # Don't limit below 21, because that's the header of the testfile

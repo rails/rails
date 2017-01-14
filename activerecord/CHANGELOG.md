@@ -1,3 +1,258 @@
+*   Deprecate passing a class to the `class_name` because it eagerloads more classes than
+    necessary and potentially creates circular dependencies.
+
+    *Kir Shatrov*
+
+*   Raise error when has_many through is defined before through association
+
+    Fixes #26834
+
+    *Chris Holmes*
+
+*   Deprecate passing `name` to `indexes`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated tasks: `db:test:clone`, `db:test:clone_schema`, `db:test:clone_structure`.
+
+    *Rafel Mendonça França*
+
+*   Compare deserialized values for `PostgreSQL::OID::Hstore` types when
+    calling `ActiveRecord::Dirty#changed_in_place?`.
+
+    Fixes #27502.
+
+    *Jon Moss*
+
+*   Raise `ArgumentError` when passing an `ActiveRecord::Base` instance to `.find`,
+    `.exists?` and `.update`.
+
+    *Rafael Mendonça França*
+
+*   Respect precision option for arrays of timestamps.
+
+    Fixes #27514.
+
+    *Sean Griffin*
+
+*   Optimize slow model instantiation when using STI and `store_full_sti_class = false` option.
+
+    *Konstantin Lazarev*
+
+*   Add `touch` option to counter cache modifying methods.
+
+    Works when updating, resetting, incrementing and decrementing counters:
+
+        # Touches `updated_at`/`updated_on`.
+        Topic.increment_counter(:messages_count, 1, touch: true)
+        Topic.decrement_counter(:messages_count, 1, touch: true)
+
+        # Touches `last_discussed_at`.
+        Topic.reset_counters(18, :messages, touch: :last_discussed_at)
+
+        # Touches `updated_at` and `last_discussed_at`.
+        Topic.update_counters(18, messages_count: 5, touch: %i( updated_at last_discussed_at ))
+
+    Fixes #26724.
+
+    *Jarred Trost*
+
+*   Remove deprecated `#uniq`, `#uniq!`, and `#uniq_value`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated `#insert_sql`, `#update_sql`, and `#delete_sql`.
+
+    *Ryuta Kamizono*
+
+*   Remove deprecated `#use_transactional_fixtures` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#raise_in_transactional_callbacks` configuration.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `#load_schema_for`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated conditions parameter from `#destroy_all` and `#delete_all`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing arguments to `#select` when a block is provided.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to query using commas on LIMIT.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a class as a value in a query.
+
+    *Rafael Mendonça França*
+
+*   Raise `ActiveRecord::IrreversibleOrderError` when using `last` with an irreversible
+    order.
+
+    *Rafael Mendonça França*
+
+*   Raise when a `has_many :through` association has an ambiguous reflection name.
+
+    *Rafael Mendonça França*
+
+*   Raise when `ActiveRecord::Migration` is inherited from directly.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+    and `ActiveRecord::StatementInvalid#original_exception`.
+
+    *Rafael Mendonça França*
+
+*   `#tables` and `#table_exists?` return only tables and not views.
+
+    All the deprecations on those methods were removed.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `name` argument from `#tables`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a column to `#quote`.
+
+    *Rafael Mendonça França*
+
+*   Set `:time` as a timezone aware type and remove deprecation when
+    `config.active_record.time_zone_aware_types` is not explictly set.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated force reload argument in singular and collection association readers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+    `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
+
+    *Rafael Mendonça França*
+
+*   Allow passing extra flags to `db:structure:load` and `db:structure:dump`
+
+    Introduces `ActiveRecord::Tasks::DatabaseTasks.structure_(load|dump)_flags` to customize the
+    eventual commands run against the database, e.g. mysqldump/pg_dump.
+
+    *Kir Shatrov*
+
+*   Notifications see frozen SQL string.
+
+    Fixes #23774.
+
+    *Richard Monette*
+
+*   RuntimeErrors are no longer translated to `ActiveRecord::StatementInvalid`.
+
+    *Richard Monette*
+
+*   Change the schema cache format to use YAML instead of Marshal.
+
+    *Kir Shatrov*
+
+*   Support index length and order options using both string and symbol
+    column names.
+
+    Fixes #27243.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::RangeError` when values that executed are out of range.
+
+    *Ryuta Kamizono*
+
+*   Raise `ActiveRecord::NotNullViolation` when a record cannot be inserted
+    or updated because it would violate a not null constraint.
+
+    *Ryuta Kamizono*
+
+*   Emulate db trigger behaviour for after_commit :destroy, :update.
+
+    Race conditions can occur when an ActiveRecord is destroyed
+    twice or destroyed and updated. The callbacks should only be
+    triggered once, similar to a SQL database trigger.
+
+    *Stefan Budeanu*
+
+*   Moved `DecimalWithoutScale`, `Text`, and `UnsignedInteger` from Active Model to Active Record.
+
+    *Iain Beeston*
+
+*   Fix `write_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    *Prathamesh Sonpatki*
+
+*   Fix `read_attribute` method to check whether an attribute is aliased or not, and
+    use the aliased attribute name if needed.
+
+    Fixes #26417.
+
+    *Prathamesh Sonpatki*
+
+*   PostgreSQL & MySQL: Use big integer as primary key type for new tables.
+
+    *Jon McCartie*, *Pavel Pravosud*
+
+*   Change the type argument of `ActiveRecord::Base#attribute` to be optional.
+    The default is now `ActiveRecord::Type::Value.new`, which provides no type
+    casting behavior.
+
+    *Sean Griffin*
+
+*   Don't treat unsigned integers with zerofill as signed.
+
+    Fixes #27125.
+
+    *Ryuta Kamizono*
+
+*   Fix the uniqueness validation scope with a polymorphic association.
+
+    *Sergey Alekseev*
+
+*   Raise `ActiveRecord::RecordNotFound` from collection `*_ids` setters
+    for unknown IDs with a better error message.
+
+    Changes the collection `*_ids` setters to cast provided IDs the data
+    type of the primary key set in the association, not the model
+    primary key.
+
+    *Dominic Cleal*
+
+*   For PostgreSQL >= 9.4 use `pgcrypto`'s `gen_random_uuid()` instead of
+    `uuid-ossp`'s UUID generation function.
+
+    *Yuji Yaginuma*, *Yaw Boakye*
+
+*   Introduce `Model#reload_<association>` to bring back the behavior
+    of `Article.category(true)` where `category` is a singular
+    association.
+
+    The force reloading of the association reader was deprecated
+    in #20888. Unfortunately the suggested alternative of
+    `article.reload.category` does not expose the same behavior.
+
+    This patch adds a reader method with the prefix `reload_` for
+    singular associations. This method has the same semantics as
+    passing true to the association reader used to have.
+
+    *Yves Senn*
+
+*   Make sure eager loading `ActiveRecord::Associations` also loads
+    constants defined in `ActiveRecord::Associations::Preloader`.
+
+    *Yves Senn*
+
 *   Allow `ActionController::Parameters`-like objects to be passed as
     values for Postgres HStore columns.
 
@@ -5,7 +260,7 @@
 
     *Jon Moss*
 
-*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`
+*   Added `stat` method to `ActiveRecord::ConnectionAdapters::ConnectionPool`.
 
     Example:
 
@@ -52,7 +307,7 @@
 
 *   Fixed: Optimistic locking does not work well with `null` in the database.
 
-    Fixes #26024
+    Fixes #26024.
 
     *bogdanvlviv*
 
@@ -61,7 +316,7 @@
 
     *Edho Arief*
 
-*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`
+*   Serialize JSON attribute value `nil` as SQL `NULL`, not JSON `null`.
 
     *Trung Duc Tran*
 
@@ -165,7 +420,7 @@
     successfully rolled back when the column was given and invalid column
     type.
 
-    Fixes #26087
+    Fixes #26087.
 
     *Travis O'Neill*
 
@@ -195,7 +450,7 @@
     *Takeshi Akima*
 
 *   Virtual attributes will no longer raise when read on models loaded from the
-    database
+    database.
 
     *Sean Griffin*
 

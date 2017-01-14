@@ -191,7 +191,7 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type, **options)
+      def attribute(name, cast_type = Type::Value.new, **options)
         name = name.to_s
         reload_schema_from_cache
 

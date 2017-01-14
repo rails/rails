@@ -177,9 +177,9 @@ module StaticTests
     last_modified = File.mtime(File.join(@root, "#{file_name}.gz"))
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "HTTP_IF_MODIFIED_SINCE" => last_modified.httpdate)
     assert_equal 304, response.status
-    assert_equal nil, response.headers["Content-Type"]
-    assert_equal nil, response.headers["Content-Encoding"]
-    assert_equal nil, response.headers["Vary"]
+    assert_nil response.headers["Content-Type"]
+    assert_nil response.headers["Content-Encoding"]
+    assert_nil response.headers["Vary"]
   end
 
   def test_serves_files_with_headers
@@ -204,7 +204,7 @@ module StaticTests
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
-  unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  unless Gem.win_platform?
     def test_serves_static_file_with_colon
       with_static_file "/foo/foo:bar.html" do |file|
         assert_html file, get("/foo/foo%3Abar.html")

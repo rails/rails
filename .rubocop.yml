@@ -6,6 +6,7 @@ AllCops:
   Exclude:
     - '**/templates/**/*'
     - '**/vendor/**/*'
+    - 'actionpack/lib/action_dispatch/journey/parser.rb'
 
 # Prefer &&/|| over and/or.
 Style/AndOr:

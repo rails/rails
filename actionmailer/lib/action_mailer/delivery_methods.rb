@@ -59,7 +59,7 @@ module ActionMailer
       end
 
       def wrap_delivery_behavior(mail, method = nil, options = nil) # :nodoc:
-        method ||= self.delivery_method
+        method ||= delivery_method
         mail.delivery_handler = self
 
         case method

@@ -96,7 +96,7 @@ module ActionDispatch
         path = Path::Pattern.from_string "/:controller(/:action(/:id))(.:format)"
         generic = Route.build "name", nil, path, constraints, [], {}
 
-        knowledge = { id: 20, controller: "pages", action: "show" }
+        knowledge = { "id" => true, "controller" => true, "action" => true }
 
         routes = [specific, generic]
 

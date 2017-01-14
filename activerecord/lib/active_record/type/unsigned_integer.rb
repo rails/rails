@@ -1,6 +1,6 @@
-module ActiveModel
+module ActiveRecord
   module Type
-    class UnsignedInteger < Integer # :nodoc:
+    class UnsignedInteger < ActiveModel::Type::Integer # :nodoc:
       private
 
         def max_value

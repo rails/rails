@@ -37,7 +37,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_nil
-    assert_equal nil, @conn.type_cast(nil)
+    assert_nil @conn.type_cast(nil)
   end
 
   def test_type_cast_true

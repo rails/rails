@@ -162,7 +162,6 @@ module TestHelpers
       require "rails"
       require "action_controller/railtie"
       require "action_view/railtie"
-      require "action_dispatch/middleware/flash"
 
       @app = Class.new(Rails::Application)
       @app.config.eager_load = false

@@ -18,7 +18,7 @@ class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.table_name = :lock_without_defaults_cust
-  self.column_defaults # to test @column_defaults caching.
+  column_defaults # to test @column_defaults caching.
   self.locking_column = :custom_lock_version
 end
 
@@ -579,7 +579,7 @@ unless in_memory_db?
         assert first.end > second.end
       end
 
-      protected
+      private
 
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil

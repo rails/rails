@@ -319,7 +319,7 @@ module ActionView
             name_clause
           end
 
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout(formats)
             if _conditional_layout?
               #{layout_definition}
@@ -338,7 +338,7 @@ module ActionView
         #
         # ==== Returns
         # * <tt>String</tt> - A template name
-        def _implied_layout_name # :nodoc:
+        def _implied_layout_name
           controller_path
         end
     end

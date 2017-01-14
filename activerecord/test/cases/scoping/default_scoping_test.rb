@@ -5,6 +5,7 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
+require "concurrent/atomic/cyclic_barrier"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -50,7 +51,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_equal nil, DeveloperCalledDavid.create!.name
+    assert_nil DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
@@ -314,7 +315,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(salary: nil).salary
+    assert_nil PoorDeveloperCalledJamis.create!(salary: nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(name: "David").salary
   end
 
@@ -437,12 +438,17 @@ class DefaultScopingTest < ActiveRecord::TestCase
       threads = []
       assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
 
+      barrier_1 = Concurrent::CyclicBarrier.new(2)
+      barrier_2 = Concurrent::CyclicBarrier.new(2)
+
       threads << Thread.new do
-        Thread.current[:long_default_scope] = true
+        Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
         ThreadsafeDeveloper.connection.close
       end
       threads << Thread.new do
+        Thread.current[:default_scope_delay] = -> { barrier_2.wait }
+        barrier_1.wait
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
         ThreadsafeDeveloper.connection.close
       end

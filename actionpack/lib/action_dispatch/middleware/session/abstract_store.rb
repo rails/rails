@@ -8,8 +8,8 @@ module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
       def initialize
-        super("Session contains objects whose class definition isn't available.\n" +
-          "Remember to require the classes for all objects kept in the session.\n" +
+        super("Session contains objects whose class definition isn't available.\n" \
+          "Remember to require the classes for all objects kept in the session.\n" \
           "(Original exception: #{$!.message} [#{$!.class}])\n")
         set_backtrace $!.backtrace
       end
@@ -27,17 +27,16 @@ module ActionDispatch
         sid
       end
 
-    protected
+    private
 
-      def initialize_sid
+      def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
       end
 
-      private
-        def make_request(env)
-          ActionDispatch::Request.new env
-        end
+      def make_request(env)
+        ActionDispatch::Request.new env
+      end
     end
 
     module StaleSessionCheck

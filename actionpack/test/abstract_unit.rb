@@ -7,8 +7,8 @@ require "active_support/core_ext/kernel/reporting"
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = Encoding::UTF_8
+  Encoding.default_external = Encoding::UTF_8
 end
 
 require "drb"
@@ -259,9 +259,9 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = { "PATH_INFO"      => path,
-                "REQUEST_METHOD" => method,
-                "HTTP_HOST"      => host }
+      params = { "PATH_INFO" => path,
+                 "REQUEST_METHOD" => method,
+                 "HTTP_HOST" => host }
 
       routes.call(params)
     end

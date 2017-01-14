@@ -36,7 +36,7 @@ module ActionDispatch
 
           route.parts.reverse_each do |key|
             break if defaults[key].nil? && parameterized_parts[key].present?
-            break if parameterized_parts[key].to_s != defaults[key].to_s
+            next if parameterized_parts[key].to_s != defaults[key].to_s
             break if required_parts.include?(key)
 
             parameterized_parts.delete(key)
@@ -92,7 +92,11 @@ module ActionDispatch
           else
             routes = non_recursive(cache, options)
 
-            hash = routes.group_by { |_, r| r.score(options) }
+            supplied_keys = options.each_with_object({}) do |(k, v), h|
+              h[k.to_s] = true if v
+            end
+
+            hash = routes.group_by { |_, r| r.score(supplied_keys) }
 
             hash.keys.sort.reverse_each do |score|
               break if score < 0

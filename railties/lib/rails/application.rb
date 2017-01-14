@@ -72,7 +72,7 @@ module Rails
   # on one of the applications to create a copy of the application which shares
   # the configuration.
   #
-  # If you decide to define rake tasks, runners, or initializers in an
+  # If you decide to define Rake tasks, runners, or initializers in an
   # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
@@ -265,8 +265,8 @@ module Rails
       end
     end
 
-    # If you try to define a set of rake tasks on the instance, these will get
-    # passed up to the rake tasks defined on the application's class.
+    # If you try to define a set of Rake tasks on the instance, these will get
+    # passed up to the Rake tasks defined on the application's class.
     def rake_tasks(&block)
       self.class.rake_tasks(&block)
     end
@@ -394,8 +394,8 @@ module Rails
           shared_secrets = all_secrets["shared"]
           env_secrets    = all_secrets[Rails.env]
 
-          secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
+          secrets.merge!(shared_secrets.deep_symbolize_keys) if shared_secrets
+          secrets.merge!(env_secrets.deep_symbolize_keys) if env_secrets
         end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
@@ -511,7 +511,7 @@ module Rails
 
     def validate_secret_key_config! #:nodoc:
       if secrets.secret_key_base.blank?
-        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
+        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " \
           "Read the upgrade documentation to learn more about this new config option."
 
         if secrets.secret_token.blank?

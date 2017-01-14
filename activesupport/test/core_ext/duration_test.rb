@@ -21,7 +21,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(Fixnum)
+    assert 1.minute.instance_of?(1.class)
     assert 2.days.instance_of?(ActiveSupport::Duration)
     assert !3.second.instance_of?(Numeric)
   end
@@ -196,7 +196,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised do
       1.minute.times { counter += 1 }
     end
-    assert_equal counter, 60
+    assert_equal 60, counter
   end
 
   def test_as_json
@@ -213,7 +213,7 @@ class DurationTest < ActiveSupport::TestCase
       when 1.day
         "ok"
       end
-    assert_equal cased, "ok"
+    assert_equal "ok", cased
   end
 
   def test_respond_to
@@ -235,6 +235,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
     assert_equal(1, (61 <=> 1.minute))
+  end
+
+  def test_twelve_months_equals_one_year
+    assert_equal 12.months, 1.year
+  end
+
+  def test_thirty_days_does_not_equal_one_month
+    assert_not_equal 30.days, 1.month
+  end
+
+  def test_adding_one_month_maintains_day_of_month
+    (1..11).each do |month|
+      [1, 14, 28].each do |day|
+        assert_equal Date.civil(2016, month + 1, day), Date.civil(2016, month, day) + 1.month
+      end
+    end
+
+    assert_equal Date.civil(2017, 1, 1),  Date.civil(2016, 12, 1) + 1.month
+    assert_equal Date.civil(2017, 1, 14),  Date.civil(2016, 12, 14) + 1.month
+    assert_equal Date.civil(2017, 1, 28),  Date.civil(2016, 12, 28) + 1.month
+
+    assert_equal Date.civil(2015, 2, 28), Date.civil(2015, 1, 31) + 1.month
+    assert_equal Date.civil(2016, 2, 29), Date.civil(2016, 1, 31) + 1.month
   end
 
   # ISO8601 string examples are taken from ISO8601 gem at https://github.com/arnau/ISO8601/blob/b93d466840/spec/iso8601/duration_spec.rb
@@ -343,6 +366,32 @@ class DurationTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  def test_iso8601_parsing_equivalence_with_numeric_extensions_over_long_periods
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        assert_equal 3.months, ActiveSupport::Duration.parse("P3M")
+        assert_equal 3.months.to_i, ActiveSupport::Duration.parse("P3M").to_i
+        assert_equal 10.months, ActiveSupport::Duration.parse("P10M")
+        assert_equal 10.months.to_i, ActiveSupport::Duration.parse("P10M").to_i
+        assert_equal 3.years, ActiveSupport::Duration.parse("P3Y")
+        assert_equal 3.years.to_i, ActiveSupport::Duration.parse("P3Y").to_i
+        assert_equal 10.years, ActiveSupport::Duration.parse("P10Y")
+        assert_equal 10.years.to_i, ActiveSupport::Duration.parse("P10Y").to_i
+      end
+    end
+  end
+
+  def test_adding_durations_do_not_hold_prior_states
+    time = Time.parse("Nov 29, 2016")
+    # If the implementation adds and subtracts 3 months, the
+    # resulting date would have been in February so the day will
+    # change to the 29th.
+    d1 = 3.months - 3.months
+    d2 = 2.months - 2.months
+
+    assert_equal time + d1, time + d2
   end
 
   private

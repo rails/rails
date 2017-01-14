@@ -95,7 +95,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
     topic = YAML.load(yaml_fixture("rails_4_1"))
 
     assert topic.new_record?
-    assert_equal nil, topic.id
+    assert_nil topic.id
     assert_equal "The First Topic", topic.title
     assert_equal({ omg: :lol }, topic.content)
   end

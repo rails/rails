@@ -442,7 +442,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries(ignore_none: false) do
       assert_equal 0, Developer.none.count
       assert_equal 0, Developer.none.calculate(:count, nil)
-      assert_equal nil, Developer.none.calculate(:average, "salary")
+      assert_nil Developer.none.calculate(:average, "salary")
     end
   end
 
@@ -485,28 +485,28 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_average
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
   end
 
   def test_null_relation_minimum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
   end
 
   def test_null_relation_maximum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
   end
 
   def test_null_relation_in_where_condition
@@ -840,15 +840,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author, authors.first
   end
 
-  class Mary < Author; end
-
-  def test_find_by_classname
-    Author.create!(name: Mary.name)
-    assert_deprecated do
-      assert_equal 1, Author.where(name: Mary).size
-    end
-  end
-
   def test_find_by_id_with_list_of_ar
     author = Author.first
     authors = Author.find_by_id([author])
@@ -1013,23 +1004,11 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
-  def test_destroy_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.destroy_all(name: "David") }
-    end
-  end
-
   def test_delete_all
     davids = Author.where(name: "David")
 
     assert_difference("Author.count", -1) { davids.delete_all }
     assert ! davids.loaded?
-  end
-
-  def test_delete_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.delete_all(name: "David") }
-    end
   end
 
   def test_delete_all_loaded
@@ -1638,9 +1617,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
-  def test_update_on_relation_passing_active_record_object_is_deprecated
+  def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_deprecated(/update/) do
+    assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
   end
@@ -1654,17 +1633,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["Foo", "Foo"], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq(true).map(&:name) }
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
-
-    assert_deprecated do
-      assert_equal ["Foo", "Foo"], query.uniq(true).uniq(false).map(&:name)
-    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank
@@ -1814,7 +1787,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by returns nil if the record is missing" do
-    assert_equal nil, Post.all.find_by("1 = 0")
+    assert_nil Post.all.find_by("1 = 0")
   end
 
   test "find_by doesn't have implicit ordering" do

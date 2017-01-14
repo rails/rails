@@ -51,28 +51,28 @@ module ActionDispatch
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-    protected
+    private
 
-      def parameter_filter
+      def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER
         }
       end
 
-      def env_filter
+      def env_filter # :doc:
         user_key = fetch_header("action_dispatch.parameter_filter") {
           return NULL_ENV_FILTER
         }
         parameter_filter_for(Array(user_key) + ENV_MATCH)
       end
 
-      def parameter_filter_for(filters)
+      def parameter_filter_for(filters) # :doc:
         ParameterFilter.new(filters)
       end
 
       KV_RE   = "[^&;=]+"
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
-      def filtered_query_string
+      def filtered_query_string # :doc:
         query_string.gsub(PAIR_RE) do |_|
           parameter_filter.filter([[$1, $2]]).first.join("=")
         end

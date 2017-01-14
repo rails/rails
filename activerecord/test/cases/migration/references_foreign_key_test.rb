@@ -42,7 +42,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "options hash can be passed" do
           @connection.change_table :testing_parents do |t|
-            t.integer :other_id
+            t.bigint :other_id
             t.index :other_id, unique: true
           end
           @connection.create_table :testings do |t|
@@ -92,7 +92,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "foreign keys accept options when changing the table" do
           @connection.change_table :testing_parents do |t|
-            t.integer :other_id
+            t.bigint :other_id
             t.index :other_id, unique: true
           end
           @connection.create_table :testings
@@ -177,8 +177,8 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "multiple foreign keys can be added to the same table" do
           @connection.create_table :testings do |t|
-            t.integer :col_1
-            t.integer :col_2
+            t.bigint :col_1
+            t.bigint :col_2
 
             t.foreign_key :testing_parents, column: :col_1
             t.foreign_key :testing_parents, column: :col_2

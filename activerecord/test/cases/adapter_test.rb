@@ -32,7 +32,7 @@ module ActiveRecord
 
     def test_tables
       tables = nil
-      ActiveSupport::Deprecation.silence { tables = @connection.tables }
+      tables = @connection.tables
       assert_includes tables, "accounts"
       assert_includes tables, "authors"
       assert_includes tables, "tasks"
@@ -40,17 +40,11 @@ module ActiveRecord
     end
 
     def test_table_exists?
-      ActiveSupport::Deprecation.silence do
-        assert @connection.table_exists?("accounts")
-        assert @connection.table_exists?(:accounts)
-        assert_not @connection.table_exists?("nonexistingtable")
-        assert_not @connection.table_exists?("'")
-        assert_not @connection.table_exists?(nil)
-      end
-    end
-
-    def test_table_exists_checking_both_tables_and_views_is_deprecated
-      assert_deprecated { @connection.table_exists?("accounts") }
+      assert @connection.table_exists?("accounts")
+      assert @connection.table_exists?(:accounts)
+      assert_not @connection.table_exists?("nonexistingtable")
+      assert_not @connection.table_exists?("'")
+      assert_not @connection.table_exists?(nil)
     end
 
     def test_data_sources
@@ -182,6 +176,14 @@ module ActiveRecord
       assert_not_nil error.cause
     end
 
+    def test_not_null_violations_are_translated_to_specific_exception
+      error = assert_raises(ActiveRecord::NotNullViolation) do
+        Post.create
+      end
+
+      assert_not_nil error.cause
+    end
+
     unless current_adapter?(:SQLite3Adapter)
       def test_foreign_key_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::InvalidForeignKey) do
@@ -214,6 +216,14 @@ module ActiveRecord
       def test_value_limit_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::ValueTooLong) do
           Event.create(title: "abcdefgh")
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.connection.create("INSERT INTO books(author_id) VALUES (2147483648)")
         end
 
         assert_not_nil error.cause
@@ -269,24 +279,14 @@ module ActiveRecord
 
     unless current_adapter?(:PostgreSQLAdapter)
       def test_log_invalid_encoding
-        error = assert_raise ActiveRecord::StatementInvalid do
+        error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
             raise "ы".force_encoding(Encoding::ASCII_8BIT)
           end
         end
 
-        assert_not_nil error.cause
+        assert_not_nil error.message
       end
-    end
-
-    if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
-      def test_tables_returning_both_tables_and_views_is_deprecated
-        assert_deprecated { @connection.tables }
-      end
-    end
-
-    def test_passing_arguments_to_tables_is_deprecated
-      assert_deprecated { @connection.tables(:books) }
     end
   end
 

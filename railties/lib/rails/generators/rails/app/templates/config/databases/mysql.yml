@@ -1,4 +1,4 @@
-# MySQL. Versions 5.0 and up are supported.
+# MySQL. Versions 5.1.10 and up are supported.
 #
 # Install the MySQL driver
 #   gem install mysql2

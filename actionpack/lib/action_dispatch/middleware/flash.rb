@@ -281,7 +281,8 @@ module ActionDispatch
           @now
         end
 
-        def stringify_array(array)
+      private
+        def stringify_array(array) # :doc:
           array.map do |item|
             item.kind_of?(Symbol) ? item.to_s : item
           end

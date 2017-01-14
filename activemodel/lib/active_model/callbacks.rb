@@ -122,19 +122,19 @@ module ActiveModel
 
     private
 
-      def _define_before_model_callback(klass, callback) #:nodoc:
+      def _define_before_model_callback(klass, callback)
         klass.define_singleton_method("before_#{callback}") do |*args, &block|
           set_callback(:"#{callback}", :before, *args, &block)
         end
       end
 
-      def _define_around_model_callback(klass, callback) #:nodoc:
+      def _define_around_model_callback(klass, callback)
         klass.define_singleton_method("around_#{callback}") do |*args, &block|
           set_callback(:"#{callback}", :around, *args, &block)
         end
       end
 
-      def _define_after_model_callback(klass, callback) #:nodoc:
+      def _define_after_model_callback(klass, callback)
         klass.define_singleton_method("after_#{callback}") do |*args, &block|
           options = args.extract_options!
           options[:prepend] = true

@@ -499,6 +499,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
     `datetime-local`.
     ([Pull Request](https://github.com/rails/rails/pull/25469))
 
+*   Allow blocks while rendering with the `render partial:` helper.
+    ([Pull Request](https://github.com/rails/rails/pull/17974))
+
 Action Mailer
 -------------
 
@@ -585,7 +588,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     gem. ([Pull Request](https://github.com/rails/rails/pull/21161))
 
 *   Removed support for the legacy `mysql` database adapter from core. Most users should
-    be able to use `mysql2`. It will be converted to a separate gem when when we find someone
+    be able to use `mysql2`. It will be converted to a separate gem when we find someone
     to maintain it. ([Pull Request 1](https://github.com/rails/rails/pull/22642),
     [Pull Request 2](https://github.com/rails/rails/pull/22715))
 

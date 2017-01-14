@@ -35,7 +35,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/gem 'coffee-rails'/, content)
-      assert_no_match(/gem 'jquery-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_match(/# gem 'jbuilder'/, content)
@@ -106,10 +105,10 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       %w(app/assets
          app/helpers
          app/views/layouts/application.html.erb
+         bin/yarn
          config/initializers/assets.rb
          config/initializers/cookies_serializer.rb
          lib/assets
-         vendor/assets
          test/helpers
          tmp/cache/assets
          public/404.html
@@ -117,6 +116,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/500.html
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
-         public/favicon.ico)
+         public/favicon.icon
+         vendor/package.json
+      )
     end
 end

@@ -18,8 +18,8 @@ module ActiveJob
         job_or_instantiate(*args).enqueue
       end
 
-      protected
-        def job_or_instantiate(*args)
+      private
+        def job_or_instantiate(*args) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)
         end
     end

@@ -13,7 +13,7 @@
 # start with the tag optionally followed by a colon. Everything up to the end
 # of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
-  class Annotation < Struct.new(:line, :tag, :text)
+  Annotation = Struct.new(:line, :tag, :text) do
     def self.directories
       @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
     end
@@ -116,7 +116,7 @@ class SourceAnnotationExtractor
   # Otherwise it returns an empty hash.
   def extract_annotations_from(file, pattern)
     lineno = 0
-    result = File.readlines(file).inject([]) do |list, line|
+    result = File.readlines(file, encoding: Encoding::BINARY).inject([]) do |list, line|
       lineno += 1
       next list unless line =~ pattern
       list << Annotation.new(lineno, $1, $2)

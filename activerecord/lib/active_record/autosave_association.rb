@@ -328,9 +328,9 @@ module ActiveRecord
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
-        validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
+        context = validation_context unless [:create, :update].include?(validation_context)
 
-        unless valid = record.valid?(validation_context)
+        unless valid = record.valid?(context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
@@ -383,6 +383,9 @@ module ActiveRecord
         if association = association_instance_get(reflection.name)
           autosave = reflection.options[:autosave]
 
+          # reconstruct the scope now that we know the owner's id
+          association.reset_scope if association.respond_to?(:reset_scope)
+
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
@@ -408,9 +411,6 @@ module ActiveRecord
               raise ActiveRecord::Rollback unless saved
             end
           end
-
-          # reconstruct the scope now that we know the owner's id
-          association.reset_scope if association.respond_to?(:reset_scope)
         end
       end
 

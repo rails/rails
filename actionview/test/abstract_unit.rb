@@ -9,8 +9,8 @@ require "active_support/core_ext/kernel/reporting"
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = Encoding::UTF_8
+  Encoding.default_external = Encoding::UTF_8
 end
 
 require "active_support/testing/autorun"
@@ -163,7 +163,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   # Stub Rails dispatcher so it does not get controller references and
   # simply return the controller#action as Rack::Body.
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
+    private
       def controller_reference(controller_param)
         controller_param
       end

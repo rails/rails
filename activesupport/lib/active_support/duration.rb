@@ -7,24 +7,99 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
-    EPOCH = ::Time.utc(2000)
+    SECONDS_PER_MINUTE = 60
+    SECONDS_PER_HOUR   = 3600
+    SECONDS_PER_DAY    = 86400
+    SECONDS_PER_WEEK   = 604800
+    SECONDS_PER_MONTH  = 2629746  # 1/12 of a gregorian year
+    SECONDS_PER_YEAR   = 31556952 # length of a gregorian year (365.2425 days)
+
+    PARTS_IN_SECONDS = {
+      seconds: 1,
+      minutes: SECONDS_PER_MINUTE,
+      hours:   SECONDS_PER_HOUR,
+      days:    SECONDS_PER_DAY,
+      weeks:   SECONDS_PER_WEEK,
+      months:  SECONDS_PER_MONTH,
+      years:   SECONDS_PER_YEAR
+    }.freeze
 
     attr_accessor :value, :parts
 
     autoload :ISO8601Parser,     "active_support/duration/iso8601_parser"
     autoload :ISO8601Serializer, "active_support/duration/iso8601_serializer"
 
+    class << self
+      # Creates a new Duration from string formatted according to ISO 8601 Duration.
+      #
+      # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+      # This method allows negative parts to be present in pattern.
+      # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
+      def parse(iso8601duration)
+        parts = ISO8601Parser.new(iso8601duration).parse!
+        new(calculate_total_seconds(parts), parts)
+      end
+
+      def ===(other) #:nodoc:
+        other.is_a?(Duration)
+      rescue ::NoMethodError
+        false
+      end
+
+      def seconds(value) #:nodoc:
+        new(value, [[:seconds, value]])
+      end
+
+      def minutes(value) #:nodoc:
+        new(value * SECONDS_PER_MINUTE, [[:minutes, value]])
+      end
+
+      def hours(value) #:nodoc:
+        new(value * SECONDS_PER_HOUR, [[:hours, value]])
+      end
+
+      def days(value) #:nodoc:
+        new(value * SECONDS_PER_DAY, [[:days, value]])
+      end
+
+      def weeks(value) #:nodoc:
+        new(value * SECONDS_PER_WEEK, [[:weeks, value]])
+      end
+
+      def months(value) #:nodoc:
+        new(value * SECONDS_PER_MONTH, [[:months, value]])
+      end
+
+      def years(value) #:nodoc:
+        new(value * SECONDS_PER_YEAR, [[:years, value]])
+      end
+
+      private
+
+        def calculate_total_seconds(parts)
+          parts.inject(0) do |total, (part, value)|
+            total + value * PARTS_IN_SECONDS[part]
+          end
+        end
+    end
+
     def initialize(value, parts) #:nodoc:
-      @value, @parts = value, parts
+      @value, @parts = value, parts.to_h
+      @parts.default = 0
     end
 
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
       if Duration === other
-        Duration.new(value + other.value, @parts + other.parts)
+        parts = @parts.dup
+        other.parts.each do |(key, value)|
+          parts[key] += value
+        end
+        Duration.new(value + other.value, parts)
       else
-        Duration.new(value + other, @parts + [[:seconds, other]])
+        seconds = @parts[:seconds] + other
+        Duration.new(value + other, @parts.merge(seconds: seconds))
       end
     end
 
@@ -72,14 +147,14 @@ module ActiveSupport
     #   1.day.to_i      # => 86400
     #
     # Note that this conversion makes some assumptions about the
-    # duration of some periods, e.g. months are always 30 days
-    # and years are 365.25 days:
+    # duration of some periods, e.g. months are always 1/12 of year
+    # and years are 365.2425 days:
     #
-    #   # equivalent to 30.days.to_i
-    #   1.month.to_i    # => 2592000
+    #   # equivalent to (1.year / 12).to_i
+    #   1.month.to_i    # => 2629746
     #
-    #   # equivalent to 365.25.days.to_i
-    #   1.year.to_i     # => 31557600
+    #   # equivalent to 365.2425.days.to_i
+    #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
     # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
@@ -97,12 +172,6 @@ module ActiveSupport
 
     def hash
       @value.hash
-    end
-
-    def self.===(other) #:nodoc:
-      other.is_a?(Duration)
-    rescue ::NoMethodError
-      false
     end
 
     # Calculates a new Time or Date that is as far in the future
@@ -135,16 +204,6 @@ module ActiveSupport
       @value.respond_to?(method, include_private)
     end
 
-    # Creates a new Duration from string formatted according to ISO 8601 Duration.
-    #
-    # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
-    # This method allows negative parts to be present in pattern.
-    # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
-    def self.parse(iso8601duration)
-      parts = ISO8601Parser.new(iso8601duration).parse!
-      new(EPOCH.advance(parts) - EPOCH, parts)
-    end
-
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
@@ -153,9 +212,9 @@ module ActiveSupport
 
     delegate :<=>, to: :value
 
-    protected
+    private
 
-      def sum(sign, time = ::Time.current) #:nodoc:
+      def sum(sign, time = ::Time.current)
         parts.inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
@@ -173,9 +232,7 @@ module ActiveSupport
         end
       end
 
-    private
-
-      def method_missing(method, *args, &block) #:nodoc:
+      def method_missing(method, *args, &block)
         value.send(method, *args, &block)
       end
   end
