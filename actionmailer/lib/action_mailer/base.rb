@@ -580,7 +580,7 @@ module ActionMailer
       end
 
       def respond_to_missing?(method, include_all = false)
-        action_methods.include?(method.to_s) || self
+        action_methods.include?(method.to_s) || super
       end
     end
 
