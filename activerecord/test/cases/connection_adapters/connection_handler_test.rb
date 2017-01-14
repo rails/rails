@@ -48,6 +48,41 @@ module ActiveRecord
           assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
         end
       end
+
+      def test_pool_from_any_process_for_uses_most_recent_spec
+        skip unless current_adapter?(:SQLite3Adapter)
+
+        file = Tempfile.new "lol.sqlite3"
+
+        rd, wr = IO.pipe
+        rd.binmode
+        wr.binmode
+
+        pid = fork do
+          ActiveRecord::Base.configurations["arunit"]["database"] = file.path
+          ActiveRecord::Base.establish_connection(:arunit)
+
+          pid2 = fork do
+            wr.write ActiveRecord::Base.connection_config[:database]
+            wr.close
+          end
+
+          Process.waitpid pid2
+        end
+
+        Process.waitpid pid
+
+        wr.close
+
+        assert_equal file.path, rd.read
+
+        rd.close
+      ensure
+        if file
+          file.close
+          file.unlink
+        end
+      end
     end
   end
 end
