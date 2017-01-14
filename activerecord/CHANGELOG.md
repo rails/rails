@@ -1,3 +1,7 @@
+*   Fix NULL quoting rule for arrays on PostgreSQL.
+
+    *Alexander Sergey*
+
 *   Bust Model.attribute_names cache when resetting column information
     
     *James Coleman*

@@ -89,7 +89,7 @@ module ActiveRecord
           # for a list of all cases in which strings will be quoted.
           def string_requires_quoting?(string)
             string.empty? ||
-              string == "NULL" ||
+              string.upcase == "NULL" ||
               string =~ /[\{\}"\\\s]/ ||
               string.include?(delimiter)
           end

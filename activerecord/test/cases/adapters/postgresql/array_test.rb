@@ -201,7 +201,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_string_quoting_rules_match_pg_behavior
-    tags = ["", "one{", "two}", %(three"), "four\\", "five ", "six\t", "seven\n", "eight,", "nine", "ten\r", "NULL"]
+    tags = ["", "one{", "two}", %(three"), "four\\", "five ", "six\t", "seven\n", "eight,", "nine", "ten\r", "NULL", "Null"]
     x = PgArray.create!(tags: tags)
     x.reload
 
