@@ -34,6 +34,11 @@ class StringInquirerTest < ActiveSupport::TestCase
     assert_not_respond_to str, :nope
 
   ensure
-    String.send :undef_method, :respond_to_missing?
+    String.class_eval do
+      undef_method :respond_to_missing?
+      def respond_to_missing?(name, include_private = false)
+        (name == :bar) || super
+      end
+    end
   end
 end

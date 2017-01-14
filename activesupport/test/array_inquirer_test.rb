@@ -51,6 +51,11 @@ class ArrayInquirerTest < ActiveSupport::TestCase
     assert_respond_to arr, :foo
     assert_not_respond_to arr, :nope
   ensure
-    Array.send :undef_method, :respond_to_missing?
+    Array.class_eval do
+      undef_method :respond_to_missing?
+      def respond_to_missing?(name, include_private = false)
+        super
+      end
+    end
   end
 end
