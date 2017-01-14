@@ -1,5 +1,5 @@
-*   Fixed a bug that `ArrayInquirer#respond_to_missing?` does not fallback to
-    `Array#respond_to_missing?`.
+*   Fixed bugs that `StringInquirer#respond_to_missing?` and
+    `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
 
     *Akira Matsuda*
 
