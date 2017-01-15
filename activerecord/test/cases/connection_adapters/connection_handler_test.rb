@@ -24,7 +24,7 @@ module ActiveRecord
         config = {
           "development" => {
             "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
-            "primary"  =>  { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+            "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
           }
         }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config

@@ -17,7 +17,7 @@ module ActiveRecord
         @config.merge(name: @name)
       end
 
-      class ConnectionConfigurations  < SimpleDelegator #:nodoc:
+      class ConnectionConfigurations < SimpleDelegator #:nodoc:
         attr_accessor :root_level
 
         def initialize(config)
@@ -36,7 +36,7 @@ module ActiveRecord
 
           # if the configuration is a one level config, pushes that to be a two level config, with primary as key
           if !config.key?("primary") && config.key?("adapter")
-            config = {"primary" => config}
+            config = { "primary" => config }
           end
 
           if url = ENV["DATABASE_URL"]

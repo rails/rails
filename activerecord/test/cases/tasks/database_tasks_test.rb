@@ -173,7 +173,6 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
-
     def setup
       @prev_config = ActiveRecord::Base.configurations
       @configurations = {
@@ -315,7 +314,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
         "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
-        "production"  => { "database" => "prod-db", "adapter" => "sqlite3"}
+        "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
       ActiveRecord::Base.configurations = @configurations
     end
@@ -401,7 +400,6 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
-
     def setup
       @prev_config = ActiveRecord::Base.configurations
       @configurations = {
