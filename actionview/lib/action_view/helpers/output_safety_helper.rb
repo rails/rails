@@ -25,7 +25,7 @@ module ActionView #:nodoc:
       #   safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
       #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
       #
-      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />")
+      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
       #   # => "<p>foo</p><br /><p>bar</p>"
       #
       def safe_join(array, sep = $,)
