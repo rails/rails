@@ -11,6 +11,11 @@ module Rails
       if defined?(ENGINE_PATH)
         def require_application_and_environment!
           require ENGINE_PATH
+
+          if defined?(APP_PATH)
+            require APP_PATH
+            Rails.application.require_environment!
+          end
         end
 
         def load_tasks
