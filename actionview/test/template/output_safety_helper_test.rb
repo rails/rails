@@ -87,4 +87,14 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal "one, two three", to_sentence(["one", "two", "three"], last_word_connector: " ")
     assert_equal "one, two and three", to_sentence(["one", "two", "three"], last_word_connector: " and ")
   end
+
+  test "to_sentence is not affected by $," do
+    $, = "|"
+    begin
+      assert_equal "one and two", to_sentence(["one", "two"])
+      assert_equal "one, two, and three", to_sentence(["one", "two", "three"])
+    ensure
+      $, = nil
+    end
+  end
 end
