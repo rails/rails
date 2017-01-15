@@ -105,8 +105,7 @@ module ActiveRecord
         end
 
         if touch
-          touch_updates = touch_updates(touch)
-          updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
+          updates << sanitize_sql_for_assignment(touch_updates(touch))
         end
 
         unscoped.where(primary_key => id).update_all updates.join(", ")
