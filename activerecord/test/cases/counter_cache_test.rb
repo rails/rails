@@ -221,6 +221,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_equal previously_updated_at, @topic.updated_at
   end
 
+  test "update counters doesn't touch timestamps with touch: []" do
+    @topic.update_column :updated_at, 5.minutes.ago
+    previously_updated_at = @topic.updated_at
+
+    Topic.update_counters(@topic.id, replies_count: -1, touch: [])
+
+    assert_equal previously_updated_at, @topic.updated_at
+  end
+
   test "update counters with touch: true" do
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: -1, touch: true)
