@@ -31,8 +31,7 @@ module ActiveRecord
 
         def normalized(key = @root_level)
           config = key ? self[key] : self
-          config = config.dup
-          config ||= {}
+          config = config ? config.dup : {}
 
           # if the configuration is a one level config, pushes that to be a two level config, with primary as key
           if !config.key?("primary") && config.key?("adapter")
@@ -42,11 +41,8 @@ module ActiveRecord
           if url = ENV["DATABASE_URL"]
             config["primary"] ||= {}
             config["primary"]["url"] ||= url
-
-            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(nil)
-            config.each do |k, value|
-              config[k] = r.resolve(value) if value
-            end
+            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
+            config["primary"] = r.resolve(config["primary"])
           end
           config
         end
@@ -261,11 +257,13 @@ module ActiveRecord
           #   # => {}
           #
           def resolve_symbol_connection(spec)
-            if config = configurations[spec.to_s]
-              resolve_connection(config).merge("name" => spec.to_s)
-            else
-              raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
+            config = configurations.respond_to?(:normalized) && configurations.normalized[spec.to_s]
+            config ||= configurations[spec.to_s]
+
+            unless config
+              raise(AdapterNotSpecified, "'#{spec}' was not found in your configurations. Available: #{configurations.keys.inspect}")
             end
+            resolve_connection(config).merge("name" => spec.to_s)
           end
 
           # Accepts a hash. Expands the "url" key that contains a

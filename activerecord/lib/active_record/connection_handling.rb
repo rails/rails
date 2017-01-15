@@ -47,7 +47,7 @@ module ActiveRecord
       spec_name = self == Base ? "primary" : name
       self.connection_specification_name = spec_name
 
-      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations.normalized)
+      resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
       spec = resolver.resolve(config).symbolize_keys
       spec[:name] = spec_name
 
