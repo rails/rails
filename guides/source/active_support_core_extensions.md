@@ -1980,15 +1980,7 @@ and that symbol specifiers are also supported:
 BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
-Engineering notation is still supported.
-
-In Ruby 2.4:
-
-```ruby
-BigDecimal.new(5.00, 6).to_s("e")  # => "0.5e1"
-```
-
-Whereas in Ruby 2.2 and 2.3:
+Engineering notation is still supported:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"

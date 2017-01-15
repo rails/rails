@@ -107,13 +107,6 @@ class BigDecimal
   # BigDecimals are duplicable:
   #
   # BigDecimal.new("1.2").duplicable? # => true
-  #
-  # In Ruby 2.4.0:
-  #
-  # BigDecimal.new("1.2").dup         # => 0.12e1
-  #
-  # Whereas in Ruby 2.2 and 2.3:
-  #
   # BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
   def duplicable?
     true
