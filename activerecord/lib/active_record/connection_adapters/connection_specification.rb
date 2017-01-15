@@ -151,8 +151,6 @@ module ActiveRecord
 
         # Accepts a hash two layers deep, keys on the first layer represent
         # the specification name, such as "primary".
-        # User can input multiple databases config, thats why this is a two
-        # layer deep Hash.
         #
         # Keys must be strings.
         def initialize(configurations)
@@ -186,8 +184,8 @@ module ActiveRecord
         # Returns an instance of ConnectionSpecification for a given adapter.
         # Accepts:
         # - Hash: one layer deep Hash that contains all connection information
-        # - Symbol: a connection specification name, that will be looked-up
-        #           from the main configuration
+        # - Symbol: a configuration name that will be looked-up
+        #           from the configurations Hash
         # - String: a database url
         #
         # == Example
