@@ -1,3 +1,9 @@
+*   Allow render locals to be assigned to instance variables in a view.
+
+    Fixes #27480.
+
+    *Andrew White*
+
 *   Return correct object name in form helper method after `fields_for`.
 
     Fixes #26931.
