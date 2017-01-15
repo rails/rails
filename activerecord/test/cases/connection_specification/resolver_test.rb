@@ -129,7 +129,7 @@ class ConnectionSpecificationResolverTest < ActiveRecord::TestCase
 
   def test_resolve_nil
     assert_raise(ActiveRecord::AdapterNotSpecified) do
-      resolve nil, "primary" => {"adapter" => "sqlite3"}
+      resolve nil, "primary" => { "adapter" => "sqlite3" }
     end
   end
 end

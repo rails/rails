@@ -87,10 +87,10 @@ module Rails
 
     def config
       @config ||= begin
-        if configurations['primary'].blank?
+        if configurations["primary"].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations['primary']
+          configurations["primary"]
         end
       end
     end
