@@ -285,7 +285,7 @@ module ActiveRecord
 
       # Return the primary configuration from a given environment
       def config_at(env)
-        Base.configurations.at(env)['primary']
+        Base.configurations.at(env)["primary"]
       end
 
       private

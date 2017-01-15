@@ -35,13 +35,13 @@ module ActiveRecord
           config ||= {}
 
           # if the configuration is a one level config, pushes that to be a two level config, with primary as key
-          if !config.key?('primary') && config.key?('adapter')
-            config = {'primary' => config}
+          if !config.key?("primary") && config.key?("adapter")
+            config = {"primary" => config}
           end
 
           if url = ENV["DATABASE_URL"]
-            config['primary'] ||= {}
-            config['primary']['url'] ||= url
+            config["primary"] ||= {}
+            config["primary"]["url"] ||= url
 
             r = ConnectionAdapters::ConnectionSpecification::Resolver.new(nil)
             config.each do |k, value|

@@ -49,7 +49,7 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
   def test_jdbc_url
     config   = { "production" => { "url" => "jdbc:postgres://localhost/foo" } }
     actual   = resolve_spec(:production, config)
-    assert_equal config['production'].merge('name' => 'production'), actual
+    assert_equal config["production"].merge("name" => "production"), actual
   end
 
   def test_environment_does_not_exist_in_config_url_does_exist
@@ -93,7 +93,7 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
   def test_hash
     config = { "production" => { "adapter" => "postgres", "database" => "foo" } }
     actual = resolve_spec(:production, config)
-    assert_equal config['production'].merge('name' => 'production'), actual
+    assert_equal config["production"].merge("name" => "production"), actual
   end
 
   def test_blank_with_database_url
