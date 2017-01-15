@@ -10,7 +10,8 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
   end
 
   def resolve_spec(spec, config)
-    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(spec)
+    config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
+    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config.normalized).resolve(spec)
   end
 
   def test_resolver_with_database_uri_and_current_env_symbol_key

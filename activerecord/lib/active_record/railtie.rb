@@ -119,7 +119,7 @@ module ActiveRecord
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
         self.configurations = Rails.application.config.database_configuration
-        self.local_configurations = configurations[Rails.env]
+        self.configurations.root_level = Rails.env.to_s
 
         begin
           establish_connection

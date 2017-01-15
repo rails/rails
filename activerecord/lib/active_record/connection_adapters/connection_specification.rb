@@ -17,23 +17,38 @@ module ActiveRecord
         @config.merge(name: @name)
       end
 
-      # Converts a one level connection config, to the new format
-      # which is a two level, such as: {'primary' => {'adapter' => 'foo'}}
-      class LegacyConfigTransformer # :nodoc:
-        def initialize(configurations)
-          if configurations
-            @configurations = configurations.to_hash
-          else
-            @configurations = nil
-          end
+      class ConnectionConfigurations  < SimpleDelegator #:nodoc:
+        attr_accessor :root_level
+
+        def initialize(config)
+          super
+          @root_level = nil
         end
 
-        def to_hash
-          return nil unless @configurations
-          if !@configurations.key?('primary') && @configurations.key?('adapter')
-            @configurations = {'primary' => @configurations}
+        def at(top_level)
+          normalized(top_level)
+        end
+
+        def normalized(key = @root_level)
+          config = key ? self[key] : self
+          config = config.dup
+          config ||= {}
+
+          # if the configuration is a one level config, pushes that to be a two level config, with primary as key
+          if !config.key?('primary') && config.key?('adapter')
+            config = {'primary' => config}
           end
-          @configurations
+
+          if url = ENV["DATABASE_URL"]
+            config['primary'] ||= {}
+            config['primary']['url'] ||= url
+
+            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(nil)
+            config.each do |k, value|
+              config[k] = r.resolve(value) if value
+            end
+          end
+          config
         end
       end
 
@@ -142,12 +157,6 @@ module ActiveRecord
         # Keys must be strings.
         def initialize(configurations)
           @configurations = configurations
-
-          if url = ENV["DATABASE_URL"]
-            @configurations = configurations.dup
-            @configurations['primary'] ||= {}
-            @configurations['primary']['url'] ||= url
-          end
         end
 
         # Returns a hash with database connection information.

@@ -20,12 +20,15 @@ module ActiveRecord
         @handler.remove_connection("readonly")
       end
 
-      def test_establish_connection_using_local_configurations
+      def test_establish_connection_using_3_levels_config
         config = {
-          "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
-          "primary"  =>  { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          "development" => {
+            "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
+            "primary"  =>  { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          }
         }
-        @prev_configs, ActiveRecord::Base.local_configurations = ActiveRecord::Base.local_configurations, config
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+        ActiveRecord::Base.configurations.root_level = "development"
 
         @handler.establish_connection(:primary)
         @handler.establish_connection(:readonly)
@@ -36,19 +39,20 @@ module ActiveRecord
         assert_not_nil pool = @handler.retrieve_connection_pool("primary")
         assert_equal "db/primary.sqlite3", pool.spec.config[:database]
       ensure
-        ActiveRecord::Base.local_configurations = @prev_configs
+        ActiveRecord::Base.configurations = @prev_configs
       end
 
-      def test_establish_connection_using_legacy_configurations
-        config = { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
-        @prev_configs, ActiveRecord::Base.local_configurations = ActiveRecord::Base.local_configurations, config
+      def test_establish_connection_using_two_level_configurations
+        config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+        ActiveRecord::Base.configurations.root_level = "development"
 
         @handler.establish_connection(:primary)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("primary")
         assert_equal "db/primary.sqlite3", pool.spec.config[:database]
       ensure
-        ActiveRecord::Base.local_configurations = @prev_configs
+        ActiveRecord::Base.configurations = @prev_configs
       end
 
       def test_retrieve_connection

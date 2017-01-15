@@ -97,11 +97,15 @@ module ActiveRecord
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = { "development" => { "database" => "my-db", "adapter" => "sqlite3" } }
-
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.configurations = @configurations
       # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
       ActiveRecord::Base.connection_handler.stubs(:establish_connection)
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_ignores_configurations_without_databases
@@ -169,15 +173,21 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
+
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = {
         "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
         "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
         "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.configurations = @configurations
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_creates_current_environment_database
@@ -240,9 +250,13 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = { development: { "database" => "my-db", "adapter" => "sqlite3" } }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_ignores_configurations_without_databases
@@ -297,13 +311,17 @@ module ActiveRecord
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = {
         "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
         "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
         "production"  => { "database" => "prod-db", "adapter" => "sqlite3"}
       }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_drops_current_environment_database
@@ -383,14 +401,22 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
-    def test_purges_current_environment_database
-      configurations = {
+
+    def setup
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = {
         "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
         "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
         "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
-      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+      ActiveRecord::Base.configurations = @configurations
+    end
 
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
+    end
+
+    def test_purges_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with("database" => "prod-db", "adapter" => "sqlite3")
       ActiveRecord::Base.expects(:establish_connection).
@@ -401,10 +427,17 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
-    def test_purge_all_local_configurations
-      configurations = { development: { "database" => "my-db", "adapter" => "sqlite3" } }
-      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+    def setup
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = { development: { "database" => "my-db", "adapter" => "sqlite3" } }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
+    end
+
+    def test_purge_all_local_configurations
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with("database" => "my-db", "adapter" => "sqlite3")
 

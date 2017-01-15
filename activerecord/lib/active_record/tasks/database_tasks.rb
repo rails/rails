@@ -285,9 +285,7 @@ module ActiveRecord
 
       # Return the primary configuration from a given environment
       def config_at(env)
-        config = ActiveRecord::Base.configurations[env]
-        config = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
-        config['primary'] if config
+        Base.configurations.at(env)['primary']
       end
 
       private
@@ -308,17 +306,17 @@ module ActiveRecord
           end
         end
 
-        def each_local_configuration
-          ActiveRecord::Base.configurations.each_value do |config|
-            configurations = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
-            configurations.each_value do |configuration|
-              next unless configuration["database"]
-
-              if local_database?(configuration)
-                yield configuration
+        def each_local_configuration(config = ActiveRecord::Base.configurations, &block)
+          config.each_value do |value|
+            next unless value.is_a?(Hash)
+            if value["database"]
+              if local_database?(value)
+                yield value
               else
-                $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+                $stderr.puts "This task only modifies local databases. #{value['database']} is on a remote host."
               end
+            else
+              each_local_configuration(value, &block)
             end
           end
         end

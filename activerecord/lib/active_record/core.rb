@@ -42,18 +42,13 @@ module ActiveRecord
       #         'database' => 'db/production.sqlite3'
       #      }
       #   }
-      mattr_accessor :configurations, instance_writer: false
-      self.configurations = {}
-
-      ##
-      # Contains the database configuration used by active record to establish the connections to the database.
-      # This Hash has no enviroment knowlodge.
-      def self.local_configurations=(config)
-        @@local_configurations = ConnectionAdapters::ConnectionSpecification::LegacyConfigTransformer.new(config).to_hash
+      def self.configurations=(config)
+        @@configurations = ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
       end
-      self.local_configurations = nil
-      def self.local_configurations
-        @@local_configurations || configurations
+
+      self.configurations = {}
+      def self.configurations
+        @@configurations
       end
 
       ##
