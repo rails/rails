@@ -28,8 +28,8 @@ module ActionView #:nodoc:
 
       templates = []
       @hash.each do |_path, array|
-        source, updated_at = array
         next unless query.match?(_path)
+        source, updated_at = array
         handler, format, variant = extract_handler_and_format_and_variant(_path, formats)
         templates << Template.new(source, _path, handler,
           virtual_path: path.virtual,
