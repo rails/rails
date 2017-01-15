@@ -229,7 +229,7 @@ GEM
     mime-types-data (3.2016.0521)
     mini_portile2 (2.1.0)
     minitest (5.3.3)
-    mocha (1.2.1)
+    mocha (0.14.0)
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     multi_json (1.12.1)
@@ -399,7 +399,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest (< 5.3.4)
-  mocha
+  mocha (~> 0.14)
   mysql2 (>= 0.4.4)
   nokogiri (>= 1.6.8)
   pg (>= 0.18.0)
