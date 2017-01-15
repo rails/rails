@@ -698,6 +698,12 @@ module ActiveRecord
           end
         end
 
+        def connected?
+          @connection && @connection.socket.present?
+        rescue PG::ConnectionBad
+          false
+        end
+
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection

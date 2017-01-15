@@ -79,8 +79,12 @@ module ActiveRecord
       # QUOTING ==================================================
       #++
 
+      # If this connection wasn't verified
+      # we might need to reconnect and try it again
       def quote_string(string)
-        @connection.escape(string)
+        with_connection_verify(Mysql2::Error) do
+          @connection.escape(string)
+        end
       end
 
       #--
@@ -88,7 +92,16 @@ module ActiveRecord
       #++
 
       def active?
-        @connection.ping
+        return false if !connected?
+
+        if @connection.ping
+          true
+        elsif @verify_connection
+          reconnect!
+          @connection.ping
+        else
+          false
+        end
       end
 
       def reconnect!
@@ -106,6 +119,12 @@ module ActiveRecord
       end
 
       private
+
+        def connected?
+          @connection && @connection.socket.present?
+        rescue Mysql2::Error
+          false
+        end
 
         def connect
           @connection = Mysql2::Client.new(@config)

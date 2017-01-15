@@ -42,7 +42,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.update("set @@wait_timeout=1")
     sleep 2
     assert !@connection.active?
-
+  ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
@@ -77,6 +77,12 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_raise(Mysql2::Error) do
       @connection.quote("string")
     end
+  end
+
+  def test_no_ping_on_connect
+    @connection.disconnect!
+    Mysql2::Client.any_instance.expects(:ping).never
+    @connection.reconnect!
   end
 
   def test_active_after_disconnect

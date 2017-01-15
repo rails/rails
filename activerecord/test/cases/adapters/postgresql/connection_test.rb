@@ -168,8 +168,6 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
-
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
       new_connection_pid = @connection.query("select pg_backend_pid()")
@@ -178,6 +176,7 @@ module ActiveRecord
         "umm -- looks like you didn't break the connection, because we're still " +
         "successfully querying with the same connection pid."
 
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end

@@ -431,6 +431,15 @@ module ActiveRecord
         reconnect! unless active?
       end
 
+      # Marks connection to lazily do the healthcheck on the first query.
+      def defer_verify!
+        if !respond_to?(:connected?) || connected?
+          @verify_connection = true
+        else
+          reconnect!
+        end
+      end
+
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.
@@ -500,6 +509,21 @@ module ActiveRecord
       end
 
       private
+
+        def with_connection_verify(exception_class)
+          yield
+        rescue exception_class
+          raise_unless_verifying_connection
+          reconnect!
+          retry
+        ensure
+          @verify_connection = false
+        end
+
+        def raise_unless_verifying_connection
+          raise if !@verify_connection || active?
+          @verify_connection = false
+        end
 
         def initialize_type_map(m)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean

@@ -58,6 +58,19 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     assert_equal 1, ActiveRecord::Base.connection_pool.connections.size
   end
 
+  def test_no_verify_called_on_checkin
+    ActiveRecord::Base.establish_connection(@connection)
+
+    begin
+      conn = ActiveRecord::Base.connection_pool.checkout
+      conn.expects(:verify!).never
+    ensure
+      ActiveRecord::Base.connection_pool.checkin(conn)
+    end
+
+    ActiveRecord::Base.connection_pool.with_connection {}
+  end
+
   def test_pooled_connection_checkin_two
     checkout_checkin_connections_loop 2, 3
     assert_equal 3, @connection_count
