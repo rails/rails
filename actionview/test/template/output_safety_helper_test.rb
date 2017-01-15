@@ -33,6 +33,11 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal "&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;", joined
   end
 
+  test "safe_join should return the safe string separated by $, when second argument is not passed" do
+    joined = safe_join(["a", "b"])
+    assert_equal "a#{$,}b", joined
+  end
+
   test "to_sentence should escape non-html_safe values" do
     actual = to_sentence(%w(< > & ' "))
     assert actual.html_safe?
