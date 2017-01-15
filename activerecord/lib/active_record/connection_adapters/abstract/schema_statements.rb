@@ -799,6 +799,8 @@ module ActiveRecord
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
+      # [<tt>:references</tt>]
+      #   Name of the receiving table. Defaults to the table name of the target model.
       #
       # ====== Create a user_id integer column
       #
@@ -827,6 +829,10 @@ module ActiveRecord
       # ====== Create a supplier_id column and a foreign key to the firms table
       #
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
+      #
+      # ====== Create an administrator_id column as a reference to the users table
+      #
+      #   add_reference(:products, :administrator, references: :users)
       #
       def add_reference(table_name, *args)
         ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
