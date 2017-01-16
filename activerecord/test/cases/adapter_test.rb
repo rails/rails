@@ -31,7 +31,6 @@ module ActiveRecord
     end
 
     def test_tables
-      tables = nil
       tables = @connection.tables
       assert_includes tables, "accounts"
       assert_includes tables, "authors"
