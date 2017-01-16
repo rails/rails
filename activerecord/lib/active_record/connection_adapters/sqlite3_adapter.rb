@@ -95,6 +95,8 @@ module ActiveRecord
 
         @active     = nil
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+
+        configure_connection
       end
 
       def supports_ddl_transactions?
@@ -183,6 +185,19 @@ module ActiveRecord
 
       def supports_explain?
         true
+      end
+
+      # REFERENTIAL INTEGRITY ====================================
+
+      def disable_referential_integrity # :nodoc:
+        old = select_value("PRAGMA foreign_keys")
+
+        begin
+          execute("PRAGMA foreign_keys = OFF")
+          yield
+        ensure
+          execute("PRAGMA foreign_keys = #{old}")
+        end
       end
 
       #--
@@ -525,6 +540,8 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
             NotNullViolation.new(message)
+          when /FOREIGN KEY constraint failed/i
+            InvalidForeignKey.new(message)
           else
             super
           end
@@ -573,6 +590,10 @@ module ActiveRecord
 
         def create_table_definition(*args)
           SQLite3::TableDefinition.new(*args)
+        end
+
+        def configure_connection
+          execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
   end
