@@ -1,3 +1,7 @@
+*   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on Sqlite3.
+
+    *Ryuta Kamizono*
+
 *   Add the touch option to ActiveRecord#increment! and decrement!
 
     *Hiroaki Izu*
