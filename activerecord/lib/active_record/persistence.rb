@@ -341,11 +341,13 @@ module ActiveRecord
     # Wrapper around #increment that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Returns +self+.
-    def increment!(attribute, by = 1)
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
-      self.class.update_counters(id, attribute => change)
+      self.class.update_counters(id, attribute => change, touch: touch)
       clear_attribute_change(attribute) # eww
       self
     end
@@ -360,9 +362,11 @@ module ActiveRecord
     # Wrapper around #decrement that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Returns +self+.
-    def decrement!(attribute, by = 1)
-      increment!(attribute, -by)
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def decrement!(attribute, by = 1, touch: nil)
+      increment!(attribute, -by, touch: touch)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So

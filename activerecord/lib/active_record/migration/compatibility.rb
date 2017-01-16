@@ -16,7 +16,7 @@ module ActiveRecord
       class V5_0 < V5_1
         def create_table(table_name, options = {})
           if adapter_name == "PostgreSQL"
-            if options[:id] == :uuid && !options[:default]
+            if options[:id] == :uuid && !options.key?(:default)
               options[:default] = "uuid_generate_v4()"
             end
           end

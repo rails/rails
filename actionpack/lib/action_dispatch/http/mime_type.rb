@@ -298,7 +298,7 @@ module Mime
       end
 
       def respond_to_missing?(method, include_private = false)
-        method.to_s.ends_with? "?"
+        (method.to_s.ends_with? "?") || super
       end
   end
 

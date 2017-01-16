@@ -1,3 +1,8 @@
+*   Fixed bugs that `StringInquirer#respond_to_missing?` and
+    `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
+
+    *Akira Matsuda*
+
 *   Fix inconsistent results when parsing large durations and constructing durations from code
 
         ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true

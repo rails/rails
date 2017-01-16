@@ -421,6 +421,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
     assert_file "bin/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
     assert_file "bin/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
+    assert_file "bin/rails", %r|APP_PATH = File.expand_path\('../../test/dummy/config/application', __FILE__\)|
     assert_file "bin/rails", /require 'rails\/all'/
     assert_file "bin/rails", /require 'rails\/engine\/commands'/
   end

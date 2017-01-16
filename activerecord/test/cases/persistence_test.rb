@@ -139,6 +139,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal initial_credit + 2, a1.reload.credit_limit
   end
 
+  def test_increment_updates_timestamps
+    topic = topics(:first)
+    topic.update_columns(updated_at: 5.minutes.ago)
+    previous_updated_at = topic.updated_at
+    topic.increment!(:replies_count, touch: true)
+    assert_operator previous_updated_at, :<, topic.reload.updated_at
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a
@@ -228,6 +236,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
     accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
     assert_equal 41, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_decrement_updates_timestamps
+    topic = topics(:first)
+    topic.update_columns(updated_at: 5.minutes.ago)
+    previous_updated_at = topic.updated_at
+    topic.decrement!(:replies_count, touch: true)
+    assert_operator previous_updated_at, :<, topic.reload.updated_at
   end
 
   def test_create

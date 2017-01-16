@@ -234,25 +234,23 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       end
     end
 
-    if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
-      def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
-        @verbose_was = ActiveRecord::Migration.verbose
-        ActiveRecord::Migration.verbose = false
+    def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+      @verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
 
-        migration = Class.new(ActiveRecord::Migration[4.2]) do
-          def version; 101 end
-          def migrate(x)
-            create_table("pg_uuids_4", id: :uuid)
-          end
-        end.new
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+      migration = Class.new(ActiveRecord::Migration[5.0]) do
+        def version; 101 end
+        def migrate(x)
+          create_table("pg_uuids_4", id: :uuid)
+        end
+      end.new
+      ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        schema = dump_table_schema "pg_uuids_4"
-        assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
-      ensure
-        drop_table "pg_uuids_4"
-        ActiveRecord::Migration.verbose = @verbose_was
-      end
+      schema = dump_table_schema "pg_uuids_4"
+      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+    ensure
+      drop_table "pg_uuids_4"
+      ActiveRecord::Migration.verbose = @verbose_was
     end
   end
 end
@@ -284,6 +282,25 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
     def test_schema_dumper_for_uuid_primary_key_with_default_override_via_nil
       schema = dump_table_schema "pg_uuids"
       assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
+      @verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
+
+      migration = Class.new(ActiveRecord::Migration[5.0]) do
+        def version; 101 end
+        def migrate(x)
+          create_table("pg_uuids_4", id: :uuid, default: nil)
+        end
+      end.new
+      ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+      schema = dump_table_schema "pg_uuids_4"
+      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
+    ensure
+      drop_table "pg_uuids_4"
+      ActiveRecord::Migration.verbose = @verbose_was
     end
   end
 end

@@ -18,7 +18,7 @@ module ActiveSupport
     private
 
       def respond_to_missing?(method_name, include_private = false)
-        method_name[-1] == "?"
+        (method_name[-1] == "?") || super
       end
 
       def method_missing(method_name, *arguments)

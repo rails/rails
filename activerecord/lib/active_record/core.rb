@@ -317,7 +317,7 @@ module ActiveRecord
         def relation_with_type_condition #:nodoc:
           relation = relation_without_type_condition
 
-          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+          relation.where(type_condition).create_with(inheritance_column.to_s => sti_name)
         end
 
         def relation_without_type_condition #:nodoc:
