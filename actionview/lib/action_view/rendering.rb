@@ -124,7 +124,11 @@ module ActionView
           key = action.include?(?/) ? :template : :action
           options[key] = action
         else
-          options[:partial] = action
+          if action.respond_to?(:permitted?) && action.permitted?
+            options = action
+          else
+            options[:partial] = action
+          end
         end
 
         options
