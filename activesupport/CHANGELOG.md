@@ -1,3 +1,8 @@
+*   Changed `ActiveSupport::Inflector#transliterate` to raise `ArgumentError` when it receives
+    anything except a string.
+
+    *Kevin McPhillips*
+
 *   Fixed bugs that `StringInquirer#respond_to_missing?` and
     `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
 
