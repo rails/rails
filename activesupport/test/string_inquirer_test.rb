@@ -37,7 +37,7 @@ class StringInquirerTest < ActiveSupport::TestCase
     String.class_eval do
       undef_method :respond_to_missing?
       def respond_to_missing?(name, include_private = false)
-        (name == :bar) || super
+        super
       end
     end
   end
