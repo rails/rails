@@ -226,8 +226,9 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     run_generator
 
-    Rails.application.config.paths["db/migrate"] = old_paths
     assert_migration "db2/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations
