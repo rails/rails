@@ -637,7 +637,7 @@ module ActiveRecord
       end
 
       def pool_from_any_process_for(owner)
-        owner_to_pool = @owner_to_pool.values.find { |v| v[owner.name] }
+        owner_to_pool = @owner_to_pool.values.reverse.find { |v| v[owner.name] }
         owner_to_pool && owner_to_pool[owner.name]
       end
     end
