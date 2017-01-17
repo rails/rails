@@ -5,10 +5,12 @@ class Module
   #
   #   M::N.parent_name # => "M"
   def parent_name
-    if defined? @parent_name
+    if defined?(@parent_name)
       @parent_name
     else
-      @parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      @parent_name = parent_name unless frozen?
+      parent_name
     end
   end
 
