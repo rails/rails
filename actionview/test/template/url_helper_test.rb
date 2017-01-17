@@ -544,6 +544,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("/posts/")
   end
 
+  def test_current_page_with_not_defined_path
+    @request = request_for_url("/posts")
+
+    refute current_page?(action: "no_such_an_action")
+    refute current_page?(controller: "no_such_a_controller")
+    refute current_page?(controller: "no_such_a_controller", action: "no_such_an_action")
+  end
+
   def test_link_unless_current
     @request = request_for_url("/")
 

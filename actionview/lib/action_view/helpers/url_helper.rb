@@ -559,6 +559,8 @@ module ActionView
         else
           url_string == request_uri
         end
+      rescue ActionController::UrlGenerationError
+        false
       end
 
       private
