@@ -19,6 +19,7 @@ module ActiveRecord
 
           if through_record && !record
             through_record.destroy
+            through_proxy.reset
           elsif record
             attributes = construct_join_attributes(record)
 

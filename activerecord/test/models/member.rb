@@ -33,6 +33,8 @@ class Member < ActiveRecord::Base
 
   belongs_to :admittable, polymorphic: true
   has_one :premium_club, through: :admittable
+
+  delegate :joined_on, to: :current_membership, allow_nil: true
 end
 
 class SelfMember < ActiveRecord::Base
