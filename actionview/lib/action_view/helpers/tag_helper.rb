@@ -1,5 +1,8 @@
 # frozen-string-literal: true
 
+require "action_view/helpers/capture_helper"
+require "action_view/helpers/output_safety_helper"
+require "active_support/concern"
 require "active_support/core_ext/string/output_safety"
 require "set"
 
