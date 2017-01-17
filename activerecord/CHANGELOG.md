@@ -1,3 +1,9 @@
+*   UniquenessValidator correctly excludes itself when PK changed
+
+    Closes #23399.
+
+    *Diego Silva*
+
 *   Bust Model.attribute_names cache when resetting column information
     
     *James Coleman*
