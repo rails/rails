@@ -315,8 +315,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     migration = "migration_in_custom_path"
     run_generator [migration]
-    Rails.application.config.paths["db/migrate"] = old_paths
     assert_migration "db2/migrate/#{migration}.rb", /.*/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
   end
 
   private
