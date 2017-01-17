@@ -1,3 +1,7 @@
+*   Place generated migrations into the path set by `config.paths["db/migrate"]`
+
+    *Kevin Glowacz*
+    
 *   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on Sqlite3.
 
     *Ryuta Kamizono*
