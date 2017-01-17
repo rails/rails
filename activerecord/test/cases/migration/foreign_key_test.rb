@@ -2,6 +2,26 @@ require "cases/helper"
 require "support/ddl_helper"
 require "support/schema_dumping_helper"
 
+if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
+  module ActiveRecord
+    class Migration
+      class ForeignKeyInCreateTest < ActiveRecord::TestCase
+        def test_foreign_keys
+          foreign_keys = ActiveRecord::Base.connection.foreign_keys("fk_test_has_fk")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "fk_test_has_fk", fk.from_table
+          assert_equal "fk_test_has_pk", fk.to_table
+          assert_equal "fk_id", fk.column
+          assert_equal "pk_id", fk.primary_key
+          assert_equal "fk_name", fk.name unless current_adapter?(:SQLite3Adapter)
+        end
+      end
+    end
+  end
+end
+
 if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
@@ -29,10 +49,8 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         teardown do
-          if defined?(@connection)
-            @connection.drop_table "astronauts", if_exists: true
-            @connection.drop_table "rockets", if_exists: true
-          end
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
 
         def test_foreign_keys
@@ -305,9 +323,11 @@ else
           @connection.remove_foreign_key :clubs, :categories
         end
 
-        def test_foreign_keys_should_raise_not_implemented
-          assert_raises NotImplementedError do
-            @connection.foreign_keys("clubs")
+        unless current_adapter?(:SQLite3Adapter)
+          def test_foreign_keys_should_raise_not_implemented
+            assert_raises NotImplementedError do
+              @connection.foreign_keys("clubs")
+            end
           end
         end
       end
