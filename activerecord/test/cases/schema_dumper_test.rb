@@ -343,7 +343,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         t.column :name, :string
         t.column :owner_id, :bigint
         t.index [:name]
-        t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
+        t.foreign_key :dog_owners, column: "owner_id"
       end
     end
     def down
