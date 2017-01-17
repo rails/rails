@@ -311,7 +311,7 @@ This file must specify an adapter and a URL for each Rails environment. It may u
 ```yaml
 production: &production
   adapter: redis
-  url: redis://10.10.3.153:6381
+  url: <%= ENV["REDIS_URL"] %>
 development: &development
   adapter: redis
   url: redis://localhost:6379
