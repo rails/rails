@@ -1,8 +1,10 @@
 require "test_helper"
 require_relative "./common"
+require_relative "./channel_prefix"
 
 class EventedRedisAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
+  include ChannelPrefixTest
 
   def setup
     super

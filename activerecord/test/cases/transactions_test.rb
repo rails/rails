@@ -279,7 +279,11 @@ class TransactionTest < ActiveRecord::TestCase
       e = assert_raises(RuntimeError) { new_topic.save }
       assert_equal "Make the transaction rollback", e.message
       assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
-      assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      if id_snapshot.nil?
+        assert_nil new_topic.id, "The topic should have its old id"
+      else
+        assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      end
       assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
     end
   end

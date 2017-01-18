@@ -11,6 +11,8 @@ EventMachine.kqueue if EventMachine.kqueue?
 module ActionCable
   module SubscriptionAdapter
     class EventedRedis < Base # :nodoc:
+      prepend ChannelPrefix
+
       @@mutex = Mutex.new
 
       # Overwrite this factory method for EventMachine Redis connections if you want to use a different Redis connection library than EM::Hiredis.

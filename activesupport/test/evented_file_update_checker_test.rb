@@ -30,11 +30,6 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     wait # wait for the events to fire
   end
 
-  def rm_f(files)
-    super
-    wait
-  end
-
   test "notifies forked processes" do
     jruby_skip "Forking not available on JRuby"
 

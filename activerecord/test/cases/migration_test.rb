@@ -43,10 +43,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
-    ActiveRecord::Base.connection.initialize_schema_migrations_table
-    ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
+    ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::SchemaMigration.delete_all
 
-    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information

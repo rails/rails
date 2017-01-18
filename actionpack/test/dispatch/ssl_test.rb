@@ -102,7 +102,11 @@ class StrictTransportSecurityTest < SSLTest
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
-    assert_equal expected, response.headers["Strict-Transport-Security"]
+    if expected.nil?
+      assert_nil response.headers["Strict-Transport-Security"]
+    else
+      assert_equal expected, response.headers["Strict-Transport-Security"]
+    end
   end
 
   test "enabled by default" do

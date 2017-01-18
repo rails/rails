@@ -1,3 +1,12 @@
+*   Initialize git repo when generating new app, if option `--skip-git`
+    is not provided.
+
+    *Dino Maric*
+
+*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+
+    *Junichi Ito*
+
 *   Make every Rails command work within engines.
 
     *Sean Collins*, *Yuji Yaginuma*

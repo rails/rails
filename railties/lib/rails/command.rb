@@ -15,6 +15,8 @@ module Rails
 
     include Behavior
 
+    HELP_MAPPINGS = %w(-h -? --help)
+
     class << self
       def hidden_commands # :nodoc:
         @hidden_commands ||= []
@@ -27,7 +29,7 @@ module Rails
       # Receives a namespace, arguments and the behavior to invoke the command.
       def invoke(namespace, args = [], **config)
         namespace = namespace.to_s
-        namespace = "help" if namespace.blank? || Thor::HELP_MAPPINGS.include?(namespace)
+        namespace = "help" if namespace.blank? || HELP_MAPPINGS.include?(namespace)
         namespace = "version" if %w( -v --version ).include? namespace
 
         if command = find_by_namespace(namespace)

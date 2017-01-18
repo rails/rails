@@ -1,9 +1,9 @@
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
+if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
   module ActiveRecord
     class Migration
-      class ReferencesForeignKeyTest < ActiveRecord::TestCase
+      class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
         setup do
           @connection = ActiveRecord::Base.connection
           @connection.create_table(:testing_parents, force: true)
@@ -60,6 +60,24 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           fks = @connection.foreign_keys("testings")
           assert_equal([["testings", "testing_parents", "parent_id"]],
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
+        end
+      end
+    end
+  end
+end
+
+if ActiveRecord::Base.connection.supports_foreign_keys?
+  module ActiveRecord
+    class Migration
+      class ReferencesForeignKeyTest < ActiveRecord::TestCase
+        setup do
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table(:testing_parents, force: true)
+        end
+
+        teardown do
+          @connection.drop_table "testings", if_exists: true
+          @connection.drop_table "testing_parents", if_exists: true
         end
 
         test "foreign keys cannot be added to polymorphic relations when creating the table" do

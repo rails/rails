@@ -45,16 +45,14 @@ module ActionView
       # Providing a custom Rails::Html scrubber:
       #
       #   class CommentScrubber < Rails::Html::PermitScrubber
-      #     def allowed_node?(node)
-      #       !%w(form script comment blockquote).include?(node.name)
+      #     def initialize
+      #       super
+      #       self.tags = %w( form script comment blockquote )
+      #       self.attributes = %w( style )
       #     end
       #
       #     def skip_node?(node)
       #       node.text?
-      #     end
-      #
-      #     def scrub_attribute?(name)
-      #       name == 'style'
       #     end
       #   end
       #

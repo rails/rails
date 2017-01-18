@@ -1107,8 +1107,8 @@ module ActiveRecord
 
       validate(@migrations)
 
-      Base.connection.initialize_schema_migrations_table
-      Base.connection.initialize_internal_metadata_table
+      ActiveRecord::SchemaMigration.create_table
+      ActiveRecord::InternalMetadata.create_table
     end
 
     def current_version
