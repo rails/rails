@@ -1,3 +1,5 @@
+require 'arel/errors'
+
 require 'arel/crud'
 require 'arel/factory_methods'
 

@@ -618,6 +618,16 @@ module Arel
         manager   = Arel::SelectManager.new
         manager.join(nil).must_equal manager
       end
+
+      it 'raises EmptyJoinError on empty' do
+        left      = Table.new :users
+        manager   = Arel::SelectManager.new
+
+        manager.from left
+        assert_raises(EmptyJoinError) do
+          manager.join("")
+        end
+      end
     end
 
     describe 'outer join' do

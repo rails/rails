@@ -106,7 +106,7 @@ module Arel
 
       case relation
       when String, Nodes::SqlLiteral
-        raise if relation.empty?
+        raise EmptyJoinError if relation.empty?
         klass = Nodes::StringJoin
       end
 
