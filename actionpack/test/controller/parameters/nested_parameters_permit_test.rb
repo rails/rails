@@ -141,7 +141,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
 
     assert_equal(
-      {"book"=>{"authors_attributes"=>{"0"=>{"name"=>"William Shakespeare"}, "1"=>{"name"=>"Unattributed Assistant"}, "2"=>{}}}}, 
+      { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" }, "2" => {} } } },
       permitted.to_h
     )
 
