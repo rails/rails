@@ -1,25 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module'
 
-module One
-  Constant1 = "Hello World"
-  Constant2 = "What's up?"
-end
-
-class Ab
-  include One
-  Constant1 = "Hello World" # Will have different object id than One::Constant1
-  Constant3 = "Goodbye World"
-end
-
-module Yz
-  module Zy
-    class Cd
-      include One
-    end
-  end
-end
-
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
 end
@@ -314,17 +295,6 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_with_method_arguments
     has_block = HasBlock.new(Block.new)
     assert has_block.hello?
-  end
-
-  def test_parent
-    assert_equal Yz::Zy, Yz::Zy::Cd.parent
-    assert_equal Yz, Yz::Zy.parent
-    assert_equal Object, Yz.parent
-  end
-
-  def test_parents
-    assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
-    assert_equal [Yz, Object], Yz::Zy.parents
   end
 
   def test_local_constants
