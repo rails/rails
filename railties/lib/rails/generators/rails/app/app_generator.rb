@@ -53,6 +53,12 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def version_control
+      unless options[:skip_git]
+        run "git init"
+      end
+    end
+
     def app
       directory "app"
 
@@ -205,6 +211,7 @@ module Rails
         build(:configru)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
+        build(:version_control)
       end
 
       def create_app_files

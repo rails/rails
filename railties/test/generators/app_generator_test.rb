@@ -731,6 +731,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_version_control_initializes_git_repo
+    run_generator [destination_root]
+    assert_directory ".git"
+  end
+
   def test_create_keeps
     run_generator
     folders_with_keep = %w(
@@ -777,7 +782,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -792,7 +797,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 3, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   private
