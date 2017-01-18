@@ -31,7 +31,7 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 123456.789, first.double
     assert_equal(-::Float::INFINITY, second.single)
     assert_equal ::Float::INFINITY, second.double
-    assert_send [third.double, :nan?]
+    assert third.double.nan?
   end
 
   def test_update
