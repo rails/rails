@@ -6,6 +6,8 @@ require "redis"
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
+      prepend ChannelPrefix
+
       # Overwrite this factory method for redis connections if you want to use a different Redis library than Redis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor(:redis_connector) { ->(config) { ::Redis.new(url: config[:url]) } }
