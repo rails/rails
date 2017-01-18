@@ -71,6 +71,12 @@ module Arel
           mgr.to_sql.must_be_like %{ SELECT FROM "users" }
         end
 
+        it 'raises EmptyJoinError on empty' do
+          assert_raises(EmptyJoinError) do
+            @relation.join ""
+          end
+        end
+
         it 'takes a second argument for join type' do
           right     = @relation.alias
           predicate = @relation[:id].eq(right[:id])
