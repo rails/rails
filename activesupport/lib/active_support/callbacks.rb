@@ -667,6 +667,14 @@ module ActiveSupport
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
             Callback.build(self_chain, filter, type, options)
@@ -690,6 +698,14 @@ module ActiveSupport
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           options[:raise] = true unless options.key?(:raise)
 
           __update_callbacks(name) do |target, chain|

@@ -192,10 +192,12 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << [:before_save, :symbol] }, unless: :no
     before_save Proc.new { |r| r.history << "b00m" }, unless: :yes
     # string
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, if: "yes"
-    before_save Proc.new { |r| r.history << "b00m" }, if: "no"
-    before_save Proc.new { |r| r.history << [:before_save, :string] }, unless: "no"
-    before_save Proc.new { |r| r.history << "b00m" }, unless: "yes"
+    ActiveSupport::Deprecation.silence do
+      before_save Proc.new { |r| r.history << [:before_save, :string] }, if: "yes"
+      before_save Proc.new { |r| r.history << "b00m" }, if: "no"
+      before_save Proc.new { |r| r.history << [:before_save, :string] }, unless: "no"
+      before_save Proc.new { |r| r.history << "b00m" }, unless: "yes"
+    end
     # Combined if and unless
     before_save Proc.new { |r| r.history << [:before_save, :combined_symbol] }, if: :yes, unless: :no
     before_save Proc.new { |r| r.history << "b00m" }, if: :yes, unless: :yes
@@ -1201,6 +1203,17 @@ module CallbacksTest
       klass.skip :qux, raise: false
       klass.new.run
       assert_equal 1, calls.length
+    end
+  end
+
+  class DeprecatedWarningTest < ActiveSupport::TestCase
+    def test_deprecate_string_conditional_options
+      klass = Class.new(Record)
+
+      assert_deprecated { klass.before_save :tweedle, if: "true" }
+      assert_deprecated { klass.after_save :tweedle, unless: "false" }
+      assert_deprecated { klass.skip_callback :save, :before, :tweedle, if: "true" }
+      assert_deprecated { klass.skip_callback :save, :after, :tweedle, unless: "false" }
     end
   end
 

@@ -1,3 +1,8 @@
+*   Deprecate passing string to `:if` and `:unless` conditional options
+    on `set_callback` and `skip_callback`.
+
+    *Ryuta Kamizono*
+
 *   Raise `ArgumentError` when passing string to define callback.
 
     *Ryuta Kamizono*
