@@ -442,6 +442,10 @@ end
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
 
+  def teardown
+    Task.connection.clear_query_cache
+  end
+
   def test_cache_gets_cleared_after_migration
     # warm the cache
     Post.find(1)
