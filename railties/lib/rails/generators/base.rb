@@ -256,8 +256,8 @@ module Rails
             last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
-              raise Error, "The name '#{class_name}' is either already used in your application " <<
-                           "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
+              raise Error, "The name '#{class_name}' is either already used in your application " \
+                           "or reserved by Ruby on Rails. Please choose an alternative and run "  \
                            "this generator again."
             end
           end

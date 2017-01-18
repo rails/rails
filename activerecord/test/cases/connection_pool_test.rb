@@ -399,7 +399,7 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk "pool unable to establish connections concurrently or implementation has " <<
+          flunk "pool unable to establish connections concurrently or implementation has " \
                 "changed, this test then needs to patch a different :new_connection method"
         ensure
           # clean up the threads

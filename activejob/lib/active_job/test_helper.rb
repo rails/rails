@@ -284,7 +284,7 @@ module ActiveJob
     #   def test_perform_enqueued_jobs_with_only
     #     perform_enqueued_jobs(only: MyJob) do
     #       MyJob.perform_later(1, 2, 3) # will be performed
-    #       HelloJob.perform_later(1, 2, 3) # will not be perfomed
+    #       HelloJob.perform_later(1, 2, 3) # will not be performed
     #     end
     #     assert_performed_jobs 1
     #   end

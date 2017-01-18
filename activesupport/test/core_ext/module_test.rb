@@ -1,30 +1,11 @@
 require "abstract_unit"
 require "active_support/core_ext/module"
 
-module One
-  Constant1 = "Hello World"
-  Constant2 = "What's up?"
-end
-
-class Ab
-  include One
-  Constant1 = "Hello World" # Will have different object id than One::Constant1
-  Constant3 = "Goodbye World"
-end
-
-module Yz
-  module Zy
-    class Cd
-      include One
-    end
-  end
-end
-
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
 end
 
-class Someone < Struct.new(:name, :place)
+Someone = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, to: :place
   delegate :name=, to: :place, prefix: true
   delegate :upcase, to: "place.city"
@@ -35,10 +16,10 @@ class Someone < Struct.new(:name, :place)
     "some_table"
   end
 
-  FAILED_DELEGATE_LINE = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, to: :place
 
-  FAILED_DELEGATE_LINE_2 = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, to: :place, allow_nil: true
 
   private
@@ -373,17 +354,6 @@ class ModuleTest < ActiveSupport::TestCase
     end
 
     assert_match(/undefined method `my_fake_method' for/, e.message)
-  end
-
-  def test_parent
-    assert_equal Yz::Zy, Yz::Zy::Cd.parent
-    assert_equal Yz, Yz::Zy.parent
-    assert_equal Object, Yz.parent
-  end
-
-  def test_parents
-    assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
-    assert_equal [Yz, Object], Yz::Zy.parents
   end
 
   def test_delegate_with_case

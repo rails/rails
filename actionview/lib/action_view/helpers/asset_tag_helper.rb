@@ -40,7 +40,7 @@ module ActionView
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter. The following options are supported:
       #
-      # * <tt>:extname</tt>  - Append a extention to the generated url unless the extension
+      # * <tt>:extname</tt>  - Append an extension to the generated url unless the extension
       #   already exists. This only applies for relative urls.
       # * <tt>:protocol</tt>  - Sets the protocol of the generated url, this option only
       #   applies when a relative url and +host+ options are provided.

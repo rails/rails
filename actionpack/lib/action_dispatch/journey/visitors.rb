@@ -5,7 +5,7 @@ module ActionDispatch
       ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
       ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
 
-      class Parameter < Struct.new(:name, :escaper)
+      Parameter = Struct.new(:name, :escaper) do
         def escape(value); escaper.call value; end
       end
 

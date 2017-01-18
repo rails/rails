@@ -35,7 +35,7 @@ module ActionView
         when :back
           _back_url
         else
-          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " +
+          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " \
                                "routes or provide your own implementation"
         end
       end

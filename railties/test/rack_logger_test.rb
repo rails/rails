@@ -20,7 +20,7 @@ module Rails
         def development?; false; end
       end
 
-      class Subscriber < Struct.new(:starts, :finishes)
+      Subscriber = Struct.new(:starts, :finishes) do
         def initialize(starts = [], finishes = [])
           super
         end

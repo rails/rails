@@ -267,8 +267,8 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " +
-                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" +
+          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
+                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
                 "Seed loader should respond to load_seed method"
         end
       end

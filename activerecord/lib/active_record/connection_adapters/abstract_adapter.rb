@@ -176,7 +176,7 @@ module ActiveRecord
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
-            msg << "it is already in use by a different thread: #{@owner}. " <<
+            msg << "it is already in use by a different thread: #{@owner}. " \
                    "Current thread: #{Thread.current}."
           end
           raise ActiveRecordError, msg
@@ -194,8 +194,8 @@ module ActiveRecord
       def expire
         if in_use?
           if @owner != Thread.current
-            raise ActiveRecordError, "Cannot expire connection, " <<
-              "it is owned by a different thread: #{@owner}. " <<
+            raise ActiveRecordError, "Cannot expire connection, " \
+              "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{Thread.current}."
           end
 
@@ -308,6 +308,12 @@ module ActiveRecord
       # Does this adapter support creating foreign key constraints?
       def supports_foreign_keys?
         false
+      end
+
+      # Does this adapter support creating foreign key constraints
+      # in the same statement as creating the table?
+      def supports_foreign_keys_in_create?
+        supports_foreign_keys?
       end
 
       # Does this adapter support views?

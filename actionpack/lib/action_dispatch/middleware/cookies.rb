@@ -572,7 +572,7 @@ module ActionDispatch
         super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
-          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
+          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " \
             "Read the upgrade documentation to learn more about this new config option."
         end
 

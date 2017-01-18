@@ -1,3 +1,11 @@
+*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+
+    *Junichi Ito*
+
+*   Make every Rails command work within engines.
+
+    *Sean Collins*, *Yuji Yaginuma*
+
 *   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
 
     Fixes #27591.

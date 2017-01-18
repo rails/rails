@@ -309,6 +309,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_to_configured_path
+    old_paths = Rails.application.config.paths["db/migrate"]
+    Rails.application.config.paths.add "db/migrate", with: "db2/migrate"
+
+    migration = "migration_in_custom_path"
+    run_generator [migration]
+    assert_migration "db2/migrate/#{migration}.rb", /.*/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
   private
 
     def with_singular_table_name

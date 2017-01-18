@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
 end
 
-class Customer < Struct.new(:name, :id)
+Customer = Struct.new(:name, :id) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 
@@ -39,7 +39,7 @@ end
 
 module Quiz
   #Models
-  class Question < Struct.new(:name, :id)
+  Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 

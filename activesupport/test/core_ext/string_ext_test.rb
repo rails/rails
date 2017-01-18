@@ -222,7 +222,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     original = %{\u205f\u3000 A string surrounded by various unicode spaces,
       with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
-    expected = "A string surrounded by various unicode spaces, " +
+    expected = "A string surrounded by various unicode spaces, " \
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:

@@ -1,3 +1,9 @@
+*   Allow render locals to be assigned to instance variables in a view.
+
+    Fixes #27480.
+
+    *Andrew White*
+
 *   Add `check_parameters` option to `current_page?` which makes it more strict.
 
     *Maksym Pugach*

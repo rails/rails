@@ -8,8 +8,8 @@ module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
       def initialize
-        super("Session contains objects whose class definition isn't available.\n" +
-          "Remember to require the classes for all objects kept in the session.\n" +
+        super("Session contains objects whose class definition isn't available.\n" \
+          "Remember to require the classes for all objects kept in the session.\n" \
           "(Original exception: #{$!.message} [#{$!.class}])\n")
         set_backtrace $!.backtrace
       end

@@ -113,7 +113,7 @@ Style/UnneededPercentQ:
 # assignments, where it should be aligned with the LHS.
 Lint/EndAlignment:
   Enabled: true
-  AlignWith: variable
+  EnforcedStyleAlignWith: variable
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:

@@ -704,7 +704,7 @@ class FilterTest < ActionController::TestCase
 
   def test_prepending_and_appending_around_action
     test_process(MixedFilterController)
-    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
+    assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " \
                  " after appended aroundfilter  after procfilter  after aroundfilter ",
                  MixedFilterController.execution_log
   end

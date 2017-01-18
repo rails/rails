@@ -85,7 +85,7 @@ module ActiveRecord
 
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
+              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
                                     "The record failed to save after its foreign key was set to nil."
             end
           end

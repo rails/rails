@@ -186,7 +186,7 @@ task default: :test
                                   desc: "Skip gemspec file"
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
-                                        desc: "If creating plugin in application's directory " +
+                                        desc: "If creating plugin in application's directory " \
                                                  "skip adding entry to Gemfile"
 
       class_option :api,          type: :boolean, default: false,
@@ -415,7 +415,6 @@ task default: :test
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false

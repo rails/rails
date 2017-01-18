@@ -74,17 +74,17 @@ matrix:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
-    - rvm: jruby-9.1.6.0
+    - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.6.0
+    - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
         - "GEM=am,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.6.0
+    - rvm: jruby-9.1.7.0
     - env: "GEM=ac:integration"
   fast_finish: true
 

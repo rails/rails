@@ -821,7 +821,7 @@ class TasksController < ActionController::Base
 
   private
     def render_default
-      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" +
+      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" \
         "<%= link_to_unless_current('tasks', tasks_url) %>"
     end
 end

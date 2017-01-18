@@ -532,11 +532,11 @@ module ActionView
         [variable, variable_counter, variable_iteration]
       end
 
-      IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+      IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
                                  "make sure your partial name starts with underscore."
 
-      OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " +
-                                 "make sure it starts with lowercase letter, " +
+      OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " \
+                                 "make sure it starts with lowercase letter, " \
                                  "and is followed by any combination of letters, numbers and underscores."
 
       def raise_invalid_identifier(path)
