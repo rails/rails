@@ -6,4 +6,6 @@ namespace :yarn do
 end
 
 # Run Yarn prior to Sprockets assets precompilation, so dependencies are available for use.
-Rake::Task["assets:precompile"].enhance [ "yarn:install" ]
+if Rake::Task.task_defined?("assets:precompile")
+  Rake::Task["assets:precompile"].enhance [ "yarn:install" ]
+end
