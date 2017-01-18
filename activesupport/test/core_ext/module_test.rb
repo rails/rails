@@ -1,6 +1,17 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module'
 
+module One
+  Constant1 = "Hello World"
+  Constant2 = "What's up?"
+end
+
+class Ab
+  include One
+  Constant1 = "Hello World" # Will have different object id than One::Constant1
+  Constant3 = "Goodbye World"
+end
+
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
 end
