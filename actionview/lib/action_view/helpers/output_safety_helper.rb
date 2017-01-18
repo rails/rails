@@ -60,7 +60,7 @@ module ActionView #:nodoc:
         when 2
           safe_join([array[0], array[1]], options[:two_words_connector])
         else
-          safe_join([safe_join(array[0...-1], options[:words_connector]), options[:last_word_connector], array[-1]])
+          safe_join([safe_join(array[0...-1], options[:words_connector]), options[:last_word_connector], array[-1]], nil)
         end
       end
     end
