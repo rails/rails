@@ -87,13 +87,13 @@ module ActiveRecord
             else
               unless reflection_scope.where_clause.empty?
                 scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
-                base_wheres = if reflection.klass.finder_needs_type_condition?
-                                reflection.klass.send(:relation_with_type_condition).where_clause
-                              else
-                                ::ActiveRecord::Relation::WhereClause.empty
-                              end
+                where_clause = reflection_scope.where_clause
 
-                scope.where_clause = reflection_scope.where_clause - base_wheres
+                if reflection.klass.finder_needs_type_condition?
+                  where_clause = where_clause.except(reflection.klass.inheritance_column)
+                end
+
+                scope.where_clause = where_clause
               end
 
               scope.references! reflection_scope.values[:references]
