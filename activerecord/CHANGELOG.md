@@ -1,12 +1,17 @@
-*   Place generated migrations into the path set by `config.paths["db/migrate"]`
+*   Remove `initialize_schema_migrations_table` and `initialize_internal_metadata_table`
+    internal public methods.
+
+    *Ryuta Kamizono*
+
+*   Place generated migrations into the path set by `config.paths["db/migrate"]`.
 
     *Kevin Glowacz*
-    
+
 *   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on Sqlite3.
 
     *Ryuta Kamizono*
 
-*   Add the touch option to ActiveRecord#increment! and decrement!
+*   Add the touch option to ActiveRecord#increment! and decrement!.
 
     *Hiroaki Izu*
 
@@ -15,9 +20,9 @@
 
     *Kir Shatrov*
 
-*   Raise error when has_many through is defined before through association
+*   Raise error when has_many through is defined before through association.
 
-    Fixes #26834
+    Fixes #26834.
 
     *Chris Holmes*
 
