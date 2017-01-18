@@ -1,3 +1,7 @@
+*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+
+    *Junichi Ito*
+
 *   Make every Rails command work within engines.
 
     *Sean Collins*, *Yuji Yaginuma*
