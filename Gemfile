@@ -88,7 +88,8 @@ local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest"
+  # FIX: Our test suite isn't ready to run in random order yet.
+  gem "minitest", "< 5.3.4"
 
   platforms :mri do
     gem "stackprof"

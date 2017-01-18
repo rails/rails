@@ -198,8 +198,6 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.17)
-    ffi (1.9.17-x64-mingw32)
-    ffi (1.9.17-x86-mingw32)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
     hiredis (0.6.1)
@@ -398,7 +396,7 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
-  minitest
+  minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql2 (>= 0.4.4)
   nokogiri (>= 1.6.8)
