@@ -54,11 +54,11 @@ module ActiveRecord
     # your database connection configuration:
     #
     # * +pool+: number indicating size of connection pool (default 5)
-    # * +checkout _timeout+: number of seconds to block and wait for a 
-    #   connection before giving up and raising a timeout error 
+    # * +checkout _timeout+: number of seconds to block and wait for a
+    #   connection before giving up and raising a timeout error
     #   (default 5 seconds). ('wait_timeout' supported for backwards
     #   compatibility, but conflicts with key used for different purpose
-    #   by mysql2 adapter). 
+    #   by mysql2 adapter).
     class ConnectionPool
       include MonitorMixin
 
@@ -80,9 +80,9 @@ module ActiveRecord
         @reserved_connections = {}
 
         @queue = new_cond
-        # 'wait_timeout', the backward-compatible key, conflicts with spec key 
+        # 'wait_timeout', the backward-compatible key, conflicts with spec key
         # used by mysql2 for something entirely different, checkout_timeout
-        # preferred to avoid conflict and allow independent values. 
+        # preferred to avoid conflict and allow independent values.
         @timeout = spec.config[:checkout_timeout] || spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
@@ -261,7 +261,7 @@ connection.  For example: ActiveRecord::Base.connection.close
             # Sometimes our wait can end because a connection is available,
             # but another thread can snatch it up first. If timeout hasn't
             # passed but no connection is avail, looks like that happened --
-            # loop and wait again, for the time remaining on our timeout. 
+            # loop and wait again, for the time remaining on our timeout.
             before_wait = Time.now
             @queue.wait( [@timeout - waited_time, 0].max )
             waited_time += (Time.now - before_wait)
@@ -269,7 +269,7 @@ connection.  For example: ActiveRecord::Base.connection.close
             # Will go away in Rails 4, when we don't clean up
             # after leaked connections automatically anymore. Right now, clean
             # up after we've returned from a 'wait' if it looks like it's
-            # needed, then loop and try again. 
+            # needed, then loop and try again.
             if(active_connections.size >= @connections.size)
               clear_stale_cached_connections!
             end
@@ -384,21 +384,21 @@ connection.  For example: ActiveRecord::Base.connection.close
 
       # Returns any connections in use by the current thread back to the pool.
       def clear_active_connections!
-        @connection_pools.each_value {|pool| pool.release_connection }
+        @connection_pools.values.each {|pool| pool.release_connection }
       end
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        @connection_pools.each_value {|pool| pool.clear_reloadable_connections! }
+        @connection_pools.values.each {|pool| pool.clear_reloadable_connections! }
       end
 
       def clear_all_connections!
-        @connection_pools.each_value {|pool| pool.disconnect! }
+        @connection_pools.values.each {|pool| pool.disconnect! }
       end
 
       # Verify active connections.
       def verify_active_connections! #:nodoc:
-        @connection_pools.each_value {|pool| pool.verify_active_connections! }
+        @connection_pools.values.each {|pool| pool.verify_active_connections! }
       end
 
       # Locate the connection of the nearest super class. This can be an
