@@ -66,12 +66,20 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values.each do |value|
       params = ActionController::Parameters.new(id: value)
       permitted = params.permit(:id)
-      assert_equal value, permitted[:id]
+      if value.nil?
+        assert_nil permitted[:id]
+      else
+        assert_equal value, permitted[:id]
+      end
 
       @struct_fields.each do |sf|
         params = ActionController::Parameters.new(sf => value)
         permitted = params.permit(:sf)
-        assert_equal value, permitted[sf]
+        if value.nil?
+          assert_nil permitted[sf]
+        else
+          assert_equal value, permitted[sf]
+        end
       end
     end
   end

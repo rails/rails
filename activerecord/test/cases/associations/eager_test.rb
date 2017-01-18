@@ -933,7 +933,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     d2 = find_all_ordered(Firm, :account)
     d1.each_index do |i|
       assert_equal(d1[i], d2[i])
-      assert_equal(d1[i].account, d2[i].account)
+      if d1[i].account.nil?
+        assert_nil(d2[i].account)
+      else
+        assert_equal(d1[i].account, d2[i].account)
+      end
     end
   end
 
@@ -943,7 +947,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     d2 = find_all_ordered(Client, firm_types)
     d1.each_index do |i|
       assert_equal(d1[i], d2[i])
-      firm_types.each { |type| assert_equal(d1[i].send(type), d2[i].send(type)) }
+      firm_types.each do |type|
+        if (expected = d1[i].send(type)).nil?
+          assert_nil(d2[i].send(type))
+        else
+          assert_equal(expected, d2[i].send(type))
+        end
+      end
     end
   end
   def test_eager_with_valid_association_as_string_not_symbol

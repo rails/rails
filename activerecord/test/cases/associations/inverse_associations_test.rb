@@ -443,7 +443,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
     assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
 
-    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    assert_nil man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
     man.name = "Ben Bitdiddle"
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
     man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
