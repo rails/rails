@@ -274,7 +274,7 @@ GEM
       nokogiri (~> 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rainbow (2.1.0)
+    rainbow (2.2.1)
     rake (12.0.0)
     rb-fsevent (0.9.8)
     rdoc (5.0.0)
@@ -287,8 +287,8 @@ GEM
       redis (~> 3.3)
       resque (~> 1.26)
       rufus-scheduler (~> 3.2)
-    rubocop (0.46.0)
-      parser (>= 2.3.1.1, < 3.0)
+    rubocop (0.47.0)
+      parser (>= 2.3.3.1, < 3.0)
       powerpack (~> 0.1)
       rainbow (>= 1.99.1, < 3.0)
       ruby-progressbar (~> 1.7)
@@ -358,7 +358,7 @@ GEM
       tzinfo (>= 1.0.0)
     uglifier (3.0.4)
       execjs (>= 0.3.0, < 3)
-    unicode-display_width (1.1.2)
+    unicode-display_width (1.1.3)
     useragent (0.16.8)
     vegas (0.1.11)
       rack (>= 1.0.0)
@@ -417,7 +417,7 @@ DEPENDENCIES
   redis
   resque!
   resque-scheduler
-  rubocop
+  rubocop (>= 0.47)
   sass-rails
   sdoc (= 1.0.0.rc1)
   sequel
