@@ -547,22 +547,24 @@ production:
 ```
 #### Adapter Configuration
 
+Below is a list of the subscription adapters available for end users.
+
 ##### Async Adapter
 
 The async adapter is intended for development/testing and should not be used in production.
 
 ##### Redis Adapter
 
-The Redis & Evented Redis adapters require a url pointing to the Redis server. Additionally,
-a channel_prefix may be provided to avoid channel name collisions when using the same Redis server.
-server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
+Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
+of the adapters require users to provide a URL pointing to the Redis server.
+Additionally, a channel_prefix may be provided to avoid channel name collisions
+when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
-See the
-[Dependencies](#dependencies) section for additional information on adapters.
+##### PostgreSQL Adapter
 
-##### PostgreSQL adapter
-
-The postgres adapter will use the ActiveRecord connection pool for it's connection. This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
+The PostgreSQL adapter uses Active Record's connection pool, and thus the
+application's `config/database.yml` database configuration, for its connection.
+This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
 ### Allowed Request Origins
 
