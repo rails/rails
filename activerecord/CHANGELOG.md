@@ -1,3 +1,8 @@
+*   Using a mysql2 connection after it fails to reconnect will now have an error message
+    saying the connection is closed rather than an undefined method error message.
+
+    *Dylan Thacker-Smith*
+
 *   Bust Model.attribute_names cache when resetting column information
     
     *James Coleman*
