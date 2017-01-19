@@ -1490,7 +1490,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     comment = Comment.eager_load(:parent, :children).find(base_comment.id)
     assert_equal parent_and_child_comment, comment.parent
-    assert_equal [parent_and_child_comment, child_comment], comment.children
+    [parent_and_child_comment, child_comment].each do |child|
+      assert_includes comment.children, child
+    end
   end
 
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
