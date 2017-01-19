@@ -441,11 +441,11 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
         table[attribute].eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value)
+      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
         if can_perform_case_insensitive_comparison_for?(column)
           table[attribute].lower.eq(table.lower(value))
         else
