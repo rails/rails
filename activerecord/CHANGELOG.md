@@ -2,11 +2,6 @@
 
     *Ryuta Kamizono*
 
-*   Remove `initialize_schema_migrations_table` and `initialize_internal_metadata_table`
-    internal public methods.
-
-    *Ryuta Kamizono*
-
 *   Place generated migrations into the path set by `config.paths["db/migrate"]`.
 
     *Kevin Glowacz*
