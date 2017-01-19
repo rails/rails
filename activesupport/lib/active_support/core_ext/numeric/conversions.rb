@@ -99,31 +99,30 @@ module ActiveSupport::NumericWithFormat
   #  1234567.to_s(:human, precision: 1,
   #                   separator: ',',
   #                   significant: false)                   # => "1,2 Million"
-  def to_s(*args)
-    format, options = args
-    options ||= {}
-
+  def to_s(format = nil, options = nil)
     case format
+    when nil
+      super()
+    when Integer, String
+      super(format)
     when :phone
-      return ActiveSupport::NumberHelper.number_to_phone(self, options)
+      return ActiveSupport::NumberHelper.number_to_phone(self, options || {})
     when :currency
-      return ActiveSupport::NumberHelper.number_to_currency(self, options)
+      return ActiveSupport::NumberHelper.number_to_currency(self, options || {})
     when :percentage
-      return ActiveSupport::NumberHelper.number_to_percentage(self, options)
+      return ActiveSupport::NumberHelper.number_to_percentage(self, options || {})
     when :delimited
-      return ActiveSupport::NumberHelper.number_to_delimited(self, options)
+      return ActiveSupport::NumberHelper.number_to_delimited(self, options || {})
     when :rounded
-      return ActiveSupport::NumberHelper.number_to_rounded(self, options)
+      return ActiveSupport::NumberHelper.number_to_rounded(self, options || {})
     when :human
-      return ActiveSupport::NumberHelper.number_to_human(self, options)
+      return ActiveSupport::NumberHelper.number_to_human(self, options || {})
     when :human_size
-      return ActiveSupport::NumberHelper.number_to_human_size(self, options)
+      return ActiveSupport::NumberHelper.number_to_human_size(self, options || {})
+    when Symbol
+      super()
     else
-      if is_a?(Float) || format.is_a?(Symbol)
-        super()
-      else
-        super
-      end
+      super(format)
     end
   end
 end
