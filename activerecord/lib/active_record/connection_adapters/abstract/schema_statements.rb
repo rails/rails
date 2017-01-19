@@ -1008,15 +1008,15 @@ module ActiveRecord
         end
       end
 
-      # Should not be called normally, but this operation is non-destructive.
-      # The migrations module handles this automatically.
-      def initialize_schema_migrations_table
+      def initialize_schema_migrations_table # :nodoc:
         ActiveRecord::SchemaMigration.create_table
       end
+      deprecate :initialize_schema_migrations_table
 
-      def initialize_internal_metadata_table
+      def initialize_internal_metadata_table # :nodoc:
         ActiveRecord::InternalMetadata.create_table
       end
+      deprecate :initialize_internal_metadata_table
 
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
