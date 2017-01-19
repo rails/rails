@@ -426,8 +426,15 @@ module ActiveRecord
           create_table(sm_table, :id => false) do |schema_migrations_table|
             schema_migrations_table.column :version, :string, :null => false
           end
-          add_index sm_table, :version, :unique => true,
+
+          index_options = {
+            :unique => true, 
             :name => "#{Base.table_name_prefix}unique_schema_migrations#{Base.table_name_suffix}"
+          }
+          
+          index_options[:length] = Base.connection.max_index_length if Base.connection.max_index_length
+
+          add_index sm_table, :version, index_options
 
           # Backwards-compatibility: if we find schema_info, assume we've
           # migrated up to that point:

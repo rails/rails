@@ -29,6 +29,8 @@ module ActiveRecord
       end
 
       ADAPTER_NAME = 'Mysql2'
+      
+      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
 
       def initialize(connection, logger, connection_options, config)
         super
@@ -39,6 +41,10 @@ module ActiveRecord
       def supports_explain?
         true
       end
+      
+      def max_index_length
+        MAX_INDEX_LENGTH_FOR_UTF8MB4 if 'utf8mb4' == @config[:encoding]
+      end      
 
       # HELPER METHODS ===========================================
 
