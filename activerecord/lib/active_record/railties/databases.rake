@@ -429,7 +429,8 @@ db_namespace = namespace :db do
         raise 'Error dumping database' if $?.exitstatus == 1
         File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
       when /sqlite/
-        dbfile = config['database']
+        path = Pathname.new(config['database'])
+        dbfile = path.absolute? ? path.to_s : File.join(Rails.root, path)
         `sqlite3 #{dbfile} .schema > #{filename}`
       when 'sqlserver'
         `smoscript -s #{config['host']} -d #{config['database']} -u #{config['username']} -p #{config['password']} -f #{filename} -A -U`
@@ -462,7 +463,8 @@ db_namespace = namespace :db do
         set_psql_env(config)
         `psql -f "#{filename}" #{config['database']}`
       when /sqlite/
-        dbfile = config['database']
+        path = Pathname.new(config['database'])
+        dbfile = path.absolute? ? path.to_s : File.join(Rails.root, path)
         `sqlite3 #{dbfile} < "#{filename}"`
       when 'sqlserver'
         `sqlcmd -S #{config['host']} -d #{config['database']} -U #{config['username']} -P #{config['password']} -i #{filename}`
@@ -532,7 +534,8 @@ db_namespace = namespace :db do
         drop_database(abcs['test'])
         create_database(abcs['test'])
       when /sqlite/
-        dbfile = abcs['test']['database']
+        path = Pathname.new(abcs['test']['database'])
+        dbfile = path.absolute? ? path.to_s : File.join(Rails.root, path)
         File.delete(dbfile) if File.exist?(dbfile)
       when 'sqlserver'
         test = abcs.deep_dup['test']
