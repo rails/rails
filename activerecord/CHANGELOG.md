@@ -1,3 +1,7 @@
+*   Support foreign key creation for SQLite3.
+
+    *Ryuta Kamizono*
+
 *   Remove `initialize_schema_migrations_table` and `initialize_internal_metadata_table`
     internal public methods.
 
@@ -7,7 +11,7 @@
 
     *Kevin Glowacz*
 
-*   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on Sqlite3.
+*   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on SQLite3.
 
     *Ryuta Kamizono*
 
@@ -433,7 +437,7 @@
 
     *Ryuta Kamizono*
 
-*   Sqlite3 migrations to add a column to an existing table can now be
+*   SQLite3 migrations to add a column to an existing table can now be
     successfully rolled back when the column was given and invalid column
     type.
 
