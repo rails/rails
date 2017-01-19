@@ -1,3 +1,7 @@
+*   Deprecate `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
+
+    *Ryuta Kamizono*
+
 *   Support foreign key creation for SQLite3.
 
     *Ryuta Kamizono*
