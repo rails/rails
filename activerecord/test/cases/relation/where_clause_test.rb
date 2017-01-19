@@ -165,17 +165,6 @@ class ActiveRecord::Relation
       assert_equal WhereClause.empty, WhereClause.empty.or(where_clause)
     end
 
-    test "- remove a where clause from a combined one" do
-      a = WhereClause.new(["a"], ["bind a"])
-      b = WhereClause.new(["b"], ["bind b"])
-      c = WhereClause.new(["c"], ["bind c"])
-
-      all = a + b + c
-
-      rest = a + b
-      assert_equal rest, all - c
-    end
-
     private
 
       def table

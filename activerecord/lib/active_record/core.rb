@@ -306,7 +306,7 @@ module ActiveRecord
 
         def relation
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation_with_type_condition
+            relation_without_type_condition.where(type_condition).create_with(inheritance_column.to_s => sti_name)
           else
             relation_without_type_condition
           end
