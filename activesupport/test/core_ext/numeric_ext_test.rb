@@ -394,6 +394,10 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal "1000010.0", BigDecimal("1000010").to_s
     assert_equal "10000 10.0", BigDecimal("1000010").to_s("5F")
+
+    assert_raises TypeError do
+      1.to_s({})
+    end
   end
 
   def test_in_milliseconds
