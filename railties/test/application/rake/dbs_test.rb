@@ -124,7 +124,7 @@ module ApplicationTests
           `rails generate model book title:string;
            bundle exec rake db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE \"books\"/, structure_dump)
+          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           `bundle exec rake environment db:drop db:structure:load`
           assert_match expected_database, ActiveRecord::Base.connection_config[:database]
           require "#{app_path}/app/models/book"
@@ -152,7 +152,7 @@ module ApplicationTests
           stderr_output = capture(:stderr) { `bundle exec rake db:structure:dump` }
           assert_empty stderr_output.gsub(/.* warning: .*\n/, "")
           structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE \"posts\"/, structure_dump)
+          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"posts\"/, structure_dump)
         end
       end
 
