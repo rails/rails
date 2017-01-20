@@ -1,3 +1,17 @@
+*   Change the ERB handler from Erubis to Erubi.
+
+    Erubi is an Erubis fork that's svelte, simple, and currently maintained.
+    Plus it supports `--enable-frozen-string-literal` in Ruby 2.3+.
+
+    Compatibility: Drops support for `<%===` tags for debug output.
+    These were an unused, undocumented side effect of the Erubis
+    implementation.
+
+    Deprecation: The Erubis handler will be removed in Rails 5.2, for the
+    handful of folks using it directly.
+
+    *Jeremy Evans*
+
 *   Allow render locals to be assigned to instance variables in a view.
 
     Fixes #27480.

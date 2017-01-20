@@ -122,10 +122,11 @@ module ActiveSupport
     #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < DeprecationProxy
-      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance)
+      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
+        @message = message
       end
 
       # Returns the class of the new constant.
@@ -143,7 +144,7 @@ module ActiveSupport
         end
 
         def warn(callstack, called, args)
-          @deprecator.warn("#{@old_const} is deprecated! Use #{@new_const} instead.", callstack)
+          @deprecator.warn(@message, callstack)
         end
     end
   end

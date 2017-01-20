@@ -78,7 +78,7 @@ PATH
     actionview (5.1.0.alpha)
       activesupport (= 5.1.0.alpha)
       builder (~> 3.1)
-      erubis (~> 2.7.0)
+      erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
     activejob (5.1.0.alpha)
@@ -178,6 +178,7 @@ GEM
       http_parser.rb (>= 0.6.0)
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
+    erubi (1.4.0)
     erubis (2.7.0)
     event_emitter (0.2.5)
     eventmachine (1.2.1)
@@ -390,6 +391,7 @@ DEPENDENCIES
   delayed_job!
   delayed_job_active_record!
   em-hiredis
+  erubis (~> 2.7.0)
   hiredis
   jquery-rails
   json (>= 2.0.0)
@@ -432,4 +434,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.13.7
+   1.14.3
