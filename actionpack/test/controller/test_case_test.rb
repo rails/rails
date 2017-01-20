@@ -327,6 +327,11 @@ XML
     assert_equal 'value2', session[:symbol]
   end
 
+  def test_deprecated_process_with_session_and_empty_params
+    assert_deprecated { get :no_op, {}, { 'string' => 'value1' } }
+    assert_equal 'value1', session['string']
+  end
+
   def test_deprecated_process_merges_session_arg
     session[:foo] = 'bar'
     assert_deprecated {
@@ -877,6 +882,12 @@ XML
   def test_request_format_kwarg_overrides_params
     get :test_format, format: 'json', params: { format: 'html' }
     assert_equal 'application/json', @response.body
+  end
+
+  def test_deprecated_request_format_params_with_session
+    assert_deprecated { get :test_format, { format: 'json' }, { 'string': 'value1' } }
+    assert_equal 'application/json', @response.body
+    assert_equal 'value1', session['string']
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
