@@ -134,7 +134,7 @@ XML
     end
 
     def create
-      head :created, location: "created resource"
+      head :created, location: "/resource"
     end
 
     def render_cookie
@@ -880,7 +880,7 @@ XML
     assert_response :created
 
     # Redirect url doesn't care that it wasn't a :redirect response.
-    assert_equal "created resource", @response.redirect_url
+    assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
     # Must be a :redirect response.

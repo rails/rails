@@ -165,28 +165,36 @@ module ActionDispatch
       # last +url_for+ calls.
       def url_for(options = nil)
         case options
-        when nil
-          _routes.url_for(url_options.symbolize_keys)
+        when String
+          if options =~ /[\/\#\?\s]/
+            options
+          else
+            HelperMethodBuilder.url.handle_string_call self, options
+          end
+        when Symbol
+          HelperMethodBuilder.url.handle_string_call self, options
         when Hash
           route_name = options.delete :use_route
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
-                         route_name)
+          _routes.url_for(
+            options.symbolize_keys.reverse_merge!(url_options),
+            route_name
+          )
         when ActionController::Parameters
           unless options.permitted?
             raise ArgumentError.new(ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE)
           end
           route_name = options.delete :use_route
-          _routes.url_for(options.to_h.symbolize_keys.
-                          reverse_merge!(url_options), route_name)
-        when String
-          options
-        when Symbol
-          HelperMethodBuilder.url.handle_string_call self, options
+          _routes.url_for(
+            options.to_h.symbolize_keys.reverse_merge!(url_options),
+            route_name
+          )
         when Array
           components = options.dup
           polymorphic_url(components, components.extract_options!)
         when Class
           HelperMethodBuilder.url.handle_class_call self, options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
         else
           HelperMethodBuilder.url.handle_model_call self, options
         end
