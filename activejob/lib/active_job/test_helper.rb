@@ -55,7 +55,7 @@ module ActiveJob
     #     assert_enqueued_jobs 2
     #   end
     #
-    # If a block is passed, that block should cause the specified number of
+    # If a block is passed, that block will cause the specified number of
     # jobs to be enqueued.
     #
     #   def test_jobs_again
@@ -77,14 +77,23 @@ module ActiveJob
     #       HelloJob.perform_later('jeremy')
     #     end
     #   end
-    def assert_enqueued_jobs(number, only: nil)
+    #
+    # The number of times a job is enqueued to a specific queue can also be asserted.
+    #
+    #   def test_logging_job
+    #     assert_enqueued_jobs 2, queue: 'default' do
+    #       LoggingJob.perform_later
+    #       HelloJob.perform_later('elfassy')
+    #     end
+    #   end
+    def assert_enqueued_jobs(number, only: nil, queue: nil)
       if block_given?
-        original_count = enqueued_jobs_size(only: only)
+        original_count = enqueued_jobs_size(only: only, queue: queue)
         yield
-        new_count = enqueued_jobs_size(only: only)
+        new_count = enqueued_jobs_size(only: only, queue: queue)
         assert_equal number, new_count - original_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
       else
-        actual_count = enqueued_jobs_size(only: only)
+        actual_count = enqueued_jobs_size(only: only, queue: queue)
         assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
       end
     end
@@ -323,11 +332,16 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def enqueued_jobs_size(only: nil)
-        if only
-          enqueued_jobs.count { |job| Array(only).include?(job.fetch(:job)) }
-        else
-          enqueued_jobs.count
+      def enqueued_jobs_size(only: nil, queue: nil)
+        enqueued_jobs.count do |job|
+          job_class = job.fetch(:job)
+          if only
+            next false unless Array(only).include?(job_class)
+          end
+          if queue
+            next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
+          end
+          true
         end
       end
 
