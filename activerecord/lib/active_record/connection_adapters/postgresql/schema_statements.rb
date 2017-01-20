@@ -507,7 +507,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -529,6 +529,7 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
           end
@@ -589,6 +590,43 @@ module ActiveRecord
           PostgreSQL::SchemaDumper.create(self, options)
         end
 
+        # Validates the given constraint.
+        #
+        # Validates the constraint named +constraint_name+ on +accounts+.
+        #
+        #   validate_foreign_key :accounts, :constraint_name
+        def validate_constraint(table_name, constraint_name)
+          return unless supports_validate_constraints?
+
+          at = create_alter_table table_name
+          at.validate_constraint constraint_name
+
+          execute schema_creation.accept(at)
+        end
+
+        # Validates the given foreign key.
+        #
+        # Validates the foreign key on +accounts.branch_id+.
+        #
+        #   validate_foreign_key :accounts, :branches
+        #
+        # Validates the foreign key on +accounts.owner_id+.
+        #
+        #   validate_foreign_key :accounts, column: :owner_id
+        #
+        # Validates the foreign key named +special_fk_name+ on the +accounts+ table.
+        #
+        #   validate_foreign_key :accounts, name: :special_fk_name
+        #
+        # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+        def validate_foreign_key(from_table, options_or_to_table = {})
+          return unless supports_validate_constraints?
+
+          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+
+          validate_constraint from_table, fk_name_to_validate
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
@@ -596,6 +634,10 @@ module ActiveRecord
 
           def create_table_definition(*args)
             PostgreSQL::TableDefinition.new(*args)
+          end
+
+          def create_alter_table(name)
+            PostgreSQL::AlterTable.new create_table_definition(name)
           end
 
           def new_column_from_field(table_name, field)

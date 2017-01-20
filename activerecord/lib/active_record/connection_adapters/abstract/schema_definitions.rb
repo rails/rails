@@ -87,6 +87,11 @@ module ActiveRecord
         options[:primary_key] != default_primary_key
       end
 
+      def validate?
+        options.fetch(:validate, true)
+      end
+      alias validated? validate?
+
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
         if to_table_ord
           self.to_table == to_table_ord.to_s
