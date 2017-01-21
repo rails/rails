@@ -160,8 +160,8 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 #### Calling the Mailer
 
 Mailers are really just another way to render a view. Instead of rendering a
-view and sending out the HTTP protocol, they are just sending it out through the
-email protocols instead. Due to this, it makes sense to just have your
+view and sending it over the HTTP protocol, they are just sending it out through
+the email protocols instead. Due to this, it makes sense to just have your
 controller tell the Mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
