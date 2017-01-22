@@ -11,6 +11,18 @@ module ActiveModel
         assert_equal BigDecimal.new("1"), type.cast(:"1")
       end
 
+      def test_type_cast_decimal_from_invalid_string
+        type = Decimal.new
+        assert_nil type.cast("")
+        assert_equal BigDecimal.new("1"), type.cast("1ignore")
+
+        # This must not error.
+        # Returns nil on ruby 2.4.0, where #to_d is broken. Returns 0 on
+        # versions before that.
+        type.cast("bad")
+        type.cast("bad1")
+      end
+
       def test_type_cast_decimal_from_float_with_large_precision
         type = Decimal.new(precision: ::Float::DIG + 2)
         assert_equal BigDecimal.new("123.0"), type.cast(123.0)
