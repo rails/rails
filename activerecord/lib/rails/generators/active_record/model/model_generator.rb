@@ -64,14 +64,6 @@ module ActiveRecord
             "app/models/application_record.rb"
           end
         end
-
-        def db_migrate_path
-          if defined?(Rails) && Rails.application
-            Rails.application.config.paths["db/migrate"].to_ary.first
-          else
-            "db/migrate"
-          end
-        end
     end
   end
 end

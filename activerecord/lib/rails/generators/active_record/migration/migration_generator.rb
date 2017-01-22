@@ -71,14 +71,6 @@ module ActiveRecord
         def normalize_table_name(_table_name)
           pluralize_table_names? ? _table_name.pluralize : _table_name.singularize
         end
-
-        def db_migrate_path
-          if defined?(Rails) && Rails.application
-            Rails.application.config.paths["db/migrate"].to_ary.first
-          else
-            "db/migrate"
-          end
-        end
     end
   end
 end
