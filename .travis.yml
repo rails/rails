@@ -100,7 +100,7 @@ matrix:
     - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
-        - "GEM=am,aj"
+        - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.7.0
