@@ -1,20 +1,10 @@
-require "abstract_unit"
+require "active_support/testing/autorun"
+require "action_system_test"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
-  def test_driver_support_for_screenshots
-    ActionSystemTest.driver = :rails_selenium_driver
-    assert ActionSystemTest.driver.supports_screenshots?
+  test "image path is saved in tmp directory" do
+    new_test = ActionSystemTest::Base.new("x")
 
-    ActionSystemTest.driver = :rack_test
-    assert_not ActionSystemTest.driver.supports_screenshots?
-
-    ActionSystemTest.driver = :selenium
-    assert ActionSystemTest.driver.supports_screenshots?
-
-    ActionSystemTest.driver = :webkit
-    assert ActionSystemTest.driver.supports_screenshots?
-
-    ActionSystemTest.driver = :poltergeist
-    assert ActionSystemTest.driver.supports_screenshots?
+    assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
   end
 end

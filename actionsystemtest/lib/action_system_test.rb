@@ -50,18 +50,39 @@
 # driver defaults whereas the <tt>RailsSeleniumDriver</tt> has pre-set
 # configuration for browser, server, port, etc.
 
-require "action_system_test/test_helper"
-require "action_system_test/driver_adapter"
+require "capybara/dsl"
+require "action_controller"
+require "action_system_test/driver"
+require "action_system_test/browser"
+require "action_system_test/server"
+require "action_system_test/test_helpers/screenshot_helper"
 
 module ActionSystemTest
-  include ActionSystemTest::TestHelper
-  include ActionSystemTest::DriverAdapter
-
-  DEFAULT_DRIVER = :rails_selenium_driver
+  include Capybara::DSL
+  include ActionSystemTest::TestHelpers::ScreenshotHelper
 
   class Base < ActionDispatch::IntegrationTest
     include ActionSystemTest
 
-    ActionSystemTest.driver = DEFAULT_DRIVER
+    def self.start_application # :nodoc:
+      Capybara.app = Rack::Builder.new do
+        map "/" do
+          run Rails.application
+        end
+      end
+    end
+
+    def self.driven_by(driver, using: :chrome, on: 21800, screen_size: [1400, 1400])
+      Driver.new(driver).run
+      Server.new(on).run
+      Browser.new(using, screen_size).run if selenium?(driver)
+    end
+
+    def self.selenium?(driver) # :nodoc:
+      driver == :selenium
+    end
   end
+
+  Base.start_application
+  Base.driven_by :selenium
 end
