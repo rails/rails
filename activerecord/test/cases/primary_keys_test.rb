@@ -319,31 +319,30 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:Mysql2Adapter)
-  class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
-    include SchemaDumpingHelper
+class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
 
-    self.use_transactional_tests = false
+  self.use_transactional_tests = false
 
-    def setup
-      @connection = ActiveRecord::Base.connection
-      @connection.create_table(:int_defaults, id: :integer, default: nil, force: true)
-    end
+  def setup
+    @connection = ActiveRecord::Base.connection
+  end
 
-    def teardown
-      @connection.drop_table :int_defaults, if_exists: true
-    end
+  def teardown
+    @connection.drop_table :int_defaults, if_exists: true
+  end
 
-    test "primary key with integer allows default override via nil" do
-      column = @connection.columns(:int_defaults).find { |c| c.name == "id" }
-      assert_equal :integer, column.type
-      assert_not column.auto_increment?
-    end
+  def test_schema_dump_primary_key_integer_with_default_nil
+    skip if current_adapter?(:SQLite3Adapter)
+    @connection.create_table(:int_defaults, id: :integer, default: nil, force: true)
+    schema = dump_table_schema "int_defaults"
+    assert_match %r{create_table "int_defaults", id: :integer, default: nil}, schema
+  end
 
-    test "schema dump primary key with int default nil" do
-      schema = dump_table_schema "int_defaults"
-      assert_match %r{create_table "int_defaults", id: :integer, default: nil}, schema
-    end
+  def test_schema_dump_primary_key_bigint_with_default_nil
+    @connection.create_table(:int_defaults, id: :bigint, default: nil, force: true)
+    schema = dump_table_schema "int_defaults"
+    assert_match %r{create_table "int_defaults", id: :bigint, default: nil}, schema
   end
 end
 

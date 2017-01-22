@@ -1,16 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      module ColumnDumper
-        def column_spec_for_primary_key(column)
-          spec = super
-          if [:integer, :bigint].include?(schema_type(column)) && !column.auto_increment?
-            spec[:default] ||= schema_default(column) || "nil"
-          end
-          spec[:unsigned] = "true" if column.unsigned?
-          spec
-        end
-
+      module ColumnDumper # :nodoc:
         def prepare_column_options(column)
           spec = super
           spec[:unsigned] = "true" if column.unsigned?
@@ -32,6 +23,10 @@ module ActiveRecord
 
           def default_primary_key?(column)
             super && column.auto_increment?
+          end
+
+          def explicit_primary_key_default?(column)
+            column.type == :integer && !column.auto_increment?
           end
 
           def schema_type(column)
