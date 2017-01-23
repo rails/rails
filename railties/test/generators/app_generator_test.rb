@@ -592,6 +592,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
+    assert_no_match(/run  git init/, output)
   end
 
   def test_application_name_with_spaces
