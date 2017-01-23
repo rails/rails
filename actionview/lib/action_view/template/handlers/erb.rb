@@ -118,13 +118,15 @@ module ActionView
           flush_newline_if_pending(src)
 
           if (indicator == "==") || @escape
-            expr = "safe_expr_"
+            src << "@output_buffer.safe_expr_append="
+          else
+            src << "@output_buffer.append="
           end
 
           if BLOCK_EXPR.match?(code)
-            src << "@output_buffer.#{expr}append= " << code
+            src << " " << code
           else
-            src << "@output_buffer.#{expr}append=(" << code << ");"
+            src << "(" << code << ");"
           end
         end
 
