@@ -187,10 +187,6 @@ module Rails
       def initialize(*args)
         super
 
-        unless app_path
-          raise Error, "Application name should be provided in arguments. For details run: rails --help"
-        end
-
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
