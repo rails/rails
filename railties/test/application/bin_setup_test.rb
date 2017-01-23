@@ -38,9 +38,12 @@ module ApplicationTests
         app_file "db/schema.rb", ""
 
         output = `bin/setup 2>&1`
+
+        # Ignore line that's only output by Bundler < 1.14
+        output.sub! /^Resolving dependencies\.\.\.\n/, ""
+
         assert_equal(<<-OUTPUT, output)
 == Installing dependencies ==
-Resolving dependencies...
 The Gemfile's dependencies are satisfied
 
 == Preparing database ==
