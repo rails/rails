@@ -1,5 +1,4 @@
 require "erubi"
-require "erubis"
 require "abstract_controller/error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"
@@ -23,8 +22,6 @@ module AbstractController
     include ActiveSupport::Configurable
     extend ActiveSupport::DescendantsTracker
 
-    # Remove after ActionView::Template::Handlers::Erubis is removed
-    undef_method :not_implemented
     class << self
       attr_reader :abstract
       alias_method :abstract?, :abstract
