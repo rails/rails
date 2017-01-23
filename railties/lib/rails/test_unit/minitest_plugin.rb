@@ -52,6 +52,11 @@ module Minitest
       options[:color] = value
     end
 
+    opts.on("-w", "--warnings",
+            "Enable ruby warnings") do
+      $VERBOSE = true
+    end
+
     options[:color] = true
     options[:output_inline] = true
     options[:patterns] = defined?(@rake_patterns) ? @rake_patterns : opts.order!
