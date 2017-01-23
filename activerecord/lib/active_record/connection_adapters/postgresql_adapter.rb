@@ -676,6 +676,7 @@ module ActiveRecord
             begin
               @connection.prepare nextkey, sql
             rescue => e
+              @statements[sql_key] = nextkey if e.class == PG::DuplicatePstatement
               raise translate_exception_class(e, sql)
             end
             # Clear the queue
