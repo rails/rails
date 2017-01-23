@@ -3,7 +3,7 @@ require "erubi"
 module ActionView
   class Template
     module Handlers
-      begin 
+      begin
         require "erubis"
       rescue LoadError
         # nothing
