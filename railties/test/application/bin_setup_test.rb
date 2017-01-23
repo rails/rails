@@ -37,10 +37,22 @@ module ApplicationTests
       Dir.chdir(app_path) do
         app_file "db/schema.rb", ""
 
-        output = `bin/setup 2>&1`
-        assert_equal(<<-OUTPUT, output)
-== Installing dependencies ==
-Resolving dependencies...
+        assert_equal bundler_output_for(Bundler::VERSION), `bin/setup 2>&1`
+      end
+    end
+
+    private
+
+    def bundler_output_for(bundler_version)
+      if (bundler_version) < "1.14.2"
+        line = "Resolving dependencies...\n"
+      else
+        line = ""
+      end
+
+      "== Installing dependencies ==\n" +
+      line +
+      <<-OUTPUT
 The Gemfile's dependencies are satisfied
 
 == Preparing database ==
@@ -50,8 +62,7 @@ Created database 'db/test.sqlite3'
 == Removing old logs and tempfiles ==
 
 == Restarting application server ==
-        OUTPUT
-      end
+      OUTPUT
     end
   end
 end
