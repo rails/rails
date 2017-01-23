@@ -54,7 +54,7 @@ module Rails
     end
 
     def version_control
-      unless options[:skip_git]
+      if !options[:skip_git] && !options[:pretend]
         run "git init"
       end
     end
