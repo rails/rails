@@ -728,6 +728,20 @@ XML
     assert_equal "text/html", @response.body
   end
 
+  def test_request_path_info_and_format_reset
+    get :test_format, format: "json"
+    assert_equal "application/json", @response.body
+
+    get :test_uri, format: "json"
+    assert_equal "/test_case_test/test/test_uri.json", @response.body
+
+    get :test_format
+    assert_equal "text/html", @response.body
+
+    get :test_uri
+    assert_equal "/test_case_test/test/test_uri", @response.body
+  end
+
   def test_request_format_kwarg_overrides_params
     get :test_format, format: "json", params: { format: "html" }
     assert_equal "application/json", @response.body

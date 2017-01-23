@@ -534,6 +534,7 @@ module ActionController
             @request.delete_header "HTTP_ACCEPT"
           end
           @request.query_string = ""
+          @request.env.delete "PATH_INFO"
 
           @response.sent!
         end
