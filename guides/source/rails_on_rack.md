@@ -82,7 +82,6 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 # Rails.root/config.ru
 require ::File.expand_path('../config/environment', __FILE__)
 
-use Rails::Rack::Debugger
 use Rack::ContentLength
 run Rails.application
 ```
