@@ -103,9 +103,10 @@ module ActiveRecord
       end
 
       def test_legacy_migrations_raises_exception_when_inherited
-        assert_raises(StandardError) do
-          Class.new(ActiveRecord::Migration)
+        e = assert_raises(StandardError) do
+          class_eval("class LegacyMigration < ActiveRecord::Migration; end")
         end
+        assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
     end
   end

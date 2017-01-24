@@ -525,7 +525,7 @@ module ActiveRecord
         raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
           "Please specify the Rails release the migration was written for:\n" \
           "\n" \
-          "  class #{self.class.name} < ActiveRecord::Migration[4.2]"
+          "  class #{subclass} < ActiveRecord::Migration[4.2]"
       end
     end
 
