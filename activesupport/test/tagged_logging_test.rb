@@ -17,9 +17,10 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "sets logger.formatter if missing and extends it with a tagging API" do
     logger = Logger.new(StringIO.new)
     assert_nil logger.formatter
-    ActiveSupport::TaggedLogging.new(logger)
-    assert_not_nil logger.formatter
-    assert logger.formatter.respond_to?(:tagged)
+
+    other_logger = ActiveSupport::TaggedLogging.new(logger)
+    assert_not_nil other_logger.formatter
+    assert other_logger.formatter.respond_to?(:tagged)
   end
 
   test "tagged once" do
@@ -80,16 +81,28 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   end
 
   test "keeps each tag in their own instance" do
-    @other_output = StringIO.new
-    @other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@other_output))
+    other_output = StringIO.new
+    other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(other_output))
     @logger.tagged("OMG") do
-      @other_logger.tagged("BCX") do
+      other_logger.tagged("BCX") do
         @logger.info "Cool story"
-        @other_logger.info "Funky time"
+        other_logger.info "Funky time"
       end
     end
     assert_equal "[OMG] Cool story\n", @output.string
-    assert_equal "[BCX] Funky time\n", @other_output.string
+    assert_equal "[BCX] Funky time\n", other_output.string
+  end
+
+  test "does not share the same formatter instance of the original logger" do
+    other_logger = ActiveSupport::TaggedLogging.new(@logger)
+
+    @logger.tagged("OMG") do
+      other_logger.tagged("BCX") do
+        @logger.info "Cool story"
+        other_logger.info "Funky time"
+      end
+    end
+    assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
   test "cleans up the taggings on flush" do

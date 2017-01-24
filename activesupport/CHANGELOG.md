@@ -1,3 +1,7 @@
+*   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead of mutating the one received as parameter.
+
+    *Thierry Joyal*
+
 *   Add `ActiveSupport::Duration#before` and `#after` as aliases for `#until` and `#since`
 
     These read more like English and require less mental gymnastics to read and write.
