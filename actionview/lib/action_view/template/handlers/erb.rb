@@ -1,15 +1,109 @@
-require "erubis"
+require "erubi"
 
 module ActionView
   class Template
     module Handlers
-      class Erubis < ::Erubis::Eruby
-        def add_preamble(src)
-          @newline_pending = 0
-          src << "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
+      begin
+        require "erubis"
+      rescue LoadError
+        # nothing
+      else
+        erubis = Class.new(::Erubis::Eruby) do
+          # :nodoc: all
+          def add_preamble(src)
+            @newline_pending = 0
+            src << "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
+          end
+
+          def add_text(src, text)
+            return if text.empty?
+
+            if text == "\n"
+              @newline_pending += 1
+            else
+              src << "@output_buffer.safe_append='"
+              src << "\n" * @newline_pending if @newline_pending > 0
+              src << escape_text(text)
+              src << "'.freeze;"
+
+              @newline_pending = 0
+            end
+          end
+
+          # Erubis toggles <%= and <%== behavior when escaping is enabled.
+          # We override to always treat <%== as escaped.
+          def add_expr(src, code, indicator)
+            case indicator
+            when "=="
+              add_expr_escaped(src, code)
+            else
+              super
+            end
+          end
+
+          BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
+
+          def add_expr_literal(src, code)
+            flush_newline_if_pending(src)
+            if BLOCK_EXPR.match?(code)
+              src << "@output_buffer.append= " << code
+            else
+              src << "@output_buffer.append=(" << code << ");"
+            end
+          end
+
+          def add_expr_escaped(src, code)
+            flush_newline_if_pending(src)
+            if BLOCK_EXPR.match?(code)
+              src << "@output_buffer.safe_expr_append= " << code
+            else
+              src << "@output_buffer.safe_expr_append=(" << code << ");"
+            end
+          end
+
+          def add_stmt(src, code)
+            flush_newline_if_pending(src)
+            super
+          end
+
+          def add_postamble(src)
+            flush_newline_if_pending(src)
+            src << "@output_buffer.to_s"
+          end
+
+          def flush_newline_if_pending(src)
+            if @newline_pending > 0
+              src << "@output_buffer.safe_append='#{"\n" * @newline_pending}'.freeze;"
+              @newline_pending = 0
+            end
+          end
         end
 
-        def add_text(src, text)
+        Erubis = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(erubis, "ActionView::Template::Handlers::Erubis is deprecated and will be removed from Rails 5.2. Switch to ActionView::Template::Handlers::Erubi instead.")
+      end
+
+      class Erubi < ::Erubi::Engine
+        # :nodoc: all
+        def initialize(input, properties = {})
+          @newline_pending = 0
+
+          # Dup properties so that we don't modify argument
+          properties = Hash[properties]
+          properties[:preamble]   = "@output_buffer = output_buffer || ActionView::OutputBuffer.new;"
+          properties[:postamble]  = "@output_buffer.to_s"
+          properties[:bufvar]     = "@output_buffer"
+          properties[:escapefunc] = ""
+
+          super
+        end
+
+        def evaluate(action_view_erb_handler_context)
+          pr = eval("proc { #{@src} }", binding, @filename || "(erubi)")
+          action_view_erb_handler_context.instance_eval(&pr)
+        end
+
+      private
+        def add_text(text)
           return if text.empty?
 
           if text == "\n"
@@ -17,52 +111,39 @@ module ActionView
           else
             src << "@output_buffer.safe_append='"
             src << "\n" * @newline_pending if @newline_pending > 0
-            src << escape_text(text)
+            src << text.gsub(/['\\]/, '\\\\\&')
             src << "'.freeze;"
 
             @newline_pending = 0
           end
         end
 
-        # Erubis toggles <%= and <%== behavior when escaping is enabled.
-        # We override to always treat <%== as escaped.
-        def add_expr(src, code, indicator)
-          case indicator
-          when "=="
-            add_expr_escaped(src, code)
-          else
-            super
-          end
-        end
-
         BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
-        def add_expr_literal(src, code)
+        def add_expression(indicator, code)
           flush_newline_if_pending(src)
-          if BLOCK_EXPR.match?(code)
-            src << "@output_buffer.append= " << code
+
+          if (indicator == "==") || @escape
+            src << "@output_buffer.safe_expr_append="
           else
-            src << "@output_buffer.append=(" << code << ");"
+            src << "@output_buffer.append="
+          end
+
+          if BLOCK_EXPR.match?(code)
+            src << " " << code
+          else
+            src << "(" << code << ");"
           end
         end
 
-        def add_expr_escaped(src, code)
-          flush_newline_if_pending(src)
-          if BLOCK_EXPR.match?(code)
-            src << "@output_buffer.safe_expr_append= " << code
-          else
-            src << "@output_buffer.safe_expr_append=(" << code << ");"
-          end
-        end
-
-        def add_stmt(src, code)
+        def add_code(code)
           flush_newline_if_pending(src)
           super
         end
 
-        def add_postamble(src)
+        def add_postamble(_)
           flush_newline_if_pending(src)
-          src << "@output_buffer.to_s"
+          super
         end
 
         def flush_newline_if_pending(src)
@@ -81,7 +162,7 @@ module ActionView
 
         # Default implementation used.
         class_attribute :erb_implementation
-        self.erb_implementation = Erubis
+        self.erb_implementation = Erubi
 
         # Do not escape templates of these mime types.
         class_attribute :escape_whitelist
