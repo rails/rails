@@ -92,7 +92,7 @@ module ActionView
       #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
       #   currency, and <tt>%n</tt> for the number.
       # * <tt>:negative_format</tt> - Sets the format for negative
-      #   numbers (defaults to prepending an hyphen to the formatted
+      #   numbers (defaults to prepending a hyphen to the formatted
       #   number given by <tt>:format</tt>).  Accepts the same fields
       #   than <tt>:format</tt>, except <tt>%n</tt> is here the
       #   absolute value of the number.
