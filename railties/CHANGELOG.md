@@ -1,3 +1,9 @@
+*   Fix running multiple tests in one `rake` command
+
+    e.g. `bin/rake test:models test:controllers`
+
+    *Dominic Cleal*
+
 *   Add option to configure Ruby's warning behaviour to test runner.
 
     *Yuji Yaginuma*
