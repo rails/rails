@@ -195,10 +195,6 @@ task default: :test
       def initialize(*args)
         @dummy_path = nil
         super
-
-        unless plugin_path
-          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
-        end
       end
 
       public_task :set_default_accessors!
