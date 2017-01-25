@@ -94,12 +94,13 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "to_sentence is not affected by $," do
+    separator_was = $,
     $, = "|"
     begin
       assert_equal "one and two", to_sentence(["one", "two"])
       assert_equal "one, two, and three", to_sentence(["one", "two", "three"])
     ensure
-      $, = nil
+      $, = separator_was
     end
   end
 end
