@@ -271,7 +271,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_raising_discards_autoloaded_constants
     with_autoloading_fixtures do
-      assert_raises(Exception, "arbitray exception message") { RaisesArbitraryException }
+      e = assert_raises(Exception) { RaisesArbitraryException }
+      assert_equal("arbitray exception message", e.message)
       assert_not defined?(A)
       assert_not defined?(RaisesArbitraryException)
     end
