@@ -525,7 +525,7 @@ By using the full URL, your links will now work in your emails.
 
 #### Generating URLs with `url_for`
 
-`url_for` generate full URL by default in templates.
+`url_for` generates a full URL by default in templates.
 
 If you did not configure the `:host` option globally make sure to pass it to
 `url_for`.
@@ -574,7 +574,7 @@ Now you can display an image inside your email.
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
-templates for the same action. So, for our UserMailer example, if you have
+templates for the same action. So, for our `UserMailer` example, if you have
 `welcome_email.text.erb` and `welcome_email.html.erb` in
 `app/views/user_mailer`, Action Mailer will automatically send a multipart email
 with the HTML and text versions setup as different parts.
