@@ -9,7 +9,7 @@ class Mysql2SpatialTypesTest < ActiveRecord::Mysql2TestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table("spatial_types", force: true) do |t|
       t.geometry   :geometry_field
-      t.polygon    :polygon_field, null:false, index:{ type: :spatial}
+      t.polygon    :polygon_field, null: false, index: { type: :spatial }
       t.point      :point_field
       t.linestring :linestring_field
     end
@@ -30,9 +30,8 @@ class Mysql2SpatialTypesTest < ActiveRecord::Mysql2TestCase
   test "schema dump can be restored" do
     schema = dump_table_schema "spatial_types"
     @connection.drop_table "spatial_types", if_exists: true
-    silence_stdout{ eval schema }
+    silence_stdout { eval schema }
     schema2 = dump_table_schema "spatial_types"
     assert_equal schema, schema2
   end
-
 end
