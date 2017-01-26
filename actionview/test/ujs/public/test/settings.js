@@ -76,7 +76,7 @@ try {
 }
 
 $.fn.extend({
-  // trigger an native click event
+  // trigger a native click event
   triggerNative: function(type, options) {
     var el = this[0],
         event,

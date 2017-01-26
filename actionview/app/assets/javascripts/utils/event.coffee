@@ -13,7 +13,7 @@ if typeof CustomEvent is 'function'
     evt
   CustomEvent.prototype = window.Event.prototype
 
-# Triggers an custom event on an element and returns false if the event result is false
+# Triggers a custom event on an element and returns false if the event result is false
 fire = Rails.fire = (obj, name, data) ->
   event = new CustomEvent(
     name,
