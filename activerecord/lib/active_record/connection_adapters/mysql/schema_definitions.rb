@@ -54,6 +54,23 @@ module ActiveRecord
         def unsigned_decimal(*args, **options)
           args.each { |name| column(name, :unsigned_decimal, options) }
         end
+
+        def geometry(*args, **options)
+          args.each { |name| column(name, :geometry, options) }
+        end
+
+        def point(*args, **options)
+          args.each { |name| column(name, :point, options) }
+        end
+
+        def linestring(*args, **options)
+          args.each { |name| column(name, :linestring, options) }
+        end
+
+        def polygon(*args, **options)
+          args.each { |name| column(name, :polygon, options) }
+        end
+
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition

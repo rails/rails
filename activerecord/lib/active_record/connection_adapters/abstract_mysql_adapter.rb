@@ -51,6 +51,10 @@ module ActiveRecord
         binary:      { name: "blob", limit: 65535 },
         boolean:     { name: "tinyint", limit: 1 },
         json:        { name: "json" },
+        geometry:    { name: "geometry" },
+        point:       { name: "point" },
+        linestring:  { name: "linestring" },
+        polygon:     { name: "polygon" },
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
@@ -396,7 +400,7 @@ module ActiveRecord
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
+            indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part] && mysql_index_type != :spatial
           end
         end
 
@@ -683,6 +687,11 @@ module ActiveRecord
           m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
           m.alias_type %r(year)i,          "integer"
           m.alias_type %r(bit)i,           "binary"
+
+          m.register_type %r(geometry)i,   MysqlGeometry.new
+          m.register_type %r(point)i,      MysqlPoint.new
+          m.register_type %r(linestring)i, MysqlLineString.new
+          m.register_type %r(polygon)i,    MysqlPolygon.new
 
           m.register_type(%r(enum)i) do |sql_type|
             limit = sql_type[/^enum\((.+)\)/i, 1]
@@ -1013,9 +1022,37 @@ module ActiveRecord
             end
         end
 
+        class MysqlGeometry < ActiveModel::Type::Binary # :nodoc:
+          def type
+            :geometry
+          end
+        end
+
+        class MysqlPoint < MysqlGeometry # :nodoc:
+          def type
+            :point
+          end
+        end
+
+        class MysqlLineString < MysqlGeometry # :nodoc:
+          def type
+            :linestring
+          end
+        end
+
+        class MysqlPolygon < MysqlGeometry # :nodoc:
+          def type
+            :polygon
+          end
+        end
+
         ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
         ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
+        ActiveRecord::Type.register(:geometry, MysqlGeometry, adapter: :mysql2)
+        ActiveRecord::Type.register(:point, MysqlPoint, adapter: :mysql2)
+        ActiveRecord::Type.register(:linestring, MysqlLineString, adapter: :mysql2)
+        ActiveRecord::Type.register(:polygon, MysqlPolygon, adapter: :mysql2)
     end
   end
 end

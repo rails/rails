@@ -129,21 +129,25 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
-def load_schema
-  # silence verbose schema loading
+def silence_stdout
   original_stdout = $stdout
   $stdout = StringIO.new
+  yield
+ensure
+  $stdout = original_stdout
+end
 
+def load_schema
   adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
   adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
-  load SCHEMA_ROOT + "/schema.rb"
+  silence_stdout do
+    load SCHEMA_ROOT + "/schema.rb"
 
-  if File.exist?(adapter_specific_schema_file)
-    load adapter_specific_schema_file
+    if File.exist?(adapter_specific_schema_file)
+      load adapter_specific_schema_file
+    end
   end
-ensure
-  $stdout = original_stdout
 end
 
 load_schema
