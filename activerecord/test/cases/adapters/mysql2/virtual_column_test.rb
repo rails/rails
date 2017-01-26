@@ -52,8 +52,8 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
 
     def test_schema_dumping
       output = dump_table_schema("virtual_columns")
-      assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "UPPER\(name\)"$/, output)
-      assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "LENGTH\(name\)",\s+stored: true$/, output)
+      assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "UPPER\(name\)"$/i, output)
+      assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "LENGTH\(name\)",\s+stored: true$/i, output)
     end
   end
 end
