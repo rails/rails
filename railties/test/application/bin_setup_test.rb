@@ -40,7 +40,7 @@ module ApplicationTests
         output = `bin/setup 2>&1`
 
         # Ignore line that's only output by Bundler < 1.14
-        output.sub! /^Resolving dependencies\.\.\.\n/, ""
+        output.sub!(/^Resolving dependencies\.\.\.\n/, "")
 
         assert_equal(<<-OUTPUT, output)
 == Installing dependencies ==
