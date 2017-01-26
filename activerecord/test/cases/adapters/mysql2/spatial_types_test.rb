@@ -7,7 +7,7 @@ class Mysql2SpatialTypesTest < ActiveRecord::Mysql2TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table("spatial_types", force: true) do |t|
+    @connection.create_table("spatial_types", force: true, options: "ENGINE=MyISAM") do |t|
       t.geometry   :geometry_field
       t.polygon    :polygon_field, null: false, index: { type: :spatial }
       t.point      :point_field
