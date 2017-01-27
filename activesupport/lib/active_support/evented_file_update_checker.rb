@@ -17,7 +17,7 @@ module ActiveSupport
   #
   # Example:
   #
-  #     checker = EventedFileUpdateChecker.new(["/tmp/foo"], -> { puts "changed" })
+  #     checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
   #     checker.updated?
   #     # => false
   #     checker.execute_if_updated
