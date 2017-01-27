@@ -434,6 +434,7 @@ module ActionMailer
   class Base < AbstractController::Base
     include DeliveryMethods
     include Rescuable
+    include Parameterized
     include Previews
 
     abstract!
