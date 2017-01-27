@@ -80,7 +80,7 @@ module Arel
         collector << 'DELETE FROM '
         collector = visit o.relation, collector
         if o.wheres.any?
-          collector << ' WHERE '
+          collector << WHERE
           collector = inject_join o.wheres, collector, AND
         end
 
@@ -265,12 +265,12 @@ module Arel
 
       def visit_Arel_Nodes_With o, collector
         collector << "WITH "
-        inject_join o.children, collector, ', '
+        inject_join o.children, collector, COMMA
       end
 
       def visit_Arel_Nodes_WithRecursive o, collector
         collector << "WITH RECURSIVE "
-        inject_join o.children, collector, ', '
+        inject_join o.children, collector, COMMA
       end
 
       def visit_Arel_Nodes_Union o, collector
@@ -524,7 +524,7 @@ module Arel
         end
         if o.right.any?
           collector << SPACE if o.left
-          collector = inject_join o.right, collector, ' '
+          collector = inject_join o.right, collector, SPACE
         end
         collector
       end
