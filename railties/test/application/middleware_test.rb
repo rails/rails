@@ -144,9 +144,16 @@ module ApplicationTests
     end
 
     test "identity map is inserted" do
-      add_to_config "config.active_record.identity_map = true"
-      boot!
-      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
+      begin
+        add_to_config "config.active_record.identity_map = true"
+        add_to_config "config.active_support.deprecation = :stderr"
+        old, $stderr = $stderr, StringIO.new
+        boot!
+        assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
+        assert_match(/DEPRECATION WARNING/, $stderr.string)
+      ensure
+        $stderr = old
+      end
     end
 
     test "insert middleware before" do
