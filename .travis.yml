@@ -64,6 +64,12 @@ matrix:
         - memcached
         - redis
         - rabbitmq
+    - rvm: 2.4.0
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis
+        - rabbitmq
     - rvm: ruby-head
       env: "GEM=aj:integration"
       services:
