@@ -58,7 +58,7 @@ module ActionMailer
   #     before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
   #     before_action { @account = params[:inviter].account }
   #
-  #     default to:       -> { @invitee.email_address }, 
+  #     default to:       -> { @invitee.email_address },
   #             from:     -> { common_address(@inviter) },
   #             reply_to: -> { @inviter.email_address_with_name }
   #
@@ -69,13 +69,13 @@ module ActionMailer
   #     def project_invitation
   #       @project    = params[:project]
   #       @summarizer = ProjectInvitationSummarizer.new(@project.bucket)
-  #   
+  #
   #        mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
   #     end
   #
   #     def bulk_project_invitation
   #       @projects = params[:projects].sort_by(&:name)
-  #   
+  #
   #       mail subject: "#{@inviter.name.familiar} added you to some new stuff in Basecamp (#{@account.name})"
   #     end
   #   end
