@@ -1,15 +1,5 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveRecord
-  module Querying
-    delegate :find, :first, :first!, :last, :last!, :all, :exists?, :any?, :many?, :to => :scoped
-    delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :scoped
-    delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :scoped
-    delegate :find_each, :find_in_batches, :to => :scoped
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
-             :where, :preload, :eager_load, :includes, :from, :lock, :readonly,
-             :having, :create_with, :uniq, :to => :scoped
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, :pluck, :to => :scoped
+  module Quering
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call
@@ -35,7 +25,7 @@ module ActiveRecord
     #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        connection.select_all(klass.send(:sanitize_sql,sql), "#{name} Load", binds).collect! { |record| klass.instantiate(record) }
       end
     end
 
@@ -51,7 +41,7 @@ module ActiveRecord
     #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     def count_by_sql(sql)
-      sql = sanitize_conditions(sql)
+      sql = klass.send(:sanitize_conditions,sql)
       connection.select_value(sql, "#{name} Count").to_i
     end
   end

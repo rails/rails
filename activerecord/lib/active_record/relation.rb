@@ -9,7 +9,7 @@ module ActiveRecord
     MULTI_VALUE_METHODS = [:select, :group, :order, :joins, :where, :having, :bind]
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering, :reverse_order, :uniq]
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
+    include FinderMethods, Calculations, SpawnMethods, Quering, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
     attr_accessor :extensions, :default_scoped
@@ -168,10 +168,10 @@ module ActiveRecord
 
       if default_scoped.equal?(self)
         @records = if @readonly_value.nil? && !@klass.locking_enabled?
-          eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
+          eager_loading? ? find_with_associations : find_by_sql(arel, @bind_values)
         else
           IdentityMap.without do
-            eager_loading? ? find_with_associations : @klass.find_by_sql(arel, @bind_values)
+            eager_loading? ? find_with_associations : find_by_sql(arel, @bind_values)
           end
         end
 
