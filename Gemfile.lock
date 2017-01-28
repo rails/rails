@@ -80,7 +80,7 @@ PATH
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
-      rails-html-sanitizer (~> 1.0, >= 1.0.2)
+      rails-html-sanitizer (~> 1.0, >= 1.0.3)
     activejob (5.1.0.alpha)
       activesupport (= 5.1.0.alpha)
       globalid (>= 0.3.6)
@@ -119,7 +119,7 @@ GEM
   specs:
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
-    amq-protocol (2.0.1)
+    amq-protocol (2.1.0)
     ast (2.3.0)
     backburner (1.3.1)
       beaneater (~> 1.0)
@@ -252,7 +252,7 @@ GEM
     powerpack (0.1.1)
     psych (2.2.2)
     public_suffix (2.0.5)
-    puma (3.6.2)
+    puma (3.7.0)
     qu (0.2.0)
       multi_json
     qu-redis (0.2.0)
