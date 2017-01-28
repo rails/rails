@@ -1,5 +1,6 @@
 module ActionMailer
-  # Provides the option to parameterize mailers in other to share ivar setup, processing, and common headers.
+  # Provides the option to parameterize mailers in order to share instance variable
+  # setup, processing, and common headers.
   #
   # Consider this example that does not use parameterization:
   #
