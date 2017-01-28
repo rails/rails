@@ -17,7 +17,7 @@ class ParameterizedTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = :test_queue
     ActionMailer::Base.delivery_method = :test
 
-    @mail = ParamsMailer.with(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').invitation
+    @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
   end
 
   teardown do
@@ -37,7 +37,7 @@ class ParameterizedTest < ActiveSupport::TestCase
   end
 
   test "should enqueue the email with params" do
-    assert_performed_with(job: ActionMailer::Parameterized::DeliveryJob, args: ["ParamsMailer", "invitation", "deliver_now", { inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com' } ]) do
+    assert_performed_with(job: ActionMailer::Parameterized::DeliveryJob, args: ["ParamsMailer", "invitation", "deliver_now", { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" } ]) do
       @mail.deliver_later
     end
   end
