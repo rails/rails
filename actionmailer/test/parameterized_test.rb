@@ -17,7 +17,7 @@ class ParameterizedTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = :test_queue
     ActionMailer::Base.delivery_method = :test
 
-    @mail = ParamsMailer.params(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').invitation
+    @mail = ParamsMailer.with(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').invitation
   end
 
   teardown do

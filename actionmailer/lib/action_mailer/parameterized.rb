@@ -80,7 +80,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   InvitationsMailer.params(inviter: person_b, invitee: person_b).account_invitation.deliver_later
+  #   InvitationsMailer.with(inviter: person_b, invitee: person_b).account_invitation.deliver_later
   #
   # That's a big improvement! It's also fully backwards compatible. So you can start to gradually transition
   # mailers that stand to benefit the most from parameterization one by one and leave the others behind.
@@ -92,7 +92,7 @@ module ActionMailer
     end
 
     class_methods do
-      def params(params)
+      def with(params)
         ActionMailer::Parameterized::Mailer.new(self, params)
       end
     end
@@ -134,7 +134,7 @@ module ActionMailer
 
     class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
       def perform(mailer, mail_method, delivery_method, params, *args) #:nodoc:
-        mailer.constantize.params(params).public_send(mail_method, *args).send(delivery_method)
+        mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
       end
     end
   end
