@@ -50,7 +50,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   InvitationsMailer.account_invitation('david@basecamp.com', 'jason@basecamp.com').deliver_later
+  #   InvitationsMailer.account_invitation(person_a, person_b).deliver_later
   #
   # Using parameterized mailers, this can be rewritten as:
   #
@@ -80,7 +80,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   InvitationsMailer.params(inviter: 'david@basecamp.com', invitee: 'jason@basecamp.com').account_invitation.deliver_later
+  #   InvitationsMailer.params(inviter: person_b, invitee: person_b).account_invitation.deliver_later
   #
   # That's a big improvement! It's also fully backwards compatible. So you can start to gradually transition
   # mailers that stand to benefit the most from parameterization one by one and leave the others behind.
