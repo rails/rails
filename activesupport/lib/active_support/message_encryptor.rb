@@ -104,7 +104,7 @@ module ActiveSupport
     end
 
     def new_cipher
-      OpenSSL::Cipher::Cipher.new(@cipher)
+      OpenSSL::Cipher.new(@cipher)
     end
 
     def verifier
