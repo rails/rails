@@ -15,6 +15,7 @@ module Rails
     def initialize(options = nil)
       @default_options = options || {}
       super(@default_options)
+      set_port if puma_server?
       set_environment
     end
 
@@ -32,6 +33,10 @@ module Rails
 
     def set_environment
       ENV["RAILS_ENV"] ||= options[:environment]
+    end
+
+    def set_port
+      ENV["PORT"] ||= options[:Port].to_s
     end
 
     def start
@@ -56,6 +61,10 @@ module Rails
       super.merge(@default_options)
     end
 
+    def puma_server?
+      ActiveSupport::Inflector.demodulize(server) == 'Puma'
+    end
+    
     private
       def setup_dev_caching
         if options[:environment] == "development"
