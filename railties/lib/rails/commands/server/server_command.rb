@@ -62,9 +62,9 @@ module Rails
     end
 
     def puma_server?
-      ActiveSupport::Inflector.demodulize(server) == 'Puma'
+      ActiveSupport::Inflector.demodulize(server) == "Puma"
     end
-    
+
     private
       def setup_dev_caching
         if options[:environment] == "development"
