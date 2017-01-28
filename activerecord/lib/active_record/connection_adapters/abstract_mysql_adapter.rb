@@ -142,7 +142,11 @@ module ActiveRecord
       end
 
       def supports_virtual_columns?
-        !mariadb? && version >= "5.7.5"
+        if mariadb?
+          version >= "5.2.0"
+        else
+          version >= "5.7.5"
+        end
       end
 
       def supports_advisory_locks?
