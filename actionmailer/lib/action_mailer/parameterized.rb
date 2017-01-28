@@ -58,9 +58,9 @@ module ActionMailer
   #     before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
   #     before_action { @account = params[:inviter].account }
   #   
-  #     default to:       Proc.new { @invitee.email_address }, 
-  #             from:     Proc.new { common_address(@inviter) },
-  #             reply_to: Proc.new { @inviter.email_address_with_name }
+  #     default to:       -> { @invitee.email_address }, 
+  #             from:     -> { common_address(@inviter) },
+  #             reply_to: -> { @inviter.email_address_with_name }
   #   
   #     def account_invitation
   #       mail subject: "#{@inviter.name} invited you to their Basecamp (#{@account.name})"

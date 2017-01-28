@@ -1,3 +1,7 @@
+*   Allow lambdas to be used as lazy defaults in addition to procs.
+
+    *DHH*
+
 *   Mime type: allow to custom content type when setting body in headers
     and attachments.
 

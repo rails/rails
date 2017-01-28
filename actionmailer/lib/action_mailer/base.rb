@@ -288,11 +288,11 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
-  # can define methods that evaluate as the message is being generated:
+  # Finally, Action Mailer also supports passing <tt>Proc</tt> and <tt>Lambda</tt> objects into the default hash, 
+  # so you can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
-  #     default 'X-Special-Header' => Proc.new { my_method }
+  #     default 'X-Special-Header' => Proc.new { my_method }, to: -> { @inviter.email_address }
   #
   #     private
   #
@@ -301,7 +301,7 @@ module ActionMailer
   #       end
   #   end
   #
-  # Note that the proc is evaluated right at the start of the mail message generation, so if you
+  # Note that the proc/lambda is evaluated right at the start of the mail message generation, so if you
   # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
@@ -889,7 +889,7 @@ module ActionMailer
         default_values = self.class.default.map do |key, value|
           [
             key,
-            value.is_a?(Proc) ? instance_eval(&value) : value
+            value.is_a?(Proc) ? instance_exec(&value) : value
           ]
         end.to_h
 
