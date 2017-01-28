@@ -9,10 +9,9 @@ class ParameterizedTest < ActiveSupport::TestCase
     @previous_logger = ActiveJob::Base.logger
     ActiveJob::Base.logger = Logger.new(nil)
 
-    @original_delivery_method = ActionMailer::Base.delivery_method
+    @previous_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.delivery_method = :test
 
-    @previous_delivery_method = ActionMailer::Base.delivery_method
     @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
     ActionMailer::Base.deliver_later_queue_name = :test_queue
     ActionMailer::Base.delivery_method = :test
@@ -23,8 +22,6 @@ class ParameterizedTest < ActiveSupport::TestCase
   teardown do
     ActiveJob::Base.logger = @previous_logger
     ParamsMailer.deliveries.clear
-
-    ActionMailer::Base.delivery_method = @original_delivery_method
 
     ActionMailer::Base.delivery_method = @previous_delivery_method
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
