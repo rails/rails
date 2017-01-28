@@ -329,6 +329,15 @@ ActiveRecord::Schema.define do
   create_table :eyes, force: true do |t|
   end
 
+  create_table :families, force: true do |t|
+  end
+
+  create_table :family_trees, force: true do |t|
+    t.references :family
+    t.references :member
+    t.string :token
+  end
+
   create_table :funny_jokes, force: true do |t|
     t.string :name
   end
