@@ -1,3 +1,12 @@
+*   Add parameterized invocation of mailers as a way to share before filters and defaults between actions.
+    See ActionMailer::Parameterized for a full example of the benefit.
+
+    *DHH*
+
+*   Allow lambdas to be used as lazy defaults in addition to procs.
+
+    *DHH*
+
 *   Mime type: allow to custom content type when setting body in headers
     and attachments.
 

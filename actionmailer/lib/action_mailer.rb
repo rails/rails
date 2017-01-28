@@ -42,6 +42,7 @@ module ActionMailer
   autoload :DeliveryMethods
   autoload :InlinePreviewInterceptor
   autoload :MailHelper
+  autoload :Parameterized
   autoload :Preview
   autoload :Previews, "action_mailer/preview"
   autoload :TestCase
