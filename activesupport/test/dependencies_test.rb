@@ -397,11 +397,11 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def failing_test_access_thru_and_upwards_fails
+  def test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert_not defined?(ModuleFolder)
       assert_raise(NameError) { ModuleFolder::Object }
-      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+      assert_raise(NameError) { ModuleFolder::NestedClass::DoesNotExist }
     end
   ensure
     remove_constants(:ModuleFolder)
