@@ -7,21 +7,6 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
-  remote: https://github.com/collectiveidea/delayed_job.git
-  revision: e3772d4f0c8470d0fcba00c86ca3bc4f5e876830
-  specs:
-    delayed_job (4.1.2)
-      activesupport (>= 3.0, < 5.1)
-
-GIT
-  remote: https://github.com/collectiveidea/delayed_job_active_record.git
-  revision: 36f434c4fd660e8f11ce932be117e9c71dde7212
-  specs:
-    delayed_job_active_record (4.1.1)
-      activerecord (>= 3.0, < 5.1)
-      delayed_job (>= 3.0, < 5)
-
-GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
   branch: close-handling
@@ -167,6 +152,11 @@ GEM
     daemons (1.2.4)
     dalli (2.7.6)
     dante (0.2.0)
+    delayed_job (4.1.2)
+      activesupport (>= 3.0, < 5.1)
+    delayed_job_active_record (4.1.1)
+      activerecord (>= 3.0, < 5.1)
+      delayed_job (>= 3.0, < 5)
     em-hiredis (0.3.1)
       eventmachine (~> 1.0)
       hiredis (~> 0.6.0)
@@ -388,8 +378,8 @@ DEPENDENCIES
   byebug
   coffee-rails
   dalli (>= 2.2.1)
-  delayed_job!
-  delayed_job_active_record!
+  delayed_job
+  delayed_job_active_record
   em-hiredis
   erubis (~> 2.7.0)
   hiredis
