@@ -86,6 +86,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil @member.club
   end
 
+  def test_set_record_after_delete_association
+    @member.club = nil
+    @member.club = clubs(:moustache_club)
+    @member.reload
+    assert_equal clubs(:moustache_club), @member.club
+  end
+
   def test_has_one_through_polymorphic
     assert_equal clubs(:moustache_club), @member.sponsor_club
   end
