@@ -240,6 +240,20 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
+  def test_unexpected_serialized_type
+    Topic.serialize :content, Hash
+    topic = Topic.create!(content: { zomg: true })
+
+    Topic.serialize :content, Array
+
+    topic.reload
+    error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
+      topic.content
+    end
+    expected = "Attribute `content` was supposed to be a Array, but was a Hash. -- {:zomg=>true}"
+    assert_equal expected, error.to_s
+  end
+
   def test_serialized_column_should_unserialize_after_update_column
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
