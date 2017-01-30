@@ -1,5 +1,6 @@
 require "thread"
 require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -184,6 +185,7 @@ module ActiveRecord
       def scope_chain
         chain.map(&:scopes)
       end
+      deprecate :scope_chain
 
       def constraints
         chain.map(&:scopes).flatten
