@@ -175,6 +175,10 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
+      def scopes
+        scope ? [scope] : []
+      end
+
       def constraints
         scope_chain.flatten
       end
@@ -815,6 +819,40 @@ module ActiveRecord
       # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
       # but only Comment.tags will be represented in the #chain. So this method creates an array
       # of scopes corresponding to the chain.
+      def scopes
+        @sc ||= if scope
+          source_reflection.scopes + through_reflection.scopes + [scope]
+        else
+          source_reflection.scopes + through_reflection.scopes
+        end
+
+        return @sc
+        scope_chain = source_reflection.scopes
+        scope_chain = through_reflection.scopes
+
+        # Add to it the scope from this reflection (if any)
+        scope_chain.first << scope if scope
+
+        through_scope_chain = through_reflection.scope_chain.map(&:dup)
+
+        if options[:source_type]
+          through_scope_chain.first << source_type_lambda
+        end
+
+        # Recursively fill out the rest of the array from the through reflection
+        scope_chain + through_scope_chain
+      end
+
+      def source_type_lambda
+        @source_type_lambda ||= begin
+          type = foreign_type
+          source_type = options[:source_type]
+          lambda { |object|
+            where(type => source_type)
+          }
+        end
+      end
+
       def scope_chain
         @scope_chain ||= begin
           scope_chain = source_reflection.scope_chain.map(&:dup)
@@ -825,11 +863,7 @@ module ActiveRecord
           through_scope_chain = through_reflection.scope_chain.map(&:dup)
 
           if options[:source_type]
-            type = foreign_type
-            source_type = options[:source_type]
-            through_scope_chain.first << lambda { |object|
-              where(type => source_type)
-            }
+            through_scope_chain.first << source_type_lambda
           end
 
           # Recursively fill out the rest of the array from the through reflection
@@ -1006,6 +1040,14 @@ module ActiveRecord
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
+      end
+
+      def scopes
+        if @previous_reflection.options[:source_type]
+          return super + [@previous_reflection.source_type_lambda]
+        else
+          return super
+        end
       end
 
       def klass
