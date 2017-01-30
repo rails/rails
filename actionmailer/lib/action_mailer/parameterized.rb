@@ -105,7 +105,7 @@ module ActionMailer
 
       def method_missing(method_name, *args)
         if @mailer.action_methods.include?(method_name.to_s)
-          ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, *args).tap { |pmd| pmd.params = @params }
+          ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args)
         else
           super
         end
@@ -113,12 +113,15 @@ module ActionMailer
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
-      attr_accessor :params
+      def initialize(mailer_class, action, params, *args)
+        super(mailer_class, action, *args)
+        @params = params
+      end
 
       private
         def processed_mailer
           @processed_mailer ||= @mailer_class.new.tap do |mailer|
-            mailer.params = params
+            mailer.params = @params
             mailer.process @action, *@args
           end
         end
