@@ -1,5 +1,6 @@
 require "cases/helper"
 require "models/post"
+require "models/comment"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
@@ -86,6 +87,13 @@ module ActiveRecord
     def test_or_with_non_relation_object_raises_error
       assert_raises ArgumentError do
         Post.where(id: [1, 2, 3]).or(title: "Rails")
+      end
+    end
+
+    def test_or_with_chained_value_methods_with_same_arguments
+      assert_nothing_raised do
+        Post.joins(:comment).where(comments: { id: 1 })
+          .or(Post.joins(:comment).where(comments: { id: 2 }).joins(:comment).where(comments: { id: 3 }))
       end
     end
   end

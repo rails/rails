@@ -1163,7 +1163,7 @@ module ActiveRecord
       STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having]
       def structurally_incompatible_values_for_or(other)
         STRUCTURAL_OR_METHODS.reject do |method|
-          get_value(method) == other.get_value(method)
+          get_value(method).try(:uniq) == other.get_value(method).try(:uniq)
         end
       end
 
