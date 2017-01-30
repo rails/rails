@@ -98,7 +98,7 @@ module ActionMailer
       end
     end
 
-    class Mailer
+    class Mailer # :nodoc:
       def initialize(mailer, params)
         @mailer, @params = mailer, params
       end
@@ -112,7 +112,7 @@ module ActionMailer
       end
     end
 
-    class MessageDelivery < ActionMailer::MessageDelivery
+    class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
       attr_accessor :params
 
       private
