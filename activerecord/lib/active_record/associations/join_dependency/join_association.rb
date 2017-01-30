@@ -23,13 +23,10 @@ module ActiveRecord
 
         JoinInformation = Struct.new :joins, :binds
 
-        def join_constraints(foreign_table, foreign_klass, node, join_type, tables, scope_chain, chain)
+        def join_constraints(foreign_table, foreign_klass, node, join_type, tables, chain)
           joins         = []
           binds         = []
           tables        = tables.reverse
-
-          scope_chain_index = 0
-          scope_chain = scope_chain.reverse
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
@@ -44,7 +41,7 @@ module ActiveRecord
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
             predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-            scope_chain_items = scope_chain[scope_chain_index].map do |item|
+            scope_chain_items = reflection.scopes.map do |item|
               if item.is_a?(Relation)
                 item
               else
@@ -52,7 +49,6 @@ module ActiveRecord
                   .instance_exec(node, &item)
               end
             end
-            scope_chain_index += 1
 
             klass_scope =
               if klass.current_scope

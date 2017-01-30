@@ -1,5 +1,6 @@
 require "thread"
 require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -175,8 +176,19 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
+      # Returns a list of scopes that should be applied for this Reflection
+      # object when querying the database.
+      def scopes
+        scope ? [scope] : []
+      end
+
+      def scope_chain
+        chain.map(&:scopes)
+      end
+      deprecate :scope_chain
+
       def constraints
-        scope_chain.flatten
+        chain.map(&:scopes).flatten
       end
 
       def counter_cache_column
@@ -459,12 +471,6 @@ module ActiveRecord
 
       def nested?
         false
-      end
-
-      # An array of arrays of scopes. Each item in the outside array corresponds to a reflection
-      # in the #chain.
-      def scope_chain
-        scope ? [[scope]] : [[]]
       end
 
       def has_scope?
@@ -796,45 +802,14 @@ module ActiveRecord
         through_reflection.clear_association_scope_cache
       end
 
-      # Consider the following example:
-      #
-      #   class Person
-      #     has_many :articles
-      #     has_many :comment_tags, through: :articles
-      #   end
-      #
-      #   class Article
-      #     has_many :comments
-      #     has_many :comment_tags, through: :comments, source: :tags
-      #   end
-      #
-      #   class Comment
-      #     has_many :tags
-      #   end
-      #
-      # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
-      # but only Comment.tags will be represented in the #chain. So this method creates an array
-      # of scopes corresponding to the chain.
-      def scope_chain
-        @scope_chain ||= begin
-          scope_chain = source_reflection.scope_chain.map(&:dup)
+      def scopes
+        source_reflection.scopes + super
+      end
 
-          # Add to it the scope from this reflection (if any)
-          scope_chain.first << scope if scope
-
-          through_scope_chain = through_reflection.scope_chain.map(&:dup)
-
-          if options[:source_type]
-            type = foreign_type
-            source_type = options[:source_type]
-            through_scope_chain.first << lambda { |object|
-              where(type => source_type)
-            }
-          end
-
-          # Recursively fill out the rest of the array from the through reflection
-          scope_chain + through_scope_chain
-        end
+      def source_type_scope
+        type = foreign_type
+        source_type = options[:source_type]
+        lambda { |object| where(type => source_type) }
       end
 
       def has_scope?
@@ -1006,6 +981,15 @@ module ActiveRecord
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
+      end
+
+      def scopes
+        scopes = @previous_reflection.scopes
+        if @previous_reflection.options[:source_type]
+          scopes + [@previous_reflection.source_type_scope]
+        else
+          scopes
+        end
       end
 
       def klass
