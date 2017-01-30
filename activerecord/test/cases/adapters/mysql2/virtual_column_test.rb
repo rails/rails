@@ -27,14 +27,14 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
 
     def test_virtual_column
       column = VirtualColumn.columns_hash["upper_name"]
-      assert column.virtual?
+      assert_predicate column, :virtual?
       assert_match %r{\bVIRTUAL\b}, column.extra
       assert_equal "RAILS", VirtualColumn.take.upper_name
     end
 
     def test_stored_column
       column = VirtualColumn.columns_hash["name_length"]
-      assert column.virtual?
+      assert_predicate column, :virtual?
       assert_match %r{\b(?:STORED|PERSISTENT)\b}, column.extra
       assert_equal 5, VirtualColumn.take.name_length
     end
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
       end
       VirtualColumn.reset_column_information
       column = VirtualColumn.columns_hash["lower_name"]
-      assert column.virtual?
+      assert_predicate column, :virtual?
       assert_match %r{\bVIRTUAL\b}, column.extra
       assert_equal "rails", VirtualColumn.take.lower_name
     end
