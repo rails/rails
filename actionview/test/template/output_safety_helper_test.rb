@@ -34,8 +34,19 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should return the safe string separated by $, when second argument is not passed" do
-    joined = safe_join(["a", "b"])
-    assert_equal "a#{$,}b", joined
+    default_delimeter = $,
+
+    begin
+      $, = nil
+      joined = safe_join(["a", "b"])
+      assert_equal "ab", joined
+
+      $, = "|"
+      joined = safe_join(["a", "b"])
+      assert_equal "a|b", joined
+    ensure
+      $, = default_delimeter
+    end
   end
 
   test "to_sentence should escape non-html_safe values" do
