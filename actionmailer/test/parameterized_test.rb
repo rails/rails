@@ -33,7 +33,7 @@ class ParameterizedTest < ActiveSupport::TestCase
     assert_equal("So says david@basecamp.com", @mail.body.encoded)
   end
 
-  test "should enqueue the email with params" do
+  test "enqueue the email with params" do
     assert_performed_with(job: ActionMailer::Parameterized::DeliveryJob, args: ["ParamsMailer", "invitation", "deliver_now", { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" } ]) do
       @mail.deliver_later
     end
