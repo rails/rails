@@ -82,9 +82,6 @@ module ActionMailer
   #   end
   #
   #   InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.deliver_later
-  #
-  # That's a big improvement! It's also fully backwards compatible. So you can start to gradually transition
-  # mailers that stand to benefit the most from parameterization one by one and leave the others behind.
   module Parameterized
     extend ActiveSupport::Concern
 
