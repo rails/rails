@@ -89,7 +89,12 @@ module ActionMailer
       attr_accessor :params
     end
 
-    class_methods do
+    module ClassMethods
+      # Provide the parameters to the mailer in order to use them in the instance methods and callbacks.
+      #
+      #   InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.deliver_later
+      #
+      # See Parameterized documentation for full example.
       def with(params)
         ActionMailer::Parameterized::Mailer.new(self, params)
       end
