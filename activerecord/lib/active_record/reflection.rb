@@ -826,13 +826,9 @@ module ActiveRecord
       end
 
       def source_type_scope
-        @source_type_lambda ||= begin
-          type = foreign_type
-          source_type = options[:source_type]
-          lambda { |object|
-            where(type => source_type)
-          }
-        end
+        type = foreign_type
+        source_type = options[:source_type]
+        lambda { |object| where(type => source_type) }
       end
 
       def has_scope?
