@@ -15,7 +15,7 @@ module Rails
     def initialize(options = nil)
       @default_options = options || {}
       super(@default_options)
-      set_port if puma_server?
+      set_port
       set_environment
     end
 
@@ -59,10 +59,6 @@ module Rails
 
     def default_options
       super.merge(@default_options)
-    end
-
-    def puma_server?
-      ActiveSupport::Inflector.demodulize(server) == "Puma"
     end
 
     private

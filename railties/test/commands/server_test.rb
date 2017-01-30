@@ -130,9 +130,10 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_port_environment_variable_with_default_server
+  def test_port_environment_variable
     args = ["-p", 3001]
     options = parse_arguments(args)
+    ENV['PORT'] = nil
     Rails::Server.new(options)
     assert_equal "3001", ENV["PORT"]
   end
