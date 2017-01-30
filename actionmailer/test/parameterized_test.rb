@@ -38,4 +38,18 @@ class ParameterizedTest < ActiveSupport::TestCase
       @mail.deliver_later
     end
   end
+
+  test "respond_to?" do
+    mailer = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com")
+
+    assert_respond_to mailer, :invitation
+    assert_not_respond_to mailer, :anything
+
+    invitation = mailer.method(:invitation)
+    assert_equal Method, invitation.class
+
+    assert_raises(NameError) do
+      invitation = mailer.method(:anything)
+    end
+  end
 end

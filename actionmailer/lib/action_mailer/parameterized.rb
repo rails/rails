@@ -103,13 +103,18 @@ module ActionMailer
         @mailer, @params = mailer, params
       end
 
-      def method_missing(method_name, *args)
-        if @mailer.action_methods.include?(method_name.to_s)
-          ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args)
-        else
-          super
+      private
+        def method_missing(method_name, *args)
+          if @mailer.action_methods.include?(method_name.to_s)
+            ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args)
+          else
+            super
+          end
         end
-      end
+
+        def respond_to_missing?(method, include_all = false)
+          @mailer.respond_to?(method, include_all)
+        end
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
