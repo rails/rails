@@ -71,7 +71,7 @@ module ActionMailer
   #       @project    = params[:project]
   #       @summarizer = ProjectInvitationSummarizer.new(@project.bucket)
   #
-  #        mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
+  #       mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
   #     end
   #
   #     def bulk_project_invitation
