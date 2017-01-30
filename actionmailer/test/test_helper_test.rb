@@ -143,6 +143,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_enqueued_parameterized_emails
+    assert_nothing_raised do
+      assert_enqueued_emails 1 do
+        silence_stream($stdout) do
+          TestHelperMailer.with(a: 1).test.deliver_later
+        end
+      end
+    end
+  end
+
   def test_assert_enqueued_emails_too_few_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_enqueued_emails 2 do
@@ -172,6 +182,14 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       assert_no_enqueued_emails do
         TestHelperMailer.test.deliver_now
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_parameterized_emails
+    assert_nothing_raised do
+      assert_no_enqueued_emails do
+        TestHelperMailer.with(a: 1).test.deliver_now
       end
     end
   end
