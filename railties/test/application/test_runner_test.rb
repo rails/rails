@@ -536,6 +536,17 @@ module ApplicationTests
       assert_match "seed=1234", output, "passing TEST= should run selected test"
     end
 
+    def test_warnings_option
+      app_file "test/models/warnings_test.rb", <<-RUBY
+        require 'test_helper'
+        def test_warnings
+          a = 1
+        end
+      RUBY
+      assert_match(/warning: assigned but unused variable/,
+        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb")
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
