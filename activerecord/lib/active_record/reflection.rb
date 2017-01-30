@@ -175,6 +175,8 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
+      # Returns a list of scopes that should be applied for this Reflection
+      # object when querying the database.
       def scopes
         scope ? [scope] : []
       end
@@ -798,31 +800,8 @@ module ActiveRecord
         through_reflection.clear_association_scope_cache
       end
 
-      # Consider the following example:
-      #
-      #   class Person
-      #     has_many :articles
-      #     has_many :comment_tags, through: :articles
-      #   end
-      #
-      #   class Article
-      #     has_many :comments
-      #     has_many :comment_tags, through: :comments, source: :tags
-      #   end
-      #
-      #   class Comment
-      #     has_many :tags
-      #   end
-      #
-      # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
-      # but only Comment.tags will be represented in the #chain. So this method creates an array
-      # of scopes corresponding to the chain.
       def scopes
-        if scope
-          source_reflection.scopes + [scope]
-        else
-          source_reflection.scopes
-        end
+        source_reflection.scopes + super
       end
 
       def source_type_scope
