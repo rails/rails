@@ -137,7 +137,7 @@ module ActionMailer
     end
 
     class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
-      def perform(mailer, mail_method, delivery_method, params, *args) #:nodoc:
+      def perform(mailer, mail_method, delivery_method, params, *args)
         mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
       end
     end
