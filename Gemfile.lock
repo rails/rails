@@ -39,7 +39,7 @@ PATH
       builder (~> 3.1)
       erubis (~> 2.7.0)
       rails-dom-testing (~> 2.0)
-      rails-html-sanitizer (~> 1.0, >= 1.0.2)
+      rails-html-sanitizer (~> 1.0, >= 1.0.3)
     activejob (5.0.1)
       activesupport (= 5.0.1)
       globalid (>= 0.3.6)
@@ -103,7 +103,7 @@ GEM
       thor (~> 0.19.1)
       useragent (~> 0.16.7)
     blade-qunit_adapter (1.20.0)
-    builder (3.2.2)
+    builder (3.2.3)
     bunny (2.6.2)
       amq-protocol (>= 2.0.1)
     byebug (9.0.6)
@@ -370,4 +370,4 @@ DEPENDENCIES
   wdm (>= 0.1.0)
 
 BUNDLED WITH
-   1.13.7
+   1.14.3
