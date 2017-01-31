@@ -19,6 +19,27 @@ class MarshalTest < ActiveSupport::TestCase
     end
   end
 
+  test "that Marshal#load still works when passed a proc" do
+    sanity_string = "test"
+    other_sanity_data = [[1, 2, 3], {a: [1, 2, 3]}, ActiveSupport::TestCase]
+    
+    example_proc = Proc.new do |o|
+      if o.is_a?(String)
+        o.capitalize!
+      end
+    end
+
+    string_dumped = Marshal.dump(sanity_string)
+    assert_equal Marshal.load(string_dumped, example_proc), "Test"
+    assert_equal Marshal.load_without_autoloading(string_dumped, example_proc), "Test"
+    assert_equal Marshal.load(string_dumped, example_proc), Marshal.load_without_autoloading(string_dumped, example_proc)
+
+    other_sanity_data.each do |obj|
+      dumped = Marshal.dump(obj)
+      assert_equal Marshal.load_without_autoloading(dumped, example_proc), Marshal.load(dumped, proc)
+    end
+  end
+
   test "that a missing class is autoloaded from string" do
     dumped = nil
     with_autoloading_fixtures do
