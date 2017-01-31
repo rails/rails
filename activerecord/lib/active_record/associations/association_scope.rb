@@ -128,9 +128,9 @@ module ActiveRecord
           reflection = chain_head
           while reflection
             table = reflection.alias_name
+            next_reflection = reflection.next
 
             unless reflection == chain_tail
-              next_reflection = reflection.next
               foreign_table = next_reflection.alias_name
               scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
             end
@@ -138,7 +138,7 @@ module ActiveRecord
             # Exclude the scope of the association itself, because that
             # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
-              item  = eval_scope(reflection.klass, scope_chain_item, owner)
+              item = eval_scope(reflection.klass, table, scope_chain_item, owner)
 
               if scope_chain_item == refl.scope
                 scope.merge! item.except(:where, :includes)
@@ -153,14 +153,15 @@ module ActiveRecord
               scope.order_values |= item.order_values
             end
 
-            reflection = reflection.next
+            reflection = next_reflection
           end
 
           scope
         end
 
-        def eval_scope(klass, scope, owner)
-          klass.unscoped.instance_exec(owner, &scope)
+        def eval_scope(klass, table, scope, owner)
+          predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
+          ActiveRecord::Relation.create(klass, table, predicate_builder).instance_exec(owner, &scope)
         end
     end
   end
