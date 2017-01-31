@@ -1,3 +1,9 @@
+*   Fix `association_primary_key_type` for reflections with symbol primary key
+
+    Fixes #27864
+
+    *Daniel Colson*
+
 *   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
 
     MySQL generated columns: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
