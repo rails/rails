@@ -17,8 +17,8 @@ module ActiveRecord
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
     # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You'd need to provide an explicit QueryMethods#order
-    # option if you want the results are sorted.
+    # provide since database rows are unordered. You will need to provide an explicit QueryMethods#order
+    # option if you want the results to be sorted.
     #
     # ==== Find with lock
     #
