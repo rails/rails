@@ -74,7 +74,11 @@ module ActiveSupport
 
     def execute
       @updated.make_false
-      @block.call
+      if @block.nil?
+        raise ArgumentError, "no block given: #{self.inspect}, please pass a block when you initialize #{self.class}"
+      else
+        @block.call
+      end
     end
 
     def execute_if_updated

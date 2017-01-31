@@ -74,7 +74,11 @@ module ActiveSupport
     def execute
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
-      @block.call
+      if @block.nil?
+        raise ArgumentError, "no block given: #{self.inspect}, please pass a block when you initialize #{self.class}"
+      else
+        @block.call
+      end
     ensure
       @watched = nil
       @updated_at = nil
