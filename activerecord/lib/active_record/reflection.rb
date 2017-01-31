@@ -807,9 +807,7 @@ module ActiveRecord
       end
 
       def source_type_scope
-        type = foreign_type
-        source_type = options[:source_type]
-        lambda { |object| where(type => source_type) }
+        through_reflection.klass.where(foreign_type => options[:source_type])
       end
 
       def has_scope?
