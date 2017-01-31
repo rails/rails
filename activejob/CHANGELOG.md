@@ -1,3 +1,9 @@
+*   Correctly set test adapter when configure the queue adapter on a per job.
+
+    Fixes #26360.
+
+    *Yuji Yaginuma*
+
 *   Push skipped jobs to `enqueued_jobs` when using `perform_enqueued_jobs` with a `only` filter in tests
 
     *Alexander Pauly*
