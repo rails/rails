@@ -2,12 +2,15 @@ require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
   def test_prepare_callback
-    prepared = false
+    prepared = completed = false
     reloader.to_prepare { prepared = true }
+    reloader.to_complete { completed = true }
 
     assert !prepared
+    assert !completed
     reloader.prepare!
     assert prepared
+    assert !completed
 
     prepared = false
     reloader.wrap do
@@ -15,6 +18,15 @@ class ReloaderTest < ActiveSupport::TestCase
       prepared = false
     end
     assert !prepared
+  end
+
+  def test_prepend_prepare_callback
+    i = 10
+    reloader.to_prepare { i += 1 }
+    reloader.to_prepare(prepend: true) { i = 0 }
+
+    reloader.prepare!
+    assert_equal 1, i
   end
 
   def test_only_run_when_check_passes
