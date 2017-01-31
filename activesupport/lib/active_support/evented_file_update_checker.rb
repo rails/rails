@@ -32,6 +32,10 @@ module ActiveSupport
   #
   class EventedFileUpdateChecker #:nodoc: all
     def initialize(files, dirs = {}, &block)
+      unless block
+        raise ArgumentError, "A block is required to initialize an EventedFileUpdateChecker"
+      end
+
       @ph    = PathHelper.new
       @files = files.map { |f| @ph.xpath(f) }.to_set
 
@@ -74,11 +78,7 @@ module ActiveSupport
 
     def execute
       @updated.make_false
-      if @block.nil?
-        raise ArgumentError, "no block given: #{self.inspect}, please pass a block when you initialize #{self.class}"
-      else
-        @block.call
-      end
+      @block.call
     end
 
     def execute_if_updated
