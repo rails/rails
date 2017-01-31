@@ -458,7 +458,7 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          template = (cache[path] ||= find_template(path, keys + [as, counter]))
+          template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
           content = template.render(view, locals)
           partial_iteration.iterate!
           content

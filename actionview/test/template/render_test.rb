@@ -301,6 +301,15 @@ module RenderTestCases
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
   end
 
+  def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
+    a = {}
+    b = {}
+    def a.to_partial_path; "test/partial_iteration_1"; end
+    def b.to_partial_path; "test/partial_iteration_2"; end
+
+    assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
+  end
+
   def test_render_partial_with_empty_collection_should_return_nil
     assert_nil @view.render(partial: "test/customer", collection: [])
   end
