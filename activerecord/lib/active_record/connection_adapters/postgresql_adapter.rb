@@ -438,7 +438,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "")
+        def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
           if !type_map.key?(oid)
             load_additional_types(type_map, [oid])
           end
