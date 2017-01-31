@@ -45,10 +45,11 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrator_with_duplicate_names
-    assert_raises(ActiveRecord::DuplicateMigrationNameError, "Multiple migrations have the name Chunky") do
+    e = assert_raises(ActiveRecord::DuplicateMigrationNameError) do
       list = [ActiveRecord::Migration.new("Chunky"), ActiveRecord::Migration.new("Chunky")]
       ActiveRecord::Migrator.new(:up, list)
     end
+    assert_match(/Multiple migrations have the name Chunky/, e.message)
   end
 
   def test_migrator_with_duplicate_versions
