@@ -74,5 +74,7 @@ module LibXML #:nodoc:
   end
 end
 
+# :enddoc:
+
 LibXML::XML::Document.include(LibXML::Conversions::Document)
 LibXML::XML::Node.include(LibXML::Conversions::Node)

@@ -8,8 +8,7 @@ module Rails
           include: %w(
             README.rdoc
             lib/active_support/**/*.rb
-          ),
-          exclude: "lib/active_support/vendor/*"
+          )
         },
 
         "activerecord" => {
@@ -69,7 +68,11 @@ module Rails
             README.rdoc
             lib/**/*.rb
           ),
-          exclude: "lib/rails/generators/rails/**/templates/**/*.rb"
+          exclude: %w(
+            lib/rails/generators/rails/**/templates/**/*.rb
+            lib/rails/test_unit/*
+            lib/rails/api/generator.rb
+          )
         }
       }
 
