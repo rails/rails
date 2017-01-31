@@ -73,6 +73,14 @@ module ActionDispatch
         @internal          = internal
       end
 
+      def eager_load!
+        path.eager_load!
+        ast
+        parts
+        required_defaults
+        nil
+      end
+
       def ast
         @decorated_ast ||= begin
           decorated_ast = path.ast

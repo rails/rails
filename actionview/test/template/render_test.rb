@@ -393,8 +393,7 @@ module RenderTestCases
     assert_equal :partial_name_local_variable, exception.cause.name
   end
 
-  # TODO: The reason for this test is unclear, improve documentation
-  def test_render_partial_and_fallback_to_layout
+  def test_render_partial_with_no_block_given_to_yield
     assert_equal "Before (Josh)\n\nAfter", @view.render(partial: "test/layout_for_partial", locals: { name: "Josh" })
   end
 

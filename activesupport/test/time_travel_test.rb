@@ -94,11 +94,12 @@ class TimeTravelTest < ActiveSupport::TestCase
       outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
       inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
       travel_to outer_expected_time do
-        assert_raises(RuntimeError, /Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing./) do
+        e = assert_raises(RuntimeError) do
           travel_to(inner_expected_time) do
             #noop
           end
         end
+        assert_match(/Calling `travel_to` with a block, when we have previously already made a call to `travel_to`, can lead to confusing time stubbing./, e.message)
       end
     end
   end

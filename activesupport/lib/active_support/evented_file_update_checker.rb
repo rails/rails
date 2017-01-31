@@ -17,7 +17,7 @@ module ActiveSupport
   #
   # Example:
   #
-  #     checker = EventedFileUpdateChecker.new(["/tmp/foo"], -> { puts "changed" })
+  #     checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
   #     checker.updated?
   #     # => false
   #     checker.execute_if_updated
@@ -32,6 +32,10 @@ module ActiveSupport
   #
   class EventedFileUpdateChecker #:nodoc: all
     def initialize(files, dirs = {}, &block)
+      unless block
+        raise ArgumentError, "A block is required to initialize an EventedFileUpdateChecker"
+      end
+
       @ph    = PathHelper.new
       @files = files.map { |f| @ph.xpath(f) }.to_set
 

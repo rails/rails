@@ -26,7 +26,7 @@ module ActionMailer
     def transform! #:nodoc:
       return message if html_part.blank?
 
-      html_source.gsub!(PATTERN) do |match|
+      html_part.body = html_part.decoded.gsub(PATTERN) do |match|
         if part = find_part(match[9..-2])
           %[src="#{data_url(part)}"]
         else
@@ -44,10 +44,6 @@ module ActionMailer
 
       def html_part
         @html_part ||= message.html_part
-      end
-
-      def html_source
-        html_part.body.raw_source
       end
 
       def data_url(part)

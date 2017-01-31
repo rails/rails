@@ -258,7 +258,9 @@ class ReflectionTest < ActiveRecord::TestCase
       [Post.reflect_on_association(:first_taggings).scope],
       [Author.reflect_on_association(:misc_posts).scope]
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags).scope_chain
+    actual = assert_deprecated do
+      Author.reflect_on_association(:misc_post_first_blue_tags).scope_chain
+    end
     assert_equal expected, actual
 
     expected = [
@@ -270,7 +272,9 @@ class ReflectionTest < ActiveRecord::TestCase
       [],
       []
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
+    actual = assert_deprecated do
+      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
+    end
     assert_equal expected, actual
   end
 
@@ -395,9 +399,15 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_through_reflection_scope_chain_does_not_modify_other_reflections
-    orig_conds = Post.reflect_on_association(:first_blue_tags_2).scope_chain.inspect
-    Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
-    assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).scope_chain.inspect
+    orig_conds = assert_deprecated do
+      Post.reflect_on_association(:first_blue_tags_2).scope_chain
+    end.inspect
+    assert_deprecated do
+      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
+    end
+    assert_equal orig_conds, assert_deprecated {
+      Post.reflect_on_association(:first_blue_tags_2).scope_chain
+    }.inspect
   end
 
   def test_symbol_for_class_name

@@ -1,3 +1,19 @@
+*   Updated Unicode version to 9.0.0
+
+    Now we can handle new emojis such like "👩‍👩‍👧‍👦" ("\u{1F469}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}").
+
+    version 8.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 4
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👦👧‍👩‍👩‍"
+
+    version 9.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 1
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👩‍👩‍👧‍👦"
+
+    *Fumiaki MATSUSHIMA*
+
 *   Changed `ActiveSupport::Inflector#transliterate` to raise `ArgumentError` when it receives
     anything except a string.
 

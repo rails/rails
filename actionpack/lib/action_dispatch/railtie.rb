@@ -39,8 +39,6 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
-      ActionDispatch::Reloader.default_reloader = app.reloader
-
       ActionDispatch.test_app = app
     end
   end

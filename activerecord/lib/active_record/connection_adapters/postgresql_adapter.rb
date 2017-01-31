@@ -438,7 +438,7 @@ module ActiveRecord
           end
         end
 
-        def get_oid_type(oid, fmod, column_name, sql_type = "")
+        def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
           if !type_map.key?(oid)
             load_additional_types(type_map, [oid])
           end
@@ -759,11 +759,11 @@ module ActiveRecord
           query(<<-end_sql, "SCHEMA")
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
-             (SELECT c.collname FROM pg_collation c, pg_type t
-               WHERE c.oid = a.attcollation AND t.oid = a.atttypid AND a.attcollation <> t.typcollation),
-                     col_description(a.attrelid, a.attnum) AS comment
-                FROM pg_attribute a LEFT JOIN pg_attrdef d
-                  ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+                     c.collname, col_description(a.attrelid, a.attnum) AS comment
+                FROM pg_attribute a
+                LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+                LEFT JOIN pg_type t ON a.atttypid = t.oid
+                LEFT JOIN pg_collation c ON a.attcollation = c.oid AND a.attcollation <> t.typcollation
                WHERE a.attrelid = #{quote(quote_table_name(table_name))}::regclass
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum

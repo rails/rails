@@ -5,7 +5,8 @@ module ActiveRecord
     class YAMLColumn # :nodoc:
       attr_accessor :object_class
 
-      def initialize(object_class = Object)
+      def initialize(attr_name, object_class = Object)
+        @attr_name = attr_name
         @object_class = object_class
         check_arity_of_constructor
       end
@@ -31,7 +32,7 @@ module ActiveRecord
       def assert_valid_value(obj)
         unless obj.nil? || obj.is_a?(object_class)
           raise SerializationTypeMismatch,
-            "Attribute was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
+            "Attribute `#{@attr_name}` was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
         end
       end
 

@@ -17,6 +17,7 @@ addons:
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
+  - "gem update --system"
   - "gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
@@ -63,6 +64,12 @@ matrix:
         - memcached
         - redis
         - rabbitmq
+    - rvm: 2.4.0
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis
+        - rabbitmq
     - rvm: ruby-head
       env: "GEM=aj:integration"
       services:
@@ -74,6 +81,9 @@ matrix:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
+    - rvm: 2.4.0
+      env:
+        - "GEM=ar:sqlite3_mem"
     - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:

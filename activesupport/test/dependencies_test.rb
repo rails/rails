@@ -271,7 +271,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_raising_discards_autoloaded_constants
     with_autoloading_fixtures do
-      assert_raises(Exception, "arbitray exception message") { RaisesArbitraryException }
+      e = assert_raises(Exception) { RaisesArbitraryException }
+      assert_equal("arbitray exception message", e.message)
       assert_not defined?(A)
       assert_not defined?(RaisesArbitraryException)
     end
@@ -397,14 +398,17 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def failing_test_access_thru_and_upwards_fails
-    with_autoloading_fixtures do
-      assert_not defined?(ModuleFolder)
-      assert_raise(NameError) { ModuleFolder::Object }
-      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+  # This raises only on 2.5.. (warns on ..2.4)
+  if RUBY_VERSION > "2.5"
+    def test_access_thru_and_upwards_fails
+      with_autoloading_fixtures do
+        assert_not defined?(ModuleFolder)
+        assert_raise(NameError) { ModuleFolder::Object }
+        assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+      end
+    ensure
+      remove_constants(:ModuleFolder)
     end
-  ensure
-    remove_constants(:ModuleFolder)
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name

@@ -623,9 +623,10 @@ module ApplicationTests
 
       assert_equal "", app.config.secret_token
       assert_nil app.secrets.secret_key_base
-      assert_raise ArgumentError, /\AA secret is required/ do
+      e = assert_raise ArgumentError do
         app.key_generator
       end
+      assert_match(/\AA secret is required/, e.message)
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
@@ -1184,11 +1185,12 @@ module ApplicationTests
     end
 
     test "config.session_store with :active_record_store without activerecord-session_store gem" do
-      assert_raise RuntimeError, /activerecord-session_store/ do
+      e = assert_raise RuntimeError do
         make_basic_app do |application|
           application.config.session_store :active_record_store
         end
       end
+      assert_match(/activerecord-session_store/, e.message)
     end
 
     test "default session store initializer does not overwrite the user defined session store even if it is disabled" do

@@ -31,6 +31,13 @@ module ActionDispatch
           Visitors::FormatBuilder.new.accept(spec)
         end
 
+        def eager_load!
+          required_names
+          offsets
+          to_regexp
+          nil
+        end
+
         def ast
           @spec.find_all(&:symbol?).each do |node|
             re = @requirements[node.to_sym]

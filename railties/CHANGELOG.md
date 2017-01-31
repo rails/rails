@@ -1,3 +1,7 @@
+*   Add option to configure Ruby's warning behaviour to test runner.
+
+    *Yuji Yaginuma*
+
 *   Initialize git repo when generating new app, if option `--skip-git`
     is not provided.
 

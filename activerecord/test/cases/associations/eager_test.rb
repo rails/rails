@@ -739,18 +739,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_invalid_association_reference
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :monkeys).find(6)
     }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+
+    e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys ]).find(6)
     }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+
+    e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ "monkeys" ]).find(6)
     }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
+    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+
+    e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6)
     }
+    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
   end
 
   def test_eager_has_many_through_with_order

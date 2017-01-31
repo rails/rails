@@ -8,6 +8,7 @@ end
 
 require "open-uri"
 require "tmpdir"
+require "fileutils"
 
 module ActiveSupport
   module Multibyte
@@ -101,9 +102,10 @@ module ActiveSupport
 
         def parse
           SOURCES.each do |type, url|
-            filename = File.join(Dir.tmpdir, "#{url.split('/').last}")
+            filename = File.join(Dir.tmpdir, UNICODE_VERSION, "#{url.split('/').last}")
             unless File.exist?(filename)
               $stderr.puts "Downloading #{url.split('/').last}"
+              FileUtils.mkdir_p(File.dirname(filename))
               File.open(filename, "wb") do |target|
                 open(url) do |source|
                   source.each_line { |line| target.write line }

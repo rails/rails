@@ -38,6 +38,10 @@ module ActiveSupport
     # changes. The array of files and list of directories cannot be changed
     # after FileUpdateChecker has been initialized.
     def initialize(files, dirs = {}, &block)
+      unless block
+        raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
+      end
+
       @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block

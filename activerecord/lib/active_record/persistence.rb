@@ -148,6 +148,8 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
+    #
+    # Unless an error is raised, returns true.
     def save!(*args)
       create_or_update(*args) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
