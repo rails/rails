@@ -226,7 +226,7 @@ module ActionView
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template, formats)
+          handler, format, variant = extract_handler_and_format_and_variant(template)
           contents = File.binread(template)
 
           Template.new(contents, File.expand_path(template), handler,
@@ -289,7 +289,7 @@ module ActionView
       # Extract handler, formats and variant from path. If a format cannot be found neither
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
-      def extract_handler_and_format_and_variant(path, default_formats)
+      def extract_handler_and_format_and_variant(path)
         pieces = File.basename(path).split(".".freeze)
         pieces.shift
 
