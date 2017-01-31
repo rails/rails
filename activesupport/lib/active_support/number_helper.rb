@@ -45,7 +45,7 @@ module ActiveSupport
     #
     #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
     #   # => "(755) 6123-4567"
-    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
     #   # => "133-1234-5678"
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)
