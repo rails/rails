@@ -81,6 +81,9 @@ matrix:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
+    - rvm: 2.4.0
+      env:
+        - "GEM=ar:sqlite3_mem"
     - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
