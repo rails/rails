@@ -671,6 +671,40 @@ module ApplicationTests
       assert_match %r[<p>Hello, World!</p>], last_response.body
     end
 
+    test "multipart mailer preview with empty parts" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+    end
+
     private
       def build_app
         super
