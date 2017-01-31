@@ -49,9 +49,10 @@ module ActiveRecord
       end
 
       # Lists the valid migration options
-      def migration_keys
-        [:limit, :precision, :scale, :default, :null, :collation, :comment]
+      def migration_keys # :nodoc:
+        column_options_keys
       end
+      deprecate :migration_keys
 
       private
 

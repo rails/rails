@@ -122,7 +122,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        migration_keys.each do |attr|
+        column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 
@@ -1172,6 +1172,9 @@ module ActiveRecord
       end
 
       private
+        def column_options_keys
+          [:limit, :precision, :scale, :default, :null, :collation, :comment]
+        end
 
         def add_index_sort_order(quoted_columns, **options)
           if order = options[:order]

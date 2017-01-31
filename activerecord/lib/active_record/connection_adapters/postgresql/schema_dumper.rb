@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ColumnDumper
+      module ColumnDumper # :nodoc:
         def column_spec_for_primary_key(column)
           spec = super
           if schema_type(column) == :uuid

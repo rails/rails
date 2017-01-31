@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      module ColumnDumper
+      module ColumnDumper # :nodoc:
         def column_spec_for_primary_key(column)
           spec = super
           if [:integer, :bigint].include?(schema_type(column)) && !column.auto_increment?
