@@ -37,6 +37,20 @@ Customer = Struct.new(:name, :id) do
   end
 end
 
+module Widgets
+  Table = Struct.new(:title) do
+    include ActiveModel::Conversion
+
+    def to_partial_path
+      'widgets/table'
+    end
+
+    def prefix_partial_path_with_controller_namespace
+      false
+    end
+  end
+end
+
 module Quiz
   #Models
   Question = Struct.new(:name, :id) do
@@ -52,6 +66,10 @@ module Quiz
   class QuestionsController < ApplicationController
     def new
       render partial: Quiz::Question.new("Namespaced Partial")
+    end
+
+    def show_answer
+      render partial: ::Widgets::Table.new("Answer")
     end
   end
 end
@@ -1221,6 +1239,12 @@ class RenderTest < ActionController::TestCase
     @controller = Quiz::QuestionsController.new
     get :new
     assert_equal "Namespaced Partial", @response.body
+  end
+
+  def test_not_namespaced_object_partial
+    @controller = Quiz::QuestionsController.new
+    get :show_answer
+    assert_equal "Not namespaced Partial", @response.body
   end
 
   def test_partial_collection
