@@ -93,10 +93,6 @@ module ActiveRecord
         true
       end
 
-      def supports_primary_key?
-        true
-      end
-
       def supports_bulk_alter? #:nodoc:
         true
       end

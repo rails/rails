@@ -282,11 +282,6 @@ module ActiveRecord
         true
       end
 
-      # Does PostgreSQL support finding primary key on non-Active Record tables?
-      def supports_primary_key? #:nodoc:
-        true
-      end
-
       def set_standard_conforming_strings
         execute("SET standard_conforming_strings = on", "SCHEMA")
       end

@@ -122,10 +122,6 @@ module ActiveRecord
         true
       end
 
-      def supports_primary_key? #:nodoc:
-        true
-      end
-
       def requires_reloading?
         true
       end

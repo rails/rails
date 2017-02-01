@@ -1,3 +1,8 @@
+*   Deprecate `supports_primary_key?` on connection adapters since it's
+    been long unused and unsupported.
+
+    *Ryuta Kamizono*
+
 *   Make `table_name=` reset current statement cache,
     so queries are not run against the previous table name.
 
