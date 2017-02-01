@@ -7,6 +7,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
   def setup
     skip if ENV["LISTEN"] == "0"
+    require "listen"
     super
   end
 
