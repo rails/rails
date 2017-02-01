@@ -481,7 +481,13 @@ module ActionView
           raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
         end
 
-        if @view.prefix_partial_path_with_controller_namespace
+        should_prefix = if object.respond_to?(:prefix_partial_path_with_controller_namespace)
+          object.prefix_partial_path_with_controller_namespace
+        else
+          @view.prefix_partial_path_with_controller_namespace
+        end
+
+        if should_prefix
           prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
         else
           path
