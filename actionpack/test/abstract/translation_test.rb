@@ -20,6 +20,9 @@ module AbstractController
               translation: {
                 index: {
                   foo: "bar",
+                  hello: "<a>Hello World</a>",
+                  hello_html: "<a>Hello World</a>",
+                  interpolated_html: "<a>Hello %{word}</a>"
                 },
                 no_action: "no_action_tr",
               },
@@ -72,6 +75,26 @@ module AbstractController
         time, expected = Time.gm(2000), "Sat, 01 Jan 2000 00:00:00 +0000"
         I18n.stub :localize, expected do
           assert_equal expected, @controller.l(time)
+        end
+      end
+
+      def test_translate_does_not_mark_plain_text_as_safe_html
+        @controller.stub :action_name, :index do
+          assert_equal false, @controller.t(".hello").html_safe?
+        end
+      end
+
+      def test_translate_marks_translations_with_a_html_suffix_as_safe_html
+        @controller.stub :action_name, :index do
+          assert @controller.t(".hello_html").html_safe?
+        end
+      end
+
+      def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
+        word_struct = Struct.new(:to_s)
+        @controller.stub :action_name, :index do
+          assert_equal "<a>Hello &lt;World&gt;</a>", @controller.t(".interpolated_html", word: "<World>")
+          assert_equal "<a>Hello &lt;World&gt;</a>", @controller.t(".interpolated_html", word: word_struct.new("<World>"))
         end
       end
     end

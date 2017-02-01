@@ -10,6 +10,12 @@ module AbstractController
     # <tt>I18n.translate("people.index.foo")</tt>. This makes it less repetitive
     # to translate many keys within the same controller / action and gives you a
     # simple framework for scoping them consistently.
+    #
+    # The translation will be marked as <tt>html_safe</tt> if the key
+    # has the suffix "_html" or the last element of the key is "html". Calling
+    # <tt>translate("footer_html")</tt> or <tt>translate("footer.html")</tt>
+    # will return an HTML safe string that won't be escaped by other HTML
+    # helper methods.
     def translate(key, options = {})
       if key.to_s.first == "."
         path = controller_path.tr("/", ".")
@@ -18,7 +24,19 @@ module AbstractController
         options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
-      I18n.translate(key, options)
+      if html_safe_translation_key?(key)
+        html_safe_options = options.dup
+        options.except(*I18n::RESERVED_KEYS).each do |name, value|
+          unless name == :count && value.is_a?(Numeric)
+            html_safe_options[name] = ERB::Util.html_escape(value.to_s)
+          end
+        end
+        translation = I18n.translate(key, html_safe_options)
+
+        translation.respond_to?(:html_safe) ? translation.html_safe : translation
+      else
+        I18n.translate(key, options)
+      end
     end
     alias :t :translate
 
@@ -27,5 +45,10 @@ module AbstractController
       I18n.localize(*args)
     end
     alias :l :localize
+
+    private
+      def html_safe_translation_key?(key)
+        /(\b|_|\.)html$/.match?(key.to_s)
+      end
   end
 end

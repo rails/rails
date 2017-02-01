@@ -1,3 +1,7 @@
+*   Treat html suffix in controller translation.
+
+    *Rui Onodera*
+
 *   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
 
     This allows uploaded file objects to be passed directly to `File.read`
