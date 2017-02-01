@@ -64,6 +64,7 @@ PATH
       activesupport (= 5.1.0.alpha)
       builder (~> 3.1)
       erubi (~> 1.4)
+      erubis (~> 2.7.0)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
     activejob (5.1.0.alpha)
