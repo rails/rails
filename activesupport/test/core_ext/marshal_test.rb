@@ -29,7 +29,11 @@ class MarshalTest < ActiveSupport::TestCase
     end
 
     dumped = Marshal.dump(example_string)
-    assert_nothing_raised Marshal.load(dumped, example_proc)
+
+    assert_nothing_raised do 
+      Marshal.load(dumped, example_proc)
+    end
+
     assert_equal Marshal.load(dumped, example_proc), "Test"
     assert_equal Marshal.load(dumped, example_proc), Marshal.load_without_autoloading(dumped, example_proc)
   end
