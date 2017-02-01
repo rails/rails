@@ -10,6 +10,8 @@ module ActiveRecord
         value = id_value_for_database(value) if value.is_a?(Base)
 
         if value.respond_to?(:quoted_id)
+          ActiveSupport::Deprecation.warn \
+            "Using #quoted_id is deprecated and will be removed in Rails 5.2."
           return value.quoted_id
         end
 

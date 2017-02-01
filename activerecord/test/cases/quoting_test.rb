@@ -82,7 +82,7 @@ module ActiveRecord
       end
 
       def test_quote_with_quoted_id
-        assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1))
+        assert_deprecated { assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1)) }
       end
 
       def test_quote_nil
