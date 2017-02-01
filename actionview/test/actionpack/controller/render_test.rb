@@ -42,7 +42,7 @@ module Widgets
     include ActiveModel::Conversion
 
     def to_partial_path
-      'widgets/table'
+      "widgets/table"
     end
 
     def prefix_partial_path_with_controller_namespace
