@@ -1,3 +1,4 @@
+gem "erubis"
 require "erubis"
 
 module ActionView
