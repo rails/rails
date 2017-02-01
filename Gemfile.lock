@@ -32,7 +32,7 @@ PATH
       builder (~> 3.1)
       erubis (~> 2.7.0)
       rails-dom-testing (~> 1.0, >= 1.0.5)
-      rails-html-sanitizer (~> 1.0, >= 1.0.2)
+      rails-html-sanitizer (~> 1.0, >= 1.0.3)
     activejob (4.2.7.1)
       activesupport (= 4.2.7.1)
       globalid (>= 0.3.0)
@@ -294,4 +294,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.13.7
+   1.14.3
