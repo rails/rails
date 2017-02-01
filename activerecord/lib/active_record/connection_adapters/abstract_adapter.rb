@@ -236,11 +236,10 @@ module ActiveRecord
         false
       end
 
-      # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables?
-      def supports_primary_key?
-        false
+      def supports_primary_key? # :nodoc:
+        true
       end
+      deprecate :supports_primary_key?
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?

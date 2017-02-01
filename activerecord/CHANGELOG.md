@@ -1,3 +1,7 @@
+*   Deprecate `supports_primary_key?`.
+
+    *Ryuta Kamizono*
+
 *   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
 
     *Isaac Betesh*
