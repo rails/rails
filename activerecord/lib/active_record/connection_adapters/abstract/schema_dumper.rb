@@ -7,7 +7,7 @@ module ActiveRecord
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column)
-        [schema_type(column), prepare_column_options(column)]
+        [schema_type_with_virtual(column), prepare_column_options(column)]
       end
 
       def column_spec_for_primary_key(column)
@@ -57,6 +57,14 @@ module ActiveRecord
 
         def default_primary_key?(column)
           schema_type(column) == :bigint
+        end
+
+        def schema_type_with_virtual(column)
+          if supports_virtual_columns? && column.virtual?
+            :virtual
+          else
+            schema_type(column)
+          end
         end
 
         def schema_type(column)
