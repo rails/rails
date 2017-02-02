@@ -45,7 +45,7 @@ class ModelDelegate
   end
 end
 
-module Blog
+module Weblog
   class Post < ActiveRecord::Base
     self.table_name = "projects"
   end
@@ -72,8 +72,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @fax = Fax.new
     @delegator = ModelDelegator.new
     @series = Series.new
-    @blog_post = Blog::Post.new
-    @blog_blog = Blog::Blog.new
+    @blog_post = Weblog::Post.new
+    @blog_blog = Weblog::Blog.new
   end
 
   def assert_url(url, args)
