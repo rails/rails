@@ -1313,3 +1313,68 @@ class C < BasicObject
   end
 end
 ```
+
+### Missing Singleton Methods
+
+On-demand autoloading and reopening sometimes do not work well together. This kind of
+pitfall typically happens when defining singleton methods on a module for namespace,
+Let's consider:
+
+```ruby
+# app/helpers/blog/posts_helper.rb
+module Blog
+  module PostsHelper
+  end
+end
+```
+
+```ruby
+# app/models/blog.rb
+module Blog
+  def self.table_name_prefix
+    "blog_"
+  end
+end
+```
+
+```ruby
+# app/models/blog/post.rb
+class Blog::Post < ApplicationRecord
+end
+```
+
+In the above example, you certainly expect that the table name of `Blog::Post`
+should be `blog_posts` because a singleton method called `table_name_prefix` is
+defined in `app/models/blog.rb`.
+
+However, you possibly come across an error or weird behavior which indicate that
+Rails tries to read `posts` table.
+
+Problem is that both `app/helpers/blog/posts_helper.rb` and `app/models/blog.rb`
+define `Blog` module. Under the hood, one of them defines `Blog` module, and the
+other one reopens it, but which one does it is what depends on the execution path.
+
+In the flow in which this fails, once `app/helpers/blog/posts_helper.rb` gets
+loaded first, Ruby is able to resolve `::Blog`, so Rails does not trigger
+autoloading `app/models/blog.rb` which defines `table_name_prefix`, and hence
+`Blog` does not have that singleton method.
+
+To avoid this problem, you may define `Blog` at one location only and force anything
+else to reopen it by declaring qualified constants:
+
+```ruby
+class Blog::PostsHelper
+end
+```
+
+If `Blog` module is unknown at that point, autoloading will be triggered and
+`app/models/blog.rb` will be loaded.
+
+Alternatively, you could use `require_relative` on top of
+`app/models/application_record.rb`:
+
+```ruby
+require_dependency "blog"
+```
+
+It makes sure that the file is loaded before any model class no matter what it is.
