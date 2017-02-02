@@ -1,3 +1,18 @@
+*   Support for spatial data types in database schema for mysql2 adapter
+
+    Now it is possible to have:
+
+        create_table :some_table do |t|
+          t.geometry   :geometry_field
+          t.polygon    :polygon_field, null: false, index: { type: :spatial }
+          t.point      :point_field, multi: true
+          t.linestring :linestring_field
+        end
+
+    without switching to sql schema format and raw sql in migrations.
+
+    *Vasily Fedoseyev*
+
 *   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
 
     MySQL generated columns: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
