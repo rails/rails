@@ -95,17 +95,13 @@ module ActiveRecord
 
         # Test if any threads are currently waiting on the queue.
         def any_waiting?
-          synchronize do
-            @num_waiting > 0
-          end
+          @num_waiting > 0
         end
 
         # Returns the number of threads currently waiting on this
         # queue.
         def num_waiting
-          synchronize do
-            @num_waiting
-          end
+          @num_waiting
         end
 
         # Add +element+ to the queue.  Never blocks.
