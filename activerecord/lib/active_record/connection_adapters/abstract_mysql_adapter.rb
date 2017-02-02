@@ -55,6 +55,10 @@ module ActiveRecord
         point:       { name: "point" },
         linestring:  { name: "linestring" },
         polygon:     { name: "polygon" },
+        multi_geometry:    { name: "geometrycollection" },
+        multi_point:       { name: "multipoint" },
+        multi_linestring:  { name: "multilinestring" },
+        multi_polygon:     { name: "multipolygon" },
       }
 
       INDEX_TYPES  = [:fulltext, :spatial]
@@ -688,10 +692,14 @@ module ActiveRecord
           m.alias_type %r(year)i,          "integer"
           m.alias_type %r(bit)i,           "binary"
 
-          m.register_type %r(geometry)i,   MysqlGeometry.new
-          m.register_type %r(point)i,      MysqlPoint.new
-          m.register_type %r(linestring)i, MysqlLineString.new
-          m.register_type %r(polygon)i,    MysqlPolygon.new
+          m.register_type %r(^geometry)i,            MysqlGeometry.new
+          m.register_type %r(^point)i,               MysqlPoint.new
+          m.register_type %r(^linestring)i,          MysqlLineString.new
+          m.register_type %r(^polygon)i,             MysqlPolygon.new
+          m.register_type %r(^geometrycollection)i,  MysqlGeometryCollection.new
+          m.register_type %r(^multipoint)i,          MysqlMultiPoint.new
+          m.register_type %r(^multilinestring)i,     MysqlMultiLineString.new
+          m.register_type %r(^multipolygon)i,        MysqlMultiPolygon.new
 
           m.register_type(%r(enum)i) do |sql_type|
             limit = sql_type[/^enum\((.+)\)/i, 1]
@@ -1046,6 +1054,30 @@ module ActiveRecord
           end
         end
 
+        class MysqlGeometryCollection < ActiveModel::Type::Binary # :nodoc:
+          def type
+            :multi_geometry
+          end
+        end
+
+        class MysqlMultiPoint < MysqlGeometryCollection # :nodoc:
+          def type
+            :multi_point
+          end
+        end
+
+        class MysqlMultiLineString < MysqlGeometryCollection # :nodoc:
+          def type
+            :multi_linestring
+          end
+        end
+
+        class MysqlMultiPolygon < MysqlGeometryCollection # :nodoc:
+          def type
+            :multi_polygon
+          end
+        end
+
         ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
         ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
@@ -1053,6 +1085,10 @@ module ActiveRecord
         ActiveRecord::Type.register(:point, MysqlPoint, adapter: :mysql2)
         ActiveRecord::Type.register(:linestring, MysqlLineString, adapter: :mysql2)
         ActiveRecord::Type.register(:polygon, MysqlPolygon, adapter: :mysql2)
+        ActiveRecord::Type.register(:multi_geometry, MysqlGeometryCollection, adapter: :mysql2)
+        ActiveRecord::Type.register(:multi_point, MysqlMultiPoint, adapter: :mysql2)
+        ActiveRecord::Type.register(:multi_linestring, MysqlMultiLineString, adapter: :mysql2)
+        ActiveRecord::Type.register(:multi_polygon, MysqlMultiPolygon, adapter: :mysql2)
     end
   end
 end

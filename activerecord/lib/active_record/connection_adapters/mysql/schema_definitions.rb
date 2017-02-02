@@ -56,19 +56,39 @@ module ActiveRecord
         end
 
         def geometry(*args, **options)
+          return multi_geometry(*args, **options) if options[:multi] == true
           args.each { |name| column(name, :geometry, options) }
         end
 
         def point(*args, **options)
+          return multi_point(*args, **options) if options[:multi] == true
           args.each { |name| column(name, :point, options) }
         end
 
         def linestring(*args, **options)
+          return multi_linestring(*args, **options) if options[:multi] == true
           args.each { |name| column(name, :linestring, options) }
         end
 
         def polygon(*args, **options)
+          return multi_polygon(*args, **options) if options[:multi] == true
           args.each { |name| column(name, :polygon, options) }
+        end
+
+        def multi_geometry(*args, **options)
+          args.each { |name| column(name, :multi_geometry, options) }
+        end
+
+        def multi_point(*args, **options)
+          args.each { |name| column(name, :multi_point, options) }
+        end
+
+        def multi_linestring(*args, **options)
+          args.each { |name| column(name, :multi_linestring, options) }
+        end
+
+        def multi_polygon(*args, **options)
+          args.each { |name| column(name, :multi_polygon, options) }
         end
       end
 
