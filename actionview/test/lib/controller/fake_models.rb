@@ -26,10 +26,14 @@ Customer = Struct.new(:name, :id) do
   def persisted?
     id.present?
   end
+
+  def cache_key
+    name.to_s
+  end
 end
 
-class GoodCustomer < Customer
-end
+class BadCustomer < Customer; end
+class GoodCustomer < Customer; end
 
 Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do
   extend ActiveModel::Naming
