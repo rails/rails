@@ -55,40 +55,24 @@ module ActiveRecord
           args.each { |name| column(name, :unsigned_decimal, options) }
         end
 
-        def geometry(*args, **options)
-          return multi_geometry(*args, **options) if options[:multi] == true
-          args.each { |name| column(name, :geometry, options) }
+        def geometry(*args, multi: false, **options)
+          type = multi ? :multi_geometry : :geometry
+          args.each { |name| column(name, type, options) }
         end
 
-        def point(*args, **options)
-          return multi_point(*args, **options) if options[:multi] == true
-          args.each { |name| column(name, :point, options) }
+        def point(*args, multi: false, **options)
+          type = multi ? :multi_point : :point
+          args.each { |name| column(name, type, options) }
         end
 
-        def linestring(*args, **options)
-          return multi_linestring(*args, **options) if options[:multi] == true
-          args.each { |name| column(name, :linestring, options) }
+        def linestring(*args, multi: false, **options)
+          type = multi ? :multi_linestring : :linestring
+          args.each { |name| column(name, type, options) }
         end
 
-        def polygon(*args, **options)
-          return multi_polygon(*args, **options) if options[:multi] == true
-          args.each { |name| column(name, :polygon, options) }
-        end
-
-        def multi_geometry(*args, **options)
-          args.each { |name| column(name, :multi_geometry, options) }
-        end
-
-        def multi_point(*args, **options)
-          args.each { |name| column(name, :multi_point, options) }
-        end
-
-        def multi_linestring(*args, **options)
-          args.each { |name| column(name, :multi_linestring, options) }
-        end
-
-        def multi_polygon(*args, **options)
-          args.each { |name| column(name, :multi_polygon, options) }
+        def polygon(*args, multi: false, **options)
+          type = multi ? :multi_polygon : :polygon
+          args.each { |name| column(name, type, options) }
         end
       end
 

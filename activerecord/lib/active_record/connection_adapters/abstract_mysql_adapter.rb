@@ -1056,25 +1056,25 @@ module ActiveRecord
 
         class MysqlGeometryCollection < ActiveModel::Type::Binary # :nodoc:
           def type
-            :multi_geometry
+            :geometry
           end
         end
 
         class MysqlMultiPoint < MysqlGeometryCollection # :nodoc:
           def type
-            :multi_point
+            :point
           end
         end
 
         class MysqlMultiLineString < MysqlGeometryCollection # :nodoc:
           def type
-            :multi_linestring
+            :linestring
           end
         end
 
         class MysqlMultiPolygon < MysqlGeometryCollection # :nodoc:
           def type
-            :multi_polygon
+            :polygon
           end
         end
 

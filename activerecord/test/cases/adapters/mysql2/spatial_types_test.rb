@@ -31,10 +31,10 @@ class Mysql2SpatialTypesTest < ActiveRecord::Mysql2TestCase
     assert_match %r{t.point\s+"point_field"$}, schema
     assert_match %r{t.linestring\s+"linestring_field"$}, schema
 
-    assert_match %r{t.multi_geometry\s+"geometry_multi"$}, schema
-    assert_match %r{t.multi_polygon\s+"polygon_multi"$}, schema
-    assert_match %r{t.multi_point\s+"point_multi"$}, schema
-    assert_match %r{t.multi_linestring\s+"linestring_multi"$}, schema
+    assert_match %r{t.geometry\s+"geometry_multi",\s+multi: true$}, schema
+    assert_match %r{t.polygon\s+"polygon_multi",\s+multi: true$}, schema
+    assert_match %r{t.point\s+"point_multi",\s+multi: true$}, schema
+    assert_match %r{t.linestring\s+"linestring_multi",\s+multi: true$}, schema
   end
 
   test "schema dump can be restored" do

@@ -14,6 +14,7 @@ module ActiveRecord
         def prepare_column_options(column)
           spec = super
           spec[:unsigned] = "true" if column.unsigned?
+          spec[:multi] = "true" if column.multi?
 
           if supports_virtual_columns? && column.virtual?
             spec[:as] = extract_expression_for_virtual_column(column)

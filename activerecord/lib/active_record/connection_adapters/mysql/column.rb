@@ -19,6 +19,10 @@ module ActiveRecord
         def virtual?
           /\b(?:VIRTUAL|STORED|PERSISTENT)\b/.match?(extra)
         end
+
+        def multi?
+          /^(geometrycollection|multi)/i.match?(sql_type)
+        end
       end
     end
   end
