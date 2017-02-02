@@ -61,6 +61,12 @@ module Arel
         sql.must_be_like %{ omg(*) = 2 }
       end
 
+      it 'should handle nil with named functions' do
+        function = Nodes::NamedFunction.new('omg', [Arel.star])
+        sql = compile(function.eq(nil))
+        sql.must_be_like %{ omg(*) IS NULL }
+      end
+
       it 'should visit built-in functions' do
         function = Nodes::Count.new([Arel.star])
         assert_equal 'COUNT(*)', compile(function)
