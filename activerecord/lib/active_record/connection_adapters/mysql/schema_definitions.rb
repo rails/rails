@@ -56,14 +56,10 @@ module ActiveRecord
         end
       end
 
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :charset, :unsigned, :stored
-      end
-
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        def new_column_definition(name, type, options) # :nodoc:
+        def new_column_definition(name, type, **options) # :nodoc:
           case type
           when :virtual
             type = options[:type]
@@ -76,18 +72,9 @@ module ActiveRecord
             type = $~[:type].to_sym
             options[:unsigned] = true
           end
-          column = super
-          column.unsigned = options[:unsigned]
-          column.charset = options[:charset]
-          column.stored = options[:stored]
-          column
+
+          super
         end
-
-        private
-
-          def create_column_definition(name, type)
-            MySQL::ColumnDefinition.new(name, type)
-          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

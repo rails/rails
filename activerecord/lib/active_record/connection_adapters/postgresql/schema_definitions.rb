@@ -173,24 +173,8 @@ module ActiveRecord
         end
       end
 
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :array
-      end
-
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
-
-        def new_column_definition(name, type, options) # :nodoc:
-          column = super
-          column.array = options[:array]
-          column
-        end
-
-        private
-
-          def create_column_definition(name, type)
-            PostgreSQL::ColumnDefinition.new name, type
-          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

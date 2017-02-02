@@ -9,9 +9,9 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    ColumnDefinition = Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment, :as) do # :nodoc:
-      def primary_key?
-        primary_key || type.to_sym == :primary_key
+    ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      def [](key)
+        options[key]
       end
     end
 
@@ -305,7 +305,7 @@ module ActiveRecord
         type = type.to_sym if type
         options = options.dup
 
-        if @columns_hash[name] && @columns_hash[name].primary_key?
+        if @columns_hash[name] && @columns_hash[name][:primary_key]
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
@@ -360,28 +360,16 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
-      def new_column_definition(name, type, options) # :nodoc:
+      def new_column_definition(name, type, **options) # :nodoc:
         type = aliased_types(type.to_s, type)
-        column = create_column_definition name, type
-
-        column.limit       = options[:limit]
-        column.precision   = options[:precision]
-        column.scale       = options[:scale]
-        column.default     = options[:default]
-        column.null        = options[:null]
-        column.first       = options[:first]
-        column.after       = options[:after]
-        column.auto_increment = options[:auto_increment]
-        column.primary_key = type == :primary_key || options[:primary_key]
-        column.collation   = options[:collation]
-        column.comment     = options[:comment]
-        column.as          = options[:as]
-        column
+        options[:primary_key] ||= type == :primary_key
+        options[:null] = false if options[:primary_key]
+        create_column_definition(name, type, options)
       end
 
       private
-        def create_column_definition(name, type)
-          ColumnDefinition.new name, type
+        def create_column_definition(name, type, options)
+          ColumnDefinition.new(name, type, options)
         end
 
         def aliased_types(name, fallback)

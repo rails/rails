@@ -409,7 +409,7 @@ module ActiveRecord
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
-          definition[column_name].default = default
+          definition[column_name].options[:default] = default
         end
       end
 
@@ -418,21 +418,15 @@ module ActiveRecord
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
-          definition[column_name].null = null
+          definition[column_name].options[:null] = null
         end
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          include_default = options_include_default?(options)
           definition[column_name].instance_eval do
             self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if include_default
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+            self.options = options
           end
         end
       end
