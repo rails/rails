@@ -32,9 +32,9 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
-    assert_equal "bytea", @connection.type_to_sql(:binary, 100_000)
+    assert_equal "bytea", @connection.type_to_sql(:binary, limit: 100_000)
     assert_raise ActiveRecord::ActiveRecordError do
-      @connection.type_to_sql :binary, 4294967295
+      @connection.type_to_sql(:binary, limit: 4294967295)
     end
   end
 

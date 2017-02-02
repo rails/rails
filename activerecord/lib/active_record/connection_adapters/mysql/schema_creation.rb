@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation
+      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
         delegate :add_sql_comment!, :mariadb?, to: :@conn
         private :add_sql_comment!, :mariadb?
 
@@ -9,11 +9,6 @@ module ActiveRecord
 
           def visit_DropForeignKey(name)
             "DROP FOREIGN KEY #{name}"
-          end
-
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.unsigned)
-            super
           end
 
           def visit_AddColumnDefinition(o)
@@ -27,13 +22,6 @@ module ActiveRecord
 
           def add_table_options!(create_sql, options)
             add_sql_comment!(super, options[:comment])
-          end
-
-          def column_options(o)
-            column_options = super
-            column_options[:charset] = o.charset
-            column_options[:stored] = o.stored
-            column_options
           end
 
           def add_column_options!(sql, options)

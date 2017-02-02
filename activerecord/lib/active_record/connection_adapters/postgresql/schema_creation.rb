@@ -1,6 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
-    module SQLite3
+    module PostgreSQL
       class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
         private
           def add_column_options!(sql, options)

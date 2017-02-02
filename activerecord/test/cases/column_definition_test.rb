@@ -14,27 +14,17 @@ module ActiveRecord
       # Avoid column definitions in create table statements like:
       # `title` varchar(255) DEFAULT NULL
       def test_should_not_include_default_clause_when_default_is_null
-        column = Column.new("title", nil, SqlTypeMetadata.new(limit: 20))
-        column_def = ColumnDefinition.new(
-          column.name, "string",
-          column.limit, column.precision, column.scale, column.default, column.null)
+        column_def = ColumnDefinition.new("title", "string", limit: 20)
         assert_equal "title varchar(20)", @viz.accept(column_def)
       end
 
       def test_should_include_default_clause_when_default_is_present
-        column = Column.new("title", "Hello", SqlTypeMetadata.new(limit: 20))
-        column_def = ColumnDefinition.new(
-          column.name, "string",
-          column.limit, column.precision, column.scale, column.default, column.null)
+        column_def = ColumnDefinition.new("title", "string", limit: 20, default: "Hello")
         assert_equal "title varchar(20) DEFAULT 'Hello'", @viz.accept(column_def)
       end
 
       def test_should_specify_not_null_if_null_option_is_false
-        type_metadata = SqlTypeMetadata.new(limit: 20)
-        column = Column.new("title", "Hello", type_metadata, false)
-        column_def = ColumnDefinition.new(
-          column.name, "string",
-          column.limit, column.precision, column.scale, column.default, column.null)
+        column_def = ColumnDefinition.new("title", "string", limit: 20, default: "Hello", null: false)
         assert_equal "title varchar(20) DEFAULT 'Hello' NOT NULL", @viz.accept(column_def)
       end
     end
