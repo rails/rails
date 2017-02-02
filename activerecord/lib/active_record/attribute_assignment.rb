@@ -53,7 +53,7 @@ module ActiveRecord
             if values_with_empty_parameters.each_value.all?(&:nil?)
               values = nil
             else
-              values = values_with_empty_parameters
+              values = read_value(name, values_with_empty_parameters)
             end
             send("#{name}=", values)
           rescue => ex
@@ -64,6 +64,14 @@ module ActiveRecord
           error_descriptions = errors.map(&:message).join(",")
           raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
         end
+      end
+
+      MULTIPARAMETER_ACCEPTABLE_TYPES = [:date, :datetime, :time].freeze
+
+      def read_value(name, value)
+        cast_type = type_for_attribute(name)
+        return value unless MULTIPARAMETER_ACCEPTABLE_TYPES.include?(cast_type.type) && value.is_a?(Hash)
+        cast_type.cast(value)
       end
 
       def extract_callstack_for_multiparameter_attributes(pairs)
