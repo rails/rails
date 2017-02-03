@@ -1,22 +1,26 @@
-require 'thread_safe'
+require "concurrent/map"
+require "action_view/path_set"
 
 module ActionView
   class DependencyTracker # :nodoc:
-    @trackers = ThreadSafe::Cache.new
+    @trackers = Concurrent::Map.new
 
-    def self.find_dependencies(name, template)
+    def self.find_dependencies(name, template, view_paths = nil)
       tracker = @trackers[template.handler]
+      return [] unless tracker
 
-      if tracker.present?
-        tracker.call(name, template)
-      else
-        []
-      end
+      tracker.call(name, template, view_paths)
     end
 
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
-      @trackers[handler] = tracker
+      if tracker.respond_to?(:supports_view_paths?)
+        @trackers[handler] = tracker
+      else
+        @trackers[handler] = lambda { |name, template, _|
+          tracker.call(name, template)
+        }
+      end
     end
 
     def self.remove_tracker(handler)
@@ -76,12 +80,22 @@ module ActionView
         (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
       /xm
 
-      def self.call(name, template)
-        new(name, template).dependencies
+      LAYOUT_DEPENDENCY = /\A
+        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
+        (?:.*?#{LAYOUT_HASH_KEY})                      # check if the line has layout key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+      /xm
+
+      def self.supports_view_paths? # :nodoc:
+        true
       end
 
-      def initialize(name, template)
-        @name, @template = name, template
+      def self.call(name, template, view_paths = nil)
+        new(name, template, view_paths).dependencies
+      end
+
+      def initialize(name, template, view_paths = nil)
+        @name, @template, @view_paths = name, template, view_paths
       end
 
       def dependencies
@@ -90,7 +104,6 @@ module ActionView
 
       attr_reader :name, :template
       private :name, :template
-
 
       private
         def source
@@ -106,13 +119,18 @@ module ActionView
           render_calls = source.split(/\brender\b/).drop(1)
 
           render_calls.each do |arguments|
-            arguments.scan(RENDER_ARGUMENTS) do
-              add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
-              add_static_dependency(render_dependencies, Regexp.last_match[:static])
-            end
+            add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
+            add_dependencies(render_dependencies, arguments, RENDER_ARGUMENTS)
           end
 
           render_dependencies.uniq
+        end
+
+        def add_dependencies(render_dependencies, arguments, pattern)
+          arguments.scan(pattern) do
+            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
+            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+          end
         end
 
         def add_dynamic_dependency(dependencies, dependency)
@@ -123,7 +141,7 @@ module ActionView
 
         def add_static_dependency(dependencies, dependency)
           if dependency
-            if dependency.include?('/')
+            if dependency.include?("/")
               dependencies << dependency
             else
               dependencies << "#{directory}/#{dependency}"
@@ -131,8 +149,22 @@ module ActionView
           end
         end
 
+        def resolve_directories(wildcard_dependencies)
+          return [] unless @view_paths
+
+          wildcard_dependencies.flat_map { |query, templates|
+            @view_paths.find_all_with_query(query).map do |template|
+              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+            end
+          }.sort
+        end
+
         def explicit_dependencies
-          source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+          dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
+
+          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == "*" }
+
+          (explicits + resolve_directories(wildcards)).uniq
         end
     end
 

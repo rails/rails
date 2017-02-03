@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/configurable'
+require "abstract_unit"
+require "active_support/configurable"
 
 class ConfigurableActiveSupport < ActiveSupport::TestCase
   class Parent
@@ -111,7 +111,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     end
   end
 
-  test 'the config_accessor method should not be publicly callable' do
+  test "the config_accessor method should not be publicly callable" do
     assert_raises NoMethodError do
       Class.new {
         include ActiveSupport::Configurable
@@ -121,11 +121,11 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
 
   def assert_method_defined(object, method)
     methods = object.public_methods.map(&:to_s)
-    assert methods.include?(method.to_s), "Expected #{methods.inspect} to include #{method.to_s.inspect}"
+    assert_includes methods, method.to_s, "Expected #{methods.inspect} to include #{method.to_s.inspect}"
   end
 
   def assert_method_not_defined(object, method)
     methods = object.public_methods.map(&:to_s)
-    assert !methods.include?(method.to_s), "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
+    assert_not_includes methods, method.to_s, "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
   end
 end

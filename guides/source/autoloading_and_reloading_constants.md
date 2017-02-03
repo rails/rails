@@ -181,14 +181,14 @@ constant.
 That is,
 
 ```ruby
-class Project < ActiveRecord::Base
+class Project < ApplicationRecord
 end
 ```
 
 performs a constant assignment equivalent to
 
 ```ruby
-Project = Class.new(ActiveRecord::Base)
+Project = Class.new(ApplicationRecord)
 ```
 
 including setting the name of the class as a side-effect:
@@ -449,9 +449,10 @@ Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
 to look up `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
-* All subdirectories of `app` in the application and engines. For example,
-  `app/controllers`. They do not need to be the default ones, any custom
-  directories like `app/workers` belong automatically to `autoload_paths`.
+* All subdirectories of `app` in the application and engines present at boot
+  time. For example, `app/controllers`. They do not need to be the default
+  ones, any custom directories like `app/workers` belong automatically to
+  `autoload_paths`.
 
 * Any existing second level directories called `app/*/concerns` in the
   application and engines.
@@ -465,7 +466,8 @@ by adding this to `config/application.rb`:
 ```ruby
 config.autoload_paths << "#{Rails.root}/lib"
 ```
-`config.autoload_paths` is accessible from environment-specific configuration files, but any changes made to it outside `config/application.rb` don't have an effect.
+
+`config.autoload_paths` is not changeable from environment-specific configuration files.
 
 The value of `autoload_paths` can be inspected. In a just generated application
 it is (edited):
@@ -523,7 +525,7 @@ On the contrary, if `ApplicationController` is unknown, the constant is
 considered missing and an autoload is going to be attempted by Rails.
 
 In order to load `ApplicationController`, Rails iterates over `autoload_paths`.
-First checks if `app/assets/application_controller.rb` exists. If it does not,
+First it checks if `app/assets/application_controller.rb` exists. If it does not,
 which is normally the case, it continues and finds
 `app/controllers/application_controller.rb`.
 
@@ -623,7 +625,7 @@ file is loaded. If the file actually defines `Post` all is fine, otherwise
 ### Qualified References
 
 When a qualified constant is missing Rails does not look for it in the parent
-namespaces. But there is a caveat: When a constant is missing, Rails is
+namespaces. But there is a caveat: when a constant is missing, Rails is
 unable to tell if the trigger was a relative reference or a qualified one.
 
 For example, consider
@@ -684,7 +686,7 @@ to trigger the heuristic is defined in the conflicting place.
 ### Automatic Modules
 
 When a module acts as a namespace, Rails does not require the application to
-defines a file for it, a directory matching the namespace is enough.
+define a file for it, a directory matching the namespace is enough.
 
 Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
@@ -789,7 +791,7 @@ Constant Reloading
 When `config.cache_classes` is false Rails is able to reload autoloaded
 constants.
 
-For example, in you're in a console session and edit some file behind the
+For example, if you're in a console session and edit some file behind the
 scenes, the code can be reloaded with the `reload!` command:
 
 ```
@@ -911,7 +913,7 @@ these classes:
 
 ```ruby
 # app/models/polygon.rb
-class Polygon < ActiveRecord::Base
+class Polygon < ApplicationRecord
 end
 
 # app/models/triangle.rb
@@ -986,7 +988,7 @@ root class:
 
 ```ruby
 # app/models/polygon.rb
-class Polygon < ActiveRecord::Base
+class Polygon < ApplicationRecord
 end
 require_dependency ‘square’
 ```

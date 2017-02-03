@@ -1,7 +1,7 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
-require 'rails/engine/configuration'
-require 'rails/source_annotation_extractor'
+require "active_support/core_ext/kernel/reporting"
+require "active_support/file_update_checker"
+require "rails/engine/configuration"
+require "rails/source_annotation_extractor"
 
 module Rails
   class Application
@@ -11,44 +11,46 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_files, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :ssl_options, :public_file_server,
+                    :session_options, :time_zone, :reload_classes_only_on_change,
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
 
       attr_writer :log_level
-      attr_reader :encoding
+      attr_reader :encoding, :api_only
 
       def initialize(*)
         super
-        self.encoding = "utf-8"
-        @allow_concurrency             = nil
-        @consider_all_requests_local   = false
-        @filter_parameters             = []
-        @filter_redirect               = []
-        @helpers_paths                 = []
-        @serve_static_files            = true
-        @static_cache_control          = nil
-        @force_ssl                     = false
-        @ssl_options                   = {}
-        @session_store                 = :cookie_store
-        @session_options               = {}
-        @time_zone                     = "UTC"
-        @beginning_of_week             = :monday
-        @log_level                     = nil
-        @middleware                    = app_middleware
-        @generators                    = app_generators
-        @cache_store                   = [ :file_store, "#{root}/tmp/cache/" ]
-        @railties_order                = [:all]
-        @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
-        @reload_classes_only_on_change = true
-        @file_watcher                  = ActiveSupport::FileUpdateChecker
-        @exceptions_app                = nil
-        @autoflush_log                 = true
-        @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @eager_load                    = nil
-        @secret_token                  = nil
-        @secret_key_base               = nil
-        @x                             = Custom.new
+        self.encoding                    = Encoding::UTF_8
+        @allow_concurrency               = nil
+        @consider_all_requests_local     = false
+        @filter_parameters               = []
+        @filter_redirect                 = []
+        @helpers_paths                   = []
+        @public_file_server              = ActiveSupport::OrderedOptions.new
+        @public_file_server.enabled      = true
+        @public_file_server.index_name   = "index"
+        @force_ssl                       = false
+        @ssl_options                     = {}
+        @session_store                   = nil
+        @time_zone                       = "UTC"
+        @beginning_of_week               = :monday
+        @log_level                       = nil
+        @generators                      = app_generators
+        @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order                  = [:all]
+        @relative_url_root               = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @reload_classes_only_on_change   = true
+        @file_watcher                    = ActiveSupport::FileUpdateChecker
+        @exceptions_app                  = nil
+        @autoflush_log                   = true
+        @log_formatter                   = ActiveSupport::Logger::SimpleFormatter.new
+        @eager_load                      = nil
+        @secret_token                    = nil
+        @secret_key_base                 = nil
+        @api_only                        = false
+        @debug_exception_response_format = nil
+        @x                               = Custom.new
+        @enable_dependency_loading       = false
       end
 
       def encoding=(value)
@@ -57,6 +59,21 @@ module Rails
           Encoding.default_external = value
           Encoding.default_internal = value
         end
+      end
+
+      def api_only=(value)
+        @api_only = value
+        generators.api_only = value
+
+        @debug_exception_response_format ||= :api
+      end
+
+      def debug_exception_response_format
+        @debug_exception_response_format || :default
+      end
+
+      def debug_exception_response_format=(value)
+        @debug_exception_response_format = value
       end
 
       def paths
@@ -85,7 +102,7 @@ module Rails
           require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
-        elsif ENV['DATABASE_URL']
+        elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
@@ -112,52 +129,63 @@ module Rails
 
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
-        self.generators.colorize_logging = val
+        generators.colorize_logging = val
       end
 
-      def session_store(*args)
-        if args.empty?
-          case @session_store
-          when :disabled
-            nil
-          when :active_record_store
+      def session_store(new_session_store = nil, **options)
+        if new_session_store
+          if new_session_store == :active_record_store
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
               raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
                 "Please add `activerecord-session_store` to your Gemfile to use it."
             end
+          end
+
+          @session_store = new_session_store
+          @session_options = options || {}
+        else
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActionDispatch::Session::ActiveRecordStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else
             @session_store
           end
-        else
-          @session_store = args.shift
-          @session_options = args.shift || {}
         end
+      end
+
+      def session_store? #:nodoc:
+        @session_store
       end
 
       def annotations
         SourceAnnotationExtractor::Annotation
       end
 
-      private
-        class Custom #:nodoc:
-          def initialize
-            @configurations = Hash.new
-          end
+      class Custom #:nodoc:
+        def initialize
+          @configurations = Hash.new
+        end
 
-          def method_missing(method, *args)
-            if method =~ /=$/
-              @configurations[$`.to_sym] = args.first
-            else
-              @configurations.fetch(method) {
-                @configurations[method] = ActiveSupport::OrderedOptions.new
-              }
-            end
+        def method_missing(method, *args)
+          if method =~ /=$/
+            @configurations[$`.to_sym] = args.first
+          else
+            @configurations.fetch(method) {
+              @configurations[method] = ActiveSupport::OrderedOptions.new
+            }
           end
         end
+
+        def respond_to_missing?(symbol, *)
+          true
+        end
+      end
     end
   end
 end

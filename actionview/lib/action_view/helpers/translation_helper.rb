@@ -1,54 +1,79 @@
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/access'
-require 'i18n/exceptions'
+require "action_view/helpers/tag_helper"
+require "active_support/core_ext/string/access"
+require "i18n/exceptions"
 
 module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
+      extend ActiveSupport::Concern
+
       include TagHelper
-      # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
+
+      included do
+        mattr_accessor :debug_missing_translation
+        self.debug_missing_translation = true
+      end
+
+      # Delegates to <tt>I18n#translate</tt> but also performs three additional
+      # functions.
       #
-      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned
-      # into inline spans that:
+      # First, it will ensure that any thrown +MissingTranslation+ messages will
+      # be rendered as inline spans that:
       #
-      #   * have a "translation-missing" class set,
-      #   * contain the missing key as a title attribute and
-      #   * a titleized version of the last key segment as a text.
+      # * Have a <tt>translation-missing</tt> class applied
+      # * Contain the missing key as the value of the +title+ attribute
+      # * Have a titleized version of the last key segment as text
       #
-      # E.g. the value returned for a missing translation key :"blog.post.title" will be
-      # <span class="translation_missing" title="translation missing: en.blog.post.title">Title</span>.
-      # This way your views will display rather reasonable strings but it will still
-      # be easy to spot missing translations.
+      # For example, the value returned for the missing translation key
+      # <tt>"blog.post.title"</tt> will be:
       #
-      # Second, it'll scope the key by the current partial if the key starts
-      # with a period. So if you call <tt>translate(".foo")</tt> from the
-      # <tt>people/index.html.erb</tt> template, you'll actually be calling
-      # <tt>I18n.translate("people.index.foo")</tt>. This makes it less repetitive
-      # to translate many keys within the same partials and gives you a simple framework
-      # for scoping them consistently. If you don't prepend the key with a period,
-      # nothing is converted.
+      #    <span
+      #      class="translation_missing"
+      #      title="translation missing: en.blog.post.title">Title</span>
       #
-      # Third, it'll mark the translation as safe HTML if the key has the suffix
-      # "_html" or the last element of the key is the word "html". For example,
-      # calling translate("footer_html") or translate("footer.html") will return
-      # a safe HTML string that won't be escaped by other HTML helper methods. This
-      # naming convention helps to identify translations that include HTML tags so that
-      # you know what kind of output to expect when you call translate in a template.
+      # This allows for views to display rather reasonable strings while still
+      # giving developers a way to find missing translations.
+      #
+      # If you would prefer missing translations to raise an error, you can
+      # opt out of span-wrapping behavior globally by setting
+      # <tt>ActionView::Base.raise_on_missing_translations = true</tt> or
+      # individually by passing <tt>raise: true</tt> as an option to
+      # <tt>translate</tt>.
+      #
+      # Second, if the key starts with a period <tt>translate</tt> will scope
+      # the key by the current partial. Calling <tt>translate(".foo")</tt> from
+      # the <tt>people/index.html.erb</tt> template is equivalent to calling
+      # <tt>translate("people.index.foo")</tt>. This makes it less
+      # repetitive to translate many keys within the same partial and provides
+      # a convention to scope keys consistently.
+      #
+      # Third, the translation will be marked as <tt>html_safe</tt> if the key
+      # has the suffix "_html" or the last element of the key is "html". Calling
+      # <tt>translate("footer_html")</tt> or <tt>translate("footer.html")</tt>
+      # will return an HTML safe string that won't be escaped by other HTML
+      # helper methods. This naming convention helps to identify translations
+      # that include HTML tags so that you know what kind of output to expect
+      # when you call translate in a template and translators know which keys
+      # they can provide HTML values for.
       def translate(key, options = {})
         options = options.dup
-        remaining_defaults = Array(options.delete(:default))
-        options[:default] = remaining_defaults.shift if remaining_defaults.first.kind_of? String
+        has_default = options.has_key?(:default)
+        remaining_defaults = Array(options.delete(:default)).compact
+
+        if has_default && !remaining_defaults.first.kind_of?(Symbol)
+          options[:default] = remaining_defaults
+        end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
         # Otherwise, tell I18n to raise an exception, which we rescue further in this method.
         # Note: `raise_error` refers to us re-raising the error in this method. I18n is forced to raise by default.
-        if options[:raise] == false || (options.key?(:rescue_format) && options[:rescue_format].nil?)
+        if options[:raise] == false
           raise_error = false
-          options[:raise] = false
+          i18n_raise = false
         else
-          raise_error = options[:raise] || options[:rescue_format] || ActionView::Base.raise_on_missing_translations
-          options[:raise] = true
+          raise_error = options[:raise] || ActionView::Base.raise_on_missing_translations
+          i18n_raise = true
         end
 
         if html_safe_translation_key?(key)
@@ -58,11 +83,11 @@ module ActionView
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
-          translation = I18n.translate(scope_key_by_partial(key), html_safe_options)
+          translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
 
           translation.respond_to?(:html_safe) ? translation.html_safe : translation
         else
-          I18n.translate(scope_key_by_partial(key), options)
+          I18n.translate(scope_key_by_partial(key), options.merge(raise: i18n_raise))
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?
@@ -71,7 +96,16 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
+          title = "translation missing: #{keys.join('.')}"
+
+          interpolations = options.except(:default, :scope)
+          if interpolations.any?
+            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
+          end
+
+          return title unless ActionView::Base.debug_missing_translation
+
+          content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
         end
       end
       alias :t :translate
@@ -99,7 +133,7 @@ module ActionView
         end
 
         def html_safe_translation_key?(key)
-          key.to_s =~ /(\b|_|\.)html$/
+          /(\b|_|\.)html$/.match?(key.to_s)
         end
     end
   end

@@ -1,4 +1,4 @@
-require 'rails/generators/model_helpers'
+require "rails/generators/model_helpers"
 
 module Rails
   module Generators

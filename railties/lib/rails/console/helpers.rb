@@ -4,7 +4,7 @@ module Rails
     #
     # This method assumes an +ApplicationController+ exists, and it extends +ActionController::Base+
     def helper
-      @helper ||= ApplicationController.helpers
+      ApplicationController.helpers
     end
 
     # Gets a new instance of a controller object.

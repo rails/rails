@@ -1,4 +1,4 @@
-# MySQL.  Versions 4.1 and 5.0 are recommended.
+# MySQL. Versions 5.1.10 and up are supported.
 #
 # Install the MySQL driver:
 #   gem install activerecord-jdbcmysql-adapter
@@ -7,10 +7,11 @@
 # gem 'activerecord-jdbcmysql-adapter'
 #
 # And be sure to use new-style password hashing:
-#   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
+#   http://dev.mysql.com/doc/refman/5.7/en/old-client.html
 #
 default: &default
   adapter: mysql
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
   host: localhost

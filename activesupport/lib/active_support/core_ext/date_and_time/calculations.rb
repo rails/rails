@@ -1,13 +1,15 @@
+require "active_support/core_ext/object/try"
+
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {
-      :monday    => 0,
-      :tuesday   => 1,
-      :wednesday => 2,
-      :thursday  => 3,
-      :friday    => 4,
-      :saturday  => 5,
-      :sunday    => 6
+      monday: 0,
+      tuesday: 1,
+      wednesday: 2,
+      thursday: 3,
+      friday: 4,
+      saturday: 5,
+      sunday: 6
     }
     WEEKEND_DAYS = [ 6, 0 ]
 
@@ -51,83 +53,125 @@ module DateAndTime
       WEEKEND_DAYS.include?(wday)
     end
 
+    # Returns true if the date/time does not fall on a Saturday or Sunday.
+    def on_weekday?
+      !WEEKEND_DAYS.include?(wday)
+    end
+
     # Returns a new date/time the specified number of days ago.
     def days_ago(days)
-      advance(:days => -days)
+      advance(days: -days)
     end
 
     # Returns a new date/time the specified number of days in the future.
     def days_since(days)
-      advance(:days => days)
+      advance(days: days)
     end
 
     # Returns a new date/time the specified number of weeks ago.
     def weeks_ago(weeks)
-      advance(:weeks => -weeks)
+      advance(weeks: -weeks)
     end
 
     # Returns a new date/time the specified number of weeks in the future.
     def weeks_since(weeks)
-      advance(:weeks => weeks)
+      advance(weeks: weeks)
     end
 
     # Returns a new date/time the specified number of months ago.
     def months_ago(months)
-      advance(:months => -months)
+      advance(months: -months)
     end
 
     # Returns a new date/time the specified number of months in the future.
     def months_since(months)
-      advance(:months => months)
+      advance(months: months)
     end
 
     # Returns a new date/time the specified number of years ago.
     def years_ago(years)
-      advance(:years => -years)
+      advance(years: -years)
     end
 
     # Returns a new date/time the specified number of years in the future.
     def years_since(years)
-      advance(:years => years)
+      advance(years: years)
     end
 
     # Returns a new date/time at the start of the month.
-    # DateTime objects will have a time set to 0:00.
+    #
+    #   today = Date.today # => Thu, 18 Jun 2015
+    #   today.beginning_of_month # => Mon, 01 Jun 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
+    #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
     def beginning_of_month
-      first_hour(change(:day => 1))
+      first_hour(change(day: 1))
     end
     alias :at_beginning_of_month :beginning_of_month
 
     # Returns a new date/time at the start of the quarter.
-    # Example: 1st January, 1st July, 1st October.
-    # DateTime objects will have a time set to 0:00.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.beginning_of_quarter # => Wed, 01 Jul 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
     def beginning_of_quarter
       first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
-      beginning_of_month.change(:month => first_quarter_month)
+      beginning_of_month.change(month: first_quarter_month)
     end
     alias :at_beginning_of_quarter :beginning_of_quarter
 
     # Returns a new date/time at the end of the quarter.
-    # Example: 31st March, 30th June, 30th September.
-    # DateTime objects will have a time set to 23:59:59.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.end_of_quarter # => Wed, 30 Sep 2015
+    #
+    # +DateTime+ objects will have a time set to 23:59:59.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
     def end_of_quarter
       last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
-      beginning_of_month.change(:month => last_quarter_month).end_of_month
+      beginning_of_month.change(month: last_quarter_month).end_of_month
     end
     alias :at_end_of_quarter :end_of_quarter
 
-    # Return a new date/time at the beginning of the year.
-    # Example: 1st January.
-    # DateTime objects will have a time set to 0:00.
+    # Returns a new date/time at the beginning of the year.
+    #
+    #   today = Date.today # => Fri, 10 Jul 2015
+    #   today.beginning_of_year # => Thu, 01 Jan 2015
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
     def beginning_of_year
-      change(:month => 1).beginning_of_month
+      change(month: 1).beginning_of_month
     end
     alias :at_beginning_of_year :beginning_of_year
 
     # Returns a new date/time representing the given day in the next week.
+    #
+    #   today = Date.today # => Thu, 07 May 2015
+    #   today.next_week    # => Mon, 11 May 2015
+    #
     # The +given_day_in_next_week+ defaults to the beginning of the week
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
-    # when set. +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    # when set.
+    #
+    #   today = Date.today       # => Thu, 07 May 2015
+    #   today.next_week(:friday) # => Fri, 15 May 2015
+    #
+    # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    #
+    #   now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
+    #   now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
     def next_week(given_day_in_next_week = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
       same_time ? copy_time_to(result) : result
@@ -246,12 +290,17 @@ module DateAndTime
     # Returns a new date/time representing the end of the year.
     # DateTime objects will have a time set to 23:59:59.
     def end_of_year
-      change(:month => 12).end_of_month
+      change(month: 12).end_of_month
     end
     alias :at_end_of_year :end_of_year
 
+    # Returns a Range representing the whole day of the current date/time.
+    def all_day
+      beginning_of_day..end_of_day
+    end
+
     # Returns a Range representing the whole week of the current date/time.
-    # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+    # Week starts on start_day, default is <tt>Date.beginning_of_week</tt> or <tt>config.beginning_of_week</tt> when set.
     def all_week(start_day = Date.beginning_of_week)
       beginning_of_week(start_day)..end_of_week(start_day)
     end
@@ -285,7 +334,7 @@ module DateAndTime
       end
 
       def copy_time_to(other)
-        other.change(hour: hour, min: min, sec: sec, usec: try(:usec))
+        other.change(hour: hour, min: min, sec: sec, nsec: try(:nsec))
       end
   end
 end

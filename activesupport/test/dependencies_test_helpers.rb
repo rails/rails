@@ -17,7 +17,7 @@ module DependenciesTestHelpers
   end
 
   def with_autoloading_fixtures(&block)
-    with_loading 'autoloading_fixtures', &block
+    with_loading "autoloading_fixtures", &block
   end
 
   def remove_constants(*constants)

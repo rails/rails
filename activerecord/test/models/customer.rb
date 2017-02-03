@@ -1,12 +1,13 @@
 class Customer < ActiveRecord::Base
   cattr_accessor :gps_conversion_was_run
 
-  composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ], :allow_nil => true
-  composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new(&:to_money)
-  composed_of :gps_location, :allow_nil => true
-  composed_of :non_blank_gps_location, :class_name => "GpsLocation", :allow_nil => true, :mapping => %w(gps_location gps_location),
-              :converter => lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps)}
-  composed_of :fullname, :mapping => %w(name to_s), :constructor => Proc.new { |name| Fullname.parse(name) }, :converter => :parse
+  composed_of :address, mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ], allow_nil: true
+  composed_of :balance, class_name: "Money", mapping: %w(balance amount), converter: Proc.new(&:to_money)
+  composed_of :gps_location, allow_nil: true
+  composed_of :non_blank_gps_location, class_name: "GpsLocation", allow_nil: true, mapping: %w(gps_location gps_location),
+              converter: lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps) }
+  composed_of :fullname, mapping: %w(name to_s), constructor: Proc.new { |name| Fullname.parse(name) }, converter: :parse
+  composed_of :fullname_no_converter, mapping: %w(name to_s), class_name: "Fullname"
 end
 
 class Address
@@ -55,7 +56,7 @@ class GpsLocation
   end
 
   def ==(other)
-    self.latitude == other.latitude && self.longitude == other.longitude
+    latitude == other.latitude && longitude == other.longitude
   end
 end
 
@@ -64,7 +65,12 @@ class Fullname
 
   def self.parse(str)
     return nil unless str
-    new(*str.to_s.split)
+
+    if str.is_a?(Hash)
+      new(str[:first], str[:last])
+    else
+      new(*str.to_s.split)
+    end
   end
 
   def initialize(first, last = nil)

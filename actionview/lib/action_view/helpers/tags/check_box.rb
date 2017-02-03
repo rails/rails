@@ -1,4 +1,4 @@
-require 'action_view/helpers/tags/checkable'
+require "action_view/helpers/tags/checkable"
 
 module ActionView
   module Helpers
@@ -38,26 +38,26 @@ module ActionView
 
         private
 
-        def checked?(value)
-          case value
-          when TrueClass, FalseClass
-            value == !!@checked_value
-          when NilClass
-            false
-          when String
-            value == @checked_value
-          else
-            if value.respond_to?(:include?)
-              value.include?(@checked_value)
+          def checked?(value)
+            case value
+            when TrueClass, FalseClass
+              value == !!@checked_value
+            when NilClass
+              false
+            when String
+              value == @checked_value
             else
-              value.to_i == @checked_value.to_i
+              if value.respond_to?(:include?)
+                value.include?(@checked_value)
+              else
+                value.to_i == @checked_value.to_i
+              end
             end
           end
-        end
 
-        def hidden_field_for_checkbox(options)
-          @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
-        end
+          def hidden_field_for_checkbox(options)
+            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)) : "".html_safe
+          end
       end
     end
   end

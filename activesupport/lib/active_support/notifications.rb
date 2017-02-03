@@ -1,6 +1,6 @@
-require 'active_support/notifications/instrumenter'
-require 'active_support/notifications/fanout'
-require 'active_support/per_thread_registry'
+require "active_support/notifications/instrumenter"
+require "active_support/notifications/fanout"
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   # = Notifications
@@ -13,7 +13,7 @@ module ActiveSupport
   # To instrument an event you just need to do:
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   # That first executes the block and then notifies all subscribers once done.
@@ -48,7 +48,7 @@ module ActiveSupport
   # The block is saved and will be called whenever someone instruments "render":
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   #   event = events.first
@@ -69,8 +69,8 @@ module ActiveSupport
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
-  # It is also possible to pass an object as the second parameter passed to the
-  # <tt>subscribe</tt> method instead of a block:
+  # It is also possible to pass an object which responds to <tt>call</tt> method
+  # as the second parameter to the <tt>subscribe</tt> method instead of a block:
   #
   #   module ActionController
   #     class PageRequest

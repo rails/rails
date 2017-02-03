@@ -11,12 +11,10 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        'html template'
+        "html template"
       end
 
-      def inspect
-        'html template'
-      end
+      alias_method :inspect, :identifier
 
       def to_str
         ERB::Util.h(@string)

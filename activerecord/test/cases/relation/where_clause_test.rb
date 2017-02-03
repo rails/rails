@@ -140,7 +140,7 @@ class ActiveRecord::Relation
 
     test "ast removes any empty strings" do
       where_clause = WhereClause.new([table["id"].in([1, 2, 3])], [])
-      where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), ''], [])
+      where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), ""], [])
 
       assert_equal where_clause.ast, where_clause_with_empty.ast
     end
@@ -167,16 +167,16 @@ class ActiveRecord::Relation
 
     private
 
-    def table
-      Arel::Table.new("table")
-    end
+      def table
+        Arel::Table.new("table")
+      end
 
-    def bind_param
-      Arel::Nodes::BindParam.new
-    end
+      def bind_param
+        Arel::Nodes::BindParam.new
+      end
 
-    def attribute(name, value)
-      ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
-    end
+      def attribute(name, value)
+        ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
+      end
   end
 end

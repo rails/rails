@@ -1,16 +1,16 @@
-require 'abstract_unit'
-require 'active_support/concurrency/latch'
+require "abstract_unit"
+require "concurrent/atomic/count_down_latch"
 
 module ActionController
   module Live
     class ResponseTest < ActiveSupport::TestCase
       def setup
         @response = Live::Response.new
-        @response.request = ActionDispatch::Request.new({}) #yolo
+        @response.request = ActionDispatch::Request.empty
       end
 
       def test_header_merge
-        header = @response.header.merge('Foo' => 'Bar')
+        header = @response.header.merge("Foo" => "Bar")
         assert_kind_of(ActionController::Live::Response::Header, header)
         assert_not_equal header, @response.header
       end
@@ -18,7 +18,7 @@ module ActionController
       def test_initialize_with_default_headers
         r = Class.new(Live::Response) do
           def self.default_headers
-            { 'omg' => 'g' }
+            { "omg" => "g" }
           end
         end
 
@@ -27,67 +27,69 @@ module ActionController
       end
 
       def test_parallel
-        latch = ActiveSupport::Concurrency::Latch.new
+        latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
-          @response.stream.write 'foo'
-          latch.await
+          @response.stream.write "foo"
+          latch.wait
           @response.stream.close
         }
 
         @response.await_commit
         @response.each do |part|
-          assert_equal 'foo', part
-          latch.release
+          assert_equal "foo", part
+          latch.count_down
         end
         assert t.join
       end
 
       def test_setting_body_populates_buffer
-        @response.body = 'omg'
+        @response.body = "omg"
         @response.close
-        assert_equal ['omg'], @response.body_parts
+        assert_equal ["omg"], @response.body_parts
       end
 
       def test_cache_control_is_set
-        @response.stream.write 'omg'
-        assert_equal 'no-cache', @response.headers['Cache-Control']
+        @response.stream.write "omg"
+        assert_equal "no-cache", @response.headers["Cache-Control"]
       end
 
       def test_content_length_is_removed
-        @response.headers['Content-Length'] = "1234"
-        @response.stream.write 'omg'
-        assert_nil @response.headers['Content-Length']
+        @response.headers["Content-Length"] = "1234"
+        @response.stream.write "omg"
+        assert_nil @response.headers["Content-Length"]
       end
 
       def test_headers_cannot_be_written_after_webserver_reads
-        @response.stream.write 'omg'
-        latch = ActiveSupport::Concurrency::Latch.new
+        @response.stream.write "omg"
+        latch = Concurrent::CountDownLatch.new
 
         t = Thread.new {
-          @response.stream.each do |chunk|
-            latch.release
+          @response.each do
+            latch.count_down
           end
         }
 
-        latch.await
+        latch.wait
         assert @response.headers.frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
-          @response.headers['Content-Length'] = "zomg"
+          @response.headers["Content-Length"] = "zomg"
         end
 
-        assert_equal 'header already sent', e.message
+        assert_equal "header already sent", e.message
         @response.stream.close
         t.join
       end
 
       def test_headers_cannot_be_written_after_close
         @response.stream.close
+        # we can add data until it's actually written, which happens on `each`
+        @response.each { |x| }
 
         e = assert_raises(ActionDispatch::IllegalStateError) do
-          @response.headers['Content-Length'] = "zomg"
+          @response.headers["Content-Length"] = "zomg"
         end
-        assert_equal 'header already sent', e.message
+        assert_equal "header already sent", e.message
       end
     end
   end

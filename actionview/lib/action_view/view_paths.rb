@@ -1,5 +1,3 @@
-require 'action_view/base'
-
 module ActionView
   module ViewPaths
     extend ActiveSupport::Concern
@@ -7,11 +5,11 @@ module ActionView
     included do
       class_attribute :_view_paths
       self._view_paths = ActionView::PathSet.new
-      self._view_paths.freeze
+      _view_paths.freeze
     end
 
-    delegate :template_exists?, :view_paths, :formats, :formats=,
-             :locale, :locale=, :to => :lookup_context
+    delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
+             :locale, :locale=, to: :lookup_context
 
     module ClassMethods
       def _prefixes # :nodoc:
@@ -24,11 +22,11 @@ module ActionView
 
       private
 
-      # Override this method in your controller if you want to change paths prefixes for finding views.
-      # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
-      def local_prefixes
-        [controller_path]
-      end
+        # Override this method in your controller if you want to change paths prefixes for finding views.
+        # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+        def local_prefixes
+          [controller_path]
+        end
     end
 
     # The prefixes used in render "foo" shortcuts.
@@ -36,22 +34,34 @@ module ActionView
       self.class._prefixes
     end
 
-    # LookupContext is the object responsible to hold all information required to lookup
-    # templates, i.e. view paths and details. Check ActionView::LookupContext for more
-    # information.
+    # <tt>LookupContext</tt> is the object responsible for holding all
+    # information required for looking up templates, i.e. view paths and
+    # details. Check <tt>ActionView::LookupContext</tt> for more information.
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)
     end
 
     def details_for_lookup
-      { }
+      {}
     end
 
+    # Append a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def append_view_path(path)
       lookup_context.view_paths.push(*path)
     end
 
+    # Prepend a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
       lookup_context.view_paths.unshift(*path)
     end

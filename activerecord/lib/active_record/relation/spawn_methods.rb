@@ -1,17 +1,17 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
-require 'active_record/relation/merger'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
+require "active_record/relation/merger"
 
 module ActiveRecord
   module SpawnMethods
-
     # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
       clone
     end
 
-    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an <tt>ActiveRecord::Relation</tt>.
+    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    #
     #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
     #   # Performs a single join query with both where conditions.
     #
@@ -28,7 +28,7 @@ module ActiveRecord
     # This is mainly intended for sharing common conditions between multiple associations.
     def merge(other)
       if other.is_a?(Array)
-        to_a & other
+        records & other
       elsif other
         spawn.merge!(other)
       else
@@ -37,11 +37,14 @@ module ActiveRecord
     end
 
     def merge!(other) # :nodoc:
-      if !other.is_a?(Relation) && other.respond_to?(:to_proc)
+      if other.is_a?(Hash)
+        Relation::HashMerger.new(self, other).merge
+      elsif other.is_a?(Relation)
+        Relation::Merger.new(self, other).merge
+      elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else
-        klass = other.is_a?(Hash) ? Relation::HashMerger : Relation::Merger
-        klass.new(self, other).merge
+        raise ArgumentError, "#{other.inspect} is not an ActiveRecord::Relation"
       end
     end
 
@@ -63,7 +66,7 @@ module ActiveRecord
 
     private
 
-      def relation_with(values) # :nodoc:
+      def relation_with(values)
         result = Relation.create(klass, table, predicate_builder, values)
         result.extend(*extending_values) if extending_values.any?
         result

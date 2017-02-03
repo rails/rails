@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/duplicable'
+require "active_support/core_ext/object/duplicable"
 
 class Object
   # Returns a deep copy of object if it's duplicable. If it's
@@ -39,8 +39,15 @@ class Hash
   #   hash[:a][:c] # => nil
   #   dup[:a][:c]  # => "c"
   def deep_dup
-    each_with_object(dup) do |(key, value), hash|
-      hash[key.deep_dup] = value.deep_dup
+    hash = dup
+    each_pair do |key, value|
+      if key.frozen? && ::String === key
+        hash[key] = value.deep_dup
+      else
+        hash.delete(key)
+        hash[key.deep_dup] = value.deep_dup
+      end
     end
+    hash
   end
 end

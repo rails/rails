@@ -1,26 +1,27 @@
-require 'cases/helper'
+require "cases/helper"
+require "active_record/connection_adapters/postgresql/utils"
 
-class PostgreSQLUtilsTest < ActiveSupport::TestCase
+class PostgreSQLUtilsTest < ActiveRecord::PostgreSQLTestCase
   Name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
   include ActiveRecord::ConnectionAdapters::PostgreSQL::Utils
 
   def test_extract_schema_qualified_name
     {
-      %(table_name)            => [nil,'table_name'],
-      %("table.name")          => [nil,'table.name'],
+      %(table_name)            => [nil, "table_name"],
+      %("table.name")          => [nil, "table.name"],
       %(schema.table_name)     => %w{schema table_name},
       %("schema".table_name)   => %w{schema table_name},
       %(schema."table_name")   => %w{schema table_name},
       %("schema"."table_name") => %w{schema table_name},
-      %("even spaces".table)   => ['even spaces','table'],
-      %(schema."table.name")   => ['schema', 'table.name']
+      %("even spaces".table)   => ["even spaces", "table"],
+      %(schema."table.name")   => ["schema", "table.name"]
     }.each do |given, expect|
       assert_equal Name.new(*expect), extract_schema_qualified_name(given)
     end
   end
 end
 
-class PostgreSQLNameTest < ActiveSupport::TestCase
+class PostgreSQLNameTest < ActiveRecord::PostgreSQLTestCase
   Name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
 
   test "represents itself as schema.name" do
@@ -53,9 +54,9 @@ class PostgreSQLNameTest < ActiveSupport::TestCase
   end
 
   test "can be used as hash key" do
-    hash = {Name.new("schema", "article_seq") => "success"}
+    hash = { Name.new("schema", "article_seq") => "success" }
     assert_equal "success", hash[Name.new("schema", "article_seq")]
-    assert_equal nil, hash[Name.new("schema", "articles")]
-    assert_equal nil, hash[Name.new("public", "article_seq")]
+    assert_nil hash[Name.new("schema", "articles")]
+    assert_nil hash[Name.new("public", "article_seq")]
   end
 end

@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/json'
+require "abstract_unit"
+require "active_support/json"
 
 class ErbUtilTest < ActiveSupport::TestCase
   include ERB::Util
@@ -17,19 +17,19 @@ class ErbUtilTest < ActiveSupport::TestCase
   end
 
   HTML_ESCAPE_TEST_CASES = [
-    ['<br>', '&lt;br&gt;'],
-    ['a & b', 'a &amp; b'],
-    ['"quoted" string', '&quot;quoted&quot; string'],
-    ["'quoted' string", '&#39;quoted&#39; string'],
+    ["<br>", "&lt;br&gt;"],
+    ["a & b", "a &amp; b"],
+    ['"quoted" string', "&quot;quoted&quot; string"],
+    ["'quoted' string", "&#39;quoted&#39; string"],
     [
       '<script type="application/javascript">alert("You are \'pwned\'!")</script>',
-      '&lt;script type=&quot;application/javascript&quot;&gt;alert(&quot;You are &#39;pwned&#39;!&quot;)&lt;/script&gt;'
+      "&lt;script type=&quot;application/javascript&quot;&gt;alert(&quot;You are &#39;pwned&#39;!&quot;)&lt;/script&gt;"
     ]
   ]
 
   JSON_ESCAPE_TEST_CASES = [
-    ['1', '1'],
-    ['null', 'null'],
+    ["1", "1"],
+    ["null", "null"],
     ['"&"', '"\u0026"'],
     ['"</script>"', '"\u003c/script\u003e"'],
     ['["</script>"]', '["\u003c/script\u003e"]'],
@@ -51,7 +51,12 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_json_escape_does_not_alter_json_string_meaning
     JSON_ESCAPE_TEST_CASES.each do |(raw, _)|
-      assert_equal ActiveSupport::JSON.decode(raw), ActiveSupport::JSON.decode(json_escape(raw))
+      expected = ActiveSupport::JSON.decode(raw)
+      if expected.nil?
+        assert_nil ActiveSupport::JSON.decode(json_escape(raw))
+      else
+        assert_equal expected, ActiveSupport::JSON.decode(json_escape(raw))
+      end
     end
   end
 
@@ -91,17 +96,17 @@ class ErbUtilTest < ActiveSupport::TestCase
   end
 
   def test_html_escape_once
-    assert_equal '1 &lt;&gt;&amp;&quot;&#39; 2 &amp; 3', html_escape_once('1 <>&"\' 2 &amp; 3')
+    assert_equal "1 &lt;&gt;&amp;&quot;&#39; 2 &amp; 3", html_escape_once('1 <>&"\' 2 &amp; 3')
     assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", html_escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
   def test_html_escape_once_returns_unsafe_strings_when_passed_unsafe_strings
-    value = html_escape_once('1 < 2 &amp; 3')
+    value = html_escape_once("1 < 2 &amp; 3")
     assert !value.html_safe?
   end
 
   def test_html_escape_once_returns_safe_strings_when_passed_safe_strings
-    value = html_escape_once('1 < 2 &amp; 3'.html_safe)
+    value = html_escape_once("1 < 2 &amp; 3".html_safe)
     assert value.html_safe?
   end
 end

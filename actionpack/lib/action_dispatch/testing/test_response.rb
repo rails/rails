@@ -1,3 +1,5 @@
+require "action_dispatch/testing/request_encoder"
+
 module ActionDispatch
   # Integration test methods such as ActionDispatch::Integration::Session#get
   # and ActionDispatch::Integration::Session#post return objects of class
@@ -7,11 +9,12 @@ module ActionDispatch
   # See Response for more information on controller response objects.
   class TestResponse < Response
     def self.from_response(response)
-      new.tap do |resp|
-        resp.status  = response.status
-        resp.headers = response.headers
-        resp.body    = response.body
-      end
+      new response.status, response.headers, response.body
+    end
+
+    def initialize(*) # :nodoc:
+      super
+      @response_parser = RequestEncoder.parser(content_type)
     end
 
     # Was the response successful?
@@ -20,17 +23,11 @@ module ActionDispatch
     # Was the URL not found?
     alias_method :missing?, :not_found?
 
-    # Were we redirected?
-    alias_method :redirect?, :redirection?
-
     # Was there a server-side error?
     alias_method :error?, :server_error?
 
-    def merge_default_headers(original, *args)
-      # Default headers are already applied, no need to merge them a second time.
-      # This makes sure that default headers, removed in controller actions, will
-      # not be reapplied to the test response.
-      original
+    def parsed_body
+      @parsed_body ||= @response_parser.call(body)
     end
   end
 end

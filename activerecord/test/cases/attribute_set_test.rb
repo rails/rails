@@ -1,10 +1,10 @@
-require 'cases/helper'
+require "cases/helper"
 
 module ActiveRecord
   class AttributeSetTest < ActiveRecord::TestCase
     test "building a new set from raw attributes" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
 
       assert_equal 1, attributes[:foo].value
       assert_equal 2.2, attributes[:bar].value
@@ -14,7 +14,7 @@ module ActiveRecord
 
     test "building with custom types" do
       builder = AttributeSet::Builder.new(foo: Type::Float.new)
-      attributes = builder.build_from_database({ foo: '3.3', bar: '4.4' }, { bar: Type::Integer.new })
+      attributes = builder.build_from_database({ foo: "3.3", bar: "4.4" }, bar: Type::Integer.new)
 
       assert_equal 3.3, attributes[:foo].value
       assert_equal 4, attributes[:bar].value
@@ -22,16 +22,16 @@ module ActiveRecord
 
     test "[] returns a null object" do
       builder = AttributeSet::Builder.new(foo: Type::Float.new)
-      attributes = builder.build_from_database(foo: '3.3')
+      attributes = builder.build_from_database(foo: "3.3")
 
-      assert_equal '3.3', attributes[:foo].value_before_type_cast
-      assert_equal nil, attributes[:bar].value_before_type_cast
+      assert_equal "3.3", attributes[:foo].value_before_type_cast
+      assert_nil attributes[:bar].value_before_type_cast
       assert_equal :bar, attributes[:bar].name
     end
 
-    test "duping creates a new hash and dups each attribute" do
+    test "duping creates a new hash, but does not dup the attributes" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::String.new)
-      attributes = builder.build_from_database(foo: 1, bar: 'foo')
+      attributes = builder.build_from_database(foo: 1, bar: "foo")
 
       # Ensure the type cast value is cached
       attributes[:foo].value
@@ -39,12 +39,30 @@ module ActiveRecord
 
       duped = attributes.dup
       duped.write_from_database(:foo, 2)
-      duped[:bar].value << 'bar'
+      duped[:bar].value << "bar"
 
       assert_equal 1, attributes[:foo].value
       assert_equal 2, duped[:foo].value
-      assert_equal 'foo', attributes[:bar].value
-      assert_equal 'foobar', duped[:bar].value
+      assert_equal "foobar", attributes[:bar].value
+      assert_equal "foobar", duped[:bar].value
+    end
+
+    test "deep_duping creates a new hash and dups each attribute" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::String.new)
+      attributes = builder.build_from_database(foo: 1, bar: "foo")
+
+      # Ensure the type cast value is cached
+      attributes[:foo].value
+      attributes[:bar].value
+
+      duped = attributes.deep_dup
+      duped.write_from_database(:foo, 2)
+      duped[:bar].value << "bar"
+
+      assert_equal 1, attributes[:foo].value
+      assert_equal 2, duped[:foo].value
+      assert_equal "foo", attributes[:bar].value
+      assert_equal "foobar", duped[:bar].value
     end
 
     test "freezing cloned set does not freeze original" do
@@ -59,7 +77,7 @@ module ActiveRecord
 
     test "to_hash returns a hash of the type cast values" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
 
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_hash)
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
@@ -67,7 +85,7 @@ module ActiveRecord
 
     test "to_hash maintains order" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      attributes = builder.build_from_database(foo: '2.2', bar: '3.3')
+      attributes = builder.build_from_database(foo: "2.2", bar: "3.3")
 
       attributes[:bar]
       hash = attributes.to_h
@@ -77,9 +95,9 @@ module ActiveRecord
 
     test "values_before_type_cast" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
-      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
 
-      assert_equal({ foo: '1.1', bar: '2.2' }, attributes.values_before_type_cast)
+      assert_equal({ foo: "1.1", bar: "2.2" }, attributes.values_before_type_cast)
     end
 
     test "known columns are built with uninitialized attributes" do
@@ -111,7 +129,7 @@ module ActiveRecord
 
     test "fetch_value returns the value for the given initialized attribute" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
 
       assert_equal 1, attributes.fetch_value(:foo)
       assert_equal 2.2, attributes.fetch_value(:bar)
@@ -132,8 +150,8 @@ module ActiveRecord
 
     test "fetch_value uses the given block for uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
-      value = attributes.fetch_value(:bar) { |n| n.to_s + '!' }
-      assert_equal 'bar!', value
+      value = attributes.fetch_value(:bar) { |n| n.to_s + "!" }
+      assert_equal "bar!", value
     end
 
     test "fetch_value returns nil for uninitialized attributes if no block is given" do
@@ -159,6 +177,9 @@ module ActiveRecord
       def deserialize(value)
         return if value.nil?
         value + " from database"
+      end
+
+      def assert_valid_value(*)
       end
     end
 
@@ -186,7 +207,7 @@ module ActiveRecord
 
     def attributes_with_uninitialized_key
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      builder.build_from_database(foo: '1.1')
+      builder.build_from_database(foo: "1.1")
     end
 
     test "freezing doesn't prevent the set from materializing" do
@@ -206,6 +227,27 @@ module ActiveRecord
       attributes.fetch_value(:foo)
 
       assert_equal [:foo], attributes.accessed
+    end
+
+    test "#map returns a new attribute set with the changes applied" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      new_attributes = attributes.map do |attr|
+        attr.with_cast_value(attr.value + 1)
+      end
+
+      assert_equal 2, new_attributes.fetch_value(:foo)
+      assert_equal 3, new_attributes.fetch_value(:bar)
+    end
+
+    test "comparison for equality is correctly implemented" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      attributes2 = builder.build_from_database(foo: "1", bar: "2")
+      attributes3 = builder.build_from_database(foo: "2", bar: "2")
+
+      assert_equal attributes, attributes2
+      assert_not_equal attributes2, attributes3
     end
   end
 end

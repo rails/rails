@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module AbstractController
   module Testing
@@ -9,22 +9,20 @@ module AbstractController
     class TranslationControllerTest < ActiveSupport::TestCase
       def setup
         @controller = TranslationController.new
-        I18n.backend.store_translations(:en, {
+        I18n.backend.store_translations(:en,
           one: {
-            two: 'bar',
+            two: "bar",
           },
           abstract_controller: {
             testing: {
               translation: {
                 index: {
-                  foo: 'bar',
+                  foo: "bar",
                 },
-                no_action: 'no_action_tr',
+                no_action: "no_action_tr",
               },
             },
-          },
-        })
-        @controller.stubs(action_name: :index)
+          })
       end
 
       def test_action_controller_base_responds_to_translate
@@ -44,25 +42,34 @@ module AbstractController
       end
 
       def test_lazy_lookup
-        assert_equal 'bar', @controller.t('.foo')
+        @controller.stub :action_name, :index do
+          assert_equal "bar", @controller.t(".foo")
+        end
       end
 
       def test_lazy_lookup_with_symbol
-        assert_equal 'bar', @controller.t(:'.foo')
+        @controller.stub :action_name, :index do
+          assert_equal "bar", @controller.t(:'.foo')
+        end
       end
 
       def test_lazy_lookup_fallback
-        assert_equal 'no_action_tr', @controller.t(:'.no_action')
+        @controller.stub :action_name, :index do
+          assert_equal "no_action_tr", @controller.t(:'.no_action')
+        end
       end
 
       def test_default_translation
-        assert_equal 'bar', @controller.t('one.two')
+        @controller.stub :action_name, :index do
+          assert_equal "bar", @controller.t("one.two")
+        end
       end
 
       def test_localize
-        time, expected = Time.gm(2000), 'Sat, 01 Jan 2000 00:00:00 +0000'
-        I18n.stubs(:localize).with(time).returns(expected)
-        assert_equal expected, @controller.l(time)
+        time, expected = Time.gm(2000), "Sat, 01 Jan 2000 00:00:00 +0000"
+        I18n.stub :localize, expected do
+          assert_equal expected, @controller.l(time)
+        end
       end
     end
   end

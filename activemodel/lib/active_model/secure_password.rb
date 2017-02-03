@@ -26,7 +26,7 @@ module ActiveModel
       # it). When this attribute has a +nil+ value, the validation will not be
       # triggered.
       #
-      # For further customizability, it is possible to supress the default
+      # For further customizability, it is possible to suppress the default
       # validations by passing <tt>validations: false</tt> as an argument.
       #
       # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
@@ -55,7 +55,7 @@ module ActiveModel
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
         begin
-          require 'bcrypt'
+          require "bcrypt"
         rescue LoadError
           $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install"
           raise

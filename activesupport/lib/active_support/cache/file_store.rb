@@ -1,7 +1,7 @@
-require 'active_support/core_ext/marshal'
-require 'active_support/core_ext/file/atomic'
-require 'active_support/core_ext/string/conversions'
-require 'uri/common'
+require "active_support/core_ext/marshal"
+require "active_support/core_ext/file/atomic"
+require "active_support/core_ext/string/conversions"
+require "uri/common"
 
 module ActiveSupport
   module Cache
@@ -10,25 +10,27 @@ module ActiveSupport
     # FileStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class FileStore < Store
+      prepend Strategy::LocalCache
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
       FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
-      EXCLUDED_DIRS = ['.', '..'].freeze
+      EXCLUDED_DIRS = [".", ".."].freeze
+      GITKEEP_FILES = [".gitkeep", ".keep"].freeze
 
       def initialize(cache_path, options = nil)
         super(options)
         @cache_path = cache_path.to_s
-        extend Strategy::LocalCache
       end
 
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
-      # file store directory except for .gitkeep. Be careful which directory is specified in your
+      # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
-        FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
+      def clear
+        root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
+        FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
+      rescue Errno::ENOENT
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
@@ -59,17 +61,16 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           search_dir(cache_path) do |path|
             key = file_path_key(path)
-            delete_entry(key, options) if key.match(matcher)
+            delete_entry(path, options) if key.match(matcher)
           end
         end
       end
 
-      protected
+      private
 
         def read_entry(key, options)
-          file_name = key_file_path(key)
-          if File.exist?(file_name)
-            File.open(file_name) { |f| Marshal.load(f) }
+          if File.exist?(key)
+            File.open(key) { |f| Marshal.load(f) }
           end
         rescue => e
           logger.error("FileStoreError (#{e}): #{e.message}") if logger
@@ -77,33 +78,30 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options)
-          file_name = key_file_path(key)
-          return false if options[:unless_exist] && File.exist?(file_name)
-          ensure_cache_path(File.dirname(file_name))
-          File.atomic_write(file_name, cache_path) {|f| Marshal.dump(entry, f)}
+          return false if options[:unless_exist] && File.exist?(key)
+          ensure_cache_path(File.dirname(key))
+          File.atomic_write(key, cache_path) { |f| Marshal.dump(entry, f) }
           true
         end
 
         def delete_entry(key, options)
-          file_name = key_file_path(key)
-          if File.exist?(file_name)
+          if File.exist?(key)
             begin
-              File.delete(file_name)
-              delete_empty_directories(File.dirname(file_name))
+              File.delete(key)
+              delete_empty_directories(File.dirname(key))
               true
             rescue => e
               # Just in case the error was caused by another process deleting the file first.
-              raise e if File.exist?(file_name)
+              raise e if File.exist?(key)
               false
             end
           end
         end
 
-      private
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
+        def lock_file(file_name, &block)
           if File.exist?(file_name)
-            File.open(file_name, 'r+') do |f|
+            File.open(file_name, "r+") do |f|
               begin
                 f.flock File::LOCK_EX
                 yield
@@ -117,12 +115,14 @@ module ActiveSupport
         end
 
         # Translate a key into a file path.
-        def key_file_path(key)
-          if key.size > FILEPATH_MAX_SIZE
-            key = Digest::MD5.hexdigest(key)
+        def normalize_key(key, options)
+          key = super
+          fname = URI.encode_www_form_component(key)
+
+          if fname.size > FILEPATH_MAX_SIZE
+            fname = Digest::MD5.hexdigest(key)
           end
 
-          fname = URI.encode_www_form_component(key)
           hash = Zlib.adler32(fname)
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
@@ -146,7 +146,7 @@ module ActiveSupport
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
           return if File.realpath(dir) == File.realpath(cache_path)
-          if Dir.entries(dir).reject {|f| EXCLUDED_DIRS.include?(f)}.empty?
+          if exclude_from(dir, EXCLUDED_DIRS).empty?
             Dir.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
@@ -173,7 +173,7 @@ module ActiveSupport
         # Modifies the amount of an already existing integer value that is stored in the cache.
         # If the key is not found nothing is done.
         def modify_value(name, amount, options)
-          file_name = key_file_path(namespaced_key(name, options))
+          file_name = normalize_key(name, options)
 
           lock_file(file_name) do
             options = merged_options(options)
@@ -184,6 +184,11 @@ module ActiveSupport
               num
             end
           end
+        end
+
+        # Exclude entries from source directory
+        def exclude_from(source, excludes)
+          Dir.entries(source).reject { |f| excludes.include?(f) }
         end
     end
   end

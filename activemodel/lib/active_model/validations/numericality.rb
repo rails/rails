@@ -1,5 +1,4 @@
 module ActiveModel
-
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
@@ -20,25 +19,25 @@ module ActiveModel
       def validate_each(record, attr_name, value)
         before_type_cast = :"#{attr_name}_before_type_cast"
 
-        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast)
+        raw_value = record.send(before_type_cast) if record.respond_to?(before_type_cast) && record.send(before_type_cast) != value
         raw_value ||= value
 
         if record_attribute_changed_in_place?(record, attr_name)
           raw_value = value
         end
 
-        return if options[:allow_nil] && raw_value.nil?
-
-        unless value = parse_raw_value_as_a_number(raw_value)
+        unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
           return
         end
 
-        if allow_only_integer?(record)
-          unless value = parse_raw_value_as_an_integer(raw_value)
-            record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
-            return
-          end
+        if allow_only_integer?(record) && !is_integer?(raw_value)
+          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          return
+        end
+
+        unless raw_value.is_a?(Numeric)
+          value = parse_raw_value_as_a_number(raw_value)
         end
 
         options.slice(*CHECKS.keys).each do |option, option_value|
@@ -62,25 +61,29 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
-      def parse_raw_value_as_a_number(raw_value)
-        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+      def is_number?(raw_value) # :doc:
+        !parse_raw_value_as_a_number(raw_value).nil?
       rescue ArgumentError, TypeError
-        nil
+        false
       end
 
-      def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\z/
+      def parse_raw_value_as_a_number(raw_value) # :doc:
+        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
-      def filtered_options(value)
+      def is_integer?(raw_value) # :doc:
+        /\A[+-]?\d+\z/ === raw_value.to_s
+      end
+
+      def filtered_options(value) # :doc:
         filtered = options.except(*RESERVED_OPTIONS)
         filtered[:value] = value
         filtered
       end
 
-      def allow_only_integer?(record)
+      def allow_only_integer?(record) # :doc:
         case options[:only_integer]
         when Symbol
           record.send(options[:only_integer])
@@ -90,8 +93,6 @@ module ActiveModel
           options[:only_integer]
         end
       end
-
-      private
 
       def record_attribute_changed_in_place?(record, attr_name)
         record.respond_to?(:attribute_changed_in_place?) &&
@@ -114,7 +115,7 @@ module ActiveModel
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
-      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.

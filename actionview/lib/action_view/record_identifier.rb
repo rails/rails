@@ -1,28 +1,29 @@
-require 'active_support/core_ext/module'
-require 'action_view/model_naming'
+require "active_support/core_ext/module"
+require "action_view/model_naming"
 
 module ActionView
   # RecordIdentifier encapsulates methods used by various ActionView helpers
   # to associate records with DOM elements.
   #
-  # Consider for example the following code that displays the body of a post:
+  # Consider for example the following code that form of post:
   #
-  #   <%= div_for(post) do %>
-  #     <%= post.body %>
+  #   <%= form_for(post) do |f| %>
+  #     <%= f.text_field :body %>
   #   <% end %>
   #
-  # When +post+ is a new, unsaved ActiveRecord::Base intance, the resulting HTML
+  # When +post+ is a new, unsaved ActiveRecord::Base instance, the resulting HTML
   # is:
   #
-  #    <div id="new_post" class="post">
-  #    </div>
+  #    <form class="new_post" id="new_post" action="/posts" accept-charset="UTF-8" method="post">
+  #      <input type="text" name="post[body]" id="post_body" />
+  #    </form>
   #
   # When +post+ is a persisted ActiveRecord::Base instance, the resulting HTML
   # is:
   #
-  #   <div id="post_42" class="post">
-  #     What a wonderful world!
-  #   </div>
+  #   <form class="edit_post" id="edit_post_42" action="/posts/42" accept-charset="UTF-8" method="post">
+  #     <input type="text" value="What a wonderful world!" name="post[body]" id="post_body" />
+  #   </form>
   #
   # In both cases, the +id+ and +class+ of the wrapping DOM element are
   # automatically generated, following naming conventions encapsulated by the
@@ -56,8 +57,8 @@ module ActionView
 
     include ModelNaming
 
-    JOIN = '_'.freeze
-    NEW = 'new'.freeze
+    JOIN = "_".freeze
+    NEW = "new".freeze
 
     # The DOM class convention is to use the singular form of an object or class.
     #
@@ -91,7 +92,7 @@ module ActionView
       end
     end
 
-  protected
+  private
 
     # Returns a string representation of the key attribute(s) that is suitable for use in an HTML DOM id.
     # This can be overwritten to customize the default generated string representation if desired.
@@ -101,7 +102,7 @@ module ActionView
     # overwritten version of the method. By default, this implementation passes the key string through a
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
-    def record_key_for_dom_id(record)
+    def record_key_for_dom_id(record) # :doc:
       key = convert_to_model(record).to_key
       key ? key.join(JOIN) : key
     end

@@ -11,7 +11,7 @@ module ActionController
 
     config.eager_load_namespaces << ActionController
 
-    initializer "action_controller.assets_config", :group => :all do |app|
+    initializer "action_controller.assets_config", group: :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
 
@@ -51,7 +51,7 @@ module ActionController
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
         extend ::ActionController::Railties::Helpers
 
-        options.each do |k,v|
+        options.each do |k, v|
           k = "#{k}="
           if respond_to?(k)
             send(k, v)

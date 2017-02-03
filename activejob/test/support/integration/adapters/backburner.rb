@@ -23,16 +23,15 @@ module BackburnerJobsManager
   end
 
   def tube
-    @tube ||= Beaneater::Tube.new(Backburner::Worker.connection, "backburner.worker.queue.integration-tests") # backburner dasherizes the queue name
+    @tube ||= Beaneater::Tube.new(@worker.connection, "backburner.worker.queue.integration-tests") # backburner dasherizes the queue name
   end
 
   def can_run?
     begin
-      Backburner::Worker.connection.send :connect!
+      @worker = Backburner::Worker.new
     rescue
       return false
     end
     true
   end
 end
-

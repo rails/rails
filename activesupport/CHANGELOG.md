@@ -1,199 +1,390 @@
-*   Fixed a roundtrip problem with AS::SafeBuffer where primitive-like strings
-    will be dumped as primitives:
+*   Updated Unicode version to 9.0.0
 
-    Before:
+    Now we can handle new emojis such like "👩‍👩‍👧‍👦" ("\u{1F469}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}").
 
-       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
-       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
-       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
-       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
+    version 8.0.0
 
-     After:
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 4
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👦👧‍👩‍👩‍"
 
-       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
-       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
-       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
-       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
+    version 9.0.0
 
-    *Godfrey Chan*
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 1
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👩‍👩‍👧‍👦"
 
-*   Enable number_to_percentage to keep the number's precision by allowing :precision to be nil
+    *Fumiaki MATSUSHIMA*
 
-    *Jack Xu*
+*   Changed `ActiveSupport::Inflector#transliterate` to raise `ArgumentError` when it receives
+    anything except a string.
 
-*   config_accessor became a private method, as with Ruby's attr_accessor.
+    *Kevin McPhillips*
+
+*   Fixed bugs that `StringInquirer#respond_to_missing?` and
+    `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
 
     *Akira Matsuda*
 
-*   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
-    `Time.now` and `Date.today`.
+*   Fix inconsistent results when parsing large durations and constructing durations from code
 
-    *Yuki Nishijima*
+        ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
 
-*   Add `file_fixture` to `ActiveSupport::TestCase`.
-    It provides a simple mechanism to access sample files in your test cases.
+    Duration parsing made independent from any moment of time:
+    Fixed length in seconds is assigned to each duration part during parsing.
 
-    By default file fixtures are stored in `test/fixtures/files`. This can be
-    configured per test-case using the `file_fixture_path` class attribute.
+    Changed duration of months and years in seconds to more accurate and logical:
 
-    *Yves Senn*
+     1. The value of 365.2425 days in Gregorian year is more accurate
+        as it accounts for every 400th non-leap year.
 
-*   Return value of yielded block in `File.atomic_write`.
+     2. Month's length is bound to year's duration, which makes
+        sensible comparisons like `12.months == 1.year` to be `true`
+        and nonsensical ones like `30.days == 1.month` to be `false`.
 
-    *Ian Ker-Seymer*
+    Calculations on times and dates with durations shouldn't be affected as
+    duration's numeric value isn't used in calculations, only parts are used.
 
-*   Duplicate frozen array when assigning it to a HashWithIndifferentAccess so
-    that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
+    Methods on `Numeric` like `2.days` now use these predefined durations
+    to avoid duplicating of duration constants through the codebase and
+    eliminate creation of intermediate durations.
 
-    Fixes #18550.
+    *Andrey Novikov, Andrew White*
 
-    *Aditya Kapoor*
+*   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
+    to false.
 
-*   Add missing time zone definitions for Russian Federation and sync them
-    with `zone.tab` file from tzdata version 2014j (latest).
+    *utilum*
 
-    *Andrey Novikov*
+*   Change return value of `NilClass#duplicable?`, `FalseClass#duplicable?`,
+    `TrueClass#duplicable?`, `Symbol#duplicable?` and `Numeric#duplicable?`
+    to true with Ruby 2.4+. These classes can dup with Ruby 2.4+.
 
-*   Add `SecureRandom.base58` for generation of random base58 strings.
+    *Yuji Yaginuma*
 
-    *Matthew Draper*, *Guillermo Iguaran*
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
 
-*   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
-    `#tomorrow` for `Date`, `Time`, and `DateTime`.
+    *Andrew White*
 
-    *George Claghorn*
+*   Remove deprecated separator argument from `parameterize`
 
-*   Add `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
-    and `DateTime`.
+    *Andrew White*
 
-    *George Claghorn*
+*   Remove deprecated method `Numeric#to_formatted_s`
 
-*   Add `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
-    `Time`, and `DateTime`.
+    *Andrew White*
 
-    `#on_weekend?` returns true if the receiving date/time falls on a Saturday
-    or Sunday.
+*   Remove deprecated method `alias_method_chain`
 
-    `#next_weekday` returns a new date/time representing the next day that does
-    not fall on a Saturday or Sunday.
+    *Andrew White*
 
-    `#prev_weekday` returns a new date/time representing the previous day that
-    does not fall on a Saturday or Sunday.
+*   Remove deprecated constant `MissingSourceFile`
 
-    *George Claghorn*
+    *Andrew White*
 
-*   Change the default test order from `:sorted` to `:random`.
+*   Remove deprecated methods `Module.qualified_const_defined?`,
+    `Module.qualified_const_get` and `Module.qualified_const_set`
 
-    *Rafael Mendonça França*
+    *Andrew White*
 
-*   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+*   Remove deprecated `:prefix` option from `number_to_human_size`
 
-    *Rafael Mendonça França*
+    *Andrew White*
 
-*   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
-    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
 
-    *Rafael Mendonça França*
+    *Andrew White*
 
-*   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
 
-    *Rafael Mendonça França*
+    *Andrew White*
 
-*   Remove deprecated methods at `Kernel`.
+*   Remove deprecated file `active_support/core_ext/struct.rb`
 
-    `silence_stderr`, `silence_stream`, `capture` and `quietly`.
+    *Andrew White*
 
-    *Rafael Mendonça França*
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
 
-*   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
-    file.
+    *Andrew White*
 
-    *Rafael Mendonça França*
+*   Remove deprecated method `Module.local_constants`
 
-*   Remove deprecated methods `ActiveSupport::Cache::Store.instrument` and
-    `ActiveSupport::Cache::Store.instrument=`.
+    *Andrew White*
 
-    *Rafael Mendonça França*
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
 
-*   Change the way in which callback chains can be halted.
+    *Andrew White*
 
-    The preferred method to halt a callback chain from now on is to explicitly
-    `throw(:abort)`.
-    In the past, returning `false` in an ActiveSupport callback had the side
-    effect of halting the callback chain. This is not recommended anymore and,
-    depending on the value of
-    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
-    either not work at all or display a deprecation warning.
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
 
-*   Add Callbacks::CallbackChain.halt_and_display_warning_on_return_false
+    *Andrew White*
 
-    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
-    to true will let an app support the deprecated way of halting callback
-    chains by returning `false`.
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
 
-    Setting the value to false will tell the app to ignore any `false` value
-    returned by callbacks, and only halt the chain upon `throw(:abort)`.
+    *Andrew White*
 
-    The value can also be set with the Rails configuration option
-    `config.active_support.halt_callback_chains_on_return_false`.
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
 
-    When the configuration option is missing, its value is `true`, so older apps
-    ported to Rails 5.0 will not break (but display a deprecation warning).
-    For new Rails 5.0 apps, its value is set to `false` in an initializer, so
-    these apps will support the new behavior by default.
+    *Andrew White*
 
-    *claudiob*
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
 
-*   Changes arguments and default value of CallbackChain's :terminator option
+    *Andrew White*
 
-    Chains of callbacks defined without an explicit `:terminator` option will
-    now be halted as soon as a `before_` callback throws `:abort`.
+*   Ensure duration parsing is consistent across DST changes
 
-    Chains of callbacks defined with a `:terminator` option will maintain their
-    existing behavior of halting as soon as a `before_` callback matches the
-    terminator's expectation.
+    Previously `ActiveSupport::Duration.parse` used `Time.current` and
+    `Time#advance` to calculate the number of seconds in the duration
+    from an arbitrary collection of parts. However as `advance` tries to
+    be consistent across DST boundaries this meant that either the
+    duration was shorter or longer depending on the time of year.
 
-    *claudiob*
+    This was fixed by using an absolute reference point in UTC which
+    isn't subject to DST transitions. An arbitrary date of Jan 1st, 2000
+    was chosen for no other reason that it seemed appropriate.
 
-*   Deprecate `MissingSourceFile` in favor of `LoadError`.
+    Additionally, duration parsing should now be marginally faster as we
+    are no longer creating instances of `ActiveSupport::TimeWithZone`
+    every time we parse a duration string.
 
-    `MissingSourceFile` was just an alias to `LoadError` and was not being
-    raised inside the framework.
+    Fixes #26941.
 
-    *Rafael Mendonça França*
+    *Andrew White*
 
-*   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
-    Now it acts closer to Ruby's rescue.
+*   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
+    will continue to get these methods from Active Support as before.
 
-    Example:
+    *Prathamesh Sonpatki*
 
-        class BaseController < ApplicationController
-          module ErrorDispatcher
-            def self.===(other)
-              Exception === other && other.respond_to?(:status)
-            end
-          end
+*   Fix `ActiveSupport::TimeZone#strptime`.
+    Support for timestamps in format of seconds (%s) and milliseconds (%Q).
 
-          rescue_from ErrorDispatcher do |error|
-            render status: error.status, json: { error: error.to_s }
-          end
+    Fixes #26840.
+
+    *Lev Denisov*
+
+*   Fix `DateAndTime::Calculations#copy_time_to`. Copy `nsec` instead of `usec`.
+
+    Jumping forward or backward between weeks now preserves nanosecond digits.
+
+    *Josua Schmid*
+
+*   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
+
+    Previously calls to `in` were being sent to the non-DST aware
+    method `Time#since` via `method_missing`. It is now aliased to
+    the DST aware `ActiveSupport::TimeWithZone#+` which handles
+    transitions across DST boundaries, e.g:
+
+        Time.zone = "US/Eastern"
+
+        t = Time.zone.local(2016,11,6,1)
+        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00
+
+        t.in(1.hour)
+        # => Sun, 06 Nov 2016 01:00:00 EST -05:00
+
+    Fixes #26580.
+
+    *Thomas Balthazar*
+
+*   Remove unused parameter `options = nil` for `#clear` of
+    `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
+    `ActiveSupport::Cache::Strategy::LocalCache`.
+
+    *Yosuke Kabuto*
+
+*   Fix `thread_mattr_accessor` subclass no longer overwrites parent.
+
+    Assigning a value to a subclass using `thread_mattr_accessor` no
+    longer changes the value of the parent class. This brings the
+    behavior inline with the documentation.
+
+    Given:
+
+        class Account
+          thread_mattr_accessor :user
+        end
+
+        class Customer < Account
+        end
+
+        Account.user = "DHH"
+        Customer.user = "Rafael"
+
+    Before:
+
+        Account.user  # => "Rafael"
+
+    After:
+
+        Account.user  # => "DHH"
+
+    *Shinichi Maeshima*
+
+*   Since weeks are no longer converted to days, add `:weeks` to the list of
+    parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
+    of variable duration to take account of DST transitions.
+
+    Fixes #26039.
+
+    *Andrew White*
+
+*   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
+    has the same interface, but it does not have the performance boost. Its
+    purpose is to be able to write 2.4 compatible code.
+
+    *Xavier Noria*
+
+*   Allow `MessageEncryptor` to take advantage of authenticated encryption modes.
+
+    AEAD modes like `aes-256-gcm` provide both confidentiality and data
+    authenticity, eliminating the need to use `MessageVerifier` to check if the
+    encrypted data has been tampered with. This speeds up encryption/decryption
+    and results in shorter cipher text.
+
+    *Bart de Water*
+
+*   Introduce `assert_changes` and `assert_no_changes`.
+
+    `assert_changes` is a more general `assert_difference` that works with any
+    value.
+
+        assert_changes 'Error.current', from: nil, to: 'ERR' do
+          expected_bad_operation
+        end
+
+    Can be called with strings, to be evaluated in the binding (context) of
+    the block given to the assertion, or a lambda.
+
+        assert_changes -> { Error.current }, from: nil, to: 'ERR' do
+          expected_bad_operation
+        end
+
+    The `from` and `to` arguments are compared with the case operator (`===`).
+
+        assert_changes 'Error.current', from: nil, to: Error do
+          expected_bad_operation
+        end
+
+    This is pretty useful, if you need to loosely compare a value. For example,
+    you need to test a token has been generated and it has that many random
+    characters.
+
+        user = User.start_registration
+        assert_changes 'user.token', to: /\w{32}/ do
+          user.finish_registration
         end
 
     *Genadi Samokovarov*
 
-*   Add `#verified` and `#valid_message?` methods to `ActiveSupport::MessageVerifier`
+*   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
+    given time doesn't match the format. The error is the same as the one given
+    by Ruby's `Date.strptime`. Previously it raised
+    `NoMethodError: undefined method empty? for nil:NilClass.` due to a bug.
 
-    Previously, the only way to decode a message with `ActiveSupport::MessageVerifier`
-    was to use `#verify`, which would raise an exception on invalid messages. Now
-    `#verified` can also be used, which returns `nil` on messages that cannot be
-    decoded.
+    Fixes #25701.
 
-    Previously, there was no way to check if a message's format was valid without
-    attempting to decode it. `#valid_message?` is a boolean convenience method that
-    checks whether the message is valid without actually decoding it.
+    *John Gesimondo*
 
-    *Logan Leger*
+*   `travel/travel_to` travel time helpers, now raise on nested calls,
+     as this can lead to confusing time stubbing.
 
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md) for previous changes.
+     Instead of:
+
+         travel_to 2.days.from_now do
+           # 2 days from today
+           travel_to 3.days.from_now do
+             # 5 days from today
+           end
+         end
+
+     preferred way to achieve above is:
+
+         travel 2.days do
+           # 2 days from today
+         end
+
+         travel 5.days do
+           # 5 days from today
+         end
+
+     *Vipul A M*
+
+*   Support parsing JSON time in ISO8601 local time strings in
+    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
+    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
+    the end) will be parsed in the local timezone (`Time.zone`). In
+    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
+    objects.
+
+    *Grzegorz Witek*
+
+*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
+    properly delegate to all loggers. Silencing now properly suppresses logging
+    to both the log and the console.
+
+    *Kevin McPhillips*
+
+*   Remove deprecated arguments in `assert_nothing_raised`.
+
+    *Rafel Mendonça França*
+
+*   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
+    will now produce `01 Feb` instead of ` 1 Feb`.
+
+    Fixes #25251.
+
+    *Sean Griffin*
+
+*   Introduce `Module#delegate_missing_to`.
+
+    When building a decorator, a common pattern emerges:
+
+        class Partition
+          def initialize(first_event)
+            @events = [ first_event ]
+          end
+
+          def people
+            if @events.first.detail.people.any?
+              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
+            else
+              @events.collect(&:creator).uniq
+            end
+          end
+
+          private
+            def respond_to_missing?(name, include_private = false)
+              @events.respond_to?(name, include_private)
+            end
+
+            def method_missing(method, *args, &block)
+              @events.send(method, *args, &block)
+            end
+        end
+
+    With `Module#delegate_missing_to`, the above is condensed to:
+
+        class Partition
+          delegate_missing_to :@events
+
+          def initialize(first_event)
+            @events = [ first_event ]
+          end
+
+          def people
+            if @events.first.detail.people.any?
+              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
+            else
+              @events.collect(&:creator).uniq
+            end
+          end
+        end
+
+    *Genadi Samokovarov*, *DHH*
+
+*   Rescuable: If a handler doesn't match the exception, check for handlers
+    matching the exception's cause.
+
+    *Jeremy Daer*
+
+Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activesupport/CHANGELOG.md) for previous changes.

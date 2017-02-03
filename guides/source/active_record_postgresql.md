@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 8.2
+In order to use the PostgreSQL adapter you need to have at least version 9.1
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
@@ -29,8 +29,8 @@ that are supported by the PostgreSQL adapter.
 
 ### Bytea
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-binary.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-binarystring.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-binary.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-binarystring.html)
 
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
@@ -39,7 +39,7 @@ create_table :documents do |t|
 end
 
 # app/models/document.rb
-class Document < ActiveRecord::Base
+class Document < ApplicationRecord
 end
 
 # Usage
@@ -49,8 +49,8 @@ Document.create payload: data
 
 ### Array
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/arrays.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-array.html)
+* [type definition](http://www.postgresql.org/docs/current/static/arrays.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-array.html)
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
@@ -63,7 +63,7 @@ add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
 
 # app/models/book.rb
-class Book < ActiveRecord::Base
+class Book < ApplicationRecord
 end
 
 # Usage
@@ -83,9 +83,10 @@ Book.where("array_length(ratings, 1) >= 3")
 
 ### Hstore
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
+* [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN167712)
 
-NOTE: you need to enable the `hstore` extension to use hstore.
+NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
@@ -97,7 +98,7 @@ ActiveRecord::Schema.define do
 end
 
 # app/models/profile.rb
-class Profile < ActiveRecord::Base
+class Profile < ApplicationRecord
 end
 
 # Usage
@@ -108,12 +109,15 @@ profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
 profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
+
+Profile.where("settings->'color' = ?", "yellow")
+# => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
 ### JSON
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-json.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-json.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
@@ -122,7 +126,7 @@ create_table :events do |t|
 end
 
 # app/models/event.rb
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 end
 
 # Usage
@@ -138,10 +142,10 @@ Event.where("payload->>'kind' = ?", "user_renamed")
 
 ### Range Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/rangetypes.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-range.html)
+* [type definition](http://www.postgresql.org/docs/current/static/rangetypes.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.1.1/Range.html) objects.
+This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.2.2/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -150,7 +154,7 @@ create_table :events do |t|
 end
 
 # app/models/event.rb
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 end
 
 # Usage
@@ -173,7 +177,7 @@ event.ends_at # => Thu, 13 Feb 2014
 
 ### Composite Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/rowtypes.html)
+* [type definition](http://www.postgresql.org/docs/current/static/rowtypes.html)
 
 Currently there is no special support for composite types. They are mapped to
 normal text columns:
@@ -200,7 +204,7 @@ create_table :contacts do |t|
 end
 
 # app/models/contact.rb
-class Contact < ActiveRecord::Base
+class Contact < ApplicationRecord
 end
 
 # Usage
@@ -213,22 +217,33 @@ contact.save!
 
 ### Enumerated Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-enum.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-enum.html)
 
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
-execute <<-SQL
-  CREATE TYPE article_status AS ENUM ('draft', 'published');
-SQL
-create_table :articles do |t|
-  t.column :status, :article_status
+def up
+  execute <<-SQL
+    CREATE TYPE article_status AS ENUM ('draft', 'published');
+  SQL
+  create_table :articles do |t|
+    t.column :status, :article_status
+  end
+end
+
+# NOTE: It's important to drop table before dropping enum.
+def down
+  drop_table :articles
+
+  execute <<-SQL
+    DROP TYPE article_status;
+  SQL
 end
 
 # app/models/article.rb
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
 end
 
 # Usage
@@ -240,20 +255,50 @@ article.status = "published"
 article.save!
 ```
 
+To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html):
+
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+# NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
+disable_ddl_transaction!
+
+def up
+  execute <<-SQL
+    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'archived' AFTER 'published';
+  SQL
+end
+```
+
+NOTE: ENUM values can't be dropped currently. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+
+```sql
+SELECT n.nspname AS enum_schema,
+       t.typname AS enum_name,
+       e.enumlabel AS enum_value
+  FROM pg_type t
+      JOIN pg_enum e ON t.oid = e.enumtypid
+      JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+```
+
 ### UUID
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-uuid.html)
-* [generator functions](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
+* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
+* [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+extension to use uuid.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
 create_table :revisions do |t|
-  t.column :identifier, :uuid
+  t.uuid :identifier
 end
 
 # app/models/revision.rb
-class Revision < ActiveRecord::Base
+class Revision < ApplicationRecord
 end
 
 # Usage
@@ -263,10 +308,35 @@ revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 ```
 
+You can use `uuid` type to define references in migrations:
+
+```ruby
+# db/migrate/20150418012400_create_blog.rb
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :posts, id: :uuid, default: 'gen_random_uuid()'
+
+create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
+  # t.belongs_to :post, type: :uuid
+  t.references :post, type: :uuid
+end
+
+# app/models/post.rb
+class Post < ApplicationRecord
+  has_many :comments
+end
+
+# app/models/comment.rb
+class Comment < ApplicationRecord
+  belongs_to :post
+end
+```
+
+See [this section](#uuid-primary-keys) for more details on using UUIDs as primary key.
+
 ### Bit String Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-bit.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-bitstring.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-bit.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-bitstring.html)
 
 ```ruby
 # db/migrate/20131220144913_create_users.rb
@@ -275,7 +345,7 @@ create_table :users, force: true do |t|
 end
 
 # app/models/device.rb
-class User < ActiveRecord::Base
+class User < ApplicationRecord
 end
 
 # Usage
@@ -289,10 +359,10 @@ user.save!
 
 ### Network Address Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby
@@ -304,7 +374,7 @@ create_table(:devices, force: true) do |t|
 end
 
 # app/models/device.rb
-class Device < ActiveRecord::Base
+class Device < ApplicationRecord
 end
 
 # Usage
@@ -324,7 +394,7 @@ macbook.address
 
 ### Geometric Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
 A point is casted to an array containing `x` and `y` coordinates.
@@ -333,23 +403,27 @@ A point is casted to an array containing `x` and `y` coordinates.
 UUID Primary Keys
 -----------------
 
-NOTE: you need to enable the `uuid-ossp` extension to generate UUIDs.
+NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
+extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
-enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
-create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
   t.string :kind
 end
 
 # app/models/device.rb
-class Device < ActiveRecord::Base
+class Device < ApplicationRecord
 end
 
 # Usage
 device = Device.create
 device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
+
+NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
+passed to `create_table`.
 
 Full Text Search
 ----------------
@@ -361,10 +435,10 @@ create_table :documents do |t|
   t.string 'body'
 end
 
-execute "CREATE INDEX documents_idx ON documents USING gin(to_tsvector('english', title || ' ' || body));"
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
 
 # app/models/document.rb
-class Document < ActiveRecord::Base
+class Document < ApplicationRecord
 end
 
 # Usage
@@ -378,7 +452,7 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
 Database Views
 --------------
 
-* [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
+* [view creation](http://www.postgresql.org/docs/current/static/sql-createview.html)
 
 Imagine you need to work with a legacy database containing the following table:
 
@@ -414,7 +488,7 @@ CREATE VIEW articles AS
   SQL
 
 # app/models/article.rb
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   self.primary_key = "id"
   def archive!
     update_attribute :archived, true
@@ -429,9 +503,9 @@ second = Article.create! title: "Brace yourself",
                          status: "draft",
                          published_at: 1.month.ago
 
-Article.count # => 1
-first.archive!
 Article.count # => 2
+first.archive!
+Article.count # => 1
 ```
 
 NOTE: This application only cares about non-archived `Articles`. A view also

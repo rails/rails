@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'action_dispatch/http/upload'
-require 'action_controller/metal/strong_parameters'
+require "abstract_unit"
+require "action_dispatch/http/upload"
+require "action_controller/metal/strong_parameters"
 
 class ParametersPermitTest < ActiveSupport::TestCase
   def assert_filtered_out(params, key)
@@ -10,32 +10,53 @@ class ParametersPermitTest < ActiveSupport::TestCase
   setup do
     @params = ActionController::Parameters.new(
       person: {
-        age: '32',
+        age: "32",
         name: {
-          first: 'David',
-          last: 'Heinemeier Hansson'
+          first: "David",
+          last: "Heinemeier Hansson"
         },
-        addresses: [{city: 'Chicago', state: 'Illinois'}]
+        addresses: [{ city: "Chicago", state: "Illinois" }]
       }
     )
 
     @struct_fields = []
     %w(0 1 12).each do |number|
-      ['', 'i', 'f'].each do |suffix|
+      ["", "i", "f"].each do |suffix|
         @struct_fields << "sf(#{number}#{suffix})"
       end
     end
   end
 
-  test 'if nothing is permitted, the hash becomes empty' do
-    params = ActionController::Parameters.new(id: '1234')
+  def walk_permitted(params)
+    params.each do |k, v|
+      case v
+      when ActionController::Parameters
+        walk_permitted v
+      when Array
+        v.each { |x| walk_permitted v }
+      end
+    end
+  end
+
+  test "iteration should not impact permit" do
+    hash = { "foo" => { "bar" => { "0" => { "baz" => "hello", "zot" => "1" } } } }
+    params = ActionController::Parameters.new(hash)
+
+    walk_permitted params
+
+    sanitized = params[:foo].permit(bar: [:baz])
+    assert_equal({ "0" => { "baz" => "hello" } }, sanitized[:bar].to_unsafe_h)
+  end
+
+  test "if nothing is permitted, the hash becomes empty" do
+    params = ActionController::Parameters.new(id: "1234")
     permitted = params.permit
     assert permitted.permitted?
     assert permitted.empty?
   end
 
-  test 'key: permitted scalar values' do
-    values  = ['a', :a, nil]
+  test "key: permitted scalar values" do
+    values  = ["a", :a, nil]
     values += [0, 1.0, 2**128, BigDecimal.new(1)]
     values += [true, false]
     values += [Date.today, Time.now, DateTime.now]
@@ -45,25 +66,33 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values.each do |value|
       params = ActionController::Parameters.new(id: value)
       permitted = params.permit(:id)
-      assert_equal value, permitted[:id]
+      if value.nil?
+        assert_nil permitted[:id]
+      else
+        assert_equal value, permitted[:id]
+      end
 
       @struct_fields.each do |sf|
         params = ActionController::Parameters.new(sf => value)
         permitted = params.permit(:sf)
-        assert_equal value, permitted[sf]
+        if value.nil?
+          assert_nil permitted[sf]
+        else
+          assert_equal value, permitted[sf]
+        end
       end
     end
   end
 
-  test 'key: unknown keys are filtered out' do
-    params = ActionController::Parameters.new(id: '1234', injected: 'injected')
+  test "key: unknown keys are filtered out" do
+    params = ActionController::Parameters.new(id: "1234", injected: "injected")
     permitted = params.permit(:id)
-    assert_equal '1234', permitted[:id]
+    assert_equal "1234", permitted[:id]
     assert_filtered_out permitted, :injected
   end
 
-  test 'key: arrays are filtered out' do
-    [[], [1], ['1']].each do |array|
+  test "key: arrays are filtered out" do
+    [[], [1], ["1"]].each do |array|
       params = ActionController::Parameters.new(id: array)
       permitted = params.permit(:id)
       assert_filtered_out permitted, :id
@@ -76,8 +105,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  test 'key: hashes are filtered out' do
-    [{}, {foo: 1}, {foo: 'bar'}].each do |hash|
+  test "key: hashes are filtered out" do
+    [{}, { foo: 1 }, { foo: "bar" }].each do |hash|
       params = ActionController::Parameters.new(id: hash)
       permitted = params.permit(:id)
       assert_filtered_out permitted, :id
@@ -90,7 +119,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  test 'key: non-permitted scalar values are filtered out' do
+  test "key: non-permitted scalar values are filtered out" do
     params = ActionController::Parameters.new(id: Object.new)
     permitted = params.permit(:id)
     assert_filtered_out permitted, :id
@@ -102,49 +131,82 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  test 'key: it is not assigned if not present in params' do
-    params = ActionController::Parameters.new(name: 'Joe')
+  test "key: it is not assigned if not present in params" do
+    params = ActionController::Parameters.new(name: "Joe")
     permitted = params.permit(:id)
     assert !permitted.has_key?(:id)
   end
 
-  test 'key to empty array: empty arrays pass' do
+  test "key to empty array: empty arrays pass" do
     params = ActionController::Parameters.new(id: [])
     permitted = params.permit(id: [])
     assert_equal [], permitted[:id]
   end
 
-  test 'do not break params filtering on nil values' do
+  test "do not break params filtering on nil values" do
     params = ActionController::Parameters.new(a: 1, b: [1, 2, 3], c: nil)
 
     permitted = params.permit(:a, c: [], b: [])
     assert_equal 1, permitted[:a]
     assert_equal [1, 2, 3], permitted[:b]
-    assert_equal nil, permitted[:c]
+    assert_nil permitted[:c]
   end
 
-  test 'key to empty array: arrays of permitted scalars pass' do
-    [['foo'], [1], ['foo', 'bar'], [1, 2, 3]].each do |array|
+  test "key to empty array: arrays of permitted scalars pass" do
+    [["foo"], [1], ["foo", "bar"], [1, 2, 3]].each do |array|
       params = ActionController::Parameters.new(id: array)
       permitted = params.permit(id: [])
       assert_equal array, permitted[:id]
     end
   end
 
-  test 'key to empty array: permitted scalar values do not pass' do
-    ['foo', 1].each do |permitted_scalar|
+  test "key to empty array: permitted scalar values do not pass" do
+    ["foo", 1].each do |permitted_scalar|
       params = ActionController::Parameters.new(id: permitted_scalar)
       permitted = params.permit(id: [])
       assert_filtered_out permitted, :id
     end
   end
 
-  test 'key to empty array: arrays of non-permitted scalar do not pass' do
-    [[Object.new], [[]], [[1]], [{}], [{id: '1'}]].each do |non_permitted_scalar|
+  test "key to empty array: arrays of non-permitted scalar do not pass" do
+    [[Object.new], [[]], [[1]], [{}], [{ id: "1" }]].each do |non_permitted_scalar|
       params = ActionController::Parameters.new(id: non_permitted_scalar)
       permitted = params.permit(id: [])
       assert_filtered_out permitted, :id
     end
+  end
+
+  test "key to empty hash: arbitrary hashes are permitted" do
+    params = ActionController::Parameters.new(
+      username: "fxn",
+      preferences: {
+        scheme: "Marazul",
+        font: {
+          name: "Source Code Pro",
+          size: 12
+        },
+        tabstops:   [4, 8, 12, 16],
+        suspicious: [true, Object.new, false, /yo!/],
+        dubious:    [{ a: :a, b: /wtf!/ }, { c: :c }],
+        injected:   Object.new
+      },
+      hacked: 1 # not a hash
+    )
+
+    permitted = params.permit(:username, preferences: {}, hacked: {})
+
+    assert_equal "fxn",             permitted[:username]
+    assert_equal "Marazul",         permitted[:preferences][:scheme]
+    assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
+    assert_equal 12,                permitted[:preferences][:font][:size]
+    assert_equal [4, 8, 12, 16],    permitted[:preferences][:tabstops]
+    assert_equal [true, false],     permitted[:preferences][:suspicious]
+    assert_equal :a,                permitted[:preferences][:dubious][0][:a]
+    assert_equal :c,                permitted[:preferences][:dubious][1][:c]
+
+    assert_filtered_out permitted[:preferences][:dubious][0], :b
+    assert_filtered_out permitted[:preferences], :injected
+    assert_filtered_out permitted, :hacked
   end
 
   test "fetch raises ParameterMissing exception" do
@@ -157,10 +219,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "fetch with a default value of a hash does not mutate the object" do
     params = ActionController::Parameters.new({})
     params.fetch :foo, {}
-    assert_equal nil, params[:foo]
+    assert_nil params[:foo]
   end
 
-  test 'hashes in array values get wrapped' do
+  test "hashes in array values get wrapped" do
     params = ActionController::Parameters.new(foo: [{}, {}])
     params[:foo].each do |hash|
       assert !hash.permitted?
@@ -170,7 +232,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   # Strong params has an optimization to avoid looping every time you read
   # a key whose value is an array and building a new object. We check that
   # optimization here.
-  test 'arrays are converted at most once' do
+  test "arrays are converted at most once" do
     params = ActionController::Parameters.new(foo: [{}])
     assert_same params[:foo], params[:foo]
   end
@@ -181,17 +243,30 @@ class ParametersPermitTest < ActiveSupport::TestCase
   # This test checks that if we push a hash to an array (in-place modification)
   # the cache does not get fooled, the hash is still wrapped as strong params,
   # and not permitted.
-  test 'mutated arrays are detected' do
-    params = ActionController::Parameters.new(users: [{id: 1}])
+  test "mutated arrays are detected" do
+    params = ActionController::Parameters.new(users: [{ id: 1 }])
 
     permitted = params.permit(users: [:id])
-    permitted[:users] << {injected: 1}
+    permitted[:users] << { injected: 1 }
     assert_not permitted[:users].last.permitted?
   end
 
   test "fetch doesnt raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
+  end
+
+  test "fetch doesnt raise ParameterMissing exception if there is a default that is nil" do
+    assert_nil @params.fetch(:foo, nil)
+    assert_nil @params.fetch(:foo) { nil }
+  end
+
+  test "KeyError in fetch block should not be covered up" do
+    params = ActionController::Parameters.new
+    e = assert_raises(KeyError) do
+      params.fetch(:missing_key) { {}.fetch(:also_missing) }
+    end
+    assert_match(/:also_missing$/, e.message)
   end
 
   test "not permitted is sticky beyond merges" do
@@ -203,17 +278,36 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.merge(a: "b").permitted?
   end
 
+  test "merge with parameters" do
+    other_params = ActionController::Parameters.new(id: "1234").permit!
+    merged_params = @params.merge(other_params)
+
+    assert merged_params[:id]
+  end
+
+  test "not permitted is sticky beyond merge!" do
+    assert_not @params.merge!(a: "b").permitted?
+  end
+
+  test "permitted is sticky beyond merge!" do
+    @params.permit!
+    assert @params.merge!(a: "b").permitted?
+  end
+
+  test "merge! with parameters" do
+    other_params = ActionController::Parameters.new(id: "1234").permit!
+    @params.merge!(other_params)
+
+    assert_equal "1234", @params[:id]
+    assert_equal "32", @params[:person][:age]
+  end
+
   test "modifying the parameters" do
     @params[:person][:hometown] = "Chicago"
     @params[:person][:family] = { brother: "Jonas" }
 
     assert_equal "Chicago", @params[:person][:hometown]
     assert_equal "Jonas", @params[:person][:family][:brother]
-  end
-
-  test "permit state is kept on a dup" do
-    @params.permit!
-    assert_equal @params.permitted?, @params.dup.permitted?
   end
 
   test "permit is recursive" do
@@ -227,9 +321,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
     begin
       ActionController::Parameters.permit_all_parameters = true
-      params = ActionController::Parameters.new({ person: {
+      params = ActionController::Parameters.new(person: {
         age: "32", name: { first: "David", last: "Heinemeier Hansson" }
-      }})
+      })
 
       assert params.slice(:person).permitted?
       assert params[:person][:name].permitted?
@@ -243,7 +337,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_h returns empty hash on unpermitted params" do
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
     assert @params.to_h.empty?
   end
@@ -251,9 +345,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_h returns converted hash on permitted params" do
     @params.permit!
 
-    assert @params.to_h.is_a? Hash
+    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
     assert_not @params.to_h.is_a? ActionController::Parameters
-    assert_equal @params.to_hash, @params.to_h
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
@@ -261,7 +354,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert params.to_h.is_a? Hash
+      assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
       assert_not @params.to_h.is_a? ActionController::Parameters
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
@@ -282,8 +375,64 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params" do
-    assert @params.to_h.is_a? Hash
-    assert_not @params.to_h.is_a? ActionController::Parameters
-    assert_equal @params.to_hash, @params.to_unsafe_h
+    assert @params.to_unsafe_h.is_a? ActiveSupport::HashWithIndifferentAccess
+    assert_not @params.to_unsafe_h.is_a? ActionController::Parameters
+  end
+
+  test "to_unsafe_h returns unfiltered params even after accessing few keys" do
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    expected = { "f" => { "language_facet" => ["Tibetan"] } }
+
+    assert params["f"].is_a? ActionController::Parameters
+    assert_equal expected, params.to_unsafe_h
+  end
+
+  test "to_h only deep dups Ruby collections" do
+    company = Class.new do
+      attr_reader :dupped
+      def dup; @dupped = true; end
+    end.new
+
+    params = ActionController::Parameters.new(prem: { likes: %i( dancing ) })
+    assert_equal({ "prem" => { "likes" => %i( dancing ) } }, params.permit!.to_h)
+
+    params = ActionController::Parameters.new(companies: [ company, :acme ])
+    assert_equal({ "companies" => [ company, :acme ] }, params.permit!.to_h)
+    assert_not company.dupped
+  end
+
+  test "to_unsafe_h only deep dups Ruby collections" do
+    company = Class.new do
+      attr_reader :dupped
+      def dup; @dupped = true; end
+    end.new
+
+    params = ActionController::Parameters.new(prem: { likes: %i( dancing ) })
+    assert_equal({ "prem" => { "likes" => %i( dancing ) } }, params.to_unsafe_h)
+
+    params = ActionController::Parameters.new(companies: [ company, :acme ])
+    assert_equal({ "companies" => [ company, :acme ] }, params.to_unsafe_h)
+    assert_not company.dupped
+  end
+
+  test "include? returns true when the key is present" do
+    assert @params.include? :person
+    assert @params.include? "person"
+    assert_not @params.include? :gorilla
+  end
+
+  test "scalar values should be filtered when array or hash is specified" do
+    params = ActionController::Parameters.new(foo: "bar")
+
+    assert params.permit(:foo).has_key?(:foo)
+    refute params.permit(foo: []).has_key?(:foo)
+    refute params.permit(foo: [:bar]).has_key?(:foo)
+    refute params.permit(foo: :bar).has_key?(:foo)
+  end
+
+  test "#permitted? is false by default" do
+    params = ActionController::Parameters.new
+
+    assert_equal false, params.permitted?
   end
 end

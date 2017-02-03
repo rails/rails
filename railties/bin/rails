@@ -1,9 +1,0 @@
-#!/usr/bin/env ruby
-
-git_path = File.expand_path('../../../.git', __FILE__)
-
-if File.exist?(git_path)
-  railties_path = File.expand_path('../../lib', __FILE__)
-  $:.unshift(railties_path)
-end
-require "rails/cli"

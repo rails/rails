@@ -1,7 +1,6 @@
 require "active_model/validations/clusivity"
 
 module ActiveModel
-
   module Validations
     class InclusionValidator < EachValidator # :nodoc:
       include Clusivity
@@ -28,9 +27,9 @@ module ActiveModel
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of available items. This can be
       #   supplied as a proc, lambda or symbol which returns an enumerable. If the
-      #   enumerable is a numerical range the test is performed with <tt>Range#cover?</tt>,
-      #   otherwise with <tt>include?</tt>. When using a proc or lambda the instance
-      #   under validation is passed as an argument.
+      #   enumerable is a numerical, time or datetime range the test is performed
+      #   with <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>. When using
+      #   a proc or lambda the instance under validation is passed as an argument.
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is
       #   not included in the list").

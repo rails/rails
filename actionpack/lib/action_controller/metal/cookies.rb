@@ -2,10 +2,8 @@ module ActionController #:nodoc:
   module Cookies
     extend ActiveSupport::Concern
 
-    include RackDelegation
-
     included do
-      helper_method :cookies
+      helper_method :cookies if defined?(helper_method)
     end
 
     private

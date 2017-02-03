@@ -1,8 +1,10 @@
-require 'active_support/concern'
+require "active_support/concern"
+require "active_support/core_ext/module/attribute_accessors"
+require "concurrent"
 
 module LoggerSilence
   extend ActiveSupport::Concern
-  
+
   included do
     cattr_accessor :silencer
     self.silencer = true
@@ -12,10 +14,12 @@ module LoggerSilence
   def silence(temporary_level = Logger::ERROR)
     if silencer
       begin
-        old_logger_level, self.level = level, temporary_level
+        old_local_level            = local_level
+        self.local_level           = temporary_level
+
         yield self
       ensure
-        self.level = old_logger_level
+        self.local_level = old_local_level
       end
     else
       yield self

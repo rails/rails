@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/kernel/singleton_class'
-require 'thread'
+require "active_support/core_ext/object/try"
+require "active_support/core_ext/kernel/singleton_class"
+require "thread"
 
 module ActionView
   # = Action View Template
@@ -65,8 +65,7 @@ module ActionView
     # If you want to provide an alternate mechanism for
     # specifying encodings (like ERB does via <%# encoding: ... %>),
     # you may indicate that you will handle encodings yourself
-    # by implementing <tt>self.handles_encoding?</tt>
-    # on your handler.
+    # by implementing <tt>handles_encoding?</tt> on your handler.
     #
     # If you do, Rails will not try to encode the String
     # into the default_internal, passing you the unaltered
@@ -140,8 +139,8 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    # Returns if the underlying handler supports streaming. If so,
-    # a streaming buffer *may* be passed when it start rendering.
+    # Returns whether the underlying handler supports streaming. If so,
+    # a streaming buffer *may* be passed when it starts rendering.
     def supports_streaming?
       handler.respond_to?(:supports_streaming?) && handler.supports_streaming?
     end
@@ -152,8 +151,8 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer=nil, &block)
-      instrument("!render_template") do
+    def render(view, locals, buffer = nil, &block)
+      instrument_render_template do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
@@ -180,12 +179,12 @@ module ActionView
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
       lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
+        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
       end
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", '') : identifier
+      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "".freeze) : identifier
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -204,7 +203,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, '')
+      if source.sub!(/\A#{ENCODING_FLAG}/, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -232,11 +231,11 @@ module ActionView
       end
     end
 
-    protected
+    private
 
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
-      def compile!(view) #:nodoc:
+      def compile!(view)
         return if @compiled
 
         # Templates can be used concurrently in threaded environments
@@ -277,9 +276,8 @@ module ActionView
       # encode the source into <tt>Encoding.default_internal</tt>.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(mod) #:nodoc:
+      def compile(mod)
         encode!
-        method_name = self.method_name
         code = @handler.call(self)
 
         # Make sure that the resulting String to be eval'd is in the
@@ -310,7 +308,7 @@ module ActionView
         ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
       end
 
-      def handle_render_error(view, e) #:nodoc:
+      def handle_render_error(view, e)
         if e.is_a?(Template::Error)
           e.sub_template_of(self)
           raise e
@@ -320,30 +318,42 @@ module ActionView
             template = refresh(view)
             template.encode!
           end
-          raise Template::Error.new(template, e)
+          raise Template::Error.new(template)
         end
       end
 
-      def locals_code #:nodoc:
+      def locals_code
+        # Only locals with valid variable names get set directly. Others will
+        # still be available in local_assigns.
+        locals = @locals - Module::RUBY_RESERVED_KEYWORDS
+        locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
+
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
-      def method_name #:nodoc:
+      def method_name
         @method_name ||= begin
           m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!('-', '_')
+          m.tr!("-".freeze, "_".freeze)
           m
         end
       end
 
-      def identifier_method_name #:nodoc:
-        inspect.tr('^a-z_', '_')
+      def identifier_method_name
+        inspect.tr("^a-z_".freeze, "_".freeze)
       end
 
-      def instrument(action, &block)
-        payload = { virtual_path: @virtual_path, identifier: @identifier }
-        ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+      def instrument(action, &block) # :doc:
+        ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, instrument_payload, &block)
+      end
+
+      def instrument_render_template(&block)
+        ActiveSupport::Notifications.instrument("!render_template.action_view".freeze, instrument_payload, &block)
+      end
+
+      def instrument_payload
+        { virtual_path: @virtual_path, identifier: @identifier }
       end
   end
 end

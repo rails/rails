@@ -1,1 +1,1 @@
-require 'RMagickDontExistDude'
+require "RMagickDontExistDude"

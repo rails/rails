@@ -1,5 +1,5 @@
 <% if namespaced? -%>
-require_dependency "<%= namespaced_file_path %>/application_controller"
+require_dependency "<%= namespaced_path %>/application_controller"
 
 <% end -%>
 <% module_namespacing do -%>
@@ -59,7 +59,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     # Only allow a trusted parameter "white list" through.
     def <%= "#{singular_table_name}_params" %>
       <%- if attributes_names.empty? -%>
-      params[:<%= singular_table_name %>]
+      params.fetch(:<%= singular_table_name %>, {})
       <%- else -%>
       params.require(:<%= singular_table_name %>).permit(<%= attributes_names.map { |name| ":#{name}" }.join(', ') %>)
       <%- end -%>

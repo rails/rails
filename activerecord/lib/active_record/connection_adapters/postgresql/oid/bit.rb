@@ -7,7 +7,7 @@ module ActiveRecord
             :bit
           end
 
-          def cast(value)
+          def cast_value(value)
             if ::String === value
               case value
               when /^0x/i
@@ -16,7 +16,7 @@ module ActiveRecord
                 value                    # Bit-string notation
               end
             else
-              value
+              value.to_s
             end
           end
 
@@ -34,16 +34,18 @@ module ActiveRecord
             end
 
             def binary?
-              /\A[01]*\Z/ === value
+              /\A[01]*\Z/.match?(value)
             end
 
             def hex?
-              /\A[0-9A-F]*\Z/i === value
+              /\A[0-9A-F]*\Z/i.match?(value)
             end
 
+            # TODO Change this to private once we've dropped Ruby 2.2 support.
+            # Workaround for Ruby 2.2 "private attribute?" warning.
             protected
 
-            attr_reader :value
+              attr_reader :value
           end
         end
       end

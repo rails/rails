@@ -1,35 +1,24 @@
+require "active_model/type/registry"
+
 module ActiveRecord
   # :stopdoc:
   module Type
-    class AdapterSpecificRegistry
-      def initialize
-        @registrations = []
-      end
-
-      def register(type_name, klass = nil, **options, &block)
-        block ||= proc { |_, *args| klass.new(*args) }
-        registrations << Registration.new(type_name, block, **options)
-      end
-
-      def lookup(symbol, *args)
-        registration = registrations
-          .select { |r| r.matches?(symbol, *args) }
-          .max
-
-        if registration
-          registration.call(self, symbol, *args)
-        else
-          raise ArgumentError, "Unknown type #{symbol.inspect}"
-        end
-      end
-
+    class AdapterSpecificRegistry < ActiveModel::Type::Registry
       def add_modifier(options, klass, **args)
         registrations << DecorationRegistration.new(options, klass, **args)
       end
 
-      protected
+      private
 
-      attr_reader :registrations
+        def registration_klass
+          Registration
+        end
+
+        def find_registration(symbol, *args)
+          registrations
+            .select { |registration| registration.matches?(symbol, *args) }
+            .max
+        end
     end
 
     class Registration
@@ -61,44 +50,46 @@ module ActiveRecord
         priority <=> other.priority
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
-      attr_reader :name, :block, :adapter, :override
+        attr_reader :name, :block, :adapter, :override
 
-      def priority
-        result = 0
-        if adapter
-          result |= 1
+        def priority
+          result = 0
+          if adapter
+            result |= 1
+          end
+          if override
+            result |= 2
+          end
+          result
         end
-        if override
-          result |= 2
-        end
-        result
-      end
 
-      def priority_except_adapter
-        priority & 0b111111100
-      end
+        def priority_except_adapter
+          priority & 0b111111100
+        end
 
       private
 
-      def matches_adapter?(adapter: nil, **)
-        (self.adapter.nil? || adapter == self.adapter)
-      end
+        def matches_adapter?(adapter: nil, **)
+          (self.adapter.nil? || adapter == self.adapter)
+        end
 
-      def conflicts_with?(other)
-        same_priority_except_adapter?(other) &&
-          has_adapter_conflict?(other)
-      end
+        def conflicts_with?(other)
+          same_priority_except_adapter?(other) &&
+            has_adapter_conflict?(other)
+        end
 
-      def same_priority_except_adapter?(other)
-        priority_except_adapter == other.priority_except_adapter
-      end
+        def same_priority_except_adapter?(other)
+          priority_except_adapter == other.priority_except_adapter
+        end
 
-      def has_adapter_conflict?(other)
-        (override.nil? && other.adapter) ||
-          (adapter && other.override.nil?)
-      end
+        def has_adapter_conflict?(other)
+          (override.nil? && other.adapter) ||
+            (adapter && other.override.nil?)
+        end
     end
 
     class DecorationRegistration < Registration
@@ -121,22 +112,23 @@ module ActiveRecord
         super | 4
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
-      attr_reader :options, :klass
+        attr_reader :options, :klass
 
       private
 
-      def matches_options?(**kwargs)
-        options.all? do |key, value|
-          kwargs[key] == value
+        def matches_options?(**kwargs)
+          options.all? do |key, value|
+            kwargs[key] == value
+          end
         end
-      end
     end
   end
 
   class TypeConflictError < StandardError
   end
-
   # :startdoc:
 end

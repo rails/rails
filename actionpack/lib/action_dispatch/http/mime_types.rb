@@ -14,13 +14,14 @@ Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe pjpeg)
 Mime::Type.register "image/gif", :gif, [], %w(gif)
 Mime::Type.register "image/bmp", :bmp, [], %w(bmp)
 Mime::Type.register "image/tiff", :tiff, [], %w(tif tiff)
+Mime::Type.register "image/svg+xml", :svg
 
 Mime::Type.register "video/mpeg", :mpeg, [], %w(mpg mpeg mpe)
 
 Mime::Type.register "application/xml", :xml, %w( text/xml application/x-xml )
 Mime::Type.register "application/rss+xml", :rss
 Mime::Type.register "application/atom+xml", :atom
-Mime::Type.register "application/x-yaml", :yaml, %w( text/yaml )
+Mime::Type.register "application/x-yaml", :yaml, %w( text/yaml ), %w(yml yaml)
 
 Mime::Type.register "multipart/form-data", :multipart_form
 Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
@@ -31,6 +32,4 @@ Mime::Type.register "application/json", :json, %w( text/x-json application/jsonr
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
-
-# Create Mime::ALL but do not add it to the SET.
-Mime::ALL = Mime::Type.new("*/*", :all, [])
+Mime::Type.register "application/gzip", :gzip, %w(application/x-gzip), %w(gz)

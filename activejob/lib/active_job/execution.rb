@@ -1,5 +1,5 @@
-require 'active_support/rescuable'
-require 'active_job/arguments'
+require "active_support/rescuable"
+require "active_job/arguments"
 
 module ActiveJob
   module Execution
@@ -17,8 +17,10 @@ module ActiveJob
       end
 
       def execute(job_data) #:nodoc:
-        job = deserialize(job_data)
-        job.perform_now
+        ActiveJob::Callbacks.run_callbacks(:execute) do
+          job = deserialize(job_data)
+          job.perform_now
+        end
       end
     end
 
@@ -29,10 +31,13 @@ module ActiveJob
     def perform_now
       deserialize_arguments_if_needed
       run_callbacks :perform do
+        # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
+        self.executions = (executions || 0) + 1
+
         perform(*arguments)
       end
     rescue => exception
-      rescue_with_handler(exception) || raise(exception)
+      rescue_with_handler(exception) || raise
     end
 
     def perform(*)

@@ -1,6 +1,6 @@
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/module/delegation'
-require 'json'
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/delegation"
+require "json"
 
 module ActiveSupport
   # Look for and parse json strings that look like ISO 8601 times.
@@ -8,21 +8,16 @@ module ActiveSupport
 
   module JSON
     # matches YAML-formatted dates
-    DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
-    
+    DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+    DATETIME_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?)?)$/
+
     class << self
       # Parses a JSON string (JavaScript Object Notation) into a hash.
       # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
-      def decode(json, options = {})
-        if options.present?
-          raise ArgumentError, "In Rails 4.1, ActiveSupport::JSON.decode no longer " \
-            "accepts an options hash for MultiJSON. MultiJSON reached its end of life " \
-            "and has been removed."
-        end
-
+      def decode(json)
         data = ::JSON.parse(json, quirks_mode: true)
 
         if ActiveSupport.parse_json_times
@@ -54,7 +49,13 @@ module ActiveSupport
           nil
         when DATE_REGEX
           begin
-            DateTime.parse(data)
+            Date.parse(data)
+          rescue ArgumentError
+            data
+          end
+        when DATETIME_REGEX
+          begin
+            Time.zone.parse(data)
           rescue ArgumentError
             data
           end

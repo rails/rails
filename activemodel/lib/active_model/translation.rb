@@ -1,5 +1,4 @@
 module ActiveModel
-
   # == Active \Model \Translation
   #
   # Provides integration between your object and the Rails internationalization
@@ -31,7 +30,7 @@ module ActiveModel
     # ActiveModel::Errors#full_messages and
     # ActiveModel::Translation#human_attribute_name.
     def lookup_ancestors
-      self.ancestors.select { |x| x.respond_to?(:model_name) }
+      ancestors.select { |x| x.respond_to?(:model_name) }
     end
 
     # Transforms attribute names into a more human format, such as "First name"
@@ -45,7 +44,7 @@ module ActiveModel
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
       namespace = parts.join("/") unless parts.empty?
-      attributes_scope = "#{self.i18n_scope}.attributes"
+      attributes_scope = "#{i18n_scope}.attributes"
 
       if namespace
         defaults = lookup_ancestors.map do |klass|

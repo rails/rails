@@ -1,12 +1,13 @@
-require 'helper'
+require "helper"
 require "active_support/log_subscriber/test_helper"
-require 'active_support/core_ext/numeric/time'
-require 'jobs/hello_job'
-require 'jobs/logging_job'
-require 'jobs/nested_job'
-require 'models/person'
+require "active_support/core_ext/numeric/time"
+require "jobs/hello_job"
+require "jobs/logging_job"
+require "jobs/overridden_logging_job"
+require "jobs/nested_job"
+require "models/person"
 
-class AdapterTest < ActiveSupport::TestCase
+class LoggingTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
 
@@ -41,7 +42,6 @@ class AdapterTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = logger
   end
 
-
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
@@ -71,6 +71,14 @@ class AdapterTest < ActiveSupport::TestCase
     LoggingJob.perform_later person
     assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
     assert_match(%r{Dummy, here is it: #<Person:.*>}, @logger.messages)
+    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
+  end
+
+  def test_globalid_nested_parameter_logging
+    person = Person.new(123)
+    LoggingJob.perform_later(person: person)
+    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Dummy, here is it: .*#<Person:.*>}, @logger.messages)
     assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
   end
 
@@ -110,5 +118,10 @@ class AdapterTest < ActiveSupport::TestCase
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
   rescue NotImplementedError
     skip
+  end
+
+  def test_for_tagged_logger_support_is_consistent
+    set_logger ::Logger.new(nil)
+    OverriddenLoggingJob.perform_later "Dummy"
   end
 end

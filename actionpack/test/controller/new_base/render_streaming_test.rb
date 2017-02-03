@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module RenderStreaming
   class BasicController < ActionController::Base
@@ -12,32 +12,32 @@ module RenderStreaming
     layout "application"
 
     def hello_world
-      render :stream => true
+      render stream: true
     end
 
     def layout_exception
-      render :action => "hello_world", :stream => true, :layout => "boom"
+      render action: "hello_world", stream: true, layout: "boom"
     end
 
     def template_exception
-      render :action => "boom", :stream => true
+      render action: "boom", stream: true
     end
 
     def skip
-      render :action => "hello_world", :stream => false
+      render action: "hello_world", stream: false
     end
 
     def explicit
-      render :action => "hello_world", :stream => true
+      render action: "hello_world", stream: true
     end
 
     def no_layout
-      render :action => "hello_world", :stream => true, :layout => false
+      render action: "hello_world", stream: true, layout: false
     end
 
     def explicit_cache
       headers["Cache-Control"] = "private"
-      render :action => "hello_world", :stream => true
+      render action: "hello_world", stream: true
     end
   end
 
@@ -101,12 +101,12 @@ module RenderStreaming
       assert_body "Hello world, I'm here!"
       assert_status 200
       assert_equal "22", headers["Content-Length"]
-      assert_equal nil, headers["Transfer-Encoding"]
+      assert_nil headers["Transfer-Encoding"]
     end
 
-    def assert_streaming!(cache="no-cache")
+    def assert_streaming!(cache = "no-cache")
       assert_status 200
-      assert_equal nil, headers["Content-Length"]
+      assert_nil headers["Content-Length"]
       assert_equal "chunked", headers["Transfer-Encoding"]
       assert_equal cache, headers["Cache-Control"]
     end

@@ -7,20 +7,20 @@ module ActionView
 
       def call(template)
         require_engine
-        "xml = ::Builder::XmlMarkup.new(:indent => 2);" +
+        "xml = ::Builder::XmlMarkup.new(:indent => 2);" \
           "self.output_buffer = xml.target!;" +
           template.source +
           ";xml.target!;"
       end
 
-      protected
+      private
 
-      def require_engine
-        @required ||= begin
-          require "builder"
-          true
+        def require_engine # :doc:
+          @required ||= begin
+            require "builder"
+            true
+          end
         end
-      end
     end
   end
 end

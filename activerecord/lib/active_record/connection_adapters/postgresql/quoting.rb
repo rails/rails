@@ -27,8 +27,13 @@ module ActiveRecord
         # - schema_name."table.name"
         # - "schema.name".table_name
         # - "schema.name"."table.name"
-        def quote_table_name(name)
-          Utils.extract_schema_qualified_name(name.to_s).quoted
+        def quote_table_name(name) # :nodoc:
+          @quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+        end
+
+        # Quotes schema names for use in SQL queries.
+        def quote_schema_name(name)
+          PGconn.quote_ident(name)
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -36,12 +41,11 @@ module ActiveRecord
         end
 
         # Quotes column names for use in SQL queries.
-        def quote_column_name(name) #:nodoc:
-          PGconn.quote_ident(name.to_s)
+        def quote_column_name(name) # :nodoc:
+          @quoted_column_names[name] ||= PGconn.quote_ident(super).freeze
         end
 
-        # Quote date/time values for use in SQL input. Includes microseconds
-        # if the value is a Time responding to usec.
+        # Quote date/time values for use in SQL input.
         def quoted_date(value) #:nodoc:
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
@@ -51,10 +55,11 @@ module ActiveRecord
           end
         end
 
-        # Does not quote function default values for UUID columns
-        def quote_default_expression(value, column) #:nodoc:
-          if column.type == :uuid && value =~ /\(\)/
-            value
+        def quote_default_expression(value, column) # :nodoc:
+          if value.is_a?(Proc)
+            value.call
+          elsif column.type == :uuid && value.include?("()")
+            value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
             value = type_cast_from_column(column, value)
             quote(value)
@@ -69,42 +74,71 @@ module ActiveRecord
 
         private
 
-        def _quote(value)
-          case value
-          when Type::Binary::Data
-            "'#{escape_bytea(value.to_s)}'"
-          when OID::Xml::Data
-            "xml '#{quote_string(value.to_s)}'"
-          when OID::Bit::Data
-            if value.binary?
-              "B'#{value}'"
-            elsif value.hex?
-              "X'#{value}'"
-            end
-          when Float
-            if value.infinite? || value.nan?
-              "'#{value}'"
+          def _quote(value)
+            case value
+            when Type::Binary::Data
+              "'#{escape_bytea(value.to_s)}'"
+            when OID::Xml::Data
+              "xml '#{quote_string(value.to_s)}'"
+            when OID::Bit::Data
+              if value.binary?
+                "B'#{value}'"
+              elsif value.hex?
+                "X'#{value}'"
+              end
+            when Float
+              if value.infinite? || value.nan?
+                "'#{value}'"
+              else
+                super
+              end
+            when OID::Array::Data
+              _quote(encode_array(value))
             else
               super
             end
-          else
-            super
           end
-        end
 
-        def _type_cast(value)
-          case value
-          when Type::Binary::Data
-            # Return a bind param hash with format as binary.
-            # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
-            # for more information
-            { value: value.to_s, format: 1 }
-          when OID::Xml::Data, OID::Bit::Data
-            value.to_s
-          else
-            super
+          def _type_cast(value)
+            case value
+            when Type::Binary::Data
+              # Return a bind param hash with format as binary.
+              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+              # for more information
+              { value: value.to_s, format: 1 }
+            when OID::Xml::Data, OID::Bit::Data
+              value.to_s
+            when OID::Array::Data
+              encode_array(value)
+            else
+              super
+            end
           end
-        end
+
+          def encode_array(array_data)
+            encoder = array_data.encoder
+            values = type_cast_array(array_data.values)
+
+            result = encoder.encode(values)
+            if encoding = determine_encoding_of_strings_in_array(values)
+              result.force_encoding(encoding)
+            end
+            result
+          end
+
+          def determine_encoding_of_strings_in_array(value)
+            case value
+            when ::Array then determine_encoding_of_strings_in_array(value.first)
+            when ::String then value.encoding
+            end
+          end
+
+          def type_cast_array(values)
+            case values
+            when ::Array then values.map { |item| type_cast_array(item) }
+            else _type_cast(values)
+            end
+          end
       end
     end
   end

@@ -1,5 +1,5 @@
-require 'mutex_m'
-require 'thread_safe'
+require "mutex_m"
+require "concurrent/map"
 
 module ActiveSupport
   module Notifications
@@ -12,7 +12,7 @@ module ActiveSupport
 
       def initialize
         @subscribers = []
-        @listeners_for = ThreadSafe::Cache.new
+        @listeners_for = Concurrent::Map.new
         super
       end
 
@@ -42,8 +42,8 @@ module ActiveSupport
         listeners_for(name).each { |s| s.start(name, id, payload) }
       end
 
-      def finish(name, id, payload)
-        listeners_for(name).each { |s| s.finish(name, id, payload) }
+      def finish(name, id, payload, listeners = listeners_for(name))
+        listeners.each { |s| s.finish(name, id, payload) }
       end
 
       def publish(name, *args)
@@ -51,7 +51,7 @@ module ActiveSupport
       end
 
       def listeners_for(name)
-        # this is correctly done double-checked locking (ThreadSafe::Cache's lookups have volatile semantics)
+        # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @listeners_for[name] || synchronize do
           # use synchronisation when accessing @subscribers
           @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
@@ -68,7 +68,7 @@ module ActiveSupport
 
       module Subscribers # :nodoc:
         def self.new(pattern, listener)
-          if listener.respond_to?(:start) and listener.respond_to?(:finish)
+          if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber = Evented.new pattern, listener
           else
             subscriber = Timed.new pattern, listener
@@ -111,7 +111,7 @@ module ActiveSupport
           end
         end
 
-        class Timed < Evented
+        class Timed < Evented # :nodoc:
           def publish(name, *args)
             @delegate.call name, *args
           end

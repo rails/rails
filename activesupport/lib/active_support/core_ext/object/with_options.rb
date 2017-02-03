@@ -1,4 +1,4 @@
-require 'active_support/option_merger'
+require "active_support/option_merger"
 
 class Object
   # An elegant way to factor duplication out of options passed to a series of
@@ -7,7 +7,7 @@ class Object
   # provided. Each method called on the block variable must take an options
   # hash as its final argument.
   #
-  # Without <tt>with_options></tt>, this code contains duplication:
+  # Without <tt>with_options</tt>, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, dependent: :destroy

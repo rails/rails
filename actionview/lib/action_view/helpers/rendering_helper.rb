@@ -18,7 +18,7 @@ module ActionView
       #   performs HTML escape on the string first. Setting the content type as
       #   <tt>text/html</tt>.
       # * <tt>:body</tt> - Renders the text passed in, and inherits the content
-      #   type of <tt>text/html</tt> from <tt>ActionDispatch::Response</tt>
+      #   type of <tt>text/plain</tt> from <tt>ActionDispatch::Response</tt>
       #   object.
       #
       # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
@@ -27,12 +27,12 @@ module ActionView
         case options
         when Hash
           if block_given?
-            view_renderer.render_partial(self, options.merge(:partial => options[:layout]), &block)
+            view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
           else
             view_renderer.render(self, options)
           end
         else
-          view_renderer.render_partial(self, :partial => options, :locals => locals, &block)
+          view_renderer.render_partial(self, partial: options, locals: locals, &block)
         end
       end
 

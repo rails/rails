@@ -1,6 +1,6 @@
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/slice"
 require "rails/generators/rails/app/app_generator"
-require 'date'
+require "date"
 
 module Rails
   # The plugin builder allows you to override elements of the plugin
@@ -8,7 +8,7 @@ module Rails
   # generator.
   #
   # This allows you to override entire operations, like the creation of the
-  # Gemfile, README, or JavaScript files, without needing to know exactly
+  # Gemfile, \README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
   class PluginBuilder
     def rakefile
@@ -17,20 +17,27 @@ module Rails
 
     def app
       if mountable?
-        directory 'app'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        if api?
+          directory "app", exclude_pattern: %r{app/(views|helpers)}
+        else
+          directory "app"
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        end
       elsif full?
-        empty_directory_with_keep_file 'app/models'
-        empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/views'
-        empty_directory_with_keep_file 'app/helpers'
-        empty_directory_with_keep_file 'app/mailers'
-        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+        empty_directory_with_keep_file "app/models"
+        empty_directory_with_keep_file "app/controllers"
+        empty_directory_with_keep_file "app/mailers"
+
+        unless api?
+          empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
+          empty_directory_with_keep_file "app/helpers"
+          empty_directory_with_keep_file "app/views"
+        end
       end
     end
 
     def readme
-      template "README.rdoc"
+      template "README.md"
     end
 
     def gemfile
@@ -74,7 +81,7 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_sprockets, :database,
       :javascript, :quiet, :pretend, :force, :skip
     ]
 
@@ -82,6 +89,8 @@ task default: :test
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
+      opts[:api] = options.api?
+      opts[:skip_listen] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -96,8 +105,9 @@ task default: :test
     end
 
     def test_dummy_assets
-      template "rails/javascripts.js",  "#{dummy_path}/app/assets/javascripts/application.js", force: true
-      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/javascripts.js",    "#{dummy_path}/app/assets/javascripts/application.js", force: true
+      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
+      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
     end
 
     def test_dummy_clean
@@ -108,10 +118,14 @@ task default: :test
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
-        remove_file "README"
+        remove_file "README.md"
         remove_file "test"
         remove_file "vendor"
       end
+    end
+
+    def assets_manifest
+      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -135,9 +149,8 @@ task default: :test
     end
 
     def bin(force = false)
-      return unless engine?
-
-      directory "bin", force: force do |content|
+      bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
+      template bin_file, force: force do |content|
         "#{shebang}\n" + content
       end
       chmod "bin", 0755, verbose: false
@@ -173,16 +186,15 @@ task default: :test
                                   desc: "Skip gemspec file"
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
-                                        desc: "If creating plugin in application's directory " +
+                                        desc: "If creating plugin in application's directory " \
                                                  "skip adding entry to Gemfile"
+
+      class_option :api,          type: :boolean, default: false,
+                                  desc: "Generate a smaller stack for API application plugins"
 
       def initialize(*args)
         @dummy_path = nil
         super
-
-        unless plugin_path
-          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
-        end
       end
 
       public_task :set_default_accessors!
@@ -209,16 +221,16 @@ task default: :test
         build(:lib)
       end
 
+      def create_assets_manifest_file
+        build(:assets_manifest) if !api? && engine?
+      end
+
       def create_public_stylesheets_files
-        build(:stylesheets)
+        build(:stylesheets) unless api?
       end
 
       def create_javascript_files
-        build(:javascripts)
-      end
-
-      def create_images_directory
-        build(:images)
+        build(:javascripts) unless api?
       end
 
       def create_bin_files
@@ -242,14 +254,20 @@ task default: :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
+
+      def run_after_bundle_callbacks
+        @after_bundle_callbacks.each do |callback|
+          callback.call
+        end
+      end
 
       def name
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
           underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
           underscored.downcase!
 
           underscored
@@ -261,14 +279,10 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.gsub('-', '/')
+        @namespaced_name ||= name.tr("-", "/")
       end
 
-    protected
-
-      def app_templates_dir
-        "../../app/templates"
-      end
+    private
 
       def create_dummy_app(path = nil)
         dummy_path(path) if path
@@ -302,11 +316,15 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != "test/dummy"
+      end
+
+      def api?
+        options[:api]
       end
 
       def self.banner
-        "rails plugin new #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails plugin new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
       def original_name
@@ -318,7 +336,7 @@ task default: :test
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join
@@ -335,7 +353,7 @@ task default: :test
       end
 
       def camelized
-        @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
+        @camelized ||= name.gsub(/\W/, "_").squeeze("_").camelize
       end
 
       def author
@@ -364,7 +382,9 @@ task default: :test
         elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
-          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
+          raise Error, "Invalid plugin name #{original_name}. Please give a " \
+                       "name which does not match one of the reserved rails " \
+                       "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(camelized)
           raise Error, "Invalid plugin name #{original_name}, constant #{camelized} is already in use. Please choose another plugin name."
         end
@@ -391,7 +411,6 @@ task default: :test
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false
@@ -418,7 +437,7 @@ end
 
       def relative_path
         return unless inside_application?
-        app_path.sub(/^#{rails_app_path}\//, '')
+        app_path.sub(/^#{rails_app_path}\//, "")
       end
     end
   end

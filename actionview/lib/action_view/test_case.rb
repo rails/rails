@@ -1,9 +1,9 @@
-require 'active_support/core_ext/module/remove_method'
-require 'action_controller'
-require 'action_controller/test_case'
-require 'action_view'
+require "active_support/core_ext/module/remove_method"
+require "action_controller"
+require "action_controller/test_case"
+require "action_view"
 
-require 'rails-dom-testing'
+require "rails-dom-testing"
 
 module ActionView
   # = Action View Test Case
@@ -18,17 +18,17 @@ module ActionView
       end
 
       def controller_path=(path)
-        self.class.controller_path=(path)
+        self.class.controller_path = (path)
       end
 
       def initialize
         super
         self.class.controller_path = ""
-        @request = ActionController::TestRequest.new
-        @response = ActionController::TestResponse.new
+        @request = ActionController::TestRequest.create(self.class)
+        @response = ActionDispatch::TestResponse.new
 
-        @request.env.delete('PATH_INFO')
-        @params = {}
+        @request.env.delete("PATH_INFO")
+        @params = ActionController::Parameters.new
       end
     end
 
@@ -49,7 +49,7 @@ module ActionView
 
       include ActiveSupport::Testing::ConstantLookup
 
-      delegate :lookup_context, :to => :controller
+      delegate :lookup_context, to: :controller
       attr_accessor :controller, :output_buffer, :rendered
 
       module ClassMethods
@@ -96,7 +96,6 @@ module ActionView
           helper(helper_class) if helper_class
           include _helpers
         end
-
       end
 
       def setup_with_controller
@@ -104,8 +103,8 @@ module ActionView
         @request = @controller.request
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
-        @output_buffer = ActiveSupport::SafeBuffer.new ''
-        @rendered = ''
+        @output_buffer = ActiveSupport::SafeBuffer.new ""
+        @rendered = ""
 
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
@@ -146,13 +145,14 @@ module ActionView
 
         def view_rendered?(view, expected_locals)
           locals_for(view).any? do |actual_locals|
-            expected_locals.all? {|key, value| value == actual_locals[key] }
+            expected_locals.all? { |key, value| value == actual_locals[key] }
           end
         end
       end
 
       included do
         setup :setup_with_controller
+        ActiveSupport.run_load_hooks(:action_view_test_case, self)
       end
 
     private
@@ -206,8 +206,8 @@ module ActionView
           view = @controller.view_context
           view.singleton_class.include(_helpers)
           view.extend(Locals)
-          view.rendered_views = self.rendered_views
-          view.output_buffer = self.output_buffer
+          view.rendered_views = rendered_views
+          view.output_buffer = output_buffer
           view
         end
       end
@@ -263,9 +263,15 @@ module ActionView
       end
 
       def method_missing(selector, *args)
-        if @controller.respond_to?(:_routes) &&
-          ( @controller._routes.named_routes.route_defined?(selector) ||
-            @controller._routes.mounted_helpers.method_defined?(selector) )
+        begin
+          routes = @controller.respond_to?(:_routes) && @controller._routes
+        rescue
+          # Dont call routes, if there is an error on _routes call
+        end
+
+        if routes &&
+           (routes.named_routes.route_defined?(selector) ||
+             routes.mounted_helpers.method_defined?(selector))
           @controller.__send__(selector, *args)
         else
           super

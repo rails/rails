@@ -19,7 +19,7 @@ After reading this guide, you will know:
 Introduction to instrumentation
 -------------------------------
 
-The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in (TODO: link to section detailing each hook point). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the [Rails framework](#rails-framework-hooks). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
@@ -112,6 +112,7 @@ Action Controller
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
 | `:params`     | Hash of request parameters without any filtered parameter |
+| `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
 | `:method`     | HTTP request verb                                         |
 | `:path`       | Request path                                              |
@@ -121,6 +122,7 @@ Action Controller
   controller: "PostsController",
   action: "new",
   params: { "action" => "new", "controller" => "posts" },
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts/new"
@@ -134,6 +136,7 @@ Action Controller
 | `:controller`   | The controller name                                       |
 | `:action`       | The action                                                |
 | `:params`       | Hash of request parameters without any filtered parameter |
+| `:headers`      | Request headers                                           |
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
@@ -146,6 +149,7 @@ Action Controller
   controller: "PostsController",
   action: "index",
   params: {"action" => "index", "controller" => "posts"},
+  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
   format: :html,
   method: "GET",
   path: "/posts",
@@ -218,7 +222,25 @@ Action View
 
 ```ruby
 {
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb"
+}
+```
+
+### render_collection.action_view
+
+| Key           | Value                                 |
+| ------------- | ------------------------------------- |
+| `:identifier` | Full path to template                 |
+| `:count`      | Size of collection                    |
+| `:cache_hits` | Number of partials fetched from cache |
+
+`:cache_hits` is only included if the collection is rendered with `cached: true`.
+
+```ruby
+{
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_post.html.erb",
+  count: 3,
+  cache_hits: 0
 }
 ```
 
@@ -227,11 +249,13 @@ Active Record
 
 ### sql.active_record
 
-| Key              | Value                 |
-| ---------------- | --------------------- |
-| `:sql`           | SQL statement         |
-| `:name`          | Name of the operation |
-| `:connection_id` | `self.object_id`      |
+| Key              | Value                                    |
+| ---------------- | ---------------------------------------- |
+| `:sql`           | SQL statement                            |
+| `:name`          | Name of the operation                    |
+| `:connection_id` | `self.object_id`                         |
+| `:binds`         | Bind parameters                          |
+| `:cached`        | `true` is added when cached queries used |
 
 INFO. The adapters will add their own data as well.
 
@@ -244,13 +268,19 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-### identity.active_record
+### instantiation.active_record
 
 | Key              | Value                                     |
 | ---------------- | ----------------------------------------- |
-| `:line`          | Primary Key of object in the identity map |
-| `:name`          | Record's class                            |
-| `:connection_id` | `self.object_id`                          |
+| `:record_count`  | Number of records that instantiated       |
+| `:class_name`    | Record's class                            |
+
+```ruby
+{
+  record_count: 1,
+  class_name: "User"
+}
+```
 
 Action Mailer
 -------------
@@ -306,17 +336,6 @@ Action Mailer
   mail: "..." # omitted for brevity
 }
 ```
-
-ActiveResource
---------------
-
-### request.active_resource
-
-| Key            | Value                |
-| -------------- | -------------------- |
-| `:method`      | HTTP method          |
-| `:request_uri` | Complete URI         |
-| `:result`      | HTTP response object |
 
 Active Support
 --------------
@@ -400,6 +419,38 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+Active Job
+--------
+
+### enqueue_at.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### enqueue.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform_start.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+### perform.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+
+
 Railties
 --------
 
@@ -430,7 +481,7 @@ The block receives the following arguments:
 * The name of the event
 * Time when it started
 * Time when it finished
-* An unique ID for this event
+* A unique ID for this event
 * The payload (described in previous sections)
 
 ```ruby

@@ -1,5 +1,5 @@
-require 'cases/helper'
-require 'models/user'
+require "cases/helper"
+require "models/user"
 
 class SecureTokenTest < ActiveRecord::TestCase
   setup do
@@ -27,6 +27,6 @@ class SecureTokenTest < ActiveRecord::TestCase
     @user.token = "custom-secure-token"
     @user.save
 
-    assert_equal @user.token, "custom-secure-token"
+    assert_equal "custom-secure-token", @user.token
   end
 end

@@ -24,17 +24,23 @@ module ActionDispatch
       attr_accessor :headers
 
       def initialize(hash) # :nodoc:
-        @tempfile          = hash[:tempfile]
-        raise(ArgumentError, ':tempfile is required') unless @tempfile
+        @tempfile = hash[:tempfile]
+        raise(ArgumentError, ":tempfile is required") unless @tempfile
 
         @original_filename = hash[:filename]
-        @original_filename &&= @original_filename.encode "UTF-8"
+        if @original_filename
+          begin
+            @original_filename.encode!(Encoding::UTF_8)
+          rescue EncodingError
+            @original_filename.force_encoding(Encoding::UTF_8)
+          end
+        end
         @content_type      = hash[:type]
         @headers           = hash[:head]
       end
 
       # Shortcut for +tempfile.read+.
-      def read(length=nil, buffer=nil)
+      def read(length = nil, buffer = nil)
         @tempfile.read(length, buffer)
       end
 
@@ -44,7 +50,7 @@ module ActionDispatch
       end
 
       # Shortcut for +tempfile.close+.
-      def close(unlink_now=false)
+      def close(unlink_now = false)
         @tempfile.close(unlink_now)
       end
 

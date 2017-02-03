@@ -1,4 +1,4 @@
-require 'set'
+require "set"
 
 module DescendantsTrackerTestCases
   class Parent
@@ -40,26 +40,26 @@ module DescendantsTrackerTestCases
     end
   end
 
-  protected
+  private
 
-  def assert_equal_sets(expected, actual)
-    assert_equal Set.new(expected), Set.new(actual)
-  end
-
-  def mark_as_autoloaded(*klasses)
-    # If ActiveSupport::Dependencies is not loaded, forget about autoloading.
-    # This allows using AS::DescendantsTracker without AS::Dependencies.
-    if defined? ActiveSupport::Dependencies
-      old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
-      ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
+    def assert_equal_sets(expected, actual)
+      assert_equal Set.new(expected), Set.new(actual)
     end
 
-    old_descendants = ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").dup
-    old_descendants.each { |k, v| old_descendants[k] = v.dup }
+    def mark_as_autoloaded(*klasses)
+      # If ActiveSupport::Dependencies is not loaded, forget about autoloading.
+      # This allows using AS::DescendantsTracker without AS::Dependencies.
+      if defined? ActiveSupport::Dependencies
+        old_autoloaded = ActiveSupport::Dependencies.autoloaded_constants.dup
+        ActiveSupport::Dependencies.autoloaded_constants = klasses.map(&:name)
+      end
 
-    yield
-  ensure
-    ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded if defined? ActiveSupport::Dependencies
-    ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").replace(old_descendants)
-  end
+      old_descendants = ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").dup
+      old_descendants.each { |k, v| old_descendants[k] = v.dup }
+
+      yield
+    ensure
+      ActiveSupport::Dependencies.autoloaded_constants = old_autoloaded if defined? ActiveSupport::Dependencies
+      ActiveSupport::DescendantsTracker.class_eval("@@direct_descendants").replace(old_descendants)
+    end
 end

@@ -15,12 +15,16 @@ module ActiveRecord
           ensure_not_nested
 
           through_proxy  = owner.association(through_reflection.name)
-          through_record = through_proxy.send(:load_target)
+          through_record = through_proxy.load_target
 
           if through_record && !record
             through_record.destroy
           elsif record
             attributes = construct_join_attributes(record)
+
+            if through_record && through_record.destroyed?
+              through_record = through_proxy.tap(&:reload).target
+            end
 
             if through_record
               through_record.update(attributes)

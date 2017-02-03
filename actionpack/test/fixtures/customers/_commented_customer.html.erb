@@ -1,0 +1,5 @@
+<%# I'm a comment %>
+<% cache customer do %>
+  <% controller.partial_rendered_times += 1 %>
+  <%= customer.name %>, <%= customer.id %>
+<% end %>

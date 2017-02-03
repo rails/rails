@@ -1,4 +1,4 @@
-require 'rails/generators/migration'
+require "rails/generators/migration"
 
 module ActiveRecord
   module Generators # :nodoc:
@@ -13,6 +13,21 @@ module ActiveRecord
           ActiveRecord::Migration.next_migration_number(next_migration_number)
         end
       end
+
+      private
+
+        def primary_key_type
+          key_type = options[:primary_key_type]
+          ", id: :#{key_type}" if key_type
+        end
+
+        def db_migrate_path
+          if defined?(Rails) && Rails.application
+            Rails.application.config.paths["db/migrate"].to_ary.first
+          else
+            "db/migrate"
+          end
+        end
     end
   end
 end

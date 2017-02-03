@@ -1,0 +1,7 @@
+_fixture:
+  model_class: Post
+
+second_welcome:
+  author_id: 1
+  title: Welcome to the another weblog
+  body: It's really nice today

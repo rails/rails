@@ -15,5 +15,14 @@
 <% end -%>
 # Ignore all logfiles and tempfiles.
 /log/*
+/tmp/*
+<% if keeps? -%>
 !/log/.keep
-/tmp
+!/tmp/.keep
+<% end -%>
+
+<% unless options[:skip_yarn] -%>
+/vendor/node_modules
+
+<% end -%>
+.byebug_history

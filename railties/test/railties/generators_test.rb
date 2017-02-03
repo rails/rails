@@ -1,7 +1,7 @@
 RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 
-require 'generators/generators_test_helper'
+require "generators/generators_test_helper"
 require "rails/generators/test_case"
 
 module RailtiesTests
@@ -9,7 +9,7 @@ module RailtiesTests
     include ActiveSupport::Testing::Isolation
 
     def destination_root
-      tmp_path 'foo_bar'
+      tmp_path "foo_bar"
     end
 
     def tmp_path(*args)
@@ -18,7 +18,7 @@ module RailtiesTests
     end
 
     def engine_path
-      tmp_path('foo_bar')
+      tmp_path("foo_bar")
     end
 
     def bundled_rails(cmd)
@@ -26,14 +26,10 @@ module RailtiesTests
     end
 
     def rails(cmd)
-      environment = File.expand_path('../../../../load_paths', __FILE__)
-      if File.exist?("#{environment}.rb")
-        require_environment = "-r #{environment}"
-      end
-      `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails #{cmd}`
+      `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails #{cmd}`
     end
 
-    def build_engine(is_mountable=false)
+    def build_engine(is_mountable = false)
       FileUtils.rm_rf(engine_path)
       FileUtils.mkdir_p(engine_path)
 
@@ -43,7 +39,7 @@ module RailtiesTests
 
       Dir.chdir(engine_path) do
         File.open("Gemfile", "w") do |f|
-          f.write <<-GEMFILE.gsub(/^ {12}/, '')
+          f.write <<-GEMFILE.gsub(/^ {12}/, "")
             source "https://rubygems.org"
 
             gem 'rails', path: '#{RAILS_FRAMEWORK_ROOT}'
@@ -121,6 +117,14 @@ module RailtiesTests
         assert_file "app/helpers/topics_helper.rb", /module TopicsHelper/
         assert_no_file "app/helpers/foo_bar/topics_helper.rb"
       end
+    end
+
+    def test_assert_file_with_special_characters
+      path = "#{app_path}/tmp"
+      file_name = "#{path}/v0.1.4~alpha+nightly"
+      FileUtils.mkdir_p path
+      FileUtils.touch file_name
+      assert_file file_name
     end
   end
 end

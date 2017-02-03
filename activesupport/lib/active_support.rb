@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2005-2015 David Heinemeier Hansson
+# Copyright (c) 2005-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,11 +21,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'securerandom'
+require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
+require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -33,9 +34,13 @@ module ActiveSupport
   autoload :Concern
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :ExecutionWrapper
+  autoload :Executor
   autoload :FileUpdateChecker
+  autoload :EventedFileUpdateChecker
   autoload :LogSubscriber
   autoload :Notifications
+  autoload :Reloader
 
   eager_autoload do
     autoload :BacktraceCleaner
@@ -59,6 +64,7 @@ module ActiveSupport
     autoload :StringInquirer
     autoload :TaggedLogging
     autoload :XmlMini
+    autoload :ArrayInquirer
   end
 
   autoload :Rescuable
@@ -72,6 +78,22 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
+
+  def self.halt_callback_chains_on_return_false
+    Callbacks.halt_and_display_warning_on_return_false
+  end
+
+  def self.halt_callback_chains_on_return_false=(value)
+    Callbacks.halt_and_display_warning_on_return_false = value
+  end
+
+  def self.to_time_preserves_timezone
+    DateAndTime::Compatibility.preserve_timezone
+  end
+
+  def self.to_time_preserves_timezone=(value)
+    DateAndTime::Compatibility.preserve_timezone = value
+  end
 end
 
 autoload :I18n, "active_support/i18n"

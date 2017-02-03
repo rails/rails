@@ -1,17 +1,17 @@
-require 'thread_safe'
+require "concurrent/map"
 
 module ActiveRecord
   module Type
     class TypeMap # :nodoc:
       def initialize
         @mapping = {}
-        @cache = ThreadSafe::Cache.new do |h, key|
-          h.fetch_or_store(key, ThreadSafe::Cache.new)
+        @cache = Concurrent::Map.new do |h, key|
+          h.fetch_or_store(key, Concurrent::Map.new)
         end
       end
 
       def lookup(lookup_key, *args)
-        fetch(lookup_key, *args) { default_value }
+        fetch(lookup_key, *args) { Type.default_value }
       end
 
       def fetch(lookup_key, *args, &block)
@@ -44,21 +44,17 @@ module ActiveRecord
 
       private
 
-      def perform_fetch(lookup_key, *args)
-        matching_pair = @mapping.reverse_each.detect do |key, _|
-          key === lookup_key
-        end
+        def perform_fetch(lookup_key, *args)
+          matching_pair = @mapping.reverse_each.detect do |key, _|
+            key === lookup_key
+          end
 
-        if matching_pair
-          matching_pair.last.call(lookup_key, *args)
-        else
-          yield lookup_key, *args
+          if matching_pair
+            matching_pair.last.call(lookup_key, *args)
+          else
+            yield lookup_key, *args
+          end
         end
-      end
-
-      def default_value
-        @default_value ||= Value.new
-      end
     end
   end
 end

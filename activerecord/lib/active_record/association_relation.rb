@@ -10,13 +10,29 @@ module ActiveRecord
     end
 
     def ==(other)
-      other == to_a
+      other == records
+    end
+
+    def build(*args, &block)
+      scoping { @association.build(*args, &block) }
+    end
+    alias new build
+
+    def create(*args, &block)
+      scoping { @association.create(*args, &block) }
+    end
+
+    def create!(*args, &block)
+      scoping { @association.create!(*args, &block) }
     end
 
     private
 
-    def exec_queries
-      super.each { |r| @association.set_inverse_instance r }
-    end
+      def exec_queries
+        super do |r|
+          @association.set_inverse_instance r
+          yield r if block_given?
+        end
+      end
   end
 end

@@ -1,8 +1,6 @@
-# encoding: utf-8
 module ActiveSupport
   module Multibyte
     module Unicode
-
       extend self
 
       # A list of all available normalization forms.
@@ -11,7 +9,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = '7.0.0'
+      UNICODE_VERSION = "9.0.0"
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -32,36 +30,6 @@ module ActiveSupport
       HANGUL_NCOUNT = HANGUL_VCOUNT * HANGUL_TCOUNT
       HANGUL_SCOUNT = 11172
       HANGUL_SLAST = HANGUL_SBASE + HANGUL_SCOUNT
-      HANGUL_JAMO_FIRST = 0x1100
-      HANGUL_JAMO_LAST = 0x11FF
-
-      # All the unicode whitespace
-      WHITESPACE = [
-        (0x0009..0x000D).to_a, # White_Space # Cc   [5] <control-0009>..<control-000D>
-        0x0020,                # White_Space # Zs       SPACE
-        0x0085,                # White_Space # Cc       <control-0085>
-        0x00A0,                # White_Space # Zs       NO-BREAK SPACE
-        0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
-        0x2028,                # White_Space # Zl       LINE SEPARATOR
-        0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
-        0x202F,                # White_Space # Zs       NARROW NO-BREAK SPACE
-        0x205F,                # White_Space # Zs       MEDIUM MATHEMATICAL SPACE
-        0x3000,                # White_Space # Zs       IDEOGRAPHIC SPACE
-      ].flatten.freeze
-
-      # BOM (byte order mark) can also be seen as whitespace, it's a
-      # non-rendering character used to distinguish between little and big
-      # endian. This is not an issue in utf-8, so it must be ignored.
-      LEADERS_AND_TRAILERS = WHITESPACE + [65279] # ZERO-WIDTH NO-BREAK SPACE aka BOM
-
-      # Returns a regular expression pattern that matches the passed Unicode
-      # codepoints.
-      def self.codepoints_to_pattern(array_of_codepoints) #:nodoc:
-        array_of_codepoints.collect{ |e| [e].pack 'U*' }.join('|')
-      end
-      TRAILERS_PAT = /(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+\Z/u
-      LEADERS_PAT = /\A(#{codepoints_to_pattern(LEADERS_AND_TRAILERS)})+/u
 
       # Detect whether the codepoint is in a certain character class. Returns
       # +true+ when it's in the specified character class and +false+ otherwise.
@@ -84,24 +52,59 @@ module ActiveSupport
         pos = 0
         marker = 0
         eoc = codepoints.length
-        while(pos < eoc)
+        while (pos < eoc)
           pos += 1
-          previous = codepoints[pos-1]
+          previous = codepoints[pos - 1]
           current = codepoints[pos]
-          if (
-              # CR X LF
-              ( previous == database.boundary[:cr] and current == database.boundary[:lf] ) or
-              # L X (L|V|LV|LVT)
-              ( database.boundary[:l] === previous and in_char_class?(current, [:l,:v,:lv,:lvt]) ) or
-              # (LV|V) X (V|T)
-              ( in_char_class?(previous, [:lv,:v]) and in_char_class?(current, [:v,:t]) ) or
-              # (LVT|T) X (T)
-              ( in_char_class?(previous, [:lvt,:t]) and database.boundary[:t] === current ) or
-              # X Extend
-              (database.boundary[:extend] === current)
-            )
-          else
-            unpacked << codepoints[marker..pos-1]
+
+          # See http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
+          should_break =
+            if pos == eoc
+              true
+            # GB3. CR X LF
+            elsif previous == database.boundary[:cr] && current == database.boundary[:lf]
+              false
+            # GB4. (Control|CR|LF) ÷
+            elsif previous && in_char_class?(previous, [:control, :cr, :lf])
+              true
+            # GB5. ÷ (Control|CR|LF)
+            elsif in_char_class?(current, [:control, :cr, :lf])
+              true
+            # GB6. L X (L|V|LV|LVT)
+            elsif database.boundary[:l] === previous && in_char_class?(current, [:l, :v, :lv, :lvt])
+              false
+            # GB7. (LV|V) X (V|T)
+            elsif in_char_class?(previous, [:lv, :v]) && in_char_class?(current, [:v, :t])
+              false
+            # GB8. (LVT|T) X (T)
+            elsif in_char_class?(previous, [:lvt, :t]) && database.boundary[:t] === current
+              false
+            # GB9. X (Extend | ZWJ)
+            elsif in_char_class?(current, [:extend, :zwj])
+              false
+            # GB9a. X SpacingMark
+            elsif database.boundary[:spacingmark] === current
+              false
+            # GB9b. Prepend X
+            elsif database.boundary[:prepend] === previous
+              false
+            # GB10. (E_Base | EBG) Extend* X E_Modifier
+            elsif (marker...pos).any? { |i| in_char_class?(codepoints[i], [:e_base, :e_base_gaz]) && codepoints[i + 1...pos].all? { |c| database.boundary[:extend] === c } } && database.boundary[:e_modifier] === current
+              false
+            # GB11. ZWJ X (Glue_After_Zwj | EBG)
+            elsif database.boundary[:zwj] === previous && in_char_class?(current, [:glue_after_zwj, :e_base_gaz])
+              false
+            # GB12. ^ (RI RI)* RI X RI
+            # GB13. [^RI] (RI RI)* RI X RI
+            elsif codepoints[marker..pos].all? { |c| database.boundary[:regional_indicator] === c } && codepoints[marker..pos].count { |c| database.boundary[:regional_indicator] === c }.even?
+              false
+            # GB999. Any ÷ Any
+            else
+              true
+            end
+
+          if should_break
+            unpacked << codepoints[marker..pos - 1]
             marker = pos
           end
         end
@@ -112,17 +115,17 @@ module ActiveSupport
       #
       #   Unicode.pack_graphemes(Unicode.unpack_graphemes('क्षि')) # => 'क्षि'
       def pack_graphemes(unpacked)
-        unpacked.flatten.pack('U*')
+        unpacked.flatten.pack("U*")
       end
 
       # Re-order codepoints so the string becomes canonical.
       def reorder_characters(codepoints)
-        length = codepoints.length- 1
+        length = codepoints.length - 1
         pos = 0
         while pos < length do
-          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos+1]]
+          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos + 1]]
           if (cp1.combining_class > cp2.combining_class) && (cp2.combining_class > 0)
-            codepoints[pos..pos+1] = cp2.code, cp1.code
+            codepoints[pos..pos + 1] = cp2.code, cp1.code
             pos += (pos > 0 ? -1 : 1)
           else
             pos += 1
@@ -135,7 +138,7 @@ module ActiveSupport
       def decompose(type, codepoints)
         codepoints.inject([]) do |decomposed, cp|
           # if it's a hangul syllable starter character
-          if HANGUL_SBASE <= cp and cp < HANGUL_SLAST
+          if HANGUL_SBASE <= cp && cp < HANGUL_SLAST
             sindex = cp - HANGUL_SBASE
             ncp = [] # new codepoints
             ncp << HANGUL_LBASE + sindex / HANGUL_NCOUNT
@@ -144,7 +147,7 @@ module ActiveSupport
             ncp << (HANGUL_TBASE + tindex) unless tindex == 0
             decomposed.concat ncp
           # if the codepoint is decomposable in with the current decomposition type
-          elsif (ncp = database.codepoints[cp].decomp_mapping) and (!database.codepoints[cp].decomp_type || type == :compatibility)
+          elsif (ncp = database.codepoints[cp].decomp_mapping) && (!database.codepoints[cp].decomp_type || type == :compatibility)
             decomposed.concat decompose(type, ncp.dup)
           else
             decomposed << cp
@@ -163,11 +166,11 @@ module ActiveSupport
           pos += 1
           lindex = starter_char - HANGUL_LBASE
           # -- Hangul
-          if 0 <= lindex and lindex < HANGUL_LCOUNT
-            vindex = codepoints[starter_pos+1] - HANGUL_VBASE rescue vindex = -1
-            if 0 <= vindex and vindex < HANGUL_VCOUNT
-              tindex = codepoints[starter_pos+2] - HANGUL_TBASE rescue tindex = -1
-              if 0 <= tindex and tindex < HANGUL_TCOUNT
+          if 0 <= lindex && lindex < HANGUL_LCOUNT
+            vindex = codepoints[starter_pos + 1] - HANGUL_VBASE rescue vindex = -1
+            if 0 <= vindex && vindex < HANGUL_VCOUNT
+              tindex = codepoints[starter_pos + 2] - HANGUL_TBASE rescue tindex = -1
+              if 0 <= tindex && tindex < HANGUL_TCOUNT
                 j = starter_pos + 2
                 eoa -= 2
               else
@@ -235,7 +238,7 @@ module ActiveSupport
           reader = Encoding::Converter.new(Encoding::UTF_8, Encoding::UTF_16LE)
 
           source = string.dup
-          out = ''.force_encoding(Encoding::UTF_16LE)
+          out = "".force_encoding(Encoding::UTF_16LE)
 
           loop do
             reader.primitive_convert(source, out)
@@ -257,23 +260,23 @@ module ActiveSupport
       # * <tt>string</tt> - The string to perform normalization on.
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
-      #   Default is ActiveSupport::Multibyte.default_normalization_form.
-      def normalize(string, form=nil)
+      #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
+      def normalize(string, form = nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a
         case form
-          when :d
-            reorder_characters(decompose(:canonical, codepoints))
-          when :c
-            compose(reorder_characters(decompose(:canonical, codepoints)))
-          when :kd
-            reorder_characters(decompose(:compatibility, codepoints))
-          when :kc
-            compose(reorder_characters(decompose(:compatibility, codepoints)))
+        when :d
+          reorder_characters(decompose(:canonical, codepoints))
+        when :c
+          compose(reorder_characters(decompose(:canonical, codepoints)))
+        when :kd
+          reorder_characters(decompose(:compatibility, codepoints))
+        when :kc
+          compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
-            raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack('U*')
+          raise ArgumentError, "#{form} is not a valid normalization variant", caller
+        end.pack("U*".freeze)
       end
 
       def downcase(string)
@@ -332,13 +335,13 @@ module ActiveSupport
         # UnicodeDatabase.
         def load
           begin
-            @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
+            @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, "rb") { |f| Marshal.load f.read }
           rescue => e
             raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
-          @boundary.each do |k,_|
+          @boundary.each_key do |k|
             @boundary[k].instance_eval do
               def ===(other)
                 detect { |i| i === other } ? true : false
@@ -354,7 +357,7 @@ module ActiveSupport
 
         # Returns the directory in which the data files are stored.
         def self.dirname
-          File.dirname(__FILE__) + '/../values/'
+          File.dirname(__FILE__) + "/../values/"
         end
 
         # Returns the filename for the data file for this version.
@@ -365,25 +368,25 @@ module ActiveSupport
 
       private
 
-      def apply_mapping(string, mapping) #:nodoc:
-        database.codepoints
-        string.each_codepoint.map do |codepoint|
-          cp = database.codepoints[codepoint]
-          if cp and (ncp = cp.send(mapping)) and ncp > 0
-            ncp
-          else
-            codepoint
-          end
-        end.pack('U*')
-      end
+        def apply_mapping(string, mapping)
+          database.codepoints
+          string.each_codepoint.map do |codepoint|
+            cp = database.codepoints[codepoint]
+            if cp && (ncp = cp.send(mapping)) && ncp > 0
+              ncp
+            else
+              codepoint
+            end
+          end.pack("U*")
+        end
 
-      def recode_windows1252_chars(string)
-        string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
-      end
+        def recode_windows1252_chars(string)
+          string.encode(Encoding::UTF_8, Encoding::Windows_1252, invalid: :replace, undef: :replace)
+        end
 
-      def database
-        @database ||= UnicodeDatabase.new
-      end
+        def database
+          @database ||= UnicodeDatabase.new
+        end
     end
   end
 end

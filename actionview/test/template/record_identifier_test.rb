@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'controller/fake_models'
+require "abstract_unit"
+require "controller/fake_models"
 
 class RecordIdentifierTest < ActiveSupport::TestCase
   include ActionView::RecordIdentifier
@@ -7,8 +7,8 @@ class RecordIdentifierTest < ActiveSupport::TestCase
   def setup
     @klass  = Comment
     @record = @klass.new
-    @singular = 'comment'
-    @plural = 'comments'
+    @singular = "comment"
+    @plural = "comments"
   end
 
   def test_dom_id_with_new_record
@@ -73,7 +73,7 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
   end
 
   def test_dom_class
-    assert_equal 'airplane', dom_class(@record)
+    assert_equal "airplane", dom_class(@record)
   end
 
   def test_dom_class_with_prefix
@@ -86,6 +86,6 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
   end
 
   def test_dom_class_as_singleton_method
-    assert_equal 'airplane', ActionView::RecordIdentifier.dom_class(@record)
+    assert_equal "airplane", ActionView::RecordIdentifier.dom_class(@record)
   end
 end

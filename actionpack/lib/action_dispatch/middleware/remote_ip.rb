@@ -1,4 +1,4 @@
-require 'ipaddr'
+require "ipaddr"
 
 module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
@@ -43,7 +43,7 @@ module ActionDispatch
 
     # Create a new +RemoteIp+ middleware instance.
     #
-    # The +check_ip_spoofing+ option is on by default. When on, an exception
+    # The +ip_spoofing_check+ option is on by default. When on, an exception
     # is raised if it looks like the client is trying to lie about its own IP
     # address. It makes sense to turn off this check on sites aimed at non-IP
     # clients (like WAP devices), or behind proxies that set headers in an
@@ -57,9 +57,9 @@ module ActionDispatch
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will
     # ignore those IP addresses, and return the one that you want.
-    def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
+    def initialize(app, ip_spoofing_check = true, custom_proxies = nil)
       @app = app
-      @check_ip = check_ip_spoofing
+      @check_ip = ip_spoofing_check
       @proxies = if custom_proxies.blank?
         TRUSTED_PROXIES
       elsif custom_proxies.respond_to?(:any?)
@@ -74,18 +74,19 @@ module ActionDispatch
     # requests. For those requests that do need to know the IP, the
     # GetIp#calculate_ip method will calculate the memoized client IP address.
     def call(env)
-      env["action_dispatch.remote_ip"] = GetIp.new(env, self)
-      @app.call(env)
+      req = ActionDispatch::Request.new env
+      req.remote_ip = GetIp.new(req, check_ip, proxies)
+      @app.call(req.env)
     end
 
     # The GetIp class exists as a way to defer processing of the request data
     # into an actual IP address. If the ActionDispatch::Request#remote_ip method
     # is called, this class will calculate the value and then memoize it.
     class GetIp
-      def initialize(env, middleware)
-        @env      = env
-        @check_ip = middleware.check_ip
-        @proxies  = middleware.proxies
+      def initialize(req, check_ip, proxies)
+        @req      = req
+        @check_ip = check_ip
+        @proxies  = proxies
       end
 
       # Sort through the various IP address headers, looking for the IP most
@@ -108,23 +109,31 @@ module ActionDispatch
       # the last address left, which was presumably set by one of those proxies.
       def calculate_ip
         # Set by the Rack web server, this is a single value.
-        remote_addr = ips_from('REMOTE_ADDR').last
+        remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from('HTTP_CLIENT_IP').reverse
-        forwarded_ips = ips_from('HTTP_X_FORWARDED_FOR').reverse
+        client_ips    = ips_from(@req.client_ip).reverse
+        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
-        # If they are both set, it means that this request passed through two
-        # proxies with incompatible IP header conventions, and there is no way
-        # for us to determine which header is the right one after the fact.
-        # Since we have no idea, we give up and explode.
+        # If they are both set, it means that either:
+        #
+        # 1) This request passed through two proxies with incompatible IP header
+        #    conventions.
+        # 2) The client passed one of +Client-Ip+ or +X-Forwarded-For+
+        #    (whichever the proxy servers weren't using) themselves.
+        #
+        # Either way, there is no way for us to determine which header is the
+        # right one after the fact. Since we have no idea, if we are concerned
+        # about IP spoofing we need to give up and explode. (If you're not
+        # concerned about IP spoofing you can turn the +ip_spoofing_check+
+        # option off.)
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
-          raise IpSpoofAttackError, "IP spoofing attack?! " +
-            "HTTP_CLIENT_IP=#{@env['HTTP_CLIENT_IP'].inspect} " +
-            "HTTP_X_FORWARDED_FOR=#{@env['HTTP_X_FORWARDED_FOR'].inspect}"
+          raise IpSpoofAttackError, "IP spoofing attack?! " \
+            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
+            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
         # We assume these things about the IP headers:
@@ -144,11 +153,12 @@ module ActionDispatch
         @ip ||= calculate_ip
       end
 
-    protected
+    private
 
-      def ips_from(header)
+      def ips_from(header) # :doc:
+        return [] unless header
         # Split the comma-separated list into an array of strings
-        ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
+        ips = header.strip.split(/[,\s]+/)
         ips.select do |ip|
           begin
             # Only return IPs that are valid according to the IPAddr#new method
@@ -161,13 +171,11 @@ module ActionDispatch
         end
       end
 
-      def filter_proxies(ips)
+      def filter_proxies(ips) # :doc:
         ips.reject do |ip|
           @proxies.any? { |proxy| proxy === ip }
         end
       end
-
     end
-
   end
 end

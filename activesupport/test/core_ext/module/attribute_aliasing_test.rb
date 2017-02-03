@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/aliasing'
+require "abstract_unit"
+require "active_support/core_ext/module/aliasing"
 
 module AttributeAliasing
   class Content

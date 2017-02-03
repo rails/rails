@@ -1,7 +1,7 @@
 require "cases/helper"
 
-class Mysql2BooleanTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
+  self.use_transactional_tests = false
 
   class BooleanType < ActiveRecord::Base
     self.table_name = "mysql_booleans"
@@ -43,11 +43,16 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
 
     boolean = BooleanType.create!(archived: true, published: true)
     attributes = boolean.reload.attributes_before_type_cast
-
     assert_equal 1, attributes["archived"]
     assert_equal "1", attributes["published"]
 
+    boolean = BooleanType.create!(archived: false, published: false)
+    attributes = boolean.reload.attributes_before_type_cast
+    assert_equal 0, attributes["archived"]
+    assert_equal "0", attributes["published"]
+
     assert_equal 1, @connection.type_cast(true)
+    assert_equal 0, @connection.type_cast(false)
   end
 
   test "test type casting without emulated booleans" do
@@ -55,11 +60,16 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
 
     boolean = BooleanType.create!(archived: true, published: true)
     attributes = boolean.reload.attributes_before_type_cast
-
     assert_equal 1, attributes["archived"]
     assert_equal "1", attributes["published"]
 
+    boolean = BooleanType.create!(archived: false, published: false)
+    attributes = boolean.reload.attributes_before_type_cast
+    assert_equal 0, attributes["archived"]
+    assert_equal "0", attributes["published"]
+
     assert_equal 1, @connection.type_cast(true)
+    assert_equal 0, @connection.type_cast(false)
   end
 
   test "with booleans stored as 1 and 0" do
@@ -76,11 +86,11 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
   end
 
   def boolean_column
-    BooleanType.columns.find { |c| c.name == 'archived' }
+    BooleanType.columns.find { |c| c.name == "archived" }
   end
 
   def string_column
-    BooleanType.columns.find { |c| c.name == 'published' }
+    BooleanType.columns.find { |c| c.name == "published" }
   end
 
   def emulate_booleans(value)

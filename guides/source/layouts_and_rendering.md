@@ -103,34 +103,6 @@ In most cases, the `ActionController::Base#render` method does the heavy lifting
 
 TIP: If you want to see the exact results of a call to `render` without needing to inspect it in a browser, you can call `render_to_string`. This method takes exactly the same options as `render`, but it returns a string instead of sending a response back to the browser.
 
-#### Rendering Nothing
-
-Perhaps the simplest thing you can do with `render` is to render nothing at all:
-
-```ruby
-render nothing: true
-```
-
-If you look at the response for this using cURL, you will see the following:
-
-```bash
-$ curl -i 127.0.0.1:3000/books
-HTTP/1.1 200 OK
-Connection: close
-Date: Sun, 24 Jan 2010 09:25:18 GMT
-Transfer-Encoding: chunked
-Content-Type: */*; charset=utf-8
-X-Runtime: 0.014297
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
-
-$
-```
-
-We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
-
-TIP: You should probably be using the `head` method, discussed later in this guide, instead of `render :nothing`. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
-
 #### Rendering an Action's View
 
 If you want to render the view that corresponds to a different template within the same controller, you can use `render` with the name of the view:
@@ -177,23 +149,22 @@ render template: "products/show"
 
 #### Rendering an Arbitrary File
 
-The `render` method can also use a view that's entirely outside of your application (perhaps you're sharing views between two Rails applications):
-
-```ruby
-render "/u/apps/warehouse_app/current/app/views/products/show"
-```
-
-Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the `:file` option (which was required on Rails 2.2 and earlier):
+The `render` method can also use a view that's entirely outside of your application:
 
 ```ruby
 render file: "/u/apps/warehouse_app/current/app/views/products/show"
 ```
 
-The `:file` option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
+The `:file` option takes an absolute file-system path. Of course, you need to have rights
+to the view that you're using to render the content.
+
+NOTE: Using the `:file` option in combination with users input can lead to security problems
+since an attacker could use this action to access security sensitive files in your file system.
 
 NOTE: By default, the file is rendered using the current layout.
 
-TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to render a file, because Windows filenames do not have the same format as Unix filenames.
+TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to
+render a file, because Windows filenames do not have the same format as Unix filenames.
 
 #### Wrapping it up
 
@@ -266,7 +237,7 @@ TIP: This is useful when you're rendering a small snippet of HTML code.
 However, you might want to consider moving it to a template file if the markup
 is complex.
 
-NOTE: This option will escape HTML entities if the string is not HTML safe.
+NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.
 
 #### Rendering JSON
 
@@ -308,7 +279,7 @@ render body: "raw"
 ```
 
 TIP: This option should be used only if you don't care about the content type of
-the response. Using `:plain` or `:html` might be more appropriate in most of the
+the response. Using `:plain` or `:html` might be more appropriate most of the
 time.
 
 NOTE: Unless overridden, your response returned from this render option will be
@@ -388,7 +359,6 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 303              | :see_other                       |
 |                     | 304              | :not_modified                    |
 |                     | 305              | :use_proxy                       |
-|                     | 306              | :reserved                        |
 |                     | 307              | :temporary_redirect              |
 |                     | 308              | :permanent_redirect              |
 | **Client Error**    | 400              | :bad_request                     |
@@ -404,10 +374,10 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 410              | :gone                            |
 |                     | 411              | :length_required                 |
 |                     | 412              | :precondition_failed             |
-|                     | 413              | :request_entity_too_large        |
-|                     | 414              | :request_uri_too_long            |
+|                     | 413              | :payload_too_large               |
+|                     | 414              | :uri_too_long                    |
 |                     | 415              | :unsupported_media_type          |
-|                     | 416              | :requested_range_not_satisfiable |
+|                     | 416              | :range_not_satisfiable           |
 |                     | 417              | :expectation_failed              |
 |                     | 422              | :unprocessable_entity            |
 |                     | 423              | :locked                          |
@@ -428,12 +398,13 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 510              | :not_extended                    |
 |                     | 511              | :network_authentication_required |
 
-NOTE:  If you try to render content along with a non-content status code 
+NOTE:  If you try to render content along with a non-content status code
 (100-199, 204, 205 or 304), it will be dropped from the response.
 
 ##### The `:formats` Option
 
-Rails uses the format specified in request (or `:html` by default). You can change this adding the `:formats` option with a symbol or an array:
+Rails uses the format specified in the request (or `:html` by default). You can
+change this passing the `:formats` option with a symbol or an array:
 
 ```ruby
 render formats: :xml
@@ -563,6 +534,42 @@ In this application:
 * `OldArticlesController#show` will use no layout at all
 * `OldArticlesController#index` will use the `old` layout
 
+##### Template Inheritance
+
+Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
+
+```ruby
+# in app/controllers/application_controller
+class ApplicationController < ActionController::Base
+end
+
+# in app/controllers/admin_controller
+class AdminController < ApplicationController
+end
+
+# in app/controllers/admin/products_controller
+class Admin::ProductsController < AdminController
+  def index
+  end
+end
+```
+
+The lookup order for an `admin/products#index` action will be:
+
+* `app/views/admin/products/`
+* `app/views/admin/`
+* `app/views/application/`
+
+This makes `app/views/application/` a great place for your shared partials, which can then be rendered in your ERB as such:
+
+```erb
+<%# app/views/admin/products/index.html.erb %>
+<%= render @products || "empty_list" %>
+
+<%# app/views/application/_empty_list.html.erb %>
+There are no items in this list <em>yet</em>.
+```
+
 #### Avoiding Double Render Errors
 
 Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that `render` works.
@@ -614,11 +621,16 @@ Another way to handle returning responses to an HTTP request is with `redirect_t
 redirect_to photos_url
 ```
 
-You can use `redirect_to` with any arguments that you could use with `link_to` or `url_for`. There's also a special redirect that sends the user back to the page they just came from:
+You can use `redirect_back` to return the user to the page they just came from.
+This location is pulled from the `HTTP_REFERER` header which is not guaranteed
+to be set by the browser, so you must provide the `fallback_location`
+to use in this case.
 
 ```ruby
-redirect_to :back
+redirect_back(fallback_location: root_path)
 ```
+
+NOTE: `redirect_to` and `redirect_back` do not halt and return immediately from method execution, but simply set HTTP responses. Statements occurring after them in a method will be executed. You can halt by an explicit `return` or some other halting mechanism, if needed.
 
 #### Getting a Different Redirect Status Code
 
@@ -689,7 +701,7 @@ This would detect that there are no books with the specified ID, populate the `@
 
 ### Using `head` To Build Header-Only Responses
 
-The `head` method can be used to send responses with only headers to the browser. It provides a more obvious alternative to calling `render :nothing`. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing a HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
+The `head` method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing an HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 
 ```ruby
 head :bad_request
@@ -739,7 +751,7 @@ When Rails renders a view as a response, it does so by combining the view with t
 
 ### Asset Tag Helpers
 
-Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
+Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos, and audios. There are six asset tag helpers available in Rails:
 
 * `auto_discovery_link_tag`
 * `javascript_include_tag`
@@ -773,7 +785,7 @@ The `javascript_include_tag` helper returns an HTML `script` tag for each source
 
 If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, this helper will generate a link to `/assets/javascripts/` rather than `public/javascripts` which was used in earlier versions of Rails. This link is then served by the asset pipeline.
 
-A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization)
+A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization).
 
 You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called `javascripts` inside of one of `app/assets`, `lib/assets` or `vendor/assets`, you would do this:
 
@@ -1038,9 +1050,14 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 <%= render "shared/footer" %>
 ```
 
-Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
+Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain
+content that is shared by many pages in your application. You don't need to see
+the details of these sections when you're concentrating on a particular page.
 
-As you already could see from the previous sections of this guide, `yield` is a very powerful tool for cleaning up your layouts. Keep in mind that it's pure ruby, so you can use it almost everywhere. For example, we can use it to DRY form layout definition for several similar resources:
+As seen in the previous sections of this guide, `yield` is a very powerful tool
+for cleaning up your layouts. Keep in mind that it's pure Ruby, so you can use
+it almost everywhere. For example, we can use it to DRY up form layout
+definitions for several similar resources:
 
 * `users/index.html.erb`
 
@@ -1065,7 +1082,7 @@ As you already could see from the previous sections of this guide, `yield` is a 
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(@q) do |f| %>
+    <%= form_for(search) do |f| %>
       <h1>Search form:</h1>
       <fieldset>
         <%= yield f %>
@@ -1141,14 +1158,12 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 * `_articles.html.erb`
 
   ```erb
-  <%= content_tag_for :article, article do |article| %>
-    <h2><%= article.title %></h2>
+  <h2><%= article.title %></h2>
 
-    <% if local_assigns[:full] %>
-      <%= simple_format article.body %>
-    <% else %>
-      <%= truncate article.body %>
-    <% end %>
+  <% if local_assigns[:full] %>
+    <%= simple_format article.body %>
+  <% else %>
+    <%= truncate article.body %>
   <% end %>
   ```
 
@@ -1265,7 +1280,7 @@ When rendering collections it is also possible to use the `:layout` option:
 <%= render partial: "product", collection: @products, layout: "special_layout" %>
 ```
 
-The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
+The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they are within the partial.
 
 ### Using Nested Layouts
 

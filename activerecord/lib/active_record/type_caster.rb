@@ -1,7 +1,7 @@
-require 'active_record/type_caster/map'
-require 'active_record/type_caster/connection'
+require "active_record/type_caster/map"
+require "active_record/type_caster/connection"
 
 module ActiveRecord
-  module TypeCaster
+  module TypeCaster # :nodoc:
   end
 end

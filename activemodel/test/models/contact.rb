@@ -4,7 +4,6 @@ class Contact
   include ActiveModel::Validations
 
   include ActiveModel::Serializers::JSON
-  include ActiveModel::Serializers::Xml
 
   attr_accessor :id, :name, :age, :created_at, :awesome, :preferences
   attr_accessor :address, :friends, :contact

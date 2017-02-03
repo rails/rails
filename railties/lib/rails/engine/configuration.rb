@@ -1,20 +1,17 @@
-require 'rails/railtie/configuration'
+require "rails/railtie/configuration"
 
 module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_accessor :middleware
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
-      def initialize(root=nil)
+      def initialize(root = nil)
         super()
         @root = root
         @generators = app_generators.dup
-      end
-
-      # Returns the middleware stack for the engine.
-      def middleware
-        @middleware ||= Rails::Configuration::MiddlewareStackProxy.new
+        @middleware = Rails::Configuration::MiddlewareStackProxy.new
       end
 
       # Holds generators configuration:
@@ -29,7 +26,7 @@ module Rails
       #
       #   config.generators.colorize_logging = false
       #
-      def generators #:nodoc:
+      def generators
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?
         @generators
@@ -42,6 +39,7 @@ module Rails
           paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
+          paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
           paths.add "app/mailers",         eager_load: true

@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class StarStarMimeController < ActionController::Base
   layout nil
@@ -11,7 +11,7 @@ end
 class StarStarMimeControllerTest < ActionController::TestCase
   def test_javascript_with_format
     @request.accept = "text/javascript"
-    get :index, format: 'js'
+    get :index, format: "js"
     assert_match "function addition(a,b){ return a+b; }", @response.body
   end
 
@@ -40,7 +40,7 @@ class PostController < AbstractPostController
     respond_to(:html, :iphone, :js)
   end
 
-protected
+private
 
   def with_iphone
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
@@ -71,7 +71,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
 
     @request.accept = "text/iphone"
     get :index
-    assert_equal 'Hello iPhone', @response.body
+    assert_equal "Hello iPhone", @response.body
   end
 
   def test_format_with_inherited_layouts

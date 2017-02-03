@@ -1,21 +1,20 @@
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/module/anonymous'
-require 'action_dispatch/http/mime_type'
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/anonymous"
+require "action_dispatch/http/mime_type"
 
 module ActionController
-  # Wraps the parameters hash into a nested hash. This will allow clients to submit
-  # POST requests without having to specify any root elements.
+  # Wraps the parameters hash into a nested hash. This will allow clients to
+  # submit requests without having to specify any root elements.
   #
   # This functionality is enabled in +config/initializers/wrap_parameters.rb+
-  # and can be customized. If you are upgrading to \Rails 3.1, this file will
-  # need to be created for the functionality to be enabled.
+  # and can be customized.
   #
   # You could also turn it on per controller by setting the format array to
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters format: [:json, :xml]
+  #       wrap_parameters format: [:json, :xml, :url_encoded_form, :multipart_form]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
@@ -41,7 +40,7 @@ module ActionController
   #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
-  # On ActiveRecord models with no +:include+ or +:exclude+ option set,
+  # On Active Record models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
   # <tt>attribute_names</tt>.
   #
@@ -72,7 +71,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require 'mutex_m'
+    require "mutex_m"
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       include Mutex_m
@@ -129,30 +128,30 @@ module ActionController
       end
 
       private
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singularize name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
-      def _default_wrap_model #:nodoc:
-        return nil if klass.anonymous?
-        model_name = klass.name.sub(/Controller$/, '').classify
+        # Determine the wrapper model from the controller's name. By convention,
+        # this could be done by trying to find the defined model that has the
+        # same singular name as the controller. For example, +UsersController+
+        # will try to find if the +User+ model exists.
+        #
+        # This method also does namespace lookup. Foo::Bar::UsersController will
+        # try to find Foo::Bar::User, Foo::User and finally User.
+        def _default_wrap_model
+          return nil if klass.anonymous?
+          model_name = klass.name.sub(/Controller$/, "").classify
 
-        begin
-          if model_klass = model_name.safe_constantize
-            model_klass
-          else
-            namespaces = model_name.split("::")
-            namespaces.delete_at(-2)
-            break if namespaces.last == model_name
-            model_name = namespaces.join("::")
-          end
-        end until model_klass
+          begin
+            if model_klass = model_name.safe_constantize
+              model_klass
+            else
+              namespaces = model_name.split("::")
+              namespaces.delete_at(-2)
+              break if namespaces.last == model_name
+              model_name = namespaces.join("::")
+            end
+          end until model_klass
 
-        model_klass
-      end
+          model_klass
+        end
     end
 
     included do
@@ -199,14 +198,14 @@ module ActionController
         when Hash
           options = name_or_model_or_options
         when false
-          options = options.merge(:format => [])
+          options = options.merge(format: [])
         when Symbol, String
-          options = options.merge(:name => name_or_model_or_options)
+          options = options.merge(name: name_or_model_or_options)
         else
           model = name_or_model_or_options
         end
 
-        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
         opts.model = model
         opts.klass = self
 
@@ -251,7 +250,7 @@ module ActionController
 
     private
 
-      # Returns the wrapper key which will be used to stored wrapped parameters.
+      # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name
       end
@@ -277,7 +276,9 @@ module ActionController
 
       # Checks if we should perform parameters wrapping.
       def _wrapper_enabled?
-        ref = request.content_mime_type.try(:ref)
+        return false unless request.has_content_type?
+
+        ref = request.content_mime_type.ref
         _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
       end
   end

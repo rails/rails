@@ -16,7 +16,6 @@
 .large {font-size: larger;}
 .hide {display: none;}
 
-li ul, li ol { margin:0 1.5em; }
 ul, ol { margin: 0 1.5em 1.5em 1.5em; }
 
 ul { list-style-type: disc; }
@@ -601,6 +600,8 @@ h6 {
   font-size: 1em;
   font-weight: normal;
 }
+
+#subCol li ul, li ol { margin:0 1.5em; }
 
 div.code_container {
   background: #EEE url(../images/tab_grey.gif) no-repeat left top;

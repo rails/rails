@@ -1,4 +1,4 @@
-require 'rails/generators/test_unit'
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -7,8 +7,8 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "ControllerTest"
 
       def create_test_files
-        template 'functional_test.rb',
-                 File.join('test/controllers', class_path, "#{file_name}_controller_test.rb")
+        template "functional_test.rb",
+                 File.join("test/controllers", class_path, "#{file_name}_controller_test.rb")
       end
     end
   end

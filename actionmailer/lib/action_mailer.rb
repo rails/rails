@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2015 David Heinemeier Hansson
+# Copyright (c) 2004-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,15 +21,15 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'abstract_controller'
-require 'action_mailer/version'
+require "abstract_controller"
+require "action_mailer/version"
 
 # Common Active Support usage in Action Mailer
-require 'active_support/rails'
-require 'active_support/core_ext/class'
-require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/lazy_load_hooks'
+require "active_support/rails"
+require "active_support/core_ext/class"
+require "active_support/core_ext/module/attr_internal"
+require "active_support/core_ext/string/inflections"
+require "active_support/lazy_load_hooks"
 
 module ActionMailer
   extend ::ActiveSupport::Autoload
@@ -40,11 +40,20 @@ module ActionMailer
 
   autoload :Base
   autoload :DeliveryMethods
+  autoload :InlinePreviewInterceptor
   autoload :MailHelper
+  autoload :Parameterized
   autoload :Preview
-  autoload :Previews, 'action_mailer/preview'
+  autoload :Previews, "action_mailer/preview"
   autoload :TestCase
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :DeliveryJob
+end
+
+autoload :Mime, "action_dispatch/http/mime_type"
+
+ActiveSupport.on_load(:action_view) do
+  ActionView::Base.default_formats ||= Mime::SET.symbols
+  ActionView::Template::Types.delegate_to Mime
 end

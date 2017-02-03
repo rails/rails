@@ -35,29 +35,29 @@ can read more about Action Pack in its {README}[link:files/actionpack/README_rdo
 
 1. Install \Rails at the command prompt if you haven't yet:
 
-    gem install rails
+    $ gem install rails
 
 2. At the command prompt, create a new \Rails application:
 
-    rails new myapp
+    $ rails new myapp
 
    where "myapp" is the application name.
 
 3. Change directory to +myapp+ and start the web server:
 
-    cd myapp; rails server
+    $ cd myapp; rails server
 
    Run with <tt>--help</tt> or <tt>-h</tt> for options.
 
 4. Go to http://localhost:3000 and you'll see:
 
-    "Welcome aboard: You're riding Ruby on Rails!"
+    "Yay! You’re on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find the following resources handy:
 
 * The \README file created within your application.
 * {Getting Started with \Rails}[http://guides.rubyonrails.org/getting_started.html].
-* {Ruby on \Rails Tutorial}[http://ruby.railstutorial.org/ruby-on-rails-tutorial-book].
+* {Ruby on \Rails Tutorial}[http://www.railstutorial.org/book].
 * {Ruby on \Rails Guides}[http://guides.rubyonrails.org].
 * {The API Documentation}[http://api.rubyonrails.org].
 

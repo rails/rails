@@ -1,7 +1,7 @@
 class Contract < ActiveRecord::Base
   belongs_to :company
   belongs_to :developer
-  belongs_to :firm, :foreign_key => 'company_id'
+  belongs_to :firm, foreign_key: "company_id"
 
   before_save :hi
   after_save :bye

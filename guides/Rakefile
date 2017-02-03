@@ -1,26 +1,27 @@
 namespace :guides do
 
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
-  task :generate => 'generate:html'
+  task generate: "generate:html"
 
   namespace :generate do
 
     desc "Generate HTML guides"
     task :html do
-      ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
+      ENV["WARNINGS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 
-    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/kindlepublishing"
+    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
     task :kindle do
-      unless `kindlerb -v 2> /dev/null` =~ /kindlerb 0.1.1/
-        abort "Please `gem install kindlerb` and make sure you have `kindlegen` in your PATH"
+      require "kindlerb"
+      unless Kindlerb.kindlegen_available?
+        abort "Please run `setupkindlerb` to install kindlegen"
       end
-      unless `convert` =~ /convert/  
+      unless `convert` =~ /convert/
         abort "Please install ImageMagick`"
       end
-      ENV['KINDLE'] = '1'
-      Rake::Task['guides:generate:html'].invoke
+      ENV["KINDLE"] = "1"
+      Rake::Task["guides:generate:html"].invoke
     end
   end
 
@@ -76,4 +77,4 @@ Examples:
   end
 end
 
-task :default => 'guides:help'
+task default: "guides:help"

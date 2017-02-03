@@ -1,10 +1,10 @@
-require 'abstract_unit'
-require 'action_view'
-require 'action_controller'
+require "abstract_unit"
+require "action_view"
+require "action_controller"
 
 class I18nTestMailer < ActionMailer::Base
   configure do |c|
-    c.assets_dir = ''
+    c.assets_dir = ""
   end
 
   def mail_with_i18n_subject(recipient)
@@ -18,14 +18,16 @@ end
 class TestController < ActionController::Base
   def send_mail
     email = I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver_now
-    render text: "Mail sent - Subject: #{email.subject}"
+    render plain: "Mail sent - Subject: #{email.subject}"
   end
 end
 
 class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
-    get ':controller(/:action(/:id))'
+    ActiveSupport::Deprecation.silence do
+      get ":controller(/:action(/:id))"
+    end
   end
 
   class RoutedRackApp
@@ -52,19 +54,22 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
   end
 
   def test_send_mail
-    Mail::SMTP.any_instance.expects(:deliver!)
-    with_translation 'de', email_subject: '[Anmeldung] Willkommen' do
-      get '/test/send_mail'
-      assert_equal "Mail sent - Subject: [Anmeldung] Willkommen", @response.body
+    stub_any_instance(Mail::SMTP, instance: Mail::SMTP.new({})) do |instance|
+      assert_called(instance, :deliver!) do
+        with_translation "de", email_subject: "[Anmeldung] Willkommen" do
+          get "/test/send_mail"
+          assert_equal "Mail sent - Subject: [Anmeldung] Willkommen", @response.body
+        end
+      end
     end
   end
 
-  protected
+  private
 
-  def with_translation(locale, data)
-    I18n.backend.store_translations(locale, data)
-    yield
-  ensure
-    I18n.backend.reload!
-  end
+    def with_translation(locale, data)
+      I18n.backend.store_translations(locale, data)
+      yield
+    ensure
+      I18n.backend.reload!
+    end
 end

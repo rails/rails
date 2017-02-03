@@ -15,34 +15,44 @@ module ActiveSupport
   #     end
   #   end
   #
-  # When the entirety of +activerecord/lib/active_record/base.rb+ has been
+  # When the entirety of +ActiveRecord::Base+ has been
   # evaluated then +run_load_hooks+ is invoked. The very last line of
-  # +activerecord/lib/active_record/base.rb+ is:
+  # +ActiveRecord::Base+ is:
   #
   #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
-  @load_hooks = Hash.new { |h,k| h[k] = [] }
-  @loaded = Hash.new { |h,k| h[k] = [] }
-
-  def self.on_load(name, options = {}, &block)
-    @loaded[name].each do |base|
-      execute_hook(base, options, block)
+  module LazyLoadHooks
+    def self.extended(base) # :nodoc:
+      base.class_eval do
+        @load_hooks = Hash.new { |h, k| h[k] = [] }
+        @loaded     = Hash.new { |h, k| h[k] = [] }
+      end
     end
 
-    @load_hooks[name] << [block, options]
-  end
+    # Declares a block that will be executed when a Rails component is fully
+    # loaded.
+    def on_load(name, options = {}, &block)
+      @loaded[name].each do |base|
+        execute_hook(base, options, block)
+      end
 
-  def self.execute_hook(base, options, block)
-    if options[:yield]
-      block.call(base)
-    else
-      base.instance_eval(&block)
+      @load_hooks[name] << [block, options]
+    end
+
+    def execute_hook(base, options, block)
+      if options[:yield]
+        block.call(base)
+      else
+        base.instance_eval(&block)
+      end
+    end
+
+    def run_load_hooks(name, base = Object)
+      @loaded[name] << base
+      @load_hooks[name].each do |hook, options|
+        execute_hook(base, options, hook)
+      end
     end
   end
 
-  def self.run_load_hooks(name, base = Object)
-    @loaded[name] << base
-    @load_hooks[name].each do |hook, options|
-      execute_hook(base, options, hook)
-    end
-  end
+  extend LazyLoadHooks
 end

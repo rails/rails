@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/file'
+require "abstract_unit"
+require "active_support/core_ext/file"
 
 class AtomicWriteTest < ActiveSupport::TestCase
   def test_atomic_write_without_errors

@@ -1,4 +1,4 @@
-require 'active_support/per_thread_registry'
+require "active_support/per_thread_registry"
 
 module ActiveRecord
   # This is a thread locals registry for EXPLAIN. For example
@@ -7,7 +7,7 @@ module ActiveRecord
   #
   # returns the collected queries local to the current thread.
   #
-  # See the documentation of <tt>ActiveSupport::PerThreadRegistry</tt>
+  # See the documentation of ActiveSupport::PerThreadRegistry
   # for further details.
   class ExplainRegistry # :nodoc:
     extend ActiveSupport::PerThreadRegistry

@@ -1,12 +1,12 @@
-require 'active_support/backtrace_cleaner'
+require "active_support/backtrace_cleaner"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
-    APP_DIRS_PATTERN = /^\/?(app|config|lib|test)/
+    APP_DIRS_PATTERN = /^\/?(app|config|lib|test|\(\w*\))/
     RENDER_TEMPLATE_PATTERN = /:in `_render_template_\w*'/
-    EMPTY_STRING = ''.freeze
-    SLASH        = '/'.freeze
-    DOT_SLASH    = './'.freeze
+    EMPTY_STRING = "".freeze
+    SLASH        = "/".freeze
+    DOT_SLASH    = "./".freeze
 
     def initialize
       super

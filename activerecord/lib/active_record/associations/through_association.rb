@@ -2,10 +2,9 @@ module ActiveRecord
   # = Active Record Through Association
   module Associations
     module ThroughAssociation #:nodoc:
+      delegate :source_reflection, :through_reflection, to: :reflection
 
-      delegate :source_reflection, :through_reflection, :to => :reflection
-
-      protected
+      private
 
         # We merge in these scopes for two reasons:
         #
@@ -15,12 +14,6 @@ module ActiveRecord
           scope = super
           reflection.chain.drop(1).each do |reflection|
             relation = reflection.klass.all
-
-            reflection_scope = reflection.scope
-            if reflection_scope && reflection_scope.arity.zero?
-              relation = relation.merge(reflection_scope)
-            end
-
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
@@ -28,12 +21,10 @@ module ActiveRecord
           scope
         end
 
-      private
-
         # Construct attributes for :through pointing to owner and associate. This is used by the
         # methods which create and delete records on the association.
         #
-        # We only support indirectly modifying through associations which has a belongs_to source.
+        # We only support indirectly modifying through associations which have a belongs_to source.
         # This is the "has_many :tags, through: :taggings" situation, where the join model
         # typically has a belongs_to on both side. In other words, associations which could also
         # be represented as has_and_belongs_to_many associations.
@@ -82,13 +73,21 @@ module ActiveRecord
 
         def ensure_mutable
           unless source_reflection.belongs_to?
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            else
+              raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            end
           end
         end
 
         def ensure_not_nested
           if reflection.nested?
-            raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            else
+              raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            end
           end
         end
 

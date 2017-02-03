@@ -317,15 +317,15 @@ for detailed changes.
 
 * Removed deprecated constants from Action Controller:
 
-  | Removed                            | Successor                       |
-  |:-----------------------------------|:--------------------------------|
-  | ActionController::AbstractRequest  | ActionDispatch::Request         |
-  | ActionController::Request          | ActionDispatch::Request         |
-  | ActionController::AbstractResponse | ActionDispatch::Response        |
-  | ActionController::Response         | ActionDispatch::Response        |
-  | ActionController::Routing          | ActionDispatch::Routing         |
-  | ActionController::Integration      | ActionDispatch::Integration     |
-  | ActionController::IntegrationTest  | ActionDispatch::IntegrationTest |
+| Removed                            | Successor                       |
+|:-----------------------------------|:--------------------------------|
+| ActionController::AbstractRequest  | ActionDispatch::Request         |
+| ActionController::Request          | ActionDispatch::Request         |
+| ActionController::AbstractResponse | ActionDispatch::Response        |
+| ActionController::Response         | ActionDispatch::Response        |
+| ActionController::Routing          | ActionDispatch::Routing         |
+| ActionController::Integration      | ActionDispatch::Integration     |
+| ActionController::IntegrationTest  | ActionDispatch::IntegrationTest |
 
 ### Notable changes
 

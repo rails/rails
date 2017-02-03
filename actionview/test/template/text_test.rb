@@ -1,17 +1,23 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TextTest < ActiveSupport::TestCase
-  test 'formats returns symbol for recognized MIME type' do
-    assert_equal [:text], ActionView::Template::Text.new('', :text).formats
+  test "formats always return :text" do
+    assert_equal [:text], ActionView::Template::Text.new("").formats
   end
 
-  test 'formats returns string for recognized MIME type when MIME does not have symbol' do
-    foo = Mime::Type.lookup("foo")
-    assert_nil foo.to_sym
-    assert_equal ['foo'], ActionView::Template::Text.new('', foo).formats
+  test "identifier should return 'text template'" do
+    assert_equal "text template", ActionView::Template::Text.new("").identifier
   end
 
-  test 'formats returns string for unknown MIME type' do
-    assert_equal ['foo'], ActionView::Template::Text.new('', 'foo').formats
+  test "inspect should return 'text template'" do
+    assert_equal "text template", ActionView::Template::Text.new("").inspect
+  end
+
+  test "to_str should return a given string" do
+    assert_equal "a cat", ActionView::Template::Text.new("a cat").to_str
+  end
+
+  test "render should return a given string" do
+    assert_equal "a dog", ActionView::Template::Text.new("a dog").render
   end
 end

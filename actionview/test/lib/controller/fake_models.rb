@@ -1,12 +1,12 @@
 require "active_model"
 
-class Customer < Struct.new(:name, :id)
+Customer = Struct.new(:name, :id) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 
   undef_method :to_json
 
-  def to_xml(options={})
+  def to_xml(options = {})
     if options[:builder]
       options[:builder].name name
     else
@@ -14,7 +14,7 @@ class Customer < Struct.new(:name, :id)
     end
   end
 
-  def to_js(options={})
+  def to_js(options = {})
     "name: #{name.inspect}"
   end
   alias :to_text :to_js
@@ -26,12 +26,16 @@ class Customer < Struct.new(:name, :id)
   def persisted?
     id.present?
   end
+
+  def cache_key
+    name.to_s
+  end
 end
 
-class GoodCustomer < Customer
-end
+class BadCustomer < Customer; end
+class GoodCustomer < Customer; end
 
-class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
+Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
@@ -80,7 +84,7 @@ class Comment
   def to_key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
   def persisted?; @id.present? end
-  def to_param; @id.to_s; end
+  def to_param; @id && @id.to_s; end
   def name
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
@@ -101,14 +105,13 @@ class Tag
   def to_key; id ? [id] : nil end
   def save; @id = 1; @post_id = 1 end
   def persisted?; @id.present? end
-  def to_param; @id; end
+  def to_param; @id && @id.to_s; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
 
   attr_accessor :relevances
   def relevances_attributes=(attributes); end
-
 end
 
 class CommentRelevance
@@ -121,7 +124,7 @@ class CommentRelevance
   def to_key; id ? [id] : nil end
   def save; @id = 1; @comment_id = 1 end
   def persisted?; @id.present? end
-  def to_param; @id; end
+  def to_param; @id && @id.to_s; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
@@ -137,7 +140,7 @@ class TagRelevance
   def to_key; id ? [id] : nil end
   def save; @id = 1; @tag_id = 1 end
   def persisted?; @id.present? end
-  def to_param; @id; end
+  def to_param; @id && @id.to_s; end
   def value
     @id.nil? ? "new #{self.class.name.downcase}" : "#{self.class.name.downcase} ##{@id}"
   end
@@ -164,7 +167,7 @@ module Blog
     true
   end
 
-  class Post < Struct.new(:title, :id)
+  Post = Struct.new(:title, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -184,14 +187,13 @@ class ArelLike
   end
 end
 
-class Car < Struct.new(:color)
-end
+Car = Struct.new(:color)
 
 class Plane
   attr_reader :to_key
 
   def model_name
-    OpenStruct.new param_key: 'airplane'
+    OpenStruct.new param_key: "airplane"
   end
 
   def save

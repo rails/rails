@@ -1,11 +1,11 @@
-require 'action_view/helpers/tag_helper'
+require "action_view/helpers/tag_helper"
 
 module ActionView
   module Helpers
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
-        '</'    => '<\/',
+        "</"    => '<\/',
         "\r\n"  => '\n',
         "\n"    => '\n',
         "\r"    => '\n',
@@ -13,21 +13,21 @@ module ActionView
         "'"     => "\\'"
       }
 
-      JS_ESCAPE_MAP["\342\200\250".force_encoding(Encoding::UTF_8).encode!] = '&#x2028;'
-      JS_ESCAPE_MAP["\342\200\251".force_encoding(Encoding::UTF_8).encode!] = '&#x2029;'
+      JS_ESCAPE_MAP["\342\200\250".force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
+      JS_ESCAPE_MAP["\342\200\251".force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
       # Also available through the alias j(). This is particularly helpful in JavaScript
       # responses, like:
       #
-      #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
+      #   $('some_element').replaceWith('<%= j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) { |match| JS_ESCAPE_MAP[match] }
           javascript.html_safe? ? result.html_safe : result
         else
-          ''
+          ""
         end
       end
 
@@ -47,8 +47,8 @@ module ActionView
       # tag.
       #
       #   javascript_tag "alert('All is good')", defer: 'defer'
-      # 
-      # Returns: 
+      #
+      # Returns:
       #   <script defer="defer">
       #   //<![CDATA[
       #   alert('All is good')
@@ -70,7 +70,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag(:script, javascript_cdata_section(content), html_options)
+        content_tag("script".freeze, javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

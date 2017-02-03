@@ -1,10 +1,10 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class ApplicationRoutingTest < ActiveSupport::TestCase
-     require 'rack/test'
-     include Rack::Test::Methods
-     include ActiveSupport::Testing::Isolation
+    require "rack/test"
+    include Rack::Test::Methods
+    include ActiveSupport::Testing::Isolation
 
     def setup
       build_app
@@ -15,7 +15,7 @@ module ApplicationTests
       @plugin = engine "blog"
       @metrics_plugin = engine "metrics"
 
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
@@ -34,7 +34,6 @@ module ApplicationTests
         end
       RUBY
 
-
       @simple_plugin.write "lib/weblog.rb", <<-RUBY
         module Weblog
           class Engine < ::Rails::Engine
@@ -51,7 +50,7 @@ module ApplicationTests
       @simple_plugin.write "app/controllers/weblogs_controller.rb", <<-RUBY
         class WeblogsController < ActionController::Base
           def index
-            render text: request.url
+            render plain: request.url
           end
         end
       RUBY
@@ -75,7 +74,7 @@ module ApplicationTests
         module Metrics
           class GeneratingController < ActionController::Base
             def generate_blog_route
-              render text: blog.post_path(1)
+              render plain: blog.post_path(1)
             end
 
             def generate_blog_route_in_view
@@ -123,14 +122,14 @@ module ApplicationTests
         module Blog
           class PostsController < ActionController::Base
             def index
-              render text: blog.post_path(1)
+              render plain: blog.post_path(1)
             end
 
             def generate_application_route
               path = main_app.url_for(controller: "/main",
                                  action: "index",
                                  only_path: true)
-              render text: path
+              render plain: path
             end
 
             def application_route_in_view
@@ -138,7 +137,7 @@ module ApplicationTests
             end
 
             def engine_polymorphic_path
-              render text: polymorphic_path(Post.new)
+              render plain: polymorphic_path(Post.new)
             end
 
             def engine_asset_path
@@ -151,7 +150,7 @@ module ApplicationTests
       app_file "app/controllers/application_generating_controller.rb", <<-RUBY
         class ApplicationGeneratingController < ActionController::Base
           def engine_route
-            render text: blog.posts_path
+            render plain: blog.posts_path
           end
 
           def engine_route_in_view
@@ -159,7 +158,7 @@ module ApplicationTests
           end
 
           def weblog_engine_route
-            render text: weblog.weblogs_path
+            render plain: weblog.weblogs_path
           end
 
           def weblog_engine_route_in_view
@@ -167,20 +166,18 @@ module ApplicationTests
           end
 
           def url_for_engine_route
-            render text: blog.url_for(controller: "blog/posts", action: "index", user: "john", only_path: true)
+            render plain: blog.url_for(controller: "blog/posts", action: "index", user: "john", only_path: true)
           end
 
           def polymorphic_route
-            render text: polymorphic_url([blog, Blog::Post.new])
+            render plain: polymorphic_url([blog, Blog::Post.new])
           end
 
           def application_polymorphic_path
-            render text: polymorphic_path(Blog::Post.new)
+            render plain: polymorphic_path(Blog::Post.new)
           end
         end
       RUBY
-
-      boot_rails
     end
 
     def teardown
@@ -200,7 +197,7 @@ module ApplicationTests
       assert_equal "/john/blog/posts/1", last_response.body
 
       # test generating engine's route from engine with default_url_options
-      get "/john/blog/posts", {}, 'SCRIPT_NAME' => "/foo"
+      get "/john/blog/posts", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/john/blog/posts/1", last_response.body
 
       # test generating engine's route from application
@@ -214,10 +211,10 @@ module ApplicationTests
       assert_equal "/john/blog/posts", last_response.body
 
       # test generating engine's route from application with default_url_options
-      get "/engine_route", {}, 'SCRIPT_NAME' => "/foo"
+      get "/engine_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/anonymous/blog/posts", last_response.body
 
-      get "/url_for_engine_route", {}, 'SCRIPT_NAME' => "/foo"
+      get "/url_for_engine_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/john/blog/posts", last_response.body
 
       # test generating application's route from engine
@@ -229,21 +226,20 @@ module ApplicationTests
 
       # test generating engine's route from other engine
       get "/metrics/generate_blog_route"
-      assert_equal '/anonymous/blog/posts/1', last_response.body
+      assert_equal "/anonymous/blog/posts/1", last_response.body
 
       get "/metrics/generate_blog_route_in_view"
-      assert_equal '/anonymous/blog/posts/1', last_response.body
+      assert_equal "/anonymous/blog/posts/1", last_response.body
 
       # test generating engine's route from other engine with default_url_options
-      get "/metrics/generate_blog_route", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
+      get "/metrics/generate_blog_route", {}, "SCRIPT_NAME" => "/foo"
+      assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
-      get "/metrics/generate_blog_route_in_view", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal '/foo/anonymous/blog/posts/1', last_response.body
-
+      get "/metrics/generate_blog_route_in_view", {}, "SCRIPT_NAME" => "/foo"
+      assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
       # test generating application's route from engine with default_url_options
-      get "/someone/blog/generate_application_route", {}, 'SCRIPT_NAME' => '/foo'
+      get "/someone/blog/generate_application_route", {}, "SCRIPT_NAME" => "/foo"
       assert_equal "/foo/", last_response.body
 
       # test polymorphic routes

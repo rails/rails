@@ -1,3 +1,3 @@
 class ClassFolder
-  ConstantInClassFolder = 'indeed'
+  ConstantInClassFolder = "indeed"
 end

@@ -1,14 +1,26 @@
-# Activate the gem you are reporting the issue against.
-gem 'activerecord', '4.2.0'
-require 'active_record'
-require 'minitest/autorun'
-require 'logger'
+begin
+  require "bundler/inline"
+rescue LoadError => e
+  $stderr.puts "Bundler version 1.10 or later is required. Please update your Bundler"
+  raise e
+end
+
+gemfile(true) do
+  source "https://rubygems.org"
+  # Activate the gem you are reporting the issue against.
+  gem "activerecord", "5.0.1"
+  gem "sqlite3"
+end
+
+require "active_record"
+require "minitest/autorun"
+require "logger"
 
 # Ensure backward compatibility with Minitest 4
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 # This connection will do for database-independent bug reports.
-ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
+ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do

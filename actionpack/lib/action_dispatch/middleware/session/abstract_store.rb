@@ -1,26 +1,23 @@
-require 'rack/utils'
-require 'rack/request'
-require 'rack/session/abstract/id'
-require 'action_dispatch/middleware/cookies'
-require 'action_dispatch/request/session'
+require "rack/utils"
+require "rack/request"
+require "rack/session/abstract/id"
+require "action_dispatch/middleware/cookies"
+require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-      attr_reader :original_exception
-
-      def initialize(const_error)
-        @original_exception = const_error
-
-        super("Session contains objects whose class definition isn't available.\n" +
-          "Remember to require the classes for all objects kept in the session.\n" +
-          "(Original exception: #{const_error.message} [#{const_error.class}])\n")
+      def initialize
+        super("Session contains objects whose class definition isn't available.\n" \
+          "Remember to require the classes for all objects kept in the session.\n" \
+          "(Original exception: #{$!.message} [#{$!.class}])\n")
+        set_backtrace $!.backtrace
       end
     end
 
     module Compatibility
       def initialize(app, options = {})
-        options[:key] ||= '_session_id'
+        options[:key] ||= "_session_id"
         super
       end
 
@@ -30,11 +27,15 @@ module ActionDispatch
         sid
       end
 
-    protected
+    private
 
-      def initialize_sid
+      def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
+      end
+
+      def make_request(env)
+        ActionDispatch::Request.new env
       end
     end
 
@@ -54,8 +55,8 @@ module ActionDispatch
           begin
             # Note that the regexp does not allow $1 to end with a ':'
             $1.constantize
-          rescue LoadError, NameError => e
-            raise ActionDispatch::Session::SessionRestoreError, e, e.backtrace
+          rescue LoadError, NameError
+            raise ActionDispatch::Session::SessionRestoreError
           end
           retry
         else
@@ -65,8 +66,8 @@ module ActionDispatch
     end
 
     module SessionObject # :nodoc:
-      def prepare_session(env)
-        Request::Session.create(self, env, @default_options)
+      def prepare_session(req)
+        Request::Session.create(self, req, @default_options)
       end
 
       def loaded_session?(session)
@@ -74,17 +75,16 @@ module ActionDispatch
       end
     end
 
-    class AbstractStore < Rack::Session::Abstract::ID
+    class AbstractStore < Rack::Session::Abstract::Persisted
       include Compatibility
       include StaleSessionCheck
       include SessionObject
 
       private
 
-      def set_cookie(env, session_id, cookie)
-        request = ActionDispatch::Request.new(env)
-        request.cookie_jar[key] = cookie
-      end
+        def set_cookie(request, session_id, cookie)
+          request.cookie_jar[key] = cookie
+        end
     end
   end
 end

@@ -1,4 +1,4 @@
-require 'active_support/json'
+require "active_support/json"
 
 module ActiveModel
   module Serializers
@@ -10,7 +10,7 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        class_attribute :include_root_in_json
+        class_attribute :include_root_in_json, instance_writer: false
         self.include_root_in_json = false
       end
 
@@ -134,7 +134,7 @@ module ActiveModel
       #   person.name                  # => "bob"
       #   person.age                   # => 22
       #   person.awesome               # => true
-      def from_json(json, include_root=include_root_in_json)
+      def from_json(json, include_root = include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
         self.attributes = hash

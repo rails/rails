@@ -1,6 +1,6 @@
-require 'active_support/log_subscriber'
-require 'active_support/logger'
-require 'active_support/notifications'
+require "active_support/log_subscriber"
+require "active_support/logger"
+require "active_support/notifications"
 
 module ActiveSupport
   class LogSubscriber
@@ -10,7 +10,7 @@ module ActiveSupport
     #   class SyncLogSubscriberTest < ActiveSupport::TestCase
     #     include ActiveSupport::LogSubscriber::TestHelper
     #
-    #     def setup
+    #     setup do
     #       ActiveRecord::LogSubscriber.attach_to(:active_record)
     #     end
     #
@@ -33,7 +33,7 @@ module ActiveSupport
     # you can collect them doing @logger.logged(level), where level is the level
     # used in logging, like info, debug, warn and so on.
     module TestHelper
-      def setup
+      def setup # :nodoc:
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Fanout.new
 
@@ -44,7 +44,7 @@ module ActiveSupport
         ActiveSupport::Notifications.notifier = @notifier
       end
 
-      def teardown
+      def teardown # :nodoc:
         set_logger(nil)
         ActiveSupport::Notifications.notifier = @old_notifier
       end
@@ -58,15 +58,15 @@ module ActiveSupport
         def initialize(level = DEBUG)
           @flush_count = 0
           @level = level
-          @logged = Hash.new { |h,k| h[k] = [] }
+          @logged = Hash.new { |h, k| h[k] = [] }
         end
 
         def method_missing(level, message = nil)
-           if block_given?
-             @logged[level] << yield
-           else
-             @logged[level] << message
-           end
+          if block_given?
+            @logged[level] << yield
+          else
+            @logged[level] << message
+          end
         end
 
         def logged(level)

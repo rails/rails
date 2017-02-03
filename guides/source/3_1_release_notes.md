@@ -99,7 +99,7 @@ gem 'jquery-rails'
     # config.assets.manifest = YOUR_PATH
 
     # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-    # config.assets.precompile `= %w( search.js )
+    # config.assets.precompile `= %w( admin.js admin.css )
 
 
     # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
@@ -151,7 +151,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - [bundler homepage](http://gembundler.com)
+More information: - [bundler homepage](http://bundler.io/)
 
 ### Living on the Edge
 
@@ -174,7 +174,7 @@ Rails Architectural Changes
 
 The major change in Rails 3.1 is the Assets Pipeline. It makes CSS and JavaScript first-class code citizens and enables proper organization, including use in plugins and engines.
 
-The assets pipeline is powered by [Sprockets](https://github.com/sstephenson/sprockets) and is covered in the [Asset Pipeline](asset_pipeline.html) guide.
+The assets pipeline is powered by [Sprockets](https://github.com/rails/sprockets) and is covered in the [Asset Pipeline](asset_pipeline.html) guide.
 
 ### HTTP Streaming
 
@@ -199,7 +199,7 @@ Railties
 
 * jQuery is the new default JavaScript library.
 
-* jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
+* jQuery and Prototype are no longer vendored and is provided from now on by the `jquery-rails` and `prototype-rails` gems.
 
 * The application generator accepts an option `-j` which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the `Gemfile`, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
@@ -558,4 +558,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev)

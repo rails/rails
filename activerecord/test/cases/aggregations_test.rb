@@ -1,5 +1,5 @@
 require "cases/helper"
-require 'models/customer'
+require "models/customer"
 
 class AggregationsTest < ActiveRecord::TestCase
   fixtures :customers
@@ -51,17 +51,17 @@ class AggregationsTest < ActiveRecord::TestCase
 
     Customer.update_all("gps_location = '24x113'")
     customers(:david).reload
-    assert_equal '24x113', customers(:david)['gps_location']
+    assert_equal "24x113", customers(:david)["gps_location"]
 
-    assert_equal GpsLocation.new('24x113'), customers(:david).gps_location
+    assert_equal GpsLocation.new("24x113"), customers(:david).gps_location
   end
 
   def test_gps_equality
-    assert_equal GpsLocation.new('39x110'), GpsLocation.new('39x110')
+    assert_equal GpsLocation.new("39x110"), GpsLocation.new("39x110")
   end
 
   def test_gps_inequality
-    assert_not_equal GpsLocation.new('39x110'), GpsLocation.new('39x111')
+    assert_not_equal GpsLocation.new("39x110"), GpsLocation.new("39x111")
   end
 
   def test_allow_nil_gps_is_nil
@@ -102,7 +102,7 @@ class AggregationsTest < ActiveRecord::TestCase
   end
 
   def test_nil_assignment_results_in_nil
-    customers(:david).gps_location = GpsLocation.new('39x111')
+    customers(:david).gps_location = GpsLocation.new("39x111")
     assert_not_nil customers(:david).gps_location
     customers(:david).gps_location = nil
     assert_nil customers(:david).gps_location
@@ -129,14 +129,24 @@ class AggregationsTest < ActiveRecord::TestCase
   end
 
   def test_custom_constructor
-    assert_equal 'Barney GUMBLE', customers(:barney).fullname.to_s
+    assert_equal "Barney GUMBLE", customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
   end
 
   def test_custom_converter
-    customers(:barney).fullname = 'Barnoit Gumbleau'
-    assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
+    customers(:barney).fullname = "Barnoit Gumbleau"
+    assert_equal "Barnoit GUMBLEAU", customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
+  end
+
+  def test_assigning_hash_to_custom_converter
+    customers(:barney).fullname = { first: "Barney", last: "Stinson" }
+    assert_equal "Barney STINSON", customers(:barney).name
+  end
+
+  def test_assigning_hash_without_custom_converter
+    customers(:barney).fullname_no_converter = { first: "Barney", last: "Stinson" }
+    assert_equal({ first: "Barney", last: "Stinson" }.to_s, customers(:barney).name)
   end
 end
 
@@ -144,11 +154,11 @@ class OverridingAggregationsTest < ActiveRecord::TestCase
   class DifferentName; end
 
   class Person < ActiveRecord::Base
-    composed_of :composed_of, :mapping => %w(person_first_name first_name)
+    composed_of :composed_of, mapping: %w(person_first_name first_name)
   end
 
   class DifferentPerson < Person
-    composed_of :composed_of, :class_name => 'DifferentName', :mapping => %w(different_person_first_name first_name)
+    composed_of :composed_of, class_name: "DifferentName", mapping: %w(different_person_first_name first_name)
   end
 
   def test_composed_of_aggregation_redefinition_reflections_should_differ_and_not_inherited

@@ -15,10 +15,11 @@ module ActiveModel
   end
 
   module ForbiddenAttributesProtection # :nodoc:
-    protected
+    private
       def sanitize_for_mass_assignment(attributes)
-        if attributes.respond_to?(:permitted?) && !attributes.permitted?
-          raise ActiveModel::ForbiddenAttributesError
+        if attributes.respond_to?(:permitted?)
+          raise ActiveModel::ForbiddenAttributesError if !attributes.permitted?
+          attributes.to_h
         else
           attributes
         end

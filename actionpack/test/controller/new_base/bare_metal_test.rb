@@ -2,8 +2,6 @@ require "abstract_unit"
 
 module BareMetalTest
   class BareController < ActionController::Metal
-    include ActionController::RackDelegation
-
     def index
       self.response_body = "Hello world"
     end
@@ -28,6 +26,8 @@ module BareMetalTest
 
     test "response_body value is wrapped in an array when the value is a String" do
       controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.set_response!(BareController.make_response!(controller.request))
       controller.index
       assert_equal ["Hello world"], controller.response_body
     end
@@ -37,8 +37,22 @@ module BareMetalTest
       controller = BareController.new
       controller.set_request! ActionDispatch::Request.new(env)
       assert controller.request
-      assert controller.response
-      assert env['action_controller.instance']
+    end
+  end
+
+  class BareEmptyController < ActionController::Metal
+    def index
+      self.response_body = nil
+    end
+  end
+
+  class BareEmptyTest < ActiveSupport::TestCase
+    test "response body is nil" do
+      controller = BareEmptyController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.set_response!(BareController.make_response!(controller.request))
+      controller.index
+      assert_nil controller.response_body
     end
   end
 
@@ -88,68 +102,74 @@ module BareMetalTest
 
     test "head :continue (100) does not return a content-type header" do
       headers = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :switching_protocols (101) does not return a content-type header" do
       headers = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :processing (102) does not return a content-type header" do
       headers = HeadController.action(:processing).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :no_content (204) does not return a content-type header" do
       headers = HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :reset_content (205) does not return a content-type header" do
       headers = HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :not_modified (304) does not return a content-type header" do
       headers = HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")).second
-      assert_nil headers['Content-Type']
-      assert_nil headers['Content-Length']
+      assert_nil headers["Content-Type"]
+      assert_nil headers["Content-Length"]
     end
 
     test "head :no_content (204) does not return any content" do
-      content = HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")))
       assert_empty content
     end
 
     test "head :reset_content (205) does not return any content" do
-      content = HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")))
       assert_empty content
     end
 
     test "head :not_modified (304) does not return any content" do
-      content = HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")))
       assert_empty content
     end
 
     test "head :continue (100) does not return any content" do
-      content = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:continue).call(Rack::MockRequest.env_for("/")))
       assert_empty content
     end
 
     test "head :switching_protocols (101) does not return any content" do
-      content = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")))
       assert_empty content
     end
 
     test "head :processing (102) does not return any content" do
-      content = HeadController.action(:processing).call(Rack::MockRequest.env_for("/")).third.first
+      content = body(HeadController.action(:processing).call(Rack::MockRequest.env_for("/")))
       assert_empty content
+    end
+
+    def body(rack_response)
+      buf = []
+      rack_response[2].each { |x| buf << x }
+      buf.join
     end
   end
 

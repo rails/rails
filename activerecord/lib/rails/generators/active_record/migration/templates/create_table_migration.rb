@@ -1,6 +1,6 @@
-class <%= migration_class_name %> < ActiveRecord::Migration
+class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
   def change
-    create_table :<%= table_name %> do |t|
+    create_table :<%= table_name %><%= primary_key_type %> do |t|
 <% attributes.each do |attribute| -%>
 <% if attribute.password_digest? -%>
       t.string :password_digest<%= attribute.inject_options %>

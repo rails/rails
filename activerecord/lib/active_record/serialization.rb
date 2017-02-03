@@ -1,5 +1,5 @@
 module ActiveRecord #:nodoc:
-  # = Active Record Serialization
+  # = Active Record \Serialization
   module Serialization
     extend ActiveSupport::Concern
     include ActiveModel::Serializers::JSON
@@ -18,5 +18,3 @@ module ActiveRecord #:nodoc:
     end
   end
 end
-
-require 'active_record/serializers/xml_serializer'

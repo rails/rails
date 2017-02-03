@@ -1,5 +1,5 @@
-require 'rails/generators/test_unit'
-require 'rails/generators/resource_helpers'
+require "rails/generators/test_unit"
+require "rails/generators/resource_helpers"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -8,11 +8,24 @@ module TestUnit # :nodoc:
 
       check_class_collision suffix: "ControllerTest"
 
+      class_option :api, type: :boolean,
+                         desc: "Generates API functional tests"
+
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_test_files
-        template "functional_test.rb",
+        template_file = options.api? ? "api_functional_test.rb" : "functional_test.rb"
+        template template_file,
                  File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
+      end
+
+      def fixture_name
+        @fixture_name ||=
+          if mountable_engine?
+            "%s_%s" % [namespaced_path, table_name]
+          else
+            table_name
+          end
       end
 
       private
@@ -26,7 +39,7 @@ module TestUnit # :nodoc:
             else
               "#{name}: @#{singular_table_name}.#{name}"
             end
-          end.sort.join(', ')
+          end.sort.join(", ")
         end
     end
   end

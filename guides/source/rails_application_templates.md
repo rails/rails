@@ -15,18 +15,18 @@ After reading this guide, you will know:
 Usage
 -----
 
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the -m option. This can either be a path to a file or a URL.
+To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the `-m` option. This can either be a path to a file or a URL.
 
 ```bash
 $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the rake task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
+You can use the `app:template` Rake task to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
 
 ```bash
-$ bin/rake rails:template LOCATION=~/template.rb
-$ bin/rake rails:template LOCATION=http://example.com/template.rb
+$ bin/rails app:template LOCATION=~/template.rb
+$ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
@@ -38,7 +38,7 @@ The Rails templates API is easy to understand. Here's an example of a typical Ra
 # template.rb
 generate(:scaffold, "person name:string")
 route "root to: 'people#index'"
-rake("db:migrate")
+rails_command("db:migrate")
 
 after_bundle do
   git :init
@@ -78,7 +78,7 @@ gem_group :development, :test do
 end
 ```
 
-### add_source(source, options = {})
+### add_source(source, options={}, &block)
 
 Adds the given source to the generated application's `Gemfile`.
 
@@ -86,6 +86,14 @@ For example, if you need to source a gem from `"http://code.whytheluckystiff.net
 
 ```ruby
 add_source "http://code.whytheluckystiff.net"
+```
+
+If block is given, gem entries in block are wrapped into the source group.
+
+```ruby
+add_source "http://gems.github.com/" do
+  gem "rspec-rails"
+end
 ```
 
 ### environment/application(data=nil, options={}, &block)
@@ -167,18 +175,24 @@ Executes an arbitrary command. Just like the backticks. Let's say you want to re
 run "rm README.rdoc"
 ```
 
-### rake(command, options = {})
+### rails_command(command, options = {})
 
-Runs the supplied rake tasks in the Rails application. Let's say you want to migrate the database:
+Runs the supplied task in the Rails application. Let's say you want to migrate the database:
 
 ```ruby
-rake "db:migrate"
+rails_command "db:migrate"
 ```
 
-You can also run rake tasks with a different Rails environment:
+You can also run tasks with a different Rails environment:
 
 ```ruby
-rake "db:migrate", env: 'production'
+rails_command "db:migrate", env: 'production'
+```
+
+You can also run tasks as a super-user:
+
+```ruby
+rails_command "log:clear", sudo: true
 ```
 
 ### route(routing_code)
@@ -215,10 +229,10 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to freeze rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
 
 ```ruby
-rake("rails:freeze:gems") if yes?("Freeze rails gems?")
+rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
 # no?(question) acts just the opposite.
 ```
 

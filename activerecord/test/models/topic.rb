@@ -2,18 +2,18 @@ class Topic < ActiveRecord::Base
   scope :base, -> { all }
   scope :written_before, lambda { |time|
     if time
-      where 'written_on < ?', time
+      where "written_on < ?", time
     end
   }
-  scope :approved, -> { where(:approved => true) }
-  scope :rejected, -> { where(:approved => false) }
+  scope :approved, -> { where(approved: true) }
+  scope :rejected, -> { where(approved: false) }
 
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_lifo, -> { where(:author_name => 'lifo') }
-  scope :replied, -> { where 'replies_count > 0' }
+  scope :by_lifo, -> { where(author_name: "lifo") }
+  scope :replied, -> { where "replies_count > 0" }
 
-  scope 'approved_as_string', -> { where(:approved => true) }
+  scope "approved_as_string", -> { where(approved: true) }
   scope :anonymous_extension, -> { all } do
     def one
       1
@@ -22,7 +22,7 @@ class Topic < ActiveRecord::Base
 
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
-      klass.where(:approved => true)
+      klass.where(approved: true)
     end
   }.new(self)
 
@@ -32,22 +32,16 @@ class Topic < ActiveRecord::Base
     end
   end
 
-  has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :approved_replies, -> { approved }, class_name: 'Reply', foreign_key: "parent_id", counter_cache: 'replies_count'
+  has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
+  has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
 
-  has_many :unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
-  has_many :silly_unique_replies, :dependent => :destroy, :foreign_key => "parent_id"
+  has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
+  has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
   serialize :content
 
   before_create  :default_written_on
   before_destroy :destroy_children
-
-  # Explicitly define as :date column so that returned Oracle DATE values would be typecasted to Date and not Time.
-  # Some tests depend on assumption that this attribute will have Date values.
-  if current_adapter?(:OracleEnhancedAdapter)
-    set_date_columns :last_read
-  end
 
   def parent
     Topic.find(parent_id)
@@ -79,19 +73,19 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
-  protected
+  private
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
     end
 
     def destroy_children
-      self.class.delete_all "parent_id = #{id}"
+      self.class.where("parent_id = #{id}").delete_all
     end
 
     def set_email_address
-      unless self.persisted?
-        self.author_email_address = 'test@test.com'
+      unless persisted?
+        self.author_email_address = "test@test.com"
       end
     end
 
@@ -119,6 +113,6 @@ end
 
 module Web
   class Topic < ActiveRecord::Base
-    has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'
+    has_many :replies, dependent: :destroy, foreign_key: "parent_id", class_name: "Web::Reply"
   end
 end

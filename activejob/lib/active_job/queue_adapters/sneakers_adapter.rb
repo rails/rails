@@ -1,5 +1,5 @@
-require 'sneakers'
-require 'thread'
+require "sneakers"
+require "monitor"
 
 module ActiveJob
   module QueueAdapters
@@ -16,24 +16,24 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sneakers
     class SneakersAdapter
-      @monitor = Monitor.new
+      def initialize
+        @monitor = Monitor.new
+      end
 
-      class << self
-        def enqueue(job) #:nodoc:
-          @monitor.synchronize do
-            JobWrapper.from_queue job.queue_name
-            JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
-          end
+      def enqueue(job) #:nodoc:
+        @monitor.synchronize do
+          JobWrapper.from_queue job.queue_name
+          JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
         end
+      end
 
-        def enqueue_at(job, timestamp) #:nodoc:
-          raise NotImplementedError
-        end
+      def enqueue_at(job, timestamp) #:nodoc:
+        raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
       end
 
       class JobWrapper #:nodoc:
         include Sneakers::Worker
-        from_queue 'default'
+        from_queue "default"
 
         def work(msg)
           job_data = ActiveSupport::JSON.decode(msg)

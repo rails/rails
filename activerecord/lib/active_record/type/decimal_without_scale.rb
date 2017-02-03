@@ -1,8 +1,6 @@
-require 'active_record/type/big_integer'
-
 module ActiveRecord
   module Type
-    class DecimalWithoutScale < BigInteger # :nodoc:
+    class DecimalWithoutScale < ActiveModel::Type::BigInteger # :nodoc:
       def type
         :decimal
       end

@@ -81,92 +81,87 @@
 </table>
 
 <script type='text/javascript'>
-  // Iterates each element through a function
-  function each(elems, func) {
-    if (!elems instanceof Array) { elems = [elems]; }
-    for (var i = 0, len = elems.length; i < len; i++) {
-      func(elems[i]);
-    }
-  }
-
-  // Sets innerHTML for an element
-  function setContent(elem, text) {
-    elem.innerHTML = text;
-  }
+  // support forEarch iterator on NodeList
+  NodeList.prototype.forEach = Array.prototype.forEach;
 
   // Enables path search functionality
   function setupMatchPaths() {
-    // Check if the user input (sanitized as a path) matches the regexp data attribute
-    function checkExactMatch(section, elem, value) {
-      var string = sanitizePath(value),
-          regexp = elem.getAttribute("data-regexp");
-
-      showMatch(string, regexp, section, elem);
-    }
-
-    // Check if the route path data attribute contains the user input
-    function checkFuzzyMatch(section, elem, value) {
-      var string = elem.getAttribute("data-route-path"),
-          regexp = value;
-
-      showMatch(string, regexp, section, elem);
-    }
-
-    // Display the parent <tr> element in the appropriate section when there's a match
-    function showMatch(string, regexp, section, elem) {
-      if(string.match(RegExp(regexp))) {
-        section.appendChild(elem.parentNode.cloneNode(true));
-      }
-    }
-
     // Check if there are any matched results in a section
-    function checkNoMatch(section, defaultText, noMatchText) {
-      if (section.innerHTML === defaultText) {
-        setContent(section, defaultText + noMatchText);
+    function checkNoMatch(section, noMatchText) {
+      if (section.children.length <= 1) {
+        section.innerHTML += noMatchText;
       }
     }
 
-    // Ensure path always starts with a slash "/" and remove params or fragments
-    function sanitizePath(path) {
-      var path = path.charAt(0) == '/' ? path : "/" + path;
-      return path.replace(/\#.*|\?.*/, '');
+    // get JSON from url and invoke callback with result
+    function getJSON(url, success) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = function() {
+        if (this.status == 200)
+          success(JSON.parse(this.response));
+      };
+      xhr.send();
     }
 
-    var regexpElems     = document.querySelectorAll('#route_table [data-regexp]'),
-        searchElem      = document.querySelector('#search'),
-        exactMatches    = document.querySelector('#exact_matches'),
-        fuzzyMatches    = document.querySelector('#fuzzy_matches');
+    function delayedKeyup(input, callback) {
+      var timeout;
+      input.onkeyup = function(){
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(callback, 300);
+      }
+    }
+
+    // remove params or fragments
+    function sanitizePath(path) {
+      return path.replace(/[#?].*/, '');
+    }
+
+    var pathElements = document.querySelectorAll('#route_table [data-route-path]'),
+        searchElem   = document.querySelector('#search'),
+        exactSection = document.querySelector('#exact_matches'),
+        fuzzySection = document.querySelector('#fuzzy_matches');
 
     // Remove matches when no search value is present
     searchElem.onblur = function(e) {
       if (searchElem.value === "") {
-        setContent(exactMatches, "");
-        setContent(fuzzyMatches, "");
+        exactSection.innerHTML = "";
+        fuzzySection.innerHTML = "";
       }
     }
 
     // On key press perform a search for matching paths
-    searchElem.onkeyup = function(e){
-      var userInput         = searchElem.value,
-          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + escape(sanitizePath(userInput)) +'):</th></tr>',
-          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + escape(userInput) +'):</th></tr>',
+    delayedKeyup(searchElem, function() {
+      var path = sanitizePath(searchElem.value),
+          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + path +'):</th></tr>',
+          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + path +'):</th></tr>',
           noExactMatch      = '<tr><th colspan="4">No Exact Matches Found</th></tr>',
           noFuzzyMatch      = '<tr><th colspan="4">No Fuzzy Matches Found</th></tr>';
 
-      // Clear out results section
-      setContent(exactMatches, defaultExactMatch);
-      setContent(fuzzyMatches, defaultFuzzyMatch);
+      if (!path)
+        return searchElem.onblur();
 
-      // Display exact matches and fuzzy matches
-      each(regexpElems, function(elem) {
-        checkExactMatch(exactMatches, elem, userInput);
-        checkFuzzyMatch(fuzzyMatches, elem, userInput);
+      getJSON('/rails/info/routes?path=' + path, function(matches){
+        // Clear out results section
+        exactSection.innerHTML = defaultExactMatch;
+        fuzzySection.innerHTML = defaultFuzzyMatch;
+
+        // Display exact matches and fuzzy matches
+        pathElements.forEach(function(elem) {
+          var elemPath = elem.getAttribute('data-route-path');
+
+          if (matches['exact'].indexOf(elemPath) != -1)
+            exactSection.appendChild(elem.parentNode.cloneNode(true));
+
+          if (matches['fuzzy'].indexOf(elemPath) != -1)
+            fuzzySection.appendChild(elem.parentNode.cloneNode(true));
+        })
+
+        // Display 'No Matches' message when no matches are found
+        checkNoMatch(exactSection, noExactMatch);
+        checkNoMatch(fuzzySection, noFuzzyMatch);
       })
-
-      // Display 'No Matches' message when no matches are found
-      checkNoMatch(exactMatches, defaultExactMatch, noExactMatch);
-      checkNoMatch(fuzzyMatches, defaultFuzzyMatch, noFuzzyMatch);
-    }
+    })
   }
 
   // Enables functionality to toggle between `_path` and `_url` helper suffixes
@@ -174,19 +169,20 @@
 
     // Sets content for each element
     function setValOn(elems, val) {
-      each(elems, function(elem) {
-        setContent(elem, val);
+      elems.forEach(function(elem) {
+        elem.innerHTML = val;
       });
     }
 
     // Sets onClick event for each element
     function onClick(elems, func) {
-      each(elems, function(elem) {
+      elems.forEach(function(elem) {
         elem.onclick = func;
       });
     }
 
     var toggleLinks = document.querySelectorAll('#route_table [data-route-helper]');
+
     onClick(toggleLinks, function(){
       var helperTxt   = this.getAttribute("data-route-helper"),
           helperElems = document.querySelectorAll('[data-route-name] span.helper');

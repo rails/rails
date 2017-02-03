@@ -8,12 +8,12 @@ classes. Active Model allows for Action Pack helpers to interact with
 plain Ruby objects. Active Model also helps build custom ORMs for use
 outside of the Rails framework.
 
-After reading this guide, you will be able to add to plain Ruby objects:
+After reading this guide, you will know:
 
-* The ability to behave like an Active Record model.
-* Callbacks and validations like Active Record.
-* Serializers.
-* Integration with the Rails internationalization (i18n) framework.
+* How an Active Record model behaves.
+* How Callbacks and validations work.
+* How serializers work.
+* How Active Model integrates with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -156,7 +156,7 @@ person.changed? # => false
 person.first_name = "First Name"
 person.first_name # => "First Name"
 
-# returns if any attribute has changed.
+# returns true if any of the attributes have unsaved changes, false otherwise.
 person.changed? # => true
 
 # returns a list of attributes that have changed before saving.
@@ -197,7 +197,7 @@ person.last_name_change # => nil
 
 ### Validations
 
-`ActiveModel::Validations` module adds the ability to validate class objects
+The `ActiveModel::Validations` module adds the ability to validate class objects
 like in Active Record.
 
 ```ruby
@@ -292,7 +292,7 @@ objects.
 
 ### Serialization
 
-`ActiveModel::Serialization` provides a basic serialization for your object.
+`ActiveModel::Serialization` provides basic serialization for your object.
 You need to declare an attributes hash which contains the attributes you want to
 serialize. Attributes must be strings, not symbols.
 
@@ -319,9 +319,8 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides two serializers `ActiveModel::Serializers::JSON` and
-`ActiveModel::Serializers::Xml`. Both of these modules automatically include
-the `ActiveModel::Serialization`.
+Rails provides an `ActiveModel::Serializers::JSON` serializer.
+This module automatically include the `ActiveModel::Serialization`.
 
 ##### ActiveModel::Serializers::JSON
 
@@ -340,7 +339,7 @@ class Person
 end
 ```
 
-With the `as_json` you have a hash representing the model.
+With the `as_json` method you have a hash representing the model.
 
 ```ruby
 person = Person.new
@@ -379,62 +378,6 @@ person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name            # => "Bob"
 ```
 
-##### ActiveModel::Serializers::Xml
-
-To use the `ActiveModel::Serializers::Xml` you only need to change from
-`ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-With the `to_xml` you have an XML representing the model.
-
-```ruby
-person = Person.new
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name nil=\"true\"/>\n</person>\n"
-person.name = "Bob"
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
-```
-
-From an XML string you define the attributes of the model.
-You need to have the `attributes=` method defined on your class:
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes=(hash)
-    hash.each do |key, value|
-      send("#{key}=", value)
-    end
-  end
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-Now it is possible to create an instance of person and set the attributes using `from_xml`.
-
-```ruby
-xml = { name: 'Bob' }.to_xml
-person = Person.new
-person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
-person.name          # => "Bob"
-```
-
 ### Translation
 
 `ActiveModel::Translation` provides integration between your object and the Rails
@@ -465,7 +408,7 @@ Person.human_attribute_name('name') # => "Nome"
 
 ### Lint Tests
 
-`ActiveModel::Lint::Tests` allow you to test whether an object is compliant with
+`ActiveModel::Lint::Tests` allows you to test whether an object is compliant with
 the Active Model API.
 
 * app/models/person.rb
@@ -473,7 +416,6 @@ the Active Model API.
     ```ruby
     class Person
       include ActiveModel::Model
-
     end
     ```
 
@@ -485,14 +427,14 @@ the Active Model API.
     class PersonTest < ActiveSupport::TestCase
       include ActiveModel::Lint::Tests
 
-      def setup
+      setup do
         @model = Person.new
       end
     end
     ```
 
 ```bash
-$ rake test
+$ rails test
 
 Run options: --seed 14596
 
@@ -518,14 +460,14 @@ an accessor named `password` with certain validations on it.
 
 #### Requirements
 
-`ActiveModel::SecurePassword` depends on the [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
+`ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
 so include this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
 In order to make this work, the model must have an accessor named `password_digest`.
 The `has_secure_password` will add the following validations on the `password` accessor:
 
 1. Password should be present.
-2. Password should be equal to its confirmation.
-3. This maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
+2. Password should be equal to its confirmation (provided +password_confirmation+ is passed along).
+3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
 
@@ -546,9 +488,13 @@ person.password = 'aditya'
 person.password_confirmation = 'nomatch'
 person.valid? # => false
 
-# When the length of password, exceeds 72.
+# When the length of password exceeds 72.
 person.password = person.password_confirmation = 'a' * 100
 person.valid? # => false
+
+# When only password is supplied with no password_confirmation.
+person.password = 'aditya'
+person.valid? # => true
 
 # When all validations are passed.
 person.password = person.password_confirmation = 'aditya'

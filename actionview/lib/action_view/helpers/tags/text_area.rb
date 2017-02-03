@@ -1,4 +1,4 @@
-require 'action_view/helpers/tags/placeholderable'
+require "action_view/helpers/tags/placeholderable"
 
 module ActionView
   module Helpers

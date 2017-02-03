@@ -4,25 +4,15 @@ require "active_support/dependencies"
 module ActionDispatch
   class MiddlewareStack
     class Middleware
-      attr_reader :args, :block, :name, :classcache
+      attr_reader :args, :block, :klass
 
-      def initialize(klass_or_name, *args, &block)
-        @klass = nil
-
-        if klass_or_name.respond_to?(:name)
-          @klass = klass_or_name
-          @name  = @klass.name
-        else
-          @name  = klass_or_name.to_s
-        end
-
-        @classcache = ActiveSupport::Dependencies::Reference
-        @args, @block = args, block
+      def initialize(klass, args, block)
+        @klass = klass
+        @args  = args
+        @block = block
       end
 
-      def klass
-        @klass || classcache[@name]
-      end
+      def name; klass.name; end
 
       def ==(middleware)
         case middleware
@@ -30,23 +20,19 @@ module ActionDispatch
           klass == middleware.klass
         when Class
           klass == middleware
-        else
-          normalize(@name) == normalize(middleware)
         end
       end
 
       def inspect
-        klass.to_s
+        if klass.is_a?(Class)
+          klass.to_s
+        else
+          klass.class.to_s
+        end
       end
 
       def build(app)
         klass.new(app, *args, &block)
-      end
-
-    private
-
-      def normalize(object)
-        object.to_s.strip.sub(/^::/, '')
       end
     end
 
@@ -75,19 +61,17 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(*args, &block)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.unshift(middleware)
+    def unshift(klass, *args, &block)
+      middlewares.unshift(build_middleware(klass, args, block))
     end
 
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, *args, &block)
+    def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.insert(index, middleware)
+      middlewares.insert(index, build_middleware(klass, args, block))
     end
 
     alias_method :insert_before, :insert
@@ -104,26 +88,27 @@ module ActionDispatch
     end
 
     def delete(target)
-      middlewares.delete target
+      middlewares.delete_if { |m| m.klass == target }
     end
 
-    def use(*args, &block)
-      middleware = self.class::Middleware.new(*args, &block)
-      middlewares.push(middleware)
+    def use(klass, *args, &block)
+      middlewares.push(build_middleware(klass, args, block))
     end
 
-    def build(app = nil, &block)
-      app ||= block
-      raise "MiddlewareStack#build requires an app" unless app
+    def build(app = Proc.new)
       middlewares.freeze.reverse.inject(app) { |a, e| e.build(a) }
     end
 
-  protected
+    private
 
-    def assert_index(index, where)
-      i = index.is_a?(Integer) ? index : middlewares.index(index)
-      raise "No such middleware to insert #{where}: #{index.inspect}" unless i
-      i
-    end
+      def assert_index(index, where)
+        i = index.is_a?(Integer) ? index : middlewares.index { |m| m.klass == index }
+        raise "No such middleware to insert #{where}: #{index.inspect}" unless i
+        i
+      end
+
+      def build_middleware(klass, args, block)
+        Middleware.new(klass, args, block)
+      end
   end
 end

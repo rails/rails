@@ -1,4 +1,4 @@
-require 'rails/generators/erb'
+require "rails/generators/erb"
 
 module Erb # :nodoc:
   module Generators # :nodoc:
@@ -6,13 +6,13 @@ module Erb # :nodoc:
       argument :actions, type: :array, default: [], banner: "method method"
 
       def copy_view_files
-        view_base_path = File.join("app/views", class_path, file_name + '_mailer')
+        view_base_path = File.join("app/views", class_path, file_name + "_mailer")
         empty_directory view_base_path
 
-        if self.behavior == :invoke
+        if behavior == :invoke
           formats.each do |format|
-            layout_path = File.join("app/views/layouts", filename_with_extensions("mailer", format))
-            template filename_with_extensions(:layout, format), layout_path
+            layout_path = File.join("app/views/layouts", class_path, filename_with_extensions("mailer", format))
+            template filename_with_extensions(:layout, format), layout_path unless File.exist?(layout_path)
           end
         end
 
@@ -26,15 +26,15 @@ module Erb # :nodoc:
         end
       end
 
-      protected
+      private
 
-      def formats
-        [:text, :html]
-      end
+        def formats
+          [:text, :html]
+        end
 
-      def file_name
-        @_file_name ||= super.gsub(/\_mailer/i, '')
-      end
+        def file_name
+          @_file_name ||= super.gsub(/_mailer/i, "")
+        end
     end
   end
 end

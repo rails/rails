@@ -18,7 +18,7 @@ module ActiveSupport
 
       # Returns a +Pathname+ to the fixture file named +fixture_name+.
       #
-      # Raises ArgumentError if +fixture_name+ can't be found.
+      # Raises +ArgumentError+ if +fixture_name+ can't be found.
       def file_fixture(fixture_name)
         path = Pathname.new(File.join(file_fixture_path, fixture_name))
 

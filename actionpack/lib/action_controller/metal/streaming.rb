@@ -1,4 +1,4 @@
-require 'rack/chunked'
+require "rack/chunked"
 
 module ActionController #:nodoc:
   # Allows views to be streamed back to the client as they are rendered.
@@ -110,9 +110,9 @@ module ActionController #:nodoc:
   # This means that, if you have <code>yield :title</code> in your layout
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
-  # assets, which kills the purpose of streaming. For this reason Rails 3.1
-  # introduces a new helper called +provide+ that does the same as +content_for+
-  # but tells the layout to stop searching for other entries and continue rendering.
+  # assets, which kills the purpose of streaming. For this purpose, you can use
+  # a helper called +provide+ that does the same as +content_for+ but tells the
+  # layout to stop searching for other entries and continue rendering.
   #
   # For instance, the template above using +provide+ would be:
   #
@@ -193,13 +193,13 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    protected
+    private
 
       # Set proper cache control and transfer encoding when streaming
-      def _process_options(options) #:nodoc:
+      def _process_options(options)
         super
         if options[:stream]
-          if env["HTTP_VERSION"] == "HTTP/1.0"
+          if request.version == "HTTP/1.0"
             options.delete(:stream)
           else
             headers["Cache-Control"] ||= "no-cache"
@@ -210,7 +210,7 @@ module ActionController #:nodoc:
       end
 
       # Call render_body if we are streaming instead of usual +render+.
-      def _render_template(options) #:nodoc:
+      def _render_template(options)
         if options.delete(:stream)
           Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
         else

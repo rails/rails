@@ -1,14 +1,16 @@
-require 'active_support/inflector'
+require "active_support/inflector"
 
 class Module
   # Returns the name of the module containing this one.
   #
   #   M::N.parent_name # => "M"
   def parent_name
-    if defined? @parent_name
+    if defined?(@parent_name)
       @parent_name
     else
-      @parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      @parent_name = parent_name unless frozen?
+      parent_name
     end
   end
 
@@ -46,17 +48,13 @@ class Module
   def parents
     parents = []
     if parent_name
-      parts = parent_name.split('::')
+      parts = parent_name.split("::")
       until parts.empty?
-        parents << ActiveSupport::Inflector.constantize(parts * '::')
+        parents << ActiveSupport::Inflector.constantize(parts * "::")
         parts.pop
       end
     end
     parents << Object unless parents.include? Object
     parents
-  end
-
-  def local_constants #:nodoc:
-    constants(false)
   end
 end

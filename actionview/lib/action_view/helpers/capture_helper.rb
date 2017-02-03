@@ -1,4 +1,4 @@
-require 'active_support/core_ext/string/output_safety'
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View Capture Helper
@@ -9,8 +9,8 @@ module ActionView
     # It provides a method to capture blocks into variables through capture and
     # a way to capture a block of markup for use in a layout through content_for.
     module CaptureHelper
-      # The capture method allows you to extract part of a template into a
-      # variable. You can then use this variable anywhere in your templates or layout.
+      # The capture method extracts part of a template as a String object.
+      # You can then use this object anywhere in your templates, layout, or helpers.
       #
       # The capture method can be used in ERB templates...
       #
@@ -37,7 +37,7 @@ module ActionView
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
-        if string = buffer.presence || value and string.is_a?(String)
+        if (string = buffer.presence || value) && string.is_a?(String)
           ERB::Util.html_escape string
         end
       end
@@ -115,7 +115,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #  And in other place:
+      #  And in another place:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>
@@ -195,7 +195,9 @@ module ActionView
       def with_output_buffer(buf = nil) #:nodoc:
         unless buf
           buf = ActionView::OutputBuffer.new
-          buf.force_encoding(output_buffer.encoding) if output_buffer
+          if output_buffer && output_buffer.respond_to?(:encoding)
+            buf.force_encoding(output_buffer.encoding)
+          end
         end
         self.output_buffer, old_buffer = buf, output_buffer
         yield

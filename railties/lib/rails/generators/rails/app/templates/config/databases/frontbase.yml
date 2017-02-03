@@ -8,6 +8,7 @@
 #
 default: &default
   adapter: frontbase
+  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: localhost
   username: <%= app_name %>
   password: ''

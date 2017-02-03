@@ -1,6 +1,5 @@
-
-require 'abstract_unit'
-require 'action_view/dependency_tracker'
+require "abstract_unit"
+require "action_view/dependency_tracker"
 
 class NeckbeardTracker
   def self.call(name, template)
@@ -16,8 +15,8 @@ class FakeTemplate
   end
 end
 
-Neckbeard = lambda {|template| template.source }
-Bowtie = lambda {|template| template.source }
+Neckbeard = lambda { |template| template.source }
+Bowtie = lambda { |template| template.source }
 
 class DependencyTrackerTest < ActionView::TestCase
   def tracker
@@ -60,7 +59,6 @@ class ERBTrackerTest < Minitest::Test
   end
 
   def test_dependency_of_template_partial_with_layout
-    skip # FIXME: Needs to be fixed properly, right now we can only match one dependency per line. Need multiple!
     template = FakeTemplate.new("<%# render partial: 'messages/show', layout: 'messages/layout' %>", :erb)
     tracker = make_tracker("multiple/_dependencies", template)
 

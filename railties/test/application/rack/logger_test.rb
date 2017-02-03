@@ -41,13 +41,13 @@ module ApplicationTests
       end
 
       test "logger logs HTTP verb override" do
-        post "/", _method: 'put'
+        post "/", _method: "put"
         wait
         assert_match 'Started PUT "/"', logs
       end
 
       test "logger logs HEAD requests" do
-        post "/", _method: 'head'
+        post "/", _method: "head"
         wait
         assert_match 'Started HEAD "/"', logs
       end

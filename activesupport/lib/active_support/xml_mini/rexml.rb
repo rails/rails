@@ -1,12 +1,12 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/object/blank'
-require 'stringio'
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/object/blank"
+require "stringio"
 
 module ActiveSupport
   module XmlMini_REXML #:nodoc:
     extend self
 
-    CONTENT_KEY = '__content__'.freeze
+    CONTENT_KEY = "__content__".freeze
 
     # Parse an XML Document string or IO into a simple hash.
     #
@@ -17,19 +17,17 @@ module ActiveSupport
     #   XML Document string or IO to parse
     def parse(data)
       if !data.respond_to?(:read)
-        data = StringIO.new(data || '')
+        data = StringIO.new(data || "")
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
-        silence_warnings { require 'rexml/document' } unless defined?(REXML::Document)
+        silence_warnings { require "rexml/document" } unless defined?(REXML::Document)
         doc = REXML::Document.new(data)
 
         if doc.root
-          merge_element!({}, doc.root)
+          merge_element!({}, doc.root, XmlMini.depth)
         else
           raise REXML::ParseException,
             "The document #{doc.to_s.inspect} does not have a valid root"
@@ -44,19 +42,20 @@ module ActiveSupport
       #   Hash to merge the converted element into.
       # element::
       #   XML element to merge into hash
-      def merge_element!(hash, element)
-        merge!(hash, element.name, collapse(element))
+      def merge_element!(hash, element, depth)
+        raise REXML::ParseException, "The document is too deep" if depth == 0
+        merge!(hash, element.name, collapse(element, depth))
       end
 
       # Actually converts an XML document element into a data structure.
       #
       # element::
       #   The document element to be collapsed.
-      def collapse(element)
+      def collapse(element, depth)
         hash = get_attributes(element)
 
         if element.has_elements?
-          element.each_element {|child| merge_element!(hash, child) }
+          element.each_element { |child| merge_element!(hash, child, depth - 1) }
           merge_texts!(hash, element) unless empty_content?(element)
           hash
         else
@@ -75,7 +74,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = ''
+          texts = ""
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end
@@ -114,7 +113,7 @@ module ActiveSupport
       #   XML element to extract attributes from.
       def get_attributes(element)
         attributes = {}
-        element.attributes.each { |n,v| attributes[n] = v }
+        element.attributes.each { |n, v| attributes[n] = v }
         attributes
       end
 

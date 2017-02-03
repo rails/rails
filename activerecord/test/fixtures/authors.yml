@@ -9,7 +9,9 @@ david:
 mary:
   id: 2
   name: Mary
+  author_address_id: 3
 
 bob:
   id: 3
   name: Bob
+  author_address_id: 4

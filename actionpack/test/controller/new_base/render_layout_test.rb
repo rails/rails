@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module ControllerLayouts
   class ImplicitController < ::ApplicationController
@@ -10,15 +10,15 @@ module ControllerLayouts
     )]
 
     def index
-      render :template => "basic"
+      render template: "basic"
     end
 
     def override
-      render :template => "basic", :layout => "override"
+      render template: "basic", layout: "override"
     end
 
     def layout_false
-      render :layout => false
+      render layout: false
     end
 
     def builder_override
@@ -32,7 +32,7 @@ module ControllerLayouts
     )]
 
     def index
-      render :template => "basic"
+      render template: "basic"
     end
   end
 
@@ -55,7 +55,6 @@ module ControllerLayouts
       get "/controller_layouts/implicit/override"
       assert_body "Override! Hello world!"
     end
-
   end
 
   class LayoutOptionsTest < Rack::TestCase
@@ -76,7 +75,7 @@ module ControllerLayouts
     )]
 
     def explicit
-      render :layout => "application"
+      render layout: "application"
     end
   end
 

@@ -16,7 +16,7 @@ module ActiveJob
       #       post.to_feed!
       #     end
       #   end
-      def queue_as(part_name=nil, &block)
+      def queue_as(part_name = nil, &block)
         if block_given?
           self.queue_name = block
         else
@@ -36,16 +36,15 @@ module ActiveJob
       class_attribute :queue_name_delimiter, instance_accessor: false
 
       self.queue_name = default_queue_name
-      self.queue_name_delimiter = '_' # set default delimiter to '_'
+      self.queue_name_delimiter = "_" # set default delimiter to '_'
     end
 
-    # Returns the name of the queue the job will be run on
+    # Returns the name of the queue the job will be run on.
     def queue_name
       if @queue_name.is_a?(Proc)
         @queue_name = self.class.queue_name_from_part(instance_exec(&@queue_name))
       end
       @queue_name
     end
-
   end
 end

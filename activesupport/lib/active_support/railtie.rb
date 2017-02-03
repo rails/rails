@@ -13,22 +13,20 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.halt_callback_chains_on_return_false", after: :load_config_initializers do |app|
-      if app.config.active_support.key? :halt_callback_chains_on_return_false
-        ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = \
-          app.config.active_support.halt_callback_chains_on_return_false
-      end
-    end
-
     # Sets the default value for Time.zone
     # If assigned value cannot be matched to a TimeZone, an exception will be raised.
     initializer "active_support.initialize_time_zone" do |app|
-      require 'active_support/core_ext/time/zones'
+      begin
+        TZInfo::DataSource.get
+      rescue TZInfo::DataSourceNotFound => e
+        raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
+      end
+      require "active_support/core_ext/time/zones"
       zone_default = Time.find_zone!(app.config.time_zone)
 
       unless zone_default
-        raise 'Value assigned to config.time_zone not recognized. ' \
-          'Run "rake -D time" for a list of tasks for finding appropriate time zone names.'
+        raise "Value assigned to config.time_zone not recognized. " \
+          'Run "rake time:zones:all" for a time zone names list.'
       end
 
       Time.zone_default = zone_default
@@ -37,7 +35,7 @@ module ActiveSupport
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|
-      require 'active_support/core_ext/date/calculations'
+      require "active_support/core_ext/date/calculations"
       beginning_of_week_default = Date.find_beginning_of_week!(app.config.beginning_of_week)
 
       Date.beginning_of_week_default = beginning_of_week_default

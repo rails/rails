@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 module AbstractController
   module Testing
@@ -53,9 +53,9 @@ module AbstractController
         collector.html
         collector.text(:foo)
         collector.js(:bar) { :baz }
-        assert_equal [Mime::HTML, [], nil], collector.responses[0]
-        assert_equal [Mime::TEXT, [:foo], nil], collector.responses[1]
-        assert_equal [Mime::JS, [:bar]], collector.responses[2][0,2]
+        assert_equal [Mime[:html], [], nil], collector.responses[0]
+        assert_equal [Mime[:text], [:foo], nil], collector.responses[1]
+        assert_equal [Mime[:js], [:bar]], collector.responses[2][0, 2]
         assert_equal :baz, collector.responses[2][2].call
       end
     end

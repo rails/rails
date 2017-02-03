@@ -1,9 +1,9 @@
-require 'abstract_unit'
-require 'action_controller/metal/strong_parameters'
+require "abstract_unit"
+require "action_controller/metal/strong_parameters"
 
 class MultiParameterAttributesTest < ActiveSupport::TestCase
   test "permitted multi-parameter attribute keys" do
-    params = ActionController::Parameters.new({
+    params = ActionController::Parameters.new(
       book: {
         "shipped_at(1i)"   => "2012",
         "shipped_at(2i)"   => "3",
@@ -15,8 +15,7 @@ class MultiParameterAttributesTest < ActiveSupport::TestCase
         "published_at(3i)" => "5",
         "price(1)"         => "R$",
         "price(2f)"        => "2.02"
-      }
-    })
+      })
 
     permitted = params.permit book: [ :shipped_at, :price ]
 

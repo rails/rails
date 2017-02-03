@@ -1,17 +1,16 @@
-require 'cases/helper'
-require 'active_support/all'
+require "cases/helper"
+require "active_support/all"
 
-require 'models/topic'
-require 'models/person'
+require "models/topic"
+require "models/person"
 
 class InclusionValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
 
   def test_validates_inclusion_of_range
-    Topic.validates_inclusion_of(:title, in: 'aaa'..'bbb')
+    Topic.validates_inclusion_of(:title, in: "aaa".."bbb")
     assert Topic.new("title" => "bbc", "content" => "abc").invalid?
     assert Topic.new("title" => "aa", "content" => "abc").invalid?
     assert Topic.new("title" => "aaab", "content" => "abc").invalid?
@@ -21,24 +20,38 @@ class InclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_inclusion_of_time_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.ago..Time.now)
-    assert Topic.new(title: 'aaa', created_at: 2.years.ago).invalid?
-    assert Topic.new(title: 'aaa', created_at: 3.months.ago).valid?
-    assert Topic.new(title: 'aaa', created_at: 37.weeks.from_now).invalid?
+    range_begin = 1.year.ago
+    range_end = Time.now
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
+    assert Topic.new(title: "aaa", created_at: 2.years.ago).invalid?
+    assert Topic.new(title: "aaa", created_at: 3.months.ago).valid?
+    assert Topic.new(title: "aaa", created_at: 37.weeks.from_now).invalid?
+    assert Topic.new(title: "aaa", created_at: range_begin).valid?
+    assert Topic.new(title: "aaa", created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of_date_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.until(Date.today)..Date.today)
-    assert Topic.new(title: 'aaa', created_at: 2.years.until(Date.today)).invalid?
-    assert Topic.new(title: 'aaa', created_at: 3.months.until(Date.today)).valid?
-    assert Topic.new(title: 'aaa', created_at: 37.weeks.since(Date.today)).invalid?
+    range_begin = 1.year.until(Date.today)
+    range_end = Date.today
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
+    assert Topic.new(title: "aaa", created_at: 2.years.until(Date.today)).invalid?
+    assert Topic.new(title: "aaa", created_at: 3.months.until(Date.today)).valid?
+    assert Topic.new(title: "aaa", created_at: 37.weeks.since(Date.today)).invalid?
+    assert Topic.new(title: "aaa", created_at: 1.year.until(Date.today)).valid?
+    assert Topic.new(title: "aaa", created_at: Date.today).valid?
+    assert Topic.new(title: "aaa", created_at: range_begin).valid?
+    assert Topic.new(title: "aaa", created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of_date_time_range
-    Topic.validates_inclusion_of(:created_at, in: 1.year.until(DateTime.current)..DateTime.current)
-    assert Topic.new(title: 'aaa', created_at: 2.years.until(DateTime.current)).invalid?
-    assert Topic.new(title: 'aaa', created_at: 3.months.until(DateTime.current)).valid?
-    assert Topic.new(title: 'aaa', created_at: 37.weeks.since(DateTime.current)).invalid?
+    range_begin = 1.year.until(DateTime.current)
+    range_end = DateTime.current
+    Topic.validates_inclusion_of(:created_at, in: range_begin..range_end)
+    assert Topic.new(title: "aaa", created_at: 2.years.until(DateTime.current)).invalid?
+    assert Topic.new(title: "aaa", created_at: 3.months.until(DateTime.current)).valid?
+    assert Topic.new(title: "aaa", created_at: 37.weeks.since(DateTime.current)).invalid?
+    assert Topic.new(title: "aaa", created_at: range_begin).valid?
+    assert Topic.new(title: "aaa", created_at: range_end).valid?
   end
 
   def test_validates_inclusion_of
@@ -58,9 +71,9 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_inclusion_of(:title, in: nil) }
     assert_raise(ArgumentError) { Topic.validates_inclusion_of(:title, in: 0) }
 
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: "hi!") }
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: {}) }
-    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of(:title, in: []) }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: "hi!") }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: {}) }
+    assert_nothing_raised { Topic.validates_inclusion_of(:title, in: []) }
   end
 
   def test_validates_inclusion_of_with_allow_nil
@@ -108,7 +121,7 @@ class InclusionValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_inclusion_of_with_lambda
-    Topic.validates_inclusion_of :title, in: lambda{ |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
+    Topic.validates_inclusion_of :title, in: lambda { |topic| topic.author_name == "sikachu" ? %w( monkey elephant ) : %w( abe wasabi ) }
 
     t = Topic.new
     t.title = "wasabi"

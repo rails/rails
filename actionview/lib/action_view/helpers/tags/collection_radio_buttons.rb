@@ -1,4 +1,4 @@
-require 'action_view/helpers/tags/collection_helpers'
+require "action_view/helpers/tags/collection_helpers"
 
 module ActionView
   module Helpers
@@ -7,22 +7,14 @@ module ActionView
         include CollectionHelpers
 
         class RadioButtonBuilder < Builder # :nodoc:
-          def radio_button(extra_html_options={})
+          def radio_button(extra_html_options = {})
             html_options = extra_html_options.merge(@input_html_options)
             @template_object.radio_button(@object_name, @method_name, @value, html_options)
           end
         end
 
         def render(&block)
-          render_collection do |item, value, text, default_html_options|
-            builder = instantiate_builder(RadioButtonBuilder, item, value, text, default_html_options)
-
-            if block_given?
-              @template_object.capture(builder, &block)
-            else
-              render_component(builder)
-            end
-          end
+          render_collection_for(RadioButtonBuilder, &block)
         end
 
         private

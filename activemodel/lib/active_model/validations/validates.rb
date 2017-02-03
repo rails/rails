@@ -1,4 +1,4 @@
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/slice"
 
 module ActiveModel
   module Validations
@@ -72,7 +72,7 @@ module ActiveModel
       # There is also a list of options that could be used along with validators:
       #
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
@@ -115,7 +115,7 @@ module ActiveModel
           key = "#{key.to_s.camelize}Validator"
 
           begin
-            validator = key.include?('::') ? key.constantize : const_get(key)
+            validator = key.include?("::".freeze) ? key.constantize : const_get(key)
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
@@ -148,15 +148,15 @@ module ActiveModel
         validates(*(attributes << options))
       end
 
-    protected
+    private
 
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
-      def _validates_default_keys # :nodoc:
+      def _validates_default_keys
         [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
       end
 
-      def _parse_validates_options(options) # :nodoc:
+      def _parse_validates_options(options)
         case options
         when TrueClass
           {}

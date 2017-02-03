@@ -1,7 +1,7 @@
 module ActiveSupport
   module Testing
     module Isolation
-      require 'thread'
+      require "thread"
 
       def self.included(klass) #:nodoc:
         klass.class_eval do
@@ -11,17 +11,6 @@ module ActiveSupport
 
       def self.forking_env?
         !ENV["NO_FORK"] && Process.respond_to?(:fork)
-      end
-
-      @@class_setup_mutex = Mutex.new
-
-      def _run_class_setup      # class setup method should only happen in parent
-        @@class_setup_mutex.synchronize do
-          unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
-            self.class.setup if self.class.respond_to?(:setup)
-            @@ran_class_setup = true
-          end
-        end
       end
 
       def run
@@ -41,7 +30,23 @@ module ActiveSupport
           pid = fork do
             read.close
             yield
-            write.puts [Marshal.dump(self.dup)].pack("m")
+            begin
+              if error?
+                failures.map! { |e|
+                  begin
+                    Marshal.dump e
+                    e
+                  rescue TypeError
+                    ex = Exception.new e.message
+                    ex.set_backtrace e.backtrace
+                    Minitest::UnexpectedError.new ex
+                  end
+                }
+              end
+              result = Marshal.dump(dup)
+            end
+
+            write.puts [result].pack("m")
             exit!
           end
 
@@ -63,23 +68,25 @@ module ActiveSupport
           if ENV["ISOLATION_TEST"]
             yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(self.dup)].pack("m")
+              file.puts [Marshal.dump(dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
-                ISOLATION_TEST: self.class.name,
-                ISOLATION_OUTPUT: tmpfile.path
+                "ISOLATION_TEST" => self.class.name,
+                "ISOLATION_OUTPUT" => tmpfile.path
               }
 
-              load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              orig_args = ORIG_ARGV.join(" ")
-              test_opts = "-n#{self.class.name}##{self.name}"
-              command = "#{Gem.ruby} #{load_paths} #{$0} #{orig_args} #{test_opts}"
+              test_opts = "-n#{self.class.name}##{name}"
 
-              # IO.popen lets us pass env in a cross-platform way
-              child = IO.popen([env, command])
+              load_path_args = []
+              $-I.each do |p|
+                load_path_args << "-I"
+                load_path_args << File.expand_path(p)
+              end
+
+              child = IO.popen([env, Gem.ruby, *load_path_args, $0, *ORIG_ARGV, test_opts])
 
               begin
                 Process.wait(child.pid)

@@ -1,12 +1,14 @@
-require 'active_support/core_ext/array/extract_options'
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
 # attributes.
 class Module
   # Defines a class attribute and creates a class and instance reader methods.
-  # The underlying the class variable is set to +nil+, if it is not previously
-  # defined.
+  # The underlying class variable is set to +nil+, if it is not previously
+  # defined. All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_reader :hair_colors
@@ -19,15 +21,15 @@ class Module
   # The attribute name must be a valid method name in Ruby.
   #
   #   module Foo
-  #     mattr_reader :"1_Badname "
+  #     mattr_reader :"1_Badname"
   #   end
-  #   # => NameError: invalid attribute name
+  #   # => NameError: invalid attribute name: 1_Badname
   #
   # If you want to opt out the creation on the instance reader method, pass
   # <tt>instance_reader: false</tt> or <tt>instance_accessor: false</tt>.
   #
   #   module HairColors
-  #     mattr_writer :hair_colors, instance_reader: false
+  #     mattr_reader :hair_colors, instance_reader: false
   #   end
   #
   #   class Person
@@ -40,7 +42,7 @@ class Module
   # Also, you can pass a block to set up the attribute with a default value.
   #
   #   module HairColors
-  #     cattr_reader :hair_colors do
+  #     mattr_reader :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
   #   end
@@ -49,11 +51,11 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.hair_colors # => [:brown, :black, :blonde, :red]
+  #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   def mattr_reader(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -75,7 +77,9 @@ class Module
   alias :cattr_reader :mattr_reader
 
   # Defines a class attribute and creates a class and instance writer methods to
-  # allow assignment to the attribute.
+  # allow assignment to the attribute. All class and instance methods created
+  # will be public, even if this method is called with a private or protected
+  # access modifier.
   #
   #   module HairColors
   #     mattr_writer :hair_colors
@@ -105,7 +109,7 @@ class Module
   #
   # Also, you can pass a block to set up the attribute with a default value.
   #
-  #   class HairColors
+  #   module HairColors
   #     mattr_writer :hair_colors do
   #       [:brown, :black, :blonde, :red]
   #     end
@@ -119,7 +123,7 @@ class Module
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless sym =~ /^[_A-Za-z]\w*$/
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined? @@#{sym}
 
@@ -141,6 +145,8 @@ class Module
   alias :cattr_writer :mattr_writer
 
   # Defines both class and instance accessors for class attributes.
+  # All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_accessor :hair_colors
@@ -150,8 +156,8 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.hair_colors = [:brown, :black, :blonde, :red]
-  #   Person.hair_colors     # => [:brown, :black, :blonde, :red]
+  #   HairColors.hair_colors = [:brown, :black, :blonde, :red]
+  #   HairColors.hair_colors # => [:brown, :black, :blonde, :red]
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   #
   # If a subclass changes the value then that would also change the value for
@@ -161,8 +167,8 @@ class Module
   #   class Male < Person
   #   end
   #
-  #   Male.hair_colors << :blue
-  #   Person.hair_colors # => [:brown, :black, :blonde, :red, :blue]
+  #   Male.new.hair_colors << :blue
+  #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
   # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
@@ -206,7 +212,7 @@ class Module
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def mattr_accessor(*syms, &blk)
     mattr_reader(*syms, &blk)
-    mattr_writer(*syms, &blk)
+    mattr_writer(*syms)
   end
   alias :cattr_accessor :mattr_accessor
 end

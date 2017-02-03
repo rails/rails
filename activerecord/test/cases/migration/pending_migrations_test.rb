@@ -1,5 +1,4 @@
-require 'cases/helper'
-require "minitest/mock"
+require "cases/helper"
 
 module ActiveRecord
   class Migration

@@ -1,7 +1,7 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class AutoLayoutMailer < ActionMailer::Base
-  default to: 'test@localhost',
+  default to: "test@localhost",
     subject: "You have a mail",
     from: "tester@example.com"
 
@@ -11,7 +11,7 @@ class AutoLayoutMailer < ActionMailer::Base
 
   def spam
     @world = "Earth"
-    mail(body: render(inline: "Hello, <%= @world %>", layout: 'spam'))
+    mail(body: render(inline: "Hello, <%= @world %>", layout: "spam"))
   end
 
   def nolayout
@@ -28,9 +28,9 @@ class AutoLayoutMailer < ActionMailer::Base
 end
 
 class ExplicitLayoutMailer < ActionMailer::Base
-  layout 'spam', except: [:logout]
+  layout "spam", except: [:logout]
 
-  default to: 'test@localhost',
+  default to: "test@localhost",
     subject: "You have a mail",
     from: "tester@example.com"
 
@@ -54,10 +54,10 @@ class LayoutMailerTest < ActiveSupport::TestCase
     assert_equal "multipart/alternative", mail.mime_type
     assert_equal 2, mail.parts.size
 
-    assert_equal 'text/plain', mail.parts.first.mime_type
+    assert_equal "text/plain", mail.parts.first.mime_type
     assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
 
-    assert_equal 'text/html', mail.parts.last.mime_type
+    assert_equal "text/html", mail.parts.last.mime_type
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
   end
 
@@ -66,10 +66,10 @@ class LayoutMailerTest < ActiveSupport::TestCase
     assert_equal "multipart/mixed", mail.mime_type
     assert_equal 2, mail.parts.size
 
-    assert_equal 'text/plain', mail.parts.first.mime_type
+    assert_equal "text/plain", mail.parts.first.mime_type
     assert_equal "text/plain layout - text/plain multipart", mail.parts.first.body.to_s
 
-    assert_equal 'text/html', mail.parts.last.mime_type
+    assert_equal "text/html", mail.parts.last.mime_type
     assert_equal "Hello from layout text/html multipart", mail.parts.last.body.to_s
   end
 

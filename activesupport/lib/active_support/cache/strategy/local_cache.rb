@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/inflections'
-require 'active_support/per_thread_registry'
+require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/string/inflections"
+require "active_support/per_thread_registry"
 
 module ActiveSupport
   module Cache
@@ -9,7 +9,7 @@ module ActiveSupport
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
       module LocalCache
-        autoload :Middleware, 'active_support/cache/strategy/local_cache_middleware'
+        autoload :Middleware, "active_support/cache/strategy/local_cache_middleware"
 
         # Class for storing and registering the local caches.
         class LocalCacheRegistry # :nodoc:
@@ -39,12 +39,12 @@ module ActiveSupport
             @data = {}
           end
 
-          # Don't allow synchronizing since it isn't thread safe,
+          # Don't allow synchronizing since it isn't thread safe.
           def synchronize # :nodoc:
             yield
           end
 
-          def clear(options = nil)
+          def clear
             @data.clear
           end
 
@@ -60,12 +60,17 @@ module ActiveSupport
           def delete_entry(key, options)
             !!@data.delete(key)
           end
+
+          def fetch_entry(key, options = nil) # :nodoc:
+            @data.fetch(key) { @data[key] = yield }
+          end
         end
 
         # Use a local cache for the duration of block.
         def with_local_cache
           use_temporary_local_cache(LocalStore.new) { yield }
         end
+
         # Middleware class can be inserted as a Rack handler to be local cache for the
         # duration of request.
         def middleware
@@ -74,68 +79,65 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+        def clear # :nodoc:
+          return super unless cache = local_cache
+          cache.clear
           super
         end
 
         def cleanup(options = nil) # :nodoc:
-          local_cache.clear(options) if local_cache
+          return super unless cache = local_cache
+          cache.clear(options)
           super
         end
 
         def increment(name, amount = 1, options = nil) # :nodoc:
-          value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          return super unless local_cache
+          value = bypass_local_cache { super }
+          write_cache_value(name, value, options)
           value
         end
 
         def decrement(name, amount = 1, options = nil) # :nodoc:
-          value = bypass_local_cache{super}
-          set_cache_value(value, name, amount, options)
+          return super unless local_cache
+          value = bypass_local_cache { super }
+          write_cache_value(name, value, options)
           value
         end
 
-        protected
-          def read_entry(key, options) # :nodoc:
-            if local_cache
-              entry = local_cache.read_entry(key, options)
-              unless entry
-                entry = super
-                local_cache.write_entry(key, entry, options)
-              end
-              entry
+        private
+          def read_entry(key, options)
+            if cache = local_cache
+              cache.fetch_entry(key) { super }
             else
               super
             end
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_entry(key, entry, options)
             local_cache.write_entry(key, entry, options) if local_cache
             super
           end
 
-          def delete_entry(key, options) # :nodoc:
+          def delete_entry(key, options)
             local_cache.delete_entry(key, options) if local_cache
             super
           end
 
-          def set_cache_value(value, name, amount, options)
-            if local_cache
-              local_cache.mute do
-                if value
-                  local_cache.write(name, value, options)
-                else
-                  local_cache.delete(name, options)
-                end
+          def write_cache_value(name, value, options)
+            name = normalize_key(name, options)
+            cache = local_cache
+            cache.mute do
+              if value
+                cache.write(name, value, options)
+              else
+                cache.delete(name, options)
               end
             end
           end
 
-        private
-
           def local_cache_key
-            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, '_').to_sym
+            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
           end
 
           def local_cache

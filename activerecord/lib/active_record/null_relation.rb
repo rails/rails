@@ -1,11 +1,5 @@
-# -*- coding: utf-8 -*-
-
 module ActiveRecord
   module NullRelation # :nodoc:
-    def exec_queries
-      @records = []
-    end
-
     def pluck(*column_names)
       []
     end
@@ -14,16 +8,12 @@ module ActiveRecord
       0
     end
 
-    def update_all(_updates, _conditions = nil, _options = {})
+    def update_all(_updates)
       0
     end
 
     def delete(_id_or_array)
       0
-    end
-
-    def size
-      calculate :size, nil
     end
 
     def empty?
@@ -50,42 +40,27 @@ module ActiveRecord
       ""
     end
 
-    def count(*)
-      calculate :count, nil
-    end
-
-    def sum(*)
-      calculate :sum, nil
-    end
-
-    def average(*)
-      calculate :average, nil
-    end
-
-    def minimum(*)
-      calculate :minimum, nil
-    end
-
-    def maximum(*)
-      calculate :maximum, nil
-    end
-
     def calculate(operation, _column_name)
-      if [:count, :sum, :size].include? operation
+      case operation
+      when :count, :sum
         group_values.any? ? Hash.new : 0
-      elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
-        Hash.new
-      else
-        nil
+      when :average, :minimum, :maximum
+        group_values.any? ? Hash.new : nil
       end
     end
 
-    def exists?(_id = false)
+    def exists?(_conditions = :none)
       false
     end
 
     def or(other)
       other.spawn
     end
+
+    private
+
+      def exec_queries
+        @records = [].freeze
+      end
   end
 end

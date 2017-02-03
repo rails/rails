@@ -1,19 +1,19 @@
-require 'active_record_unit'
-require 'active_record/railties/controller_runtime'
-require 'fixtures/project'
-require 'active_support/log_subscriber/test_helper'
-require 'action_controller/log_subscriber'
+require "active_record_unit"
+require "active_record/railties/controller_runtime"
+require "fixtures/project"
+require "active_support/log_subscriber/test_helper"
+require "action_controller/log_subscriber"
 
 ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
 class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   class LogSubscriberController < ActionController::Base
     def show
-      render :inline => "<%= Project.all %>"
+      render inline: "<%= Project.all %>"
     end
 
     def zero
-      render :inline => "Zero DB runtime"
+      render inline: "Zero DB runtime"
     end
 
     def create
@@ -24,11 +24,11 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
     def redirect
       Project.all
-      redirect_to :action => 'show'
+      redirect_to action: "show"
     end
 
     def db_after_render
-      render :inline => "Hello world"
+      render inline: "Hello world"
       Project.all
       ActiveRecord::LogSubscriber.runtime += 100
     end
@@ -38,8 +38,8 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   tests LogSubscriberController
 
   def setup
-    super
     @old_logger = ActionController::Base.logger
+    super
     ActionController::LogSubscriber.attach_to :action_controller
   end
 

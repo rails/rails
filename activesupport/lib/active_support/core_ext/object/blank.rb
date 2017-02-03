@@ -1,12 +1,12 @@
-# encoding: utf-8
+require "active_support/core_ext/regexp"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
-  # For example, '', '   ', +nil+, [], and {} are all blank.
+  # For example, +false+, '', '   ', +nil+, [], and {} are all blank.
   #
   # This simplifies
   #
-  #   address.nil? || address.empty?
+  #   !address || address.empty?
   #
   # to
   #
@@ -114,7 +114,10 @@ class String
   #
   # @return [true, false]
   def blank?
-    BLANK_RE === self
+    # The regexp that matches blank strings is expensive. For the case of empty
+    # strings we can speed up this method (~3.5x) with an empty? call. The
+    # penalty for the rest of strings is marginal.
+    empty? || BLANK_RE.match?(self)
   end
 end
 
@@ -123,6 +126,17 @@ class Numeric #:nodoc:
   #
   #   1.blank? # => false
   #   0.blank? # => false
+  #
+  # @return [false]
+  def blank?
+    false
+  end
+end
+
+class Time #:nodoc:
+  # No Time is blank:
+  #
+  #   Time.now.blank? # => false
   #
   # @return [false]
   def blank?

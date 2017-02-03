@@ -1,5 +1,5 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/reachable'
+require "abstract_unit"
+require "active_support/core_ext/module/reachable"
 
 class AnonymousTest < ActiveSupport::TestCase
   test "an anonymous class or module is not reachable" do

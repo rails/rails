@@ -1,18 +1,18 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActionController
-  # This module provides a method which will redirect browser to use HTTPS
+  # This module provides a method which will redirect the browser to use HTTPS
   # protocol. This will ensure that user's sensitive information will be
-  # transferred safely over the internet. You _should_ always force browser
+  # transferred safely over the internet. You _should_ always force the browser
   # to use HTTPS when you're transferring sensitive information such as
   # user authentication, account information, or credit card information.
   #
   # Note that if you are really concerned about your application security,
   # you might consider using +config.force_ssl+ in your config file instead.
   # That will ensure all the data transferred via HTTPS protocol and prevent
-  # user from getting session hijacked when accessing the site under unsecured
-  # HTTP protocol.
+  # the user from getting their session hijacked when accessing the site over
+  # unsecured HTTP protocol.
   module ForceSSL
     extend ActiveSupport::Concern
     include AbstractController::Callbacks
@@ -55,10 +55,10 @@ module ActionController
       # You can pass any of the following options to affect the before_action callback
       # * <tt>only</tt>       - The callback should be run only for this action
       # * <tt>except</tt>     - The callback should be run for all actions except this action
-      # * <tt>if</tt>         - A symbol naming an instance method or a proc; the callback
-      #                         will be called only when it returns a true value.
-      # * <tt>unless</tt>     - A symbol naming an instance method or a proc; the callback
-      #                         will be called only when it returns a false value.
+      # * <tt>if</tt>         - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a true value.
+      # * <tt>unless</tt>     - A symbol naming an instance method or a proc; the
+      #   callback will be called only when it returns a false value.
       def force_ssl(options = {})
         action_options = options.slice(*ACTION_OPTIONS)
         redirect_options = options.except(*ACTION_OPTIONS)
@@ -71,15 +71,15 @@ module ActionController
     # Redirect the existing request to use the HTTPS protocol.
     #
     # ==== Parameters
-    # * <tt>host_or_options</tt> - Either a host name or any of the url & redirect options
-    #                              available to the <tt>force_ssl</tt> method.
+    # * <tt>host_or_options</tt> - Either a host name or any of the url &
+    #   redirect options available to the <tt>force_ssl</tt> method.
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
         options = {
-          :protocol => 'https://',
-          :host     => request.host,
-          :path     => request.fullpath,
-          :status   => :moved_permanently
+          protocol: "https://",
+          host: request.host,
+          path: request.fullpath,
+          status: :moved_permanently
         }
 
         if host_or_options.is_a?(Hash)
@@ -89,7 +89,7 @@ module ActionController
         end
 
         secure_url = ActionDispatch::Http::URL.url_for(options.slice(*URL_OPTIONS))
-        flash.keep if respond_to?(:flash)
+        flash.keep if respond_to?(:flash) && request.respond_to?(:flash)
         redirect_to secure_url, options.slice(*REDIRECT_OPTIONS)
       end
     end

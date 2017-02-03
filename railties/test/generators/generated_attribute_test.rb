@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/generated_attribute'
+require "generators/generators_test_helper"
+require "rails/generators/generated_attribute"
 
 class GeneratedAttributeTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -51,7 +51,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_decimal
-    assert_field_default_value :decimal, '9.99'
+    assert_field_default_value :decimal, "9.99"
   end
 
   def test_default_value_is_datetime
@@ -65,7 +65,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_string
-    assert_field_default_value :string, 'MyString'
+    assert_field_default_value :string, "MyString"
   end
 
   def test_default_value_for_type
@@ -74,7 +74,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_text
-    assert_field_default_value :text, 'MyText'
+    assert_field_default_value :text, "MyText"
   end
 
   def test_default_value_is_boolean
@@ -89,14 +89,14 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_default_value_is_empty_string
     %w(foo bar baz).each do |attribute_type|
-      assert_field_default_value attribute_type, ''
+      assert_field_default_value attribute_type, ""
     end
   end
 
   def test_human_name
     assert_equal(
-      'Full name',
-      create_generated_attribute(:string, 'full_name').human_name
+      "Full name",
+      create_generated_attribute(:string, "full_name").human_name
     )
   end
 
@@ -125,21 +125,21 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_blank_type_defaults_to_string_raises_exception
-    assert_equal :string, create_generated_attribute(nil, 'title').type
-    assert_equal :string, create_generated_attribute("", 'title').type
+    assert_equal :string, create_generated_attribute(nil, "title").type
+    assert_equal :string, create_generated_attribute("", "title").type
   end
 
   def test_handles_index_names_for_references
-    assert_equal "post", create_generated_attribute('string', 'post').index_name
-    assert_equal "post_id", create_generated_attribute('references', 'post').index_name
-    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').index_name
-    assert_equal ["post_id", "post_type"], create_generated_attribute('references{polymorphic}', 'post').index_name
+    assert_equal "post", create_generated_attribute("string", "post").index_name
+    assert_equal "post_id", create_generated_attribute("references", "post").index_name
+    assert_equal "post_id", create_generated_attribute("belongs_to", "post").index_name
+    assert_equal ["post_id", "post_type"], create_generated_attribute("references{polymorphic}", "post").index_name
   end
 
   def test_handles_column_names_for_references
-    assert_equal "post", create_generated_attribute('string', 'post').column_name
-    assert_equal "post_id", create_generated_attribute('references', 'post').column_name
-    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').column_name
+    assert_equal "post", create_generated_attribute("string", "post").column_name
+    assert_equal "post_id", create_generated_attribute("references", "post").column_name
+    assert_equal "post_id", create_generated_attribute("belongs_to", "post").column_name
   end
 
   def test_parse_required_attribute_with_index

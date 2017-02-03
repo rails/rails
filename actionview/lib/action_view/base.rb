@@ -1,23 +1,23 @@
-require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/ordered_options'
-require 'action_view/log_subscriber'
-require 'action_view/helpers'
-require 'action_view/context'
-require 'action_view/template'
-require 'action_view/lookup_context'
+require "active_support/core_ext/module/attr_internal"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/ordered_options"
+require "action_view/log_subscriber"
+require "action_view/helpers"
+require "action_view/context"
+require "action_view/template"
+require "action_view/lookup_context"
 
 module ActionView #:nodoc:
   # = Action View Base
   #
   # Action View templates can be written in several ways.
-  # If the template file has a <tt>.erb</tt> extension, then it uses the erubis[https://rubygems.org/gems/erubis]
+  # If the template file has a <tt>.erb</tt> extension, then it uses the erubi[https://rubygems.org/gems/erubi]
   # template system which can embed Ruby into an HTML document.
   # If the template file has a <tt>.builder</tt> extension, then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
-  # You trigger ERB by using embeddings such as <% %>, <% -%>, and <%= %>. The <%= %> tag set is used when you want output. Consider the
+  # You trigger ERB by using embeddings such as <tt><% %></tt>, <tt><% -%></tt>, and <tt><%= %></tt>. The <tt><%= %></tt> tag set is used when you want output. Consider the
   # following loop for names:
   #
   #   <b>Names of all the people</b>
@@ -25,7 +25,7 @@ module ActionView #:nodoc:
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
-  # The loop is setup in regular embedding tags <% %> and the name is written using the output embedding tag <%= %>. Note that this
+  # The loop is setup in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
   # is not just a usage suggestion. Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
   #
   #   <%# WRONG %>
@@ -33,9 +33,9 @@ module ActionView #:nodoc:
   #
   # If you absolutely must write from within a function use +concat+.
   #
-  # When on a line that only contains whitespaces except for the tag, <% %> suppress leading and trailing whitespace,
-  # including the trailing newline. <% %> and <%- -%> are the same.
-  # Note however that <%= %> and <%= -%> are different: only the latter removes trailing whitespaces.
+  # When on a line that only contains whitespaces except for the tag, <tt><% %></tt> suppresses leading and trailing whitespace,
+  # including the trailing newline. <tt><% %></tt> and <tt><%- -%></tt> are the same.
+  # Note however that <tt><%= %></tt> and <tt><%= -%></tt> are different: only the latter removes trailing whitespaces.
   #
   # === Using sub templates
   #
@@ -75,7 +75,7 @@ module ActionView #:nodoc:
   #
   #   Headline: <%= local_assigns[:headline] %>
   #
-  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternately, you could also use
+  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternatively, you could also use
   # <tt>defined? headline</tt> to first check if the variable has been assigned before using it.
   #
   # === Template caching
@@ -110,7 +110,7 @@ module ActionView #:nodoc:
   #     <p>A product of Danish Design during the Winter of '79...</p>
   #   </div>
   #
-  # A full-length RSS example actually used on Basecamp:
+  # Here is a full-length RSS example actually used on Basecamp:
   #
   #   xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
   #     xml.channel do
@@ -141,7 +141,7 @@ module ActionView #:nodoc:
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    @@field_error_proc = Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
@@ -161,11 +161,15 @@ module ActionView #:nodoc:
     cattr_accessor :raise_on_missing_translations
     @@raise_on_missing_translations = false
 
+    # Specify whether submit_tag should automatically disable on click
+    cattr_accessor :automatically_disable_submit_tag
+    @@automatically_disable_submit_tag = true
+
     class_attribute :_routes
     class_attribute :logger
 
     class << self
-      delegate :erb_trim_mode=, :to => 'ActionView::Template::Handlers::ERB'
+      delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
 
       def cache_template_loading
         ActionView::Resolver.caching?
@@ -183,8 +187,8 @@ module ActionView #:nodoc:
     attr_accessor :view_renderer
     attr_internal :config, :assigns
 
-    delegate :lookup_context, :to => :view_renderer
-    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, :to => :lookup_context
+    delegate :lookup_context, to: :view_renderer
+    delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
       @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }

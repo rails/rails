@@ -1,8 +1,8 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/controller/controller_generator'
-require 'rails/generators/rails/model/model_generator'
-require 'rails/generators/mailer/mailer_generator'
-require 'rails/generators/rails/scaffold/scaffold_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/controller/controller_generator"
+require "rails/generators/rails/model/model_generator"
+require "rails/generators/mailer/mailer_generator"
+require "rails/generators/rails/scaffold/scaffold_generator"
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -91,7 +91,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 
   def test_adds_namespace_to_model
     run_generator
-    assert_file "app/models/test_app/account.rb", /module TestApp/, /  class Account < ActiveRecord::Base/
+    assert_file "app/models/test_app/account.rb", /module TestApp/, /  class Account < ApplicationRecord/
   end
 
   def test_model_with_namespace
@@ -99,17 +99,17 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
-    assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ApplicationRecord/
   end
 
   def test_migration
     run_generator
-    assert_migration "db/migrate/create_test_app_accounts.rb", /create_table :test_app_accounts/, /class CreateTestAppAccounts < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_accounts.rb", /create_table :test_app_accounts/, /class CreateTestAppAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_namespace
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_test_app_gallery_images", /class CreateTestAppGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_gallery_images", /class CreateTestAppGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_test_app_images"
   end
 
@@ -117,7 +117,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
-    assert_migration "db/migrate/create_test_app_admin_gallery_images", /class CreateTestAppAdminGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_admin_gallery_images", /class CreateTestAppAdminGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_test_app_admin_gallery_images", /create_table :test_app_admin_gallery_images/
   end
 
@@ -127,7 +127,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
     assert_no_migration "db/migrate/create_test_app_admin_gallery_images"
-    assert_migration "db/migrate/create_test_app_admin_gallery_image", /class CreateTestAppAdminGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_test_app_admin_gallery_image", /class CreateTestAppAdminGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_test_app_admin_gallery_image", /create_table :test_app_admin_gallery_image/
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -201,7 +201,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator
 
     # Model
-    assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ActiveRecord::Base/
+    assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ApplicationRecord/
     assert_file "test/models/test_app/product_line_test.rb", /module TestApp\n  class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/product_lines.yml"
     assert_migration "db/migrate/create_test_app_product_lines.rb"
@@ -218,7 +218,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /class ProductLinesController < ApplicationController/
 
     assert_file "test/controllers/test_app/product_lines_controller_test.rb",
-                /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class ProductLinesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -268,7 +268,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ApplicationRecord/
     assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_roles.rb"
@@ -281,10 +281,11 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Controller
     assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(%r(require_dependency "test_app/application_controller"), content)
     end
 
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
-                /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -335,7 +336,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
-    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ActiveRecord::Base/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ApplicationRecord/
     assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
@@ -351,7 +352,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb",
-                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
+                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionDispatch::IntegrationTest/
 
     # Views
     %w(index edit new show _form).each do |view|
@@ -394,5 +395,29 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
+  end
+
+  def test_api_scaffold_with_namespace_on_invoke
+    run_generator [ "admin/role", "name:string", "description:string", "--api" ]
+
+    # Model
+    assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
+    assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ApplicationRecord/
+    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/test_app/admin/roles.yml"
+    assert_migration "db/migrate/create_test_app_admin_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    resources :roles\n  end$/, route)
+    end
+
+    # Controller
+    assert_file "app/controllers/test_app/admin/roles_controller.rb" do |content|
+      assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
+      assert_match(%r(require_dependency "test_app/application_controller"), content)
+    end
+    assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
+                /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
   end
 end

@@ -1,30 +1,31 @@
-require 'active_support/inflector/methods'
-require 'active_support/values/time_zone'
+require "active_support/inflector/methods"
+require "active_support/values/time_zone"
 
 class Time
   DATE_FORMATS = {
-    :db           => '%Y-%m-%d %H:%M:%S',
-    :number       => '%Y%m%d%H%M%S',
-    :nsec         => '%Y%m%d%H%M%S%9N',
-    :time         => '%H:%M',
-    :short        => '%d %b %H:%M',
-    :long         => '%B %d, %Y %H:%M',
-    :long_ordinal => lambda { |time|
+    db: "%Y-%m-%d %H:%M:%S",
+    number: "%Y%m%d%H%M%S",
+    nsec: "%Y%m%d%H%M%S%9N",
+    usec: "%Y%m%d%H%M%S%6N",
+    time: "%H:%M",
+    short: "%d %b %H:%M",
+    long: "%B %d, %Y %H:%M",
+    long_ordinal: lambda { |time|
       day_format = ActiveSupport::Inflector.ordinalize(time.day)
       time.strftime("%B #{day_format}, %Y %H:%M")
     },
-    :rfc822       => lambda { |time|
+    rfc822: lambda { |time|
       offset_format = time.formatted_offset(false)
       time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
     },
-    :iso8601      => lambda { |time| time.iso8601 }
+    iso8601: lambda { |time| time.iso8601 }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
   # This method is aliased to <tt>to_s</tt>.
   #
-  #   time = Time.now                    # => Thu Jan 18 06:10:17 CST 2007
+  #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #
   #   time.to_formatted_s(:time)         # => "06:10"
   #   time.to_s(:time)                   # => "06:10"
@@ -55,7 +56,8 @@ class Time
   alias_method :to_default_s, :to_s
   alias_method :to_s, :to_formatted_s
 
-  # Returns the UTC offset as an +HH:MM formatted string.
+  # Returns a formatted string of the offset from UTC, or an alternative
+  # string if the time zone is already UTC.
   #
   #   Time.local(2000).formatted_offset        # => "-06:00"
   #   Time.local(2000).formatted_offset(false) # => "-0600"

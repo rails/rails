@@ -1,5 +1,7 @@
-require 'active_support/core_ext/array/extract_options'
-require 'action_dispatch/middleware/stack'
+require "active_support/core_ext/array/extract_options"
+require "action_dispatch/middleware/stack"
+require "action_dispatch/http/request"
+require "action_dispatch/http/response"
 
 module ActionController
   # Extend ActionDispatch middleware stack to make it aware of options
@@ -11,22 +13,14 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, *args, &block)
-        options = args.extract_options!
-        @only   = Array(options.delete(:only)).map(&:to_s)
-        @except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
-        super
+      def initialize(klass, args, actions, strategy, block)
+        @actions = actions
+        @strategy = strategy
+        super(klass, args, block)
       end
 
       def valid?(action)
-        if @only.present?
-          @only.include?(action)
-        elsif @except.present?
-          !@except.include?(action)
-        else
-          true
-        end
+        @strategy.call @actions, action
       end
     end
 
@@ -37,6 +31,32 @@ module ActionController
         middleware.valid?(action) ? middleware.build(a) : a
       end
     end
+
+    private
+
+      INCLUDE = ->(list, action) { list.include? action }
+      EXCLUDE = ->(list, action) { !list.include? action }
+      NULL    = ->(list, action) { true }
+
+      def build_middleware(klass, args, block)
+        options = args.extract_options!
+        only   = Array(options.delete(:only)).map(&:to_s)
+        except = Array(options.delete(:except)).map(&:to_s)
+        args << options unless options.empty?
+
+        strategy = NULL
+        list     = nil
+
+        if only.any?
+          strategy = INCLUDE
+          list     = only
+        elsif except.any?
+          strategy = EXCLUDE
+          list     = except
+        end
+
+        Middleware.new(klass, args, list, strategy, block)
+      end
   end
 
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
@@ -98,12 +118,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    attr_internal_writer :env
-
-    def env
-      @_env ||= {}
-    end
-
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
     # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
@@ -111,7 +125,17 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
+      @controller_name ||= name.demodulize.sub(/Controller$/, "").underscore
+    end
+
+    def self.make_response!(request)
+      ActionDispatch::Response.create.tap do |res|
+        res.request = request
+      end
+    end
+
+    def self.binary_params_for?(action) # :nodoc:
+      false
     end
 
     # Delegates to the class' <tt>controller_name</tt>
@@ -119,18 +143,12 @@ module ActionController
       self.class.controller_name
     end
 
-    # The details below can be overridden to support a specific
-    # Request and Response object. The default ActionController::Base
-    # implementation includes RackDelegation, which makes a request
-    # and response object available. You might wish to control the
-    # environment and response manually for performance reasons.
-
-    attr_internal :headers, :response, :request
-    delegate :session, :to => "@_request"
+    attr_internal :response, :request
+    delegate :session, to: "@_request"
+    delegate :headers, :status=, :location=, :content_type=,
+             :status, :location, :content_type, to: "@_response"
 
     def initialize
-      @_headers = {"Content-Type" => "text/html"}
-      @_status = 200
       @_request = nil
       @_response = nil
       @_routes = nil
@@ -145,64 +163,49 @@ module ActionController
       @_params = val
     end
 
-    # Basic implementations for content_type=, location=, and headers are
-    # provided to reduce the dependency on the RackDelegation module
-    # in Renderer and Redirector.
+    alias :response_code :status # :nodoc:
 
-    def content_type=(type)
-      headers["Content-Type"] = type.to_s
-    end
-
-    def content_type
-      headers["Content-Type"]
-    end
-
-    def location
-      headers["Location"]
-    end
-
-    def location=(url)
-      headers["Location"] = url
-    end
-
-    # Basic url_for that can be overridden for more robust functionality
+    # Basic url_for that can be overridden for more robust functionality.
     def url_for(string)
       string
     end
 
-    def status
-      @_status
-    end
-    alias :response_code :status # :nodoc:
-
-    def status=(status)
-      @_status = Rack::Utils.status_code(status)
-    end
-
     def response_body=(body)
       body = [body] unless body.nil? || body.respond_to?(:each)
+      response.reset_body!
+      return unless body
+      response.body = body
       super
     end
 
     # Tests if render or redirect has already happened.
     def performed?
-      response_body || (response && response.committed?)
+      response_body || response.committed?
     end
 
-    def dispatch(name, request) #:nodoc:
+    def dispatch(name, request, response) #:nodoc:
       set_request!(request)
+      set_response!(response)
       process(name)
+      request.commit_flash
       to_a
+    end
+
+    def set_response!(response) # :nodoc:
+      @_response = response
     end
 
     def set_request!(request) #:nodoc:
       @_request = request
-      @_env = request.env
-      @_env['action_controller.instance'] = self
+      @_request.controller_instance = self
     end
 
     def to_a #:nodoc:
-      response ? response.to_a : [status, headers, response_body]
+      response.to_a
+    end
+
+    def reset_session
+      @_request.reset_session
     end
 
     class_attribute :middleware_stack
@@ -224,21 +227,30 @@ module ActionController
       middleware_stack
     end
 
-    # Makes the controller a Rack endpoint that runs the action in the given
-    # +env+'s +action_dispatch.request.path_parameters+ key.
-    def self.call(env)
-      req = ActionDispatch::Request.new env
-      action(req.path_parameters[:action]).call(env)
-    end
-
     # Returns a Rack endpoint for the given action name.
-    def self.action(name, klass = ActionDispatch::Request)
+    def self.action(name)
       if middleware_stack.any?
         middleware_stack.build(name) do |env|
-          new.dispatch(name, klass.new(env))
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
         end
       else
-        lambda { |env| new.dispatch(name, klass.new(env)) }
+        lambda { |env|
+          req = ActionDispatch::Request.new(env)
+          res = make_response! req
+          new.dispatch(name, req, res)
+        }
+      end
+    end
+
+    # Direct dispatch to the controller.  Instantiates the controller, then
+    # executes the action named +name+.
+    def self.dispatch(name, req, res)
+      if middleware_stack.any?
+        middleware_stack.build(name) { |env| new.dispatch(name, req, res) }.call req.env
+      else
+        new.dispatch(name, req, res)
       end
     end
   end

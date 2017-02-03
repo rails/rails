@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/try'
-require 'rails-html-sanitizer'
+require "active_support/core_ext/object/try"
+require "rails-html-sanitizer"
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -45,16 +45,14 @@ module ActionView
       # Providing a custom Rails::Html scrubber:
       #
       #   class CommentScrubber < Rails::Html::PermitScrubber
-      #     def allowed_node?(node)
-      #       !%w(form script comment blockquote).include?(node.name)
+      #     def initialize
+      #       super
+      #       self.tags = %w( form script comment blockquote )
+      #       self.attributes = %w( style )
       #     end
       #
       #     def skip_node?(node)
       #       node.text?
-      #     end
-      #
-      #     def scrub_attribute?(name)
-      #       name == 'style'
       #     end
       #   end
       #
@@ -99,7 +97,7 @@ module ActionView
       #   strip_tags("<div id='top-bar'>Welcome to my website!</div>")
       #   # => Welcome to my website!
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)
+        self.class.full_sanitizer.sanitize(html, encode_special_chars: false)
       end
 
       # Strips all link tags from +html+ leaving just the link text.
@@ -120,7 +118,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         # Vendors the full, link and white list sanitizers.
-        # Provided strictly for compabitility and can be removed in Rails 5.
+        # Provided strictly for compatibility and can be removed in Rails 5.1.
         def sanitizer_vendor
           Rails::Html::Sanitizer
         end

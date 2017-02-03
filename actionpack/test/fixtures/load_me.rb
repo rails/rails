@@ -1,0 +1,2 @@
+class LoadMe
+end

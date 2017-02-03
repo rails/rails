@@ -1,10 +1,11 @@
-require 'rake/testtask'
-require 'rubygems/package_task'
+require "rake/testtask"
 
-task :default => :test
+task default: :test
+
+task :package
 
 desc "Run all unit tests"
-task :test => 'test:isolated'
+task test: "test:isolated"
 
 namespace :test do
   task :isolated do
@@ -13,10 +14,11 @@ namespace :test do
     Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
       dash_i = [
-        'test',
-        'lib',
+        "test",
+        "lib",
         "#{File.dirname(__FILE__)}/../activesupport/lib",
         "#{File.dirname(__FILE__)}/../actionpack/lib",
+        "#{File.dirname(__FILE__)}/../actionview/lib",
         "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
       ruby "-w", "-I#{dash_i.join ':'}", file
@@ -24,27 +26,10 @@ namespace :test do
   end
 end
 
-Rake::TestTask.new('test:regular') do |t|
-  t.libs << 'test' << "#{File.dirname(__FILE__)}/../activesupport/lib"
-  t.pattern = 'test/**/*_test.rb'
-  t.warning = true
+Rake::TestTask.new("test:regular") do |t|
+  t.libs << "test" << "#{File.dirname(__FILE__)}/../activesupport/lib"
+  t.pattern = "test/**/*_test.rb"
+  t.warning = false
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-end
-
-# Generate GEM ----------------------------------------------------------------------------
-
-spec = eval(File.read('railties.gemspec'))
-
-Gem::PackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
-end
-
-# Publishing -------------------------------------------------------
-
-desc "Release to rubygems"
-task :release => :package do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
 end

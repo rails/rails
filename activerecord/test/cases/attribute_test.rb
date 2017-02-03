@@ -1,11 +1,9 @@
-require 'cases/helper'
-require 'minitest/mock'
+require "cases/helper"
 
 module ActiveRecord
   class AttributeTest < ActiveRecord::TestCase
     setup do
       @type = Minitest::Mock.new
-      @type.expect(:==, false, [false])
     end
 
     teardown do
@@ -13,91 +11,91 @@ module ActiveRecord
     end
 
     test "from_database + read type casts from database" do
-      @type.expect(:deserialize, 'type cast from database', ['a value'])
-      attribute = Attribute.from_database(nil, 'a value', @type)
+      @type.expect(:deserialize, "type cast from database", ["a value"])
+      attribute = Attribute.from_database(nil, "a value", @type)
 
       type_cast_value = attribute.value
 
-      assert_equal 'type cast from database', type_cast_value
+      assert_equal "type cast from database", type_cast_value
     end
 
     test "from_user + read type casts from user" do
-      @type.expect(:cast, 'type cast from user', ['a value'])
-      attribute = Attribute.from_user(nil, 'a value', @type)
+      @type.expect(:cast, "type cast from user", ["a value"])
+      attribute = Attribute.from_user(nil, "a value", @type)
 
       type_cast_value = attribute.value
 
-      assert_equal 'type cast from user', type_cast_value
+      assert_equal "type cast from user", type_cast_value
     end
 
     test "reading memoizes the value" do
-      @type.expect(:deserialize, 'from the database', ['whatever'])
-      attribute = Attribute.from_database(nil, 'whatever', @type)
+      @type.expect(:deserialize, "from the database", ["whatever"])
+      attribute = Attribute.from_database(nil, "whatever", @type)
 
       type_cast_value = attribute.value
       second_read = attribute.value
 
-      assert_equal 'from the database', type_cast_value
+      assert_equal "from the database", type_cast_value
       assert_same type_cast_value, second_read
     end
 
     test "reading memoizes falsy values" do
-      @type.expect(:deserialize, false, ['whatever'])
-      attribute = Attribute.from_database(nil, 'whatever', @type)
+      @type.expect(:deserialize, false, ["whatever"])
+      attribute = Attribute.from_database(nil, "whatever", @type)
 
       attribute.value
       attribute.value
     end
 
     test "read_before_typecast returns the given value" do
-      attribute = Attribute.from_database(nil, 'raw value', @type)
+      attribute = Attribute.from_database(nil, "raw value", @type)
 
       raw_value = attribute.value_before_type_cast
 
-      assert_equal 'raw value', raw_value
+      assert_equal "raw value", raw_value
     end
 
     test "from_database + read_for_database type casts to and from database" do
-      @type.expect(:deserialize, 'read from database', ['whatever'])
-      @type.expect(:serialize, 'ready for database', ['read from database'])
-      attribute = Attribute.from_database(nil, 'whatever', @type)
+      @type.expect(:deserialize, "read from database", ["whatever"])
+      @type.expect(:serialize, "ready for database", ["read from database"])
+      attribute = Attribute.from_database(nil, "whatever", @type)
 
       serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', serialize
+      assert_equal "ready for database", serialize
     end
 
     test "from_user + read_for_database type casts from the user to the database" do
-      @type.expect(:cast, 'read from user', ['whatever'])
-      @type.expect(:serialize, 'ready for database', ['read from user'])
-      attribute = Attribute.from_user(nil, 'whatever', @type)
+      @type.expect(:cast, "read from user", ["whatever"])
+      @type.expect(:serialize, "ready for database", ["read from user"])
+      attribute = Attribute.from_user(nil, "whatever", @type)
 
       serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', serialize
+      assert_equal "ready for database", serialize
     end
 
     test "duping dups the value" do
-      @type.expect(:deserialize, 'type cast', ['a value'])
-      attribute = Attribute.from_database(nil, 'a value', @type)
+      @type.expect(:deserialize, "type cast", ["a value"])
+      attribute = Attribute.from_database(nil, "a value", @type)
 
       value_from_orig = attribute.value
       value_from_clone = attribute.dup.value
-      value_from_orig << ' foo'
+      value_from_orig << " foo"
 
-      assert_equal 'type cast foo', value_from_orig
-      assert_equal 'type cast', value_from_clone
+      assert_equal "type cast foo", value_from_orig
+      assert_equal "type cast", value_from_clone
     end
 
     test "duping does not dup the value if it is not dupable" do
-      @type.expect(:deserialize, false, ['a value'])
-      attribute = Attribute.from_database(nil, 'a value', @type)
+      @type.expect(:deserialize, false, ["a value"])
+      attribute = Attribute.from_database(nil, "a value", @type)
 
       assert_same attribute.value, attribute.dup.value
     end
 
     test "duping does not eagerly type cast if we have not yet type cast" do
-      attribute = Attribute.from_database(nil, 'a value', @type)
+      attribute = Attribute.from_database(nil, "a value", @type)
       attribute.dup
     end
 
@@ -108,6 +106,9 @@ module ActiveRecord
 
       def deserialize(value)
         value + " from database"
+      end
+
+      def assert_valid_value(*)
       end
     end
 
@@ -181,12 +182,72 @@ module ActiveRecord
       assert attribute.has_been_read?
     end
 
+    test "an attribute is not changed if it hasn't been assigned or mutated" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+
+      refute attribute.changed?
+    end
+
+    test "an attribute is changed if it's been assigned a new value" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      changed = attribute.with_value_from_user(2)
+
+      assert changed.changed?
+    end
+
+    test "an attribute is not changed if it's assigned the same value" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      unchanged = attribute.with_value_from_user(1)
+
+      refute unchanged.changed?
+    end
+
     test "an attribute can not be mutated if it has not been read,
       and skips expensive calculations" do
       type_which_raises_from_all_methods = Object.new
       attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
 
-      assert_not attribute.changed_in_place_from?("bar")
+      assert_not attribute.changed_in_place?
+    end
+
+    test "an attribute is changed if it has been mutated" do
+      attribute = Attribute.from_database(:foo, "bar", Type::String.new)
+      attribute.value << "!"
+
+      assert attribute.changed_in_place?
+      assert attribute.changed?
+    end
+
+    test "an attribute can forget its changes" do
+      attribute = Attribute.from_database(:foo, "bar", Type::String.new)
+      changed = attribute.with_value_from_user("foo")
+      forgotten = changed.forgetting_assignment
+
+      assert changed.changed? # sanity check
+      refute forgotten.changed?
+    end
+
+    test "with_value_from_user validates the value" do
+      type = Type::Value.new
+      type.define_singleton_method(:assert_valid_value) do |value|
+        if value == 1
+          raise ArgumentError
+        end
+      end
+
+      attribute = Attribute.from_database(:foo, 1, type)
+      assert_equal 1, attribute.value
+      assert_equal 2, attribute.with_value_from_user(2).value
+      assert_raises ArgumentError do
+        attribute.with_value_from_user(1)
+      end
+    end
+
+    test "with_type preserves mutations" do
+      attribute = Attribute.from_database(:foo, "", Type::Value.new)
+      attribute.value << "1"
+
+      assert_equal 1, attribute.with_type(Type::Integer.new).value
     end
   end
 end

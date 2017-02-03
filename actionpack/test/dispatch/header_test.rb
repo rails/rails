@@ -1,27 +1,31 @@
 require "abstract_unit"
 
 class HeaderTest < ActiveSupport::TestCase
+  def make_headers(hash)
+    ActionDispatch::Http::Headers.new ActionDispatch::Request.new hash
+  end
+
   setup do
-    @headers = ActionDispatch::Http::Headers.new(
+    @headers = make_headers(
       "CONTENT_TYPE" => "text/plain",
       "HTTP_REFERER" => "/some/page"
     )
   end
 
   test "#new does not normalize the data" do
-    headers = ActionDispatch::Http::Headers.new(
+    headers = make_headers(
       "Content-Type" => "application/json",
       "HTTP_REFERER" => "/some/page",
       "Host" => "http://test.com")
 
-    assert_equal({"Content-Type" => "application/json",
+    assert_equal({ "Content-Type" => "application/json",
                   "HTTP_REFERER" => "/some/page",
-                  "Host" => "http://test.com"}, headers.env)
+                  "Host" => "http://test.com" }, headers.env)
   end
 
   test "#env returns the headers as env variables" do
-    assert_equal({"CONTENT_TYPE" => "text/plain",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+    assert_equal({ "CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "#each iterates through the env variables" do
@@ -36,6 +40,24 @@ class HeaderTest < ActiveSupport::TestCase
 
     assert_equal "127.0.0.1", @headers["Host"]
     assert_equal "127.0.0.1", @headers["HTTP_HOST"]
+  end
+
+  test "add to multivalued headers" do
+    # Sets header when not present
+    @headers.add "Foo", "1"
+    assert_equal "1", @headers["Foo"]
+
+    # Ignores nil values
+    @headers.add "Foo", nil
+    assert_equal "1", @headers["Foo"]
+
+    # Converts value to string
+    @headers.add "Foo", 1
+    assert_equal "1,1", @headers["Foo"]
+
+    # Case-insensitive
+    @headers.add "fOo", 2
+    assert_equal "1,1,2", @headers["foO"]
   end
 
   test "headers can contain numbers" do
@@ -54,9 +76,9 @@ class HeaderTest < ActiveSupport::TestCase
 
   test "key?" do
     assert @headers.key?("CONTENT_TYPE")
-    assert @headers.include?("CONTENT_TYPE")
+    assert_includes @headers, "CONTENT_TYPE"
     assert @headers.key?("Content-Type")
-    assert @headers.include?("Content-Type")
+    assert_includes @headers, "Content-Type"
   end
 
   test "fetch with block" do
@@ -83,32 +105,32 @@ class HeaderTest < ActiveSupport::TestCase
   test "#merge! headers with mutation" do
     @headers.merge!("Host" => "http://example.test",
                     "Content-Type" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://example.test",
+    assert_equal({ "HTTP_HOST" => "http://example.test",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "#merge! env with mutation" do
     @headers.merge!("HTTP_HOST" => "http://first.com",
                     "CONTENT_TYPE" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://first.com",
+    assert_equal({ "HTTP_HOST" => "http://first.com",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "merge without mutation" do
     combined = @headers.merge("HTTP_HOST" => "http://example.com",
                               "CONTENT_TYPE" => "text/html")
-    assert_equal({"HTTP_HOST" => "http://example.com",
+    assert_equal({ "HTTP_HOST" => "http://example.com",
                   "CONTENT_TYPE" => "text/html",
-                  "HTTP_REFERER" => "/some/page"}, combined.env)
+                  "HTTP_REFERER" => "/some/page" }, combined.env)
 
-    assert_equal({"CONTENT_TYPE" => "text/plain",
-                  "HTTP_REFERER" => "/some/page"}, @headers.env)
+    assert_equal({ "CONTENT_TYPE" => "text/plain",
+                  "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "env variables with . are not modified" do
-    headers = ActionDispatch::Http::Headers.new
+    headers = make_headers({})
     headers.merge! "rack.input" => "",
      "rack.request.cookie_hash" => "",
      "action_dispatch.logger" => ""
@@ -119,7 +141,7 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "symbols are treated as strings" do
-    headers = ActionDispatch::Http::Headers.new
+    headers = make_headers({})
     headers.merge!(:SERVER_NAME => "example.com",
                    "HTTP_REFERER" => "/",
                    :Host => "test.com")
@@ -129,11 +151,17 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "headers directly modifies the passed environment" do
-    env = {"HTTP_REFERER" => "/"}
-    headers = ActionDispatch::Http::Headers.new(env)
-    headers['Referer'] = "http://example.com/"
+    env = { "HTTP_REFERER" => "/" }
+    headers = make_headers(env)
+    headers["Referer"] = "http://example.com/"
     headers.merge! "CONTENT_TYPE" => "text/plain"
-    assert_equal({"HTTP_REFERER"=>"http://example.com/",
-                  "CONTENT_TYPE"=>"text/plain"}, env)
+    assert_equal({ "HTTP_REFERER" => "http://example.com/",
+                  "CONTENT_TYPE" => "text/plain" }, env)
+  end
+
+  test "fetch exception" do
+    assert_raises KeyError do
+      @headers.fetch(:some_key_that_doesnt_exist)
+    end
   end
 end

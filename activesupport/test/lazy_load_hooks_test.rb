@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class LazyLoadHooksTest < ActiveSupport::TestCase
   def test_basic_hook
@@ -63,7 +63,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
 
   def test_hook_with_yield_true
     i = 0
-    ActiveSupport.on_load(:contextual_yield, :yield => true) do |obj|
+    ActiveSupport.on_load(:contextual_yield, yield: true) do |obj|
       i += obj.incr + incr_amt
     end
     assert_equal 0, i
@@ -75,7 +75,7 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     i = 0
     ActiveSupport.run_load_hooks(:contextual_yield_after, FakeContext.new(2))
     assert_equal 0, i
-    ActiveSupport.on_load(:contextual_yield_after, :yield => true) do |obj|
+    ActiveSupport.on_load(:contextual_yield_after, yield: true) do |obj|
       i += obj.incr + incr_amt
     end
     assert_equal 7, i

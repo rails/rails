@@ -135,36 +135,53 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-A few fundamental objects in Ruby are singletons. For example, in the whole life of a program the integer 1 refers always to the same instance:
+In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
+methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
+`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+and `Bignum` instances.
 
 ```ruby
-1.object_id                 # => 3
-Math.cos(0).to_i.object_id  # => 3
+"foo".dup           # => "foo"
+"".dup              # => ""
+1.method(:+).dup    # => TypeError: allocator undefined for Method
+Complex(0).dup      # => TypeError: can't copy Complex
 ```
 
-Hence, there's no way these objects can be duplicated through `dup` or `clone`:
+Active Support provides `duplicable?` to query an object about this:
 
 ```ruby
-true.dup  # => TypeError: can't dup TrueClass
+"foo".duplicable?           # => true
+"".duplicable?              # => true
+Rational(1).duplicable?     # => false
+Complex(1).duplicable?      # => false
+1.method(:+).duplicable?    # => false
 ```
 
-Some numbers which are not singletons are not duplicable either:
+`duplicable?` matches Ruby's `dup` according to the Ruby version.
+
+So in 2.4:
 
 ```ruby
-0.0.clone        # => allocator undefined for Float
-(2**1024).clone  # => allocator undefined for Bignum
+nil.dup                 # => nil
+:my_symbol.dup          # => :my_symbol
+1.dup                   # => 1
+
+nil.duplicable?         # => true
+:my_symbol.duplicable?  # => true
+1.duplicable?           # => true
 ```
 
-Active Support provides `duplicable?` to programmatically query an object about this property:
+Whereas in 2.2 and 2.3:
 
 ```ruby
-"foo".duplicable? # => true
-"".duplicable?    # => true
-0.0.duplicable?   # => false
-false.duplicable? # => false
-```
+nil.dup                 # => TypeError: can't dup NilClass
+:my_symbol.dup          # => TypeError: can't dup Symbol
+1.dup                   # => TypeError: can't dup Fixnum
 
-By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, module, and method objects.
+nil.duplicable?         # => false
+:my_symbol.duplicable?  # => false
+1.duplicable?           # => false
+```
 
 WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
@@ -172,7 +189,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
@@ -246,6 +263,13 @@ end
 
 ```ruby
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
+```
+
+Note that `try` will swallow no-method errors, returning nil instead. If you want to protect against typos, use `try!` instead:
+
+```ruby
+@number.try(:nest)  # => nil
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
@@ -349,7 +373,7 @@ end
 we get:
 
 ```ruby
-current_user.to_query('user') # => user=357-john-smith
+current_user.to_query('user') # => "user=357-john-smith"
 ```
 
 This method escapes whatever is needed, both for the key and the value:
@@ -361,7 +385,7 @@ account.to_query('company[name]')
 
 so its output is ready to be used in a query string.
 
-Arrays return the result of applying `to_query` to each element with `_key_[]` as key, and join the result with "&":
+Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
 [3.4, -45.6].to_query('sample')
@@ -390,7 +414,7 @@ The method `with_options` provides a way to factor out common options in a serie
 Given a default options hash, `with_options` yields a proxy object to a block. Within the block, methods called on the proxy are forwarded to the receiver with their options merged. For example, you get rid of the duplication in:
 
 ```ruby
-class Account < ActiveRecord::Base
+class Account < ApplicationRecord
   has_many :customers, dependent: :destroy
   has_many :products,  dependent: :destroy
   has_many :invoices,  dependent: :destroy
@@ -401,7 +425,7 @@ end
 this way:
 
 ```ruby
-class Account < ActiveRecord::Base
+class Account < ApplicationRecord
   with_options dependent: :destroy do |assoc|
     assoc.has_many :customers
     assoc.has_many :products
@@ -453,7 +477,7 @@ NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 #### `instance_variable_names`
 
-The method `instance_variable_names` returns an array.  Each name includes the "@" sign.
+The method `instance_variable_names` returns an array. Each name includes the "@" sign.
 
 ```ruby
 class C
@@ -475,7 +499,7 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
+Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
 
 ```ruby
 # If the user is locked, the increment is lost, no big deal.
@@ -504,56 +528,6 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-### `alias_method_chain`
-
-Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
-
-For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionController::TestCase#process` this way in `test/test_helper.rb`:
-
-```ruby
-ActionController::TestCase.class_eval do
-  # save a reference to the original process method
-  alias_method :original_process, :process
-
-  # now redefine process and delegate to original_process
-  def process(action, params=nil, session=nil, flash=nil, http_method='GET')
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    original_process(action, params, session, flash, http_method)
-  end
-end
-```
-
-That's the method `get`, `post`, etc., delegate the work to.
-
-That technique has a risk, it could be the case that `:original_process` was taken. To try to avoid collisions people choose some label that characterizes what the chaining is about:
-
-```ruby
-ActionController::TestCase.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(action, params, session, flash, http_method)
-  end
-  alias_method :process_without_stringified_params, :process
-  alias_method :process, :process_with_stringified_params
-end
-```
-
-The method `alias_method_chain` provides a shortcut for that pattern:
-
-```ruby
-ActionController::TestCase.class_eval do
-  def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
-    process_without_stringified_params(action, params, session, flash, http_method)
-  end
-  alias_method_chain :process, :stringified_params
-end
-```
-
-Rails uses `alias_method_chain` all over the code base. For example validations are added to `ActiveRecord::Base#save` by wrapping the method that way in a separate module specialized in validations.
-
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
-
 ### Attributes
 
 #### `alias_attribute`
@@ -561,7 +535,7 @@ NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (one mnemonic is that they go in the same order as if you did an assignment):
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   # You can refer to the email column as "login".
   # This can be meaningful for authentication code.
   alias_attribute :login, :email
@@ -625,8 +599,6 @@ module ActiveSupport
     mattr_accessor :load_once_paths
     mattr_accessor :autoloaded_constants
     mattr_accessor :explicitly_unloadable_constants
-    mattr_accessor :logger
-    mattr_accessor :log_activity
     mattr_accessor :constant_watch_stack
     mattr_accessor :constant_watch_stack_mutex
   end
@@ -701,87 +673,6 @@ M.parents       # => [X::Y, X, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
-### Constants
-
-The method `local_constants` returns the names of the constants that have been
-defined in the receiver module:
-
-```ruby
-module X
-  X1 = 1
-  X2 = 2
-  module Y
-    Y1 = :y1
-    X1 = :overrides_X1_above
-  end
-end
-
-X.local_constants    # => [:X1, :X2, :Y]
-X::Y.local_constants # => [:Y1, :X1]
-```
-
-The names are returned as symbols.
-
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
-
-#### Qualified Constant Names
-
-The standard methods `const_defined?`, `const_get` , and `const_set` accept
-bare constant names. Active Support extends this API to be able to pass
-relative qualified constant names.
-
-The new methods are `qualified_const_defined?`, `qualified_const_get`, and
-`qualified_const_set`. Their arguments are assumed to be qualified constant
-names relative to their receiver:
-
-```ruby
-Object.qualified_const_defined?("Math::PI")       # => true
-Object.qualified_const_get("Math::PI")            # => 3.141592653589793
-Object.qualified_const_set("Math::Phi", 1.618034) # => 1.618034
-```
-
-Arguments may be bare constant names:
-
-```ruby
-Math.qualified_const_get("E") # => 2.718281828459045
-```
-
-These methods are analogous to their built-in counterparts. In particular,
-`qualified_constant_defined?` accepts an optional second argument to be
-able to say whether you want the predicate to look in the ancestors.
-This flag is taken into account for each constant in the expression while
-walking down the path.
-
-For example, given
-
-```ruby
-module M
-  X = 1
-end
-
-module N
-  class C
-    include M
-  end
-end
-```
-
-`qualified_const_defined?` behaves this way:
-
-```ruby
-N.qualified_const_defined?("C::X", false) # => false
-N.qualified_const_defined?("C::X", true)  # => true
-N.qualified_const_defined?("C::X")        # => true
-```
-
-As the last example implies, the second argument defaults to true,
-as in `const_defined?`.
-
-For coherence with the built-in methods only relative paths are accepted.
-Absolute qualified constant names like `::Math::PI` raise `NameError`.
-
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
 
 ### Reachable
 
@@ -869,7 +760,7 @@ The macro `delegate` offers an easy way to forward methods.
 Let's imagine that users in some application have login information in the `User` model but name and other data in a separate `Profile` model:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 end
 ```
@@ -877,7 +768,7 @@ end
 With that configuration you get a user's name via their profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 
   def name
@@ -889,7 +780,7 @@ end
 That is what `delegate` does for you:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   has_one :profile
 
   delegate :name, to: :profile
@@ -1030,7 +921,8 @@ class A
   class_attribute :x, instance_reader: false
 end
 
-A.new.x = 1 # NoMethodError
+A.new.x = 1
+A.new.x # NoMethodError
 ```
 
 For convenience `class_attribute` also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called `x?`.
@@ -1237,7 +1129,7 @@ Calling `dup` or `clone` on safe strings yields safe strings.
 The method `remove` will remove all occurrences of the pattern:
 
 ```ruby
-"Hello World".remove(/Hello /) => "World"
+"Hello World".remove(/Hello /) # => "World"
 ```
 
 There's also the destructive version `String#remove!`.
@@ -1679,19 +1571,6 @@ Given a string with a qualified constant reference expression, `deconstantize` r
 "Admin::Hotel::ReservationUtils".deconstantize # => "Admin::Hotel"
 ```
 
-Active Support for example uses this method in `Module#qualified_const_set`:
-
-```ruby
-def qualified_const_set(path, value)
-  QualifiedConstUtils.raise_if_absolute(path)
-
-  const_name = path.demodulize
-  mod_name = path.deconstantize
-  mod = mod_name.empty? ? self : qualified_const_get(mod_name)
-  mod.const_set(const_name, value)
-end
-```
-
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `parameterize`
@@ -1701,6 +1580,20 @@ The method `parameterize` normalizes its receiver in a way that can be used in p
 ```ruby
 "John Smith".parameterize # => "john-smith"
 "Kurt Gödel".parameterize # => "kurt-godel"
+```
+
+To preserve the case of the string, set the `preserve_case` argument to true. By default, `preserve_case` is set to false.
+
+```ruby
+"John Smith".parameterize(preserve_case: true) # => "John-Smith"
+"Kurt Gödel".parameterize(preserve_case: true) # => "Kurt-Godel"
+```
+
+To use a custom separator, override the `separator` argument.
+
+```ruby
+"John Smith".parameterize(separator: "_") # => "john\_smith"
+"Kurt Gödel".parameterize(separator: "_") # => "kurt\_godel"
 ```
 
 In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
@@ -1746,7 +1639,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 The method `constantize` resolves the constant reference expression in its receiver:
 
 ```ruby
-"Fixnum".constantize # => Fixnum
+"Integer".constantize # => Integer
 
 module M
   X = 1
@@ -1865,15 +1758,15 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 
 ```ruby
 "2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => Tue Jul 27 23:37:00 UTC 2010
+"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
 "2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
 ```
 
 `to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => Tue Jul 27 23:42:00 UTC 2010
-"2010-07-27 23:42:00".to_time(:local) # => Tue Jul 27 23:42:00 +0200 2010
+"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
+"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
 Default is `:utc`.
@@ -1935,6 +1828,8 @@ as well as adding or subtracting their results from a Time object. For example:
 # equivalent to Time.current.advance(months: 4, years: 5)
 (4.months + 5.years).from_now
 ```
+
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`
 
 ### Formatting
 
@@ -2001,12 +1896,14 @@ Produce a string representation of a number rounded to a precision:
 Produce a string representation of a number as a human-readable number of bytes:
 
 ```ruby
-123.to_s(:human_size)            # => 123 Bytes
-1234.to_s(:human_size)           # => 1.21 KB
-12345.to_s(:human_size)          # => 12.1 KB
-1234567.to_s(:human_size)        # => 1.18 MB
-1234567890.to_s(:human_size)     # => 1.15 GB
-1234567890123.to_s(:human_size)  # => 1.12 TB
+123.to_s(:human_size)                  # => 123 Bytes
+1234.to_s(:human_size)                 # => 1.21 KB
+12345.to_s(:human_size)                # => 12.1 KB
+1234567.to_s(:human_size)              # => 1.18 MB
+1234567890.to_s(:human_size)           # => 1.15 GB
+1234567890123.to_s(:human_size)        # => 1.12 TB
+1234567890123456.to_s(:human_size)     # => 1.1 PB
+1234567890123456789.to_s(:human_size)  # => 1.07 EB
 ```
 
 Produce a string representation of a number in human-readable words:
@@ -2071,30 +1968,22 @@ Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
 
-The method `to_s` is aliased to `to_formatted_s`. This provides a convenient way to display a BigDecimal value in floating-point notation:
+The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
 BigDecimal.new(5.00, 6).to_s  # => "5.0"
 ```
 
-### `to_formatted_s`
-
-Te method `to_formatted_s` provides a default specifier of "F".  This means that a simple call to `to_formatted_s` or `to_s` will result in floating point representation instead of engineering notation:
-
-```ruby
-BigDecimal.new(5.00, 6).to_formatted_s  # => "5.0"
-```
-
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s(:db)  # => "5.0"
+BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_formatted_s("e")  # => "0.5E1"
+BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`
@@ -2114,7 +2003,7 @@ Addition only assumes the elements respond to `+`:
 ```ruby
 [[1, 2], [2, 3], [3, 4]].sum    # => [1, 2, 2, 3, 3, 4]
 %w(foo bar baz).sum             # => "foobarbaz"
-{a: 1, b: 2, c: 3}.sum # => [:b, 2, :c, 3, :a, 1]
+{a: 1, b: 2, c: 3}.sum          # => [:b, 2, :c, 3, :a, 1]
 ```
 
 The sum of an empty collection is zero by default, but this is customizable:
@@ -2182,6 +2071,27 @@ to_visit << node if visited.exclude?(node)
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `without`
+
+The method `without` returns a copy of an enumerable with the specified elements
+removed:
+
+```ruby
+["David", "Rafael", "Aaron", "Todd"].without("Aaron", "Todd") # => ["David", "Rafael"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `pluck`
+
+The method `pluck` returns an array based on the given key:
+
+```ruby
+[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 Extensions to `Array`
 ---------------------
 
@@ -2190,22 +2100,22 @@ Extensions to `Array`
 Active Support augments the API of arrays to ease certain ways of accessing them. For example, `to` returns the subarray of elements up to the one at the passed index:
 
 ```ruby
-%w(a b c d).to(2) # => %w(a b c)
+%w(a b c d).to(2) # => ["a", "b", "c"]
 [].to(7)          # => []
 ```
 
 Similarly, `from` returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 ```ruby
-%w(a b c d).from(2)  # => %w(c d)
+%w(a b c d).from(2)  # => ["c", "d"]
 %w(a b c d).from(10) # => []
 [].from(0)           # => []
 ```
 
-The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element (`first` is built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
+The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element, as do `second_to_last` and `third_to_last` (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
 
 ```ruby
-%w(a b c d).third # => c
+%w(a b c d).third # => "c"
 %w(a b c d).fifth # => nil
 ```
 
@@ -2218,7 +2128,7 @@ NOTE: Defined in `active_support/core_ext/array/access.rb`.
 This method is an alias of `Array#unshift`.
 
 ```ruby
-%w(a b c d).prepend('e')  # => %w(e a b c d)
+%w(a b c d).prepend('e')  # => ["e", "a", "b", "c", "d"]
 [].prepend(10)            # => [10]
 ```
 
@@ -2229,8 +2139,8 @@ NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
 This method is an alias of `Array#<<`.
 
 ```ruby
-%w(a b c d).append('e')  # => %w(a b c d e)
-[].append([1,2])         # => [[1,2]]
+%w(a b c d).append('e')  # => ["a", "b", "c", "d", "e"]
+[].append([1,2])         # => [[1, 2]]
 ```
 
 NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
@@ -2336,7 +2246,7 @@ Contributor.limit(2).order(:rank).to_xml
 
 To do so it sends `to_xml` to every item in turn, and collects the results under a root node. All items must respond to `to_xml`, an exception is raised otherwise.
 
-By default, the name of the root element is the underscorized and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
+By default, the name of the root element is the underscored and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
 
 If there's any element that does not belong to the type of the first one the root node becomes "objects":
 
@@ -2417,7 +2327,7 @@ The method `Array.wrap` wraps its argument in an array unless it is already an a
 
 Specifically:
 
-* If the argument is `nil` an empty list is returned.
+* If the argument is `nil` an empty array is returned.
 * Otherwise, if the argument responds to `to_ary` it is invoked, and if the value of `to_ary` is not `nil`, it is returned.
 * Otherwise, an array with the argument as its single element is returned.
 
@@ -2429,9 +2339,9 @@ Array.wrap(0)         # => [0]
 
 This method is similar in purpose to `Kernel#Array`, but there are some differences:
 
-* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns `nil` right away.
+* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, though special-cases `nil` to return an empty array.
+* It does not call `to_a` on the argument, if the argument does not respond to +to_ary+ it returns an array with the argument as its single element.
 
 The last point is particularly worth comparing for some enumerables:
 
@@ -2454,7 +2364,7 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 ### Duplicating
 
-The method `Array.deep_dup` duplicates itself and all objects inside
+The method `Array#deep_dup` duplicates itself and all objects inside
 recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
 
 ```ruby
@@ -2598,8 +2508,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 ```ruby
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
-  "Fixnum"     => "integer",
-  "Bignum"     => "integer",
+  "Integer"    => "integer",
   "BigDecimal" => "decimal",
   "Float"      => "float",
   "TrueClass"  => "boolean",
@@ -2676,7 +2585,7 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 
 ### Deep duplicating
 
-The method `Hash.deep_dup` duplicates itself and all keys and values
+The method `Hash#deep_dup` duplicates itself and all keys and values
 inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
 
 ```ruby
@@ -2719,7 +2628,7 @@ The method `transform_keys` accepts a block and returns a hash that has applied 
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.transform_keys { |key| key.to_s.upcase }
-# => {"" => nil, "A" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "A" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2761,7 +2670,7 @@ The method `stringify_keys` returns a hash that has a stringified version of the
 
 ```ruby
 {nil => nil, 1 => 1, a: :a}.stringify_keys
-# => {"" => nil, "a" => :a, "1" => 1}
+# => {"" => nil, "1" => 1, "a" => :a}
 ```
 
 In case of key collision, one of the values will be chosen. The chosen value may not always be the same given the same hash:
@@ -2803,7 +2712,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1=>1, nil=>nil, :a=>"a"}
+# => {nil=>nil, 1=>1, :a=>"a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2872,7 +2781,7 @@ The method `transform_values` accepts a block and returns a hash that has applie
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
-NOTE: Defined in `active_support/core_text/hash/transform_values.rb`.
+NOTE: Defined in `active_support/core_ext/hash/transform_values.rb`.
 
 ### Slicing
 
@@ -2880,7 +2789,7 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {:c=>3, :a=>1}
+# => {:a=>1, :c=>3}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
 # => {:b=>2} # non-existing keys are ignored
@@ -2974,6 +2883,24 @@ end
 
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
 
+### `match?`
+
+Rails implements `Regexp#match?` for Ruby versions prior to 2.4:
+
+```ruby
+/oo/.match?('foo')    # => true
+/oo/.match?('bar')    # => false
+/oo/.match?('foo', 1) # => true
+```
+
+The backport has the same interface and lack of side-effects in the caller like
+not setting `$1` and friends, but it does not have the speed benefits. Its
+purpose is to be able to write 2.4 compatible code. Rails itself uses this
+predicate internally for example.
+
+Active Support defines `Regexp#match?` only if not present, so code running
+under 2.4 or later does run the original one and gets the performance boost.
+
 Extensions to `Range`
 ---------------------
 
@@ -3029,53 +2956,6 @@ The method `Range#overlaps?` says whether any two given ranges have non-void int
 
 NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
 
-Extensions to `Proc`
---------------------
-
-### `bind`
-
-As you surely know Ruby has an `UnboundMethod` class whose instances are methods that belong to the limbo of methods without a self. The method `Module#instance_method` returns an unbound method for example:
-
-```ruby
-Hash.instance_method(:delete) # => #<UnboundMethod: Hash#delete>
-```
-
-An unbound method is not callable as is, you need to bind it first to an object with `bind`:
-
-```ruby
-clear = Hash.instance_method(:clear)
-clear.bind({a: 1}).call # => {}
-```
-
-Active Support defines `Proc#bind` with an analogous purpose:
-
-```ruby
-Proc.new { size }.bind([]).call # => 0
-```
-
-As you see that's callable and bound to the argument, the return value is indeed a `Method`.
-
-NOTE: To do so `Proc#bind` actually creates a method under the hood. If you ever see a method with a weird name like `__bind_1256598120_237302` in a stack trace you know now where it comes from.
-
-Action Pack uses this trick in `rescue_from` for example, which accepts the name of a method and also a proc as callbacks for a given rescued exception. It has to call them in either case, so a bound method is returned by `handler_for_rescue`, thus simplifying the code in the caller:
-
-```ruby
-def handler_for_rescue(exception)
-  _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
-    ...
-  end
-
-  case rescuer
-  when Symbol
-    method(rescuer)
-  when Proc
-    rescuer.bind(self)
-  end
-end
-```
-
-NOTE: Defined in `active_support/core_ext/proc.rb`.
-
 Extensions to `Date`
 --------------------
 
@@ -3087,7 +2967,7 @@ INFO: The following calculation methods have edge cases in October 1582, since d
 
 #### `Date.current`
 
-Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Date.current`.
+Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, `future?`, `on_weekday?` and `on_weekend?`, all of them relative to `Date.current`.
 
 When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
 
@@ -3476,6 +3356,8 @@ years_ago
 years_since
 prev_year (last_year)
 next_year
+on_weekday?
+on_weekend?
 ```
 
 The following methods are reimplemented so you do **not** need to load `active_support/core_ext/date/calculations.rb` for these ones:
@@ -3662,6 +3544,8 @@ years_ago
 years_since
 prev_year (last_year)
 next_year
+on_weekday?
+on_weekend?
 ```
 
 They are analogous. Please refer to their documentation above and take into account the following differences:

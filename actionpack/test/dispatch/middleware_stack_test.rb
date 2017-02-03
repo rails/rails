@@ -1,9 +1,10 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class MiddlewareStackTest < ActiveSupport::TestCase
   class FooMiddleware; end
   class BarMiddleware; end
   class BazMiddleware; end
+  class HiyaMiddleware; end
   class BlockMiddleware
     attr_reader :block
     def initialize(&block)
@@ -17,6 +18,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     @stack.use BarMiddleware
   end
 
+  def test_delete_works
+    assert_difference "@stack.size", -1 do
+      @stack.delete FooMiddleware
+    end
+  end
+
   test "use should push middleware as class onto the stack" do
     assert_difference "@stack.size" do
       @stack.use BazMiddleware
@@ -24,26 +31,12 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack.last.klass
   end
 
-  test "use should push middleware as a string onto the stack" do
-    assert_difference "@stack.size" do
-      @stack.use "MiddlewareStackTest::BazMiddleware"
-    end
-    assert_equal BazMiddleware, @stack.last.klass
-  end
-
-  test "use should push middleware as a symbol onto the stack" do
-    assert_difference "@stack.size" do
-      @stack.use :"MiddlewareStackTest::BazMiddleware"
-    end
-    assert_equal BazMiddleware, @stack.last.klass
-  end
-
   test "use should push middleware class with arguments onto the stack" do
     assert_difference "@stack.size" do
-      @stack.use BazMiddleware, true, :foo => "bar"
+      @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, {:foo => "bar"}], @stack.last.args)
+    assert_equal([true, { foo: "bar" }], @stack.last.args)
   end
 
   test "use should push middleware class with block arguments onto the stack" do
@@ -83,35 +76,38 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "swaps one middleware out for same middleware class" do
     assert_equal FooMiddleware, @stack[0].klass
-    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
+    @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ["error!"]] })
     assert_equal FooMiddleware, @stack[0].klass
   end
 
   test "unshift adds a new middleware at the beginning of the stack" do
-    @stack.unshift :"MiddlewareStackTest::BazMiddleware"
+    @stack.unshift MiddlewareStackTest::BazMiddleware
     assert_equal BazMiddleware, @stack.first.klass
   end
 
   test "raise an error on invalid index" do
     assert_raise RuntimeError do
-      @stack.insert("HiyaMiddleware", BazMiddleware)
+      @stack.insert(HiyaMiddleware, BazMiddleware)
     end
 
     assert_raise RuntimeError do
-      @stack.insert_after("HiyaMiddleware", BazMiddleware)
+      @stack.insert_after(HiyaMiddleware, BazMiddleware)
     end
   end
 
-  test "lazy evaluates middleware class" do
-    assert_difference "@stack.size" do
-      @stack.use "MiddlewareStackTest::BazMiddleware"
-    end
-    assert_equal BazMiddleware, @stack.last.klass
+  test "can check if Middleware are equal - Class" do
+    assert_equal @stack.last, BarMiddleware
   end
 
-  test "lazy compares so unloaded constants are not loaded" do
-    @stack.use "UnknownMiddleware"
-    @stack.use :"MiddlewareStackTest::BazMiddleware"
-    assert @stack.include?("::MiddlewareStackTest::BazMiddleware")
+  test "includes a class" do
+    assert_equal true, @stack.include?(BarMiddleware)
+  end
+
+  test "can check if Middleware are equal - Middleware" do
+    assert_equal @stack.last, @stack.last
+  end
+
+  test "includes a middleware" do
+    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
   end
 end

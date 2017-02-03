@@ -1,4 +1,4 @@
-require 'qu'
+require "qu"
 
 module ActiveJob
   module QueueAdapters
@@ -16,21 +16,23 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :qu
     class QuAdapter
-      class << self
-        def enqueue(job, *args) #:nodoc:
-          Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
-            payload.instance_variable_set(:@queue, job.queue_name)
-          end.push
-        end
+      def enqueue(job, *args) #:nodoc:
+        qu_job = Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
+          payload.instance_variable_set(:@queue, job.queue_name)
+        end.push
 
-        def enqueue_at(job, timestamp, *args) #:nodoc:
-          raise NotImplementedError
-        end
+        # qu_job can be nil depending on the configured backend
+        job.provider_job_id = qu_job.id unless qu_job.nil?
+        qu_job
+      end
+
+      def enqueue_at(job, timestamp, *args) #:nodoc:
+        raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
       end
 
       class JobWrapper < Qu::Job #:nodoc:
         def initialize(job_data)
-          @job_data  = job_data
+          @job_data = job_data
         end
 
         def perform

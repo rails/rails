@@ -1,15 +1,16 @@
 # Hack to load json gem first so we can overwrite its to_json.
-require 'json'
-require 'bigdecimal'
-require 'active_support/core_ext/big_decimal/conversions' # for #to_s
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/instance_variables'
-require 'time'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/core_ext/date_time/conversions'
-require 'active_support/core_ext/date/conversions'
-require 'active_support/core_ext/module/aliasing'
+require "json"
+require "bigdecimal"
+require "uri/generic"
+require "pathname"
+require "active_support/core_ext/big_decimal/conversions" # for #to_s
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/object/instance_variables"
+require "time"
+require "active_support/core_ext/time/conversions"
+require "active_support/core_ext/date_time/conversions"
+require "active_support/core_ext/date/conversions"
 
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
 # their default behavior. That said, we need to define the basic to_json method in all of them,
@@ -26,20 +27,23 @@ require 'active_support/core_ext/module/aliasing'
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
 # should give exactly the same results with or without active support.
-[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].each do |klass|
-  klass.class_eval do
-    def to_json_with_active_support_encoder(options = nil)
+
+module ActiveSupport
+  module ToJsonWithActiveSupportEncoder # :nodoc:
+    def to_json(options = nil)
       if options.is_a?(::JSON::State)
         # Called from JSON.{generate,dump}, forward it to JSON gem's to_json
-        self.to_json_without_active_support_encoder(options)
+        super(options)
       else
         # to_json is being invoked directly, use ActiveSupport's encoder
         ActiveSupport::JSON.encode(self, options)
       end
     end
-
-    alias_method_chain :to_json, :active_support_encoder
   end
+end
+
+[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].reverse_each do |klass|
+  klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
 class Object
@@ -185,13 +189,31 @@ class DateTime
     if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
-      strftime('%Y/%m/%d %H:%M:%S %z')
+      strftime("%Y/%m/%d %H:%M:%S %z")
     end
+  end
+end
+
+class URI::Generic #:nodoc:
+  def as_json(options = nil)
+    to_s
+  end
+end
+
+class Pathname #:nodoc:
+  def as_json(options = nil)
+    to_s
   end
 end
 
 class Process::Status #:nodoc:
   def as_json(options = nil)
-    { :exitstatus => exitstatus, :pid => pid }
+    { exitstatus: exitstatus, pid: pid }
+  end
+end
+
+class Exception
+  def as_json(options = nil)
+    to_s
   end
 end

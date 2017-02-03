@@ -1,80 +1,51 @@
-*   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
-    type.
+*   Correctly set test adapter when configure the queue adapter on a per job.
 
-    This allows specific jobs to be tested, while preventing others from
-    being performed unnecessarily.
+    Fixes #26360.
 
-    Example:
+    *Yuji Yaginuma*
 
-        def test_hello_job
-          assert_performed_jobs 1, only: HelloJob do
-            HelloJob.perform_later('jeremy')
-            LoggingJob.perform_later
+*   Push skipped jobs to `enqueued_jobs` when using `perform_enqueued_jobs` with a `only` filter in tests
+
+    *Alexander Pauly*
+  
+*   Removed deprecated support to passing the adapter class to `.queue_adapter`.
+
+    *Rafael Mendonça França*
+
+*   Removed deprecated `#original_exception` in `ActiveJob::DeserializationError`.
+
+    *Rafael Mendonça França*
+
+*   Added instance variable `@queue` to JobWrapper.
+
+    This will fix issues in [resque-scheduler](https://github.com/resque/resque-scheduler) `#job_to_hash` method,
+    so we can use `#enqueue_delayed_selection`, `#remove_delayed` method in resque-scheduler smoothly.
+
+    *mu29*
+
+*   Yield the job instance so you have access to things like `job.arguments` on the custom logic after retries fail.
+
+    *DHH*
+
+*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`.
+
+    Examples:
+
+        class RemoteServiceJob < ActiveJob::Base
+          retry_on CustomAppException # defaults to 3s wait, 5 attempts
+          retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
+          retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
+          retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
+          discard_on ActiveJob::DeserializationError
+
+          def perform(*args)
+            # Might raise CustomAppException or AnotherCustomAppException for something domain specific
+            # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
+            # Might raise Net::OpenTimeout when the remote service is down
           end
         end
 
-    An array may also be specified, to support testing multiple jobs.
+    *DHH*
 
-    Example:
 
-        def test_hello_and_logging_jobs
-          assert_nothing_raised do
-            assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
-              HelloJob.perform_later('jeremy')
-              LoggingJob.perform_later('stewie')
-              RescueJob.perform_later('david')
-            end
-          end
-        end
-
-    Fixes #18802.
-
-    *Michael Ryan*
-
-*   Allow keyword arguments to be used with Active Job.
-
-    Fixes #18741.
-
-    *Sean Griffin*
-
-*   Add `:only` option to `assert_enqueued_jobs`, to check the number of times
-    a specific kind of job is enqueued.
-
-    Example:
-
-        def test_logging_job
-          assert_enqueued_jobs 1, only: LoggingJob do
-            LoggingJob.perform_later
-            HelloJob.perform_later('jeremy')
-          end
-        end
-
-    *George Claghorn*
-
-*   `ActiveJob::Base.deserialize` delegates to the job class.
-
-    Since `ActiveJob::Base#deserialize` can be overridden by subclasses (like
-    `ActiveJob::Base#serialize`) this allows jobs to attach arbitrary metadata
-    when they get serialized and read it back when they get performed.
-
-    Example:
-
-        class DeliverWebhookJob < ActiveJob::Base
-          def serialize
-            super.merge('attempt_number' => (@attempt_number || 0) + 1)
-          end
-
-          def deserialize(job_data)
-            super
-            @attempt_number = job_data['attempt_number']
-          end
-
-          rescue_from(TimeoutError) do |exception|
-            raise exception if @attempt_number > 5
-            retry_job(wait: 10)
-          end
-        end
-
-    *Isaac Seymour*
-
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activejob/CHANGELOG.md) for previous changes.

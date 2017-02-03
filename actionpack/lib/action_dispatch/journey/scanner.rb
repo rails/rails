@@ -1,4 +1,5 @@
-require 'strscan'
+# frozen_string_literal: true
+require "strscan"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -35,22 +36,23 @@ module ActionDispatch
         def scan
           case
             # /
-          when text = @ss.scan(/\//)
-            [:SLASH, text]
+          when @ss.skip(/\//)
+            [:SLASH, "/"]
+          when @ss.skip(/\(/)
+            [:LPAREN, "("]
+          when @ss.skip(/\)/)
+            [:RPAREN, ")"]
+          when @ss.skip(/\|/)
+            [:OR, "|"]
+          when @ss.skip(/\./)
+            [:DOT, "."]
+          when text = @ss.scan(/:\w+/)
+            [:SYMBOL, text]
           when text = @ss.scan(/\*\w+/)
             [:STAR, text]
-          when text = @ss.scan(/(?<!\\)\(/)
-            [:LPAREN, text]
-          when text = @ss.scan(/(?<!\\)\)/)
-            [:RPAREN, text]
-          when text = @ss.scan(/\|/)
-            [:OR, text]
-          when text = @ss.scan(/\./)
-            [:DOT, text]
-          when text = @ss.scan(/(?<!\\):\w+/)
-            [:SYMBOL, text]
-          when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\:|\\\(|\\\))+/)
-            [:LITERAL, text.tr('\\', '')]
+          when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\[:()])+/)
+            text.tr! "\\", ""
+            [:LITERAL, text]
             # any char
           when text = @ss.scan(/./)
             [:LITERAL, text]

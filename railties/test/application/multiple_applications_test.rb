@@ -1,4 +1,4 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class MultipleApplicationsTest < ActiveSupport::TestCase
@@ -6,9 +6,8 @@ module ApplicationTests
 
     def setup
       build_app(initializers: true)
-      boot_rails
       require "#{rails_root}/config/environment"
-      Rails.application.config.some_setting = 'something_or_other'
+      Rails.application.config.some_setting = "something_or_other"
     end
 
     def teardown
@@ -88,9 +87,9 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal 0, run_count, "The count should stay at zero without any calls to the rake tasks"
-      require 'rake'
-      require 'rake/testtask'
-      require 'rdoc/task'
+      require "rake"
+      require "rake/testtask"
+      require "rdoc/task"
       Rails.application.load_tasks
       assert_equal 2, run_count, "Calling a rake task should result in two increments to the count"
     end
@@ -118,7 +117,7 @@ module ApplicationTests
       assert_equal 0, run_count, "Without loading the initializers, the count should be 0"
 
       # Set config.eager_load to false so that an eager_load warning doesn't pop up
-      AppTemplate::Application.new { config.eager_load = false }.initialize!
+      AppTemplate::Application.create { config.eager_load = false }.initialize!
 
       assert_equal 3, run_count, "There should have been three initializers that incremented the count"
     end

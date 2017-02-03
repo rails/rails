@@ -1,8 +1,7 @@
-require 'action_dispatch/routing/polymorphic_routes'
+require "action_dispatch/routing/polymorphic_routes"
 
 module ActionView
   module RoutingUrlFor
-
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
     # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
@@ -32,7 +31,7 @@ module ActionView
     #
     # ==== Examples
     #   <%= url_for(action: 'index') %>
-    #   # => /blog/
+    #   # => /blogs/
     #
     #   <%= url_for(action: 'find', controller: 'books') %>
     #   # => /books/find
@@ -84,21 +83,24 @@ module ActionView
       when Hash
         options = options.symbolize_keys
         unless options.key?(:only_path)
-          if options[:host].nil?
-            options[:only_path] = _generate_paths_by_default
-          else
-            options[:only_path] = false
-          end
+          options[:only_path] = only_path?(options[:host])
+        end
+
+        super(options)
+      when ActionController::Parameters
+        unless options.key?(:only_path)
+          options[:only_path] = only_path?(options[:host])
         end
 
         super(options)
       when :back
         _back_url
       when Array
+        components = options.dup
         if _generate_paths_by_default
-          polymorphic_path(options, options.extract_options!)
+          polymorphic_path(components, components.extract_options!)
         else
-          polymorphic_url(options, options.extract_options!)
+          polymorphic_url(components, components.extract_options!)
         end
       else
         method = _generate_paths_by_default ? :path : :url
@@ -120,15 +122,22 @@ module ActionView
       controller.url_options
     end
 
-    def _routes_context #:nodoc:
-      controller
-    end
-    protected :_routes_context
+    private
+      def _routes_context
+        controller
+      end
 
-    def optimize_routes_generation? #:nodoc:
-      controller.respond_to?(:optimize_routes_generation?, true) ?
-        controller.optimize_routes_generation? : super
-    end
-    protected :optimize_routes_generation?
+      def optimize_routes_generation?
+        controller.respond_to?(:optimize_routes_generation?, true) ?
+          controller.optimize_routes_generation? : super
+      end
+
+      def _generate_paths_by_default
+        true
+      end
+
+      def only_path?(host)
+        _generate_paths_by_default unless host
+      end
   end
 end

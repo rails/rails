@@ -1,4 +1,4 @@
-require 'rails/generators/rails/resource/resource_generator'
+require "rails/generators/rails/resource/resource_generator"
 
 module Rails
   module Generators
@@ -10,10 +10,11 @@ module Rails
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
       class_option :assets, type: :boolean
       class_option :resource_route, type: :boolean
+      class_option :scaffold_stylesheet, type: :boolean
 
       def handle_skip
         @options = @options.merge(stylesheets: false) unless options[:assets]
-        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
+        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets] && options[:scaffold_stylesheet]
       end
 
       hook_for :scaffold_controller, required: true

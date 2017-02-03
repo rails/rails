@@ -20,7 +20,7 @@ After reading this guide, you will know:
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](getting_started.html#the-mvc-architecture) - the
+Active Record is the M in [MVC](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
 model - which is the layer of the system responsible for representing business
 data and logic. Active Record facilitates the creation and use of business
 objects whose data requires persistent storage to a database. It is an
@@ -38,7 +38,7 @@ object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-Object-Relational Mapping, commonly referred to as its abbreviation ORM, is
+Object Relational Mapping, commonly referred to as its abbreviation ORM, is
 a technique that connects the rich objects of an application to tables in
 a relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
@@ -74,8 +74,8 @@ By default, Active Record uses some naming conventions to find out how the
 mapping between models and database tables should be created. Rails will
 pluralize your class names to find the respective database table. So, for
 a class `Book`, you should have a database table called **books**. The Rails
-pluralization mechanisms are very powerful, being capable to pluralize (and
-singularize) both regular and irregular words. When using class names composed
+pluralization mechanisms are very powerful, being capable of pluralizing (and
+singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
@@ -104,7 +104,7 @@ depending on the purpose of these columns.
   your models.
 * **Primary keys** - By default, Active Record will use an integer column named
   `id` as the table's primary key. When using [Active Record
-  Migrations](migrations.html) to create your tables, this column will be
+  Migrations](active_record_migrations.html) to create your tables, this column will be
   automatically created.
 
 There are also some optional column names that will add additional features
@@ -122,7 +122,7 @@ to Active Record instances:
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in a `Articles` class that
+  associations. For example, a `comments_count` column in an `Article` class that
   has many instances of `Comment` will cache the number of existent comments
   for each article.
 
@@ -132,17 +132,17 @@ Creating Active Record Models
 -----------------------------
 
 It is very easy to create Active Record models. All you have to do is to
-subclass the `ActiveRecord::Base` class and you're good to go:
+subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
 end
 ```
 
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL sentence like:
+that the `products` table was created using an SQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -168,23 +168,24 @@ What if you need to follow a different naming convention or need to use your
 Rails application with a legacy database? No problem, you can easily override
 the default conventions.
 
-You can use the `ActiveRecord::Base.table_name=` method to specify the table
-name that should be used:
+`ApplicationRecord` inherits from `ActiveRecord::Base`, which defines a
+number of helpful methods. You can use the `ActiveRecord::Base.table_name=`
+method to specify the table name that should be used:
 
 ```ruby
-class Product < ActiveRecord::Base
-  self.table_name = "PRODUCT"
+class Product < ApplicationRecord
+  self.table_name = "my_products"
 end
 ```
 
 If you do so, you will have to define manually the class name that is hosting
-the fixtures (class_name.yml) using the `set_fixture_class` method in your test
+the fixtures (my_products.yml) using the `set_fixture_class` method in your test
 definition:
 
 ```ruby
-class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: Joke
-  fixtures :funny_jokes
+class ProductTest < ActiveSupport::TestCase
+  set_fixture_class my_products: Product
+  fixtures :my_products
   ...
 end
 ```
@@ -193,7 +194,7 @@ It's also possible to override the column that should be used as the table's
 primary key using the `ActiveRecord::Base.primary_key=` method:
 
 ```ruby
-class Product < ActiveRecord::Base
+class Product < ApplicationRecord
   self.primary_key = "product_id"
 end
 ```
@@ -260,7 +261,7 @@ david = User.find_by(name: 'David')
 
 ```ruby
 # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-users = User.where(name: 'David', occupation: 'Code Artist').order('created_at DESC')
+users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
 ```
 
 You can learn more about querying an Active Record model in the [Active Record
@@ -320,7 +321,7 @@ they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   validates :name, presence: true
 end
 
@@ -350,7 +351,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration
+class CreatePublications < ActiveRecord::Migration[5.0]
   def change
     create_table :publications do |t|
       t.string :title
@@ -360,7 +361,7 @@ class CreatePublications < ActiveRecord::Migration
       t.string :publisher_type
       t.boolean :single_issue
 
-      t.timestamps null: false
+      t.timestamps
     end
     add_index :publications, :publication_type_id
   end
@@ -368,9 +369,9 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `rake db:migrate`
-and to roll it back, `rake db:rollback`.
+provides rollback features. To actually create the table, you'd run `rails db:migrate`
+and to roll it back, `rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
 PostgreSQL, Oracle and others. You can learn more about migrations in the
-[Active Record Migrations guide](migrations.html).
+[Active Record Migrations guide](active_record_migrations.html).

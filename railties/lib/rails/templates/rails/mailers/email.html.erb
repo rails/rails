@@ -39,6 +39,10 @@
     padding: 1px;
   }
 
+  dd:empty:before {
+    content: "\00a0"; // &nbsp;
+  }
+
   iframe {
     border: 0;
     width: 100%;
@@ -84,22 +88,46 @@
     <% unless @email.attachments.nil? || @email.attachments.empty? %>
       <dt>Attachments:</dt>
       <dd>
-        <%= @email.attachments.map { |a| a.respond_to?(:original_filename) ? a.original_filename : a.filename }.inspect %>
+        <% @email.attachments.each do |a| %>
+          <% filename = a.respond_to?(:original_filename) ? a.original_filename : a.filename %>
+          <%= link_to filename, "data:application/octet-stream;charset=utf-8;base64,#{Base64.encode64(a.body.to_s)}", download: filename %>
+        <% end %>
       </dd>
     <% end %>
 
     <% if @email.multipart? %>
       <dd>
-        <select onchange="document.getElementsByName('messageBody')[0].src=this.options[this.selectedIndex].value;">
-          <option <%= request.format == Mime::HTML ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
-          <option <%= request.format == Mime::TEXT ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
+        <select onchange="formatChanged(this);">
+          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
+          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
         </select>
       </dd>
     <% end %>
   </dl>
 </header>
 
-<iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
+<% if @part && @part.mime_type %>
+  <iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
+<% else %>
+  <p>
+    You are trying to preview an email that does not have any content.
+    This is probably because the <em>mail</em> method has not been called in <em><%= @preview.preview_name %>#<%= @email_action %></em>.
+  </p>
+<% end %>
+
+<script>
+  function formatChanged(form) {
+    var part_name = form.options[form.selectedIndex].value
+    var iframe =document.getElementsByName('messageBody')[0];
+    iframe.contentWindow.location.replace(part_name);
+
+    if (history.replaceState) {
+      var url    = location.pathname.replace(/\.(txt|html)$/, '');
+      var format = /html/.test(part_name) ? '.html' : '.txt';
+      window.history.replaceState({}, '', url + format);
+    }
+  }
+</script>
 
 </body>
 </html>

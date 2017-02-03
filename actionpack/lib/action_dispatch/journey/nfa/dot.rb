@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 module ActionDispatch
   module Journey # :nodoc:
     module NFA # :nodoc:
@@ -20,7 +18,7 @@ module ActionDispatch
           #  (memos || []).map { |v| "  #{k} -> #{v.object_id};" }
           #}.uniq
 
-        <<-eodot
+          <<-eodot
 digraph nfa {
   rankdir=LR;
   node [shape = doublecircle];
@@ -28,7 +26,7 @@ digraph nfa {
   node [shape = circle];
 #{edges.join "\n"}
 }
-        eodot
+          eodot
         end
       end
     end

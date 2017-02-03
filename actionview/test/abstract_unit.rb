@@ -1,29 +1,28 @@
-require File.expand_path('../../../load_paths', __FILE__)
+$:.unshift(File.dirname(__FILE__) + "/lib")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
+$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
 
-$:.unshift(File.dirname(__FILE__) + '/lib')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
+ENV["TMPDIR"] = File.join(File.dirname(__FILE__), "tmp")
 
-ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
-
-require 'active_support/core_ext/kernel/reporting'
+require "active_support/core_ext/kernel/reporting"
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = Encoding::UTF_8
+  Encoding.default_external = Encoding::UTF_8
 end
 
-require 'active_support/testing/autorun'
-require 'action_controller'
-require 'action_view'
-require 'action_view/testing/resolvers'
-require 'active_support/dependencies'
-require 'active_model'
-require 'active_record'
+require "active_support/testing/autorun"
+require "active_support/testing/method_call_assertions"
+require "action_controller"
+require "action_view"
+require "action_view/testing/resolvers"
+require "active_support/dependencies"
+require "active_model"
+require "active_record"
 
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
+require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
   class << self
@@ -44,25 +43,11 @@ ActiveSupport::Deprecation.debug = true
 I18n.enforce_available_locales = false
 
 # Register danish language for testing
-I18n.backend.store_translations 'da', {}
-I18n.backend.store_translations 'pt-BR', {}
+I18n.backend.store_translations "da", {}
+I18n.backend.store_translations "pt-BR", {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
-
-module RackTestUtils
-  def body_to_string(body)
-    if body.respond_to?(:each)
-      str = ""
-      body.each {|s| str << s }
-      str
-    else
-      body
-    end
-  end
-  extend self
-end
+FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
 
 module RenderERBUtils
   def view
@@ -108,12 +93,14 @@ module ActionDispatch
       super
       return if DrawOnce.drew
 
-      SharedTestRoutes.draw do
-        get ':controller(/:action)'
-      end
+      ActiveSupport::Deprecation.silence do
+        SharedTestRoutes.draw do
+          get ":controller(/:action)"
+        end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
-        get ':controller(/:action)'
+        ActionDispatch::IntegrationTest.app.routes.draw do
+          get ":controller(/:action)"
+        end
       end
 
       DrawOnce.drew = true
@@ -150,7 +137,7 @@ class BasicController
       config.assets_dir = public_dir
       config.javascripts_dir = "#{public_dir}/javascripts"
       config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new({ :prefix => "assets" })
+      config.assets          = ActiveSupport::InheritableOptions.new(prefix: "assets")
       config
     end
   end
@@ -161,13 +148,12 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
-      middleware.use "ActionDispatch::ShowExceptions", ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-      middleware.use "ActionDispatch::DebugExceptions"
-      middleware.use "ActionDispatch::Callbacks"
-      middleware.use "ActionDispatch::ParamsParser"
-      middleware.use "ActionDispatch::Cookies"
-      middleware.use "ActionDispatch::Flash"
-      middleware.use "Rack::Head"
+      middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
+      middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::Callbacks
+      middleware.use ActionDispatch::Cookies
+      middleware.use ActionDispatch::Flash
+      middleware.use Rack::Head
       yield(middleware) if block_given?
     end
   end
@@ -177,14 +163,14 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   # Stub Rails dispatcher so it does not get controller references and
   # simply return the controller#action as Rack::Body.
   class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    protected
-    def controller_reference(controller_param)
-      controller_param
-    end
+    private
+      def controller_reference(controller_param)
+        controller_param
+      end
 
-    def dispatch(controller, action, env)
-      [200, {'Content-Type' => 'text/html'}, ["#{controller}##{action}"]]
-    end
+      def dispatch(controller, action, env)
+        [200, { "Content-Type" => "text/html" }, ["#{controller}##{action}"]]
+      end
   end
 
   def self.stub_controllers
@@ -218,53 +204,10 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Dependencies.autoload_paths << path
         yield
       ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
         ActiveSupport::Dependencies.clear
       end
     end
-  end
-end
-
-# Temporary base class
-class Rack::TestCase < ActionDispatch::IntegrationTest
-  def self.testing(klass = nil)
-    if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
-    else
-      @testing
-    end
-  end
-
-  def get(thing, *args)
-    if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}", *args)
-    else
-      super
-    end
-  end
-
-  def assert_body(body)
-    assert_equal body, Array(response.body).join
-  end
-
-  def assert_status(code)
-    assert_equal code, response.status
-  end
-
-  def assert_response(body, status = 200, headers = {})
-    assert_body body
-    assert_status status
-    headers.each do |header, value|
-      assert_header header, value
-    end
-  end
-
-  def assert_content_type(type)
-    assert_equal type, response.headers["Content-Type"]
-  end
-
-  def assert_header(name, value)
-    assert_equal value, response.headers[name]
   end
 end
 
@@ -320,26 +263,23 @@ end
 module ActionDispatch
   class DebugExceptions
     private
-    remove_method :stderr_logger
-    # Silence logger
-    def stderr_logger
-      nil
-    end
+      remove_method :stderr_logger
+      # Silence logger
+      def stderr_logger
+        nil
+      end
   end
 end
 
-# Skips the current run on Rubinius using Minitest::Assertions#skip
-def rubinius_skip(message = '')
-  skip message if RUBY_ENGINE == 'rbx'
-end
-# Skips the current run on JRuby using Minitest::Assertions#skip
-def jruby_skip(message = '')
-  skip message if defined?(JRUBY_VERSION)
-end
+class ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
 
-require 'mocha/setup' # FIXME: stop using mocha
-
-# FIXME: we have tests that depend on run order, we should fix that and
-# remove this method call.
-require 'active_support/test_case'
-ActiveSupport::TestCase.test_order = :sorted
+  # Skips the current run on Rubinius using Minitest::Assertions#skip
+  private def rubinius_skip(message = "")
+    skip message if RUBY_ENGINE == "rbx"
+  end
+  # Skips the current run on JRuby using Minitest::Assertions#skip
+  private def jruby_skip(message = "")
+    skip message if defined?(JRUBY_VERSION)
+  end
+end

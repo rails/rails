@@ -1,4 +1,4 @@
-require 'fileutils'
+require "fileutils"
 
 class File
   # Write to a file atomically. Useful for situations where you don't
@@ -8,54 +8,56 @@ class File
   #     file.write('hello')
   #   end
   #
-  # If your temp directory is not on the same filesystem as the file you're
-  # trying to write, you can provide a different temporary directory.
+  # This method needs to create a temporary file. By default it will create it
+  # in the same directory as the destination file. If you don't like this
+  # behavior you can provide a different directory but it must be on the
+  # same physical filesystem as the file you're trying to write.
   #
   #   File.atomic_write('/data/something.important', '/data/tmp') do |file|
   #     file.write('hello')
   #   end
-  def self.atomic_write(file_name, temp_dir = Dir.tmpdir)
-    require 'tempfile' unless defined?(Tempfile)
-    require 'fileutils' unless defined?(FileUtils)
+  def self.atomic_write(file_name, temp_dir = dirname(file_name))
+    require "tempfile" unless defined?(Tempfile)
 
-    temp_file = Tempfile.new(basename(file_name), temp_dir)
-    temp_file.binmode
-    return_val = yield temp_file
-    temp_file.close
+    Tempfile.open(".#{basename(file_name)}", temp_dir) do |temp_file|
+      temp_file.binmode
+      return_val = yield temp_file
+      temp_file.close
 
-    if File.exist?(file_name)
-      # Get original file permissions
-      old_stat = stat(file_name)
-    else
-      # If not possible, probe which are the default permissions in the
-      # destination directory.
-      old_stat = probe_stat_in(dirname(file_name))
-    end
+      old_stat = if exist?(file_name)
+        # Get original file permissions
+        stat(file_name)
+      elsif temp_dir != dirname(file_name)
+        # If not possible, probe which are the default permissions in the
+        # destination directory.
+        probe_stat_in(dirname(file_name))
+      end
 
-    # Overwrite original file with temp file
-    FileUtils.mv(temp_file.path, file_name)
+      if old_stat
+        # Set correct permissions on new file
+        begin
+          chown(old_stat.uid, old_stat.gid, temp_file.path)
+          # This operation will affect filesystem ACL's
+          chmod(old_stat.mode, temp_file.path)
+        rescue Errno::EPERM, Errno::EACCES
+          # Changing file ownership failed, moving on.
+        end
+      end
 
-    # Set correct permissions on new file
-    begin
-      chown(old_stat.uid, old_stat.gid, file_name)
-      # This operation will affect filesystem ACL's
-      chmod(old_stat.mode, file_name)
-
-      # Make sure we return the result of the yielded block
+      # Overwrite original file with temp file
+      rename(temp_file.path, file_name)
       return_val
-    rescue Errno::EPERM, Errno::EACCES
-      # Changing file ownership failed, moving on.
     end
   end
 
   # Private utility method.
   def self.probe_stat_in(dir) #:nodoc:
     basename = [
-      '.permissions_check',
+      ".permissions_check",
       Thread.current.object_id,
       Process.pid,
       rand(1000000)
-    ].join('.')
+    ].join(".")
 
     file_name = join(dir, basename)
     FileUtils.touch(file_name)

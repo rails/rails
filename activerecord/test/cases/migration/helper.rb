@@ -28,12 +28,12 @@ module ActiveRecord
         super
         TestModel.reset_table_name
         TestModel.reset_sequence_name
-        connection.drop_table :test_models rescue nil
+        connection.drop_table :test_models, if_exists: true
       end
 
       private
 
-      delegate(*CONNECTION_METHODS, to: :connection)
+        delegate(*CONNECTION_METHODS, to: :connection)
     end
   end
 end

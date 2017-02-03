@@ -1,5 +1,5 @@
-require 'thread_safe'
-require 'mutex_m'
+require "concurrent/map"
+require "mutex_m"
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -23,7 +23,7 @@ module ActiveModel
   # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
-  # * Call each of its method you want to add, such as +attribute_method_suffix+
+  # * Call each of its methods you want to add, such as +attribute_method_suffix+
   #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
@@ -225,9 +225,9 @@ module ActiveModel
       end
 
       # Declares the attributes that should be prefixed and suffixed by
-      # ActiveModel::AttributeMethods.
+      # <tt>ActiveModel::AttributeMethods</tt>.
       #
-      # To use, pass attribute names (as strings or symbols), be sure to declare
+      # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix or affix
       # methods, or they will not hook in.
       #
@@ -239,7 +239,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_methods must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_methods :name, :age, :address
       #
       #     private
@@ -253,9 +253,9 @@ module ActiveModel
       end
 
       # Declares an attribute that should be prefixed and suffixed by
-      # ActiveModel::AttributeMethods.
+      # <tt>ActiveModel::AttributeMethods</tt>.
       #
-      # To use, pass an attribute name (as string or symbol), be sure to declare
+      # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix
       # method, or they will not hook in.
       #
@@ -267,7 +267,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_method must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_method :name
       #
       #     private
@@ -334,26 +334,25 @@ module ActiveModel
         }.tap { |mod| include mod }
       end
 
-      protected
-        def instance_method_already_implemented?(method_name) #:nodoc:
+      private
+        def instance_method_already_implemented?(method_name)
           generated_attribute_methods.method_defined?(method_name)
         end
 
-      private
         # The methods +method_missing+ and +respond_to?+ of this module are
         # invoked often in a typical rails, both of which invoke the method
-        # +match_attribute_method?+. The latter method iterates through an
+        # +matched_attribute_method+. The latter method iterates through an
         # array doing regular expression matches, which results in a lot of
         # object creations. Most of the time it returns a +nil+ match. As the
         # match result is always the same given a +method_name+, this cache is
         # used to alleviate the GC, which ultimately also speeds up the app
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
-        def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(initial_capacity: 4)
+        def attribute_method_matchers_cache
+          @attribute_method_matchers_cache ||= Concurrent::Map.new(initial_capacity: 4)
         end
 
-        def attribute_method_matchers_matching(method_name) #:nodoc:
+        def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
@@ -363,18 +362,18 @@ module ActiveModel
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
-        # using the given `extra` args. This fallbacks `define_method`
+        # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
-          defn = if name =~ NAME_COMPILABLE_REGEXP
+        def define_proxy_call(include_private, mod, name, send, *extra)
+          defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
             "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
 
-          target = if send =~ CALL_COMPILABLE_REGEXP
+          target = if CALL_COMPILABLE_REGEXP.match?(send)
             "#{"self." unless include_private}#{send}(#{extra})"
           else
             "send(:'#{send}', #{extra})"
@@ -393,7 +392,7 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
+            @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -419,7 +418,7 @@ module ActiveModel
     # returned by <tt>attributes</tt>, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
     # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
-    # the attributes hash -- except for multiple assigns with
+    # the attributes hash -- except for multiple assignments with
     # <tt>ActiveRecord::Base#attributes=</tt>.
     #
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
@@ -429,7 +428,7 @@ module ActiveModel
       if respond_to_without_attributes?(method, true)
         super
       else
-        match = match_attribute_method?(method.to_s)
+        match = matched_attribute_method(method.to_s)
         match ? attribute_missing(match, *args, &block) : super
       end
     end
@@ -454,19 +453,18 @@ module ActiveModel
         # but found among all methods. Which means that the given method is private.
         false
       else
-        !match_attribute_method?(method.to_s).nil?
+        !matched_attribute_method(method.to_s).nil?
       end
     end
 
-    protected
-      def attribute_method?(attr_name) #:nodoc:
+    private
+      def attribute_method?(attr_name)
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
-    private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
-      def match_attribute_method?(method_name)
+      def matched_attribute_method(method_name)
         matches = self.class.send(:attribute_method_matchers_matching, method_name)
         matches.detect { |match| attribute_method?(match.attr_name) }
       end
