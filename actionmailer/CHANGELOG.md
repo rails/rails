@@ -1,3 +1,7 @@
+*   Add `:args` to `process.action_mailer` event.
+
+    *Yuji Yaginuma*
+
 *   Add parameterized invocation of mailers as a way to share before filters and defaults between actions.
     See ActionMailer::Parameterized for a full example of the benefit.
 
