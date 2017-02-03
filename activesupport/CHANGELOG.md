@@ -1,3 +1,12 @@
+*   Make `Marshal#load_with_autoloading` pass through the second, optional
+    argument for `Marshal#load( source [, proc] )`. Necessitated because
+    `Marshal#load` and `Marshal#load_with_autoloading` are alias_method_chain'd,
+    and ideally, we shouldn't have to call `Marshal#load_without_autoloading` 
+    just to be able to pass a proc.
+
+
+    *Jeff Latz*
+
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
     stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`

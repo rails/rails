@@ -19,6 +19,25 @@ class MarshalTest < ActiveSupport::TestCase
     end
   end
 
+  test "that Marshal#load still works when passed a proc" do
+    example_string = "test"
+    
+    example_proc = Proc.new do |o|
+      if o.is_a?(String)
+        o.capitalize!
+      end
+    end
+
+    dumped = Marshal.dump(example_string)
+
+    assert_nothing_raised do 
+      Marshal.load(dumped, example_proc)
+    end
+
+    assert_equal Marshal.load(dumped, example_proc), "Test"
+    assert_equal Marshal.load(dumped, example_proc), Marshal.load_without_autoloading(dumped, example_proc)
+  end
+
   test "that a missing class is autoloaded from string" do
     dumped = nil
     with_autoloading_fixtures do
