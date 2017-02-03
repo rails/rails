@@ -1,3 +1,9 @@
+*   Fix `association_primary_key_type` for reflections with symbol primary key
+
+    Fixes #27864
+
+    *Daniel Colson*
+
 *   Place generated migrations into the path set by `config.paths["db/migrate"]`
 
     *Kevin Glowacz*
