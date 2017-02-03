@@ -421,7 +421,7 @@ module ActiveRecord
       end
 
       def association_primary_key_type
-        klass.type_for_attribute(association_primary_key)
+        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       def active_record_primary_key
@@ -835,7 +835,7 @@ module ActiveRecord
       end
 
       def association_primary_key_type
-        klass.type_for_attribute(association_primary_key)
+        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
