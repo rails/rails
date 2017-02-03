@@ -508,6 +508,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
     end
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/vendor\/node_modules/, content)
+      assert_no_match(/vendor\/yarn-error\.log/, content)
+    end
   end
 
   def test_inclusion_of_jbuilder
