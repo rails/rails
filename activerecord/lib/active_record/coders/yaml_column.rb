@@ -14,7 +14,7 @@ module ActiveRecord
       def dump(obj)
         return if obj.nil?
 
-        assert_valid_value(obj)
+        assert_valid_value(obj, action: "dump")
         YAML.dump obj
       end
 
@@ -23,16 +23,16 @@ module ActiveRecord
         return yaml unless yaml.is_a?(String) && /^---/.match?(yaml)
         obj = YAML.load(yaml)
 
-        assert_valid_value(obj)
+        assert_valid_value(obj, action: "load")
         obj ||= object_class.new if object_class != Object
 
         obj
       end
 
-      def assert_valid_value(obj)
+      def assert_valid_value(obj, action:)
         unless obj.nil? || obj.is_a?(object_class)
           raise SerializationTypeMismatch,
-            "Attribute `#{@attr_name}` was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
+            "can't #{action} `#{@attr_name}`: was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
         end
       end
 
