@@ -1347,8 +1347,15 @@ In the above example, you certainly expect that the table name of `Blog::Post`
 should be `blog_posts` because a singleton method called `table_name_prefix` is
 defined in `app/models/blog.rb`.
 
-However, you possibly come across an error or weird behavior which indicate that
-Rails tries to read `posts` table.
+However, you possibly come across an error or weird behavior which indicates that
+Rails attempts to connect to `posts` table instead of `blog_posts`. For example,
+when you want to retrieve objects from database via query interfaces such as
+`Blog::Post.all` in your controller, it fails and you might see the error
+(in case you choose SQLite3 as a database):
+
+```bash
+SQLite3::SQLException: no such table: posts: SELECT "posts".* FROM "posts"
+```
 
 Problem is that both `app/helpers/blog/posts_helper.rb` and `app/models/blog.rb`
 define `Blog` module. Under the hood, one of them defines `Blog` module, and the
