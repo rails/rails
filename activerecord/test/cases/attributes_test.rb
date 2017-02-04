@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/developer"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -18,6 +19,25 @@ end
 
 class UnoverloadedType < ActiveRecord::Base
   self.table_name = "overloaded_types"
+end
+
+class SkipAttributesFromSchemaModel < ActiveRecord::Base
+  self.table_name = "cars"
+  self.define_attributes_from_schema = false
+
+  attribute :id, :integer
+  attribute :name, :string
+  attribute :engines_count, :integer
+  attribute :lock_version, :integer
+  attribute :created_at, :datetime
+  attribute :updated_at, :datetime
+end
+
+class SkipAttributesFromSchemaModelWithoutPrimaryKey < ActiveRecord::Base
+  self.table_name = "speedometers"
+  self.define_attributes_from_schema = false
+
+  attribute :name, :string
 end
 
 module ActiveRecord
@@ -281,5 +301,41 @@ module ActiveRecord
       assert_equal 1, klass.new(no_type: 1).no_type
       assert_equal "foo", klass.new(no_type: "foo").no_type
     end
+  end
+
+  class SkipAttributesFromSchemaModelTest < ActiveRecord::TestCase
+    test "#column_names only includes manually defined attributes" do
+      assert_equal manual_attributes.to_set, SkipAttributesFromSchemaModel.column_names.to_set
+    end
+
+    test "model does not respond to attributes that are not explicitly defined" do
+      model = SkipAttributesFromSchemaModel.new
+      refute model.respond_to?(:wheels_count)
+      refute model.respond_to?(:wheels_count=)
+      assert_equal manual_attributes.to_set, model.attributes.keys.to_set
+      model.save!
+      refute model.respond_to?(:wheels_count)
+      refute model.respond_to?(:wheels_count=)
+    end
+
+    test "cannot be used with ignored_columns" do
+      error = assert_raises(ArgumentError) do
+        SkipAttributesFromSchemaModel.ignored_columns = ["name"]
+      end
+      assert_equal "can't use `ignored_columns` with `define_attributes_from_schema` set to false", error.to_s
+    end
+
+    test "model with ignored_columns cannot disable `define_attributes_from_schema`" do
+      error = assert_raises(ArgumentError) do
+        Developer.define_attributes_from_schema = false
+      end
+      assert_equal "can't set `define_attributes_from_schema` to false and use `ignored_columns` at the same time", error.to_s
+    end
+
+    private
+
+      def manual_attributes
+        ["id", "name", "engines_count", "lock_version", "created_at", "updated_at"]
+      end
   end
 end

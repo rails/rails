@@ -117,6 +117,34 @@ module ActiveRecord
     # during an ordered finder call. Useful when the primary key is not an
     # auto-incrementing integer, for example when it's a UUID. Note that using
     # a non-unique column can result in non-deterministic results.
+
+    ##
+    # :singleton-method: define_attributes_from_schema
+    # :call-seq: define_attributes_from_schema
+    #
+    # Returns the boolean value whether ActiveRecords will use schema to define model attributes
+    # Read more details in define_attributes_from_schema=
+
+    ##
+    # :singleton-method: define_attributes_from_schema=
+    # :call-seq: define_attributes_from_schema=(value)
+    #
+    # Disabling attribute discovery from schema makes the model use only those attributes
+    # that have been explicitly defined with `ActiveRecord::Base.attribute` method.
+    # Defaults to `true`.
+    #
+    # Example:
+    #
+    #   class Project < ActiveRecord::Base
+    #     self.define_attributes_from_schema = true
+    #
+    #     attribute :name, :string
+    #     attribute :members_count, :integer
+    #   end
+    #
+    # Despite on the fact that `projects` table has more columns that `name` and `members_count`,
+    # ActiveRecord will only use explicitly declared attributes
+
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -128,6 +156,7 @@ module ActiveRecord
       class_attribute :implicit_order_column, instance_accessor: false
 
       self.protected_environments = ["production"]
+      self.define_attributes_from_schema = true
       self.inheritance_column = "type"
       self.ignored_columns = [].freeze
 
@@ -267,6 +296,32 @@ module ActiveRecord
       #     self.inheritance_column = 'zoink'
       def inheritance_column
         (@inheritance_column ||= nil) || superclass.inheritance_column
+      end
+
+      def ignored_columns
+        @ignored_columns || superclass.ignored_columns
+      end
+
+      def ignored_columns=(value)
+        if value.any? && !define_attributes_from_schema
+          raise ArgumentError, "can't use `ignored_columns` with `define_attributes_from_schema` set to false"
+        end
+        @ignored_columns = value
+      end
+
+      def define_attributes_from_schema
+        if defined?(@define_attributes_from_schema)
+          @define_attributes_from_schema
+        else
+          superclass.define_attributes_from_schema
+        end
+      end
+
+      def define_attributes_from_schema=(value)
+        if ignored_columns.any? && !value
+          raise ArgumentError, "can't set `define_attributes_from_schema` to false and use `ignored_columns` at the same time"
+        end
+        @define_attributes_from_schema = value
       end
 
       # Sets the value of inheritance_column
@@ -484,7 +539,14 @@ module ActiveRecord
         end
 
         def load_schema!
-          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+          @columns_hash = connection.schema_cache.columns_hash(table_name)
+
+          unless define_attributes_from_schema
+            @columns_hash = @columns_hash.slice(*attributes_to_define_after_schema_loads.keys)
+            return
+          end
+
+          @columns_hash = @columns_hash.except(*ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(
               name,
