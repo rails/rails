@@ -1,5 +1,5 @@
 require 'mutex_m'
-require 'thread_safe'
+require 'concurrent'
 
 module ActiveSupport
   module Notifications
@@ -12,7 +12,7 @@ module ActiveSupport
 
       def initialize
         @subscribers = []
-        @listeners_for = ThreadSafe::Cache.new
+        @listeners_for = Concurrent::Map.new
         super
       end
 
@@ -51,7 +51,7 @@ module ActiveSupport
       end
 
       def listeners_for(name)
-        # this is correctly done double-checked locking (ThreadSafe::Cache's lookups have volatile semantics)
+        # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @listeners_for[name] || synchronize do
           # use synchronisation when accessing @subscribers
           @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }

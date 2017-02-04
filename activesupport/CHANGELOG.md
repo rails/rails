@@ -1,3 +1,8 @@
+*   Backported 56ac6e4 to 4-2-stable - use concurrent-ruby, not deprecated
+    thread_safe gem.
+
+    *Jerry D'Antonio*, *Tom Russell*
+
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
     stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`

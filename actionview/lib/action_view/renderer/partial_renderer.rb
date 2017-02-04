@@ -1,4 +1,4 @@
-require 'thread_safe'
+require 'concurrent'
 
 module ActionView
   class PartialIteration
@@ -280,8 +280,8 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
-      h[k] = ThreadSafe::Cache.new
+    PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
+      h[k] = Concurrent::Map.new
     end
 
     def initialize(*)
