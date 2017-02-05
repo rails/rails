@@ -59,19 +59,18 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
-    options[:patterns] = defined?(@rake_patterns) ? @rake_patterns : opts.order!
+    options[:patterns] = opts.order! unless run_via[:rake]
   end
 
-  # Running several Rake tasks in a single command would trip up the runner,
-  # as the patterns would also contain the other Rake tasks.
   def self.rake_run(patterns) # :nodoc:
-    @rake_patterns = patterns
+    run_via[:rake] = true
+    ::Rails::TestRequirer.require_files(patterns)
     autorun
   end
 
   module RunRespectingRakeTestopts
     def run(args = [])
-      if defined?(@rake_patterns)
+      if run_via[:rake]
         args = Shellwords.split(ENV["TESTOPTS"] || "")
       end
 
@@ -86,8 +85,9 @@ module Minitest
   def self.plugin_rails_init(options)
     ENV["RAILS_ENV"] = options[:environment] || "test"
 
-    # If run via `ruby` we've been passed the files to run directly.
-    unless run_via[:ruby]
+    # If run via `ruby` we've been passed the files to run directly, or if run
+    # via `rake` then they have already been eagerly required.
+    unless run_via[:ruby] || run_via[:rake]
       ::Rails::TestRequirer.require_files(options[:patterns])
     end
 
