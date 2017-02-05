@@ -1314,7 +1314,7 @@ class C < BasicObject
 end
 ```
 
-### Missing Singleton Methods
+### Reusing Constants as Namespaces
 
 On-demand autoloading and reopening sometimes do not work well together. This kind of
 pitfall typically happens when defining singleton methods on a module for namespace,
@@ -1377,7 +1377,7 @@ end
 If `Blog` module is unknown at that point, autoloading will be triggered and
 `app/models/blog.rb` will be loaded.
 
-Alternatively, you could use `require_relative` on top of
+Alternatively, you could use `require_dependency` on top of
 `app/models/application_record.rb`:
 
 ```ruby
