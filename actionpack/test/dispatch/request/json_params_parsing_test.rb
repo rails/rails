@@ -38,19 +38,15 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "does not parse unregistered media types such as application/vnd.api+json" do
-    actual = "{\"person\": {\"name\": \"David\"}}"
     output = StringIO.new
-    headers = { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
-    headers["CONTENT_TYPE"] = "application/vnd.api+json"
-      with_test_routing do
-        post "/parse", params: actual, headers: headers
-        assert_response :unsupported_media_type
-        assert_equal(nil, TestController.last_request_parameters)
-        output.rewind && err = output.read
-        File.write("err.txt", err.to_yaml)
-        content_mime_type = Regexp.escape headers["CONTENT_TYPE"]
-        assert_match /ActionController::UnsupportedMediaType \(#{content_mime_type}\):/, err
-      end
+    refute_parses(
+      :unsupported_media_type,
+      "{\"person\": {\"name\": \"David\"}}",
+      {"CONTENT_TYPE" => "application/vnd.api+json", "action_dispatch.logger" => ActiveSupport::Logger.new(output)}
+    )
+    output.rewind && err = output.read
+    assert err =~ /ActionController::UnsupportedMediaType \(#{Regexp.escape("application/vnd.api+json")}\):/
+    assert_equal("", @response.body)
   end
 
   test "nils are stripped from collections" do
@@ -69,14 +65,15 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "logs error if parsing unsuccessful" do
-    with_test_routing do
-      output = StringIO.new
-      json = "[\"person]\": {\"name\": \"David\"}}"
-      post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
-      assert_response :bad_request
-      output.rewind && err = output.read
-      assert err =~ /Error occurred while parsing request parameters/
-    end
+    output = StringIO.new
+    refute_parses(
+      :bad_request,
+      "[\"person]\": {\"name\": \"David\"}}",
+      { "CONTENT_TYPE" => "application/json", "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
+    )
+    output.rewind && err = output.read
+    assert err =~ /Error occurred while parsing request parameters/
+    assert_equal("400 error fixture\n", @response.body)
   end
 
   test "occurring a parse error if parsing unsuccessful" do
@@ -108,6 +105,15 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         post "/parse", params: actual, headers: headers
         assert_response :ok
         assert_equal(expected, TestController.last_request_parameters)
+      end
+    end
+
+    def refute_parses(response_status, post_body, headers = {})
+      headers.reverse_merge!("action_dispatch.show_exceptions" => true)
+      with_test_routing do
+        post "/parse", params: post_body, headers: headers
+        assert_response response_status
+        assert_equal nil, TestController.last_request_parameters
       end
     end
 

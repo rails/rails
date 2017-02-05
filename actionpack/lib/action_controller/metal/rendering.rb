@@ -72,7 +72,6 @@ module ActionController
         self.content_type = Mime[:html].to_s
       end
 
-      #  PRNOTE(BF): Possible touchpoint
       def _set_rendered_content_type(format)
         if format && !response.content_type
           self.content_type = format.to_s

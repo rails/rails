@@ -45,7 +45,6 @@ module ActionDispatch
       end
 
       # Returns both GET and POST \parameters in a single hash.
-      # PRNOTE(BF): What does the ':format' key mean here?
       def parameters
         params = get_header("action_dispatch.request.parameters")
         return params if params
@@ -95,10 +94,8 @@ module ActionDispatch
         end
 
         def parse_formatted_parameters(parsers)
-          # PRNOTE(BF): Not sure if there's something to do here..
           return yield if content_length.zero? || content_mime_type.nil?
 
-          # PRNOTE(BF): Not sure if there's something to do here..
           strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
           begin
@@ -107,7 +104,6 @@ module ActionDispatch
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
-            # PRNOTE(BF): This is rescued in ActionDispatch::Request, not as a rescue response, so maybe this is the wrong layer to raise a 415?
             raise ParseError
           end
         end

@@ -200,7 +200,6 @@ module ActionController #:nodoc:
         response = collector.response
         response.call if response
       else
-        # PRNOTE(BF): Should this be a 415, UnsupportedMediaType?
         raise ActionController::UnknownFormat
       end
     end
@@ -248,7 +247,6 @@ module ActionController #:nodoc:
       alias :all :any
 
       def custom(mime_type, &block)
-        # PRNOTE(BF): Should this trigger an UnsupportedMediaType exception?
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
         @responses[mime_type] ||= if block_given?
           block
@@ -270,7 +268,6 @@ module ActionController #:nodoc:
         end
       end
 
-      # PRNOTE(BF): Should this trigger an UnsupportedMediaType exception?
       def negotiate_format(request)
         @format = request.negotiate_mime(@responses.keys)
       end
