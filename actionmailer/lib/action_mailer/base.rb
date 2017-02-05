@@ -598,7 +598,8 @@ module ActionMailer
     def process(method_name, *args) #:nodoc:
       payload = {
         mailer: self.class.name,
-        action: method_name
+        action: method_name,
+        args: args
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
