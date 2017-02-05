@@ -337,6 +337,10 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create!([]) }
   end
 
+  def test_create_with_empty_array
+    assert_equal WrongReply.create([]), false
+  end
+
   def test_update_object
     topic = Topic.new
     topic.title = "Another New Topic"
