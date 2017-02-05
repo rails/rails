@@ -27,8 +27,6 @@ module AbstractController
         key = "#{path}.#{action_name}#{key}"
       end
 
-      i18n_raise = false
-
       if html_safe_translation_key?(key)
         html_safe_options = options.dup
         options.except(*I18n::RESERVED_KEYS).each do |name, value|
@@ -36,11 +34,11 @@ module AbstractController
             html_safe_options[name] = ERB::Util.html_escape(value.to_s)
           end
         end
-        translation = I18n.translate(key, html_safe_options.merge(raise: i18n_raise))
+        translation = I18n.translate(key, html_safe_options)
 
         translation.respond_to?(:html_safe) ? translation.html_safe : translation
       else
-        I18n.translate(key, options.merge(raise: i18n_raise))
+        I18n.translate(key, options)
       end
     end
     alias :t :translate
