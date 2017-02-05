@@ -1,3 +1,7 @@
+*   Handle `_html` and `.html` i18n keys within controllers.
+
+    *Gavin Miller*
+
 *   Remove deprecated `.to_prepare`, `.to_cleanup`, `.prepare!` and `.cleanup!` from `ActionDispatch::Reloader`.
 
     *Rafael Mendonça França*

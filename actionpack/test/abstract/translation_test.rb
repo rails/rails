@@ -18,6 +18,10 @@ module AbstractController
               translation: {
                 index: {
                   foo: "bar",
+                  foo_html: "<strong>bar</strong>",
+                  baz: {
+                    html: "<strong>baz</strong>"
+                  }
                 },
                 no_action: "no_action_tr",
               },
@@ -69,6 +73,24 @@ module AbstractController
         time, expected = Time.gm(2000), "Sat, 01 Jan 2000 00:00:00 +0000"
         I18n.stub :localize, expected do
           assert_equal expected, @controller.l(time)
+        end
+      end
+
+      def test_html_suffix
+        @controller.stub :action_name, :index do
+          foo_html = @controller.t(".foo_html")
+
+          assert_equal "<strong>bar</strong>", foo_html
+          assert foo_html.html_safe?
+        end
+      end
+
+      def test_html_last_element
+        @controller.stub :action_name, :index do
+          baz_html = @controller.t(".baz.html")
+
+          assert_equal "<strong>baz</strong>", baz_html
+          assert baz_html.html_safe?
         end
       end
     end
