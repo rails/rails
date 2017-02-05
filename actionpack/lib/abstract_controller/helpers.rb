@@ -151,6 +151,7 @@ module AbstractController
             rescue LoadError => e
               raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
             end
+            load_namespace_for_helper(file_name)
 
             mod_name = file_name.camelize
             begin
@@ -171,6 +172,23 @@ module AbstractController
       end
 
       private
+        # Load any constants defined elsewhere on the autoload path that appear in
+        # the namespace for the helper defined in +file_name+.
+        #
+        # For example, if the +Admin::PostsHelper+ helper was just loaded and a model
+        # named +Admin+ exists, we need to load +app/models/admin.rb+ since loading
+        # +app/helpers/admin/posts_helper.rb+ created an empty +Admin+ constant.
+        def load_namespace_for_helper(file_name)
+          segments = file_name.split("/")
+          1.upto(segments.length - 1) do |i|
+            begin
+              namespace_file_name = segments.slice(0, i).join("/")
+              require_dependency(namespace_file_name)
+            rescue LoadError
+            end
+          end
+        end
+
         # Makes all the (instance) methods in the helper module available to templates
         # rendered through this controller.
         #

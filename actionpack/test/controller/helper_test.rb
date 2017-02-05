@@ -66,6 +66,10 @@ class HelpersTypoController < ActionController::Base
   self.helpers_path = path
 end
 
+class NamespacedHelpersController < ActionController::Base
+  self.helpers_path = File.expand_path("../../fixtures/namespaced_helpers/helpers", __FILE__)
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
@@ -91,6 +95,23 @@ class HelpersTypoControllerTest < ActiveSupport::TestCase
   def test_helper_typo_error_message
     e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
     assert_equal "Couldn't find Admin::UsersHelper, expected it to be defined in helpers/admin/users_helper.rb", e.message
+  end
+
+  def teardown
+    ActiveSupport::Dependencies.autoload_paths = @autoload_paths
+  end
+end
+
+class NamespacedHelpersTest < ActiveSupport::TestCase
+  def setup
+    @autoload_paths = ActiveSupport::Dependencies.autoload_paths
+    models_path = File.expand_path("../../fixtures/namespaced_helpers/models", __FILE__)
+    ActiveSupport::Dependencies.autoload_paths = [NamespacedHelpersController.helpers_path, models_path]
+  end
+
+  def test_namespaces_are_autoloaded
+    NamespacedHelpersController.helper "admin/posts"
+    assert_respond_to Admin, :table_name_prefix
   end
 
   def teardown
