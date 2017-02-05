@@ -13,6 +13,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionDispatch::Http::Parameters::ParseError
         end
+      when %r{/unsupported_media_type}
+        raise ActionController::UnsupportedMediaType
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, "PUT"
       when "/unknown_http_method"
@@ -52,6 +54,10 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 404
     assert_equal "404 error fixture\n", body
+
+    get "/unsupported_media_type", headers: { "action_dispatch.show_exceptions" => true }
+    assert_response 415
+    assert_equal "", body
 
     get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 405
