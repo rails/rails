@@ -2,7 +2,7 @@
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
-[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
+[Model-View-Controller (MVC)](https://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
@@ -71,7 +71,7 @@ and may also be used independently outside Rails.
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
+    * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
 
@@ -86,4 +86,4 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## License
 
-Ruby on Rails is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+Ruby on Rails is released under the [MIT License](https://opensource.org/licenses/MIT).
