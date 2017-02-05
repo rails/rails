@@ -175,6 +175,7 @@ class DeveloperCalledJamis < ActiveRecord::Base
 
   default_scope { where(name: "Jamis") }
   scope :poor, -> { where("salary < 150000") }
+  scope :jamis2, -> { unscoped.where("salary < 10000") }
   scope :david, -> { where name: "David" }
   scope :david2, -> { unscoped.where name: "David" }
 end
