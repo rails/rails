@@ -305,7 +305,7 @@ Action Cable has three required configurations: a subscription adapter, allowed 
 
 ### Redis
 
-By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config/cable.yml')`.
+By default, `ActionCable::Server::Base` will look for a configuration file in `Rails.root.join('config', 'cable.yml')`.
 This file must specify an adapter and a URL for each Rails environment. It may use the following format:
 
 ```yaml

@@ -325,7 +325,7 @@ module ActionView
   # to configure ActionController::Base.view_paths in an initializer, for example:
   #
   #   ActionController::Base.view_paths = FileSystemResolver.new(
-  #     Rails.root.join("app/views"),
+  #     Rails.root.join('app', 'views'),
   #     ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}",
   #   )
   #

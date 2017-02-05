@@ -1391,7 +1391,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config/custom.yml")))
+        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config", "custom.yml")))
       RUBY
 
       app "development"

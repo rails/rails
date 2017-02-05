@@ -23,8 +23,8 @@ module SneakersJobsManager
                         daemonize: true,
                         threads: 1,
                         workers: 1,
-                        pid_path: Rails.root.join("tmp/sneakers.pid").to_s,
-                        log: Rails.root.join("log/sneakers.log").to_s
+                        pid_path: Rails.root.join("tmp", "sneakers.pid").to_s,
+                        log: Rails.root.join("log", "sneakers.log").to_s
     unless can_run?
       puts "Cannot run integration tests for sneakers. To be able to run integration tests for sneakers you need to install and start rabbitmq.\n"
       exit
@@ -60,7 +60,7 @@ module SneakersJobsManager
 
   def stop_workers
     Process.kill "TERM", @pid
-    Process.kill "TERM", File.open(Rails.root.join("tmp/sneakers.pid").to_s).read.to_i
+    Process.kill "TERM", File.open(Rails.root.join("tmp", "sneakers.pid").to_s).read.to_i
   rescue
   end
 
