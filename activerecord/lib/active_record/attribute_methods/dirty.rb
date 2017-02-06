@@ -50,7 +50,7 @@ module ActiveRecord
         super.tap do
           @previous_mutation_tracker = nil
           clear_mutation_trackers
-          @changed_attributes = HashWithIndifferentAccess.new
+          @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
       end
 
@@ -70,13 +70,13 @@ module ActiveRecord
 
       def changes_applied
         @previous_mutation_tracker = mutation_tracker
-        @changed_attributes = HashWithIndifferentAccess.new
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         clear_mutation_trackers
       end
 
       def clear_changes_information
         @previous_mutation_tracker = nil
-        @changed_attributes = HashWithIndifferentAccess.new
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         forget_attribute_assignments
         clear_mutation_trackers
       end
