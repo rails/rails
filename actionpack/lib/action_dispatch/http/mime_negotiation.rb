@@ -14,10 +14,11 @@ module ActionDispatch
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
-      def content_mime_type
+      def content_mime_type(validate: true)
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase).tap do |content_mime_type|
+              next unless validate
               # When the content type is known, Mime::Type.lookup returns <tt>Mime::Type::LOOKUP[string]</tt>.
               # Otherwise, it returns <tt>Mime::Type.new(string)</tt> which has a the symbol +nil+.
               next unless content_mime_type.symbol.nil?

@@ -229,7 +229,7 @@ module ActionDispatch
     #    # get "/articles"
     #    request.media_type # => "application/x-www-form-urlencoded"
     def media_type
-      content_mime_type.to_s
+      content_mime_type(validate: false).to_s
     end
 
     # Returns the content length of the request as an integer.
