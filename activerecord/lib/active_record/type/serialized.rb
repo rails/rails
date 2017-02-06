@@ -43,7 +43,7 @@ module ActiveRecord
 
       def assert_valid_value(value)
         if coder.respond_to?(:assert_valid_value)
-          coder.assert_valid_value(value)
+          coder.assert_valid_value(value, action: "serialize")
         end
       end
 
