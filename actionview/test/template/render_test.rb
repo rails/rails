@@ -406,8 +406,7 @@ module RenderTestCases
     assert_equal "Before (Josh)\n\nAfter", @view.render(partial: "test/layout_for_partial", locals: { name: "Josh" })
   end
 
-  # TODO: The reason for this test is unclear, improve documentation
-  def test_render_missing_xml_partial_and_raise_missing_template
+  def test_render_partial_with_non_existent_format_and_raise_missing_template
     @view.formats = [:xml]
     assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/layout_for_partial") }
   ensure

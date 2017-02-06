@@ -411,6 +411,8 @@ render formats: :xml
 render formats: [:json, :xml]
 ```
 
+If a file with the specified extension does not exist, a `MissingTemplate` error will be raised.
+
 #### Finding Layouts
 
 To find the current layout, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the `PhotosController` class will use `app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`). If there is no such controller-specific layout, Rails will use `app/views/layouts/application.html.erb` or `app/views/layouts/application.builder`. If there is no `.erb` layout, Rails will use a `.builder` layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
