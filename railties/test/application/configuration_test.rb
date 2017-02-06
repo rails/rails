@@ -51,7 +51,7 @@ module ApplicationTests
 
     def setup
       build_app
-      supress_default_config
+      suppress_default_config
     end
 
     def teardown
@@ -59,7 +59,7 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    def supress_default_config
+    def suppress_default_config
       FileUtils.mv("#{app_path}/config/environments", "#{app_path}/config/__environments__")
     end
 

@@ -39,7 +39,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     checker = new_checker(tmpfiles) {}
     assert !checker.updated?
 
-    # Pipes used for flow controll across fork.
+    # Pipes used for flow control across fork.
     boot_reader,  boot_writer  = IO.pipe
     touch_reader, touch_writer = IO.pipe
 

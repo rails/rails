@@ -441,7 +441,7 @@ module ActiveRecord
         end
       end
 
-      def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_aquire_all_connections_proceed_anyway
+      def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_acquire_all_connections_proceed_anyway
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         [:disconnect!, :clear_reloadable_connections!].each do |group_action_method|
           @pool.with_connection do |connection|
