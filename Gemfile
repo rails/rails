@@ -131,7 +131,7 @@ if ENV['ORACLE_ENHANCED']
   platforms :ruby do
     gem 'ruby-oci8', '~> 2.2'
   end
-  gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'master'
+  gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'release17'
 end
 
 # A gem necessary for Active Record tests with IBM DB.
