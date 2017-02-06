@@ -1,6 +1,5 @@
 require "yaml"
 require "erb"
-require "fileutils"
 require "pathname"
 
 module ARTest
