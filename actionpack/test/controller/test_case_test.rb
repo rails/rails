@@ -581,7 +581,7 @@ XML
   end
 
   def test_mutating_content_type_headers_for_non_registered_mime_type_raises_an_error
-    assert_raises(RuntimeError) do
+    assert_raises(ActionController::UnsupportedMediaType) do
       @request.headers["Content-Type"] = "type/fake"
       post :render_body, params: { name: "foo.fake" }
     end
