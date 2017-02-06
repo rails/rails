@@ -42,7 +42,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     refute_parses(
       :unsupported_media_type,
       "{\"person\": {\"name\": \"David\"}}",
-      {"CONTENT_TYPE" => "application/vnd.api+json", "action_dispatch.logger" => ActiveSupport::Logger.new(output)}
+      "CONTENT_TYPE" => "application/vnd.api+json", "action_dispatch.logger" => ActiveSupport::Logger.new(output)
     )
     output.rewind && err = output.read
     assert err =~ /ActionController::UnsupportedMediaType \(#{Regexp.escape("application/vnd.api+json")}\):/
@@ -69,7 +69,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     refute_parses(
       :bad_request,
       "[\"person]\": {\"name\": \"David\"}}",
-      { "CONTENT_TYPE" => "application/json", "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
+      "CONTENT_TYPE" => "application/json", "action_dispatch.logger" => ActiveSupport::Logger.new(output)
     )
     output.rewind && err = output.read
     assert err =~ /Error occurred while parsing request parameters/

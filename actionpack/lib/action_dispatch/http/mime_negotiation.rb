@@ -21,7 +21,7 @@ module ActionDispatch
               # When the content type is known, Mime::Type.lookup returns <tt>Mime::Type::LOOKUP[string]</tt>.
               # Otherwise, it returns <tt>Mime::Type.new(string)</tt> which has a the symbol +nil+.
               next unless content_mime_type.symbol.nil?
-              next if env.key?('action_dispatch.exception') # Don't raise in exceptions_app, else FAILSAFE_RESPONSE
+              next if env.key?("action_dispatch.exception") # Don't raise in exceptions_app, else FAILSAFE_RESPONSE
               raise ActionController::UnsupportedMediaType.new(content_mime_type)
             end
           else
