@@ -171,7 +171,7 @@
     *Rafael Mendonça França*
 
 *   Set `:time` as a timezone aware type and remove deprecation when
-    `config.active_record.time_zone_aware_types` is not explictly set.
+    `config.active_record.time_zone_aware_types` is not explicitly set.
 
     *Rafael Mendonça França*
 

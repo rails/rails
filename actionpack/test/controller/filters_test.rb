@@ -584,7 +584,7 @@ class FilterTest < ActionController::TestCase
     assert @controller.instance_variable_get(:@was_audited)
   end
 
-  def test_running_anomolous_yet_valid_condition_actions
+  def test_running_anomalous_yet_valid_condition_actions
     test_process(AnomolousYetValidConditionController)
     assert_equal %w( ensure_login ), @controller.instance_variable_get(:@ran_filter)
     assert @controller.instance_variable_get(:@ran_class_action)

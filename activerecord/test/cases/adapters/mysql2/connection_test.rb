@@ -120,7 +120,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_passing_arbitary_flags_to_adapter
+  def test_passing_arbitrary_flags_to_adapter
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
       assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
