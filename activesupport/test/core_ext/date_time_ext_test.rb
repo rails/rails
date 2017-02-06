@@ -318,6 +318,10 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert DateTime.new.acts_like_time?
   end
 
+  def test_blank?
+    assert_not DateTime.new.blank?
+  end
+
   def test_utc?
     assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12).utc?
     assert_equal true, DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc?
