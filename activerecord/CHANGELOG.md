@@ -1,3 +1,7 @@
+*   Deprecate locking records with unpersisted changes.
+
+    *Marc Schütz*
+
 *   Remove deprecated behavior that halts callbacks when the return is false.
 
     *Rafael Mendonça França*
