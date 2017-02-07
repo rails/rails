@@ -354,8 +354,8 @@ module ActiveRecord
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
-        args.each do |col|
-          ReferenceDefinition.new(col, **options).add_to(self)
+        args.each do |ref_name|
+          ReferenceDefinition.new(ref_name, options).add_to(self)
         end
       end
       alias :belongs_to :references
@@ -589,8 +589,7 @@ module ActiveRecord
       #  t.belongs_to(:supplier, foreign_key: true)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
-      def references(*args)
-        options = args.extract_options!
+      def references(*args, **options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, options)
         end
@@ -603,8 +602,7 @@ module ActiveRecord
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
-      def remove_references(*args)
-        options = args.extract_options!
+      def remove_references(*args, **options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, options)
         end

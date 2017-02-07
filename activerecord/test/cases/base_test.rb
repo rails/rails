@@ -98,6 +98,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
+  def test_primary_key_and_references_columns_should_be_identical_type
+    pk = Author.columns_hash["id"]
+    ref = Post.columns_hash["author_id"]
+
+    assert_equal pk.bigint?, ref.bigint?
+  end
+
   def test_many_mutations
     car = Car.new name: "<3<3<3"
     car.engines_count = 0

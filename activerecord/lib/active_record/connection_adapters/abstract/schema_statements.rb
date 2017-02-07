@@ -828,8 +828,8 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
-      def add_reference(table_name, *args)
-        ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
+      def add_reference(table_name, ref_name, **options)
+        ReferenceDefinition.new(ref_name, options).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
