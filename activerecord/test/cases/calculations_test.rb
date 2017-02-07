@@ -170,7 +170,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
-    assert_equal 3, accounts.select("firm_id firm_id").count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
