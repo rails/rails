@@ -20,6 +20,7 @@ module AbstractController
               translation: {
                 index: {
                   foo: "bar",
+                    html: "<a>nested foo</a>",
                   hello: "<a>Hello World</a>",
                   hello_html: "<a>Hello World</a>",
                   interpolated_html: "<a>Hello %{word}</a>"
@@ -87,6 +88,12 @@ module AbstractController
       def test_translate_marks_translations_with_a_html_suffix_as_safe_html
         @controller.stub :action_name, :index do
           assert @controller.t(".hello_html").html_safe?
+        end
+      end
+
+      def test_translate_marks_translation_with_nested_html_key
+        @controller.stub :action_name, :index do
+          assert @controller.t(".foo.html").html_safe?
         end
       end
 

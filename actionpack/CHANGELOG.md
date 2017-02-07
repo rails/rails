@@ -1,6 +1,6 @@
 *   Treat html suffix in controller translation.
 
-    *Rui Onodera*
+    *Rui Onodera*, * Gavin Miller*
 
 *   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
 
