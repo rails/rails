@@ -187,6 +187,13 @@ module ApplicationTests
       assert_not middleware.include?("Rack::Runtime")
     end
 
+    test "can re-insert a deleted middleware" do
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.use Rack::Runtime"
+      boot!
+      assert_includes middleware, "Rack::Runtime"
+    end
+
     test "can delete a middleware from the stack even if insert_after is added after delete" do
       add_to_config "config.middleware.delete Rack::Runtime"
       add_to_config "config.middleware.insert_after(Rack::Runtime, Rack::Config)"
