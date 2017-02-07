@@ -1,3 +1,7 @@
+*   Deprecate `ColumnDumper#migration_keys`.
+
+    *Ryuta Kamizono*
+
 *   Fix `association_primary_key_type` for reflections with symbol primary key
 
     Fixes #27864

@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
-      module ColumnDumper
+      module ColumnDumper # :nodoc:
         private
 
           def default_primary_key?(column)
