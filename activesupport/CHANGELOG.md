@@ -1,3 +1,7 @@
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
 *   Deprecate passing string to `:if` and `:unless` conditional options
     on `set_callback` and `skip_callback`.
 

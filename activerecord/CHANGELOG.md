@@ -1,3 +1,7 @@
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `ColumnDumper#migration_keys`.
 
     *Ryuta Kamizono*

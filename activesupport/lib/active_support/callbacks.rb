@@ -856,30 +856,6 @@ module ActiveSupport
           def set_callbacks(name, callbacks) # :nodoc:
             self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
           end
-
-          def deprecated_false_terminator # :nodoc:
-            Proc.new do |target, result_lambda|
-              terminate = true
-              catch(:abort) do
-                result = result_lambda.call if result_lambda.is_a?(Proc)
-                if Callbacks.halt_and_display_warning_on_return_false && result == false
-                  display_deprecation_warning_for_false_terminator
-                else
-                  terminate = false
-                end
-              end
-              terminate
-            end
-          end
-
-        private
-
-          def display_deprecation_warning_for_false_terminator
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
-              To explicitly halt the callback chain, please use `throw :abort` instead.
-            MSG
-          end
       end
   end
 end

@@ -39,11 +39,6 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 end
 
-class CallbackDeveloperWithFalseValidation < CallbackDeveloper
-  before_validation proc { |model| model.history << [:before_validation, :returning_false]; false }
-  before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
-end
-
 class CallbackDeveloperWithHaltedValidation < CallbackDeveloper
   before_validation proc { |model| model.history << [:before_validation, :throwing_abort]; throw(:abort) }
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
@@ -130,23 +125,6 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   def history
     @history ||= []
   end
-end
-
-class CallbackCancellationDeveloper < ActiveRecord::Base
-  self.table_name = "developers"
-
-  attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
-  attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
-
-  before_save    { defined?(@cancel_before_save) ? !@cancel_before_save : false }
-  before_create  { !@cancel_before_create  }
-  before_update  { !@cancel_before_update  }
-  before_destroy { !@cancel_before_destroy }
-
-  after_save    { @after_save_called    = true }
-  after_update  { @after_update_called  = true }
-  after_create  { @after_create_called  = true }
-  after_destroy { @after_destroy_called = true }
 end
 
 class CallbackHaltedDeveloper < ActiveRecord::Base
@@ -404,70 +382,6 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_deprecated_before_save_returning_false
-    david = ImmutableDeveloper.find(1)
-    assert_deprecated do
-      assert david.valid?
-      assert !david.save
-      exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
-      assert_equal david, exc.record
-      assert_equal "Failed to save the record", exc.message
-    end
-
-    david = ImmutableDeveloper.find(1)
-    david.salary = 10_000_000
-    assert !david.valid?
-    assert !david.save
-    assert_raise(ActiveRecord::RecordInvalid) { david.save! }
-
-    someone = CallbackCancellationDeveloper.find(1)
-    someone.cancel_before_save = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
-  end
-
-  def test_deprecated_before_create_returning_false
-    someone = CallbackCancellationDeveloper.new
-    someone.cancel_before_create = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
-  end
-
-  def test_deprecated_before_update_returning_false
-    someone = CallbackCancellationDeveloper.find(1)
-    someone.cancel_before_update = true
-    assert_deprecated do
-      assert someone.valid?
-      assert !someone.save
-    end
-    assert_save_callbacks_not_called(someone)
-  end
-
-  def test_deprecated_before_destroy_returning_false
-    david = ImmutableDeveloper.find(1)
-    assert_deprecated do
-      assert !david.destroy
-      exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
-      assert_equal david, exc.record
-      assert_equal "Failed to destroy the record", exc.message
-    end
-    assert_not_nil ImmutableDeveloper.find_by_id(1)
-
-    someone = CallbackCancellationDeveloper.find(1)
-    someone.cancel_before_destroy = true
-    assert_deprecated do
-      assert !someone.destroy
-      assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
-    end
-    assert !someone.after_destroy_called
-  end
-
   def assert_save_callbacks_not_called(someone)
     assert !someone.after_save_called
     assert !someone.after_create_called
@@ -523,30 +437,6 @@ class CallbacksTest < ActiveRecord::TestCase
     assert !someone.destroy
     assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
     assert !someone.after_destroy_called
-  end
-
-  def test_callback_returning_false
-    david = CallbackDeveloperWithFalseValidation.find(1)
-    assert_deprecated { david.save }
-    assert_equal [
-      [ :after_find,            :method ],
-      [ :after_find,            :proc   ],
-      [ :after_find,            :object ],
-      [ :after_find,            :block  ],
-      [ :after_initialize,            :method ],
-      [ :after_initialize,            :proc   ],
-      [ :after_initialize,            :object ],
-      [ :after_initialize,            :block  ],
-      [ :before_validation,           :method ],
-      [ :before_validation,           :proc   ],
-      [ :before_validation,           :object ],
-      [ :before_validation,           :block  ],
-      [ :before_validation, :returning_false  ],
-      [ :after_rollback, :block  ],
-      [ :after_rollback, :object ],
-      [ :after_rollback, :proc   ],
-      [ :after_rollback, :method ],
-    ], david.history
   end
 
   def test_callback_throwing_abort

@@ -869,34 +869,8 @@ module CallbacksTest
     end
   end
 
-  class CallbackFalseTerminatorWithoutConfigTest < ActiveSupport::TestCase
-    def test_returning_false_does_not_halt_callback_if_config_variable_is_not_set
-      obj = CallbackFalseTerminator.new
-      obj.save
-      assert_nil obj.halted
-      assert obj.saved
-    end
-  end
-
-  class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
-    def setup
-      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = true
-    end
-
-    def test_returning_false_does_not_halt_callback_if_config_variable_is_true
-      obj = CallbackFalseTerminator.new
-      obj.save
-      assert_nil obj.halted
-      assert obj.saved
-    end
-  end
-
-  class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
-    def setup
-      ActiveSupport::Callbacks.halt_and_display_warning_on_return_false = false
-    end
-
-    def test_returning_false_does_not_halt_callback_if_config_variable_is_false
+  class CallbackFalseTerminatorTest < ActiveSupport::TestCase
+    def test_returning_false_does_not_halt_callback
       obj = CallbackFalseTerminator.new
       obj.save
       assert_nil obj.halted

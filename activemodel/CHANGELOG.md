@@ -1,3 +1,7 @@
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
 *   Remove unused `ActiveModel::TestCase` class.
 
     *Yuji Yaginuma*
