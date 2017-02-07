@@ -2,14 +2,6 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module ColumnDumper # :nodoc:
-        def column_spec_for_primary_key(column)
-          spec = super
-          if schema_type(column) == :uuid
-            spec[:default] ||= "nil"
-          end
-          spec
-        end
-
         # Adds +:array+ option to the default set
         def prepare_column_options(column)
           spec = super
@@ -26,6 +18,10 @@ module ActiveRecord
 
           def default_primary_key?(column)
             schema_type(column) == :bigserial
+          end
+
+          def explicit_primary_key_default?(column)
+            column.type == :uuid || (column.type == :integer && !column.serial?)
           end
 
           def schema_type(column)

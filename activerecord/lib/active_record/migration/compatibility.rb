@@ -21,6 +21,12 @@ module ActiveRecord
             end
           end
 
+          unless adapter_name == "Mysql2" && options[:id] == :bigint
+            if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
+              options[:default] = nil
+            end
+          end
+
           # Since 5.1 Postgres adapter uses bigserial type for primary
           # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
           # serial/int type instead -- the way it used to work before 5.1.
