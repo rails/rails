@@ -1920,8 +1920,16 @@ module ActionView
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
         else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = model_name_from_record_or_class(record_object).param_key
+          record_object = record_name
+          if record_object.is_a?(Array)
+            object_for_model_name = record_object.last
+            record_name = model_name_from_record_or_class(object_for_model_name).param_key.pluralize
+          else
+            record_name = model_name_from_record_or_class(record_object).param_key
+          end
+          if nested_attributes_association?(record_name)
+            return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
+          end
         end
 
         object_name = @object_name
