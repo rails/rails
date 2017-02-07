@@ -1,3 +1,12 @@
+*   Deprecate passing string to `:if` and `:unless` conditional options
+    on `set_callback` and `skip_callback`.
+
+    *Ryuta Kamizono*
+
+*   Raise `ArgumentError` when passing string to define callback.
+
+    *Ryuta Kamizono*
+
 *   Updated Unicode version to 9.0.0
 
     Now we can handle new emojis such like "👩‍👩‍👧‍👦" ("\u{1F469}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}").
@@ -60,76 +69,76 @@
 
     *Yuji Yaginuma*
 
-*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`.
 
     *Andrew White*
 
-*   Remove deprecated separator argument from `parameterize`
+*   Remove deprecated separator argument from `parameterize`.
 
     *Andrew White*
 
-*   Remove deprecated method `Numeric#to_formatted_s`
+*   Remove deprecated method `Numeric#to_formatted_s`.
 
     *Andrew White*
 
-*   Remove deprecated method `alias_method_chain`
+*   Remove deprecated method `alias_method_chain`.
 
     *Andrew White*
 
-*   Remove deprecated constant `MissingSourceFile`
+*   Remove deprecated constant `MissingSourceFile`.
 
     *Andrew White*
 
 *   Remove deprecated methods `Module.qualified_const_defined?`,
-    `Module.qualified_const_get` and `Module.qualified_const_set`
+    `Module.qualified_const_get` and `Module.qualified_const_set`.
 
     *Andrew White*
 
-*   Remove deprecated `:prefix` option from `number_to_human_size`
+*   Remove deprecated `:prefix` option from `number_to_human_size`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/struct.rb`
+*   Remove deprecated file `active_support/core_ext/struct.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `Module.local_constants`
+*   Remove deprecated method `Module.local_constants`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`.
 
     *Andrew White*
 
-*   Ensure duration parsing is consistent across DST changes
+*   Ensure duration parsing is consistent across DST changes.
 
     Previously `ActiveSupport::Duration.parse` used `Time.current` and
     `Time#advance` to calculate the number of seconds in the duration

@@ -286,9 +286,8 @@ module ActiveSupport
       class Callback #:nodoc:#
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to define callback is deprecated and will be removed
-              in Rails 5.1 without replacement.
+            raise ArgumentError, <<-MSG.squish
+              Passing string to define callback is not supported. Use proc instead.
             MSG
           end
 
@@ -643,9 +642,8 @@ module ActiveSupport
         #   set_callback :save, :before_method
         #
         # The callback can be specified as a symbol naming an instance method; as a
-        # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
-        # object that responds to a certain method determined by the <tt>:scope</tt>
-        # argument to +define_callbacks+.
+        # proc, lambda, or block; or as an object that responds to a certain method
+        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -669,6 +667,14 @@ module ActiveSupport
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
             Callback.build(self_chain, filter, type, options)
@@ -692,6 +698,14 @@ module ActiveSupport
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           options[:raise] = true unless options.key?(:raise)
 
           __update_callbacks(name) do |target, chain|
