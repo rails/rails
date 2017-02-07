@@ -619,9 +619,9 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
+          table[attribute].eq(Arel::Nodes::Bin.new(value))
         else
           super
         end
