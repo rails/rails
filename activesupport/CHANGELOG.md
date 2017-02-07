@@ -1,3 +1,7 @@
+*   Deprecate `.halt_and_display_warning_on_return_false`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated behavior that halts callbacks when the return is false.
 
     *Rafael Mendonça França*

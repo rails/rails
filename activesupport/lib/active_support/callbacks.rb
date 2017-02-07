@@ -69,11 +69,18 @@ module ActiveSupport
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
 
-    # If true, Active Record and Active Model callbacks returning +false+ will
-    # halt the entire callback chain and display a deprecation message.
-    # If false, callback chains will only be halted by calling +throw :abort+.
-    # Defaults to +true+.
-    mattr_accessor(:halt_and_display_warning_on_return_false, instance_writer: false) { true }
+    def self.halt_and_display_warning_on_return_false=(value)
+
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        .halt_and_display_warning_on_return_false= is deprecated and will be removed in Rails 5.2.
+      MSG
+    end
+
+    def self.halt_and_display_warning_on_return_false
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        .halt_and_display_warning_on_return_false is deprecated and will be removed in Rails 5.2.
+      MSG
+    end
 
     # Runs the callbacks for the given event.
     #
