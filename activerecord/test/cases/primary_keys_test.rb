@@ -7,6 +7,7 @@ require "models/movie"
 require "models/keyboard"
 require "models/mixed_case_monkey"
 require "models/dashboard"
+require "models/non_primary_key"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -87,6 +88,12 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
     subscriberReloaded = Subscriber.find("jdoe")
     assert_equal("John Doe", subscriberReloaded.name)
+  end
+
+  def test_id_column_that_is_not_primary_key
+    NonPrimaryKey.create!(id: 100)
+    actual = NonPrimaryKey.find_by(id: 100)
+    assert_match %r{<NonPrimaryKey id: 100}, actual.inspect
   end
 
   def test_find_with_more_than_one_string_key

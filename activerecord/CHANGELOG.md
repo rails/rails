@@ -1,3 +1,7 @@
+*   Fix inspection behavior when the :id column is not primary key.
+
+    *namusyaka*
+
 *   Deprecate locking records with unpersisted changes.
 
     *Marc Schütz*
