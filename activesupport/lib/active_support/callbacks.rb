@@ -287,7 +287,8 @@ module ActiveSupport
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
-              Passing string to define callback is not supported. Use proc instead.
+              Passing string to define a callback is not supported. See the `.set_callback`
+              documentation to see supported values.
             MSG
           end
 
