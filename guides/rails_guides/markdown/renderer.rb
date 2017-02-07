@@ -15,6 +15,16 @@ module RailsGuides
 HTML
       end
 
+      def link(url, title, content)
+        if url.start_with?('http://api.rubyonrails.org')
+          %(<a href="#{api_link(url)}">#{content}</a>)
+        elsif title
+          %(<a href="#{url}" title="#{title}">#{content}</a>)
+        else
+          %(<a href="#{url}">#{content}</a>)
+        end
+      end
+
       def header(text, header_level)
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
@@ -23,7 +33,9 @@ HTML
       end
 
       def paragraph(text)
-        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
+        if text =~ %r{^NOTE:\s+Defined\s+in\s+<code>(.*?)</code>\.?$}
+          %(<div class="note"><p>Defined in <code><a href="#{github_file_url($1)}">#{$1}</a></code>.</p></div>)
+        elsif text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
           convert_notes(text)
         elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
@@ -78,6 +90,35 @@ HTML
               end
             %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
           end
+        end
+
+        def github_file_url(file_path)
+          root, rest = file_path.split('/', 2)
+
+          case root
+          when 'abstract_controller', 'action_controller', 'action_dispatch'
+            path = ['actionpack', 'lib', root, rest].join('/')
+          when 'active_support', 'active_record', 'active_model', 'action_view',
+               'action_cable', 'action_mailer', 'action_pack', 'active_job'
+            path = [root.sub('_', ''), 'lib', root, rest].join('/')
+          else
+            path = file_path
+          end
+
+          ["https://github.com/rails/rails/tree", version || 'master', path].join('/')
+        end
+
+        def version
+          ENV['RAILS_VERSION']
+        end
+
+        def api_link(url)
+          if version && !url.match(/v\d\.\d\.\d/)
+            url.insert(url.index('.org')+4, "/#{version}")
+            url.sub('http://edgeapi', 'http://api') if url.include?('edgeapi')
+          end
+
+          url
         end
     end
   end
