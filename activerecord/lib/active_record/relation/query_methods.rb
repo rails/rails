@@ -317,7 +317,17 @@ module ActiveRecord
       spawn.order!(*args)
     end
 
+    def unsafe_raw_order(*args) # :nodoc:
+      check_if_method_has_arguments!(:order, args)
+      spawn.unsafe_raw_order!(*args)
+    end
+
     def order!(*args) # :nodoc:
+      restrict_order_args(args)
+      unsafe_raw_order!(*args)
+    end
+
+    def unsafe_raw_order!(*args) # :nodoc:
       preprocess_order_args(args)
 
       self.order_values += args
@@ -338,7 +348,17 @@ module ActiveRecord
       spawn.reorder!(*args)
     end
 
+    def unsafe_raw_reorder(*args) # :nodoc:
+      check_if_method_has_arguments!(:reorder, args)
+      spawn.unsafe_raw_reorder!(*args)
+    end
+
     def reorder!(*args) # :nodoc:
+      restrict_order_args(args)
+      unsafe_raw_reorder!
+    end
+
+    def unsafe_raw_reorder!(*args) # :nodoc:
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -1136,6 +1156,31 @@ module ActiveRecord
             arg
           end
         end.flatten!
+      end
+
+      # If guard_unsafe_raw_sql is enabled, we only allow column names and
+      # directions as arguments to #order and #reorder. Other arguments will
+      # cause an ArugmentError to be raised.
+      def restrict_order_args(args)
+        return unless ActiveRecord::Base.guard_unsafe_raw_sql
+
+        columns = []
+        directions = []
+
+        hash = args.last.is_a?(Hash) ? args.pop : {}
+        directions.concat(hash.values)
+        columns.concat(hash.keys)
+        columns.concat(args)
+
+        bad_columns = columns.map(&:to_s) - klass.effective_column_names
+        if bad_columns.any?
+          raise ArgumentError, "Invalid order column: #{bad_columns}"
+        end
+
+        bad_directions = directions.map(&:to_s) - %w(asc desc ASC DESC)
+        if bad_directions.any?
+          raise ArgumentError, "Invalid order direction: #{bad_directions}"
+        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

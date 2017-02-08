@@ -5,6 +5,86 @@ require "models/comment"
 class UnsafeRawSqlTest < ActiveRecord::TestCase
   fixtures :posts, :comments
 
+  test "order: allows string column name" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order("title").pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows symbol column name" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(:title).pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows downcase symbol direction" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(title: :asc).pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows upcase symbol direction" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(title: :ASC).pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows string direction" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(title: "asc").pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows multiple columns" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(:author_id, :title).pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: allows mixed" do
+    enable, rename = with_configs(:enable, :rename) do
+      Post.order(:author_id, title: :asc).pluck(:id)
+    end
+
+    assert_equal enable, rename
+  end
+
+  test "order: disallows invalid column name" do
+    with_config(:rename) do
+      assert_raises(ArgumentError) do
+        Post.order("title asc").pluck(:id)
+      end
+    end
+  end
+
+  test "order: disallows invalid direction" do
+    with_config(:rename) do
+      assert_raises(ArgumentError) do
+        Post.order(title: :foo).pluck(:id)
+      end
+    end
+  end
+
+  test "order: disallows invalid column with direction" do
+    with_config(:rename) do
+      assert_raises(ArgumentError) do
+        Post.order(foo: :asc).pluck(:id)
+      end
+    end
+  end
+
   test "pluck: allows string column name" do
     enable, rename = with_configs(:enable, :rename) do
       Post.pluck("title")
