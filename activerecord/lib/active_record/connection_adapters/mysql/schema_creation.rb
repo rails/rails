@@ -11,11 +11,6 @@ module ActiveRecord
             "DROP FOREIGN KEY #{name}"
           end
 
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o[:limit], o[:precision], o[:scale], o[:unsigned])
-            super
-          end
-
           def visit_AddColumnDefinition(o)
             add_column_position!(super, column_options(o.column))
           end
