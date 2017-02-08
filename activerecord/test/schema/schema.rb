@@ -1039,6 +1039,10 @@ ActiveRecord::Schema.define do
   create_table :test_with_keyword_column_name, force: true do |t|
     t.string :desc
   end
+
+  create_table :non_primary_keys, force: true, id: false do |t|
+    t.integer :id
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
