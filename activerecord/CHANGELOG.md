@@ -1,3 +1,7 @@
+*   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
+
+    *Isaac Betesh*
+
 *   Deprecate locking records with unpersisted changes.
 
     *Marc Schütz*
