@@ -298,6 +298,10 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
       t.string :region
       t.integer :code
     end
+    @connection.create_table(:barcodes_reverse, primary_key: ["code", "region"], force: true) do |t|
+      t.string :region
+      t.integer :code
+    end
   end
 
   def teardown
@@ -305,6 +309,11 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_composite_primary_key
+    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+  end
+
+  def test_composite_primary_key_out_of_order
+    skip if current_adapter?(:SQLite3Adapter)
     assert_equal ["region", "code"], @connection.primary_keys("barcodes")
   end
 
