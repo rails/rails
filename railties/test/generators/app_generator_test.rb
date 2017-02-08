@@ -208,7 +208,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.send(:update_config_files) }
 
       assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
-        assert_match(/ActiveSupport\.halt_callback_chains_on_return_false = true/, content)
         assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
         assert_no_match(/Rails\.application\.config\.ssl_options/, content)
       end
