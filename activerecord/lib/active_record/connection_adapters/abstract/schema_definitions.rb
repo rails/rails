@@ -14,8 +14,16 @@ module ActiveRecord
         options[:primary_key]
       end
 
-      def [](key)
-        options[key]
+      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{option_name}
+            options[:#{option_name}]
+          end
+
+          def #{option_name}=(value)
+            options[:#{option_name}] = value
+          end
+        CODE
       end
     end
 

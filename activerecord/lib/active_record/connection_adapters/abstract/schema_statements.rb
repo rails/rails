@@ -289,7 +289,7 @@ module ActiveRecord
           change_table_comment(table_name, comment) if comment.present?
 
           td.columns.each do |column|
-            change_column_comment(table_name, column.name, column[:comment]) if column[:comment].present?
+            change_column_comment(table_name, column.name, column.comment) if column.comment.present?
           end
         end
 
