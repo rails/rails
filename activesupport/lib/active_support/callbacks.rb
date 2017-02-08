@@ -69,19 +69,6 @@ module ActiveSupport
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
 
-    def self.halt_and_display_warning_on_return_false=(value)
-
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        .halt_and_display_warning_on_return_false= is deprecated and will be removed in Rails 5.2.
-      MSG
-    end
-
-    def self.halt_and_display_warning_on_return_false
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        .halt_and_display_warning_on_return_false is deprecated and will be removed in Rails 5.2.
-      MSG
-    end
-
     # Runs the callbacks for the given event.
     #
     # Calls the before and around callbacks in the order they were set, yields
