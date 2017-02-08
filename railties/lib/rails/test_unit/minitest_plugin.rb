@@ -59,18 +59,18 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
-    options[:patterns] = opts.order! unless run_via[:rake]
+    options[:patterns] = opts.order! unless run_via.rake?
   end
 
   def self.rake_run(patterns) # :nodoc:
-    run_via[:rake] = true
+    self.run_via = :rake unless run_via.set?
     ::Rails::TestRequirer.require_files(patterns)
     autorun
   end
 
   module RunRespectingRakeTestopts
     def run(args = [])
-      if run_via[:rake]
+      if run_via.rake?
         args = Shellwords.split(ENV["TESTOPTS"] || "")
       end
 
@@ -87,7 +87,7 @@ module Minitest
 
     # If run via `ruby` we've been passed the files to run directly, or if run
     # via `rake` then they have already been eagerly required.
-    unless run_via[:ruby] || run_via[:rake]
+    unless run_via.ruby? || run_via.rake?
       ::Rails::TestRequirer.require_files(options[:patterns])
     end
 
@@ -102,7 +102,31 @@ module Minitest
     reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 
-  mattr_accessor(:run_via) { Hash.new }
+  def self.run_via=(runner)
+    if run_via.set?
+      raise ArgumentError, "run_via already assigned"
+    else
+      run_via.runner = runner
+    end
+  end
+
+  class RunVia
+    attr_accessor :runner
+    alias set? runner
+
+    # Backwardscompatibility with Rails 5.0 generated plugin test scripts.
+    alias []= runner=
+
+    def ruby?
+      runner == :ruby
+    end
+
+    def rake?
+      runner == :rake
+    end
+  end
+
+  mattr_reader(:run_via) { RunVia.new }
 end
 
 # Put Rails as the first plugin minitest initializes so other plugins

@@ -11,7 +11,7 @@ module Rails
       def perform(*)
         $LOAD_PATH << Rails::Command.root.join("test")
 
-        Minitest.run_via[:rails] = true
+        Minitest.run_via = :rails
 
         require "active_support/testing/autorun"
       end
