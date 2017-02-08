@@ -167,6 +167,24 @@ module ActiveRecord
         end
       end
 
+      # Returns an Array of Strings that can be treated as column names. This
+      # includes attributes and attribute aliases.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.effective_column_names
+      #   # => ["id", "created_at", "updated_at", "name", "age"]
+      def effective_column_names
+        @effective_column_names ||= begin
+          (attribute_names + attribute_aliases.keys).uniq
+        end
+      end
+
+      def effective_column_name?(*names)
+        (names.flatten.map(&:to_s) - effective_column_names).empty?
+      end
+
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base
