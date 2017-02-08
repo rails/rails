@@ -1,3 +1,7 @@
+*   Fix inspection behavior when the :id column is not primary key.
+
+    *namusyaka*
+
 *   Fix `association_primary_key_type` for reflections with symbol primary key
 
     Fixes #27864
