@@ -2,18 +2,25 @@
 
 module ActiveRecord
   module Querying
-    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
+    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?,
+             :any?, :many?, :none?, :one?, to: :all
+    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth,
+             :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!,
+             :second_to_last, :second_to_last!, to: :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
-    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, to: :all
+    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
+             to: :all
     delegate :find_by, :find_by!, to: :all
     delegate :destroy_all, :delete_all, :update_all, to: :all
     delegate :find_each, :find_in_batches, :in_batches, to: :all
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
-             :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-             :having, :create_with, :distinct, :references, :none, :unscope, :merge, to: :all
+    delegate :select, :group, :order, :unsafe_raw_order, :except, :reorder,
+             :unsafe_raw_reorder, :limit, :offset, :joins, :left_joins,
+             :left_outer_joins, :or, :where, :rewhere, :preload, :eager_load,
+             :includes, :from, :lock, :readonly, :extending, :having,
+             :create_with, :distinct, :references, :none, :unscope, :merge,
+             to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
-    delegate :pluck, :ids, to: :all
+    delegate :pluck, :unsafe_raw_pluck, :ids, to: :all
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array with columns requested encapsulated as attributes of the model you call

@@ -167,6 +167,22 @@ module ActiveRecord
         end
       end
 
+      # Can the given name be treated as a column name? Returns true if name
+      # is attribute or attribute alias.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.respond_to_attribute?(:name)
+      #   # => true
+      #
+      #   Person.respond_to_attribute?("foo")
+      #   # => false
+      def respond_to_attribute?(name)
+        name = name.to_s
+        attribute_names.include?(name) || attribute_aliases.include?(name)
+      end
+
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base
