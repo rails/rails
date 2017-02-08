@@ -10,6 +10,10 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      def primary_key?
+        options[:primary_key]
+      end
+
       def [](key)
         options[key]
       end
@@ -305,7 +309,7 @@ module ActiveRecord
         type = type.to_sym if type
         options = options.dup
 
-        if @columns_hash[name] && @columns_hash[name][:primary_key]
+        if @columns_hash[name] && @columns_hash[name].primary_key?
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
