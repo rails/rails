@@ -1,3 +1,7 @@
+*   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
+
+    *Isaac Betesh*
+
 *   Fix inspection behavior when the :id column is not primary key.
 
     *namusyaka*
