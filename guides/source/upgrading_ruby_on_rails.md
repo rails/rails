@@ -140,12 +140,22 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
 ### Rails Controller Testing
 
+#### Extraction of some helper methods to `rails-controller-testing`
+
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your Gemfile.
 
 If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
+
+#### New behavior when uploading files
+
+If you are using `ActionDispatch::Http::UploadedFile` in your tests to
+upload files, you will need to change to use the similar `Rack::Test::UploadedFile`
+class instead.
+
+See [#26404](https://github.com/rails/rails/issues/26404) for more details.
 
 ### Autoloading is Disabled After Booting in the Production Environment
 
