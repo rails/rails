@@ -703,7 +703,7 @@ There are a few major changes related to JSON handling in Rails 4.1.
 MultiJSON has reached its [end-of-life](https://github.com/rails/rails/pull/10576)
 and has been removed from Rails.
 
-If your application currently depend on MultiJSON directly, you have a few options:
+If your application currently depends on MultiJSON directly, you have a few options:
 
 1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
 
