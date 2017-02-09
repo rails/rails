@@ -432,6 +432,7 @@ module ActiveRecord
         connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
+        initialize_find_by_cache
       end
 
       private
