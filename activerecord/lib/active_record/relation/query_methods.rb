@@ -1181,7 +1181,7 @@ module ActiveRecord
         end
 
         # TODO: find a better list of modifiers.
-        unrecognized = orderings.values.reject { |d| %w(asc desc ASC DESC).include?(d.to_s) }
+        unrecognized = orderings.values.reject { |d| VALID_DIRECTIONS.include?(d.to_s) }
         if unrecognized.any?
           raise ArgumentError, "Invalid order direction: #{unrecognized}"
         end
