@@ -317,16 +317,21 @@ module ActiveRecord
       spawn.order!(*args)
     end
 
+    # Same as #order but allows raw SQL regardless of `allow_unsafe_raw_sql`
+    # config setting.
     def unsafe_raw_order(*args) # :nodoc:
       check_if_method_has_arguments!(:order, args)
       spawn.unsafe_raw_order!(*args)
     end
 
+    # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      restrict_order_args(args)
+      restrict_order_args(args) unless klass.allow_unsafe_raw_sql
       unsafe_raw_order!(*args)
     end
 
+    # Same as #order! but allows raw SQL regardless of `allow_unsafe_raw_sql`
+    # config setting.
     def unsafe_raw_order!(*args) # :nodoc:
       preprocess_order_args(args)
 
@@ -354,7 +359,7 @@ module ActiveRecord
     end
 
     def reorder!(*args) # :nodoc:
-      restrict_order_args(args)
+      restrict_order_args(args) unless klass.allow_unsafe_raw_sql
       unsafe_raw_reorder!
     end
 
@@ -1158,28 +1163,22 @@ module ActiveRecord
         end.flatten!
       end
 
-      # If guard_unsafe_raw_sql is enabled, we only allow column names and
-      # directions as arguments to #order and #reorder. Other arguments will
-      # cause an ArugmentError to be raised.
+      # Only allow column names and directions as arguments to #order and
+      # #reorder. Other arguments will cause an ArugmentError to be raised.
       def restrict_order_args(args)
-        return unless ActiveRecord::Base.guard_unsafe_raw_sql
+        args = args.dup
+        orderings = args.extract_options!
+        columns = args | orderings.keys
 
-        columns = []
-        directions = []
-
-        hash = args.last.is_a?(Hash) ? args.pop : {}
-        directions.concat(hash.values)
-        columns.concat(hash.keys)
-        columns.concat(args)
-
-        bad_columns = columns.map(&:to_s) - klass.effective_column_names
-        if bad_columns.any?
-          raise ArgumentError, "Invalid order column: #{bad_columns}"
+        unrecognized = columns.reject { |c| klass.respond_to_attribute?(c) }
+        if unrecognized.any?
+          raise ArgumentError, "Invalid order column: #{unrecognized}"
         end
 
-        bad_directions = directions.map(&:to_s) - %w(asc desc ASC DESC)
-        if bad_directions.any?
-          raise ArgumentError, "Invalid order direction: #{bad_directions}"
+        # TODO: find a better list of modifiers.
+        unrecognized = orderings.values.reject { |d| %w(asc desc ASC DESC).include?(d.to_s) }
+        if unrecognized.any?
+          raise ArgumentError, "Invalid order direction: #{unrecognized}"
         end
       end
 
