@@ -353,16 +353,21 @@ module ActiveRecord
       spawn.reorder!(*args)
     end
 
+    # Same as #reorder but allows raw SQL regardless of `allow_unsafe_raw_sql`
+    # config setting.
     def unsafe_raw_reorder(*args) # :nodoc:
       check_if_method_has_arguments!(:reorder, args)
       spawn.unsafe_raw_reorder!(*args)
     end
 
+    # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       restrict_order_args(args) unless klass.allow_unsafe_raw_sql
       unsafe_raw_reorder!
     end
 
+    # Same as #reorder! but allows raw SQL regardless of `allow_unsafe_raw_sql`
+    # config setting.
     def unsafe_raw_reorder!(*args) # :nodoc:
       preprocess_order_args(args)
 
