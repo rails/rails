@@ -6,4 +6,9 @@ class Man < ActiveRecord::Base
   # These are "broken" inverse_of associations for the purposes of testing
   has_one :dirty_face, :class_name => 'Face', :inverse_of => :dirty_man
   has_many :secret_interests, :class_name => 'Interest', :inverse_of => :secret_man
+
+  attr_accessor :auto_create_face
+  before_create do
+    create_face! if auto_create_face
+  end
 end
