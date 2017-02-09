@@ -1,3 +1,8 @@
+*   Make `table_name=` reset current statement cache,
+    so queries are not run against the previous table name.
+
+    *namusyaka*
+
 *   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
 
     *Isaac Betesh*
