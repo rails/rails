@@ -1,3 +1,8 @@
+*   Make `table_name=` reset current statement cache,
+    so queries are not run against the previous table name.
+
+    *namusyaka*
+
 *   Using a mysql2 connection after it fails to reconnect will now have an error message
     saying the connection is closed rather than an undefined method error message.
 

@@ -304,6 +304,8 @@ module ActiveRecord
         @default_attributes = nil
         @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation           = nil
+
+        initialize_find_by_cache
       end
 
       private
