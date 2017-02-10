@@ -314,7 +314,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def test_composite_primary_key_out_of_order
     skip if current_adapter?(:SQLite3Adapter)
-    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+    assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
   end
 
   def test_primary_key_issues_warning
@@ -329,9 +329,15 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
-  def test_collectly_dump_composite_primary_key
+  def test_dumping_composite_primary_key
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+  end
+
+  def test_dumping_composite_primary_key_out_of_order
+    skip if current_adapter?(:SQLite3Adapter)
+    schema = dump_table_schema "barcodes_reverse"
+    assert_match %r{create_table "barcodes_reverse", primary_key: \["code", "region"\]}, schema
   end
 end
 
