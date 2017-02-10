@@ -16,7 +16,7 @@ HTML
       end
 
       def link(url, title, content)
-        if url.start_with?('http://api.rubyonrails.org')
+        if url.start_with?("http://api.rubyonrails.org")
           %(<a href="#{api_link(url)}">#{content}</a>)
         elsif title
           %(<a href="#{url}" title="#{title}">#{content}</a>)
@@ -93,29 +93,29 @@ HTML
         end
 
         def github_file_url(file_path)
-          root, rest = file_path.split('/', 2)
+          root, rest = file_path.split("/", 2)
 
           case root
-          when 'abstract_controller', 'action_controller', 'action_dispatch'
-            path = ['actionpack', 'lib', root, rest].join('/')
-          when 'active_support', 'active_record', 'active_model', 'action_view',
-               'action_cable', 'action_mailer', 'action_pack', 'active_job'
-            path = [root.sub('_', ''), 'lib', root, rest].join('/')
+          when "abstract_controller", "action_controller", "action_dispatch"
+            path = ["actionpack", "lib", root, rest].join("/")
+          when "active_support", "active_record", "active_model", "action_view",
+               "action_cable", "action_mailer", "action_pack", "active_job"
+            path = [root.sub("_", ""), "lib", root, rest].join("/")
           else
             path = file_path
           end
 
-          ["https://github.com/rails/rails/tree", version || 'master', path].join('/')
+          ["https://github.com/rails/rails/tree", version || "master", path].join("/")
         end
 
         def version
-          ENV['RAILS_VERSION']
+          ENV["RAILS_VERSION"]
         end
 
         def api_link(url)
           if version && !url.match(/v\d\.\d\.\d/)
-            url.insert(url.index('.org')+4, "/#{version}")
-            url.sub('http://edgeapi', 'http://api') if url.include?('edgeapi')
+            url.insert(url.index(".org") + 4, "/#{version}")
+            url.sub("http://edgeapi", "http://api") if url.include?("edgeapi")
           end
 
           url
