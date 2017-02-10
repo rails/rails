@@ -426,14 +426,16 @@ module ActiveRecord
 
         def primary_keys(table_name) # :nodoc:
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
-                SELECT a.attname
-                  FROM pg_index i
-            CROSS JOIN unnest(i.indkey) as k
-                  JOIN pg_attribute a
-                    ON a.attrelid = i.indrelid
-                   AND a.attnum = k
-                 WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
-                   AND i.indisprimary
+            WITH pk_constraint AS (
+              SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
+              WHERE contype = 'p'
+                AND conrelid = #{quote(quote_table_name(table_name))}::regclass
+            ), cons AS (
+              SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
+            )
+            SELECT attr.attname FROM pg_attribute attr
+            INNER JOIN cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.connum
+            ORDER BY cons.rownum
           SQL
         end
 
