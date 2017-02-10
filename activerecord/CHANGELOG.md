@@ -1,3 +1,48 @@
+*   Allow ActiveRecord::Base#as_json to be passed a frozen Hash.
+
+    *Isaac Betesh*
+
+*   Fix inspection behavior when the :id column is not primary key.
+
+    *namusyaka*
+
+*   Deprecate locking records with unpersisted changes.
+
+    *Marc Schütz*
+
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ColumnDumper#migration_keys`.
+
+    *Ryuta Kamizono*
+
+*   Fix `association_primary_key_type` for reflections with symbol primary key
+
+    Fixes #27864
+
+    *Daniel Colson*
+
+*   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
+
+    MySQL generated columns: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
+    MariaDB virtual columns: https://mariadb.com/kb/en/mariadb/virtual-computed-columns/
+
+    Declare virtual columns with `t.virtual name, type: …, as: "expression"`.
+    Pass `stored: true` to persist the generated value (false by default).
+
+    Example:
+
+        create_table :generated_columns do |t|
+          t.string  :name
+          t.virtual :upper_name,  type: :string,  as: "UPPER(name)"
+          t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
+          t.index :name_length  # May be indexed, too!
+        end
+
+    *Ryuta Kamizono*
+
 *   Deprecate `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
 
     *Ryuta Kamizono*
@@ -146,7 +191,7 @@
     *Rafael Mendonça França*
 
 *   Set `:time` as a timezone aware type and remove deprecation when
-    `config.active_record.time_zone_aware_types` is not explictly set.
+    `config.active_record.time_zone_aware_types` is not explicitly set.
 
     *Rafael Mendonça França*
 

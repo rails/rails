@@ -443,6 +443,11 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
+      def add_reference(table_name, ref_name, **options) # :nodoc:
+        super(table_name, ref_name, type: :integer, **options)
+      end
+      alias :add_belongs_to :add_reference
+
       def foreign_keys(table_name)
         fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|

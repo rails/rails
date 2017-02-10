@@ -92,8 +92,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
       assert_equal expected, actual
     end
 
-    expected = "ALTER TABLE `peaple` ADD  INDEX `index_peaple_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
-    actual = ActiveRecord::Base.connection.change_table(:peaple, bulk: true) do |t|
+    expected = "ALTER TABLE `people` ADD  INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
+    actual = ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
       t.index :last_name, length: 10, using: :btree, algorithm: :copy
     end
     assert_equal expected, actual

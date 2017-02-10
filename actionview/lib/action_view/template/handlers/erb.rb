@@ -1,7 +1,7 @@
 module ActionView
   class Template
     module Handlers
-      Erubis = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Erubis", "ActionView::Template::Handlers::ERB::Erubis", message: "ActionView::Template::Handlers::Erubis is deprecated and will be removed from Rails 5.2. Switch to ActionView::Template::Handlers::ERB::Erubi instead.")
+      autoload :Erubis, "action_view/template/handlers/erb/deprecated_erubis"
 
       class ERB
         autoload :Erubi, "action_view/template/handlers/erb/erubi"

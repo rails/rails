@@ -1,19 +1,14 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation
-        delegate :add_sql_comment!, to: :@conn
-        private :add_sql_comment!
+      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
+        delegate :add_sql_comment!, :mariadb?, to: :@conn
+        private :add_sql_comment!, :mariadb?
 
         private
 
           def visit_DropForeignKey(name)
             "DROP FOREIGN KEY #{name}"
-          end
-
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.unsigned)
-            super
           end
 
           def visit_AddColumnDefinition(o)
@@ -29,12 +24,6 @@ module ActiveRecord
             add_sql_comment!(super, options[:comment])
           end
 
-          def column_options(o)
-            column_options = super
-            column_options[:charset] = o.charset
-            column_options
-          end
-
           def add_column_options!(sql, options)
             if charset = options[:charset]
               sql << " CHARACTER SET #{charset}"
@@ -42,6 +31,13 @@ module ActiveRecord
 
             if collation = options[:collation]
               sql << " COLLATE #{collation}"
+            end
+
+            if as = options[:as]
+              sql << " AS (#{as})"
+              if options[:stored]
+                sql << (mariadb? ? " PERSISTENT" : " STORED")
+              end
             end
 
             add_sql_comment!(super, options[:comment])

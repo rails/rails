@@ -1,5 +1,6 @@
 require "abstract_unit"
 require "active_model"
+require "controller/fake_models"
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
@@ -70,9 +71,6 @@ module Quiz
     end
   end
 end
-
-class BadCustomer < Customer; end
-class GoodCustomer < Customer; end
 
 module Fun
   class GamesController < ApplicationController

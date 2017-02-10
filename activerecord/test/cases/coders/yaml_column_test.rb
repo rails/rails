@@ -10,19 +10,19 @@ module ActiveRecord
       end
 
       def test_type_mismatch_on_different_classes_on_dump
-        coder = YAMLColumn.new("attr_name", Array)
+        coder = YAMLColumn.new("tags", Array)
         error = assert_raises(SerializationTypeMismatch) do
           coder.dump("a")
         end
-        assert_equal %{Attribute `attr_name` was supposed to be a Array, but was a String. -- "a"}, error.to_s
+        assert_equal %{can't dump `tags`: was supposed to be a Array, but was a String. -- "a"}, error.to_s
       end
 
       def test_type_mismatch_on_different_classes
-        coder = YAMLColumn.new("attr_name", Array)
+        coder = YAMLColumn.new("tags", Array)
         error = assert_raises(SerializationTypeMismatch) do
           coder.load "--- foo"
         end
-        assert_equal %{Attribute `attr_name` was supposed to be a Array, but was a String. -- "foo"}, error.to_s
+        assert_equal %{can't load `tags`: was supposed to be a Array, but was a String. -- "foo"}, error.to_s
       end
 
       def test_nil_is_ok

@@ -24,9 +24,6 @@ ActiveSupport.to_time_preserves_timezone = <%= options[:update] ? false : true %
 # Require `belongs_to` associations by default. Previous versions had false.
 Rails.application.config.active_record.belongs_to_required_by_default = <%= options[:update] ? false : true %>
 <%- end -%>
-
-# Do not halt callback chains when a callback returns false. Previous versions had true.
-ActiveSupport.halt_callback_chains_on_return_false = <%= options[:update] ? true : false %>
 <%- unless options[:update] -%>
 
 # Configure SSL options to enable HSTS with subdomains. Previous versions had false.

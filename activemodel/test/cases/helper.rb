@@ -9,7 +9,7 @@ I18n.enforce_available_locales = false
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 
-class ActiveModel::TestCase
+class ActiveModel::TestCase < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   # Skips the current run on Rubinius using Minitest::Assertions#skip

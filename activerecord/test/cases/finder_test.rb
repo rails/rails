@@ -863,13 +863,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = ?", "37signals' go'es agains"]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = ?", "37signals' go'es against"]).first
   end
 
   def test_named_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = :name", { name: "37signals' go'es agains" }]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = :name", { name: "37signals' go'es against" }]).first
   end
 
   def test_named_bind_variables

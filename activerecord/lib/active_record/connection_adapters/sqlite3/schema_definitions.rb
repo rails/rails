@@ -13,6 +13,11 @@ module ActiveRecord
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        def references(*args, **options)
+          super(*args, type: :integer, **options)
+        end
+        alias :belongs_to :references
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

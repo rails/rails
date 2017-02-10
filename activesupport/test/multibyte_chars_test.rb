@@ -50,7 +50,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
   end
 
-  def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
+  def test_forwarded_method_with_non_string_result_should_be_returned_verbatim
     str = ""
     str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
     @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }

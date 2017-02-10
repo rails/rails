@@ -9,9 +9,21 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    ColumnDefinition = Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) do #:nodoc:
+    ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
       def primary_key?
-        primary_key || type.to_sym == :primary_key
+        options[:primary_key]
+      end
+
+      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{option_name}
+            options[:#{option_name}]
+          end
+
+          def #{option_name}=(value)
+            options[:#{option_name}] = value
+          end
+        CODE
       end
     end
 
@@ -173,6 +185,7 @@ module ActiveRecord
         :text,
         :time,
         :timestamp,
+        :virtual,
       ].each do |column_type|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{column_type}(*args, **options)
@@ -353,33 +366,22 @@ module ActiveRecord
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
-        args.each do |col|
-          ReferenceDefinition.new(col, **options).add_to(self)
+        args.each do |ref_name|
+          ReferenceDefinition.new(ref_name, options).add_to(self)
         end
       end
       alias :belongs_to :references
 
-      def new_column_definition(name, type, options) # :nodoc:
+      def new_column_definition(name, type, **options) # :nodoc:
         type = aliased_types(type.to_s, type)
-        column = create_column_definition name, type
-
-        column.limit       = options[:limit]
-        column.precision   = options[:precision]
-        column.scale       = options[:scale]
-        column.default     = options[:default]
-        column.null        = options[:null]
-        column.first       = options[:first]
-        column.after       = options[:after]
-        column.auto_increment = options[:auto_increment]
-        column.primary_key = type == :primary_key || options[:primary_key]
-        column.collation   = options[:collation]
-        column.comment     = options[:comment]
-        column
+        options[:primary_key] ||= type == :primary_key
+        options[:null] = false if options[:primary_key]
+        create_column_definition(name, type, options)
       end
 
       private
-        def create_column_definition(name, type)
-          ColumnDefinition.new name, type
+        def create_column_definition(name, type, options)
+          ColumnDefinition.new(name, type, options)
         end
 
         def aliased_types(name, fallback)
@@ -587,8 +589,7 @@ module ActiveRecord
       #  t.belongs_to(:supplier, foreign_key: true)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
-      def references(*args)
-        options = args.extract_options!
+      def references(*args, **options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, options)
         end
@@ -601,8 +602,7 @@ module ActiveRecord
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
-      def remove_references(*args)
-        options = args.extract_options!
+      def remove_references(*args, **options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, options)
         end

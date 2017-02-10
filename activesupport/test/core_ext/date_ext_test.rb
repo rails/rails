@@ -395,6 +395,10 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
     assert Date.new.acts_like_date?
   end
 
+  def test_blank?
+    assert_not Date.new.blank?
+  end
+
   def test_freeze_doesnt_clobber_memoized_instance_methods
     assert_nothing_raised do
       Date.today.freeze.inspect

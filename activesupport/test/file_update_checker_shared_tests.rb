@@ -276,7 +276,7 @@ module FileUpdateCheckerSharedTests
 
   test "initialize raises an ArgumentError if no block given" do
     assert_raise ArgumentError do
-      checker = new_checker([])
+      new_checker([])
     end
   end
 end

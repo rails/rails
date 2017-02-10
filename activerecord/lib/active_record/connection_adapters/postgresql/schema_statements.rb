@@ -3,22 +3,6 @@ require "active_support/core_ext/string/strip"
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation
-        private
-
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.array)
-            super
-          end
-
-          def add_column_options!(sql, options)
-            if options[:collation]
-              sql << " COLLATE \"#{options[:collation]}\""
-            end
-            super
-          end
-      end
-
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
@@ -486,7 +470,7 @@ module ActiveRecord
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
-          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:array])
+          sql_type = type_to_sql(type, options)
           sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
           if options[:collation]
             sql << " COLLATE \"#{options[:collation]}\""
@@ -494,7 +478,7 @@ module ActiveRecord
           if options[:using]
             sql << " USING #{options[:using]}"
           elsif options[:cast_as]
-            cast_as_type = type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale], options[:array])
+            cast_as_type = type_to_sql(options[:cast_as], options)
             sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
           end
           execute sql
@@ -630,7 +614,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -655,7 +639,7 @@ module ActiveRecord
               else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
               end
             else
-              super(type, limit, precision, scale)
+              super
             end
 
           sql << "[]" if array && type != :primary_key

@@ -1155,7 +1155,7 @@ To pass a local variable to a partial in only specific cases use the `local_assi
   <%= render article, full: true %>
   ```
 
-* `_articles.html.erb`
+* `_article.html.erb`
 
   ```erb
   <h2><%= article.title %></h2>

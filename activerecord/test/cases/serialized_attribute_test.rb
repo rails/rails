@@ -250,7 +250,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
       topic.content
     end
-    expected = "Attribute `content` was supposed to be a Array, but was a Hash. -- {:zomg=>true}"
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {:zomg=>true}"
     assert_equal expected, error.to_s
   end
 

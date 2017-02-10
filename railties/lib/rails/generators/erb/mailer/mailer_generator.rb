@@ -12,7 +12,7 @@ module Erb # :nodoc:
         if behavior == :invoke
           formats.each do |format|
             layout_path = File.join("app/views/layouts", class_path, filename_with_extensions("mailer", format))
-            template filename_with_extensions(:layout, format), layout_path
+            template filename_with_extensions(:layout, format), layout_path unless File.exist?(layout_path)
           end
         end
 

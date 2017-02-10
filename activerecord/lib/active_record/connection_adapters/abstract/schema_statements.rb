@@ -122,7 +122,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        migration_keys.each do |attr|
+        column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 
@@ -828,8 +828,8 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
-      def add_reference(table_name, *args)
-        ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
+      def add_reference(table_name, ref_name, **options)
+        ReferenceDefinition.new(ref_name, options).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
@@ -1052,7 +1052,7 @@ module ActiveRecord
         end
       end
 
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+      def type_to_sql(type, limit: nil, precision: nil, scale: nil, **) # :nodoc:
         type = type.to_sym if type
         if native = native_database_types[type]
           column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
@@ -1172,6 +1172,9 @@ module ActiveRecord
       end
 
       private
+        def column_options_keys
+          [:limit, :precision, :scale, :default, :null, :collation, :comment]
+        end
 
         def add_index_sort_order(quoted_columns, **options)
           if order = options[:order]

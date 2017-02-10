@@ -536,6 +536,21 @@ module ApplicationTests
       assert_match "seed=1234", output, "passing TEST= should run selected test"
     end
 
+    def test_rake_runs_multiple_test_tasks
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      output = Dir.chdir(app_path) { `bin/rake test:models test:controllers TESTOPTS='-v'` }
+      assert_match "AccountTest#test_truth", output
+      assert_match "AccountsControllerTest#test_truth", output
+    end
+
+    def test_rake_db_and_test_tasks_parses_args_correctly
+      create_test_file :models, "account"
+      output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
+      assert_match "AccountTest#test_truth", output
+      assert_match "ar_internal_metadata", output
+    end
+
     def test_warnings_option
       app_file "test/models/warnings_test.rb", <<-RUBY
         require 'test_helper'

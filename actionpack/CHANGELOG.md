@@ -1,3 +1,11 @@
+*   Remove deprecated `.to_prepare`, `.to_cleanup`, `.prepare!` and `.cleanup!` from `ActionDispatch::Reloader`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Callbacks.to_prepare` and `ActionDispatch::Callbacks.to_cleanup`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionController::Metal.call`.
 
     *Rafael Mendonça França*

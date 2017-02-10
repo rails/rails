@@ -253,7 +253,7 @@ module RenderTestCases
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
-    assert_equal "Trace of template inclusion: #{File.expand_path("#{FIXTURE_LOAD_PATH}/test/sub_template_raise.html.erb")}", e.sub_template_message
+    assert_match %r{Trace of template inclusion: .*test/sub_template_raise.html.erb}, e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
@@ -299,6 +299,15 @@ module RenderTestCases
   def test_render_partial_collection_without_as
     assert_equal "local_inspector,local_inspector_counter,local_inspector_iteration",
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
+    a = {}
+    b = {}
+    def a.to_partial_path; "test/partial_iteration_1"; end
+    def b.to_partial_path; "test/partial_iteration_2"; end
+
+    assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
   end
 
   def test_render_partial_with_empty_collection_should_return_nil
@@ -393,8 +402,7 @@ module RenderTestCases
     assert_equal :partial_name_local_variable, exception.cause.name
   end
 
-  # TODO: The reason for this test is unclear, improve documentation
-  def test_render_partial_and_fallback_to_layout
+  def test_render_partial_with_no_block_given_to_yield
     assert_equal "Before (Josh)\n\nAfter", @view.render(partial: "test/layout_for_partial", locals: { name: "Josh" })
   end
 

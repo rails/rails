@@ -8,16 +8,35 @@ module ActiveJob
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
 
+    module TestQueueAdapter
+      extend ActiveSupport::Concern
+
+      included do
+        class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
+      end
+
+      module ClassMethods
+        def queue_adapter
+          self._test_adapter.nil? ? super : self._test_adapter
+        end
+
+        def disable_test_adapter
+          self._test_adapter = nil
+        end
+
+        def enable_test_adapter(test_adapter)
+          self._test_adapter = test_adapter
+        end
+      end
+    end
+
+    ActiveJob::Base.include(TestQueueAdapter)
+
     def before_setup # :nodoc:
       test_adapter = queue_adapter_for_test
 
-      @old_queue_adapters = (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
-        # only override explicitly set adapters, a quirk of `class_attribute`
-        klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
-      end.map do |klass|
-        [klass, klass.queue_adapter].tap do
-          klass.queue_adapter = test_adapter
-        end
+      queue_adapter_changed_jobs.each do |klass|
+        klass.enable_test_adapter(test_adapter)
       end
 
       clear_enqueued_jobs
@@ -27,9 +46,8 @@ module ActiveJob
 
     def after_teardown # :nodoc:
       super
-      @old_queue_adapters.each do |(klass, adapter)|
-        klass.queue_adapter = adapter
-      end
+
+      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
     # Specifies the queue adapter to use with all active job test helpers.
@@ -357,6 +375,13 @@ module ActiveJob
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
         job
+      end
+
+      def queue_adapter_changed_jobs
+        (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
+          # only override explicitly set adapters, a quirk of `class_attribute`
+          klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
+        end
       end
   end
 end

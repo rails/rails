@@ -141,6 +141,14 @@ module ActiveRecord
         end
       end
 
+      def supports_virtual_columns?
+        if mariadb?
+          version >= "5.2.0"
+        else
+          version >= "5.7.5"
+        end
+      end
+
       def supports_advisory_locks?
         true
       end
@@ -566,7 +574,7 @@ module ActiveRecord
       end
 
       # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
+      def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
         sql = \
           case type.to_s
           when "integer"
@@ -582,7 +590,7 @@ module ActiveRecord
               binary_to_sql(limit)
             end
           else
-            super(type, limit, precision, scale)
+            super
           end
 
         sql << " unsigned" if unsigned && type != :primary_key
@@ -611,9 +619,9 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
+          table[attribute].eq(Arel::Nodes::Bin.new(value))
         else
           super
         end

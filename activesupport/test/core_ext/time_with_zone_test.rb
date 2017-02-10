@@ -455,6 +455,10 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal false, ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone).acts_like?(:date)
   end
 
+  def test_blank?
+    assert_not @twz.blank?
+  end
+
   def test_is_a
     assert_kind_of Time, @twz
     assert_kind_of Time, @twz
