@@ -120,18 +120,23 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_delete_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.delete(1) }
   end
+
   def test_update_counters_should_quote_pkey_and_quote_counter_columns
     assert_nothing_raised { MixedCaseMonkey.update_counters(1, fleaCount: 99) }
   end
+
   def test_find_with_one_id_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1) }
   end
+
   def test_find_with_multiple_ids_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find([1, 2]) }
   end
+
   def test_instance_update_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).save }
   end
+
   def test_instance_destroy_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
@@ -379,11 +384,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
 
     setup do
       @connection = ActiveRecord::Base.connection
-      if current_adapter?(:PostgreSQLAdapter)
-        @connection.create_table(:widgets, id: :serial, force: true)
-      else
-        @connection.create_table(:widgets, id: :integer, force: true)
-      end
+      @pk_type = current_adapter?(:PostgreSQLAdapter) ? :serial : :integer
     end
 
     teardown do
@@ -391,23 +392,22 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     end
 
     test "primary key column type with serial/integer" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       column = @connection.columns(:widgets).find { |c| c.name == "id" }
       assert_equal :integer, column.type
       assert_not column.bigint?
     end
 
     test "primary key with serial/integer are automatically numbered" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       widget = Widget.create!
       assert_not_nil widget.id
     end
 
     test "schema dump primary key with serial/integer" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       schema = dump_table_schema "widgets"
-      if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :serial, force: :cascade}, schema
-      else
-        assert_match %r{create_table "widgets", id: :integer, force: :cascade}, schema
-      end
+      assert_match %r{create_table "widgets", id: :#{@pk_type}, force: :cascade}, schema
     end
 
     if current_adapter?(:Mysql2Adapter)
@@ -416,11 +416,23 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
         assert column.auto_increment?
         assert_equal :integer, column.type
-        assert_equal 4, column.limit
+        assert_not column.bigint?
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
         assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+      end
+
+      test "bigint primary key with unsigned" do
+        @connection.create_table(:widgets, id: :bigint, unsigned: true, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        assert column.auto_increment?
+        assert_equal :integer, column.type
+        assert column.bigint?
+        assert column.unsigned?
+
+        schema = dump_table_schema "widgets"
+        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, force: :cascade}, schema
       end
     end
   end
