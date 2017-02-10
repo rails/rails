@@ -95,7 +95,7 @@ gem 'jquery-rails'
     # Generate digests for assets URLs
     config.assets.digest = true
 
-    # Defaults to Rails.root.join("public/assets")
+    # Defaults to Rails.root.join("public", "assets")
     # config.assets.manifest = YOUR_PATH
 
     # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)

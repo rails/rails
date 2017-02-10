@@ -129,7 +129,7 @@ module ActiveRecord
   # - define a helper method in `test_helper.rb`
   #     module FixtureFileHelpers
   #       def file_sha(path)
-  #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+  #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test', 'fixtures', path)))
   #       end
   #     end
   #     ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers

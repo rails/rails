@@ -32,7 +32,7 @@ module SidekiqJobsManager
       $stdout.sync = true
       $stderr.sync = true
 
-      logfile = Rails.root.join("log/sidekiq.log").to_s
+      logfile = Rails.root.join("log", "sidekiq.log").to_s
       Sidekiq::Logging.initialize_logger(logfile)
 
       self_read, self_write = IO.pipe

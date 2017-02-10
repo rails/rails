@@ -825,7 +825,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 ```ruby
 module FixtureFileHelpers
   def file_sha(path)
-    Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
+    Digest::SHA2.hexdigest(File.read(Rails.root.join('test', 'fixtures', path)))
   end
 end
 ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
@@ -1436,7 +1436,7 @@ config.assets.compile = false
 # Generate digests for assets URLs
 config.assets.digest = true
 
-# Defaults to Rails.root.join("public/assets")
+# Defaults to Rails.root.join("public", "assets")
 # config.assets.manifest = YOUR_PATH
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
