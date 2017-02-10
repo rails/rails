@@ -1,10 +1,12 @@
+## Rails 4.2.8.rc1 (February 09, 2017) ##
+
 *   Using a mysql2 connection after it fails to reconnect will now have an error message
     saying the connection is closed rather than an undefined method error message.
 
     *Dylan Thacker-Smith*
 
 *   Bust Model.attribute_names cache when resetting column information
-    
+
     *James Coleman*
 
 *   Fix query caching when type information is reset
