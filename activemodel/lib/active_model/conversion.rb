@@ -95,6 +95,19 @@ module ActiveModel
     end
 
     module ClassMethods #:nodoc:
+      # Provide a method to set whether or not a class should prefix its
+      # partial path with its namespace, if the method is defined on the
+      # class it will override the global config setting:
+      #   prefix_partial_path_with_controller_namespace
+      def prefix_partial_path(prefix)
+        @prefix_partial_path = prefix
+        unless singleton_class.method_defined? :prefix_partial_path?
+          define_singleton_method :prefix_partial_path? do
+            @prefix_partial_path
+          end
+        end
+      end
+
       # Provide a class level cache for #to_partial_path. This is an
       # internal method and should not be accessed directly.
       def _to_partial_path #:nodoc:

@@ -40,13 +40,10 @@ end
 module Widgets
   Table = Struct.new(:title) do
     include ActiveModel::Conversion
+    prefix_partial_path false
 
     def to_partial_path
       "widgets/table"
-    end
-
-    def prefix_partial_path_with_controller_namespace
-      false
     end
   end
 end
