@@ -1,5 +1,5 @@
 module ActionSystemTest
-  class Browser
+  class Browser # :nodoc:
     def initialize(name, screen_size)
       @name = name
       @screen_size = screen_size

@@ -4,14 +4,9 @@ module ActionSystemTest
     module ScreenshotHelper
       # Takes a screenshot of the current page in the browser.
       #
-      # +take_screenshot+ can be used within your tests at points
-      # you want to take a screenshot if the driver supports screenshots. The
-      # Rack Test driver does not support screenshots.
-      #
-      # You can check if the driver supports screenshots by running
-      #
-      #   ActionSystemTest.driver.supports_screenshots?
-      #   => true
+      # +take_screenshot+ can be used at any point in your system tests to take
+      # a screenshot of the current state. This can be useful for debugging or
+      # automating visual testing.
       def take_screenshot
         save_image
         puts "[Screenshot]: #{image_path}"
@@ -23,7 +18,7 @@ module ActionSystemTest
       #
       # +take_screenshot+ is included in <tt>system_test_helper.rb</tt> that is
       # generated with the application. To take screenshots when a test fails
-      # add +take_failed_screenshot+ to the teardown block before clearing any
+      # add +take_failed_screenshot+ to the teardown block before clearing
       # sessions.
       def take_failed_screenshot
         take_screenshot unless passed?

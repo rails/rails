@@ -39,7 +39,9 @@ fixtures/              integration/           models/                system_test
 
 The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
 
-The system test directory holds system tests, also known as acceptance tests.
+The system test directory holds system tests, which are used for full browser
+testing of your application. System tests allow you to test your application
+the way your users experience it and help you test your JavaScript as well.
 System tests inherit from Capybara and perform in browser tests for your
 application.
 
@@ -598,9 +600,11 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 System Testing
 --------------
 
-System tests are full-browser acceptance tests that inherit from Capybara.
+System tests are full-browser tests that can be used to test your application's
+JavaScript and user experience. System tests use Capybara as a base.
+
 System tests allow for running tests in either a real browser or a headless
-browser for testing full user interactions with your application.
+driver for testing full user interactions with your application.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for us.
@@ -614,7 +618,7 @@ $ bin/rails generate system_test users_create_test.rb
 Here's what a freshly-generated system test looks like:
 
 ```ruby
-require 'test_helper'
+require "system_test_helper"
 
 class UsersCreateTest < ActionSystemTestCase
   # test "the truth" do
@@ -623,78 +627,58 @@ class UsersCreateTest < ActionSystemTestCase
 end
 ```
 
-Here the test is inheriting from `ActionSystemTestCase`. This allows for no-setup
-Capybara integration with Selenium Webdriver.
+By default, system tests are run with the Selenium driver, using the Chrome
+browser, on port 21800 with Puma, and a screen size of 1400x1400. The next
+section explains how to change the default settings.
 
 ### Changing the default settings
 
-Capybara requires that a driver be selected. Rails defaults to the Selenium
-Driver and provides default settings to Capyara and Selenium so that system
-tests work out of the box with no required configuration on your part.
+Rails makes changing the default settings for system test very simple. All
+the setup is abstracted away so you can focus on writing your tests.
 
-Some may prefer to use a headless driver so Rails provides a shim to set other
-drivers for Capybara with minimal configuration.
+When you generate a new application or scaffold, a `system_test_helper.rb` file
+is created in the test directory. This is where all the configuration for your
+system tests should live.
 
-In the `system_test_helper.rb` that is generated with the application or test
-you can set the driver:
+If you want to change the default settings you can simple change what the system
+tests are "driven by". Say you want to change the driver from Selenium to
+Poltergeist. First add the Poltergeist gem to your Gemfile. Then in your
+`system_test_helper.rb` file do the following:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
+require "capybara/poltergeist"
 
 class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = :poltergeist
+  driven_by :poltergeist
 end
 ```
 
-The drivers that Rails and Capybara support are `:rack_test`, `:poltergeist`,
-`:capybara_webkit`, and of course `:selenium`.
-
-For selenium you can choose either the Rails configured driver `:rails_selenium`
-or `:selenium`. The `:selenium` driver inherits from `CabybaraDriver` and is
-the vanilla setup of selenium with Capybara if you don't want to use the
-Rails defaults.
-
-The default settings for `:rails_selenium` driver uses the Chrome browser,
-sets the server to Puma on port 28100 and the screen size to 1400 x 1400.
-
-You can change the default settings by initializing a new driver object.
+If you want to keep the Selenium driver but change the browser or port you
+can pass Firefox and the port to driven by. The driver is a required
+argument, all other arguments are optional.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = ActionSystemTest::DriverAdapters::RailsSeleniumDriver.new(
-    browser: :firefox,
-    server: :webkit
-  )
+  driven_by :selenium, using: :firefox, on: 3000
 end
 ```
 
-The shim for other Capybara drivers provide some defaults such as driver name
-server, and port. To change any of those settings, you can initialize a new
-`CapybaraDriver` object.
-
-```ruby
-require 'test_helper'
-
-class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
-    driver: :poltergeist,
-    server: :webrick
-  )
-end
-```
+The driver name is a required argument for `driven_by`. The optional arguments
+that can be passed to `driven_by` are `:using` for the browser (this will only
+be used for non-headless drivers like Selenium), `:on` for the port Puma should
+use, and `:screen_size` to change the size of the screen for screenshots.
 
 If your Capybara configuration requires more setup than provided by Rails, all
 of that configuration can be put into the `system_test_helper.rb` file provided
 by Rails.
 
-Please see Capybara's documentation for additional settings.
+Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
+for additional settings.
 
-### Helpers Available for System Tests
-
-`ActionSystemTest` provides a few helpers in addition to those provided previously
-by Rails or by Capybara.
+### Screenshot Helper
 
 The `ScreenshotHelper` is a helper designed to capture screenshots of your test.
 This can be helpful for viewing the browser at the point a test failed, or
@@ -706,52 +690,6 @@ file and will take a screenshot only if the test fails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to
 take a screenshot of the browser.
-
-A method is provided by the drivers to determine whether the driver is capable
-of taking screenshots. The `RackTest` driver for example does not support
-screenshots. `supports_screenshots?` checks whether the driver supports
-screenshots:
-
-```ruby
-ActionSystemTest.driver.supports_screenshots?
-=> true
-```
-
-The `ActiveJobSetup` helper configures your system tests for handling Active Job.
-
-Two helper methods are included in the setup and teardown blocks in the
-`system_test_helper.rb` file. `set_queue_adapter_to_async` sets your Active Job
-queue adapter to the async adapter and remembers the original adapter.
-
-In teardown the `reset_queue_adapter_to_original` method resets the Active Job
-queue adapter back to the adapter your application has set for other environments.
-
-This is helpful for ensuring that jobs run async so that the test's that rely
-on job code are correctly tested at the time they run.
-
-If you don't want these helper methods you can remove them from the setup and
-teardown code in your `system_test_helper.rb`.
-
-The `AssertionsHelper` provides two helper methods for assertions. In Capybara
-you can assert that a selector does or does not exist, but often you have cases
-where you need to assert the same selector exsits multiple times with different
-values. For example, if you have 6 avatars on the page and you want to assert
-that each of them has the respective title for each person you can use
-`assert_all_of_selectors` and pass the selector, items you are asserting exist,
-and options.
-
-```ruby
-assert_all_of_selectors(:avatar, 'Eileen', 'Jeremy')
-assert_all_of_selectors(:avatar, 'Eileen', 'Jeremy', visible: all)
-```
-
-You can also assert that none of the selectors match with
-`assert_none_of_selectors`:
-
-```ruby
-assert_none_of_selectors(:avatar, 'Tom', 'Dan')
-assert_none_of_selectors(:avatar, 'Tom', 'Dan')
-```
 
 ### Implementing a system test
 
@@ -777,7 +715,7 @@ previous command we should see:
 Now let's open that file and write our first assertion:
 
 ```ruby
-require 'system_test_helper'
+require "system_test_helper"
 
 class UsersTest < ActionSystemTestCase
   test "viewing the index" do

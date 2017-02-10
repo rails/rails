@@ -1,8 +1,10 @@
 # Action System Test
 
-Action System Test adds Capybara integration to your Rails application for
-acceptance testing. This allows you to test the entire user experience
-of your application rather than just your controllers, or just your models.
+Action System Test adds Capybara integration to your Rails application and makes
+it possible to test your application and it's JavaScript interactions.
+
+This allows you to test the entire user experience of your application rather
+than your controllers, models, and views separately.
 
 Action System Test provides all of the setup out of the box for you to use
 Capybara with the Selenium Driver in your Rails application. Changing the
@@ -26,14 +28,14 @@ class UsersTest < ActionSystemTestCase
     visit users_path
   end
 
-  test 'creating a new user' do
-    click_on 'New User'
+  test "creating a new user" do
+    click_on "New User"
 
-    fill_in 'Name', with: 'Arya'
+    fill_in "Name", with: "Arya"
 
-    click_on 'Create User'
+    click_on "Create User"
 
-    assert_text 'Arya'
+    assert_text "Arya"
   end
 end
 ```
@@ -43,8 +45,6 @@ Test to create a new user. The test will click on the "New User" button. Then
 it will fill in the "Name" field with "Arya" and click on the "Create User"
 button. Lastly, we assert that the text on the Users show page is what we
 expected, which in this case is "Arya".
-
-For more helpers and how to write Capybara tests visit Capybara's README.
 
 ### Configuration
 
@@ -56,53 +56,47 @@ configuration if Rails doesn't work out of the box for you.
 The <tt>system_test_helper.rb</tt> file provides a home for all of your Capybara
 and Action System Test configuration.
 
-Rails preset configuration for Capybara with Selenium defaults to Puma for
-the web server on port 28100, Chrome for the browser, and a screen size of
-1400 x 1400.
+The default configuration uses the Selenium driver, with the Chrome browser,
+served by Puma on port 21800 with a screen size of 1400x1400.
 
 Changing the configuration is as simple as changing the driver in your
 <tt>system_test_helper.rb</tt>
 
 If you want to change the default settings of the Rails provided Selenium
-configuration options you can initialize a new <tt>RailsSeleniumDriver</tt>
-object.
+you can change `driven_by` in the helper file.
+
+The driver name is a required argument for `driven_by`. The optional arguments
+that can be passed to `driven_by` are `:using` for the browser (this will only
+be used for non-headless drivers like Selenium), `:on` for the port Puma should
+use, and `:screen_size` to change the size of the screen for screenshots.
+
+Below are some examples for changing the default configuration settings for
+system tests:
+
+Changing the browser, port for Puma, and screen size:
 
 ```ruby
 class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = RailsSeleniumDriver.new(
-    browser: :firefox,
-    server: :webrick
-  )
+  driven_by :selenium, using: :firefox, on: 3000, screen_size: [ 800, 800 ]
 end
 ```
 
-Capybara itself provides 4 drivers: RackTest, Selenium, Webkit, and Poltergeist.
-Action System Test provides a shim between Rails and Capybara for these 4 drivers.
-Please note, that Rails is set up to use the Puma server by default for these
-4 drivers. Puma is the default in Rails and therefore is set as the default in
-the Rails Capybara integration.
-
-To set your application tests to use any of Capybara's defaults with no configuration,
-set the following in your <tt>system_test_helper.rb</tt> file and follow setup instructions
-for environment requirements of these drivers.
-
-The possible settings are +:rack_test+, +:selenium+, +:webkit+, or +:poltergeist+.
+The browser setting is not used by headless drivers like Poltergeist. When
+using a headless driver simply leave out the `:using` argument.
 
 ```ruby
 class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = :poltergeist
+  driven_by :poltergeist, on: 3000
 end
 ```
 
-If you want to change the default server (puma) or port (28100) for Capbyara drivers
-you can initialize a new object.
+### Running the tests
 
-```ruby
-class ActionSystemTestCase < ActionSystemTest::Base
-  ActionSystemTest.driver = ActionSystemTest::DriverAdapters::CapybaraDriver.new(
-    name: :poltergeist,
-    server: :webkit,
-    port: 3000
-  )
-end
+Because system tests are time consuming and can use a lot of resources
+they are not automatically run with `rails test`.
+
+To run all the tests in the system suite run the system test command:
+
+```
+$ rails test:system
 ```
