@@ -93,8 +93,8 @@ module ActiveRecord
 
         scope = previous_scope.merge(scope) if previous_scope && action == :merge
 
-        self.current_scope = scope
         begin
+          self.current_scope = scope
           yield
         ensure
           self.current_scope = previous_scope
