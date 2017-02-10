@@ -37,7 +37,7 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    def respond_to?(name)
+    def respond_to?(*)
       true
     end
   end
