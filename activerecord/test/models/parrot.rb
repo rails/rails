@@ -18,6 +18,18 @@ class Parrot < ActiveRecord::Base
   def increment_updated_count
     self.updated_count += 1
   end
+
+  attr_accessor :new_name_input
+  remove_method "new_name_input="
+  def new_name_input=(value)
+    attribute_will_change!(:new_name_input)
+    @new_name_input = value
+  end
+
+  before_update :set_new_name_from_input, if: :new_name_input
+  def set_new_name_from_input
+    self.name = new_name_input
+  end
 end
 
 class LiveParrot < Parrot

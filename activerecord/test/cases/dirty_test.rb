@@ -301,6 +301,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal ["arr", "arr matey!"], pirate.catchphrase_change
   end
 
+  def test_nested_attribute_will_change!
+    pirate = Pirate.create!(catchphrase: "arr")
+    parrot = pirate.parrots.create!(name: "Rruby")
+    pirate.update!(parrots_attributes: { "0" => { id: parrot.id, new_name_input: "Rrails" } })
+
+    assert_equal "Rrails", parrot.name
+  end
+
   def test_association_assignment_changes_foreign_key
     pirate = Pirate.create!(catchphrase: "jarl")
     pirate.parrot = Parrot.create!(name: "Lorre")
