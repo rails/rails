@@ -22,7 +22,7 @@ module ActiveRecord
         private
 
           def default_primary_key?(column)
-            super && column.auto_increment?
+            super && column.auto_increment? && !column.unsigned?
           end
 
           def explicit_primary_key_default?(column)
