@@ -54,12 +54,6 @@ module ActiveRecord
         end
       end
 
-      def test_primary_key_raises_error_if_table_not_found
-        assert_raises(ActiveRecord::StatementInvalid) do
-          @connection.primary_key("unobtainium")
-        end
-      end
-
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")

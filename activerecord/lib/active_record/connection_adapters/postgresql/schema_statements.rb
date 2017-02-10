@@ -430,17 +430,17 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
+          name = Utils.extract_schema_qualified_name(table_name.to_s)
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
-            WITH pk_constraint AS (
-              SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
-              WHERE contype = 'p'
-                AND conrelid = #{quote(quote_table_name(table_name))}::regclass
-            ), cons AS (
-              SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
-            )
-            SELECT attr.attname FROM pg_attribute attr
-            INNER JOIN cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.connum
-            ORDER BY cons.rownum
+            SELECT column_name
+              FROM information_schema.key_column_usage kcu
+              JOIN information_schema.table_constraints tc
+                ON kcu.table_name = tc.table_name
+               AND kcu.table_schema = tc.table_schema
+               AND kcu.constraint_name = tc.constraint_name
+             WHERE constraint_type = 'PRIMARY KEY'
+               AND kcu.table_name = #{quote(name.identifier)}
+               AND kcu.table_schema = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
           SQL
         end
 

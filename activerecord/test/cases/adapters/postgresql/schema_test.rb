@@ -366,14 +366,6 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  def test_primary_key_raises_error_if_table_not_found_on_schema_search_path
-    with_schema_search_path(SCHEMA2_NAME) do
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.primary_key(PK_TABLE_NAME)
-      end
-    end
-  end
-
   def test_pk_and_sequence_for_with_schema_specified
     pg_name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
     [
