@@ -113,9 +113,9 @@ HTML
         end
 
         def api_link(url)
-          if version && !url.match(/v\d\.\d\.\d/)
+          released_version = version && version[0] == "v"
+          if released_version && !url.match(/v\d\.\d\.\d/)
             url.insert(url.index(".org") + 4, "/#{version}")
-            url.sub("http://edgeapi", "http://api") if url.include?("edgeapi")
           end
 
           url
