@@ -35,7 +35,6 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: 2.0.0
       env: "GEM=ar:mysql"
-    - env: "GEM=aj:integration"
   exclude:
     - rvm: 2.4.0
       env: "GEM=ar:mysql"
