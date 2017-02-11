@@ -31,7 +31,7 @@ module ActiveRecord
     end
 
     def any_changes?
-      attr_names.any? { |attr| changed?(attr) }
+      attr_names.any? { |attr| changed?(attr) } || forced_changes.any?
     end
 
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
