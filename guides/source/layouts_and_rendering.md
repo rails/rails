@@ -411,7 +411,7 @@ render formats: :xml
 render formats: [:json, :xml]
 ```
 
-If a file with the specified extension does not exist, a `MissingTemplate` error will be raised.
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
 
 #### Finding Layouts
 
