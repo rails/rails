@@ -66,11 +66,11 @@ namespace :assets do
       ruby_rake_task("assets:precompile:nondigest", false) if Rails.application.config.assets.digest
     end
 
-    task :primary => ["assets:environment", "tmp:cache:clear"] do
+    task :primary => ["assets:environment"] do
       internal_precompile
     end
 
-    task :nondigest => ["assets:environment", "tmp:cache:clear"] do
+    task :nondigest => ["assets:environment"] do
       internal_precompile(false)
     end
   end
