@@ -1,9 +1,7 @@
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
-      def initialize(options = {})
-        super
-      end
+      cattr_accessor :edge, :version
 
       def block_code(code, language)
         <<-HTML
@@ -93,32 +91,30 @@ HTML
         end
 
         def github_file_url(file_path)
-          root, rest = file_path.split("/", 2)
+          tree = version || edge
 
-          case root
-          when "abstract_controller", "action_controller", "action_dispatch"
-            path = ["actionpack", "lib", root, rest].join("/")
-          when "active_support", "active_record", "active_model", "action_view",
-               "action_cable", "action_mailer", "action_pack", "active_job"
-            path = [root.sub("_", ""), "lib", root, rest].join("/")
-          else
-            path = file_path
-          end
+          root = file_path[%r{(.+)/}, 1]
+          path = case root
+                 when "abstract_controller", "action_controller", "action_dispatch"
+                   "actionpack/lib/#{file_path}"
+                 when /\A(action|active)_/
+                   "#{root.sub("_", "")}/lib/#{file_path}"
+                 else
+                   file_path
+                 end
 
-          ["https://github.com/rails/rails/tree", version || "master", path].join("/")
-        end
 
-        def version
-          ENV["RAILS_VERSION"]
+          "https://github.com/rails/rails/tree/#{tree}/#{path}"
         end
 
         def api_link(url)
-          if version && !url.match(/v\d\.\d\.\d/)
-            url.insert(url.index(".org") + 4, "/#{version}")
-            url.sub("http://edgeapi", "http://api") if url.include?("edgeapi")
+          if url =~ %r{http://api\.rubyonrails\.org/v\d+\.}
+            url
+          elsif edge
+            url.sub("api", "edgeapi")
+          else
+            url.sub(/(?<=\.org)/, "/#{version}")
           end
-
-          url
         end
     end
   end
