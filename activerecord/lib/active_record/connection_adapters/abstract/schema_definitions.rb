@@ -218,6 +218,7 @@ module ActiveRecord
         define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
           :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
+        alias :blob :binary
         alias :numeric :decimal
       end
 
@@ -511,6 +512,7 @@ module ActiveRecord
     #     t.time
     #     t.date
     #     t.binary
+    #     t.blob
     #     t.boolean
     #     t.foreign_key
     #     t.json
