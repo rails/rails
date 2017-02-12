@@ -664,7 +664,6 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   end
 
   def test_tidy_bytes_should_tidy_bytes
-
     single_byte_cases = {
       "\x21" => "!",   # Valid ASCII byte, low
       "\x41" => "A",   # Valid ASCII byte, mid

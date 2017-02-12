@@ -1407,7 +1407,6 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_datetime_with_custom_prompt
-
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
     expected << %(<option value="">Choose year</option>\n<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"

@@ -883,7 +883,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       book.subscriber_ids = []
       assert_equal [], book.subscribers.reload
     end
-
   end
 
   def test_collection_singular_ids_setter_with_changed_primary_key

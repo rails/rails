@@ -161,6 +161,5 @@ class ReloaderTest < ActiveSupport::TestCase
                       reloader.check = check
                       reloader
                     end
-
     end
 end
