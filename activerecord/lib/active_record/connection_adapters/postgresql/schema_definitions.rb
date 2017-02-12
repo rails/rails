@@ -88,6 +88,10 @@ module ActiveRecord
           args.each { |name| column(name, :inet, options) }
         end
 
+        def interval(*args, **options)
+          args.each { |name| column(name, :interval, options) }
+        end
+
         def int4range(*args, **options)
           args.each { |name| column(name, :int4range, options) }
         end
