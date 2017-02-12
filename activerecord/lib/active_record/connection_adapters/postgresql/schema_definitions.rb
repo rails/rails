@@ -124,6 +124,10 @@ module ActiveRecord
           args.each { |name| column(name, :numrange, options) }
         end
 
+        def oid(*args, **options)
+          args.each { |name| column(name, :oid, options) }
+        end
+
         def point(*args, **options)
           args.each { |name| column(name, :point, options) }
         end

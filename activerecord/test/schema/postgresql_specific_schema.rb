@@ -33,10 +33,13 @@ ActiveRecord::Schema.define do
     t.interval :scaled_time_interval, precision: 6
   end
 
-  %w(postgresql_oids postgresql_timestamp_with_zones
-      postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
-    drop_table table_name, if_exists: true
+  create_table :postgresql_oids, force: true do |t|
+    t.oid :obj_id
   end
+
+  drop_table 'postgresql_timestamp_with_zones', if_exists: true
+  drop_table 'postgresql_partitioned_table', if_exists: true
+  drop_table 'postgresql_partitioned_table_parent', if_exists: true
 
   execute "DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE"
   execute "CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id"
@@ -48,13 +51,6 @@ ActiveRecord::Schema.define do
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
-
-  execute <<_SQL
-  CREATE TABLE postgresql_oids (
-    id SERIAL PRIMARY KEY,
-    obj_id OID
-  );
-_SQL
 
   execute <<_SQL
   CREATE TABLE postgresql_timestamp_with_zones (

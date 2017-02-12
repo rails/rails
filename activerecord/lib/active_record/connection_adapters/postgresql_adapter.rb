@@ -110,6 +110,7 @@ module ActiveRecord
         bit_varying: { name: "bit varying" },
         money:       { name: "money" },
         interval:    { name: "interval" },
+        oid:         { name: "oid" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -452,7 +453,7 @@ module ActiveRecord
           register_class_with_limit m, "int2", Type::Integer
           register_class_with_limit m, "int4", Type::Integer
           register_class_with_limit m, "int8", Type::Integer
-          m.alias_type "oid", "int2"
+          m.register_type "oid", OID::Oid.new
           m.register_type "float4", Type::Float.new
           m.alias_type "float8", "float4"
           m.register_type "text", Type::Text.new

@@ -1,4 +1,4 @@
-*   PostgreSQL: schema dumping support for PostgreSQL interval type.
+*   PostgreSQL: schema dumping support for interval and OID columns.
 
     *Ryuta Kamizono*
 

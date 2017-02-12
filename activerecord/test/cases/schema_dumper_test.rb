@@ -286,6 +286,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.interval\s+"scaled_time_interval",\s+precision: 6$}, output
     end
 
+    def test_schema_dump_oid_type
+      output = dump_table_schema "postgresql_oids"
+      assert_match %r{t\.oid\s+"obj_id"$}, output
+    end
+
     if ActiveRecord::Base.connection.supports_extensions?
       def test_schema_dump_includes_extensions
         connection = ActiveRecord::Base.connection
