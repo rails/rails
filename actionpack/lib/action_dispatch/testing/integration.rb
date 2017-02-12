@@ -2,7 +2,6 @@ require "stringio"
 require "uri"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/object/try"
-require "active_support/core_ext/string/strip"
 require "rack/test"
 require "minitest"
 
