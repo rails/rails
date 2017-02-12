@@ -667,12 +667,30 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_current_year_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.local(2000, 1, 1, 0).current_year?
+      assert_equal true,  Time.local(2000, 1, 1, 23, 59, 59).current_year?
+      assert_equal false, Time.local(1999, 12, 31, 23, 59, 59).current_year?
+      assert_equal false, Time.local(1999, 12, 31, 0).current_year?
+    end
+  end
+
   def test_today_with_time_utc
     Date.stub(:current, Date.new(2000, 1, 1)) do
       assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).today?
       assert_equal true,  Time.utc(2000, 1, 1, 0).today?
       assert_equal true,  Time.utc(2000, 1, 1, 23, 59, 59).today?
       assert_equal false, Time.utc(2000, 1, 2, 0).today?
+    end
+  end
+
+  def test_current_year_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).current_year?
+      assert_equal false, Time.utc(1999, 12, 31, 0).current_year?
+      assert_equal true,  Time.utc(2000, 1, 1, 0).current_year?
+      assert_equal true,  Time.utc(2000, 1, 1, 23, 59, 59).current_year?
     end
   end
 

@@ -249,6 +249,20 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_current_year_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).current_year?
+      assert_equal true,  DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).current_year?
+    end
+  end
+
+  def test_current_year_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59).current_year?
+      assert_equal true,  DateTime.civil(2000, 1, 1, 0).current_year?
+    end
+  end
+
   def test_past_with_offset
     DateTime.stub(:current, DateTime.civil(2005, 2, 10, 15, 30, 45, Rational(-18000, 86400))) do
       assert_equal true,  DateTime.civil(2005, 2, 10, 15, 30, 44, Rational(-18000, 86400)).past?
