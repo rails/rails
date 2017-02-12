@@ -33,6 +33,10 @@ Style/EmptyLines:
 Style/EmptyLinesAroundClassBody:
   Enabled: true
 
+# In a regular method definition, no empty lines around the body.
+Style/EmptyLinesAroundMethodBody:
+  Enabled: true
+
 # In a regular module definition, no empty lines around the body.
 Style/EmptyLinesAroundModuleBody:
   Enabled: true

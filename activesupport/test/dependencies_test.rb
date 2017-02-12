@@ -552,7 +552,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
       assert_equal autoload + "/conflict.rb", ActiveSupport::Dependencies.search_for_file("conflict")
     end
-
   end
 
   def test_custom_const_missing_should_work

@@ -347,7 +347,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
       assert_raise ActiveRecord::RecordNotFound do
         UuidPost.find(123456)
       end
-
     end
 
     def test_find_by_with_uuid

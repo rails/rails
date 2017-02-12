@@ -767,7 +767,6 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[bar][comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
       check_box("post", "comment_ids", { multiple: true, index: "bar" }, 3)
     )
-
   end
 
   def test_checkbox_disabled_disables_hidden_field

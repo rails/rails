@@ -810,7 +810,6 @@ XML
     new_content_type = "new content_type"
     file.content_type = new_content_type
     assert_equal new_content_type, file.content_type
-
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
