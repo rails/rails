@@ -1,3 +1,7 @@
+*   Omit redundant `using: :btree` for schema dumping.
+
+    *Ryuta Kamizono*
+
 *   Deprecate passing `default` to `index_name_exists?`.
 
     *Ryuta Kamizono*

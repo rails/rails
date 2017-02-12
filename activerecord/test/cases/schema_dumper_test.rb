@@ -178,24 +178,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_columns_in_right_order
-    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_index/).first.strip
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }, using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
   end
 
   def test_schema_dumps_partial_indices
-    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
-    elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
     end
@@ -248,9 +244,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_schema_dumps_index_type
-      output = standard_dump
-      assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
-      assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
+      output = dump_table_schema "key_tests"
+      assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext$}, output
+      assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza"$}, output
     end
   end
 
@@ -277,7 +273,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
+      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
     end
 
     def test_schema_dump_interval_type
