@@ -261,23 +261,29 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
-      output = standard_dump
+      output = dump_table_schema "defaults"
       assert_match %r{t\.bigint\s+"bigint_default",\s+default: 0}, output
     end
 
     def test_schema_dump_includes_limit_on_array_type
-      output = standard_dump
+      output = dump_table_schema "bigint_array"
       assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults
-      output = standard_dump
+      output = dump_table_schema "bigint_array"
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
     def test_schema_dump_expression_indices
-      index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
       assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
+    end
+
+    def test_schema_dump_interval_type
+      output = dump_table_schema "postgresql_times"
+      assert_match %r{t\.interval\s+"time_interval"$}, output
+      assert_match %r{t\.interval\s+"scaled_time_interval",\s+precision: 6$}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?

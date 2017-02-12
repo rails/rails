@@ -109,6 +109,7 @@ module ActiveRecord
         bit:         { name: "bit" },
         bit_varying: { name: "bit varying" },
         money:       { name: "money" },
+        interval:    { name: "interval" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -486,8 +487,10 @@ module ActiveRecord
           m.register_type "polygon", OID::SpecializedString.new(:polygon)
           m.register_type "circle", OID::SpecializedString.new(:circle)
 
-          # FIXME: why are we keeping these types as strings?
-          m.alias_type "interval", "varchar"
+          m.register_type "interval" do |_, _, sql_type|
+            precision = extract_precision(sql_type)
+            OID::SpecializedString.new(:interval, precision: precision)
+          end
 
           register_class_with_precision m, "time", Type::Time
           register_class_with_precision m, "timestamp", OID::DateTime

@@ -1,3 +1,7 @@
+*   PostgreSQL: schema dumping support for PostgreSQL interval type.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `supports_primary_key?` on connection adapters since it's
     been long unused and unsupported.
 

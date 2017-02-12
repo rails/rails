@@ -28,8 +28,8 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_data_type_of_time_types
-    assert_equal :string, @first_time.column_for_attribute(:time_interval).type
-    assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
+    assert_equal :interval, @first_time.column_for_attribute(:time_interval).type
+    assert_equal :interval, @first_time.column_for_attribute(:scaled_time_interval).type
   end
 
   def test_data_type_of_oid_types
