@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Nodes
     class UpdateStatement < Arel::Nodes::Node

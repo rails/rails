@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Attributes
     class Attribute < Struct.new :relation, :name

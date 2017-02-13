@@ -1,8 +1,9 @@
+# frozen_string_literal: true
 module Arel
   module Collectors
     class PlainString
       def initialize
-        @str = ''
+        @str = ''.dup
       end
 
       def value
