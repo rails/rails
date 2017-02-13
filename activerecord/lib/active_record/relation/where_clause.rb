@@ -134,20 +134,23 @@ module ActiveRecord
           binds_index = 0
 
           predicates = self.predicates.reject do |node|
-            case node
-            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-              binds_contains = node.grep(Arel::Nodes::BindParam).size
-              subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-              columns.include?(subrelation.name.to_s)
-            end.tap do |except|
-              if except && binds_contains > 0
-                (binds_index...(binds_index + binds_contains)).each do |i|
-                  except_binds[i] = true
-                end
-
-                binds_index += binds_contains
+            except = \
+              case node
+              when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
+                binds_contains = node.grep(Arel::Nodes::BindParam).size
+                subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+                columns.include?(subrelation.name.to_s)
               end
+
+            if except && binds_contains > 0
+              (binds_index...(binds_index + binds_contains)).each do |i|
+                except_binds[i] = true
+              end
+
+              binds_index += binds_contains
             end
+
+            except
           end
 
           binds = self.binds.reject.with_index do |_, i|
