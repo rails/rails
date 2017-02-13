@@ -191,6 +191,18 @@ module ActiveRecord
         @quoted_table_name ||= klass.quoted_table_name
       end
 
+      # TODO: Why do we need call private methods, and what if table_name on
+      # one of those classes was overrided. Want to use something like this:
+      #   `active_record.table_name, klass.table_name`
+      # And it works now if we replace that block inside join_table_name
+      # but there's another problem here with foreign_key
+      def join_table
+        @join_table ||= options[:join_table] || join_table_name(
+          active_record.send(:undecorated_table_name, active_record.name),
+          active_record.send(:undecorated_table_name, class_name)
+        )
+      end
+
       def foreign_key
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
@@ -364,6 +376,21 @@ module ActiveRecord
 
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
+
+        # Generates a join table name from two provided table names.
+        # The names in the join table names end up in lexicographic order.
+        #
+        #   join_table_name("members", "clubs")         # => "clubs_members"
+        #   join_table_name("members", "special_clubs") # => "members_special_clubs"
+        def join_table_name(first_table_name, second_table_name)
+          join_table = if first_table_name < second_table_name
+            "#{first_table_name}_#{second_table_name}"
+          else
+            "#{second_table_name}_#{first_table_name}"
+          end
+
+          active_record.table_name_prefix + join_table + active_record.table_name_suffix
         end
     end
 

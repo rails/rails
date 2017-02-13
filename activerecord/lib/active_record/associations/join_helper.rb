@@ -19,7 +19,7 @@ module ActiveRecord
 
           if reflection.source_macro == :has_and_belongs_to_many
             tables << alias_tracker.aliased_table_for(
-              (reflection.source_reflection || reflection).options[:join_table],
+              (reflection.source_reflection || reflection).join_table,
               table_alias_for(reflection, true)
             )
           end
