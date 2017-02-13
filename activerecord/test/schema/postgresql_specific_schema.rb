@@ -23,12 +23,16 @@ ActiveRecord::Schema.define do
     t.string :char2, limit: 50, default: "a varchar field"
     t.text :char3, default: "a text field"
     t.bigint :bigint_default, default: -> { "0::bigint" }
-    t.text :multiline_default, default: '--- []
+    t.text :multiline_default, default: "--- []
 
-'
+"
   end
 
-  %w(postgresql_times postgresql_oids postgresql_timestamp_with_zones
+  create_table :postgresql_oids, force: true do |t|
+    t.oid :obj_id
+  end
+
+  %w(postgresql_times postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     drop_table table_name, if_exists: true
   end
@@ -49,13 +53,6 @@ ActiveRecord::Schema.define do
     id SERIAL PRIMARY KEY,
     time_interval INTERVAL,
     scaled_time_interval INTERVAL(6)
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_oids (
-    id SERIAL PRIMARY KEY,
-    obj_id OID
   );
 _SQL
 

@@ -33,7 +33,7 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_data_type_of_oid_types
-    assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
+    assert_equal :oid, @first_oid.column_for_attribute(:obj_id).type
   end
 
   def test_time_values
