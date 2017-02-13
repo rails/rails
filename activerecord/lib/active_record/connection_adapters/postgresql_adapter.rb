@@ -402,6 +402,10 @@ module ActiveRecord
         @connection.server_version
       end
 
+      def default_index_type?(index) # :nodoc:
+        index.using == :btree || super
+      end
+
       private
 
         # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html

@@ -651,6 +651,10 @@ module ActiveRecord
         !native_database_types[type].nil?
       end
 
+      def default_index_type?(index) # :nodoc:
+        index.using == :btree || super
+      end
+
       private
 
         def initialize_type_map(m)
