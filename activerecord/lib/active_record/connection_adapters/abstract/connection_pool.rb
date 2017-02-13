@@ -1,5 +1,5 @@
 require 'thread'
-require 'thread_safe'
+require 'concurrent'
 require 'monitor'
 require 'set'
 require 'active_support/core_ext/string/filters'
@@ -243,7 +243,7 @@ module ActiveRecord
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
         # The cache of reserved connections mapped to threads
-        @reserved_connections = ThreadSafe::Cache.new(:initial_capacity => @size)
+        @reserved_connections = Concurrent::Map.new(:initial_capacity => @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -512,11 +512,11 @@ module ActiveRecord
         # These caches are keyed by klass.name, NOT klass. Keying them by klass
         # alone would lead to memory leaks in development mode as all previous
         # instances of the class would stay in memory.
-        @owner_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
-          h[k] = ThreadSafe::Cache.new(:initial_capacity => 2)
+        @owner_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
+          h[k] = Concurrent::Map.new(:initial_capacity => 2)
         end
-        @class_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
-          h[k] = ThreadSafe::Cache.new
+        @class_to_pool = Concurrent::Map.new(:initial_capacity => 2) do |h,k|
+          h[k] = Concurrent::Map.new
         end
       end
 

@@ -4,7 +4,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require 'active_support/core_ext/string/filters'
 require "action_view/template"
 require "thread"
-require "thread_safe"
+require "concurrent"
 
 module ActionView
   # = Action View Resolver
@@ -36,7 +36,7 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
-      class SmallCache < ThreadSafe::Cache
+      class SmallCache < Concurrent::Map
         def initialize(options = {})
           super(options.merge(:initial_capacity => 2))
         end

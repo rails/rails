@@ -1,7 +1,7 @@
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/string/filters'
 require 'mutex_m'
-require 'thread_safe'
+require 'concurrent'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -37,7 +37,7 @@ module ActiveRecord
     class AttributeMethodCache
       def initialize
         @module = Module.new
-        @method_cache = ThreadSafe::Cache.new
+        @method_cache = Concurrent::Map.new
       end
 
       def [](name)

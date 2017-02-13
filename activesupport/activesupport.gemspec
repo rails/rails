@@ -23,5 +23,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'i18n',       '~> 0.7'
   s.add_dependency 'tzinfo',     '~> 1.1'
   s.add_dependency 'minitest',   '~> 5.1'
-  s.add_dependency 'thread_safe','~> 0.3', '>= 0.3.4'
+  s.add_dependency 'concurrent-ruby','~> 1.0.0.pre2', '< 2.0.0'
 end
