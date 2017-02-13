@@ -5,6 +5,7 @@ require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
+require "active_record/connection_adapters/sqlite3/schema_statements"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -55,6 +56,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::ColumnDumper
+      include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -273,45 +275,6 @@ module ActiveRecord
       end
 
       # SCHEMA STATEMENTS ========================================
-
-      def tables # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def data_sources # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def table_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def data_source_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def view_exists?(view_name) # :nodoc:
-        return false unless view_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(view_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
 
       def new_column_from_field(table_name, field) # :nondoc:
         case field["dflt_value"]
@@ -545,7 +508,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)

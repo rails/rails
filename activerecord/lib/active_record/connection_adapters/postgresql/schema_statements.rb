@@ -54,81 +54,13 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        # Returns the list of all tables in the schema search path.
-        def tables
-          select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", "SCHEMA")
-        end
-
-        def data_sources # :nodoc
-          select_values(<<-SQL, "SCHEMA")
-            SELECT c.relname
-            FROM pg_class c
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
-            AND n.nspname = ANY (current_schemas(false))
-          SQL
-        end
-
-        def views # :nodoc:
-          select_values(<<-SQL, "SCHEMA")
-            SELECT c.relname
-            FROM pg_class c
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
-            AND n.nspname = ANY (current_schemas(false))
-          SQL
-        end
-
-        # Returns true if table exists.
-        # If the schema is not specified as part of +name+ then it will only find tables within
-        # the current schema search path (regardless of permissions to access tables in other schemas)
-        def table_exists?(name)
-          name = Utils.extract_schema_qualified_name(name.to_s)
-          return false unless name.identifier
-
-          select_values(<<-SQL, "SCHEMA").any?
-            SELECT tablename
-            FROM pg_tables
-            WHERE tablename = #{quote(name.identifier)}
-            AND schemaname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
-          SQL
-        end
-
-        def data_source_exists?(name) # :nodoc:
-          name = Utils.extract_schema_qualified_name(name.to_s)
-          return false unless name.identifier
-
-          select_values(<<-SQL, "SCHEMA").any?
-            SELECT c.relname
-            FROM pg_class c
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('r','v','m') -- (r)elation/table, (v)iew, (m)aterialized view
-            AND c.relname = #{quote(name.identifier)}
-            AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
-          SQL
-        end
-
-        def view_exists?(view_name) # :nodoc:
-          name = Utils.extract_schema_qualified_name(view_name.to_s)
-          return false unless name.identifier
-
-          select_values(<<-SQL, "SCHEMA").any?
-            SELECT c.relname
-            FROM pg_class c
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relkind IN ('v','m') -- (v)iew, (m)aterialized view
-            AND c.relname = #{quote(name.identifier)}
-            AND n.nspname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
-          SQL
-        end
-
         def drop_table(table_name, options = {}) # :nodoc:
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          select_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = '#{name}'", "SCHEMA").to_i > 0
+          select_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA").to_i > 0
         end
 
         # Verifies existence of an index with a given name.
@@ -138,8 +70,8 @@ module ActiveRecord
               Passing default to #index_name_exists? is deprecated without replacement.
             MSG
           end
-          table = Utils.extract_schema_qualified_name(table_name.to_s)
-          index = Utils.extract_schema_qualified_name(index_name.to_s)
+          table = quoted_scope(table_name)
+          index = quoted_scope(index_name)
 
           select_value(<<-SQL, "SCHEMA").to_i > 0
             SELECT COUNT(*)
@@ -148,9 +80,9 @@ module ActiveRecord
             INNER JOIN pg_class i ON d.indexrelid = i.oid
             LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
             WHERE i.relkind = 'i'
-              AND i.relname = '#{index.identifier}'
-              AND t.relname = '#{table.identifier}'
-              AND n.nspname = #{index.schema ? "'#{index.schema}'" : 'ANY (current_schemas(false))'}
+              AND i.relname = #{index[:name]}
+              AND t.relname = #{table[:name]}
+              AND n.nspname = #{index[:schema]}
           SQL
         end
 
@@ -162,7 +94,7 @@ module ActiveRecord
             MSG
           end
 
-          table = Utils.extract_schema_qualified_name(table_name.to_s)
+          scope = quoted_scope(table_name)
 
           result = query(<<-SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
@@ -176,8 +108,8 @@ module ActiveRecord
             LEFT JOIN pg_namespace n ON n.oid = i.relnamespace
             WHERE i.relkind = 'i'
               AND d.indisprimary = 'f'
-              AND t.relname = '#{table.identifier}'
-              AND n.nspname = #{table.schema ? "'#{table.schema}'" : 'ANY (current_schemas(false))'}
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
             ORDER BY i.relname
           SQL
 
@@ -239,22 +171,22 @@ module ActiveRecord
 
         # Returns a comment stored in database for given table
         def table_comment(table_name) # :nodoc:
-          name = Utils.extract_schema_qualified_name(table_name.to_s)
-          if name.identifier
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+          if scope[:name]
             select_value(<<-SQL.strip_heredoc, "SCHEMA")
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-              WHERE c.relname = #{quote(name.identifier)}
-                AND c.relkind IN ('r') -- (r)elation/table
-                AND n.nspname = #{name.schema ? quote(name.schema) : 'ANY (current_schemas(false))'}
+              WHERE c.relname = #{scope[:name]}
+                AND c.relkind IN (#{scope[:type]})
+                AND n.nspname = #{scope[:schema]}
             SQL
           end
         end
 
         # Returns the current database name.
         def current_database
-          select_value("select current_database()", "SCHEMA")
+          select_value("SELECT current_database()", "SCHEMA")
         end
 
         # Returns the current schema name.
@@ -430,7 +362,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          name = Utils.extract_schema_qualified_name(table_name.to_s)
+          scope = quoted_scope(table_name)
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
             SELECT column_name
               FROM information_schema.key_column_usage kcu
@@ -439,8 +371,8 @@ module ActiveRecord
                AND kcu.table_schema = tc.table_schema
                AND kcu.constraint_name = tc.constraint_name
              WHERE constraint_type = 'PRIMARY KEY'
-               AND kcu.table_name = #{quote(name.identifier)}
-               AND kcu.table_schema = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
+               AND kcu.table_name = #{scope[:name]}
+               AND kcu.table_schema = #{scope[:schema]}
              ORDER BY kcu.ordinal_position
           SQL
         end
@@ -579,6 +511,7 @@ module ActiveRecord
         end
 
         def foreign_keys(table_name)
+          scope = quoted_scope(table_name)
           fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
             FROM pg_constraint c
@@ -588,8 +521,8 @@ module ActiveRecord
             JOIN pg_attribute a2 ON a2.attnum = c.confkey[1] AND a2.attrelid = t2.oid
             JOIN pg_namespace t3 ON c.connamespace = t3.oid
             WHERE c.contype = 'f'
-              AND t1.relname = #{quote(table_name)}
-              AND t3.nspname = ANY (current_schemas(false))
+              AND t1.relname = #{scope[:name]}
+              AND t3.nspname = #{scope[:schema]}
             ORDER BY c.conname
           SQL
 
@@ -677,6 +610,39 @@ module ActiveRecord
           )
           PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
         end
+
+        private
+          def data_source_sql(name = nil, type: nil)
+            scope = quoted_scope(name, type: type)
+            scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
+
+            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql << " WHERE n.nspname = #{scope[:schema]}"
+            sql << " AND c.relname = #{scope[:name]}" if scope[:name]
+            sql << " AND c.relkind IN (#{scope[:type]})"
+            sql
+          end
+
+          def quoted_scope(name = nil, type: nil)
+            schema, name = extract_schema_qualified_name(name)
+            type = \
+              case type
+              when "BASE TABLE"
+                "'r'"
+              when "VIEW"
+                "'v','m'"
+              end
+            scope = {}
+            scope[:schema] = schema ? quote(schema) : "ANY (current_schemas(false))"
+            scope[:name] = quote(name) if name
+            scope[:type] = type if type
+            scope
+          end
+
+          def extract_schema_qualified_name(string)
+            name = Utils.extract_schema_qualified_name(string.to_s)
+            [name.schema, name.identifier]
+          end
       end
     end
   end

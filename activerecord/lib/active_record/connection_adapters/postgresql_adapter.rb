@@ -3,6 +3,7 @@ gem "pg", "~> 0.18"
 require "pg"
 
 require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
 require "active_record/connection_adapters/postgresql/database_statements"
 require "active_record/connection_adapters/postgresql/explain_pretty_printer"
@@ -15,7 +16,6 @@ require "active_record/connection_adapters/postgresql/schema_dumper"
 require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
-require "active_record/connection_adapters/statement_pool"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:

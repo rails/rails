@@ -6,6 +6,7 @@ require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
 require "active_record/connection_adapters/mysql/schema_definitions"
 require "active_record/connection_adapters/mysql/schema_dumper"
+require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
 
 require "active_support/core_ext/string/strip"
@@ -15,6 +16,7 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
       include MySQL::ColumnDumper
+      include MySQL::SchemaStatements
 
       def update_table_definition(table_name, base) # :nodoc:
         MySQL::Table.new(table_name, base)
@@ -314,57 +316,6 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def tables # :nodoc:
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
-        sql << " AND table_schema = #{quote(@config[:database])}"
-
-        select_values(sql, "SCHEMA")
-      end
-
-      def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
-      end
-
-      def data_sources # :nodoc:
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(@config[:database])}"
-
-        select_values(sql, "SCHEMA")
-      end
-
-      def table_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        schema, name = extract_schema_qualified_name(table_name)
-
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def data_source_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        schema, name = extract_schema_qualified_name(table_name)
-
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def view_exists?(view_name) # :nodoc:
-        return false unless view_name.present?
-
-        schema, name = extract_schema_qualified_name(view_name)
-
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
@@ -410,13 +361,13 @@ module ActiveRecord
       end
 
       def table_comment(table_name) # :nodoc:
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         select_value(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT table_comment
           FROM information_schema.tables
-          WHERE table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+          WHERE table_schema = #{scope[:schema]}
+            AND table_name = #{scope[:name]}
         SQL
       end
 
@@ -516,7 +467,7 @@ module ActiveRecord
       def foreign_keys(table_name)
         raise ArgumentError unless table_name.present?
 
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
@@ -529,9 +480,9 @@ module ActiveRecord
           JOIN information_schema.referential_constraints rc
           USING (constraint_schema, constraint_name)
           WHERE fk.referenced_column_name IS NOT NULL
-            AND fk.table_schema = #{quote(schema)}
-            AND fk.table_name = #{quote(name)}
-            AND rc.table_name = #{quote(name)}
+            AND fk.table_schema = #{scope[:schema]}
+            AND fk.table_name = #{scope[:name]}
+            AND rc.table_name = #{scope[:name]}
         SQL
 
         fk_info.map do |row|
@@ -603,14 +554,14 @@ module ActiveRecord
       def primary_keys(table_name) # :nodoc:
         raise ArgumentError unless table_name.present?
 
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         select_values(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
-            AND table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+            AND table_schema = #{scope[:schema]}
+            AND table_name = #{scope[:name]}
           ORDER BY ordinal_position
         SQL
       end
@@ -946,12 +897,6 @@ module ActiveRecord
             target_table: parts[2],
             primary_key: parts[3],
           )
-        end
-
-        def extract_schema_qualified_name(string) # :nodoc:
-          schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
-          schema, name = @config[:database], schema unless name
-          [schema, name]
         end
 
         def integer_to_sql(limit) # :nodoc:

@@ -276,8 +276,7 @@ module ActiveRecord
 
       def test_tables_logs_name
         sql = <<-SQL
-          SELECT name FROM sqlite_master
-          WHERE type = 'table' AND name <> 'sqlite_sequence'
+          SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
@@ -295,8 +294,7 @@ module ActiveRecord
       def test_table_exists_logs_name
         with_example_table do
           sql = <<-SQL
-            SELECT name FROM sqlite_master
-            WHERE type = 'table' AND name <> 'sqlite_sequence' AND name = 'ex'
+            SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
             assert @conn.table_exists?("ex")
