@@ -35,7 +35,12 @@ module RenderTestCases
   end
 
   def test_render_file_containing_ruby_comment
-    assert_match "<p> Should be displayed </p>", @view.render(:file => "test/last_line_ruby_comment")
+    old_erb_implementation = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Template::Handlers::ERB.erb_implementation = ActionView::Template::Handlers::ERB::Erubis
+
+    assert_match "<p> Should be displayed </p>", @view.render(file: "test/last_line_ruby_comment")
+  ensure
+    ActionView::Template::Handlers::ERB.erb_implementation = old_erb_implementation
   end
 
   # Test if :formats, :locale etc. options are passed correctly to the resolvers.

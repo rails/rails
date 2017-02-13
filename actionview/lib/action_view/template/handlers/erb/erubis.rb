@@ -65,6 +65,7 @@ module ActionView
 
           def add_postamble(src)
             flush_newline_if_pending(src)
+            src << "\n"
             src << "@output_buffer.to_s"
           end
 
