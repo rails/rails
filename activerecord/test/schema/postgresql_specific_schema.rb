@@ -37,9 +37,9 @@ ActiveRecord::Schema.define do
     t.oid :obj_id
   end
 
-  drop_table 'postgresql_timestamp_with_zones', if_exists: true
-  drop_table 'postgresql_partitioned_table', if_exists: true
-  drop_table 'postgresql_partitioned_table_parent', if_exists: true
+  drop_table "postgresql_timestamp_with_zones", if_exists: true
+  drop_table "postgresql_partitioned_table", if_exists: true
+  drop_table "postgresql_partitioned_table_parent", if_exists: true
 
   execute "DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE"
   execute "CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id"
