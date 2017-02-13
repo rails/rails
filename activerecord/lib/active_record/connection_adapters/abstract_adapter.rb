@@ -509,6 +509,10 @@ module ActiveRecord
         result
       end
 
+      def default_index_type?(index) # :nodoc:
+        index.using.nil?
+      end
+
       private
 
         def initialize_type_map(m)
