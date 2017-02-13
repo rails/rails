@@ -95,20 +95,8 @@ module ActiveRecord
       assert first_books != additional_books
     end
 
-    def test_unprepared_statements_dont_share_a_cache_with_prepared_statements
-      Book.create(name: "my book")
-      Book.create(name: "my other book")
-
-      book = Book.find_by(name: "my book")
-      other_book = Book.connection.unprepared_statement do
-        Book.find_by(name: "my other book")
-      end
-
-      refute_equal book, other_book
-    end
-
     def test_find_by_does_not_use_statement_cache_if_table_name_is_changed
-      book = Book.create(name: "my book")
+      Book.create(name: "my book")
 
       Book.find_by(name: "my book") # warming the statement cache.
 
