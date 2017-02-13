@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/date'
+require 'active_support/core_ext/date_time'
 require 'active_support/core_ext/numeric/time'
 
 class TimeTravelTest < ActiveSupport::TestCase
@@ -15,6 +16,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
         assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
         assert_equal expected_time.to_date, Date.today
+        assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
       ensure
         travel_back
       end
@@ -29,10 +31,12 @@ class TimeTravelTest < ActiveSupport::TestCase
         travel 1.day do
           assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
           assert_equal expected_time.to_date, Date.today
+          assert_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
         end
 
         assert_not_equal expected_time.to_s(:db), Time.now.to_s(:db)
         assert_not_equal expected_time.to_date, Date.today
+        assert_not_equal expected_time.to_datetime.to_s(:db), DateTime.now.to_s(:db)
       ensure
         travel_back
       end
@@ -47,6 +51,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
         assert_equal expected_time, Time.now
         assert_equal Date.new(2004, 11, 24), Date.today
+        assert_equal expected_time.to_datetime, DateTime.now
       ensure
         travel_back
       end
@@ -61,10 +66,12 @@ class TimeTravelTest < ActiveSupport::TestCase
         travel_to expected_time do
           assert_equal expected_time, Time.now
           assert_equal Date.new(2004, 11, 24), Date.today
+          assert_equal expected_time.to_datetime, DateTime.now
         end
 
         assert_not_equal expected_time, Time.now
         assert_not_equal Date.new(2004, 11, 24), Date.today
+        assert_not_equal expected_time.to_datetime, DateTime.now
       ensure
         travel_back
       end
@@ -79,10 +86,12 @@ class TimeTravelTest < ActiveSupport::TestCase
         travel_to expected_time
         assert_equal expected_time, Time.now
         assert_equal Date.new(2004, 11, 24), Date.today
+        assert_equal expected_time.to_datetime, DateTime.now
         travel_back
 
         assert_not_equal expected_time, Time.now
         assert_not_equal Date.new(2004, 11, 24), Date.today
+        assert_not_equal expected_time.to_datetime, DateTime.now
       ensure
         travel_back
       end
@@ -95,6 +104,8 @@ class TimeTravelTest < ActiveSupport::TestCase
         travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999) do
           assert_equal 50, Time.now.sec
           assert_equal 0, Time.now.usec
+          assert_equal 50, DateTime.now.sec
+          assert_equal 0, DateTime.now.usec
         end
       ensure
         travel_back
