@@ -360,6 +360,13 @@ XML
     assert_equal "q=test", @response.body
   end
 
+  def test_progress_with_custom_headers
+    process :test_query_string,
+      method: "GET",
+      custom_headers: { "foo" => "bar" }
+    assert_equal "bar", @request.get_header("foo")
+  end
+
   def test_process_with_query_string_with_explicit_uri
     @request.env["PATH_INFO"] = "/explicit/uri"
     @request.env["QUERY_STRING"] = "q=test?extra=question"

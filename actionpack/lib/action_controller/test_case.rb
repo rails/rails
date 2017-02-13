@@ -376,6 +376,10 @@ module ActionController
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
+      # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
+      # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
+      #   to a mime type.
+      # - +custom_headers+: A hash of parameters to append to the request headers. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
@@ -438,6 +442,7 @@ module ActionController
       # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
       # - +as+: Content type. Defaults to +nil+. Must be a symbol that corresponds
       #   to a mime type.
+      # - +custom_headers+: A hash of parameters to append to the request headers. This may be +nil+.
       #
       # Example calling +create+ action and sending two params:
       #
@@ -454,7 +459,7 @@ module ActionController
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
+      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil, custom_headers: {})
         check_required_ivars
 
         if body
@@ -506,6 +511,12 @@ module ActionController
 
         @request.fetch_header("SCRIPT_NAME") do |k|
           @request.set_header k, @controller.config.relative_url_root
+        end
+
+        if custom_headers.is_a?(Hash)
+          custom_headers.each do |key, val|
+            @request.set_header key, val
+          end
         end
 
         begin
