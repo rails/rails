@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   class Table
     include Arel::Crud

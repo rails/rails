@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module FakeRecord
   class Column < Struct.new(:name, :type)
   end

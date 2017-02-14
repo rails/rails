@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'arel/visitors/visitor'
 require 'arel/visitors/depth_first'
 require 'arel/visitors/to_sql'

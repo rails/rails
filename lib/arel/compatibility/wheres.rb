@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Arel
   module Compatibility # :nodoc:
     class Wheres # :nodoc:
