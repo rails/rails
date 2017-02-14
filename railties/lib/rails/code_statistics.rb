@@ -7,9 +7,7 @@ class CodeStatistics #:nodoc:
                 'Model tests',
                 'Mailer tests',
                 'Job tests',
-                'Integration tests',
-                'Functional tests (old)',
-                'Unit tests (old)']
+                'Integration tests']
 
   def initialize(*pairs)
     @pairs      = pairs

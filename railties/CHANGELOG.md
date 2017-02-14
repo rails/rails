@@ -1,3 +1,14 @@
+*   Drop old test locations from `rake stats`
+    - test/functional
+    - test/unit
+
+    *Ravil Bayramgalin*
+
+*   Update `rake stats` to  correctly count declarative tests
+    as methods in `_test.rb` files.
+
+    *Ravil Bayramgalin*
+
 *   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
     Active Support to preserve the receiver's timezone when calling `to_time`.
     This matches the new behavior that will be part of Ruby 2.4.
