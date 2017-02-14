@@ -332,6 +332,28 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
+### Using Session Middlewares
+The following middlewares are (by default) included for session management.  If one of your API clients is a browser, you might want to add one of these back in:
+- `ActionDispatch::Session::CacheStore`
+- `ActionDispatch::Session::CookieStore`
+- `ActionDispatch::Session::MemCacheStore`
+
+The trick to adding these back in is that, by default, they are passed `session_options`
+when added (including the session key), so you can't just add a `session_store.rb` initializer, add
+`use ActionDispatch::Session::CookieStore` and have sessions functioning as normal.
+
+To be clear: sessions may work, but your session options will be ignored (i.e the session key will default
+to `_session_id`).  Instead of the initializer, you'll have to set the relevant options somewhere
+before your middleware is built (like `application.rb`) and pass them to your prefered middleware,
+like this:
+
+**application.rb:**
+```ruby
+config.session_store :cookie_store, key: '_interslice_session'
+config.middleware.use ActionDispatch::Cookies # Required for all session management
+config.middleware.use ActionDispatch::Session::CookieStore, config.session_options
+```
+
 ### Other Middleware
 
 Rails ships with a number of other middleware that you might want to use in an
@@ -340,10 +362,6 @@ API application, especially if one of your API clients is the browser:
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
 - `ActionDispatch::Flash`
-- For session management
-    * `ActionDispatch::Session::CacheStore`
-    * `ActionDispatch::Session::CookieStore`
-    * `ActionDispatch::Session::MemCacheStore`
 
 Any of these middleware can be added via:
 
