@@ -21,7 +21,7 @@ module ActiveRecord
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        alias_tracker = AliasTracker.create connection, association.klass.table_name, klass.type_caster
+        alias_tracker = AliasTracker.create connection, association.klass.table_name
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! reflection.extensions
@@ -112,7 +112,11 @@ module ActiveRecord
           runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
           previous_reflection = runtime_reflection
           reflection.chain.drop(1).each do |refl|
-            alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
+            alias_name = tracker.aliased_table_for(
+              refl.table_name,
+              refl.alias_candidate(name),
+              refl.klass.type_caster
+            )
             proxy = ReflectionProxy.new(refl, alias_name)
             previous_reflection.next = proxy
             previous_reflection = proxy
