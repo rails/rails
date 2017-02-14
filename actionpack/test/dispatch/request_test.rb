@@ -1100,8 +1100,8 @@ class RequestParameterFilter < BaseRequestTest
 
   test "parameter filter should maintain hash with indifferent access" do
     test_hashes = [
-      [{'foo'=>'bar'}.with_indifferent_access, %w'food'],
-      [{'foo'=>'bar'}.with_indifferent_access, []]
+      [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
+      [{ "foo" => "bar" }.with_indifferent_access, []]
     ]
 
     test_hashes.each do |before_filter, filter_words|
