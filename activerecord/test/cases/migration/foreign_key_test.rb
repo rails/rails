@@ -1,5 +1,4 @@
 require "cases/helper"
-require "support/ddl_helper"
 require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
@@ -26,7 +25,6 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ForeignKeyTest < ActiveRecord::TestCase
-        include DdlHelper
         include SchemaDumpingHelper
         include ActiveSupport::Testing::Stream
 
