@@ -441,6 +441,7 @@ module ActiveRecord
              WHERE constraint_type = 'PRIMARY KEY'
                AND kcu.table_name = #{quote(name.identifier)}
                AND kcu.table_schema = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
+             ORDER BY kcu.ordinal_position
           SQL
         end
 
