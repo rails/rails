@@ -891,11 +891,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 2147483648, company.rating
   end
 
-  unless current_adapter?(:SQLite3Adapter)
-    def test_bignum_pk
-      company = Company.create!(id: 2147483648, name: "foo")
-      assert_equal company, Company.find(company.id)
-    end
+  def test_bignum_pk
+    company = Company.create!(id: 2147483648, name: "foo")
+    assert_equal company, Company.find(company.id)
   end
 
   # TODO: extend defaults tests to other databases!
