@@ -94,20 +94,23 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_with_non_standard_primary_key
-          with_example_table @connection, "space_shuttles", "pk BIGINT PRIMARY KEY" do
-            @connection.add_foreign_key(:astronauts, :space_shuttles,
-                                        column: "rocket_id", primary_key: "pk", name: "custom_pk")
-
-            foreign_keys = @connection.foreign_keys("astronauts")
-            assert_equal 1, foreign_keys.size
-
-            fk = foreign_keys.first
-            assert_equal "astronauts", fk.from_table
-            assert_equal "space_shuttles", fk.to_table
-            assert_equal "pk", fk.primary_key
-
-            @connection.remove_foreign_key :astronauts, name: "custom_pk"
+          @connection.create_table :space_shuttles, id: false, force: true do |t|
+            t.bigint :pk, primary_key: true
           end
+
+          @connection.add_foreign_key(:astronauts, :space_shuttles,
+            column: "rocket_id", primary_key: "pk", name: "custom_pk")
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "astronauts", fk.from_table
+          assert_equal "space_shuttles", fk.to_table
+          assert_equal "pk", fk.primary_key
+        ensure
+          @connection.remove_foreign_key :astronauts, name: "custom_pk"
+          @connection.drop_table :space_shuttles
         end
 
         def test_add_on_delete_restrict_foreign_key
