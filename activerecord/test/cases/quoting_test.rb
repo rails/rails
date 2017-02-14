@@ -221,5 +221,32 @@ module ActiveRecord
         assert_predicate @connection.type_cast(false), :frozen?
       end
     end
+
+    if subsecond_precision_supported?
+      class QuoteARBaseTest < ActiveRecord::TestCase
+        class DatetimePrimaryKey < ActiveRecord::Base
+        end
+
+        def setup
+          @time = ::Time.utc(2017, 2, 14, 12, 34, 56, 789999)
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table :datetime_primary_keys, id: :datetime, precision: 3, force: true
+        end
+
+        def teardown
+          @connection.drop_table :datetime_primary_keys, if_exists: true
+        end
+
+        def test_quote_ar_object
+          value = DatetimePrimaryKey.new(id: @time)
+          assert_equal "'2017-02-14 12:34:56.789000'",  @connection.quote(value)
+        end
+
+        def test_type_cast_ar_object
+          value = DatetimePrimaryKey.new(id: @time)
+          assert_equal "2017-02-14 12:34:56.789000",  @connection.type_cast(value)
+        end
+      end
+    end
   end
 end
