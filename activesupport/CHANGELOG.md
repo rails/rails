@@ -1,3 +1,9 @@
+*   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
+    `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
+
+    *Jeff Latz*
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
