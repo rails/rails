@@ -54,6 +54,11 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
+            unless option_value.is_a?(Numeric)
+              record.errors.add(attr_name, :incomparable, filtered_options(value).merge!(validator: option))
+              next
+            end
+
             unless value.send(CHECKS[option], option_value)
               record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
             end

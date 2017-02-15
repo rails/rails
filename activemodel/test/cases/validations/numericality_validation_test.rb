@@ -260,6 +260,22 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Person.clear_validators!
   end
 
+  def test_validates_numericality_with_invalid_types
+    Topic.send(:define_method, :returns_nil, lambda { nil })
+    Topic.validates_numericality_of :approved,
+                                    greater_than: :returns_nil,
+                                    less_than: Proc.new(&:returns_nil)
+
+    topic = Topic.new(title: "numeric test", approved: 10)
+
+    assert topic.invalid?
+    assert_equal ["greater_than validator returns an incomparable value",
+                  "less_than validator returns an incomparable value"],
+                 topic.errors[:approved]
+  ensure
+    Topic.send(:remove_method, :returns_nil)
+  end
+
   def test_validates_numericality_with_invalid_args
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }
