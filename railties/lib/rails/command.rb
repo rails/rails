@@ -33,7 +33,8 @@ module Rails
         namespace = "version" if %w( -v --version ).include? namespace
 
         if command = find_by_namespace(namespace)
-          command.perform(namespace, args, config)
+          command_name = namespace.split(":").last
+          command.perform(command_name, args, config)
         else
           find_by_namespace("rake").perform(namespace, args, config)
         end
