@@ -12,26 +12,14 @@ module Rails
           ensure_encrypted_secrets_file_exists
           abort_if_missing_key
 
-          contents = Sekrets.read(encrypted_path)
-
-          Sekrets.tmpdir do
-            IO.binwrite(decrypted_path, contents)
-
-            system("#{Sekrets.editor} #{decrypted_path}")
-
-            if $?.exitstatus.zero?
-              Sekrets.write(encrypted_path.to_s, IO.binread(decrypted_path))
-            end
-          end
+          open_decrypted_file_and_await_write
         end
 
         private
           def override_defaults
             Sekrets.env    = "RAILS_MASTER_KEY"
-            Sekrets.editor = ENV["RAILS_EDITOR"] || ENV["EDITOR"]
             Sekrets.root   = Rails.root
             Sekrets.project_key = Rails.root.join("config", "secrets.yml.key")
-            Sekrets.global_key  = nil # Disavow.
           end
 
           def ensure_encrypted_secrets_file_exists
@@ -50,6 +38,22 @@ module Rails
               puts "Assign one via `RAILS_MASTER_KEY=key bin/rails secrets:edit`."
               puts "Or put a key in config/secrets.yml.key. Ensure the file is in .gitignore!"
               exit 1
+            end
+          end
+
+          def open_decrypted_file_and_await_write
+            contents = Sekrets.read(encrypted_path)
+
+            Sekrets.tmpdir do
+              IO.binwrite(decrypted_path, contents)
+              mtime = File.mtime(decrypted_path)
+
+              system("\$EDITOR #{decrypted_path}")
+
+              until File.mtime(decrypted_path) != mtime
+                sleep 0.250
+                Sekrets.write(encrypted_path.to_s, IO.binread(decrypted_path))
+              end
             end
           end
 
