@@ -94,6 +94,20 @@ module Rails
       end
     end
 
+    def encrypted_secrets_ignore
+      [ "# Ignore encrypted secrets files.", "config/secrets.yml.enc",
+        "config/secrets.yml.key" ].join("\n")
+    end
+
+    def encrypted_secrets
+      template "config/secrets.yml.enc"
+      template "config/secrets.yml.key"
+
+      if File.exist?(".gitignore") && !File.read(".gitignore").include?(encrypted_secrets_ignore)
+        append_to_file ".gitignore", encrypted_secrets_ignore
+      end
+    end
+
     def config_when_updating
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
       action_cable_config_exist = File.exist?("config/cable.yml")
@@ -114,6 +128,8 @@ module Rails
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
+
+      encrypted_secrets
     end
 
     def database_yml
@@ -226,6 +242,11 @@ module Rails
         build(:config_when_updating)
       end
       remove_task :update_config_files
+
+      def setup_encrypted_secrets
+        build(:encrypted_secrets)
+      end
+      remove_task :setup_encrypted_secrets
 
       def display_upgrade_guide_info
         say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
