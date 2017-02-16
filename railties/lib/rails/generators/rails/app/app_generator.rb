@@ -94,17 +94,15 @@ module Rails
       end
     end
 
-    def encrypted_secrets_ignore
-      [ "# Ignore encrypted secrets files.", "config/secrets.yml.enc",
-        "config/secrets.yml.key" ].join("\n")
-    end
-
     def encrypted_secrets
       template "config/secrets.yml.enc"
       template "config/secrets.yml.key"
 
-      if File.exist?(".gitignore") && !File.read(".gitignore").include?(encrypted_secrets_ignore)
-        append_to_file ".gitignore", encrypted_secrets_ignore
+      file_ignore = [ "", "# Ignore encrypted secrets files.",
+        "config/secrets.yml.enc", "config/secrets.yml.key", "" ].join("\n")
+
+      if File.exist?(".gitignore") && !File.read(".gitignore").include?(file_ignore)
+        append_to_file ".gitignore", file_ignore
       end
     end
 
