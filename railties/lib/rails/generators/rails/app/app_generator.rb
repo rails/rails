@@ -96,8 +96,8 @@ module Rails
     end
 
     def encrypted_secrets
-      template "config/secrets.yml.enc"
-      template "config/secrets.yml.key"
+      template "config/secrets.yml.key" unless File.exist?("config/secrets.yml.key")
+      template "config/secrets.yml.enc" unless File.exist?("config/secrets.yml.enc")
 
       file_ignore = [ "", "# Ignore encrypted secrets files.",
         "config/secrets.yml.enc", "config/secrets.yml.key", "" ].join("\n")

@@ -16,7 +16,7 @@ module Rails
           require_application_and_environment!
           override_defaults
 
-          Rails::Generators::AppGenerator.new.encrypted_secrets
+          setup_encrypted_secrets_files
 
           open_decrypted_file_and_await_write
         end
@@ -28,8 +28,9 @@ module Rails
             Sekrets.project_key = Rails.root.join("config", "secrets.yml.key")
           end
 
-          def open_decrypted_file_and_await_write
-            contents = Sekrets.read(encrypted_path)
+          def setup_encrypted_secrets_files
+            Rails::Generators::AppGenerator.new([ Rails.root ]).setup_encrypted_secrets
+          end
 
             Sekrets.tmpdir do
               IO.binwrite(decrypted_path, contents)
