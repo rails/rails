@@ -78,6 +78,7 @@ module Rails
 
     def config
       empty_directory "config"
+      encrypted_secrets
 
       inside "config" do
         template "routes.rb"
@@ -126,8 +127,6 @@ module Rails
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
-
-      encrypted_secrets
     end
 
     def database_yml
