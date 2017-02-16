@@ -193,7 +193,7 @@ class Module
           "if !_.nil? || nil.respond_to?(:#{method})",
           "  _.#{method}(#{definition})",
           "end",
-        "end"
+          "end"
         ].join ";"
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
