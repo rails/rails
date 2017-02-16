@@ -4,7 +4,12 @@ require "active_support/core_ext/string/strip"
 module Rails
   module Command
     module Secrets
-      class EditCommand < Rails::Command::Base
+      class EditCommand < Rails::Command::Base # :nodoc:
+        def help
+          super
+          puts self.class.desc
+        end
+
         def perform
           require_application_and_environment!
           override_defaults
