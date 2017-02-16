@@ -1,3 +1,7 @@
+*   All integer-like PKs are autoincrement unless they have an explicit default.
+
+    *Matthew Draper*
+
 *   Omit redundant `using: :btree` for schema dumping.
 
     *Ryuta Kamizono*
