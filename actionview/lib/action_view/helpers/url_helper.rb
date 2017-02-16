@@ -17,6 +17,8 @@ module ActionView
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
       BUTTON_TAG_METHOD_VERBS = %w{patch put delete}
+      OPENER_TARGETS          = ["", "_parent", "_self", "_top"].freeze
+
       extend ActiveSupport::Concern
 
       include TagHelper
@@ -98,6 +100,13 @@ module ActionView
       #   the link. The drivers each provide mechanisms for listening for the
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
+      # * <tt>opener: true</tt> - This option prevents adding <tt>rel="noopener"</tt>
+      #   to an HTML output by default. <tt>rel="noopener"</tt> will be added to
+      #   a link by default, if <tt>target</tt> is <tt>_blank</tt> or any other
+      #   string except an empty string, <tt>_parent</tt>, <tt>_self</tt>, <tt>_top</tt>
+      #   and <tt>href</tt> is a url with <tt>http://</tt> or <tt>https://</tt>.
+      #   <tt>rel="noopener"</tt> nullifies <tt>window.opener</tt> (supported by selected browsers)
+      #   and prevents possible phishing attacks.
       #
       # ==== Data attributes
       #
@@ -186,6 +195,16 @@ module ActionView
       #
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
+      #
+      # If you add target="_blank" and a full URL, rel="noopener" will appear by default:
+      #
+      #   link_to("Visit Other Site", "http://www.example.com", target: "_blank")
+      #   # => <a href="http://www.example.com" target="_blank" rel="noopener">Visit Other Site</a>
+      #
+      # You can disable adding rel="noopener" by default:
+      #
+      #   link_to("Visit Other Site", "http://www.example.com", target: "_blank", opener: true)
+      #   # => <a href="http://www.example.com" target="_blank">Visit Other Site</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}
@@ -194,6 +213,10 @@ module ActionView
 
         url = url_for(options)
         html_options["href".freeze] ||= url
+
+        if noopener?(html_options)
+          html_options["rel".freeze] = "#{html_options["rel".freeze]} noopener".lstrip
+        end
 
         content_tag("a".freeze, name || url, html_options, &block)
       end
@@ -648,6 +671,29 @@ module ActionView
           end
 
           params.sort_by { |pair| pair[:name] }
+        end
+
+        def noopener?(html_options)
+          noopener_href?(html_options["href".freeze]) &&
+            noopener_target?(html_options["target".freeze]) &&
+            noopener_rel?(html_options["rel".freeze]) &&
+            noopener_allowed?(html_options)
+        end
+
+        def noopener_href?(href)
+          href.start_with?("http://".freeze, "https://".freeze)
+        end
+
+        def noopener_target?(target)
+          target && OPENER_TARGETS.exclude?(target)
+        end
+
+        def noopener_rel?(rel)
+          rel !~ /noopener/
+        end
+
+        def noopener_allowed?(html_options)
+          !html_options.delete("opener".freeze)
         end
     end
   end

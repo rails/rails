@@ -310,6 +310,84 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Hello</a>}, link
   end
 
+  def test_link_with_href_http_and_target_blank
+    link = link_to("Hello", "http://www.example.com", target: "_blank")
+    expected = %{<a href="http://www.example.com" target="_blank" rel="noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_href_https_and_target_blank
+    link = link_to("Hello", "https://www.example.com", target: "_blank")
+    expected = %{<a href="https://www.example.com" target="_blank" rel="noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_href_path_and_target_blank
+    link = link_to("Hello", "/", target: "_blank")
+    expected = %{<a href="/" target="_blank">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_as_any_string
+    link = link_to("Hello", "http://www.example.com", target: "foo")
+    expected = %{<a href="http://www.example.com" target="foo" rel="noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_nil
+    link = link_to("Hello", "http://www.example.com", target: nil)
+    expected = %{<a href="http://www.example.com">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_as_empty_string
+    link = link_to("Hello", "http://www.example.com", target: "")
+    expected = %{<a href="http://www.example.com" target="">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_parent
+    link = link_to("Hello", "http://www.example.com", target: "_parent")
+    expected = %{<a href="http://www.example.com" target="_parent">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_self
+    link = link_to("Hello", "http://www.example.com", target: "_self")
+    expected = %{<a href="http://www.example.com" target="_self">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_top
+    link = link_to("Hello", "http://www.example.com", target: "_top")
+    expected = %{<a href="http://www.example.com" target="_top">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_blank_and_rel_nonempty
+    link = link_to("Hello", "http://www.example.com", target: "_blank", rel: "nofollow")
+    expected = %{<a href="http://www.example.com" target="_blank" rel="nofollow noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_blank_and_rel_noopener
+    link = link_to("Hello", "http://www.example.com", target: "_blank", rel: "noopener")
+    expected = %{<a href="http://www.example.com" target="_blank" rel="noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_blank_and_opener_true
+    link = link_to("Hello", "http://www.example.com", target: "_blank", opener: true)
+    expected = %{<a href="http://www.example.com" target="_blank">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
+  def test_link_with_target_blank_and_opener_false
+    link = link_to("Hello", "http://www.example.com", target: "_blank", opener: false)
+    expected = %{<a href="http://www.example.com" target="_blank" rel="noopener">Hello</a>}
+    assert_dom_equal expected, link
+  end
+
   def test_link_tag_with_custom_onclick
     link = link_to("Hello", "http://www.example.com", onclick: "alert('yay!')")
     expected = %{<a href="http://www.example.com" onclick="alert(&#39;yay!&#39;)">Hello</a>}
