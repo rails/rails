@@ -115,21 +115,27 @@ module InflectorTestCases
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller"
+    "Area51Controller"      => "area51_controller",
+    "V0_1_0"                => "v0__1__0",
+    "APIVersion0_1_0"       => "api_version0__1__0"
   }
 
   UnderscoreToLowerCamel = {
     "product"                => "product",
     "special_guest"          => "specialGuest",
     "application_controller" => "applicationController",
-    "area51_controller"      => "area51Controller"
+    "area51_controller"      => "area51Controller",
+    "v0__1__0"               => "v0_1_0",
+    "api_version0__1__0"     => "apiVersion0_1_0"
   }
 
   SymbolToLowerCamel = {
     :product                => 'product',
     :special_guest          => 'specialGuest',
     :application_controller => 'applicationController',
-    :area51_controller      => 'area51Controller'
+    :area51_controller      => 'area51Controller',
+    :v0__1__0               => "v0_1_0",
+    :api_version0__1__0     => "apiVersion0_1_0"
   }
 
   CamelToUnderscoreWithoutReverse = {
@@ -137,22 +143,29 @@ module InflectorTestCases
     "HTMLTidyGenerator"     => "html_tidy_generator",
     "FreeBSD"               => "free_bsd",
     "HTML"                  => "html",
+    "V0_1_0"                => "v0__1__0"
   }
 
   CamelWithModuleToUnderscoreWithSlash = {
     "Admin::Product" => "admin/product",
     "Users::Commission::Department" => "users/commission/department",
     "UsersSection::CommissionDepartment" => "users_section/commission_department",
+    "API::V0_1_0::Component" => "api/v0__1__0/component",
+    "APIVersion::V0_1_0::Component" => "api_version/v0__1__0/component",
+    "APIVersionV0_1_0::Component" => "api_version_v0__1__0/component",
+    "APIVersion0_1_0::Component" => "api_version0__1__0/component"
   }
 
   ClassNameToForeignKeyWithUnderscore = {
     "Person" => "person_id",
-    "MyApplication::Billing::Account" => "account_id"
+    "MyApplication::Billing::Account" => "account_id",
+    "API::V0_1_0::Component" => "component_id"
   }
 
   ClassNameToForeignKeyWithoutUnderscore = {
     "Person" => "personid",
-    "MyApplication::Billing::Account" => "accountid"
+    "MyApplication::Billing::Account" => "accountid",
+    "API::V0_1_0::Component" => "componentid"
   }
 
   ClassNameToTableName = {

@@ -50,6 +50,7 @@ class String
   #   "Module".constantize  # => Module
   #   "Class".constantize   # => Class
   #   "blargle".constantize # => NameError: wrong constant name blargle
+  #   "V0_1_0".constantize  # => V0_1_0
   def constantize
     ActiveSupport::Inflector.constantize(self)
   end
@@ -62,6 +63,7 @@ class String
   #   "Module".safe_constantize  # => Module
   #   "Class".safe_constantize   # => Class
   #   "blargle".safe_constantize # => nil
+  #   "V0_1_0".safe_constantize  # => V0_1_0
   def safe_constantize
     ActiveSupport::Inflector.safe_constantize(self)
   end
@@ -69,12 +71,15 @@ class String
   # By default, +camelize+ converts strings to UpperCamelCase. If the argument to camelize
   # is set to <tt>:lower</tt> then camelize produces lowerCamelCase.
   #
-  # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
+  # +camelize+ will convert '/' to '::' which is useful for converting paths to namespaces.
+  # +camelize+ will convert '__' to '_' which is useful for namespaces containing underscores.
   #
   #   "active_record".camelize                # => "ActiveRecord"
   #   "active_record".camelize(:lower)        # => "activeRecord"
   #   "active_record/errors".camelize         # => "ActiveRecord::Errors"
   #   "active_record/errors".camelize(:lower) # => "activeRecord::Errors"
+  #   "api/v0__1__0".camelize                 # => "API::V0_1_0"
+  #   "api/v0__1__0".camelize(:lower)         # => "API::V0_1_0"
   def camelize(first_letter = :upper)
     case first_letter
       when :upper then ActiveSupport::Inflector.camelize(self, true)
