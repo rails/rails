@@ -1015,7 +1015,7 @@ module ActiveRecord
       deprecate :initialize_schema_migrations_table
 
       def initialize_internal_metadata_table # :nodoc:
-        ActiveRecord::InternalMetadata.create_table
+        ActiveRecord::InternalMetadata.initialize_table
       end
       deprecate :initialize_internal_metadata_table
 

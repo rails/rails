@@ -3,8 +3,7 @@ require "active_record"
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => [:environment, :load_config] do
-    ActiveRecord::InternalMetadata.create_table
-    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+    ActiveRecord::InternalMetadata.initialize_table
   end
 
   task check_protected_environments: [:environment, :load_config] do
