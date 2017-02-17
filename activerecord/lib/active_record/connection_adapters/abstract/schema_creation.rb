@@ -133,5 +133,6 @@ module ActiveRecord
           end
       end
     end
+    SchemaCreation = AbstractAdapter::SchemaCreation # :nodoc:
   end
 end

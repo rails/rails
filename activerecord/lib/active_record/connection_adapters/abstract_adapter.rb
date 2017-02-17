@@ -74,7 +74,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :owner, :logger
+      attr_reader :schema_cache, :owner, :logger, :prepared_statements
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
@@ -92,8 +92,6 @@ module ActiveRecord
           config
         end
       end
-
-      attr_reader :prepared_statements
 
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
@@ -142,24 +140,8 @@ module ActiveRecord
         end
       end
 
-      def collector
-        if prepared_statements
-          SQLString.new
-        else
-          BindCollector.new
-        end
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::ToSql.new(self)
-      end
-
       def valid_type?(type) # :nodoc:
         !native_database_types[type].nil?
-      end
-
-      def schema_creation
-        SchemaCreation.new self
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -475,14 +457,6 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
-        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         visitor.accept(node, collector).value
       end
@@ -628,6 +602,18 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def collector
+          if prepared_statements
+            SQLString.new
+          else
+            BindCollector.new
+          end
+        end
+
+        def arel_visitor
+          Arel::Visitors::ToSql.new(self)
         end
     end
   end

@@ -121,14 +121,6 @@ module ActiveRecord
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
 
-      def schema_creation # :nodoc:
-        PostgreSQL::SchemaCreation.new self
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::PostgreSQL.new(self)
-      end
-
       # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
@@ -374,11 +366,6 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first["oid"].to_i
-        super(oid)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
@@ -777,8 +764,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(*args)
-          PostgreSQL::TableDefinition.new(*args)
+        def arel_visitor
+          Arel::Visitors::PostgreSQL.new(self)
         end
 
         def can_perform_case_insensitive_comparison_for?(column)

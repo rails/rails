@@ -61,17 +61,6 @@ module ActiveRecord
         lookup_cast_type(column.sql_type)
       end
 
-      def fetch_type_metadata(sql_type)
-        cast_type = lookup_cast_type(sql_type)
-        SqlTypeMetadata.new(
-          sql_type: sql_type,
-          type: cast_type.type,
-          limit: cast_type.limit,
-          precision: cast_type.precision,
-          scale: cast_type.scale,
-        )
-      end
-
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
@@ -161,6 +150,10 @@ module ActiveRecord
       end
 
       private
+        def lookup_cast_type(sql_type)
+          type_map.lookup(sql_type)
+        end
+
         def id_value_for_database(value)
           if primary_key = value.class.primary_key
             value.instance_variable_get(:@attributes)[primary_key].value_for_database
