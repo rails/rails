@@ -86,12 +86,7 @@ module ActiveRecord
           name = Utils.extract_schema_qualified_name(name.to_s)
           return false unless name.identifier
 
-          select_values(<<-SQL, "SCHEMA").any?
-            SELECT tablename
-            FROM pg_tables
-            WHERE tablename = #{quote(name.identifier)}
-            AND schemaname = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
-          SQL
+          super(name)
         end
 
         def data_source_exists?(name) # :nodoc:

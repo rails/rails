@@ -16,6 +16,7 @@ require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/information_schema_statements"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -117,6 +118,7 @@ module ActiveRecord
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
+      include InformationSchemaStatements
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
