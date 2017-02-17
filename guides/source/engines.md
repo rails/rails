@@ -59,7 +59,7 @@ only be enhancing it, rather than changing it drastically.
 To see demonstrations of other engines, check out
 [Devise](https://github.com/plataformatec/devise), an engine that provides
 authentication for its parent applications, or
-[Forem](https://github.com/radar/forem), an engine that provides forum
+[Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
 [RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
