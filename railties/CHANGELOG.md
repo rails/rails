@@ -1,3 +1,9 @@
+*   Fix running multiple tests in one `rake` command
+
+    e.g. `bin/rake test:models test:controllers`
+
+    *Dominic Cleal*
+
 *   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
 
     Fixes #27591.
