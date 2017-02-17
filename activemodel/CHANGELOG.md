@@ -1,3 +1,7 @@
+*   Avoid converting integer as a string into float.
+
+    *namusyaka*
+
 *   Remove deprecated behavior that halts callbacks when the return is false.
 
     *Rafael Mendonça França*

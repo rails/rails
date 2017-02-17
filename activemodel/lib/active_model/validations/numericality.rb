@@ -70,6 +70,7 @@ module ActiveModel
       end
 
       def parse_raw_value_as_a_number(raw_value)
+        return raw_value.to_i if is_integer?(raw_value)
         Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
