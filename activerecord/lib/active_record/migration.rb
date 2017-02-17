@@ -1256,9 +1256,7 @@ module ActiveRecord
         return nil if current_version == 0
         raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 
-        environment = ActiveRecord::InternalMetadata[:environment]
-        raise NoEnvironmentInSchemaError unless environment
-        environment
+        ActiveRecord::InternalMetadata[:environment]
       end
 
       def self.current_environment
