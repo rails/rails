@@ -71,16 +71,16 @@ module ActionSystemTest # :nodoc:
   #   end
   #
   # By default, <tt>ActionSystemTest</tt> is driven by the Selenium driver, with
-  # the Chrome browser, on port 21800, and a browser size of 1400x1400.
+  # the Chrome browser, and a browser size of 1400x1400.
   #
   # Changing the driver configuration options are easy. Let's say you want to use
-  # port 3000, and the Firefox browser instead. In your +system_test_helper.rb+
+  # and the Firefox browser instead. In your +system_test_helper.rb+
   # file add the following:
   #
   #   require "test_helper"
   #
   #   class ActionSystemTestCase < ActionSystemTest::Base
-  #     driven_by :selenium, using: :firefox, on: 3000
+  #     driven_by :selenium, using: :firefox
   #
   #     teardown do
   #       take_failed_screenshot
@@ -90,8 +90,7 @@ module ActionSystemTest # :nodoc:
   #
   # +driven_by+ has a required argument for the driver name. The keyword
   # arguments are +:using+ for the browser (not applicable for headless drivers),
-  # +:on+ for port (the server is always Puma), and +:screen_size+ to change
-  # the size of the screen when taking screenshots.
+  # and +:screen_size+ to change the size of the screen taking screenshots.
   #
   # To use a headless driver, like Poltergeist, update your Gemfile to use
   # Poltergeist instead of Selenium and then declare the driver name in the
@@ -129,17 +128,19 @@ module ActionSystemTest # :nodoc:
 
     # Action System Test configuration options
     #
-    # The defaults settings are Selenium, using Chrome, on port 21800, with a
-    # screen size of 1400x1400.
+    # The defaults settings are Selenium, using Chrome, with a screen size
+    # of 1400x1400.
     #
     # Examples:
     #
     #   driven_by :poltergeist
     #
-    #   driven_by :selenium, using: :firefox, on: 3000
-    def self.driven_by(driver, using: :chrome, on: 21800, screen_size: [1400, 1400])
+    #   driven_by :selenium, using: :firefox
+    #
+    #   driven_by :selenium, screen_size: [800, 800]
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
       Driver.new(driver).run
-      Server.new(on).run
+      Server.new.run
       Browser.new(using, screen_size).run if selenium?(driver)
     end
 

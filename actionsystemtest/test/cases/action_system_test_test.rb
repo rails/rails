@@ -8,18 +8,6 @@ class ActionSystemTestTest < ActiveSupport::TestCase
     assert_equal :poltergeist, Capybara.default_driver
   end
 
-  test "driven_by defaults to port 21800" do
-    ActionSystemTest::Base.driven_by :poltergeist
-
-    assert_equal 21800, Capybara.server_port
-  end
-
-  test "driven_by can change Capybara's server port" do
-    ActionSystemTest::Base.driven_by :selenium, on: 3000
-
-    assert_equal 3000, Capybara.server_port
-  end
-
   test "driven_by sets Capybara's drivers respectively" do
     ActionSystemTest::Base.driven_by :selenium, using: :chrome
 

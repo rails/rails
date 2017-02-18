@@ -57,7 +57,7 @@ The <tt>system_test_helper.rb</tt> file provides a home for all of your Capybara
 and Action System Test configuration.
 
 The default configuration uses the Selenium driver, with the Chrome browser,
-served by Puma on port 21800 with a screen size of 1400x1400.
+and a screen size of 1400x1400.
 
 Changing the configuration is as simple as changing the driver in your
 <tt>system_test_helper.rb</tt>
@@ -67,17 +67,17 @@ you can change `driven_by` in the helper file.
 
 The driver name is a required argument for `driven_by`. The optional arguments
 that can be passed to `driven_by` are `:using` for the browser (this will only
-be used for non-headless drivers like Selenium), `:on` for the port Puma should
-use, and `:screen_size` to change the size of the screen for screenshots.
+be used for non-headless drivers like Selenium), and `:screen_size` to change
+the size of the screen for screenshots.
 
 Below are some examples for changing the default configuration settings for
 system tests:
 
-Changing the browser, port for Puma, and screen size:
+Changing the browser and screen size:
 
 ```ruby
 class ActionSystemTestCase < ActionSystemTest::Base
-  driven_by :selenium, using: :firefox, on: 3000, screen_size: [ 800, 800 ]
+  driven_by :selenium, using: :firefox, screen_size: [ 800, 800 ]
 end
 ```
 
@@ -86,7 +86,7 @@ using a headless driver simply leave out the `:using` argument.
 
 ```ruby
 class ActionSystemTestCase < ActionSystemTest::Base
-  driven_by :poltergeist, on: 3000
+  driven_by :poltergeist
 end
 ```
 
