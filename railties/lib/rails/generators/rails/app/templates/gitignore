@@ -28,6 +28,5 @@
 <% end -%>
 .byebug_history
 
-# Ignore encrypted secrets files.
-config/secrets.yml.enc
+# Ignore encrypted secrets key file.
 config/secrets.yml.key

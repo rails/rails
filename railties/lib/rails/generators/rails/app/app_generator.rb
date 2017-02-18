@@ -106,8 +106,8 @@ module Rails
         end
       end
 
-      file_ignore = [ "", "# Ignore encrypted secrets files.",
-        "config/secrets.yml.enc", "config/secrets.yml.key", "" ].join("\n")
+      file_ignore = [ "", "# Ignore encrypted secrets key file.",
+        "config/secrets.yml.key", "" ].join("\n")
 
       if File.exist?(".gitignore") && !File.read(".gitignore").include?(file_ignore)
         append_to_file ".gitignore", file_ignore
