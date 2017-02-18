@@ -33,8 +33,23 @@ module Rails
         Sekrets.decrypt(key, data)
       end
 
+      def read
+        Sekrets.read(path, key)
+      end
+
       def write(contents)
-        Sekrets.write("config/secrets.yml.enc", contents, key)
+        Sekrets.write(path, contents, key)
+      end
+
+      def read_for_editing
+        Sekrets.tmpdir do
+          tmp_path = File.basename(path)
+          IO.binwrite(tmp_path, Secrets.read)
+
+          yield tmp_path
+
+          Secrets.write(IO.binread(tmp_path))
+        end
       end
 
       private
@@ -42,6 +57,10 @@ module Rails
           if File.exist?(key_path)
             IO.binread(key_path).strip
           end
+        end
+
+        def path
+          Rails.root.join("config", "secrets.yml.enc").to_s
         end
 
         def key_path

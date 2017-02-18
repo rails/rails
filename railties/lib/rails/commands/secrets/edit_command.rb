@@ -2,8 +2,7 @@ require "active_support"
 require "active_support/core_ext/string/strip"
 require "rails/generators/rails/app/app_generator"
 
-require "rails/engine"
-require "sekrets"
+require "rails/secrets"
 
 module Rails
   module Command
@@ -16,54 +15,38 @@ module Rails
 
         def perform
           require_application_and_environment!
-          override_defaults
 
           setup_encrypted_secrets_files
-
           open_decrypted_file_and_await_write
         end
 
         private
-          def override_defaults
-            Sekrets.env    = "RAILS_MASTER_KEY"
-            Sekrets.root   = Rails.root
-            Sekrets.project_key = Rails.root.join("config", "secrets.yml.key")
-          end
-
           def setup_encrypted_secrets_files
             Rails::Generators::AppGenerator.new([ Rails.root ]).setup_encrypted_secrets
           end
 
           def open_decrypted_file_and_await_write
-            Sekrets.tmpdir do
-              IO.binwrite(decrypted_path, Sekrets.read(encrypted_path) || prefill_contents)
-              mtime, start_time = File.mtime(decrypted_path), Time.now
-
-              puts "Waiting for secrets file to be saved. Abort with CTRL-C."
-              system("\$EDITOR #{decrypted_path}")
-
-              editor_exits_after_open = $?.success? && (Time.now - start_time) < 1
-              if editor_exits_after_open
-                sleep 0.250 until File.mtime(decrypted_path) != mtime
+            Rails::Secrets.read_for_editing do |tmp_path|
+              watch tmp_path do
+                puts "Waiting for secrets file to be saved. Abort with Ctrl-C."
+                system("\$EDITOR #{tmp_path}")
               end
-
-              Sekrets.write(encrypted_path.to_s, IO.binread(decrypted_path))
-              puts "New secrets encrypted and saved."
             end
+
+            puts "New secrets encrypted and saved."
           rescue Interrupt
             puts "Aborted changing encrypted secrets: nothing saved."
           end
 
-          def decrypted_path
-            encrypted_path.basename
-          end
+          def watch(tmp_path)
+            mtime, start_time = File.mtime(tmp_path), Time.now
 
-          def encrypted_path
-            Rails.root.join("config", "secrets.yml.enc")
-          end
+            yield
 
-          def prefill_contents
-            "production:\n  secret_key_base: #{SecureRandom.hex(64)}\n\n"
+            editor_exits_after_open = $?.success? && (Time.now - start_time) < 1
+            if editor_exits_after_open
+              sleep 0.250 until File.mtime(tmp_path) != mtime
+            end
           end
       end
     end
