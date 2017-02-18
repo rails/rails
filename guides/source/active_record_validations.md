@@ -916,18 +916,6 @@ class Order < ApplicationRecord
 end
 ```
 
-### Using a String with `:if` and `:unless`
-
-You can also use a string that will be evaluated using `eval` and needs to
-contain valid Ruby code. You should use this option only when the string
-represents a really short condition.
-
-```ruby
-class Person < ApplicationRecord
-  validates :surname, presence: true, if: "name.nil?"
-end
-```
-
 ### Using a Proc with `:if` and `:unless`
 
 Finally, it's possible to associate `:if` and `:unless` with a `Proc` object

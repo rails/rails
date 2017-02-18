@@ -288,7 +288,7 @@ Article destroyed
 Conditional Callbacks
 ---------------------
 
-As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
 
 ### Using `:if` and `:unless` with a `Symbol`
 
@@ -297,16 +297,6 @@ You can associate the `:if` and `:unless` options with a symbol corresponding to
 ```ruby
 class Order < ApplicationRecord
   before_save :normalize_card_number, if: :paid_with_card?
-end
-```
-
-### Using `:if` and `:unless` with a String
-
-You can also use a string that will be evaluated using `eval` and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number, if: "paid_with_card?"
 end
 ```
 
