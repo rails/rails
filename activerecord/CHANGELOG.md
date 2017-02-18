@@ -1,3 +1,7 @@
+*   Add ability to create join table with primary_key.
+
+    *bogdanvlviv*
+
 *   Deprecate using `#quoted_id` in quoting.
 
     *Ryuta Kamizono*
