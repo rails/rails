@@ -80,7 +80,7 @@ module Rails
         end
 
         def cipher(mode, data)
-          cipher = OpenSSL::Cipher::Cipher.new("bf-cbc").public_send(mode)
+          cipher = OpenSSL::Cipher.new("bf-cbc").public_send(mode)
           cipher.key = Digest::SHA256.digest(key.to_s)
           cipher.update(data) << cipher.final
         end
