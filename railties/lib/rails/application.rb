@@ -325,8 +325,6 @@ module Rails
     end
 
     def require_environment! #:nodoc:
-      Rails::Secrets.root = Rails.root
-
       environment = paths["config/environment"].existent.first
       require environment if environment
     end
