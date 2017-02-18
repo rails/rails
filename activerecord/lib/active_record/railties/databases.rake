@@ -324,22 +324,22 @@ db_namespace = namespace :db do
       begin
         should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
         ActiveRecord::Schema.verbose = false
-        ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Tasks::DatabaseTasks.config_at("test"), :ruby, ENV["SCHEMA"]
+        ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Base.configurations["test"], :ruby, ENV["SCHEMA"]
       ensure
         if should_reconnect
-          ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.config_at(ActiveRecord::Tasks::DatabaseTasks.env))
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[ActiveRecord::Tasks::DatabaseTasks.env])
         end
       end
     end
 
     # desc "Recreate the test database from an existent structure.sql file"
     task load_structure: %w(db:test:purge) do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Tasks::DatabaseTasks.config_at("test"), :sql, ENV["SCHEMA"]
+      ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Base.configurations["test"], :sql, ENV["SCHEMA"]
     end
 
     # desc "Empty the test database"
     task purge: %w(environment load_config check_protected_environments) do
-      ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Tasks::DatabaseTasks.config_at("test")
+      ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations["test"]
     end
 
     # desc 'Load the test schema'

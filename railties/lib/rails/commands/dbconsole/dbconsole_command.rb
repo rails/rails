@@ -87,10 +87,10 @@ module Rails
 
     def config
       @config ||= begin
-        if configurations["primary"].blank?
+        if configurations[environment].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations["primary"]
+          configurations[environment]
         end
       end
     end
@@ -103,7 +103,7 @@ module Rails
       def configurations # :doc:
         require APP_PATH
         ActiveRecord::Base.configurations = Rails.application.config.database_configuration
-        ActiveRecord::Base.configurations.at(environment)
+        ActiveRecord::Base.configurations
       end
 
       def find_cmd_and_exec(commands, *args) # :doc:
