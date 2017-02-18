@@ -432,7 +432,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path
