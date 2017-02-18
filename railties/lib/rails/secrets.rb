@@ -9,7 +9,11 @@ module Rails
       end
     end
 
+    @root = File # Wonky, but ensures `join` uses the current directory.
+
     class << self
+      attr_writer :root
+
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
           require "erb"
@@ -59,12 +63,12 @@ module Rails
           end
         end
 
-        def path
-          Rails.root.join("config", "secrets.yml.enc").to_s
+        def key_path
+          @root.join("config", "secrets.yml.key")
         end
 
-        def key_path
-          Rails.root.join("config", "secrets.yml.key")
+        def path
+          @root.join("config", "secrets.yml.enc").to_s
         end
 
         def preprocess(path)

@@ -16,6 +16,8 @@ module Rails
         def perform
           require_application_and_environment!
 
+          Rails::Secrets.root = Rails.root
+
           setup_encrypted_secrets_files
           open_decrypted_file_and_await_write
         end
