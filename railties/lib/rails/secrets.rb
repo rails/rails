@@ -39,9 +39,13 @@ module Rails
 
       private
         def read_key_file
-          if File.exist?("config/secrets.yml.key")
-            IO.binread("config/secrets.yml.key").strip
+          if File.exist?(key_path)
+            IO.binread(key_path).strip
           end
+        end
+
+        def key_path
+          Rails.root.join("config", "secrets.yml.key")
         end
 
         def preprocess(path)
