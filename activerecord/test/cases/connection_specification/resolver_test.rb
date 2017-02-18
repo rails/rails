@@ -2,11 +2,13 @@ require "cases/helper"
 
 class ConnectionSpecificationResolverTest < ActiveRecord::TestCase
   def resolve(config, base_config = {})
-    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(base_config).resolve(config)
+    c = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(base_config)
+    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(c).resolve(config)
   end
 
   def spec(config, base_config = {})
-    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(base_config).spec(config)
+    c = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(base_config)
+    ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(c).spec(config)
   end
 
   def test_url_invalid_adapter

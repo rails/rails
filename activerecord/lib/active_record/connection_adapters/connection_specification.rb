@@ -24,6 +24,8 @@ module ActiveRecord
           @root_level = nil
         end
 
+        attr_reader :root_level
+
         def root_level=(root_lvl)
           @root_level = root_lvl
           if url = ENV["DATABASE_URL"]
@@ -181,6 +183,8 @@ module ActiveRecord
         def resolve(config)
           if config
             resolve_connection config
+          elsif root = @configurations.root_level
+            resolve_symbol_connection root.to_sym
           else
             raise AdapterNotSpecified
           end

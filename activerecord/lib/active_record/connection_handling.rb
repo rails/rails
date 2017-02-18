@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
-    def establish_connection(config = :primary)
+    def establish_connection(config = nil)
       raise "Anonymous class is not allowed." unless name
 
       spec_name = self == Base ? "primary" : name
