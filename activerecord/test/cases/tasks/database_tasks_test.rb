@@ -227,8 +227,7 @@ module ActiveRecord
     def test_establishes_connection_for_the_given_environment
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
-      ActiveRecord::Base.expects(:establish_connection).
-        with("database" => "dev-db", "adapter" => "sqlite3")
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("development")
@@ -417,8 +416,7 @@ module ActiveRecord
     def test_purges_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with("database" => "prod-db", "adapter" => "sqlite3")
-      ActiveRecord::Base.expects(:establish_connection).
-        with("database" => "prod-db", "adapter" => "sqlite3")
+      ActiveRecord::Base.expects(:establish_connection).with(:production)
 
       ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
     end

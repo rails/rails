@@ -23,28 +23,6 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
     assert_equal expected, actual
   end
 
-  def test_resolver_with_database_uri_and_known_key_in_another_env
-    ENV["DATABASE_URL"] = "postgres://localhost/foo"
-    config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
-
-    config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
-    config.root_level = "development"
-    actual = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(:production)
-
-    expected = { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost", "name" => "production" }
-    assert_equal expected, actual
-  end
-
-  def test_resolver_with_database_uri_and_unknown_symbol_key
-    ENV["DATABASE_URL"] = "postgres://localhost/foo"
-    config = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-    assert_raises ActiveRecord::AdapterNotSpecified do
-      config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
-      config.root_level = "development"
-      ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(:foo)
-    end
-  end
-
   def test_resolver_with_database_uri_and_supplied_url
     ENV["DATABASE_URL"] = "not-postgres://not-localhost/not_foo"
     config   = { "production" => {  "adapter" => "also_not_postgres", "database" => "also_not_foo" } }

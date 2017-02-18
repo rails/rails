@@ -22,28 +22,25 @@ module ActiveRecord
         def initialize(config)
           @config = config
           @root_level = nil
-        end
-
-        attr_reader :root_level
-
-        def root_level=(root_lvl)
-          @root_level = root_lvl
           if url = ENV["DATABASE_URL"]
-            @config = @config.dup
-
-            @config[@root_level] ||= {}
-            @config[@root_level]["url"] ||= url
-            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(@config)
-            @config[@root_level] = r.resolve(@config[@root_level])
+            @database_url_config = ConnectionUrlResolver.new(url).to_hash
+          else
+            @database_url_config = nil
           end
         end
+
+        attr_accessor :root_level
 
         def [](key)
           ret = nil
           if @root_level && c = @config[@root_level]
             ret = c[key]
           end
-          ret || @config[key]
+          ret ||= @config[key]
+          if @database_url_config
+            ret = (ret || {}).merge(@database_url_config)
+          end
+          ret
         end
 
         def keys

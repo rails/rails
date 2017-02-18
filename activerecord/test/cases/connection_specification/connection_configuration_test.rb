@@ -66,28 +66,24 @@ class ConnectionConfigurationTest < ActiveRecord::TestCase
     assert_equal "foo", config["readonly"]["database"]
   end
 
-  def test_databaseurl_with_empty_config_should_set_under_root
+  def test_databaseurl_with_empty_config_should_use_it
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
-#    hash = {
-#      "development" => { "adapter" => "postgres", "database" => "foo_dev" },
-#      "test" => { "adapter" => "postgres", "database" => "foo_test" }
-#    }
     config = connection_config({})
     config.root_level = "development"
 
     assert_equal "foo", config["development"]["database"]
   end
 
-  def test_databaseurl_should_set_under_root
+  def test_databaseurl_should_return_and_merge
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
     hash = {
-      "development" => { "adapter" => "postgres", "database" => "foo_dev" },
+      "development" => { "adapter" => "postgres", "pool" => 5 },
       "test" => { "adapter" => "postgres", "database" => "foo_test" }
     }
     config = connection_config(hash)
     config.root_level = "development"
 
-    assert_equal "foo", config["development"]["database"]
-    assert_equal "foo_test", config["test"]["database"]
+    assert_equal 5, config["development"]["pool"]
+    assert_equal "foo", config["test"]["database"]
   end
 end

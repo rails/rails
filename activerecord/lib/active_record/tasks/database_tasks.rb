@@ -206,7 +206,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           purge configuration
         }
-        ActiveRecord::Base.establish_connection(config_at(environment))
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def structure_dump(*arguments)
@@ -252,7 +252,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           load_schema configuration, format, file
         }
-        ActiveRecord::Base.establish_connection(config_at(environment))
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
@@ -299,10 +299,14 @@ module ActiveRecord
         end
 
         def each_current_configuration(environment)
-          configurations = [config_at(environment)]
-          configurations << config_at("test") if environment == "development"
-          configurations.compact.each do |configuration|
-            yield configuration unless configuration["database"].blank?
+          environments = [environment]
+          environments << "test" if environment == "development"
+
+          #configurations = ActiveRecord::Base.configurations.values_at(*environments)
+          environments.each do |env|
+            if configuration = config_at(env)
+              yield configuration unless configuration["database"].blank?
+            end
           end
         end
 
