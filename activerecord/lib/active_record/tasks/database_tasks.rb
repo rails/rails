@@ -285,7 +285,7 @@ module ActiveRecord
 
       # Return the primary configuration from a given environment
       def config_at(env)
-        Base.configurations.at(env)["primary"]
+        Base.configurations[env]
       end
 
       private
@@ -306,7 +306,7 @@ module ActiveRecord
           end
         end
 
-        def each_local_configuration(config = ActiveRecord::Base.configurations, &block)
+        def each_local_configuration(config = ActiveRecord::Base.configurations.to_hash, &block)
           config.each_value do |value|
             next unless value.is_a?(Hash)
             if value["database"]

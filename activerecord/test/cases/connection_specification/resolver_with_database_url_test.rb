@@ -11,21 +11,26 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
 
   def resolve_spec(spec, config)
     config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
+    config.root_level = spec.to_s
     ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(spec)
   end
 
   def test_resolver_with_database_uri_and_current_env_symbol_key
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
     config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-    actual   = resolve_spec(:primary, config)
-    expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost", "name" => "primary" }
+    actual   = resolve_spec(:default_env, config)
+    expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost", "name" => "default_env" }
     assert_equal expected, actual
   end
 
-  def test_resolver_with_database_uri_and_known_key
+  def test_resolver_with_database_uri_and_known_key_in_another_env
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
     config   = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
-    actual   = resolve_spec(:production, config)
+
+    config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
+    config.root_level = "development"
+    actual = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(:production)
+
     expected = { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost", "name" => "production" }
     assert_equal expected, actual
   end
@@ -34,7 +39,9 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
     config = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
     assert_raises ActiveRecord::AdapterNotSpecified do
-      resolve_spec(:production, config)
+      config = ActiveRecord::ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
+      config.root_level = "development"
+      ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve(:foo)
     end
   end
 
@@ -100,11 +107,11 @@ class ConnectionSpecificationResolverWithDATABASEURLTest < ActiveRecord::TestCas
     ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
     config   = {}
-    actual   = resolve_spec(:primary, config)
+    actual   = resolve_spec(:development, config)
     expected = { "adapter"  => "postgresql",
                  "database" => "foo",
                  "host"     => "localhost",
-                 "name"     => "primary"
+                 "name"     => "development"
                }
     assert_equal expected, actual
   end

@@ -17,34 +17,43 @@ module ActiveRecord
         @config.merge(name: @name)
       end
 
-      class ConnectionConfigurations < SimpleDelegator #:nodoc:
-        attr_accessor :root_level
+      class ConnectionConfigurations  #:nodoc:
 
         def initialize(config)
-          super
+          @config = config
           @root_level = nil
         end
 
-        def at(top_level)
-          normalized(top_level)
+        def root_level=(root_lvl)
+          @root_level = root_lvl
+          if url = ENV["DATABASE_URL"]
+            @config = @config.dup
+
+            @config[@root_level] ||= {}
+            @config[@root_level]["url"] ||= url
+            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(@config)
+            @config[@root_level] = r.resolve(@config[@root_level])
+          end
         end
 
-        def normalized(key = @root_level)
-          config = key ? self[key] : self
-          config = config ? config.dup : {}
-
-          # if the configuration is a one level config, pushes that to be a two level config, with primary as key
-          if !config.key?("primary") && config.key?("adapter")
-            config = { "primary" => config }
+        def [](key)
+          ret = nil
+          if @root_level && c = @config[@root_level]
+            ret = c[key]
           end
+          ret || @config[key]
+        end
 
-          if url = ENV["DATABASE_URL"]
-            config["primary"] ||= {}
-            config["primary"]["url"] ||= url
-            r = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
-            config["primary"] = r.resolve(config["primary"])
+        def keys
+          if @root_level
+            @config[@root_level].keys
+          else
+            @config.keys
           end
-          config
+        end
+
+        def to_hash
+          @config
         end
       end
 
@@ -257,13 +266,11 @@ module ActiveRecord
           #   # => {}
           #
           def resolve_symbol_connection(spec)
-            config = configurations.respond_to?(:normalized) && configurations.normalized[spec.to_s]
-            config ||= configurations[spec.to_s]
-
-            unless config
-              raise(AdapterNotSpecified, "'#{spec}' was not found in your configurations. Available: #{configurations.keys.inspect}")
+            if config = configurations[spec.to_s]
+              resolve_connection(config).merge("name" => spec.to_s)
+            else
+              raise(AdapterNotSpecified, "'#{spec}' database is not configured. Available: #{configurations.keys.inspect}")
             end
-            resolve_connection(config).merge("name" => spec.to_s)
           end
 
           # Accepts a hash. Expands the "url" key that contains a

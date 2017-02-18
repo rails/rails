@@ -47,9 +47,9 @@ module ActiveRecord
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
         ActiveRecord::Base.configurations.root_level = "development"
 
-        @handler.establish_connection(:primary)
+        @handler.establish_connection(:development)
 
-        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_not_nil pool = @handler.retrieve_connection_pool("development")
         assert_equal "db/primary.sqlite3", pool.spec.config[:database]
       ensure
         ActiveRecord::Base.configurations = @prev_configs
