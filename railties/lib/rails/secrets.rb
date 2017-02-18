@@ -1,8 +1,7 @@
 require "yaml"
-require "rails/engine" # Remove once sekrets dependency is gone.
-require "sekrets"
 
 module Rails
+  # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
   class Secrets # :nodoc:
     class MissingKeyError < RuntimeError
       def initialize
@@ -26,30 +25,31 @@ module Rails
       end
 
       def encrypt(text)
-        Sekrets.encrypt(key, text)
+        cipher(:encrypt, text)
       end
 
       def decrypt(data)
-        Sekrets.decrypt(key, data)
+        cipher(:decrypt, data)
       end
 
       def read
-        Sekrets.read(path, key)
+        decrypt(IO.binread(path))
       end
 
       def write(contents)
-        Sekrets.write(path, contents, key)
+        IO.binwrite("#{path}.tmp", encrypt(contents))
+        FileUtils.mv("#{path}.tmp", path)
       end
 
       def read_for_editing
-        Sekrets.tmpdir do
-          tmp_path = File.basename(path)
-          IO.binwrite(tmp_path, Secrets.read)
+        tmp_path = File.join(Dir.tmpdir, File.basename(path))
+        IO.binwrite(tmp_path, read)
 
-          yield tmp_path
+        yield tmp_path
 
-          Secrets.write(IO.binread(tmp_path))
-        end
+        write(IO.binread(tmp_path))
+      ensure
+        FileUtils.rm(tmp_path)
       end
 
       private
@@ -73,6 +73,12 @@ module Rails
           else
             IO.read(path)
           end
+        end
+
+        def cipher(mode, data)
+          cipher = OpenSSL::Cipher::Cipher.new("bf-cbc").public_send(mode)
+          cipher.key = Digest::SHA256.digest(key.to_s)
+          cipher.update(data) << cipher.final
         end
     end
   end
