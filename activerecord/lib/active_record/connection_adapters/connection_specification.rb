@@ -194,13 +194,13 @@ module ActiveRecord
         # Accepts:
         # - Hash: one layer deep Hash that contains all connection information
         # - Symbol: a configuration name that will be looked-up
-        #           from the configurations Hash
+        #           from the configurations
         # - String: a database url
         #
         # == Example
         #
-        #   config = { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
-        #   spec = Resolver.new({}).spec(config)
+        #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   spec = Resolver.new(config).spec(:production)
         #   spec.adapter_method
         #   # => "sqlite3_connection"
         #   spec.config
@@ -262,7 +262,7 @@ module ActiveRecord
             end
           end
 
-          # Takes the specification name such as +:primary+.
+          # Takes the configuration name such as +:primary+.
           # This requires that the @configurations was initialized with a key that
           # matches.
           #
