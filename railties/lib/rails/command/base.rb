@@ -56,7 +56,9 @@ module Rails
         end
 
         def perform(command, args, config) # :nodoc:
-          command = nil if Rails::Command::HELP_MAPPINGS.include?(args.first)
+          if Rails::Command::HELP_MAPPINGS.include?(args.first)
+            command, args = "help", []
+          end
 
           dispatch(command, args.dup, nil, config)
         end
