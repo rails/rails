@@ -96,11 +96,11 @@ module Rails
     end
 
     def encrypted_secrets
+      require "rails/secrets"
+
       template "config/secrets.yml.key" unless File.exist?("config/secrets.yml.key")
 
       unless File.exist?("config/secrets.yml.enc")
-        require "rails/secrets"
-
         template "config/secrets.yml.enc" do |prefill|
           Secrets.encrypt(prefill)
         end

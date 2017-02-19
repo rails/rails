@@ -24,6 +24,11 @@ module Rails
         end
       end
 
+      def generate_key
+        cipher = new_cipher
+        SecureRandom.hex(cipher.key_len)[0, cipher.key_len]
+      end
+
       def key
         ENV["RAILS_MASTER_KEY"] || read_key_file || raise(MissingKeyError)
       end
@@ -79,9 +84,13 @@ module Rails
           end
         end
 
+        def new_cipher
+          OpenSSL::Cipher.new("aes-256-cbc")
+        end
+
         def cipher(mode, data)
-          cipher = OpenSSL::Cipher.new("bf-cbc").public_send(mode)
-          cipher.key = Digest::SHA256.digest(key.to_s)
+          cipher = new_cipher.public_send(mode)
+          cipher.key = key
           cipher.update(data) << cipher.final
         end
     end

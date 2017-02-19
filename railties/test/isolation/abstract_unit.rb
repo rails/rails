@@ -106,7 +106,7 @@ module TestHelpers
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
-      ENV["RAILS_MASTER_KEY"] ||= SecureRandom.hex(16)
+      ENV["RAILS_MASTER_KEY"] ||= Rails::Secrets.generate_key
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
