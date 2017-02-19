@@ -17,7 +17,7 @@ module ActionDispatch
         # Takes a screenshot of the current page in the browser if the test
         # failed.
         #
-        # +take_screenshot+ is included in <tt>system_test_helper.rb</tt> that is
+        # +take_failed_screenshot+ is included in <tt>system_test_helper.rb</tt> that is
         # generated with the application. To take screenshots when a test fails
         # add +take_failed_screenshot+ to the teardown block before clearing
         # sessions.
@@ -26,8 +26,12 @@ module ActionDispatch
         end
 
         private
+          def image_name
+            passed? ? method_name : "failures_#{method_name}"
+          end
+
           def image_path
-            "tmp/screenshots/failures_#{method_name}.png"
+            "tmp/screenshots/#{image_name}.png"
           end
 
           def save_image
