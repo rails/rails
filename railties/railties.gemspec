@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
-  s.add_dependency "actionsystemtest", version
 
   s.add_dependency "rake", ">= 0.8.7"
   s.add_dependency "thor", ">= 0.18.1", "< 2.0"

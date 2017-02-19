@@ -7,6 +7,6 @@ class SystemTestGeneratorTest < Rails::Generators::TestCase
 
   def test_system_test_skeleton_is_created
     run_generator
-    assert_file "test/system/users_test.rb", /class UsersTest < ActionSystemTestCase/
+    assert_file "test/system/users_test.rb", /class UsersTest < ApplicationSystemTestCase/
   end
 end

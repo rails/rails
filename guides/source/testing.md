@@ -367,7 +367,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * [`ActionView::TestCase`](http://api.rubyonrails.org/classes/ActionView/TestCase.html)
 * [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
 * [`ActiveJob::TestCase`](http://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
-* [`ActionSystemTestCase`](http://api.rubyonrails.org/classes/ActionSystemTest.html)
+* [`ActionDispatch::SystemTestCase`](http://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
@@ -620,7 +620,7 @@ Here's what a freshly-generated system test looks like:
 ```ruby
 require "system_test_helper"
 
-class UsersCreateTest < ActionSystemTestCase
+class UsersCreateTest < ApplicationSystemTestCase
   # test "the truth" do
   #   assert true
   # end
@@ -649,7 +649,7 @@ Poltergeist. First add the Poltergeist gem to your Gemfile. Then in your
 require "test_helper"
 require "capybara/poltergeist"
 
-class ActionSystemTestCase < ActionSystemTest::Base
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :poltergeist
 end
 ```
@@ -661,7 +661,7 @@ argument, all other arguments are optional.
 ```ruby
 require "test_helper"
 
-class ActionSystemTestCase < ActionSystemTest::Base
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :firefox, on: 3000
 end
 ```
@@ -717,7 +717,7 @@ Now let's open that file and write our first assertion:
 ```ruby
 require "system_test_helper"
 
-class UsersTest < ActionSystemTestCase
+class UsersTest < ApplicationSystemTestCase
   test "viewing the index" do
     visit articles_path
     assert_text "h1", "Articles"

@@ -64,7 +64,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # System tests
     assert_file "test/system/product_lines_test.rb" do |test|
-      assert_match(/class ProductLinesTest < ActionSystemTestCase/, test)
+      assert_match(/class ProductLinesTest < ApplicationSystemTestCase/, test)
     end
 
     # Views

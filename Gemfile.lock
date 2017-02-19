@@ -49,10 +49,6 @@ PATH
       rack-test (~> 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionsystemtest (5.1.0.alpha)
-      actionpack (= 5.1.0.alpha)
-      activesupport (= 5.1.0.alpha)
-      capybara (~> 2.7.0)
     actionview (5.1.0.alpha)
       activesupport (= 5.1.0.alpha)
       builder (~> 3.1)
@@ -87,7 +83,6 @@ PATH
       sprockets-rails (>= 2.0.0)
     railties (5.1.0.alpha)
       actionpack (= 5.1.0.alpha)
-      actionsystemtest (= 5.1.0.alpha)
       activesupport (= 5.1.0.alpha)
       method_source
       rake (>= 0.8.7)
@@ -387,6 +382,7 @@ DEPENDENCIES
   blade
   blade-sauce_labs_plugin
   byebug
+  capybara (~> 2.7.0)
   coffee-rails
   dalli (>= 2.2.1)
   delayed_job

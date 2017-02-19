@@ -1,15 +1,14 @@
-require "active_support/testing/autorun"
-require "action_system_test"
+require "abstract_unit"
 
-class ActionSystemTestTest < ActiveSupport::TestCase
+class SystemTestCaseTest < ActiveSupport::TestCase
   test "driven_by sets Capybara's default driver to poltergeist" do
-    ActionSystemTest::Base.driven_by :poltergeist
+    ActionDispatch::SystemTestCase.driven_by :poltergeist
 
     assert_equal :poltergeist, Capybara.default_driver
   end
 
   test "driven_by sets Capybara's drivers respectively" do
-    ActionSystemTest::Base.driven_by :selenium, using: :chrome
+    ActionDispatch::SystemTestCase.driven_by :selenium, using: :chrome
 
     assert_includes Capybara.drivers, :selenium
     assert_includes Capybara.drivers, :chrome
@@ -17,6 +16,6 @@ class ActionSystemTestTest < ActiveSupport::TestCase
   end
 
   test "selenium? returns false if driver is poltergeist" do
-    assert_not ActionSystemTest::Base.selenium?(:poltergeist)
+    assert_not ActionDispatch::SystemTestCase.selenium?(:poltergeist)
   end
 end

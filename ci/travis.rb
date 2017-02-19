@@ -24,7 +24,6 @@ class Build
     "av"       => "actionview",
     "aj"       => "activejob",
     "ac"       => "actioncable",
-    "ast"      => "actionsystemtest",
     "guides"   => "guides"
   }
 

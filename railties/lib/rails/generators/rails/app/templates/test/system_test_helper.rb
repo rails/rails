@@ -1,6 +1,6 @@
 require "test_helper"
 
-class ActionSystemTestCase < ActionSystemTest::Base
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   teardown do
     take_failed_screenshot
     Capybara.reset_sessions!
