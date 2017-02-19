@@ -76,10 +76,16 @@ module ActionView
     #   # => /users
     def url_for(options = nil)
       case options
+      when :back
+        _back_url
       when String
-        options
-      when nil
-        super(only_path: _generate_paths_by_default)
+        if options =~ /[\/\#\?\s]/
+          options
+        else
+          helper_method_builder.handle_string_call(self, options)
+        end
+      when Symbol
+        helper_method_builder.handle_string_call(self, options)
       when Hash
         options = options.symbolize_keys
         unless options.key?(:only_path)
@@ -93,8 +99,6 @@ module ActionView
         end
 
         super(options)
-      when :back
-        _back_url
       when Array
         components = options.dup
         if _generate_paths_by_default
@@ -102,18 +106,12 @@ module ActionView
         else
           polymorphic_url(components, components.extract_options!)
         end
+      when Class
+        helper_method_builder.handle_class_call(self, options)
+      when nil
+        super(only_path: _generate_paths_by_default)
       else
-        method = _generate_paths_by_default ? :path : :url
-        builder = ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.send(method)
-
-        case options
-        when Symbol
-          builder.handle_string_call(self, options)
-        when Class
-          builder.handle_class_call(self, options)
-        else
-          builder.handle_model_call(self, options)
-        end
+        helper_method_builder.handle_model_call(self, options)
       end
     end
 
@@ -138,6 +136,12 @@ module ActionView
 
       def only_path?(host)
         _generate_paths_by_default unless host
+      end
+
+      def helper_method_builder
+        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.send(
+          _generate_paths_by_default ? :path : :url
+        )
       end
   end
 end
