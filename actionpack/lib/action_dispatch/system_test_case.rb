@@ -4,6 +4,7 @@ require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
+require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
 
 module ActionDispatch
   class SystemTestCase < IntegrationTest
@@ -92,6 +93,7 @@ module ActionDispatch
     # and Rails, any driver that is supported by Capybara is supported by system
     # tests as long as you include the required gems and files.
     include Capybara::DSL
+    include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
     def self.start_application # :nodoc:

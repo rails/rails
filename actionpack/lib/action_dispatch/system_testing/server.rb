@@ -16,7 +16,16 @@ module ActionDispatch
         end
 
         def setup
+          set_server
+          set_port
+        end
+
+        def set_server
           Capybara.server = :rails_puma
+        end
+
+        def set_port
+          Capybara.always_include_port = true
         end
     end
   end
