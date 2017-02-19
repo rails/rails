@@ -168,26 +168,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_match(/production:\n  secret_key_base: [\w\d]+/, Rails::Secrets.read)
   end
 
-  def test_rails_update_secrets
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-
-      assert_file "#{app_root}/config/secrets.yml", /development:\n  secret_key_base: [\w\d]+/, /(?!production:)/
-
-      assert_file "#{app_root}/config/secrets.yml.key", /[\w\d]+/
-      assert_file "#{app_root}/.gitignore", /config\/secrets.yml.key/, /(?!config\/secrets.yml.enc)/
-
-      assert File.exist?("config/secrets.yml.enc")
-      assert_no_match(/production:\n  secret_key_base: [\w\d]+/, IO.binread("config/secrets.yml.enc"))
-      assert_match(/production:\n  secret_key_base: [\w\d]+/, Rails::Secrets.read)
-    end
-  end
-
   def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]

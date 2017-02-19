@@ -1,7 +1,5 @@
 require "active_support"
 require "active_support/core_ext/string/strip"
-require "rails/generators/rails/app/app_generator"
-
 require "rails/secrets"
 
 module Rails
@@ -12,17 +10,11 @@ module Rails
         puts self.class.desc
       end
 
-      def perform
-        require_application_and_environment!
-
-        setup
-        edit
-      end
-
       def setup
-        require_application_and_environment!
+        require "rails/generators"
+        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
 
-        Rails::Generators::AppGenerator.new([ Rails.root ]).setup_encrypted_secrets
+        Rails::Generators::EncryptedSecretsGenerator.start
       end
 
       def edit

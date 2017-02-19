@@ -78,7 +78,6 @@ module Rails
 
     def config
       empty_directory "config"
-      encrypted_secrets
 
       inside "config" do
         template "routes.rb"
@@ -92,25 +91,6 @@ module Rails
         directory "environments"
         directory "initializers"
         directory "locales"
-      end
-    end
-
-    def encrypted_secrets
-      require "rails/secrets"
-
-      template "config/secrets.yml.key" unless File.exist?("config/secrets.yml.key")
-
-      unless File.exist?("config/secrets.yml.enc")
-        template "config/secrets.yml.enc" do |prefill|
-          Secrets.encrypt(prefill)
-        end
-      end
-
-      file_ignore = [ "", "# Ignore encrypted secrets key file.",
-        "config/secrets.yml.key", "" ].join("\n")
-
-      if File.exist?(".gitignore") && !File.read(".gitignore").include?(file_ignore)
-        append_to_file ".gitignore", file_ignore
       end
     end
 
@@ -240,17 +220,15 @@ module Rails
 
       def create_config_files
         build(:config)
+
+        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
+        Rails::Generators::EncryptedSecretsGenerator.start
       end
 
       def update_config_files
         build(:config_when_updating)
       end
       remove_task :update_config_files
-
-      def setup_encrypted_secrets
-        build(:encrypted_secrets)
-      end
-      remove_task :setup_encrypted_secrets
 
       def display_upgrade_guide_info
         say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
