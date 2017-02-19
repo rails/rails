@@ -273,8 +273,8 @@ module ActiveRecord
 
         yield td if block_given?
 
-        if options[:force] && data_source_exists?(table_name)
-          drop_table(table_name, options)
+        if options[:force]
+          drop_table(table_name, **options, if_exists: true)
         end
 
         result = execute schema_creation.accept td
