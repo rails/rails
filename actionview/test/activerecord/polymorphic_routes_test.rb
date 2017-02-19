@@ -86,8 +86,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_string
     with_test_routes do
-      # FIXME: why are these different? Symbol case passes through to
-      # `polymorphic_url`, but the String case doesn't.
+      assert_equal "/projects", polymorphic_path("projects")
       assert_equal "http://example.com/projects", polymorphic_url("projects")
       assert_equal "projects", url_for("projects")
     end
