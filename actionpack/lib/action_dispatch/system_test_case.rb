@@ -10,7 +10,7 @@ module ActionDispatch
   class SystemTestCase < IntegrationTest
     # = System Testing
     #
-    # System tests let you test real application in the browser. Because system
+    # System tests let you test applications in the browser. Because system
     # tests use a real browser experience you can test all of your JavaScript
     # easily from your test suite.
     #
@@ -36,10 +36,10 @@ module ActionDispatch
     #     end
     #   end
     #
-    # When generating an application or scaffold a +application_system_test_case.rb+ will also
-    # be generated containing the base class for system testing. This is where you
-    # can change the driver, add Capybara settings, and other configuration for
-    # your system tests.
+    # When generating an application or scaffold a +application_system_test_case.rb+
+    # file will also be generated containing the base class for system testing.
+    # This is where you can change the driver, add Capybara settings, and other
+    # configuration for your system tests.
     #
     #   require "test_helper"
     #
@@ -51,7 +51,7 @@ module ActionDispatch
     # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
     #
     # Changing the driver configuration options are easy. Let's say you want to use
-    # and the Firefox browser instead. In your +application_system_test_case.rb+
+    # the Firefox browser instead of Chrome. In your +application_system_test_case.rb+
     # file add the following:
     #
     #   require "test_helper"
@@ -61,8 +61,9 @@ module ActionDispatch
     #   end
     #
     # +driven_by+ has a required argument for the driver name. The keyword
-    # arguments are +:using+ for the browser (not applicable for headless drivers),
-    # and +:screen_size+ to change the size of the screen taking screenshots.
+    # arguments are +:using+ for the browser and +:screen_size+ to change the
+    # size of the browser screen. These two options are not applicable for
+    # headless drivers and will be silently ignored if passed.
     #
     # To use a headless driver, like Poltergeist, update your Gemfile to use
     # Poltergeist instead of Selenium and then declare the driver name in the
@@ -93,7 +94,7 @@ module ActionDispatch
 
     # System Test configuration options
     #
-    # The defaults settings are Selenium, using Chrome, with a screen size
+    # The default settings are Selenium, using Chrome, with a screen size
     # of 1400x1400.
     #
     # Examples:

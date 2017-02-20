@@ -628,8 +628,8 @@ end
 ```
 
 By default, system tests are run with the Selenium driver, using the Chrome
-browser, on port 21800 with Puma, and a screen size of 1400x1400. The next
-section explains how to change the default settings.
+browser, and a screen size of 1400x1400. The next section explains how to
+change the default settings.
 
 ### Changing the default settings
 
@@ -654,7 +654,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If you want to keep the Selenium driver but change the browser or port you
+If you want to keep the Selenium driver but change the browser you
 can pass Firefox and the port to driven by. The driver is a required
 argument, all other arguments are optional.
 
@@ -662,7 +662,7 @@ argument, all other arguments are optional.
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :firefox, on: 3000
+  driven_by :selenium, using: :firefox
 end
 ```
 
@@ -680,13 +680,13 @@ for additional settings.
 
 ### Screenshot Helper
 
-The `ScreenshotHelper` is a helper designed to capture screenshots of your test.
+The `ScreenshotHelper` is a helper designed to capture screenshots of your tests.
 This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
 Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in the `application_system_test_case.rb`
-file and will take a screenshot only if the test fails.
+`take_failed_screenshot` is automatically included in  `after_teardown` inside
+Rails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to
 take a screenshot of the browser.
