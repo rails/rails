@@ -2055,7 +2055,7 @@ module ActionDispatch
         #
         # NOTE: It is the url helper's responsibility to return the correct
         # set of options to be passed to the `url_for` call.
-        def direct(name, options = {}, &block)
+        def direct(name, options = nil, &block)
           case name
           when String, Symbol
             @set.add_url_helper(name, options, &block)

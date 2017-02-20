@@ -210,7 +210,11 @@ module ActionDispatch
 
           private
             def eval_block(t, args, options)
-              t.instance_exec(*args, defaults.merge(options), &block)
+              t.instance_exec(*args, merge_defaults(options), &block)
+            end
+
+            def merge_defaults(options)
+              defaults ? defaults.merge(options) : options
             end
         end
 
