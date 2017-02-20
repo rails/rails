@@ -4737,6 +4737,43 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   end
 end
 
+class TestCallableDefaultUrlOptions < ActionDispatch::IntegrationTest
+  class PostsController < ActionController::Base
+    def archive
+      render plain: "posts#archive"
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    default_url_options -> { { locale: I18n.locale == :en ? nil : I18n.locale } }
+
+    scope "(:locale)", locale: /en|id/ do
+      get "/posts/:year/:month/:day", to: "posts#archive", as: "archived_posts"
+    end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  include Routes.url_helpers
+
+  def test_dynamic_segment_with_callable_default_url_options
+    I18n.with_locale :en do
+      assert_equal "/posts/2014/12/13", archived_posts_path(2014, 12, 13)
+    end
+
+    reset!
+
+    I18n.with_locale :id do
+      assert_equal "/id/posts/2014/12/13", archived_posts_path(2014, 12, 13)
+    end
+  end
+end
+
 class TestErrorsInController < ActionDispatch::IntegrationTest
   class ::PostsController < ActionController::Base
     def foo

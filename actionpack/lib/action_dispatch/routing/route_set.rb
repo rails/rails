@@ -226,6 +226,8 @@ module ActionDispatch
           def call(t, args, inner_options)
             controller_options = t.url_options
             options = controller_options.merge @options
+            options = t._routes.default_url_options.merge options
+
             hash = handle_positional_args(controller_options,
                                           inner_options || {},
                                           args,
@@ -304,7 +306,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_writer :default_url_options
       attr_reader :env_key
 
       alias :routes :set
@@ -672,7 +674,15 @@ module ActionDispatch
                           :original_script_name, :relative_url_root]
 
       def optimize_routes_generation?
-        default_url_options.empty?
+        !@default_url_options.respond_to?(:call) && @default_url_options.empty?
+      end
+
+      def default_url_options
+        if @default_url_options.respond_to?(:call)
+          @default_url_options.call
+        else
+          @default_url_options
+        end
       end
 
       def find_script_name(options)
