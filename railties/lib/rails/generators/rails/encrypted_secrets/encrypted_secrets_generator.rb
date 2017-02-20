@@ -5,7 +5,7 @@ module Rails
   module Generators
     class EncryptedSecretsGenerator < Base
       def add_secrets_key_file
-        unless File.exist?("config/secrets.yml.key")
+        unless File.exist?("config/secrets.yml.key") || File.exist?("config/secrets.yml.enc")
           key = Rails::Secrets.generate_key
 
           say "Adding config/secrets.yml.key to store the encryption key: #{key}"
