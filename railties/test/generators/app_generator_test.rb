@@ -155,19 +155,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/cors.rb"
   end
 
-  def test_new_application_secrets
-    run_generator
-
-    assert_file "config/secrets.yml", /development:\n  secret_key_base: [\w\d]+/, /(?!production:)/
-
-    assert_file "config/secrets.yml.key", /[\w\d]+/
-    assert_file ".gitignore", /config\/secrets.yml.key/, /(?!config\/secrets.yml.enc)/
-
-    assert File.exist?("config/secrets.yml.enc")
-    assert_no_match(/production:\n  secret_key_base: [\w\d]+/, IO.binread("config/secrets.yml.enc"))
-    assert_match(/production:\n  secret_key_base: [\w\d]+/, Rails::Secrets.read)
-  end
-
   def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]

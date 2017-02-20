@@ -220,9 +220,6 @@ module Rails
 
       def create_config_files
         build(:config)
-
-        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
-        Rails::Generators::EncryptedSecretsGenerator.start
       end
 
       def update_config_files
