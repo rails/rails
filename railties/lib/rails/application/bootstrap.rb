@@ -79,8 +79,9 @@ INFO
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end
 
-      initializer :set_secrets_root, group: :all do |app|
-        Rails::Secrets.root = app.root
+      initializer :set_secrets_root, group: :all do
+        Rails::Secrets.root = root
+        Rails::Secrets.raise_on_missing_encryption_key = config.raise_on_missing_encryption_key
       end
     end
   end

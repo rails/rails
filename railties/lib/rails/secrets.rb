@@ -1,24 +1,22 @@
 require "yaml"
-require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
   class Secrets # :nodoc:
     class MissingKeyError < RuntimeError
       def initialize
-        super(<<-end_of_message.strip_heredoc)
-          Missing a key to decrypt secrets with.
-          Ask your team for your master key and put it in the
-          RAILS_MASTER_KEY environment variable or in a version control
-          ignored config/secrets.yml.key file
+        super(<<-end_of_message.squish)
+          Missing encryption key to decrypt secrets with.
+          Ask your team for your master key and put it in ENV["RAILS_MASTER_KEY"]
         end_of_message
       end
     end
 
+    @raise_on_missing_encryption_key = false
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
-      attr_writer :root
+      attr_writer :root, :raise_on_missing_encryption_key
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
@@ -36,7 +34,7 @@ module Rails
       end
 
       def key
-        ENV["RAILS_MASTER_KEY"] || read_key_file || raise(MissingKeyError)
+        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
       end
 
       def encrypt(text)
@@ -68,6 +66,10 @@ module Rails
       end
 
       private
+        def handle_missing_key
+          raise MissingKeyError if @raise_on_missing_encryption_key
+        end
+
         def read_key_file
           if File.exist?(key_path)
             IO.binread(key_path).strip
@@ -84,7 +86,7 @@ module Rails
 
         def preprocess(path)
           if path.end_with?(".enc")
-            decrypt(IO.binread(path))
+            key ? decrypt(IO.binread(path)) : ""
           else
             IO.read(path)
           end
