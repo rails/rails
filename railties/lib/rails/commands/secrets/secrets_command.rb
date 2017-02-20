@@ -1,5 +1,4 @@
 require "active_support"
-require "active_support/core_ext/string/strip"
 require "rails/secrets"
 
 module Rails

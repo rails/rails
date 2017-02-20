@@ -1,11 +1,17 @@
 require "yaml"
+require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
   class Secrets # :nodoc:
     class MissingKeyError < RuntimeError
       def initialize
-        super("Missing key to decrypt secrets with. Put your key in the RAILS_MASTER_KEY environment variable or in a version control ignored config/secrets.yml.key file")
+        super(<<-end_of_message.strip_heredoc)
+          Missing a key to decrypt secrets with.
+          Ask your team for your master key and put it in the
+          RAILS_MASTER_KEY environment variable or in a version control
+          ignored config/secrets.yml.key file
+        end_of_message
       end
     end
 
