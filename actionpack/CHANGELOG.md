@@ -1,3 +1,7 @@
+*   Add the support for custom headers for #process in controller test case
+
+    *Daniel Deng*
+
 *   Remove deprecated `.to_prepare`, `.to_cleanup`, `.prepare!` and `.cleanup!` from `ActionDispatch::Reloader`.
 
     *Rafael Mendonça França*
