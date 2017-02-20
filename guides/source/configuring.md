@@ -1308,7 +1308,7 @@ end
 Otherwise, in every request Rails walks the application tree to check if
 anything has changed.
 
-On Linux and Mac OS X no additional gems are needed, but some are required
+On Linux and macOS no additional gems are needed, but some are required
 [for *BSD](https://github.com/guard/listen#on-bsd) and
 [for Windows](https://github.com/guard/listen#on-windows).
 

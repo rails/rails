@@ -207,7 +207,7 @@ default .coffee and .scss files will not be precompiled on their own. See
 precompiling works.
 
 NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
-If you are using Mac OS X or Windows, you have a JavaScript runtime installed in
+If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
 
 You can also disable generation of controller specific asset files by adding the
@@ -1117,7 +1117,7 @@ config.assets.js_compressor = :uglifier
 ```
 
 NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
-supported runtime in order to use `uglifier`. If you are using Mac OS X or
+supported runtime in order to use `uglifier`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
 
