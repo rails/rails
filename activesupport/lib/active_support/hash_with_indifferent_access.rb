@@ -316,20 +316,4 @@ module ActiveSupport
   end
 end
 
-class HashWithIndifferentAccess < ActiveSupport::HashWithIndifferentAccess
-  def initialize(*)
-    ActiveSupport::Deprecation.warn "HashWithIndifferentAccess is deprecated!" \
-                                    "Use ActiveSupport::HashWithIndifferentAccess instead."
-    super
-  end
-
-  def self.inherited(*)
-    ActiveSupport::Deprecation.warn "HashWithIndifferentAccess is deprecated!" \
-                                    "Use ActiveSupport::HashWithIndifferentAccess instead."
-    super
-  end
-
-  def encode_with(coder)
-    coder.represent_object(nil, ActiveSupport::HashWithIndifferentAccess.new(self))
-  end
-end
+HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess

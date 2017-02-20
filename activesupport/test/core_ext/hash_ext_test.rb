@@ -8,8 +8,6 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
 
 class HashExtTest < ActiveSupport::TestCase
-  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
-
   class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
   end
 
@@ -1080,25 +1078,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal 3, hash[:b]
   end
-
-  def test_top_level_hash_with_indifferent_access_is_deprecated
-    assert_deprecated do
-      ::HashWithIndifferentAccess.new
-    end
-  end
-
-  def test_top_level_hash_with_indifferent_access_can_be_extended
-    assert_deprecated do
-      Class.new(::HashWithIndifferentAccess)
-    end
-  end
-
-  def test_yaml_encoding_outputs_an_activesupport_namespaced_constant
-    ActiveSupport::Deprecation.silence do
-      instance = ::HashWithIndifferentAccess.new
-      assert_includes instance.to_yaml, "ActiveSupport::HashWithIndifferentAccess"
-    end
-  end
 end
 
 class IWriteMyOwnXML
@@ -1144,8 +1123,6 @@ class HashExtToParamTests < ActiveSupport::TestCase
 end
 
 class HashToXmlTest < ActiveSupport::TestCase
-  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
-
   def setup
     @xml_options = { root: :person, skip_instruct: true, indent: 0 }
   end
