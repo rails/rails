@@ -65,11 +65,11 @@ module ActiveRecord
       assert_match expected_key_digest, topics.cache_key(:written_on)
     end
 
-    #sqlite3 changed the behaviour of pluck unkown column
-    #test "cache_key with unknown timestamp column" do
-      #topics = Topic.where("title like ?", "%Topic%")
-      #assert_raises(ActiveRecord::StatementInvalid) { topics.cache_key(:published_at) }
-    #end
+    # sqlite3 changed the behaviour of pluck unkown column
+    # test "cache_key with unknown timestamp column" do
+    #   topics = Topic.where("title like ?", "%Topic%")
+    #   assert_raises(ActiveRecord::StatementInvalid) { topics.cache_key(:published_at) }
+    # end
 
     test "collection proxy provides a cache_key" do
       developers = projects(:active_record).developers
