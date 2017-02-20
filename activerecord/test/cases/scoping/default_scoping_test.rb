@@ -10,6 +10,8 @@ require "concurrent/atomic/cyclic_barrier"
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
 
+  self.use_transactional_tests = false
+
   def test_default_scope
     expected = Developer.all.merge!(order: "salary DESC").to_a.collect(&:salary)
     received = DeveloperOrderedBySalary.all.collect(&:salary)
