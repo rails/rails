@@ -17,12 +17,12 @@ module ActionDispatch
     # To create a system test in your application, extend your test class
     # from <tt>ApplicationSystemTestCase</tt>. System tests use Capybara as a
     # base and allow you to configure the settings through your
-    # <tt>system_test_helper.rb</tt> file that is generated with a new
+    # <tt>application_system_test_case.rb</tt> file that is generated with a new
     # application or scaffold.
     #
     # Here is an example system test:
     #
-    #   require 'system_test_helper'
+    #   require 'application_system_test_case'
     #
     #   class Users::CreateTest < ApplicationSystemTestCase
     #     test "adding a new user" do
@@ -36,7 +36,7 @@ module ActionDispatch
     #     end
     #   end
     #
-    # When generating an application or scaffold a +system_test_helper.rb+ will also
+    # When generating an application or scaffold a +application_system_test_case.rb+ will also
     # be generated containing the base class for system testing. This is where you
     # can change the driver, add Capybara settings, and other configuration for
     # your system tests.
@@ -44,28 +44,20 @@ module ActionDispatch
     #   require "test_helper"
     #
     #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-    #     teardown do
-    #       take_failed_screenshot
-    #       Capybara.reset_sessions!
-    #     end
+    #     driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
     #   end
     #
     # By default, <tt>ActionDispatch::SystemTestCase</tt> is driven by the
     # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
     #
     # Changing the driver configuration options are easy. Let's say you want to use
-    # and the Firefox browser instead. In your +system_test_helper.rb+
+    # and the Firefox browser instead. In your +application_system_test_case.rb+
     # file add the following:
     #
     #   require "test_helper"
     #
     #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     #     driven_by :selenium, using: :firefox
-    #
-    #     teardown do
-    #       take_failed_screenshot
-    #       Capybara.reset_sessions!
-    #     end
     #   end
     #
     # +driven_by+ has a required argument for the driver name. The keyword
@@ -74,7 +66,7 @@ module ActionDispatch
     #
     # To use a headless driver, like Poltergeist, update your Gemfile to use
     # Poltergeist instead of Selenium and then declare the driver name in the
-    # +system_test_helper.rb+ file. In this case you would leave out the +:using+
+    # +application_system_test_case.rb+ file. In this case you would leave out the +:using+
     # option because the driver is headless.
     #
     #   require "test_helper"
@@ -82,11 +74,6 @@ module ActionDispatch
     #
     #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     #     driven_by :poltergeist
-    #
-    #     teardown do
-    #       take_failed_screenshot
-    #       Capybara.reset_sessions!
-    #     end
     #   end
     #
     # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara

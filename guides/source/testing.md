@@ -34,7 +34,7 @@ Rails creates a `test` directory for you as soon as you create a Rails project u
 ```bash
 $ ls -F test
 controllers/           helpers/               mailers/               system/                test_helper.rb
-fixtures/              integration/           models/                system_test_helper.rb
+fixtures/              integration/           models/                application_system_test_case.rb
 ```
 
 The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
@@ -51,7 +51,7 @@ A `jobs` directory will also be created when an associated test is first generat
 
 The `test_helper.rb` file holds the default configuration for your tests.
 
-The `system_test_helper.rb` holds the default configuration for your system
+The `application_system_test_case.rb` holds the default configuration for your system
 tests.
 
 
@@ -618,12 +618,12 @@ $ bin/rails generate system_test users_create_test.rb
 Here's what a freshly-generated system test looks like:
 
 ```ruby
-require "system_test_helper"
+require "application_system_test_case"
 
 class UsersCreateTest < ApplicationSystemTestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  visit users_url
+
+  assert_selector "h1", text: "Users"
 end
 ```
 
@@ -636,14 +636,14 @@ section explains how to change the default settings.
 Rails makes changing the default settings for system test very simple. All
 the setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, a `system_test_helper.rb` file
+When you generate a new application or scaffold, a `application_system_test_case.rb` file
 is created in the test directory. This is where all the configuration for your
 system tests should live.
 
 If you want to change the default settings you can simple change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
 Poltergeist. First add the Poltergeist gem to your Gemfile. Then in your
-`system_test_helper.rb` file do the following:
+`application_system_test_case.rb` file do the following:
 
 ```ruby
 require "test_helper"
@@ -672,7 +672,7 @@ be used for non-headless drivers like Selenium), `:on` for the port Puma should
 use, and `:screen_size` to change the size of the screen for screenshots.
 
 If your Capybara configuration requires more setup than provided by Rails, all
-of that configuration can be put into the `system_test_helper.rb` file provided
+of that configuration can be put into the `application_system_test_case.rb` file provided
 by Rails.
 
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
@@ -685,7 +685,7 @@ This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
 Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in the `system_test_helper.rb`
+`take_failed_screenshot` is automatically included in the `application_system_test_case.rb`
 file and will take a screenshot only if the test fails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to
@@ -715,12 +715,12 @@ previous command we should see:
 Now let's open that file and write our first assertion:
 
 ```ruby
-require "system_test_helper"
+require "application_system_test_case"
 
 class UsersTest < ApplicationSystemTestCase
   test "viewing the index" do
     visit articles_path
-    assert_text "h1", "Articles"
+    assert_selector "h1", text: "Articles"
   end
 end
 ```
