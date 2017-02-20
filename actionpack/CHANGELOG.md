@@ -4,7 +4,7 @@
 
     See PR [#26703](https://github.com/rails/rails/pull/26703)
 
-    *Eileen M.Uchitelle*
+    *Eileen M. Uchitelle*
 
 *   Remove deprecated `.to_prepare`, `.to_cleanup`, `.prepare!` and `.cleanup!` from `ActionDispatch::Reloader`.
 
