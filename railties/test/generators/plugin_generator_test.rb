@@ -491,6 +491,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
+    assert_no_directory "test/dummy/.git"
   end
 
   def test_skipping_test_files

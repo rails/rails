@@ -91,6 +91,7 @@ task default: :test
       opts[:skip_bundle] = true
       opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,7 +113,6 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
         remove_file "doc"
         remove_file "Gemfile"
