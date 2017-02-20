@@ -1,3 +1,42 @@
+*   Add the `direct` method to the routing DSL
+
+    This new method allows customization of the routing behavior in two ways:
+
+    1.  Custom url helpers:
+
+        ``` ruby
+        direct(:apple) { "http://www.apple.com" }
+
+        >> apple_url
+        => "http://www.apple.com"
+        ```
+
+        This has the advantage of being available everywhere url helpers are available
+        unlike custom url helpers defined in helper modules, etc.
+
+    2.  Custom polymorphic mappings:
+
+        ``` ruby
+        resource :basket
+        direct(class: "Basket") { [:basket] }
+        ```
+
+        ``` erb
+        <%= form_for @basket do |form| %>
+        <!-- basket form -->
+        <% end %>
+        ```
+
+        This generates the correct singular URL for the form instead of the default
+        resources member url, e.g. `/basket` vs. `/basket/:id`.
+
+    Currently both forms of `direct` do not take anything from the current routing
+    scope so it's recommended to declare them outside of any `namespace` or `scope` block.
+
+    Fixes #1769.
+
+    *Andrew White*
+
 *   Add `ActionDispatch::SystemTestCase` to Action Pack
 
     Adds Capybara integration directly into Rails through Action Pack!
