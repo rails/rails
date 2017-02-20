@@ -6,8 +6,9 @@ module Rails
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
       def help
-        super
-        puts self.class.desc
+        say "Usage:\n  #{self.class.banner}"
+        say ""
+        say self.class.desc
       end
 
       def setup
