@@ -160,7 +160,7 @@ module ActionDispatch
 
         def add_url_helper(name, defaults, &block)
           @custom_helpers << name
-          helper = CustomUrlHelper.new(name, defaults, &block)
+          helper = DirectUrlHelper.new(name, defaults, &block)
 
           @path_helpers_module.module_eval do
             define_method(:"#{name}_path") do |*args|
@@ -175,47 +175,6 @@ module ActionDispatch
               helper.call(self, args, options)
             end
           end
-        end
-
-        class CustomUrlHelper
-          attr_reader :name, :defaults, :block
-
-          def initialize(name, defaults, &block)
-            @name = name
-            @defaults = defaults
-            @block = block
-          end
-
-          def call(t, args, options, outer_options = {})
-            url_options = eval_block(t, args, options)
-
-            case url_options
-            when String
-              t.url_for(url_options)
-            when Hash
-              t.url_for(url_options.merge(outer_options))
-            when ActionController::Parameters
-              if url_options.permitted?
-                t.url_for(url_options.to_h.merge(outer_options))
-              else
-                raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
-              end
-            when Array
-              opts = url_options.extract_options!
-              t.url_for(url_options.push(opts.merge(outer_options)))
-            else
-              t.url_for([url_options, outer_options])
-            end
-          end
-
-          private
-            def eval_block(t, args, options)
-              t.instance_exec(*args, merge_defaults(options), &block)
-            end
-
-            def merge_defaults(options)
-              defaults ? defaults.merge(options) : options
-            end
         end
 
         class UrlHelper
@@ -380,7 +339,7 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options
-      attr_reader :env_key
+      attr_reader :env_key, :polymorphic_mappings
 
       alias :routes :set
 
@@ -422,6 +381,7 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new self
+        @polymorphic_mappings = {}
       end
 
       def eager_load!
@@ -483,6 +443,7 @@ module ActionDispatch
         named_routes.clear
         set.clear
         formatter.clear
+        @polymorphic_mappings.clear
         @prepend.each { |blk| eval_block(blk) }
       end
 
@@ -552,6 +513,14 @@ module ActionDispatch
 
             def optimize_routes_generation?
               @_proxy.optimize_routes_generation?
+            end
+
+            def polymorphic_url(record_or_hash_or_array, options = {})
+              @_proxy.polymorphic_url(record_or_hash_or_array, options)
+            end
+
+            def polymorphic_path(record_or_hash_or_array, options = {})
+              @_proxy.polymorphic_path(record_or_hash_or_array, options)
             end
 
             def _routes; @_proxy._routes; end
@@ -629,8 +598,59 @@ module ActionDispatch
         route
       end
 
+      def add_polymorphic_mapping(options, &block)
+        defaults = options.dup
+        klass = defaults.delete(:class)
+        if klass.nil?
+          raise ArgumentError, "Missing :class key from polymorphic mapping options"
+        end
+
+        @polymorphic_mappings[klass] = DirectUrlHelper.new(klass, defaults, &block)
+      end
+
       def add_url_helper(name, options, &block)
         named_routes.add_url_helper(name, options, &block)
+      end
+
+      class DirectUrlHelper
+        attr_reader :name, :defaults, :block
+
+        def initialize(name, defaults, &block)
+          @name = name
+          @defaults = defaults
+          @block = block
+        end
+
+        def call(t, args, options, outer_options = {})
+          url_options = eval_block(t, args, options)
+
+          case url_options
+          when String
+            t.url_for(url_options)
+          when Hash
+            t.url_for(url_options.merge(outer_options))
+          when ActionController::Parameters
+            if url_options.permitted?
+              t.url_for(url_options.to_h.merge(outer_options))
+            else
+              raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
+            end
+          when Array
+            opts = url_options.extract_options!
+            t.url_for(url_options.push(opts.merge(outer_options)))
+          else
+            t.url_for([url_options, outer_options])
+          end
+        end
+
+        private
+          def eval_block(t, args, options)
+            t.instance_exec(*args, merge_defaults(options), &block)
+          end
+
+          def merge_defaults(options)
+            defaults ? defaults.merge(options) : options
+          end
       end
 
       class Generator

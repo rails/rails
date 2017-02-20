@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
+class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
   class Linkable
     attr_reader :id
 
@@ -17,12 +17,37 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   class Collection < Linkable; end
   class Product < Linkable; end
 
+  class Model
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
+    attr_reader :id
+
+    def initialize(id = nil)
+      @id = id
+    end
+
+    def model_name
+      @_model_name ||= ActiveModel::Name.new(self.class, nil, self.class.name.demodulize)
+    end
+
+    def persisted?
+      false
+    end
+  end
+
+  class Basket < Model; end
+  class User < Model; end
+  class Video < Model; end
+
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     default_url_options host: "www.example.com"
 
     root to: "pages#index"
     get "/basket", to: "basket#show", as: :basket
+    get "/profile", to: "users#profile", as: :profile
+    get "/media/:id", to: "media#show", as: :media
 
     resources :categories, :collections, :products
 
@@ -40,6 +65,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     direct(:array)    { [:admin, :dashboard] }
     direct(:options)  { |options| [:products, options] }
     direct(:defaults, size: 10) { |options| [:products, options] }
+
+    direct(class: "Basket") { |basket| [:basket] }
+    direct(class: "User", anchor: "details") { |user, options| [:profile, options] }
+    direct(class: "Video") { |video| [:media, { id: video.id }] }
   end
 
   APP = build_app Routes
@@ -54,6 +83,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     @category = Category.new("1")
     @collection = Collection.new("2")
     @product = Product.new("3")
+    @basket = Basket.new
+    @user = User.new
+    @video = Video.new("4")
     @path_params = { "controller" => "pages", "action" => "index" }
     @unsafe_params = ActionController::Parameters.new(@path_params)
     @safe_params = ActionController::Parameters.new(@path_params).permit(:controller, :action)
@@ -94,6 +126,19 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/products?size=10", Routes.url_helpers.defaults_path
     assert_equal "/products?size=20", defaults_path(size: 20)
     assert_equal "/products?size=20", Routes.url_helpers.defaults_path(size: 20)
+
+    assert_equal "/basket", polymorphic_path(@basket)
+    assert_equal "/basket", Routes.url_helpers.polymorphic_path(@basket)
+
+    assert_equal "/profile#details", polymorphic_path(@user)
+    assert_equal "/profile#details", Routes.url_helpers.polymorphic_path(@user)
+
+    assert_equal "/profile#password", polymorphic_path(@user, anchor: "password")
+    assert_equal "/profile#password", Routes.url_helpers.polymorphic_path(@user, anchor: "password")
+
+    assert_equal "/media/4", polymorphic_path(@video)
+    assert_equal "/media/4", Routes.url_helpers.polymorphic_path(@video)
+    assert_equal "/media/4", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call(self, @video)
   end
 
   def test_direct_urls
@@ -131,6 +176,21 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/products?size=10", Routes.url_helpers.defaults_url
     assert_equal "http://www.example.com/products?size=20", defaults_url(size: 20)
     assert_equal "http://www.example.com/products?size=20", Routes.url_helpers.defaults_url(size: 20)
+
+    assert_equal "http://www.example.com/basket", polymorphic_url(@basket)
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.polymorphic_url(@basket)
+    assert_equal "http://www.example.com/basket", polymorphic_url(@basket)
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.polymorphic_url(@basket)
+
+    assert_equal "http://www.example.com/profile#details", polymorphic_url(@user)
+    assert_equal "http://www.example.com/profile#details", Routes.url_helpers.polymorphic_url(@user)
+
+    assert_equal "http://www.example.com/profile#password", polymorphic_url(@user, anchor: "password")
+    assert_equal "http://www.example.com/profile#password", Routes.url_helpers.polymorphic_url(@user, anchor: "password")
+
+    assert_equal "http://www.example.com/media/4", polymorphic_url(@video)
+    assert_equal "http://www.example.com/media/4", Routes.url_helpers.polymorphic_url(@video)
+    assert_equal "http://www.example.com/media/4", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.url.handle_model_call(self, @video)
   end
 
   def test_raises_argument_error
@@ -139,6 +199,16 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_raises ArgumentError do
       routes.draw do
         direct(1) { "http://www.rubyonrails.org" }
+      end
+    end
+  end
+
+  def test_missing_class_raises_argument_error
+    routes = ActionDispatch::Routing::RouteSet.new
+
+    assert_raises ArgumentError do
+      routes.draw do
+        direct(fragment: "core") { "http://www.rubyonrails.org" }
       end
     end
   end

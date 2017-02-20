@@ -264,9 +264,9 @@ module ApplicationTests
     end
 
     {
-      "development" => ["baz", "http://www.apple.com"],
-      "production"  => ["bar", "http://www.microsoft.com"]
-    }.each do |mode, (expected_action, expected_url)|
+      "development" => ["baz", "http://www.apple.com", "/dashboard"],
+      "production"  => ["bar", "http://www.microsoft.com", "/profile"]
+    }.each do |mode, (expected_action, expected_url, expected_mapping)|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController
@@ -281,6 +281,25 @@ module ApplicationTests
             def custom
               render plain: custom_url
             end
+
+            def mapping
+              render plain: url_for(User.new)
+            end
+          end
+        RUBY
+
+        app_file "app/models/user.rb", <<-RUBY
+          class User
+            extend ActiveModel::Naming
+            include ActiveModel::Conversion
+
+            def model_name
+              @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+            end
+
+            def persisted?
+              false
+            end
           end
         RUBY
 
@@ -288,8 +307,10 @@ module ApplicationTests
           Rails.application.routes.draw do
             get 'foo', to: 'foo#bar'
             get 'custom', to: 'foo#custom'
+            get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.microsoft.com" }
+            direct(class: "User") { "/profile" }
           end
         RUBY
 
@@ -301,12 +322,17 @@ module ApplicationTests
         get "/custom"
         assert_equal "http://www.microsoft.com", last_response.body
 
+        get "/mapping"
+        assert_equal "/profile", last_response.body
+
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get 'foo', to: 'foo#baz'
             get 'custom', to: 'foo#custom'
+            get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.apple.com" }
+            direct(class: "User") { "/dashboard" }
           end
         RUBY
 
@@ -317,6 +343,9 @@ module ApplicationTests
 
         get "/custom"
         assert_equal expected_url, last_response.body
+
+        get "/mapping"
+        assert_equal expected_mapping, last_response.body
       end
     end
 
@@ -379,7 +408,11 @@ module ApplicationTests
           end
 
           def custom
-            render text: custom_url
+            render plain: custom_url
+          end
+
+          def mapping
+            render plain: url_for(User.new)
           end
         end
       RUBY
@@ -388,6 +421,21 @@ module ApplicationTests
         class BarController < ApplicationController
           def index
             render plain: "bar"
+          end
+        end
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User
+          extend ActiveModel::Naming
+          include ActiveModel::Conversion
+
+          def model_name
+            @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+          end
+
+          def persisted?
+            false
           end
         end
       RUBY
@@ -412,6 +460,12 @@ module ApplicationTests
         Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
           get 'bar', to: 'bar#index'
+
+          get 'custom', to: 'foo#custom'
+          direct(:custom) { 'http://www.apple.com' }
+
+          get 'mapping', to: 'foo#mapping'
+          direct(class: 'User') { '/profile' }
         end
       RUBY
 
@@ -424,6 +478,14 @@ module ApplicationTests
       get "/bar"
       assert_equal "bar", last_response.body
       assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
+
+      get "/custom"
+      assert_equal "http://www.apple.com", last_response.body
+      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+
+      get "/mapping"
+      assert_equal "/profile", last_response.body
+      assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -441,6 +503,18 @@ module ApplicationTests
       assert_equal 404, last_response.status
       assert_raises NoMethodError do
         assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
+      end
+
+      get "/custom"
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+      end
+
+      get "/mapping"
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
       end
     end
 
@@ -463,10 +537,27 @@ module ApplicationTests
         end
       RUBY
 
+      app_file "app/models/user.rb", <<-RUBY
+        class User
+          extend ActiveModel::Naming
+          include ActiveModel::Conversion
+
+          def model_name
+            @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+          end
+
+          def persisted?
+            false
+          end
+        end
+      RUBY
+
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/foo', to: 'foo#index', as: 'foo'
+          get 'users', to: 'foo#users', as: 'users'
           direct(:microsoft) { 'http://www.microsoft.com' }
+          direct(class: 'User') { '/profile' }
         end
       RUBY
 
@@ -474,10 +565,12 @@ module ApplicationTests
       assert_equal "foo", last_response.body
       assert_equal "/en/foo", Rails.application.routes.url_helpers.foo_path(locale: "en")
       assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+      assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/bar', to: 'bar#index', as: 'foo'
+          get 'users', to: 'foo#users', as: 'users'
           direct(:apple) { 'http://www.apple.com' }
         end
       RUBY
@@ -491,6 +584,7 @@ module ApplicationTests
       assert_equal "bar", last_response.body
       assert_equal "/en/bar", Rails.application.routes.url_helpers.foo_path(locale: "en")
       assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.apple_url
+      assert_equal "/users", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       assert_raises NoMethodError do
         assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url

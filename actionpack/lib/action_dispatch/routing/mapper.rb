@@ -2021,8 +2021,8 @@ module ActionDispatch
       end
 
       module DirectUrls
-        # Define a custom url helper that will be added to the url helpers
-        # module. This allows you override and/or replace the default behavior
+        # Define custom routing behavior that will be added to the application's
+        # routes. This allows you override and/or replace the default behavior
         # of routing helpers, e.g:
         #
         #   direct :homepage do
@@ -2037,14 +2037,44 @@ module ActionDispatch
         #     { controller: 'pages', action: 'index', subdomain: 'www' }
         #   end
         #
-        # The return value must be a valid set of arguments for `url_for` which
-        # will actually build the url string. This can be one of the following:
+        # The above example show how to define a custom url helper but it's also
+        # possible to alter the behavior of `polymorphic_url` and consequently the
+        # behavior of `link_to` and `form_for` when passed a model instance, e.g:
+        #
+        #   direct class: "Basket" do
+        #     [:basket]
+        #   end
+        #
+        # NOTE: This custom behavior only applies to simple polymorphic urls where
+        # a single model instance is passed and not more complicated forms, e.g:
+        #
+        #   # config/routes.rb
+        #   resource :profile
+        #   namespace :admin do
+        #     resources :users
+        #   end
+        #
+        #   direct(class: "User") { [:profile] }
+        #
+        #   # app/views/application/_menu.html.erb
+        #   link_to 'Profile', @current_user
+        #   link_to 'Profile', [:admin, @current_user]
+        #
+        # The first `link_to` will generate '/profile' but the second will generate
+        # the standard polymorphic url of '/admin/users/1'.
+        #
+        # The return value from the block passed to `direct` must be a valid set of
+        # arguments for `url_for` which will actually build the url string. This can
+        # be one of the following:
         #
         #   * A string, which is treated as a generated url
         #   * A hash, e.g. { controller: 'pages', action: 'index' }
         #   * An array, which is passed to `polymorphic_url`
         #   * An Active Model instance
         #   * An Active Model class
+        #
+        # NOTE: Other url helpers can be called in the block but be careful not to invoke
+        # your custom url helper again otherwise it will result in a stack overflow error
         #
         # You can also specify default options that will be passed through to
         # your url helper definition, e.g:
@@ -2053,14 +2083,28 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size)) ]
         #   end
         #
-        # NOTE: It is the url helper's responsibility to return the correct
-        # set of options to be passed to the `url_for` call.
-        def direct(name, options = nil, &block)
-          case name
+        # You can pass options to a polymorphic mapping do - the arity for the block
+        # needs to be two as the instance is passed as the first argument, e.g:
+        #
+        #   direct class: 'Basket', anchor: 'items' do |basket, options|
+        #     [:basket, options]
+        #   end
+        #
+        # This generates the url '/basket#items' because when the last item in an
+        # array passed to `polymorphic_url` is a hash then it's treated as options
+        # to the url helper that gets called.
+        #
+        # NOTE: The `direct` method doesn't observe the current scope in routes.rb
+        # and because of this it's recommended to define them outside of any blocks
+        # such as `namespace` or `scope`.
+        def direct(name_or_hash, options = nil, &block)
+          case name_or_hash
+          when Hash
+            @set.add_polymorphic_mapping(name_or_hash, &block)
           when String, Symbol
-            @set.add_url_helper(name, options, &block)
+            @set.add_url_helper(name_or_hash, options, &block)
           else
-            raise ArgumentError, "The direct method only accepts a string or symbol"
+            raise ArgumentError, "The direct method only accepts a hash, string or symbol"
           end
         end
       end
