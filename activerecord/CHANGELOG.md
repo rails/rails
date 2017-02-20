@@ -1,3 +1,9 @@
+*   Set polymorphic type column to NULL on `dependent: :nullify` strategy. 
+    
+    On polymorphic associations both the `foreign key` and the `foreign type` columns will be set to NULL.
+    
+    *Laerti Papa*
+
 *   Deprecate passing `migrations_paths` to `connection.assume_migrated_upto_version`.
 
     *Ryuta Kamizono*
