@@ -2,6 +2,8 @@ require "active_support"
 require "active_support/file_update_checker"
 require "active_support/core_ext/array/wrap"
 
+# :enddoc:
+
 module I18n
   class Railtie < Rails::Railtie
     config.i18n = ActiveSupport::OrderedOptions.new
