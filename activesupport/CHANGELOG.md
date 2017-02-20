@@ -1,3 +1,9 @@
+*   Deprecated the top level `HashWithIndifferentAccess` constant.
+
+    Only `ActiveSupport::HashWithIndifferentAccess` should be used now.
+
+    *Robin Dupret* (#27925)
+
 *   Deprecate `.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*
