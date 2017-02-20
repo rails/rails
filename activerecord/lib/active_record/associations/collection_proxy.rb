@@ -1062,10 +1062,6 @@ module ActiveRecord
         self
       end
 
-      def respond_to?(name, include_private = false)
-        super || scope.respond_to?(name, include_private)
-      end
-
       delegate_methods = [
         QueryMethods,
         SpawnMethods,
@@ -1083,6 +1079,10 @@ module ActiveRecord
 
         def exec_queries
           load_target
+        end
+
+        def respond_to_missing?(method, _)
+          scope.respond_to?(method) || super
         end
 
         def method_missing(method, *args, &block)
