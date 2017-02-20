@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "abstract_unit"
 
 class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   class Linkable
@@ -19,15 +19,15 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
-    default_url_options host: 'www.example.com'
+    default_url_options host: "www.example.com"
 
-    root to: 'pages#index'
-    get '/basket', to: 'basket#show', as: :basket
+    root to: "pages#index"
+    get "/basket", to: "basket#show", as: :basket
 
     resources :categories, :collections, :products
 
     namespace :admin do
-      get '/dashboard', to: 'dashboard#index'
+      get "/dashboard", to: "dashboard#index"
     end
 
     direct(:website)  { "http://www.rubyonrails.org" }
@@ -52,7 +52,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     @category = Category.new("1")
     @collection = Collection.new("2")
     @product = Product.new("3")
-    @path_params = { 'controller' => 'pages', 'action' => 'index' }
+    @path_params = { "controller" => "pages", "action" => "index" }
     @unsafe_params = ActionController::Parameters.new(@path_params)
     @safe_params = ActionController::Parameters.new(@path_params).permit(:controller, :action)
   end

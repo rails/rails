@@ -493,7 +493,7 @@ module ApplicationTests
       assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.apple_url
 
       assert_raises NoMethodError do
-        assert_equal 'http://www.microsoft.com', Rails.application.routes.url_helpers.microsoft_url
+        assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
       end
     end
 
