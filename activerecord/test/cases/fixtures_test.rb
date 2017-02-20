@@ -640,6 +640,8 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   def test_transaction_created_on_connection_notification
     connection = stub(transaction_open?: false)
     connection.expects(:begin_transaction).with(joinable: false)
+    pool = connection.stubs(:pool).returns(ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.spec))
+    pool.stubs(:lock_thread=).with(false)
     fire_connection_notification(connection)
   end
 
@@ -647,11 +649,15 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     # Mocha is not thread-safe so define our own stub to test
     connection = Class.new do
       attr_accessor :rollback_transaction_called
+      attr_accessor :pool
       def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
+    end.new
+    connection.pool = Class.new do
+      def lock_thread=(lock_thread); false; end
     end.new
     fire_connection_notification(connection)
     teardown_fixtures
