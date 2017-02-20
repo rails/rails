@@ -2056,7 +2056,12 @@ module ActionDispatch
         # NOTE: It is the url helper's responsibility to return the correct
         # set of options to be passed to the `url_for` call.
         def direct(name, options = {}, &block)
-          @set.add_url_helper(name, options, &block)
+          case name
+          when String, Symbol
+            @set.add_url_helper(name, options, &block)
+          else
+            raise ArgumentError, "The direct method only accepts a string or symbol"
+          end
         end
       end
 

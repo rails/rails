@@ -31,6 +31,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     end
 
     direct(:website)  { "http://www.rubyonrails.org" }
+    direct("string")  { "http://www.rubyonrails.org" }
     direct(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
     direct(:params)   { |params| params }
     direct(:symbol)   { :basket }
@@ -60,6 +61,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   def test_direct_paths
     assert_equal "http://www.rubyonrails.org", website_path
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.website_path
+
+    assert_equal "http://www.rubyonrails.org", string_path
+    assert_equal "http://www.rubyonrails.org", Routes.url_helpers.string_path
 
     assert_equal "/categories/1", linkable_path(@category)
     assert_equal "/categories/1", Routes.url_helpers.linkable_path(@category)
@@ -92,6 +96,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.rubyonrails.org", website_url
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.website_url
 
+    assert_equal "http://www.rubyonrails.org", string_url
+    assert_equal "http://www.rubyonrails.org", Routes.url_helpers.string_url
+
     assert_equal "http://www.example.com/categories/1", linkable_url(@category)
     assert_equal "http://www.example.com/categories/1", Routes.url_helpers.linkable_url(@category)
     assert_equal "http://www.example.com/collections/2", linkable_url(@collection)
@@ -117,5 +124,15 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/products?size=10", Routes.url_helpers.defaults_url
     assert_equal "http://www.example.com/products?size=20", defaults_url(size: 20)
     assert_equal "http://www.example.com/products?size=20", Routes.url_helpers.defaults_url(size: 20)
+  end
+
+  def test_raises_argument_error
+    routes = ActionDispatch::Routing::RouteSet.new
+
+    assert_raises ArgumentError do
+      routes.draw do
+        direct(1) { "http://www.rubyonrails.org" }
+      end
+    end
   end
 end
