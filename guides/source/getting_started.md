@@ -86,7 +86,7 @@ your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
-Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
+Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
@@ -98,7 +98,7 @@ ruby 2.3.1p112
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
-while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
+while macOS users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
@@ -206,7 +206,7 @@ folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
-Usually Mac OS X and Windows come with a JavaScript runtime installed.
+Usually macOS and Windows come with a JavaScript runtime installed.
 Rails adds the `therubyracer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
@@ -221,7 +221,7 @@ your application in action, open a browser window and navigate to
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
-cursor again. For most UNIX-like systems including Mac OS X this will be a
+cursor again. For most UNIX-like systems including macOS this will be a
 dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
