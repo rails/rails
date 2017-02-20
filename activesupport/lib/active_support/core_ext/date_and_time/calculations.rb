@@ -38,6 +38,11 @@ module DateAndTime
       to_date == ::Date.current
     end
 
+    # Returns true if the date/time is in current year.
+    def current_year?
+      to_date.year == ::Date.current.year
+    end
+
     # Returns true if the date/time is in the past.
     def past?
       self < self.class.current

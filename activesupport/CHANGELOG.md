@@ -1,3 +1,7 @@
+*   Add `current_year?` check to Date&Time
+
+    *Dino Maric*
+
 *   Deprecate `.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*

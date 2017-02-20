@@ -234,6 +234,15 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_current_year
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).current_year?
+      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 23, 59, 59)).current_year?
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).current_year?
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 0)).current_year?
+    end
+  end
+
   def test_past_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
       Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do
