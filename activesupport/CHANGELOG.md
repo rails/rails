@@ -1,3 +1,9 @@
+*    Add methods calculation: `#days_between`, `#weeks_between`,`#months_between`, `#years_between`
+     for "date" and "time" objects, that return the number of days, weeks, months, years
+     to given date, default to `Date.current`
+
+    *bogdanvlviv*
+
 *   Deprecate `.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*

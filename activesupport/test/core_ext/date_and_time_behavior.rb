@@ -31,6 +31,20 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005, 1, 1, 10, 10, 10), date_time_init(2004, 12, 31, 10, 10, 10).days_since(1)
   end
 
+  def test_days_between
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).days_between(date_time_init(2017, 2, 10, 10, 10, 10))
+
+    assert_equal 0, date_time_init(2017, 2, 10, 9, 10, 10).days_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).days_between(date_time_init(2017, 2, 10, 9, 10, 10))
+
+    assert_equal 1, date_time_init(2017, 2, 9, 10, 10, 10).days_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 1, date_time_init(2017, 2, 10, 10, 10, 10).days_between(date_time_init(2017, 2, 9, 10, 10, 10))
+    assert_equal 9, date_time_init(2017, 2, 1, 10, 10, 10).days_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2017, 2, 10, 10, 10, 10).days_between(date_time_init(2017, 2, 1, 10, 10, 10))
+    assert_equal 365, date_time_init(2016, 2, 10, 10, 10, 10).days_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 365, date_time_init(2017, 2, 10, 10, 10, 10).days_between(date_time_init(2016, 2, 10, 10, 10, 10))
+  end
+
   def test_weeks_ago
     assert_equal date_time_init(2005, 5, 29, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).weeks_ago(1)
     assert_equal date_time_init(2005, 5, 1, 10, 10, 10),   date_time_init(2005, 6, 5, 10, 10, 10).weeks_ago(5)
@@ -44,6 +58,20 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005, 7, 14, 10, 10, 10), date_time_init(2005, 7, 7, 10, 10, 10).weeks_since(1)
     assert_equal date_time_init(2005, 7, 4, 10, 10, 10),  date_time_init(2005, 6, 27, 10, 10, 10).weeks_since(1)
     assert_equal date_time_init(2005, 1, 4, 10, 10, 10),  date_time_init(2004, 12, 28, 10, 10, 10).weeks_since(1)
+  end
+
+  def test_weeks_between
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).weeks_between(date_time_init(2017, 2, 10, 10, 10, 10))
+
+    assert_equal 0, date_time_init(2017, 2, 10, 9, 10, 10).weeks_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).weeks_between(date_time_init(2017, 2, 10, 9, 10, 10))
+
+    assert_equal 1, date_time_init(2017, 2, 3, 10, 10, 10).weeks_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 1, date_time_init(2017, 2, 10, 10, 10, 10).weeks_between(date_time_init(2017, 2, 3, 10, 10, 10))
+    assert_equal 9, date_time_init(2016, 12, 9, 10, 10, 10).weeks_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2017, 2, 10, 10, 10, 10).weeks_between(date_time_init(2016, 12, 9, 10, 10, 10))
+    assert_equal 52, date_time_init(2016, 2, 10, 10, 10, 10).weeks_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 52, date_time_init(2017, 2, 10, 10, 10, 10).weeks_between(date_time_init(2016, 2, 10, 10, 10, 10))
   end
 
   def test_months_ago
@@ -68,6 +96,20 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005, 2, 28, 10, 10, 10),  date_time_init(2005, 1, 31, 10, 10, 10).months_since(1)
   end
 
+  def test_months_between
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).months_between(date_time_init(2017, 2, 10, 10, 10, 10))
+
+    assert_equal 0, date_time_init(2017, 2, 9, 10, 10, 10).months_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).months_between(date_time_init(2017, 2, 9, 10, 10, 10))
+
+    assert_equal 1, date_time_init(2017, 1, 10, 10, 10, 10).months_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 1, date_time_init(2017, 2, 10, 10, 10, 10).months_between(date_time_init(2017, 1, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2016, 5, 10, 10, 10, 10).months_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2017, 2, 10, 10, 10, 10).months_between(date_time_init(2016, 5, 1, 10, 10, 10))
+    assert_equal 12, date_time_init(2016, 2, 10, 10, 10, 10).months_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 12, date_time_init(2017, 2, 10, 10, 10, 10).months_between(date_time_init(2016, 2, 10, 10, 10, 10))
+  end
+
   def test_years_ago
     assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).years_ago(1)
     assert_equal date_time_init(1998, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).years_ago(7)
@@ -79,6 +121,18 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2012, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).years_since(7)
     assert_equal date_time_init(2005, 2, 28, 10, 10, 10), date_time_init(2004, 2, 29, 10, 10, 10).years_since(1) # 1 year since leap day
     assert_equal date_time_init(2182, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).years_since(177)
+  end
+
+  def test_years_between
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).years_between(date_time_init(2017, 2, 10, 10, 10, 10))
+
+    assert_equal 0, date_time_init(2017, 1, 10, 10, 10, 10).years_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 0, date_time_init(2017, 2, 10, 10, 10, 10).years_between(date_time_init(2017, 1, 10, 10, 10, 10))
+
+    assert_equal 1, date_time_init(2016, 2, 10, 10, 10, 10).years_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 1, date_time_init(2017, 2, 10, 10, 10, 10).years_between(date_time_init(2016, 2, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2008, 2, 10, 10, 10, 10).years_between(date_time_init(2017, 2, 10, 10, 10, 10))
+    assert_equal 9, date_time_init(2017, 2, 10, 10, 10, 10).years_between(date_time_init(2008, 2, 10, 10, 10, 10))
   end
 
   def test_beginning_of_month

@@ -2,6 +2,9 @@ require "active_support/core_ext/object/try"
 
 module DateAndTime
   module Calculations
+    AMOUNT_DAYS_PER_YEAR = 365
+    AMOUNT_WEEKS_PER_YEAR = 52
+    AMOUNT_MONTHS_PER_YEAR = 12
     DAYS_INTO_WEEK = {
       monday: 0,
       tuesday: 1,
@@ -68,6 +71,13 @@ module DateAndTime
       advance(days: days)
     end
 
+    # Returns the number of days to given date, default to +Date.current+.
+    def days_between(date = ::Date.current)
+      date1, date2 = self.to_date, date.to_date
+
+      ((date2.yday - date1.yday) + AMOUNT_DAYS_PER_YEAR * (date2.year - date1.year)).abs
+    end
+
     # Returns a new date/time the specified number of weeks ago.
     def weeks_ago(weeks)
       advance(weeks: -weeks)
@@ -76,6 +86,13 @@ module DateAndTime
     # Returns a new date/time the specified number of weeks in the future.
     def weeks_since(weeks)
       advance(weeks: weeks)
+    end
+
+    # Returns the number of weeks to given date, default to +Date.current+.
+    def weeks_between(date = ::Date.current)
+      date1, date2 = self.to_date, date.to_date
+
+      ((date2.cweek - date1.cweek) + AMOUNT_WEEKS_PER_YEAR * (date2.year - date1.year)).abs
     end
 
     # Returns a new date/time the specified number of months ago.
@@ -88,6 +105,13 @@ module DateAndTime
       advance(months: months)
     end
 
+    # Returns the number of months to given date, default to +Date.current+.
+    def months_between(date = ::Date.current)
+      date1, date2 = self.to_date, date.to_date
+
+      ((date2.month - date1.month) + AMOUNT_MONTHS_PER_YEAR * (date2.year - date1.year)).abs
+    end
+
     # Returns a new date/time the specified number of years ago.
     def years_ago(years)
       advance(years: -years)
@@ -96,6 +120,13 @@ module DateAndTime
     # Returns a new date/time the specified number of years in the future.
     def years_since(years)
       advance(years: years)
+    end
+
+    # Returns the number of years to given date, default to +Date.current+.
+    def years_between(date = ::Date.current)
+      date1, date2 = self.to_date, date.to_date
+
+      (date2.year - date1.year).abs
     end
 
     # Returns a new date/time at the start of the month.
