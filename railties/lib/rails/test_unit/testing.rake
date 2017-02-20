@@ -47,4 +47,9 @@ namespace :test do
     $: << "test"
     Minitest.rake_run(["test/controllers", "test/mailers", "test/functional"])
   end
+
+  task system: "test:prepare" do
+    $: << "test"
+    Minitest.rake_run(["test/system"])
+  end
 end

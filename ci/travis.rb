@@ -154,7 +154,6 @@ ENV["GEM"].split(",").each do |gem|
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
-
   end
 end
 

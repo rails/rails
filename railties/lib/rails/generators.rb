@@ -62,6 +62,7 @@ module Rails
         stylesheets: true,
         stylesheet_engine: :css,
         scaffold_stylesheet: true,
+        system_tests: nil,
         test_framework: false,
         template_engine: :erb
       }
@@ -151,6 +152,7 @@ module Rails
             "#{test}:controller",
             "#{test}:helper",
             "#{test}:integration",
+            "#{test}:system",
             "#{test}:mailer",
             "#{test}:model",
             "#{test}:scaffold",
