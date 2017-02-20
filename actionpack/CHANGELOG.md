@@ -1,3 +1,11 @@
+*   Add `ActionDispatch::SystemTestCase` to Action Pack
+
+    Adds Capybara integration directly into Rails through Action Pack!
+
+    See PR [#26703](https://github.com/rails/rails/pull/26703)
+
+    *Eileen M.Uchitelle*
+
 *   Remove deprecated `.to_prepare`, `.to_cleanup`, `.prepare!` and `.cleanup!` from `ActionDispatch::Reloader`.
 
     *Rafael Mendonça França*
