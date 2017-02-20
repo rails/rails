@@ -73,7 +73,6 @@ asyncTest('clicking on a link with data-remote attribute', 5, function() {
     .bindNative('ajax:success', function(e, data, status, xhr) {
       App.assertCallbackInvoked('ajax:success')
       App.assertRequestPath(data, '/echo')
-      console.log(data.params)
       equal(data.params.data1, 'value1', 'ajax arguments should have key data1 with right value')
       equal(data.params.data2, 'value2', 'ajax arguments should have key data2 with right value')
       App.assertGetRequest(data)
@@ -397,4 +396,20 @@ asyncTest('form should be serialized correctly', 6, function() {
       start()
     })
     .triggerNative('submit')
+})
+
+asyncTest('form buttons should only be serialized when clicked', 4, function() {
+  $('form')
+    .append('<input type="submit" name="submit1" value="submit1" />')
+    .append('<button name="submit2" value="submit2" />')
+    .append('<button name="submit3" value="submit3" />')
+    .bindNative('ajax:success', function(e, data, status, xhr) {
+      equal(data.params.submit1, undefined)
+      equal(data.params.submit2, 'submit2')
+      equal(data.params.submit3, undefined)
+      equal(data['rack.request.form_vars'], 'user_name=john&submit2=submit2')
+
+      start()
+    })
+    .find('[name=submit2]').triggerNative('click')
 })

@@ -21,7 +21,7 @@
     <%= script_tag jquery_src %>
     <script>
       // This is for test in override.js.
-      // Must go after jQuery is loaded, but before jquery-ujs.
+      // Must go before rails-ujs.
       $(document).bind('rails:attachBindings', function() {
         $.rails.linkClickSelector += ', a[data-custom-remote-link]';
         // Hijacks link click before ujs binds any handlers

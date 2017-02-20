@@ -4,7 +4,7 @@
   matches, getData, setData
   fire, stopEverything
   ajax, isCrossDomain
-  blankInputs, serializeElement
+  serializeElement
 } = Rails
 
 # Checks "data-remote" if true to handle the request through a XHR request.
@@ -70,16 +70,6 @@ Rails.handleRemote = (e) ->
     withCredentials: withCredentials? and withCredentials isnt 'false'
   )
   stopEverything(e)
-
-# Check whether any required fields are empty
-# In both ajax mode and normal mode
-Rails.validateForm = (e) ->
-  form = this
-  return if form.noValidate or getData(form, 'ujs:formnovalidate-button')
-  # Skip other logic when required values are missing or file upload is present
-  blankRequiredInputs = blankInputs(form, Rails.requiredInputSelector, false)
-  if blankRequiredInputs.length > 0 and fire(form, 'ajax:aborted:required', [blankRequiredInputs])
-    stopEverything(e)
 
 Rails.formSubmitButtonClick = (e) ->
   button = this
