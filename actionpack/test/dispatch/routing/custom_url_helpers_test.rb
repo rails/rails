@@ -32,6 +32,7 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
     direct(:website)  { "http://www.rubyonrails.org" }
     direct("string")  { "http://www.rubyonrails.org" }
+    direct(:helper)   { basket_url }
     direct(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
     direct(:params)   { |params| params }
     direct(:symbol)   { :basket }
@@ -64,6 +65,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
     assert_equal "http://www.rubyonrails.org", string_path
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.string_path
+
+    assert_equal "http://www.example.com/basket", helper_url
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.helper_url
 
     assert_equal "/categories/1", linkable_path(@category)
     assert_equal "/categories/1", Routes.url_helpers.linkable_path(@category)
@@ -98,6 +102,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
     assert_equal "http://www.rubyonrails.org", string_url
     assert_equal "http://www.rubyonrails.org", Routes.url_helpers.string_url
+
+    assert_equal "http://www.example.com/basket", helper_url
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.helper_url
 
     assert_equal "http://www.example.com/categories/1", linkable_url(@category)
     assert_equal "http://www.example.com/categories/1", Routes.url_helpers.linkable_url(@category)
