@@ -8,7 +8,6 @@ end
 gemfile(true) do
   source "https://rubygems.org"
   gem "rails", github: "rails/rails"
-  gem "arel", github: "rails/arel"
 end
 
 require "active_job"
