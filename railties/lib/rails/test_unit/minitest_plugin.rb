@@ -110,7 +110,9 @@ module Minitest
     alias set? runner
 
     # Backwardscompatibility with Rails 5.0 generated plugin test scripts.
-    alias []= runner=
+    def []=(runner, *)
+      @runner = runner
+    end
 
     def ruby?
       runner == :ruby
