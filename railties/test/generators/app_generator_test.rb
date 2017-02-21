@@ -422,7 +422,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_yarn_is_given
     run_generator [destination_root, "--skip-yarn"]
 
-    assert_no_file "vendor/package.json"
+    assert_no_file "package.json"
     assert_no_file "bin/yarn"
   end
 
@@ -497,21 +497,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_for_yarn
     run_generator([destination_root])
-    assert_file "vendor/package.json", /dependencies/
+    assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
   end
 
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-yarn"])
-    assert_no_file "vendor/package.json"
+    assert_no_file "package.json"
 
     assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
     end
 
     assert_file ".gitignore" do |content|
-      assert_no_match(/vendor\/node_modules/, content)
-      assert_no_match(/vendor\/yarn-error\.log/, content)
+      assert_no_match(/node_modules/, content)
+      assert_no_match(/yarn-error\.log/, content)
     end
   end
 

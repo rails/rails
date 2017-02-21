@@ -166,7 +166,7 @@ module Rails
       empty_directory_with_keep_file "vendor"
 
       unless options[:skip_yarn]
-        template "package.json", "vendor/package.json"
+        template "package.json"
       end
     end
   end
@@ -280,7 +280,7 @@ module Rails
         build(:vendor)
 
         if options[:skip_yarn]
-          remove_file "vendor/package.json"
+          remove_file "package.json"
         end
       end
 

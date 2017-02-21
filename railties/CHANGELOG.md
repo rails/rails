@@ -68,7 +68,7 @@
 
     *DHH*
 
-*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+*   Add Yarn support in new apps with a yarn binstub and package.json. Skippable via --skip-yarn option.
 
     *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
 
