@@ -3,6 +3,9 @@
 
     *Yuki Nishijima*
 
+
+## Rails 4.2.8 (February 21, 2017) ##
+
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
     stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
