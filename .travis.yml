@@ -6,6 +6,8 @@ cache:
   directories:
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
+    - node_modules
+    - $HOME/.nvm
 
 services:
   - memcached
@@ -21,6 +23,11 @@ before_install:
   - "gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+  - "[[ $GEM != 'av:ujs' ]] || nvm install node"
+  - "[[ $GEM != 'av:ujs' ]] || node --version"
+  - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "[[ $GEM != 'av:ujs' ]] || [[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
+
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
@@ -52,6 +59,8 @@ rvm:
 
 matrix:
   include:
+    - rvm: 2.4.0
+      env: "GEM=av:ujs"
     - rvm: 2.2.6
       env: "GEM=aj:integration"
       services:
