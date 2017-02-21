@@ -1,7 +1,7 @@
 *   Prefer `remove_method` over `undef_method` when reloading routes
 
     When `undef_method` is used it prevents access to other implementations of that
-    url helper in the ancestor chain so use `remove_method` instead to restores access.
+    url helper in the ancestor chain so use `remove_method` instead to restore access.
 
     *Andrew White*
 
@@ -11,7 +11,7 @@
 
     ``` ruby
     resource :basket
-    direct(class: "Basket") { [:basket] }
+    resolve(class: "Basket") { [:basket] }
     ```
 
     ``` erb
