@@ -607,7 +607,7 @@ System tests allow for running tests in either a real browser or a headless
 driver for testing full user interactions with your application.
 
 For creating Rails system tests, you use the `test/system` directory in your
-application. Rails provides a generator to create a system test skeleton for us.
+application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
 $ bin/rails generate system_test users_create_test.rb
@@ -633,7 +633,7 @@ change the default settings.
 
 ### Changing the default settings
 
-Rails makes changing the default settings for system test very simple. All
+Rails makes changing the default settings for system tests very simple. All
 the setup is abstracted away so you can focus on writing your tests.
 
 When you generate a new application or scaffold, an `application_system_test_case.rb` file
@@ -654,9 +654,10 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If you want to keep the Selenium driver but change the browser you
-can pass Firefox and the port to driven by. The driver is a required
-argument, all other arguments are optional.
+The driver name is a required argument for `driven_by`. The optional arguments
+that can be passed to `driven_by` are `:using` for the browser (this will only
+be used for non-headless drivers like Selenium), `:on` for the port Puma should
+use, and `:screen_size` to change the size of the screen for screenshots.
 
 ```ruby
 require "test_helper"
@@ -666,14 +667,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-The driver name is a required argument for `driven_by`. The optional arguments
-that can be passed to `driven_by` are `:using` for the browser (this will only
-be used for non-headless drivers like Selenium), `:on` for the port Puma should
-use, and `:screen_size` to change the size of the screen for screenshots.
-
 If your Capybara configuration requires more setup than provided by Rails, all
-of that configuration can be put into the `application_system_test_case.rb` file provided
-by Rails.
+of that configuration can be put into the `application_system_test_case.rb` file.
 
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
 for additional settings.
@@ -705,7 +700,7 @@ $ bin/rails generate system_test articles
 ```
 
 It should have created a test file placeholder for us. With the output of the
-previous command we should see:
+previous command you should see:
 
 ```bash
       invoke  test_unit
@@ -759,7 +754,7 @@ Then the `click_on "New Article"` will find the "New Article" button on the
 index page. This will redirect the browser to `/articles/new`.
 
 Then the test will fill in the title and body of the article with the specified
-text. Once the fields are filled in "Create Article" is clicked on which will
+text. Once the fields are filled in, "Create Article" is clicked on which will
 send a POST request to create the new article in the database.
 
 We will be redirected back to the the articles index page and there we assert
@@ -770,7 +765,7 @@ that the text from the article title is on the articles index page.
 The beauty of system testing is that it is similar to integration testing in
 that it tests the user's interaction with your controller, model, and view, but
 system testing is much more robust and actually tests your application as if
-a real user were using it. Going forward you can test anything that the user
+a real user were using it. Going forward, you can test anything that the user
 themselves would do in your application such as commenting, deleting articles,
 publishing draft articles, etc.
 
@@ -1054,7 +1049,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal "index", @controller.action_name
     assert_equal "application/x-www-form-urlencoded", @request.media_type
-    assert_match "Articles", @response.body    
+    assert_match "Articles", @response.body
   end
 end
 ```

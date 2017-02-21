@@ -11,7 +11,7 @@ module ActionDispatch
     # = System Testing
     #
     # System tests let you test applications in the browser. Because system
-    # tests use a real browser experience you can test all of your JavaScript
+    # tests use a real browser experience, you can test all of your JavaScript
     # easily from your test suite.
     #
     # To create a system test in your application, extend your test class
