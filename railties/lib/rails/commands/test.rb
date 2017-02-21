@@ -6,6 +6,6 @@ else
   $LOAD_PATH << File.expand_path("../../test", APP_PATH)
 end
 
-Minitest.run_via[:rails] = true
+Minitest.run_via = :rails
 
 require "active_support/testing/autorun"
