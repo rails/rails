@@ -633,7 +633,7 @@ module ActionDispatch
             if url_options.permitted?
               t.url_for(url_options.to_h.merge(outer_options))
             else
-              raise ArgumentError, "Generating an URL from non sanitized request parameters is insecure!"
+              raise ArgumentError, "Generating a URL from non sanitized request parameters is insecure!"
             end
           when Array
             opts = url_options.extract_options!
