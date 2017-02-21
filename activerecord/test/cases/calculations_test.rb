@@ -144,7 +144,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_order_by_calculation
-    c = Account.group(:firm_id).order("sum_credit_limit desc, firm_id").sum(:credit_limit)
+    c = Account.group(:firm_id).order(Arel.sql("sum_credit_limit desc, firm_id")).sum(:credit_limit)
     assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
     assert_equal [6, 2, 9, 1], c.keys.compact
   end
@@ -644,7 +644,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_qualified_column_name
-    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck("topics.id")
+    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(Arel.sql("topics.id"))
   end
 
   def test_pluck_auto_table_name_prefix
@@ -659,18 +659,18 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
-    assert_equal [7], Company.joins(:contracts).pluck(:developer_id)
+    assert_equal [7], Company.joins(:contracts).pluck(Arel.sql("developer_id"))
   end
 
   def test_pluck_with_selection_clause
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT credit_limit").sort
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT accounts.credit_limit").sort
-    assert_equal [50, 53, 55, 60], Account.pluck("DISTINCT(credit_limit)").sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
+    assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
 
     # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
     # an alias is provided.  Without the alias, the column cannot be found
     # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck("SUM(DISTINCT(credit_limit)) as credit_limit")
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
   end
 
   def test_plucks_with_ids
@@ -684,7 +684,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
-    ids = Company.includes(:contracts).pluck(:developer_id)
+    ids = Company.includes(:contracts).pluck(Arel.sql("developer_id"))
     assert_equal Company.count, ids.length
     assert_equal [7], ids.compact
   end
@@ -704,12 +704,12 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
-      Account.pluck("id, credit_limit")
+      Account.pluck(Arel.sql("id, credit_limit"))
   end
 
   def test_pluck_with_multiple_columns_and_includes
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
-    companies_and_developers = Company.order("companies.id").includes(:contracts).pluck(:name, :developer_id)
+    companies_and_developers = Company.order(Arel.sql("companies.id")).includes(:contracts).pluck(:name, Arel.sql("developer_id"))
 
     assert_equal Company.count, companies_and_developers.length
     assert_equal ["37signals", nil], companies_and_developers.first
@@ -731,7 +731,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
     actual = Topic.joins(:replies)
-      .pluck("topics.title", "replies_topics.title")
+      .pluck(Arel.sql("topics.title"), Arel.sql("replies_topics.title"))
     assert_equal expected, actual
   end
 
@@ -772,7 +772,7 @@ class CalculationsTest < ActiveRecord::TestCase
     companies = Company.order(:name).limit(3).load
 
     assert_queries 1 do
-      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck("DISTINCT name")
+      assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
     end
   end
 

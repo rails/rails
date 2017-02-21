@@ -118,7 +118,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
-      merge(Author.where(name: "Bob")).order("posts.id").pluck("posts.id")
+      merge(Author.where(name: "Bob")).order("posts.id").pluck(Arel.sql("posts.id"))
 
     assert_equal [posts(:misc_by_bob).id,
                   posts(:other_by_bob).id], hello_by_bob
@@ -126,19 +126,19 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
 
   test "merging order relations" do
     posts_by_author_name = Post.limit(3).joins(:author).
-      merge(Author.order(:name)).pluck("authors.name")
+      merge(Author.order(:name)).pluck(Arel.sql("authors.name"))
 
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
 
     posts_by_author_name = Post.limit(3).joins(:author).
-      merge(Author.order("name")).pluck("authors.name")
+      merge(Author.order("name")).pluck(Arel.sql("authors.name"))
 
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
   end
 
   test "merging order relations (using a hash argument)" do
     posts_by_author_name = Post.limit(4).joins(:author).
-      merge(Author.order(name: :desc)).pluck("authors.name")
+      merge(Author.order(name: :desc)).pluck(Arel.sql("authors.name"))
 
     assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
   end

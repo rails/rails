@@ -167,6 +167,30 @@ module ActiveRecord
         end
       end
 
+      def enforce_raw_sql_whitelist(args, whitelist: attribute_names_and_aliases) # :nodoc:
+        return if allow_unsafe_raw_sql == :enabled
+
+        unexpected = args.reject do |arg|
+          whitelist.include?(arg.to_s) ||
+            arg.kind_of?(Arel::Node) || arg.is_a?(Arel::Nodes::SqlLiteral)
+        end
+
+        return if unexpected.none?
+
+        if allow_unsafe_raw_sql == :deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method used with non-attribute argument(s): " +
+            "#{unexpected.map(&:inspect).join(", ")}. Non-argument " +
+            "arguments will be disallowed in Rails 5.3."
+          )
+        else
+          raise(ActiveRecord::UnknownAttributeReference,
+            "Query method called with non-attribute argument(s): " +
+            unexpected.map(&:inspect).join(", ")
+          )
+        end
+      end
+
       # Can the given name be treated as a column name? Returns true if name
       # is attribute or attribute alias.
       #
@@ -178,7 +202,7 @@ module ActiveRecord
       #
       #   Person.respond_to_attribute?("foo")
       #   # => false
-      def respond_to_attribute?(name)
+      def respond_to_attribute?(name) # :nodoc:
         name = name.to_s
         attribute_names.include?(name) || attribute_aliases.include?(name)
       end
@@ -213,6 +237,18 @@ module ActiveRecord
         columns_hash.fetch(name) do
           ConnectionAdapters::NullColumn.new(name)
         end
+      end
+
+      # An Array of String attribute names and aliases for accessing those
+      # attributes.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.attribute_names_and_aliases
+      #   # => ["id", "created_at", "updated_at", "name", "age"]
+      def attribute_names_and_aliases # :nodoc:
+        attribute_names + attribute_aliases.keys
       end
     end
 

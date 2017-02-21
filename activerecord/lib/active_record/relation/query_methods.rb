@@ -295,22 +295,9 @@ module ActiveRecord
       spawn.order!(*args)
     end
 
-    # Same as #order but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_order(*args) # :nodoc:
-      check_if_method_has_arguments!(:order, args)
-      spawn.unsafe_raw_order!(*args)
-    end
-
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
-      unsafe_raw_order!(*args)
-    end
-
-    # Same as #order! but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_order!(*args) # :nodoc:
+      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.order_values += args
@@ -331,22 +318,9 @@ module ActiveRecord
       spawn.reorder!(*args)
     end
 
-    # Same as #reorder but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_reorder(*args) # :nodoc:
-      check_if_method_has_arguments!(:reorder, args)
-      spawn.unsafe_raw_reorder!(*args)
-    end
-
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
-      unsafe_raw_reorder!
-    end
-
-    # Same as #reorder! but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_reorder!(*args) # :nodoc:
+      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -946,6 +920,11 @@ module ActiveRecord
 
     private
 
+      # Extract column names from arguments passed to #order or #reorder.
+      def column_names_from_order_arguments(args)
+        args.flat_map { |arg| arg.is_a?(Hash) ? arg.keys : arg }
+      end
+
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
@@ -1167,25 +1146,6 @@ module ActiveRecord
             arg
           end
         end.flatten!
-      end
-
-      # Only allow column names and directions as arguments to #order and
-      # #reorder. Other arguments will cause an ArugmentError to be raised.
-      def restrict_order_args(args)
-        args = args.dup
-        orderings = args.extract_options!
-        columns = args | orderings.keys
-
-        unrecognized = columns.reject { |c| klass.respond_to_attribute?(c) }
-        if unrecognized.any?
-          raise ArgumentError, "Invalid order column: #{unrecognized}"
-        end
-
-        # TODO: find a better list of modifiers.
-        unrecognized = orderings.values.reject { |d| VALID_DIRECTIONS.include?(d.to_s) }
-        if unrecognized.any?
-          raise ArgumentError, "Invalid order direction: #{unrecognized}"
-        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

@@ -175,13 +175,21 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      _pluck(column_names, @klass.allow_unsafe_raw_sql == :enabled)
-    end
+      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names_and_aliases).empty?
+        return records.pluck(*column_names)
+      end
 
-    # Same as #pluck but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_pluck(*column_names)
-      _pluck(column_names, true)
+      if has_include?(column_names.first)
+        construct_relation_for_association_calculations.pluck(*column_names)
+      else
+        enforce_raw_sql_whitelist(column_names)
+        relation = spawn
+        relation.select_values = column_names.map { |cn|
+          @klass.respond_to_attribute?(cn) ? arel_attribute(cn) : cn
+        }
+        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
+        result.cast_values(klass.attribute_types)
+      end
     end
 
     # Pluck all the ID's for the relation using the table's primary key
