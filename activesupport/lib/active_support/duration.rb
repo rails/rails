@@ -7,7 +7,15 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
-    EPOCH = ::Time.utc(2000)
+    PARTS_IN_SECONDS = {
+      seconds:          1, # Used in parse method for ease of handling part hashes with seconds
+      minutes:         60,
+      hours:        3_600,
+      days:        86_400,
+      weeks:      604_800,
+      months:   2_592_000, #  30 days
+      years:   31_557_600, # 365.25 days
+    }.freeze
 
     attr_accessor :value, :parts
 
@@ -142,7 +150,10 @@ module ActiveSupport
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
     def self.parse(iso8601duration)
       parts = ISO8601Parser.new(iso8601duration).parse!
-      new(EPOCH.advance(parts) - EPOCH, parts)
+      total_seconds = parts.inject(0) do |total, (part, value)|
+        total + value * PARTS_IN_SECONDS[part]
+      end
+      new(total_seconds, parts)
     end
 
     # Build ISO 8601 Duration string for this duration.
