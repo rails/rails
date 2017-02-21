@@ -1,3 +1,10 @@
+*   Prefer `remove_method` over `undef_method` when reloading routes
+
+    When `undef_method` is used it prevents access to other implementations of that
+    url helper in the ancestor chain so use `remove_method` instead to restores access.
+
+    *Andrew White*
+
 *   Add the `direct` method to the routing DSL
 
     This new method allows customization of the routing behavior in two ways:

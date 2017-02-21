@@ -89,11 +89,11 @@ module ActionDispatch
 
         def clear!
           @path_helpers.each do |helper|
-            @path_helpers_module.send :undef_method, helper
+            @path_helpers_module.send :remove_method, helper
           end
 
           @url_helpers.each do |helper|
-            @url_helpers_module.send  :undef_method, helper
+            @url_helpers_module.send  :remove_method, helper
           end
 
           @custom_helpers.each do |helper|
@@ -101,11 +101,11 @@ module ActionDispatch
             url_name = :"#{helper}_url"
 
             if @path_helpers_module.method_defined?(path_name)
-              @path_helpers_module.send :undef_method, path_name
+              @path_helpers_module.send :remove_method, path_name
             end
 
             if @url_helpers_module.method_defined?(url_name)
-              @url_helpers_module.send :undef_method, url_name
+              @url_helpers_module.send :remove_method, url_name
             end
           end
 

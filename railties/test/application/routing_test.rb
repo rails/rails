@@ -618,5 +618,63 @@ module ApplicationTests
       get "/yazilar"
       assert_equal 200, last_response.status
     end
+
+    test "reloading routes removes methods and doesn't undefine them" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+        end
+      RUBY
+
+      app_file "app/models/url_helpers.rb", <<-RUBY
+        module UrlHelpers
+          def foo_path
+            "/foo"
+          end
+        end
+      RUBY
+
+      app_file "app/models/context.rb", <<-RUBY
+        class Context
+          include UrlHelpers
+          include Rails.application.routes.url_helpers
+        end
+      RUBY
+
+      controller "url", <<-RUBY
+        class UrlController < ApplicationController
+          def index
+            context = Context.new
+            render plain: context.foo_path
+          end
+        end
+      RUBY
+
+      get "/url"
+      assert_equal "/foo", last_response.body
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+          get '/bar', to: 'foo#index', as: 'foo'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get "/url"
+      assert_equal "/bar", last_response.body
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get "/url"
+      assert_equal "/foo", last_response.body
+    end
   end
 end
