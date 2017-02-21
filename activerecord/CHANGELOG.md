@@ -1,4 +1,4 @@
-## Rails 4.2.8.rc1 (February 09, 2017) ##
+## Rails 4.2.8 (February 21, 2017) ##
 
 *   Using a mysql2 connection after it fails to reconnect will now have an error message
     saying the connection is closed rather than an undefined method error message.

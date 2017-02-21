@@ -1,4 +1,4 @@
-## Rails 4.2.8.rc1 (February 09, 2017) ##
+## Rails 4.2.8 (February 21, 2017) ##
 
 *   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
     Active Support to preserve the receiver's timezone when calling `to_time`.

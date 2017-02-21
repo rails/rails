@@ -1,4 +1,4 @@
-## Rails 4.2.8.rc1 (February 09, 2017) ##
+## Rails 4.2.8 (February 21, 2017) ##
 
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
