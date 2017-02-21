@@ -30,6 +30,8 @@ module Rails
         puts "New secrets encrypted and saved."
       rescue Interrupt
         puts "Aborted changing encrypted secrets: nothing saved."
+      rescue Rails::Secrets::MissingKeyError => error
+        say error.message
       end
 
       private

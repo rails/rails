@@ -53,7 +53,7 @@ module Rails
           say "You can edit encrypted secrets with `bin/rails secrets:edit`."
 
           say "Add this to your config/environments/production.rb:"
-          say "config.raise_on_missing_encryption_key = true"
+          say "config.read_encrypted_secrets = true"
         end
       end
 

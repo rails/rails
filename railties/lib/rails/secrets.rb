@@ -12,11 +12,11 @@ module Rails
       end
     end
 
-    @raise_on_missing_encryption_key = false
+    @read_encrypted_secrets = false
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
-      attr_writer :root, :raise_on_missing_encryption_key
+      attr_writer :root, :read_encrypted_secrets
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
@@ -62,12 +62,12 @@ module Rails
 
         write(IO.binread(tmp_path))
       ensure
-        FileUtils.rm(tmp_path)
+        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
       end
 
       private
         def handle_missing_key
-          raise MissingKeyError if @raise_on_missing_encryption_key
+          raise MissingKeyError
         end
 
         def read_key_file
@@ -86,7 +86,11 @@ module Rails
 
         def preprocess(path)
           if path.end_with?(".enc")
-            key ? decrypt(IO.binread(path)) : ""
+            if @read_encrypted_secrets
+              decrypt(IO.binread(path))
+            else
+              ""
+            end
           else
             IO.read(path)
           end
