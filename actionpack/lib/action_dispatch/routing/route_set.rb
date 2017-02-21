@@ -160,7 +160,7 @@ module ActionDispatch
 
         def add_url_helper(name, defaults, &block)
           @custom_helpers << name
-          helper = DirectUrlHelper.new(name, defaults, &block)
+          helper = CustomUrlHelper.new(name, defaults, &block)
 
           @path_helpers_module.module_eval do
             define_method(:"#{name}_path") do |*args|
@@ -596,21 +596,15 @@ module ActionDispatch
         route
       end
 
-      def add_polymorphic_mapping(options, &block)
-        defaults = options.dup
-        klass = defaults.delete(:class)
-        if klass.nil?
-          raise ArgumentError, "Missing :class key from polymorphic mapping options"
-        end
-
-        @polymorphic_mappings[klass] = DirectUrlHelper.new(klass, defaults, &block)
+      def add_polymorphic_mapping(klass, options, &block)
+        @polymorphic_mappings[klass] = CustomUrlHelper.new(klass, options, &block)
       end
 
       def add_url_helper(name, options, &block)
         named_routes.add_url_helper(name, options, &block)
       end
 
-      class DirectUrlHelper
+      class CustomUrlHelper
         attr_reader :name, :defaults, :block
 
         def initialize(name, defaults, &block)

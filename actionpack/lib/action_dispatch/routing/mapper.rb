@@ -2020,8 +2020,8 @@ module ActionDispatch
         end
       end
 
-      module DirectUrls
-        # Define custom routing behavior that will be added to the application's
+      module CustomUrls
+        # Define custom url helpers that will be added to the application's
         # routes. This allows you override and/or replace the default behavior
         # of routing helpers, e.g:
         #
@@ -2036,32 +2036,6 @@ module ActionDispatch
         #   direct :main do
         #     { controller: 'pages', action: 'index', subdomain: 'www' }
         #   end
-        #
-        # The above example show how to define a custom url helper but it's also
-        # possible to alter the behavior of `polymorphic_url` and consequently the
-        # behavior of `link_to` and `form_for` when passed a model instance, e.g:
-        #
-        #   direct class: "Basket" do
-        #     [:basket]
-        #   end
-        #
-        # NOTE: This custom behavior only applies to simple polymorphic urls where
-        # a single model instance is passed and not more complicated forms, e.g:
-        #
-        #   # config/routes.rb
-        #   resource :profile
-        #   namespace :admin do
-        #     resources :users
-        #   end
-        #
-        #   direct(class: "User") { [:profile] }
-        #
-        #   # app/views/application/_menu.html.erb
-        #   link_to 'Profile', @current_user
-        #   link_to 'Profile', [:admin, @current_user]
-        #
-        # The first `link_to` will generate '/profile' but the second will generate
-        # the standard polymorphic url of '/admin/users/1'.
         #
         # The return value from the block passed to `direct` must be a valid set of
         # arguments for `url_for` which will actually build the url string. This can
@@ -2083,7 +2057,48 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size)) ]
         #   end
         #
-        # You can pass options to a polymorphic mapping do - the arity for the block
+        # NOTE: The `direct` methodn can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
+        def direct(name, options = {}, &block)
+          unless @scope.root?
+            raise RuntimeError, "The direct method can't be used inside a routes scope block"
+          end
+
+          @set.add_url_helper(name, options, &block)
+        end
+
+        # Define custom polymorphic mappings of models to urls. This alters the
+        # behavior of `polymorphic_url` and consequently the behavior of
+        # `link_to` and `form_for` when passed a model instance, e.g:
+        #
+        #   resource :basket
+        #
+        #   resolve "Basket" do
+        #     [:basket]
+        #   end
+        #
+        # This will now generate '/basket' when a `Basket` instance is passed to
+        # `link_to` or `form_for` instead of the standard '/baskets/:id'.
+        #
+        # NOTE: This custom behavior only applies to simple polymorphic urls where
+        # a single model instance is passed and not more complicated forms, e.g:
+        #
+        #   # config/routes.rb
+        #   resource :profile
+        #   namespace :admin do
+        #     resources :users
+        #   end
+        #
+        #   resolve("User") { [:profile] }
+        #
+        #   # app/views/application/_menu.html.erb
+        #   link_to 'Profile', @current_user
+        #   link_to 'Profile', [:admin, @current_user]
+        #
+        # The first `link_to` will generate '/profile' but the second will generate
+        # the standard polymorphic url of '/admin/users/1'.
+        #
+        # You can pass options to a polymorphic mapping - the arity for the block
         # needs to be two as the instance is passed as the first argument, e.g:
         #
         #   direct class: 'Basket', anchor: 'items' do |basket, options|
@@ -2094,20 +2109,18 @@ module ActionDispatch
         # array passed to `polymorphic_url` is a hash then it's treated as options
         # to the url helper that gets called.
         #
-        # NOTE: The `direct` methodn can't be used inside of a scope block such as
+        # NOTE: The `resolve` methodn can't be used inside of a scope block such as
         # `namespace` or `scope` and will raise an error if it detects that it is.
-        def direct(name_or_hash, options = nil, &block)
+        def resolve(*args, &block)
           unless @scope.root?
-            raise RuntimeError, "The direct method can't be used inside a routes scope block"
+            raise RuntimeError, "The resolve method can't be used inside a routes scope block"
           end
 
-          case name_or_hash
-          when Hash
-            @set.add_polymorphic_mapping(name_or_hash, &block)
-          when String, Symbol
-            @set.add_url_helper(name_or_hash, options, &block)
-          else
-            raise ArgumentError, "The direct method only accepts a hash, string or symbol"
+          options = args.extract_options!
+          args = args.flatten(1)
+
+          args.each do |klass|
+            @set.add_polymorphic_mapping(klass, options, &block)
           end
         end
       end
@@ -2213,7 +2226,7 @@ module ActionDispatch
       include Scoping
       include Concerns
       include Resources
-      include DirectUrls
+      include CustomUrls
     end
   end
 end

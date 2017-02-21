@@ -310,7 +310,7 @@ module ApplicationTests
             get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.microsoft.com" }
-            direct(class: "User") { "/profile" }
+            resolve("User") { "/profile" }
           end
         RUBY
 
@@ -332,7 +332,7 @@ module ApplicationTests
             get 'mapping', to: 'foo#mapping'
 
             direct(:custom) { "http://www.apple.com" }
-            direct(class: "User") { "/dashboard" }
+            resolve("User") { "/dashboard" }
           end
         RUBY
 
@@ -465,7 +465,7 @@ module ApplicationTests
           direct(:custom) { 'http://www.apple.com' }
 
           get 'mapping', to: 'foo#mapping'
-          direct(class: 'User') { '/profile' }
+          resolve('User') { '/profile' }
         end
       RUBY
 
@@ -557,7 +557,7 @@ module ApplicationTests
           get ':locale/foo', to: 'foo#index', as: 'foo'
           get 'users', to: 'foo#users', as: 'users'
           direct(:microsoft) { 'http://www.microsoft.com' }
-          direct(class: 'User') { '/profile' }
+          resolve('User') { '/profile' }
         end
       RUBY
 

@@ -5,42 +5,41 @@
 
     *Andrew White*
 
-*   Add the `direct` method to the routing DSL
+*   Add the `resolve` method to the routing DSL
 
-    This new method allows customization of the routing behavior in two ways:
+    This new method allows customization of the polymorphic mapping of models:
 
-    1.  Custom url helpers:
+    ``` ruby
+    resource :basket
+    direct(class: "Basket") { [:basket] }
+    ```
 
-        ``` ruby
-        direct(:apple) { "http://www.apple.com" }
+    ``` erb
+    <%= form_for @basket do |form| %>
+    <!-- basket form -->
+    <% end %>
+    ```
 
-        >> apple_url
-        => "http://www.apple.com"
-        ```
-
-        This has the advantage of being available everywhere url helpers are available
-        unlike custom url helpers defined in helper modules, etc.
-
-    2.  Custom polymorphic mappings:
-
-        ``` ruby
-        resource :basket
-        direct(class: "Basket") { [:basket] }
-        ```
-
-        ``` erb
-        <%= form_for @basket do |form| %>
-        <!-- basket form -->
-        <% end %>
-        ```
-
-        This generates the correct singular URL for the form instead of the default
-        resources member url, e.g. `/basket` vs. `/basket/:id`.
-
-    Currently both forms of `direct` do not take anything from the current routing
-    scope so it's recommended to declare them outside of any `namespace` or `scope` block.
+    This generates the correct singular URL for the form instead of the default
+    resources member url, e.g. `/basket` vs. `/basket/:id`.
 
     Fixes #1769.
+
+    *Andrew White*
+
+*   Add the `direct` method to the routing DSL
+
+    This new method allows creation of custom url helpers, e.g:
+
+    ``` ruby
+    direct(:apple) { "http://www.apple.com" }
+
+    >> apple_url
+    => "http://www.apple.com"
+    ```
+
+    This has the advantage of being available everywhere url helpers are available
+    unlike custom url helpers defined in helper modules, etc.
 
     *Andrew White*
 
