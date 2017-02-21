@@ -317,22 +317,9 @@ module ActiveRecord
       spawn.order!(*args)
     end
 
-    # Same as #order but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_order(*args) # :nodoc:
-      check_if_method_has_arguments!(:order, args)
-      spawn.unsafe_raw_order!(*args)
-    end
-
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
       restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
-      unsafe_raw_order!(*args)
-    end
-
-    # Same as #order! but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_order!(*args) # :nodoc:
       preprocess_order_args(args)
 
       self.order_values += args
@@ -353,22 +340,9 @@ module ActiveRecord
       spawn.reorder!(*args)
     end
 
-    # Same as #reorder but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_reorder(*args) # :nodoc:
-      check_if_method_has_arguments!(:reorder, args)
-      spawn.unsafe_raw_reorder!(*args)
-    end
-
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
-      unsafe_raw_reorder!
-    end
-
-    # Same as #reorder! but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_reorder!(*args) # :nodoc:
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -1175,15 +1149,18 @@ module ActiveRecord
         orderings = args.extract_options!
         columns = args | orderings.keys
 
-        unrecognized = columns.reject { |c| klass.respond_to_attribute?(c) }
-        if unrecognized.any?
-          raise ArgumentError, "Invalid order column: #{unrecognized}"
+        unrecognized = columns.reject do |c|
+          klass.respond_to_attribute?(c) ||
+            c.kind_of?(Arel::Node) ||
+            c.is_a?(Arel::Nodes::SqlLiteral)
         end
 
-        # TODO: find a better list of modifiers.
-        unrecognized = orderings.values.reject { |d| VALID_DIRECTIONS.include?(d.to_s) }
         if unrecognized.any?
-          raise ArgumentError, "Invalid order direction: #{unrecognized}"
+          if klass.allow_unsafe_raw_sql == :deprecated
+            ActiveSupport::Deprecation.warn "Ordering other than by column name (by #{unrecognized.inspect}) is considered dangerous and potentially vulnerable to SQL injection. Known-safe values can be wrapped in Arel.sql(...)."
+          else
+            raise ArgumentError, "Invalid order column: #{unrecognized}"
+          end
         end
       end
 
