@@ -2022,7 +2022,7 @@ module ActionDispatch
 
       module CustomUrls
         # Define custom url helpers that will be added to the application's
-        # routes. This allows you override and/or replace the default behavior
+        # routes. This allows you to override and/or replace the default behavior
         # of routing helpers, e.g:
         #
         #   direct :homepage do
@@ -2057,7 +2057,7 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size)) ]
         #   end
         #
-        # NOTE: The `direct` methodn can't be used inside of a scope block such as
+        # NOTE: The `direct` method can't be used inside of a scope block such as
         # `namespace` or `scope` and will raise an error if it detects that it is.
         def direct(name, options = {}, &block)
           unless @scope.root?
@@ -2077,8 +2077,8 @@ module ActionDispatch
         #     [:basket]
         #   end
         #
-        # This will now generate '/basket' when a `Basket` instance is passed to
-        # `link_to` or `form_for` instead of the standard '/baskets/:id'.
+        # This will now generate "/basket" when a `Basket` instance is passed to
+        # `link_to` or `form_for` instead of the standard "/baskets/:id".
         #
         # NOTE: This custom behavior only applies to simple polymorphic urls where
         # a single model instance is passed and not more complicated forms, e.g:
@@ -2092,24 +2092,24 @@ module ActionDispatch
         #   resolve("User") { [:profile] }
         #
         #   # app/views/application/_menu.html.erb
-        #   link_to 'Profile', @current_user
-        #   link_to 'Profile', [:admin, @current_user]
+        #   link_to "Profile", @current_user
+        #   link_to "Profile", [:admin, @current_user]
         #
-        # The first `link_to` will generate '/profile' but the second will generate
-        # the standard polymorphic url of '/admin/users/1'.
+        # The first `link_to` will generate "/profile" but the second will generate
+        # the standard polymorphic url of "/admin/users/1".
         #
         # You can pass options to a polymorphic mapping - the arity for the block
         # needs to be two as the instance is passed as the first argument, e.g:
         #
-        #   direct class: 'Basket', anchor: 'items' do |basket, options|
+        #   direct class: "Basket", anchor: "items" do |basket, options|
         #     [:basket, options]
         #   end
         #
-        # This generates the url '/basket#items' because when the last item in an
+        # This generates the url "/basket#items" because when the last item in an
         # array passed to `polymorphic_url` is a hash then it's treated as options
         # to the url helper that gets called.
         #
-        # NOTE: The `resolve` methodn can't be used inside of a scope block such as
+        # NOTE: The `resolve` method can't be used inside of a scope block such as
         # `namespace` or `scope` and will raise an error if it detects that it is.
         def resolve(*args, &block)
           unless @scope.root?
