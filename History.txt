@@ -1,6 +1,9 @@
+=== 8.0.0 / 2017-02-21
+
 * Enhancements
 
   * Remove deprecated type casting support in Arel
+  * Frozen all string literals in Arel
 
 === 7.1.1 / 2016-07-27
 
