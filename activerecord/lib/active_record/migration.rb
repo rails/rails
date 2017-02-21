@@ -1262,7 +1262,7 @@ module ActiveRecord
       end
 
       def self.current_environment
-        ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        (::Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "default_env"
       end
 
       def self.protected_environment?

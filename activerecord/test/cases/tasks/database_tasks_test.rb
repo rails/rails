@@ -97,11 +97,15 @@ module ActiveRecord
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = { "development" => { "database" => "my-db" } }
-
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = { "development" => { "database" => "my-db", "adapter" => "sqlite3" } }
+      ActiveRecord::Base.configurations = @configurations
       # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
       ActiveRecord::Base.connection_handler.stubs(:establish_connection)
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_ignores_configurations_without_databases
@@ -152,23 +156,42 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.create_all
     end
+
+    def test_creates_all_databases_under_env
+      @configurations["development"] = {
+        "primary"  => { "database" => "primary-db", "adapter" => "sqlite3" },
+        "readonly" => { "database" => "readonly-db", "adapter" => "sqlite3" },
+      }
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "primary-db", "adapter" => "sqlite3")
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "readonly-db", "adapter" => "sqlite3")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_all
+    end
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+        "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
+        "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
+        "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.configurations = @configurations
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_creates_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "prod-db")
+        with("database" => "prod-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("production")
@@ -177,9 +200,9 @@ module ActiveRecord
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "dev-db")
+        with("database" => "dev-db", "adapter" => "sqlite3")
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "test-db")
+        with("database" => "test-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("development")
@@ -190,9 +213,9 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "dev-db")
+        with("database" => "dev-db", "adapter" => "sqlite3")
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "test-db")
+        with("database" => "test-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("development")
@@ -225,9 +248,13 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @configurations = { development: { "database" => "my-db" } }
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = { development: { "database" => "my-db", "adapter" => "sqlite3" } }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_ignores_configurations_without_databases
@@ -282,18 +309,22 @@ module ActiveRecord
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     def setup
+      @prev_config = ActiveRecord::Base.configurations
       @configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+        "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
+        "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
+        "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
     end
 
     def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "prod-db")
+        with("database" => "prod-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("production")
@@ -302,9 +333,9 @@ module ActiveRecord
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "dev-db")
+        with("database" => "dev-db", "adapter" => "sqlite3")
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "test-db")
+        with("database" => "test-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("development")
@@ -315,9 +346,9 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "dev-db")
+        with("database" => "dev-db", "adapter" => "sqlite3")
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "test-db")
+        with("database" => "test-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("development")
@@ -368,16 +399,23 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
-    def test_purges_current_environment_database
-      configurations = {
-        "development" => { "database" => "dev-db" },
-        "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+    def setup
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = {
+        "development" => { "database" => "dev-db", "adapter" => "sqlite3" },
+        "test"        => { "database" => "test-db", "adapter" => "sqlite3" },
+        "production"  => { "database" => "prod-db", "adapter" => "sqlite3" }
       }
-      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+      ActiveRecord::Base.configurations = @configurations
+    end
 
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
+    end
+
+    def test_purges_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-        with("database" => "prod-db")
+        with("database" => "prod-db", "adapter" => "sqlite3")
       ActiveRecord::Base.expects(:establish_connection).with(:production)
 
       ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
@@ -385,12 +423,19 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
-    def test_purge_all_local_configurations
-      configurations = { development: { "database" => "my-db" } }
-      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+    def setup
+      @prev_config = ActiveRecord::Base.configurations
+      @configurations = { development: { "database" => "my-db", "adapter" => "sqlite3" } }
+      ActiveRecord::Base.configurations = @configurations
+    end
 
+    def teardown
+      ActiveRecord::Base.configurations = @prev_config
+    end
+
+    def test_purge_all_local_configurations
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-        with("database" => "my-db")
+        with("database" => "my-db", "adapter" => "sqlite3")
 
       ActiveRecord::Tasks::DatabaseTasks.purge_all
     end

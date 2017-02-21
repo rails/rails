@@ -108,7 +108,7 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations[options[:env]]
+          @current_config ||= config_at(options[:env])
         end
       end
 
@@ -136,7 +136,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           create configuration
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        ActiveRecord::Base.establish_connection(config_at(environment))
       end
 
       def drop(*arguments)
@@ -175,7 +175,7 @@ module ActiveRecord
       end
 
       def charset_current(environment = env)
-        charset ActiveRecord::Base.configurations[environment]
+        charset config_at(environment)
       end
 
       def charset(*arguments)
@@ -184,7 +184,7 @@ module ActiveRecord
       end
 
       def collation_current(environment = env)
-        collation ActiveRecord::Base.configurations[environment]
+        collation config_at(environment)
       end
 
       def collation(*arguments)
@@ -283,6 +283,11 @@ module ActiveRecord
         open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
       end
 
+      # Return the primary configuration from a given environment
+      def config_at(env)
+        Base.configurations[env]
+      end
+
       private
 
         def class_for_adapter(adapter)
@@ -297,20 +302,25 @@ module ActiveRecord
           environments = [environment]
           environments << "test" if environment == "development"
 
-          configurations = ActiveRecord::Base.configurations.values_at(*environments)
-          configurations.compact.each do |configuration|
-            yield configuration unless configuration["database"].blank?
+          #configurations = ActiveRecord::Base.configurations.values_at(*environments)
+          environments.each do |env|
+            if configuration = config_at(env)
+              yield configuration unless configuration["database"].blank?
+            end
           end
         end
 
-        def each_local_configuration
-          ActiveRecord::Base.configurations.each_value do |configuration|
-            next unless configuration["database"]
-
-            if local_database?(configuration)
-              yield configuration
+        def each_local_configuration(config = ActiveRecord::Base.configurations.to_hash, &block)
+          config.each_value do |value|
+            next unless value.is_a?(Hash)
+            if value["database"]
+              if local_database?(value)
+                yield value
+              else
+                $stderr.puts "This task only modifies local databases. #{value['database']} is on a remote host."
+              end
             else
-              $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+              each_local_configuration(value, &block)
             end
           end
         end

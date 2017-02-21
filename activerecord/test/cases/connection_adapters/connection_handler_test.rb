@@ -20,6 +20,57 @@ module ActiveRecord
         @handler.remove_connection("readonly")
       end
 
+      def test_establish_connection_using_3_levels_config
+        config = {
+          "development" => {
+            "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
+            "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+        ActiveRecord::Base.configurations.root_level = "development"
+
+        @handler.establish_connection(:primary)
+        @handler.establish_connection(:readonly)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
+        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
+      def test_establish_connection_using_two_level_configurations
+        config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+        ActiveRecord::Base.configurations.root_level = "development"
+
+        @handler.establish_connection(:development)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("development")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
+      def test_establish_connection_using_top_level_key_in_two_level_config
+        config = {
+          "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+          "development_readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+        ActiveRecord::Base.configurations.root_level = "development"
+
+        @handler.establish_connection(:development_readonly)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
       def test_retrieve_connection
         assert @handler.retrieve_connection(@spec_name)
       end

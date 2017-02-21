@@ -43,11 +43,10 @@ module ActiveRecord
       #      }
       #   }
       def self.configurations=(config)
-        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+        @@configurations = ConnectionAdapters::ConnectionSpecification::ConnectionConfigurations.new(config)
       end
-      self.configurations = {}
 
-      # Returns fully resolved configurations hash
+      self.configurations = {}
       def self.configurations
         @@configurations
       end

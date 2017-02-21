@@ -17,6 +17,45 @@ module ActiveRecord
         @config.merge(name: @name)
       end
 
+      class ConnectionConfigurations  #:nodoc:
+
+        def initialize(config)
+          @config = config
+          @root_level = nil
+          if url = ENV["DATABASE_URL"]
+            @database_url_config = ConnectionUrlResolver.new(url).to_hash
+          else
+            @database_url_config = nil
+          end
+        end
+
+        attr_accessor :root_level
+
+        def [](key)
+          ret = nil
+          if @root_level && c = @config[@root_level]
+            ret = c[key]
+          end
+          ret ||= @config[key]
+          if @database_url_config
+            ret = (ret || {}).merge(@database_url_config)
+          end
+          ret
+        end
+
+        def keys
+          if @root_level
+            @config[@root_level].keys
+          else
+            @config.keys
+          end
+        end
+
+        def to_hash
+          @config
+        end
+      end
+
       # Expands a connection string into a hash.
       class ConnectionUrlResolver # :nodoc:
         # == Example
@@ -115,7 +154,9 @@ module ActiveRecord
         attr_reader :configurations
 
         # Accepts a hash two layers deep, keys on the first layer represent
-        # environments such as "production". Keys must be strings.
+        # the specification name, such as "primary".
+        #
+        # Keys must be strings.
         def initialize(configurations)
           @configurations = configurations
         end
@@ -126,37 +167,32 @@ module ActiveRecord
         #
         # Full hash Configuration.
         #
-        #   configurations = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-        #   Resolver.new(configurations).resolve(:production)
+        #   configurations = { "primary" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   Resolver.new(configurations).resolve(:primary)
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3"}
         #
         # Initialized with URL configuration strings.
         #
-        #   configurations = { "production" => "postgresql://localhost/foo" }
-        #   Resolver.new(configurations).resolve(:production)
+        #   configurations = { "primary" => "postgresql://localhost/foo" }
+        #   Resolver.new(configurations).resolve(:primary)
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
         #
         def resolve(config)
           if config
             resolve_connection config
-          elsif env = ActiveRecord::ConnectionHandling::RAILS_ENV.call
-            resolve_symbol_connection env.to_sym
+          elsif root = @configurations.root_level
+            resolve_symbol_connection root.to_sym
           else
             raise AdapterNotSpecified
           end
         end
 
-        # Expands each key in @configurations hash into fully resolved hash
-        def resolve_all
-          config = configurations.dup
-          config.each do |key, value|
-            config[key] = resolve(value) if value
-          end
-          config
-        end
-
         # Returns an instance of ConnectionSpecification for a given adapter.
-        # Accepts a hash one layer deep that contains all connection information.
+        # Accepts:
+        # - Hash: one layer deep Hash that contains all connection information
+        # - Symbol: a configuration name that will be looked-up
+        #           from the configurations
+        # - String: a database url
         #
         # == Example
         #
@@ -199,7 +235,7 @@ module ActiveRecord
           #
           # Symbol representing current environment.
           #
-          #   Resolver.new("production" => {}).resolve_connection(:production)
+          #   Resolver.new("primary" => {}).resolve_connection(:primary)
           #   # => {}
           #
           # One layer deep hash of connection values.
@@ -223,11 +259,11 @@ module ActiveRecord
             end
           end
 
-          # Takes the environment such as +:production+ or +:development+.
+          # Takes the configuration name such as +:primary+.
           # This requires that the @configurations was initialized with a key that
           # matches.
           #
-          #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
+          #   Resolver.new("primary" => {}).resolve_symbol_connection(:primary)
           #   # => {}
           #
           def resolve_symbol_connection(spec)

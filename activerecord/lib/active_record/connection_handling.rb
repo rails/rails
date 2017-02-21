@@ -1,8 +1,5 @@
 module ActiveRecord
   module ConnectionHandling
-    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] }
-    DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
-
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
@@ -47,7 +44,6 @@ module ActiveRecord
     def establish_connection(config = nil)
       raise "Anonymous class is not allowed." unless name
 
-      config ||= DEFAULT_ENV.call.to_sym
       spec_name = self == Base ? "primary" : name
       self.connection_specification_name = spec_name
 
@@ -56,29 +52,6 @@ module ActiveRecord
       spec[:name] = spec_name
 
       connection_handler.establish_connection(spec)
-    end
-
-    class MergeAndResolveDefaultUrlConfig # :nodoc:
-      def initialize(raw_configurations)
-        @raw_config = raw_configurations.dup
-        @env = DEFAULT_ENV.call.to_s
-      end
-
-      # Returns fully resolved connection hashes.
-      # Merges connection information from `ENV['DATABASE_URL']` if available.
-      def resolve
-        ConnectionAdapters::ConnectionSpecification::Resolver.new(config).resolve_all
-      end
-
-      private
-        def config
-          @raw_config.dup.tap do |cfg|
-            if url = ENV["DATABASE_URL"]
-              cfg[@env] ||= {}
-              cfg[@env]["url"] ||= url
-            end
-          end
-        end
     end
 
     # Returns the connection currently associated with the class. This can
