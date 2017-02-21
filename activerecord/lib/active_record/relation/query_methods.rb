@@ -326,7 +326,7 @@ module ActiveRecord
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql
+      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
       unsafe_raw_order!(*args)
     end
 
@@ -362,7 +362,7 @@ module ActiveRecord
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql
+      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
       unsafe_raw_reorder!
     end
 

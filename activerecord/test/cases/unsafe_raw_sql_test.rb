@@ -6,7 +6,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   fixtures :posts, :comments
 
   test "order: allows string column name" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order("title").pluck(:id)
     end
 
@@ -15,7 +15,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows symbol column name" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(:title).pluck(:id)
     end
 
@@ -24,7 +24,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows downcase symbol direction" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(title: :asc).pluck(:id)
     end
 
@@ -33,7 +33,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows upcase symbol direction" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(title: :ASC).pluck(:id)
     end
 
@@ -42,7 +42,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows string direction" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(title: "asc").pluck(:id)
     end
 
@@ -51,7 +51,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows multiple columns" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(:author_id, :title).pluck(:id)
     end
 
@@ -60,7 +60,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows mixed" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.order(:author_id, title: :asc).pluck(:id)
     end
 
@@ -69,7 +69,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: disallows invalid column name" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.order("title asc").pluck(:id)
       end
@@ -77,7 +77,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: disallows invalid direction" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.order(title: :foo).pluck(:id)
       end
@@ -85,7 +85,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: disallows invalid column with direction" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.order(foo: :asc).pluck(:id)
       end
@@ -93,7 +93,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: allows string column name" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.pluck("title")
     end
 
@@ -102,7 +102,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: allows symbol column name" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.pluck(:title)
     end
 
@@ -111,7 +111,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: allows multiple column names" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.pluck(:title, :id)
     end
 
@@ -120,7 +120,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: allows column names with includes" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.includes(:comments).pluck(:title, :id)
     end
 
@@ -129,7 +129,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: allows auto-generated attributes" do
-    enabled, disabled = with_configs(true, false) do
+    enabled, disabled = with_configs(:enabled, :disabled) do
       Post.pluck(:tags_count)
     end
 
@@ -138,7 +138,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: disallows invalid column name" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.pluck("length(title)")
       end
@@ -146,7 +146,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: disallows invalid column name amongst valid names" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.pluck(:title, "length(title)")
       end
@@ -154,7 +154,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "pluck: disallows invalid column names with includes" do
-    with_config(false) do
+    with_config(:disabled) do
       assert_raises(ArgumentError) do
         Post.includes(:comments).pluck(:title, "length(title)")
       end

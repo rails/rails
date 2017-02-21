@@ -158,7 +158,7 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      _pluck(column_names, @klass.allow_unsafe_raw_sql)
+      _pluck(column_names, @klass.allow_unsafe_raw_sql == :enabled)
     end
 
     # Same as #pluck but allows raw SQL regardless of `allow_unsafe_raw_sql`
