@@ -81,7 +81,7 @@
 
     *Ryuta Kamizono*
 
-*   Add the touch option to ActiveRecord#increment! and decrement!.
+*   Add the touch option to `#increment!` and `#decrement!`.
 
     *Hiroaki Izu*
 
