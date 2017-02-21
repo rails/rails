@@ -70,7 +70,7 @@ module Rails
             lib/**/*.rb
           ),
           exclude: %w(
-            lib/rails/generators/rails/**/templates/**/*.rb
+            lib/rails/generators/**/templates/**/*.rb
             lib/rails/test_unit/*
             lib/rails/api/generator.rb
           )
