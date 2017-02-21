@@ -164,15 +164,13 @@ module ActionDispatch
 
           @path_helpers_module.module_eval do
             define_method(:"#{name}_path") do |*args|
-              options = args.extract_options!
-              helper.call(self, args, options, only_path: true)
+              helper.call(self, args, only_path: true)
             end
           end
 
           @url_helpers_module.module_eval do
             define_method(:"#{name}_url") do |*args|
-              options = args.extract_options!
-              helper.call(self, args, options)
+              helper.call(self, args)
             end
           end
         end
@@ -621,7 +619,8 @@ module ActionDispatch
           @block = block
         end
 
-        def call(t, args, options, outer_options = {})
+        def call(t, args, outer_options = {})
+          options = args.extract_options!
           url_options = eval_block(t, args, options)
 
           case url_options
