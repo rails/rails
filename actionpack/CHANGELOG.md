@@ -43,7 +43,7 @@
 
     *Tawan Sierek*
 
-*   Fixes incorrect output from rails routes when using singular resources.
+*   Fixes incorrect output from `rails routes` when using singular resources.
 
     Fixes #26606.
 
