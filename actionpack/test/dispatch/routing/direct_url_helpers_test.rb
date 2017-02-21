@@ -27,6 +27,7 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
       @id = id
     end
 
+    remove_method :model_name
     def model_name
       @_model_name ||= ActiveModel::Name.new(self.class, nil, self.class.name.demodulize)
     end
