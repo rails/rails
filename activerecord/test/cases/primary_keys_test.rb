@@ -238,13 +238,13 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
     @connection.drop_table(:auto_increments, if_exists: true)
   end
 
-  def test_primary_key_with_auto_increment
-    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
+  def test_primary_key_with_integer
+    @connection.create_table(:auto_increments, id: :integer, force: true)
     assert_auto_incremented
   end
 
-  def test_primary_key_with_auto_increment_and_bigint
-    @connection.create_table(:auto_increments, id: :bigint, auto_increment: true, force: true)
+  def test_primary_key_with_bigint
+    @connection.create_table(:auto_increments, id: :bigint, force: true)
     assert_auto_incremented
   end
 
