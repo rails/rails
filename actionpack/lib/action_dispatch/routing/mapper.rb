@@ -2020,6 +2020,111 @@ module ActionDispatch
         end
       end
 
+      module CustomUrls
+        # Define custom url helpers that will be added to the application's
+        # routes. This allows you override and/or replace the default behavior
+        # of routing helpers, e.g:
+        #
+        #   direct :homepage do
+        #     "http://www.rubyonrails.org"
+        #   end
+        #
+        #   direct :commentable do |model|
+        #     [ model, anchor: model.dom_id ]
+        #   end
+        #
+        #   direct :main do
+        #     { controller: 'pages', action: 'index', subdomain: 'www' }
+        #   end
+        #
+        # The return value from the block passed to `direct` must be a valid set of
+        # arguments for `url_for` which will actually build the url string. This can
+        # be one of the following:
+        #
+        #   * A string, which is treated as a generated url
+        #   * A hash, e.g. { controller: 'pages', action: 'index' }
+        #   * An array, which is passed to `polymorphic_url`
+        #   * An Active Model instance
+        #   * An Active Model class
+        #
+        # NOTE: Other url helpers can be called in the block but be careful not to invoke
+        # your custom url helper again otherwise it will result in a stack overflow error
+        #
+        # You can also specify default options that will be passed through to
+        # your url helper definition, e.g:
+        #
+        #   direct :browse, page: 1, size: 10 do |options|
+        #     [ :products, options.merge(params.permit(:page, :size)) ]
+        #   end
+        #
+        # NOTE: The `direct` methodn can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
+        def direct(name, options = {}, &block)
+          unless @scope.root?
+            raise RuntimeError, "The direct method can't be used inside a routes scope block"
+          end
+
+          @set.add_url_helper(name, options, &block)
+        end
+
+        # Define custom polymorphic mappings of models to urls. This alters the
+        # behavior of `polymorphic_url` and consequently the behavior of
+        # `link_to` and `form_for` when passed a model instance, e.g:
+        #
+        #   resource :basket
+        #
+        #   resolve "Basket" do
+        #     [:basket]
+        #   end
+        #
+        # This will now generate '/basket' when a `Basket` instance is passed to
+        # `link_to` or `form_for` instead of the standard '/baskets/:id'.
+        #
+        # NOTE: This custom behavior only applies to simple polymorphic urls where
+        # a single model instance is passed and not more complicated forms, e.g:
+        #
+        #   # config/routes.rb
+        #   resource :profile
+        #   namespace :admin do
+        #     resources :users
+        #   end
+        #
+        #   resolve("User") { [:profile] }
+        #
+        #   # app/views/application/_menu.html.erb
+        #   link_to 'Profile', @current_user
+        #   link_to 'Profile', [:admin, @current_user]
+        #
+        # The first `link_to` will generate '/profile' but the second will generate
+        # the standard polymorphic url of '/admin/users/1'.
+        #
+        # You can pass options to a polymorphic mapping - the arity for the block
+        # needs to be two as the instance is passed as the first argument, e.g:
+        #
+        #   direct class: 'Basket', anchor: 'items' do |basket, options|
+        #     [:basket, options]
+        #   end
+        #
+        # This generates the url '/basket#items' because when the last item in an
+        # array passed to `polymorphic_url` is a hash then it's treated as options
+        # to the url helper that gets called.
+        #
+        # NOTE: The `resolve` methodn can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
+        def resolve(*args, &block)
+          unless @scope.root?
+            raise RuntimeError, "The resolve method can't be used inside a routes scope block"
+          end
+
+          options = args.extract_options!
+          args = args.flatten(1)
+
+          args.each do |klass|
+            @set.add_polymorphic_mapping(klass, options, &block)
+          end
+        end
+      end
+
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
@@ -2038,6 +2143,14 @@ module ActionDispatch
 
         def nested?
           scope_level == :nested
+        end
+
+        def null?
+          @hash.nil? && @parent.nil?
+        end
+
+        def root?
+          @parent.null?
         end
 
         def resources?
@@ -2113,6 +2226,7 @@ module ActionDispatch
       include Scoping
       include Concerns
       include Resources
+      include CustomUrls
     end
   end
 end

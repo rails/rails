@@ -1,3 +1,48 @@
+*   Prefer `remove_method` over `undef_method` when reloading routes
+
+    When `undef_method` is used it prevents access to other implementations of that
+    url helper in the ancestor chain so use `remove_method` instead to restores access.
+
+    *Andrew White*
+
+*   Add the `resolve` method to the routing DSL
+
+    This new method allows customization of the polymorphic mapping of models:
+
+    ``` ruby
+    resource :basket
+    direct(class: "Basket") { [:basket] }
+    ```
+
+    ``` erb
+    <%= form_for @basket do |form| %>
+    <!-- basket form -->
+    <% end %>
+    ```
+
+    This generates the correct singular URL for the form instead of the default
+    resources member url, e.g. `/basket` vs. `/basket/:id`.
+
+    Fixes #1769.
+
+    *Andrew White*
+
+*   Add the `direct` method to the routing DSL
+
+    This new method allows creation of custom url helpers, e.g:
+
+    ``` ruby
+    direct(:apple) { "http://www.apple.com" }
+
+    >> apple_url
+    => "http://www.apple.com"
+    ```
+
+    This has the advantage of being available everywhere url helpers are available
+    unlike custom url helpers defined in helper modules, etc.
+
+    *Andrew White*
+
 *   Add `ActionDispatch::SystemTestCase` to Action Pack
 
     Adds Capybara integration directly into Rails through Action Pack!

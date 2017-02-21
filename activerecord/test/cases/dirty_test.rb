@@ -577,6 +577,7 @@ class DirtyTest < ActiveRecord::TestCase
       end
     ensure
       ActiveRecord::Base.connection.drop_table :testings rescue nil
+      ActiveRecord::Base.clear_cache!
     end
   end
 

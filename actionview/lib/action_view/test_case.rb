@@ -124,6 +124,10 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
+      def _routes
+        @controller._routes if @controller.respond_to?(:_routes)
+      end
+
       # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
@@ -256,10 +260,6 @@ module ActionView
         Hash[_user_defined_ivars.map do |ivar|
           [ivar[1..-1].to_sym, instance_variable_get(ivar)]
         end]
-      end
-
-      def _routes
-        @controller._routes if @controller.respond_to?(:_routes)
       end
 
       def method_missing(selector, *args)
