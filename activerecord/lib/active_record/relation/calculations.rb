@@ -158,13 +158,28 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      _pluck(column_names, @klass.allow_unsafe_raw_sql == :enabled)
-    end
+      unrecognized = column_names.reject do |cn|
+        @klass.respond_to_attribute?(cn) ||
+          cn.kind_of?(Arel::Node) ||
+          cn.is_a?(Arel::Nodes::SqlLiteral)
+      end
 
-    # Same as #pluck but allows raw SQL regardless of `allow_unsafe_raw_sql`
-    # config setting.
-    def unsafe_raw_pluck(*column_names)
-      _pluck(column_names, true)
+      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+        records.pluck(*column_names)
+      elsif has_include?(column_names.first)
+        construct_relation_for_association_calculations.pluck(*column_names)
+      elsif @klass.allow_unsafe_raw_sql == :enabled || unrecognized.none?
+        relation = spawn
+        relation.select_values = column_names.map { |cn|
+          @klass.respond_to_attribute?(cn) ? arel_attribute(cn) : cn
+        }
+        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
+        result.cast_values(klass.attribute_types)
+      elsif @klass.allow_unsafe_raw_sql == :deprecated
+        ActiveSupport::Deprecation.warn "Plucking things other than collumn names (#{unrecognized.inspect}) is considered dangerous and potentially vulnerable to SQL injection. Known-safe values can be wrapped in Arel.sql(...)."
+      else
+        raise ArgumentError, "Invalid column name(s): #{unrecognized.inspect}"
+      end
     end
 
     # Pluck all the ID's for the relation using the table's primary key
@@ -176,27 +191,6 @@ module ActiveRecord
     end
 
     private
-
-      def _pluck(column_names, unsafe_raw)
-        unrecognized = column_names.reject do |cn|
-          @klass.respond_to_attribute?(cn)
-        end
-
-        if loaded? && unrecognized.none?
-          records.pluck(*column_names)
-        elsif has_include?(column_names.first)
-          construct_relation_for_association_calculations.pluck(*column_names)
-        elsif unsafe_raw || unrecognized.none?
-          relation = spawn
-          relation.select_values = column_names.map { |cn|
-            @klass.respond_to_attribute?(cn) ? arel_attribute(cn) : cn
-          }
-          result = klass.connection.select_all(relation.arel, nil, bound_attributes)
-          result.cast_values(klass.attribute_types)
-        else
-          raise ArgumentError, "Invalid column name: #{unrecognized}"
-        end
-      end
 
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)

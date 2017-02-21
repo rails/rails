@@ -98,7 +98,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_equal enabled, disabled
-    assert_equal disabled, Post.unsafe_raw_pluck("title")
+    assert_equal disabled, Post.pluck(Arel.sql("title"))
   end
 
   test "pluck: allows symbol column name" do
@@ -107,7 +107,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_equal enabled, disabled
-    assert_equal disabled, Post.unsafe_raw_pluck(:title)
+    assert_equal disabled, Post.pluck(Arel.sql("title"))
   end
 
   test "pluck: allows multiple column names" do
@@ -116,7 +116,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_equal enabled, disabled
-    assert_equal disabled, Post.unsafe_raw_pluck(:title, :id)
+    assert_equal disabled, Post.pluck(Arel.sql("title"), Arel.sql("id"))
   end
 
   test "pluck: allows column names with includes" do
@@ -125,7 +125,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_equal enabled, disabled
-    assert_equal disabled, Post.includes(:comments).unsafe_raw_pluck(:title, :id)
+    assert_equal disabled, Post.includes(:comments).pluck(Arel.sql("title"), Arel.sql("id"))
   end
 
   test "pluck: allows auto-generated attributes" do
@@ -134,7 +134,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_equal enabled, disabled
-    assert_equal disabled, Post.unsafe_raw_pluck(:tags_count)
+    assert_equal disabled, Post.pluck(Arel.sql("tags_count"))
   end
 
   test "pluck: disallows invalid column name" do
@@ -158,6 +158,24 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       assert_raises(ArgumentError) do
         Post.includes(:comments).pluck(:title, "length(title)")
       end
+    end
+  end
+
+  test "pluck: always allows Arel" do
+    enabled, disabled = with_configs(:enabled, :disabled) do
+      Post.includes(:comments).pluck(:title, Arel.sql("length(title)"))
+    end
+
+    assert_equal enabled, disabled
+  end
+
+  test "pluck: logs deprecation warning" do
+    with_config(:deprecated) do
+      ActiveSupport::Deprecation.expects(:warn).with do |msg|
+        msg =~ /\APlucking things other .*length\(title\)/
+      end
+
+      Post.includes(:comments).pluck(:title, "length(title)")
     end
   end
 
