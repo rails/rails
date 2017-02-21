@@ -38,7 +38,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         ENV["RAILS_MASTER_KEY"] = IO.binread("config/secrets.yml.key").strip
         FileUtils.rm("config/secrets.yml.key")
 
-        assert_match "production:\n  secret_key_base", Rails::Secrets.read
+        assert_match "production:\n#  secret_key_base", Rails::Secrets.read
       ensure
         ENV["RAILS_MASTER_KEY"] = old_key
       end
@@ -62,7 +62,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       Rails::Secrets.read_for_editing do |tmp_path|
         decrypted_path = tmp_path
 
-        assert_match(/production:\n\s+secret_key_base/, File.read(tmp_path))
+        assert_match(/production:\n#  secret_key_base/, File.read(tmp_path))
 
         File.open(tmp_path, "w") do |file|
           file.puts("Empty streets, empty nights. The Downtown Lights")
