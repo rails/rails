@@ -7,10 +7,13 @@ require "active_support/test_case"
 require "action_controller"
 require "action_controller/test_case"
 require "action_dispatch/testing/integration"
-require "action_dispatch/system_test_case"
 require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
+
+if defined?(Capbyara)
+  require "action_dispatch/system_test_case"
+end
 
 if defined?(ActiveRecord::Base)
   ActiveRecord::Migration.maintain_test_schema!
@@ -46,9 +49,11 @@ class ActionDispatch::IntegrationTest
   end
 end
 
-class ActionDispatch::SystemTestCase
-  def before_setup # :nodoc:
-    @routes = Rails.application.routes
-    super
+if defined? Capybara
+  class ActionDispatch::SystemTestCase
+    def before_setup # :nodoc:
+      @routes = Rails.application.routes
+      super
+    end
   end
 end
