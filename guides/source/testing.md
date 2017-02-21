@@ -636,11 +636,11 @@ change the default settings.
 Rails makes changing the default settings for system test very simple. All
 the setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, a `application_system_test_case.rb` file
+When you generate a new application or scaffold, an `application_system_test_case.rb` file
 is created in the test directory. This is where all the configuration for your
 system tests should live.
 
-If you want to change the default settings you can simple change what the system
+If you want to change the default settings you can simply change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
 Poltergeist. First add the Poltergeist gem to your Gemfile. Then in your
 `application_system_test_case.rb` file do the following:
@@ -685,7 +685,7 @@ This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
 Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in  `after_teardown` inside
+`take_failed_screenshot` is automatically included in `after_teardown` inside
 Rails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to

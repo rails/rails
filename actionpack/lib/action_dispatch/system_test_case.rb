@@ -36,7 +36,7 @@ module ActionDispatch
     #     end
     #   end
     #
-    # When generating an application or scaffold a +application_system_test_case.rb+
+    # When generating an application or scaffold, an +application_system_test_case.rb+
     # file will also be generated containing the base class for system testing.
     # This is where you can change the driver, add Capybara settings, and other
     # configuration for your system tests.
