@@ -212,4 +212,16 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  def test_defining_inside_a_scope_raises_runtime_error
+    routes = ActionDispatch::Routing::RouteSet.new
+
+    assert_raises RuntimeError do
+      routes.draw do
+        namespace :admin do
+          direct(:rubyonrails) { "http://www.rubyonrails.org" }
+        end
+      end
+    end
+  end
 end

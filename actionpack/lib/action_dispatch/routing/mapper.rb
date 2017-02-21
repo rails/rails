@@ -2094,10 +2094,13 @@ module ActionDispatch
         # array passed to `polymorphic_url` is a hash then it's treated as options
         # to the url helper that gets called.
         #
-        # NOTE: The `direct` method doesn't observe the current scope in routes.rb
-        # and because of this it's recommended to define them outside of any blocks
-        # such as `namespace` or `scope`.
+        # NOTE: The `direct` methodn can't be used inside of a scope block such as
+        # `namespace` or `scope` and will raise an error if it detects that it is.
         def direct(name_or_hash, options = nil, &block)
+          unless @scope.root?
+            raise RuntimeError, "The direct method can't be used inside a routes scope block"
+          end
+
           case name_or_hash
           when Hash
             @set.add_polymorphic_mapping(name_or_hash, &block)
@@ -2127,6 +2130,14 @@ module ActionDispatch
 
         def nested?
           scope_level == :nested
+        end
+
+        def null?
+          @hash.nil? && @parent.nil?
+        end
+
+        def root?
+          @parent.null?
         end
 
         def resources?
