@@ -165,8 +165,11 @@ module ActionDispatch
         end
 
         def polymorphic_mapping(record)
-          return false unless record.respond_to?(:to_model)
-          _routes.polymorphic_mappings[record.to_model.model_name.name]
+          if record.respond_to?(:to_model)
+            _routes.polymorphic_mappings[record.to_model.model_name.name]
+          else
+            _routes.polymorphic_mappings[record.class.name]
+          end
         end
 
         class HelperMethodBuilder # :nodoc:
@@ -321,7 +324,11 @@ module ActionDispatch
           private
 
             def polymorphic_mapping(target, record)
-              target._routes.polymorphic_mappings[record.to_model.model_name.name]
+              if record.respond_to?(:to_model)
+                target._routes.polymorphic_mappings[record.to_model.model_name.name]
+              else
+                target._routes.polymorphic_mappings[record.class.name]
+              end
             end
 
             def get_method_for_class(klass)

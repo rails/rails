@@ -40,12 +40,25 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
   class User < Model; end
   class Video < Model; end
 
+  class Article
+    attr_reader :id
+
+    def self.name
+      "Article"
+    end
+
+    def initialize(id)
+      @id = id
+    end
+  end
+
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     default_url_options host: "www.example.com"
 
     root to: "pages#index"
     get "/basket", to: "basket#show", as: :basket
+    get "/posts/:id", to: "posts#show", as: :post
     get "/profile", to: "users#profile", as: :profile
     get "/media/:id", to: "media#show", as: :media
 
@@ -66,6 +79,7 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
     direct(:options)  { |options| [:products, options] }
     direct(:defaults, size: 10) { |options| [:products, options] }
 
+    direct(class: "Article") { |article| [:post, { id: article.id }] }
     direct(class: "Basket") { |basket| [:basket] }
     direct(class: "User", anchor: "details") { |user, options| [:profile, options] }
     direct(class: "Video") { |video| [:media, { id: video.id }] }
@@ -86,6 +100,7 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
     @basket = Basket.new
     @user = User.new
     @video = Video.new("4")
+    @article = Article.new("5")
     @path_params = { "controller" => "pages", "action" => "index" }
     @unsafe_params = ActionController::Parameters.new(@path_params)
     @safe_params = ActionController::Parameters.new(@path_params).permit(:controller, :action)
@@ -139,6 +154,10 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/media/4", polymorphic_path(@video)
     assert_equal "/media/4", Routes.url_helpers.polymorphic_path(@video)
     assert_equal "/media/4", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call(self, @video)
+
+    assert_equal "/posts/5", polymorphic_path(@article)
+    assert_equal "/posts/5", Routes.url_helpers.polymorphic_path(@article)
+    assert_equal "/posts/5", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call(self, @article)
   end
 
   def test_direct_urls
@@ -191,6 +210,10 @@ class TestDirectUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/media/4", polymorphic_url(@video)
     assert_equal "http://www.example.com/media/4", Routes.url_helpers.polymorphic_url(@video)
     assert_equal "http://www.example.com/media/4", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.url.handle_model_call(self, @video)
+
+    assert_equal "http://www.example.com/posts/5", polymorphic_url(@article)
+    assert_equal "http://www.example.com/posts/5", Routes.url_helpers.polymorphic_url(@article)
+    assert_equal "http://www.example.com/posts/5", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.url.handle_model_call(self, @article)
   end
 
   def test_raises_argument_error
