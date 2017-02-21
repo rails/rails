@@ -31,13 +31,24 @@ Major Features
 
 ### Yarn Support
 
+[Pull Request](https://github.com/rails/rails/pull/26836)
+
 ### System tests
+
+[Pull Request](https://github.com/rails/rails/pull/26703)
 
 ### Encrypted secrets
 
+[Pull Request](https://github.com/rails/rails/pull/28038)
+
 ### Parameterized mailers
 
+[Pull Request](https://github.com/rails/rails/pull/27825)
+
 ### Direct & resolved routes
+
+[Pull Request](https://github.com/rails/rails/pull/23138)
+
 
 Railties
 --------
