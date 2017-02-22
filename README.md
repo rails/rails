@@ -150,7 +150,14 @@ The `OR` operator works like this:
 users.where(users[:name].eq('bob').or(users[:age].lt(25)))
 ```
 
-The `AND` operator behaves similarly.
+The `AND` operator behaves similarly. The exception is the `DISTINCT` operator, which is not chainable:
+
+```
+posts = Arel::Table.new(:posts)
+posts.project(posts[:title])
+posts.distinct
+posts.to_sql # => 'SELECT DISTINCT "posts"."title" FROM "posts"'
+```
 
 Aggregate functions `AVG`, `SUM`, `COUNT`, `MIN`, `MAX`, `HAVING`:
 
