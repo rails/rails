@@ -96,6 +96,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     direct(:options)  { |options| [:products, options] }
     direct(:defaults, size: 10) { |options| [:products, options] }
 
+    direct(:browse, page: 1, size: 10) do |options|
+      [:products, options.merge(params.permit(:page, :size).to_h.symbolize_keys)]
+    end
+
     resolve("Article") { |article| [:post, { id: article.id }] }
     resolve("Basket") { |basket| [:basket] }
     resolve("User", anchor: "details") { |user, options| [:profile, options] }
@@ -125,6 +129,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     @path_params = { "controller" => "pages", "action" => "index" }
     @unsafe_params = ActionController::Parameters.new(@path_params)
     @safe_params = ActionController::Parameters.new(@path_params).permit(:controller, :action)
+  end
+
+  def params
+    ActionController::Parameters.new(page: 2, size: 25)
   end
 
   def test_direct_paths
@@ -162,6 +170,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "/products?size=10", Routes.url_helpers.defaults_path
     assert_equal "/products?size=20", defaults_path(size: 20)
     assert_equal "/products?size=20", Routes.url_helpers.defaults_path(size: 20)
+
+    assert_equal "/products?page=2&size=25", browse_path
+    assert_raises(NameError) { Routes.url_helpers.browse_path }
   end
 
   def test_direct_urls
@@ -199,6 +210,9 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/products?size=10", Routes.url_helpers.defaults_url
     assert_equal "http://www.example.com/products?size=20", defaults_url(size: 20)
     assert_equal "http://www.example.com/products?size=20", Routes.url_helpers.defaults_url(size: 20)
+
+    assert_equal "http://www.example.com/products?page=2&size=25", browse_url
+    assert_raises(NameError) { Routes.url_helpers.browse_url }
   end
 
   def test_resolve_paths

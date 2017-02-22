@@ -2057,6 +2057,15 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size)) ]
         #   end
         #
+        # In this instance the `params` object comes from the context in which the the
+        # block is executed, e.g. generating a url inside a controller action or a view.
+        # If the block is executed where there isn't a params object such as this:
+        #
+        #   Rails.application.routes.url_helpers.browse_path
+        #
+        # then it will raise a `NameError`. Because of this you need to be aware of the
+        # context in which you will use your custom url helper when defining it.
+        #
         # NOTE: The `direct` method can't be used inside of a scope block such as
         # `namespace` or `scope` and will raise an error if it detects that it is.
         def direct(name, options = {}, &block)
