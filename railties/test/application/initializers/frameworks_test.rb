@@ -7,6 +7,10 @@ module ApplicationTests
     def setup
       build_app
       FileUtils.rm_rf "#{app_path}/config/environments"
+
+      add_to_config <<-RUBY
+        config.secret_key_base = SecureRandom.hex(16)
+      RUBY
     end
 
     def teardown
