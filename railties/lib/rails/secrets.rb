@@ -16,7 +16,8 @@ module Rails
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
-      attr_writer :root, :read_encrypted_secrets
+      attr_writer   :root
+      attr_accessor :read_encrypted_secrets
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|

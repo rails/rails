@@ -52,7 +52,7 @@ module Rails
         @debug_exception_response_format = nil
         @x                               = Custom.new
         @enable_dependency_loading       = false
-        @read_encrypted_secrets = false
+        @read_encrypted_secrets          = false
       end
 
       def encoding=(value)
