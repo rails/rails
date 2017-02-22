@@ -51,7 +51,6 @@ module ActiveSupport
           end
         end
       end
-      prepare!
     end
 
     def self.run! # :nodoc:

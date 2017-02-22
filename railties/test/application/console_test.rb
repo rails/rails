@@ -51,9 +51,9 @@ class ConsoleTest < ActiveSupport::TestCase
     a = b = c = nil
 
     # TODO: These should be defined on the initializer
-    ActiveSupport::Reloader.to_complete { a = b = c = 1 }
+    ActiveSupport::Reloader.to_prepare { a = b = c = 1 }
     ActiveSupport::Reloader.to_complete { b = c = 2 }
-    ActiveSupport::Reloader.to_prepare { c = 3 }
+    ActiveSupport::Reloader.to_complete { c = 3 }
 
     irb_context.reload!(false)
 
