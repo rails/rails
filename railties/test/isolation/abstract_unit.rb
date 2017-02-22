@@ -106,7 +106,7 @@ module TestHelpers
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
-      ENV["RAILS_MASTER_KEY"] ||= Rails::Secrets.generate_key
+      ENV["SECRET_KEY_BASE"] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
@@ -116,13 +116,6 @@ module TestHelpers
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
         end
-      end
-
-      Dir.chdir(app_path) do
-        Rails::Secrets.write(<<-YAML)
-          production:
-            secret_key_base: #{SecureRandom.hex(16)}
-        YAML
       end
 
       routes = File.read("#{app_path}/config/routes.rb")

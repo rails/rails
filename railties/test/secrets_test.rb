@@ -12,16 +12,10 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
     @old_read_encrypted_secrets, Rails::Secrets.read_encrypted_secrets =
       Rails::Secrets.read_encrypted_secrets, true
-
-    # Sweep the environment from isolation/abstract_unit.
-    @old_key = ENV.delete("RAILS_MASTER_KEY")
-    FileUtils.rm("#{app_path}/config/secrets.yml.enc")
   end
 
   def teardown
     Rails::Secrets.read_encrypted_secrets = @old_read_encrypted_secrets
-
-    ENV["RAILS_MASTER_KEY"] = @old_key
 
     teardown_app
   end
