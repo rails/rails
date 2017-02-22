@@ -150,7 +150,7 @@ The `OR` operator works like this:
 users.where(users[:name].eq('bob').or(users[:age].lt(25)))
 ```
 
-The `AND` operator behaves similarly. Here is an example of the `DISTINCT` operator, which as of v6 is also chainable:
+The `AND` operator behaves similarly. Here is an example of the `DISTINCT` operator:
 
 ```ruby
 posts = Arel::Table.new(:posts)
