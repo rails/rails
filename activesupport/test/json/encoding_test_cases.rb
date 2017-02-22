@@ -1,4 +1,6 @@
 require 'bigdecimal'
+require 'date'
+require 'time'
 
 module JSONTest
   class Foo
