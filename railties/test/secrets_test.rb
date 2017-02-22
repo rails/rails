@@ -60,9 +60,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
   test "reading from key file" do
     run_secrets_generator do
-      File.open("config/secrets.yml.key", "w") do |file|
-        file.puts("How do I know you feel it?".encode("ascii-8bit"))
-      end
+      File.binwrite("config/secrets.yml.key", "How do I know you feel it?")
 
       assert_equal "How do I know you feel it?", Rails::Secrets.key
     end
@@ -77,13 +75,11 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
         assert_match(/production:\n#  secret_key_base/, File.read(tmp_path))
 
-        File.open(tmp_path, "w") do |file|
-          file.puts("Empty streets, empty nights. The Downtown Lights")
-        end
+        File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
       end
 
       assert_not File.exist?(decrypted_path)
-      assert_equal "Empty streets, empty nights. The Downtown Lights\n", Rails::Secrets.read
+      assert_equal "Empty streets, empty nights. The Downtown Lights.", Rails::Secrets.read
     end
   end
 
