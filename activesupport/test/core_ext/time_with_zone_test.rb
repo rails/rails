@@ -467,6 +467,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_nothing_raised do
       @twz.period
       @twz.time
+      @twz.to_datetime
     end
   end
 

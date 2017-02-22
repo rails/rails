@@ -1,3 +1,7 @@
+*   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
+
+    *Adam Rice*
+
 *   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
     `Time.now` and `Date.today`.
 
