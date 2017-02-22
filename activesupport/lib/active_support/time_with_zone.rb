@@ -338,7 +338,7 @@ module ActiveSupport
     alias_method :kind_of?, :is_a?
 
     def freeze
-      period; utc; time # preload instance variables before freezing
+      period; utc; time; to_datetime # preload instance variables before freezing
       super
     end
 
