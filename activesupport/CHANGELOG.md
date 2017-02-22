@@ -1,3 +1,7 @@
+*   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
+
+    *Adam Rice*
+
 *   Deprecate `.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*
