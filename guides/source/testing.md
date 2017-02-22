@@ -712,7 +712,7 @@ Now let's open that file and write our first assertion:
 ```ruby
 require "application_system_test_case"
 
-class UsersTest < ApplicationSystemTestCase
+class ArticlesTest < ApplicationSystemTestCase
   test "viewing the index" do
     visit articles_path
     assert_selector "h1", text: "Articles"
