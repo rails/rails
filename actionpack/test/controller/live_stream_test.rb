@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'timeout'
 require 'active_support/concurrency/latch'
 Thread.abort_on_exception = true
 
