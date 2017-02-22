@@ -180,6 +180,7 @@ module ActiveSupport
       sum(1, time)
     end
     alias :from_now :since
+    alias :after :since
 
     # Calculates a new Time or Date that is as far in the past
     # as this Duration represents.
@@ -187,6 +188,7 @@ module ActiveSupport
       sum(-1, time)
     end
     alias :until :ago
+    alias :before :ago
 
     def inspect #:nodoc:
       parts.
