@@ -1,6 +1,6 @@
 # Be sure to restart your server when you modify this file.
 #
-# This file contains migration options to ease your Rails 5.0 upgrade.
+# This file contains migration options to ease your Rails 5.1 upgrade.
 #
 <%- if options[:update] -%>
 # Once upgraded flip defaults one by one to migrate to the new default.
@@ -35,3 +35,6 @@ Rails.application.config.ssl_options = { hsts: { subdomains: true } }
 # asset is not present in the asset pipeline.
 Rails.application.config.assets.unknown_asset_fallback = <%= options[:update] ? true : false %>
 <%- end -%>
+
+# Enable support for deprecated `/:controller/:action` dynamic route segments.
+Rails.application.config.action_dispatch.deprecated_routing = <%= options[:update] ? true : false %>

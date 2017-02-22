@@ -11,6 +11,9 @@ module ActionDispatch
   module Routing
     # :stopdoc:
     class RouteSet
+      cattr_accessor :deprecated_routing
+      self.deprecated_routing = false
+
       # Since the router holds references to many parts of the system
       # like engines, controllers and the application itself, inspecting
       # the route set can actually be really slow, therefore we default
@@ -580,17 +583,25 @@ module ActionDispatch
         named_routes[name] = route if name
 
         if route.segment_keys.include?(:controller)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 5.2.
-          MSG
+          if deprecated_routing
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Using a dynamic :controller segment in a route is deprecated and
+              will be removed in Rails 5.2.
+            MSG
+          else
+            raise ArgumentError, "Using a dynamic :controller segment is not allowed."
+          end
         end
 
         if route.segment_keys.include?(:action)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 5.2.
-          MSG
+          if deprecated_routing
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Using a dynamic :action segment in a route is deprecated and
+              will be removed in Rails 5.2.
+            MSG
+          else
+            raise ArgumentError, "Using a dynamic :action segment is not allowed."
+          end
         end
 
         route

@@ -71,6 +71,9 @@ module RenderERBUtils
   end
 end
 
+# Enable deprecated `/:controller/:action` routing for the test suite.
+ActionDispatch::Routing::RouteSet.deprecated_routing = true
+
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 module ActionDispatch

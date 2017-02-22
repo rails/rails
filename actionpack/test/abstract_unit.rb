@@ -58,6 +58,8 @@ I18n.enforce_available_locales = false
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
 
+# Enable deprecated `/:controller/:action` routing for the test suite.
+ActionDispatch::Routing::RouteSet.deprecated_routing = true
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do

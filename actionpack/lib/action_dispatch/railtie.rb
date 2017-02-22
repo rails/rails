@@ -17,6 +17,7 @@ module ActionDispatch
     config.action_dispatch.encrypted_cookie_salt = "encrypted cookie"
     config.action_dispatch.encrypted_signed_cookie_salt = "signed encrypted cookie"
     config.action_dispatch.perform_deep_munge = true
+    config.action_dispatch.deprecated_routing = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -32,6 +33,7 @@ module ActionDispatch
       ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       ActionDispatch::Response.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
       ActionDispatch::Response.default_headers = app.config.action_dispatch.default_headers
+      ActionDispatch::Routing::RouteSet.deprecated_routing = app.config.action_dispatch.deprecated_routing
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)

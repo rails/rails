@@ -5,6 +5,8 @@ class WelcomeController < ActionController::Base
 end
 
 AppRoutes = ActionDispatch::Routing::RouteSet.new
+AppRoutes.deprecated_routing = true
+
 
 class ActionMailer::Base
   include AppRoutes.url_helpers

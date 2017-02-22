@@ -149,6 +149,7 @@ module TestHelpers
         config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
+        config.action_dispatch.deprecated_routing = true
       RUBY
     end
 
@@ -170,6 +171,7 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.active_support.test_order = :random
       @app.config.log_level = :info
+      @app.config.action_dispatch.deprecated_routing = true
 
       yield @app if block_given?
       @app.initialize!
