@@ -1,3 +1,9 @@
+*   Bust `ActiveSupport::TimeZone.all` cache when looking up timezones
+
+    Fixes #7245
+
+    *Daniel Colson*
+
 *   Deprecate `.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*

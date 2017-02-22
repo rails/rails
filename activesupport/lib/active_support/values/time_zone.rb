@@ -228,7 +228,12 @@ module ActiveSupport
         case arg
         when String
           begin
-            @lazy_zones_map[arg] ||= create(arg)
+            if @lazy_zones_map[arg].nil?
+              @lazy_zones_map[arg] = create(arg)
+              @zones = nil
+            end
+
+            @lazy_zones_map[arg]
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end

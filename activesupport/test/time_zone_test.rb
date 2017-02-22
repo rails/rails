@@ -501,6 +501,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_new_zone_busts_all_cache
+    old_all = ActiveSupport::TimeZone.all
+    chicago = ActiveSupport::TimeZone["America/Chicago"]
+    assert_not(old_all.include?(chicago))
+    assert(ActiveSupport::TimeZone.all.include?(chicago))
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
