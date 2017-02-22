@@ -1,3 +1,19 @@
+*   Add `ActiveSupport::Duration#before` and `#after` as aliases for `#until` and `#since`
+
+    These read more like English and require less mental gymnastics to read and write.
+
+    Before:
+
+        2.weeks.since(customer_start_date)
+        5.days.until(today)
+
+    After:
+
+        2.weeks.after(customer_start_date)
+        5.days.before(today)
+
+    *Nick Johnstone*
+
 *   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
     `ActiveSupport::HashWithIndifferentAccess` should be used instead.
 

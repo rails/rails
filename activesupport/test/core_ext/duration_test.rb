@@ -179,6 +179,19 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
+  def test_before_and_afer
+    t = Time.local(2000)
+    assert_equal t + 1, 1.second.after(t)
+    assert_equal t - 1, 1.second.before(t)
+  end
+
+  def test_before_and_after_without_argument
+    Time.stub(:now, Time.local(2000)) do
+      assert_equal Time.now - 1.second, 1.second.before
+      assert_equal Time.now + 1.second, 1.second.after
+    end
+  end
+
   def test_adding_hours_across_dst_boundary
     with_env_tz "CET" do
       assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 24.hours, Time.local(2009, 3, 30, 1, 0, 0)
