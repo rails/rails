@@ -87,6 +87,24 @@ class Rails::SecretsTest < ActiveSupport::TestCase
     end
   end
 
+  test "merging secrets with encrypted precedence" do
+    run_secrets_generator do
+      File.write("config/secrets.yml", <<-end_of_secrets)
+        test:
+          yeah_yeah: lets-go-walking-down-this-empty-street
+      end_of_secrets
+
+      Rails::Secrets.write(<<-end_of_secrets)
+        test:
+          yeah_yeah: lets-walk-in-the-cool-evening-light
+      end_of_secrets
+
+      Rails.application.config.root = app_path
+      Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
+      assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.secrets.yeah_yeah
+    end
+  end
+
   private
     def run_secrets_generator
       Dir.chdir(app_path) do
