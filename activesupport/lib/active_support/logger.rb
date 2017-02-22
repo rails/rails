@@ -8,6 +8,17 @@ module ActiveSupport
     include ActiveSupport::LoggerThreadSafeLevel
     include LoggerSilence
 
+    # Returns true if the logger destination matches one of the sources
+    #
+    #   logger = Logger.new(STDOUT)
+    #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
+    #   # => true
+    def self.logger_outputs_to?(logger, *sources)
+      logdev = logger.instance_variable_get("@logdev")
+      logger_source = logdev.dev if logdev.respond_to?(:dev)
+      sources.any? { |source| source == logger_source }
+    end
+
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
