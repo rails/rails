@@ -427,7 +427,8 @@ module ActiveSupport
     end
 
     def freeze
-      period; utc; time # preload instance variables before freezing
+      # preload instance variables before freezing
+      period; utc; time; to_datetime
       super
     end
 
