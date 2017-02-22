@@ -10,26 +10,27 @@ class Rails::SecretsTest < ActiveSupport::TestCase
   def setup
     build_app
 
+    @old_read_encrypted_secrets, Rails::Secrets.read_encrypted_secrets =
+      Rails::Secrets.read_encrypted_secrets, true
+
     # Sweep the environment from isolation/abstract_unit.
     @old_key = ENV.delete("RAILS_MASTER_KEY")
     FileUtils.rm("#{app_path}/config/secrets.yml.enc")
   end
 
   def teardown
+    Rails::Secrets.read_encrypted_secrets = @old_read_encrypted_secrets
+
     ENV["RAILS_MASTER_KEY"] = @old_key
 
     teardown_app
   end
 
   test "setting read to false skips parsing" do
-    begin
-      old_read, Rails::Secrets.read_encrypted_secrets = Rails::Secrets.read_encrypted_secrets, false
+    Rails::Secrets.read_encrypted_secrets = false
 
-      Dir.chdir(app_path) do
-        assert_equal Hash.new, Rails::Secrets.parse(%w( config/secrets.yml.enc ), env: "production")
-      end
-    ensure
-      Rails::Secrets.read_encrypted_secrets = old_read
+    Dir.chdir(app_path) do
+      assert_equal Hash.new, Rails::Secrets.parse(%w( config/secrets.yml.enc ), env: "production")
     end
   end
 
