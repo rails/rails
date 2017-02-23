@@ -1,4 +1,4 @@
-require "yaml"
+require "active_support/message_encryptor"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
@@ -11,6 +11,8 @@ module Rails
         end_of_message
       end
     end
+
+    CIPHER = "aes-128-gcm"
 
     @read_encrypted_secrets = false
     @root = File # Wonky, but ensures `join` uses the current directory.
@@ -30,20 +32,22 @@ module Rails
       end
 
       def generate_key
-        cipher = new_cipher
-        SecureRandom.hex(cipher.key_len)[0, cipher.key_len]
+        SecureRandom.hex(
+          OpenSSL::Cipher.new(CIPHER).key_len
+        )
       end
 
       def key
-        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
+        [(ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key)]
+          .pack("H*")
       end
 
-      def encrypt(text)
-        cipher(:encrypt, text)
+      def encrypt(data)
+        encryptor.encrypt_and_sign(data)
       end
 
       def decrypt(data)
-        cipher(:decrypt, data)
+        encryptor.decrypt_and_verify(data)
       end
 
       def read
@@ -97,14 +101,8 @@ module Rails
           end
         end
 
-        def new_cipher
-          OpenSSL::Cipher.new("aes-256-cbc")
-        end
-
-        def cipher(mode, data)
-          cipher = new_cipher.public_send(mode)
-          cipher.key = key
-          cipher.update(data) << cipher.final
+        def encryptor
+          @encryptor ||= ActiveSupport::MessageEncryptor.new(key, cipher: CIPHER)
         end
     end
   end
