@@ -27,22 +27,15 @@ module Rails
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.
-      def invoke(full_namespace, args = [], **config)
-        namespace = full_namespace = full_namespace.to_s
+      def invoke(namespace, args = [], **config)
+        namespace = namespace.to_s
+        namespace = "help" if namespace.blank? || HELP_MAPPINGS.include?(namespace)
+        namespace = "version" if %w( -v --version ).include? namespace
 
-        if char = namespace =~ /:(\w+)$/
-          command_name, namespace = $1, namespace.slice(0, char)
+        if command = find_by_namespace(namespace)
+          command.perform(namespace, args, config)
         else
-          command_name = namespace
-        end
-
-        command_name = "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        namespace = "version" if %w( -v --version ).include?(command_name)
-
-        if command = find_by_namespace(namespace, command_name)
-          command.perform(command_name, args, config)
-        else
-          find_by_namespace("rake").perform(full_namespace, args, config)
+          find_by_namespace("rake").perform(namespace, args, config)
         end
       end
 
@@ -59,10 +52,8 @@ module Rails
       #
       # Notice that "rails:commands:webrat" could be loaded as well, what
       # Rails looks for is the first and last parts of the namespace.
-      def find_by_namespace(namespace, command_name = nil) # :nodoc:
-        lookups = [ namespace ]
-        lookups << "#{namespace}:#{command_name}" if command_name
-        lookups.concat lookups.map { |lookup| "rails:#{lookup}" }
+      def find_by_namespace(name) # :nodoc:
+        lookups = [ name, "rails:#{name}" ]
 
         lookup(lookups)
 
