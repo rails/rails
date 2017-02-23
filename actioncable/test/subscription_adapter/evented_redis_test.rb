@@ -7,7 +7,9 @@ class EventedRedisAdapterTest < ActionCable::TestCase
   include ChannelPrefixTest
 
   def setup
-    super
+    assert_deprecated do
+      super
+    end
 
     # em-hiredis is warning-rich
     @previous_verbose, $VERBOSE = $VERBOSE, nil
