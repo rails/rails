@@ -84,11 +84,11 @@ directory "pkg"
           # => "5.0.0.rc1"
           # irb(main):004:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
           # => "5.0.0-rc1"
-          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
+          npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
           # Check if npm is installed, and raise an error if not
           if sh "which npm"
-            sh "npm version #{version} --no-git-tag-version"
+            sh "npm version #{npm_version} --no-git-tag-version"
             sh "npm publish"
           else
             raise "You must have npm installed to release Rails."
