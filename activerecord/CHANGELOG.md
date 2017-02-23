@@ -1,3 +1,7 @@
+*   Deprecate using `#quoted_id` in quoting.
+
+    *Ryuta Kamizono*
+
 *   Fix `wait_timeout` to configurable for mysql2 adapter.
 
     Fixes #26556.
