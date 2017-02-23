@@ -85,6 +85,22 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_equal false, @connection.active?
   end
 
+  def test_wait_timeout_as_string
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge(wait_timeout: "60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
+  end
+
+  def test_wait_timeout_as_url
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "mysql2:///?wait_timeout=60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
+  end
+
   def test_mysql_connection_collation_is_configured
     assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
     assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")

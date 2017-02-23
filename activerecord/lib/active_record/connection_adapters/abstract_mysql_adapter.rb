@@ -870,9 +870,9 @@ module ActiveRecord
           variables["sql_auto_is_null"] = 0
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = @config[:wait_timeout]
+          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
           wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
+          variables["wait_timeout"] = wait_timeout
 
           defaults = [":default", :default].to_set
 
