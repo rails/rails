@@ -1,5 +1,5 @@
 require "rdoc/task"
-require "rails/api/generator"
+require_relative "generator"
 
 module Rails
   module API
