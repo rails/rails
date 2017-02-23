@@ -1,3 +1,7 @@
+*   Fix a bug where `ActiveSupport::Reloader#reload!` would invoke `to_prepare` callbacks twice
+
+    *Brian John*
+
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
 
     *Adam Rice*
