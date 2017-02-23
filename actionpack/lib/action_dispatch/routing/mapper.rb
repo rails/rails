@@ -2034,7 +2034,7 @@ module ActionDispatch
         #   end
         #
         #   direct :main do
-        #     { controller: 'pages', action: 'index', subdomain: 'www' }
+        #     { controller: "pages", action: "index", subdomain: "www" }
         #   end
         #
         # The return value from the block passed to `direct` must be a valid set of
@@ -2042,7 +2042,7 @@ module ActionDispatch
         # be one of the following:
         #
         #   * A string, which is treated as a generated url
-        #   * A hash, e.g. { controller: 'pages', action: 'index' }
+        #   * A hash, e.g. { controller: "pages", action: "index" }
         #   * An array, which is passed to `polymorphic_url`
         #   * An Active Model instance
         #   * An Active Model class
@@ -2110,7 +2110,7 @@ module ActionDispatch
         # You can pass options to a polymorphic mapping - the arity for the block
         # needs to be two as the instance is passed as the first argument, e.g:
         #
-        #   direct class: "Basket", anchor: "items" do |basket, options|
+        #   resolve "Basket", anchor: "items" do |basket, options|
         #     [:basket, options]
         #   end
         #
