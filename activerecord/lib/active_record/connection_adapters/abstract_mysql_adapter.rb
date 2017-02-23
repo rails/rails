@@ -46,6 +46,7 @@ module ActiveRecord
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
+        timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob", limit: 65535 },
@@ -708,7 +709,7 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          if /time/.match?(sql_type)
+          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
             super || 0
           else
             super

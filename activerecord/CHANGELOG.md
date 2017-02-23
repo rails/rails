@@ -1,3 +1,36 @@
+*   Correctly dump native timestamp types for MySQL.
+
+    The native timestamp type in MySQL is different from datetime type.
+    Internal representation of the timestamp type is UNIX time, This means
+    that timestamp columns are affected by time zone.
+
+        > SET time_zone = '+00:00';
+        Query OK, 0 rows affected (0.00 sec)
+
+        > INSERT INTO time_with_zone(ts,dt) VALUES (NOW(),NOW());
+        Query OK, 1 row affected (0.02 sec)
+
+        > SELECT * FROM time_with_zone;
+        +---------------------+---------------------+
+        | ts                  | dt                  |
+        +---------------------+---------------------+
+        | 2016-02-07 22:11:44 | 2016-02-07 22:11:44 |
+        +---------------------+---------------------+
+        1 row in set (0.00 sec)
+
+        > SET time_zone = '-08:00';
+        Query OK, 0 rows affected (0.00 sec)
+
+        > SELECT * FROM time_with_zone;
+        +---------------------+---------------------+
+        | ts                  | dt                  |
+        +---------------------+---------------------+
+        | 2016-02-07 14:11:44 | 2016-02-07 22:11:44 |
+        +---------------------+---------------------+
+        1 row in set (0.00 sec)
+
+    *Ryuta Kamizono*
+
 *   All integer-like PKs are autoincrement unless they have an explicit default.
 
     *Matthew Draper*
