@@ -335,6 +335,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/^  config\.read_encrypted_secrets = true/, content)
     end
   end
 

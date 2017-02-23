@@ -2,6 +2,7 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
+require "rails/secrets"
 
 module Rails
   class Application
@@ -76,6 +77,11 @@ INFO
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
+      end
+
+      initializer :set_secrets_root, group: :all do
+        Rails::Secrets.root = root
+        Rails::Secrets.read_encrypted_secrets = config.read_encrypted_secrets
       end
     end
   end
