@@ -1,4 +1,4 @@
-$: << File.expand_path(File.expand_path('../../test', __FILE__))
+$: << File.expand_path(File.expand_path("../../test", __FILE__))
 
-require 'bundler/setup'
-require 'rails/plugin/test'
+require "bundler/setup"
+require "rails/plugin/test"
