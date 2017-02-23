@@ -597,6 +597,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal(@strings, compacted_hash)
     assert_equal(hash_contain_nil_value, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, compacted_hash
+
+    empty_hash = ActiveSupport::HashWithIndifferentAccess.new
+    compacted_hash = empty_hash.compact
+
+    assert_equal compacted_hash, empty_hash
+
+    non_empty_hash = ActiveSupport::HashWithIndifferentAccess.new(foo: :bar)
+    compacted_hash = non_empty_hash.compact
+
+    assert_equal compacted_hash, non_empty_hash
   end
 
   def test_indifferent_to_hash
