@@ -13,7 +13,8 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :read_encrypted_secrets
 
       attr_writer :log_level
       attr_reader :encoding, :api_only
@@ -51,6 +52,7 @@ module Rails
         @debug_exception_response_format = nil
         @x                               = Custom.new
         @enable_dependency_loading       = false
+        @read_encrypted_secrets          = false
       end
 
       def encoding=(value)
@@ -80,7 +82,7 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config/secrets.yml"
+          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
