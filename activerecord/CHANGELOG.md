@@ -1,3 +1,9 @@
+*   Fix `wait_timeout` to configurable for mysql2 adapter.
+
+    Fixes #26556.
+
+    *Ryuta Kamizono*
+
 *   Make `table_name=` reset current statement cache,
     so queries are not run against the previous table name.
 
