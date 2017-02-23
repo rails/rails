@@ -92,6 +92,7 @@ task default: :test
       opts[:api] = options.api?
       opts[:skip_listen] = true
       opts[:skip_git] = true
+      opts[:skip_turbolinks] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
