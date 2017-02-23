@@ -489,7 +489,7 @@ module ActionController
     #   params.extract!(:a, :b) # => <ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
     #   params                  # => <ActionController::Parameters {"c"=>3} permitted: false>
     def extract!(*keys)
-      new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
+      @parameters.extract!(*keys)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> with the results of
