@@ -214,7 +214,6 @@ module Rails
         rails.map! { |n| n.sub(/^rails:/, "") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 

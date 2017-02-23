@@ -4,7 +4,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "rails/engine"
-require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -386,7 +385,18 @@ module Rails
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        secrets.merge! Rails::Secrets.parse(config.paths["config/secrets"].existent, env: Rails.env)
+        yaml    = config.paths["config/secrets"].first
+
+        if File.exist?(yaml)
+          require "erb"
+
+          all_secrets    = YAML.load(ERB.new(IO.read(yaml)).result) || {}
+          shared_secrets = all_secrets["shared"]
+          env_secrets    = all_secrets[Rails.env]
+
+          secrets.merge!(shared_secrets.deep_symbolize_keys) if shared_secrets
+          secrets.merge!(env_secrets.deep_symbolize_keys) if env_secrets
+        end
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
