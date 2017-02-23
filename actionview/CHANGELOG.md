@@ -1,3 +1,30 @@
+*   Change `ActionView::FormHelper#fields_for` for skipping
+    record_name argument when making nested attributes forms.
+
+    For example,
+
+    ```erb
+    <%= form_for @user, url: '' do |f| %>
+      <%= f.fields_for :post, @user.post do |pf| %>
+        <%= pf.text_field :title %>
+      <% end %>
+    <% end %>
+    ```
+
+    would be equivalent to
+
+    ```erb
+    <%= form_for @user, url: '' do |f| %>
+      <%= f.fields_for @user.post do |pf| %>
+        <%= pf.text_field :title %>
+      <% end %>
+    <% end %>
+    ```
+
+    In both cases title field's name would both be `user[post_attributes][title]`.
+
+    *Stan Lo*
+
 *   Change the ERB handler from Erubis to Erubi.
 
     Erubi is an Erubis fork that's svelte, simple, and currently maintained.

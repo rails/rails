@@ -1914,14 +1914,19 @@ module ActionView
         fields_options[:namespace] = options[:namespace]
         fields_options[:parent_builder] = self
 
-        case record_name
-        when String, Symbol
-          if nested_attributes_association?(record_name)
-            return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
-          end
-        else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = model_name_from_record_or_class(record_object).param_key
+        if !record_name.is_a?(String) && !record_name.is_a?(Symbol)
+          record_object = record_name
+          record_name =
+            if record_object.is_a?(Array)
+              object_for_model_name = record_object.last
+              model_name_from_record_or_class(object_for_model_name).param_key.pluralize
+            else
+              model_name_from_record_or_class(record_object).param_key
+            end
+        end
+
+        if nested_attributes_association?(record_name)
+          return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
         end
 
         object_name = @object_name
