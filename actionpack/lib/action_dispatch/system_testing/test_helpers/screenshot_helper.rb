@@ -22,12 +22,12 @@ module ActionDispatch
         # fails add +take_failed_screenshot+ to the teardown block before clearing
         # sessions.
         def take_failed_screenshot
-          take_screenshot unless passed?
+          take_screenshot if failed?
         end
 
         private
           def image_name
-            passed? ? method_name : "failures_#{method_name}"
+            failed? ? "failures_#{method_name}" : method_name
           end
 
           def image_path
@@ -50,6 +50,10 @@ module ActionDispatch
 
           def inline_base64(path)
             Base64.encode64(path).gsub("\n", "")
+          end
+
+          def failed?
+            !passed? && !skipped?
           end
       end
     end

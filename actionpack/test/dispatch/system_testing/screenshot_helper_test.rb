@@ -15,4 +15,14 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
     end
   end
+
+  test "image path does not include failures text if test skipped" do
+    new_test = ActionDispatch::SystemTestCase.new("x")
+
+    new_test.stub :passed?, false do
+      new_test.stub :skipped?, true do
+        assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+      end
+    end
+  end
 end
