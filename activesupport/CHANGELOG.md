@@ -1,3 +1,5 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
 
     *Adam Rice*

@@ -1,3 +1,5 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
 *   Correctly dump native timestamp types for MySQL.
 
     The native timestamp type in MySQL is different from datetime type.

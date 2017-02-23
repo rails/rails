@@ -1,3 +1,5 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
 *   Correctly set test adapter when configure the queue adapter on a per job.
 
     Fixes #26360.

@@ -1,3 +1,5 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
 *   Prefer `remove_method` over `undef_method` when reloading routes
 
     When `undef_method` is used it prevents access to other implementations of that

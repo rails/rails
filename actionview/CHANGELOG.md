@@ -1,3 +1,5 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
 *   Change the ERB handler from Erubis to Erubi.
 
     Erubi is an Erubis fork that's svelte, simple, and currently maintained.
