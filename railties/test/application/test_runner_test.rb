@@ -70,16 +70,18 @@ module ApplicationTests
     end
 
     def test_run_units
-      skip "we no longer have the concept of unit tests. Just different directories..."
       create_test_file :models, "foo"
       create_test_file :helpers, "bar_helper"
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
-      run_test_units_command.tap do |output|
-        assert_match "FooTest", output
-        assert_match "BarHelperTest", output
-        assert_match "BazUnitTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:units`.tap do |output|
+          assert_match "FooTest", output
+          assert_match "BarHelperTest", output
+          assert_match "BazUnitTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
@@ -117,16 +119,18 @@ module ApplicationTests
     end
 
     def test_run_functionals
-      skip "we no longer have the concept of functional tests. Just different directories..."
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
-      run_test_functionals_command.tap do |output|
-        assert_match "FooMailerTest", output
-        assert_match "BarControllerTest", output
-        assert_match "BazFunctionalTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:functionals`.tap do |output|
+          assert_match "FooMailerTest", output
+          assert_match "BarControllerTest", output
+          assert_match "BazFunctionalTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
