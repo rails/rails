@@ -280,6 +280,7 @@ module Rails
         case options[:database]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
         when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "sqlserver"      then ["tiny_tds", nil]
         when "oracle"         then ["ruby-oci8", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
