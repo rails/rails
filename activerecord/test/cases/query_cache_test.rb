@@ -534,14 +534,15 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   test "threads use the same connection" do
-    @connection_1 = ActiveRecord::Base.connection.object_id
+    connection_1 = ActiveRecord::Base.connection.object_id
+    connection_2 = nil
 
     thread_a = Thread.new do
-      @connection_2 = ActiveRecord::Base.connection.object_id
+      connection_2 = ActiveRecord::Base.connection.object_id
     end
 
     thread_a.join
 
-    assert_equal @connection_1, @connection_2
+    assert_equal connection_1, connection_2
   end
 end
