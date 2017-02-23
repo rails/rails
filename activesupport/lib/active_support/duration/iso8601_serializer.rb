@@ -4,7 +4,7 @@ require "active_support/core_ext/hash/transform_values"
 module ActiveSupport
   class Duration
     # Serializes duration to string according to ISO 8601 Duration format.
-    class ISO8601Serializer
+    class ISO8601Serializer # :nodoc:
       def initialize(duration, precision: nil)
         @duration = duration
         @precision = precision
