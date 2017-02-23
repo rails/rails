@@ -39,7 +39,8 @@ module Rails
         command_name = "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
         namespace = "version" if %w( -v --version ).include?(command_name)
 
-        if command = find_by_namespace(namespace, command_name)
+        command = find_by_namespace(namespace, command_name)
+        if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
           find_by_namespace("rake").perform(full_namespace, args, config)
