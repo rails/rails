@@ -36,8 +36,8 @@ module Rails
           command_name = namespace
         end
 
-        command_name = "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        namespace = "version" if %w( -v --version ).include?(command_name)
+        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
+        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
 
         command = find_by_namespace(namespace, command_name)
         if command && command.all_commands[command_name]
