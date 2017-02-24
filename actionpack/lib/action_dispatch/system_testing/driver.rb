@@ -5,14 +5,14 @@ module ActionDispatch
         @name = name
       end
 
-      def run
-        register
+      def use
+        @current = Capybara.current_driver
+        Capybara.current_driver = @name
       end
 
-      private
-        def register
-          Capybara.default_driver = @name
-        end
+      def reset
+        Capybara.current_driver = @current
+      end
     end
   end
 end

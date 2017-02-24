@@ -1,21 +1,23 @@
 require "abstract_unit"
 
-class SystemTestCaseTest < ActiveSupport::TestCase
-  test "driven_by sets Capybara's default driver to poltergeist" do
-    ActionDispatch::SystemTestCase.driven_by :poltergeist
-
-    assert_equal :poltergeist, Capybara.default_driver
-  end
-
-  test "driven_by sets Capybara's drivers respectively" do
-    ActionDispatch::SystemTestCase.driven_by :selenium, using: :chrome
-
-    assert_includes Capybara.drivers, :selenium
-    assert_includes Capybara.drivers, :chrome
-    assert_equal :chrome, Capybara.default_driver
-  end
-
+class DrivenByCaseTestTest < ActiveSupport::TestCase
   test "selenium? returns false if driver is poltergeist" do
     assert_not ActionDispatch::SystemTestCase.selenium?(:poltergeist)
+  end
+end
+
+class DrivenByRackTestTest < ActionDispatch::SystemTestCase
+  driven_by :rack_test
+
+  test "uses rack_test" do
+    assert_equal :rack_test, Capybara.current_driver
+  end
+end
+
+class DrivenBySeleniumWithChromeTest < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome
+
+  test "uses selenium" do
+    assert_equal :chrome, Capybara.current_driver
   end
 end
