@@ -8,6 +8,8 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
 
 class HashExtTest < ActiveSupport::TestCase
+  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
+
   class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
   end
 
@@ -1133,6 +1135,8 @@ class HashExtToParamTests < ActiveSupport::TestCase
 end
 
 class HashToXmlTest < ActiveSupport::TestCase
+  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
+
   def setup
     @xml_options = { root: :person, skip_instruct: true, indent: 0 }
   end

@@ -1,3 +1,9 @@
+*   Soft-deprecated the top-level `HashWithIndifferentAcces` constant.
+    `ActiveSupport::HashWithIndifferentAccess` should be used instead.
+
+    *Robin Dupret* (#28157)
+
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.

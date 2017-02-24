@@ -316,4 +316,6 @@ module ActiveSupport
   end
 end
 
+# :stopdoc:
+
 HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
