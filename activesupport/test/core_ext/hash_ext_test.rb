@@ -1090,6 +1090,30 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal 3, hash[:b]
   end
+
+  def test_inheriting_from_top_level_hash_with_indifferent_access_preserves_ancestors_chain
+    klass = Class.new(::HashWithIndifferentAccess)
+    assert_equal ActiveSupport::HashWithIndifferentAccess, klass.ancestors[1]
+  end
+
+  def test_inheriting_from_hash_with_indifferent_access_properly_dumps_ivars
+    klass = Class.new(::HashWithIndifferentAccess) do
+      def initialize(*)
+        @foo = "bar"
+        super
+      end
+    end
+
+    yaml_output = klass.new.to_yaml
+
+    # `hash-with-ivars` was introduced in 2.0.9 (https://git.io/vyUQW)
+    if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("2.0.9")
+      assert_includes yaml_output, "hash-with-ivars"
+      assert_includes yaml_output, "@foo: bar"
+    else
+      assert_includes yaml_output, "hash"
+    end
+  end
 end
 
 class IWriteMyOwnXML
