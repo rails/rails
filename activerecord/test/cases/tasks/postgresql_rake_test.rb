@@ -240,13 +240,13 @@ if current_adapter?(:PostgreSQLAdapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
 
-      def test_structure_dump_comments_removed
+      def test_structure_dump_header_comments_removed
         Kernel.stubs(:system).returns(true)
-        File.write(@filename, "-- comment\n not comment\n")
+        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
 
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
 
-        assert_equal " not comment\n", File.readlines(@filename).first
+        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
       end
 
       def test_structure_dump_with_extra_flags

@@ -5,6 +5,7 @@ module ActiveRecord
     class PostgreSQLDatabaseTasks # :nodoc:
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1".freeze
+      SQL_COMMENT_BEGIN = "--".freeze
 
       delegate :connection, :establish_connection, :clear_active_connections!,
         to: ActiveRecord::Base
@@ -67,7 +68,7 @@ module ActiveRecord
         end
         args << configuration["database"]
         run_cmd("pg_dump", args, "dumping")
-        remove_sql_comments(filename)
+        remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
@@ -114,11 +115,15 @@ module ActiveRecord
           msg
         end
 
-        def remove_sql_comments(filename)
-          tempfile = Tempfile.open('uncommented_structure.sql')
+        def remove_sql_header_comments(filename)
+          removing_comments = true
+          tempfile = Tempfile.open("uncommented_structure.sql")
           begin
             File.foreach(filename) do |line|
-              tempfile << line unless line.start_with?('--')
+              unless removing_comments && (line.start_with?(SQL_COMMENT_BEGIN) || line.blank?)
+                tempfile << line
+                removing_comments = false
+              end
             end
           ensure
             tempfile.close
