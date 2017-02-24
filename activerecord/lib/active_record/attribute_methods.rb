@@ -264,7 +264,7 @@ module ActiveRecord
       @attributes.keys
     end
 
-    # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
+    # Returns a hash of all or filtered by keys the attributes with their names as keys and the values of the attributes as values.
     #
     #   class Person < ActiveRecord::Base
     #   end
@@ -272,8 +272,15 @@ module ActiveRecord
     #   person = Person.create(name: 'Francesco', age: 22)
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
-    def attributes
-      @attributes.to_hash
+    #
+    #   person.attributes(:id, :name, :created_at)
+    #   # => {"id"=>3, "name"=>"Francesco","created_at"=>Sun, 21 Oct 2012 04:53:04}
+    def attributes(*keys)
+      if keys.empty?
+        @attributes.to_hash
+      else
+        @attributes.to_hash.slice(*keys.map(&:to_s))
+      end
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
