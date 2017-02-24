@@ -1,3 +1,10 @@
+*   Remove comments from structure.sql when using postgresql adapter to avoid
+    version-specific parts of the file.
+
+    Fixes #28153.
+
+    *Ari Pollak*
+
 *   Deprecate using `#quoted_id` in quoting.
 
     *Ryuta Kamizono*

@@ -1,3 +1,5 @@
+require "tempfile"
+
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
@@ -65,6 +67,7 @@ module ActiveRecord
         end
         args << configuration["database"]
         run_cmd("pg_dump", args, "dumping")
+        remove_sql_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
@@ -109,6 +112,18 @@ module ActiveRecord
           msg << "#{cmd} #{args.join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
+        end
+
+        def remove_sql_comments(filename)
+          tempfile = Tempfile.open('uncommented_structure.sql')
+          begin
+            File.foreach(filename) do |line|
+              tempfile << line unless line.start_with?('--')
+            end
+          ensure
+            tempfile.close
+          end
+          FileUtils.mv(tempfile.path, filename)
         end
     end
   end
