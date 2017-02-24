@@ -251,7 +251,7 @@ module ActiveSupport
     end
 
     def compact
-      dup.compact!
+      dup.tap(&:compact!)
     end
 
     # Convert to a regular hash with string keys.
