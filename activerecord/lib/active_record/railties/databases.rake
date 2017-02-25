@@ -288,8 +288,7 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
-      if ActiveRecord::Base.connection.supports_migrations? &&
-          ActiveRecord::SchemaMigration.table_exists?
+      if ActiveRecord::SchemaMigration.table_exists?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
           f.print "\n"

@@ -281,11 +281,6 @@ module ActiveRecord
         NATIVE_DATABASE_TYPES
       end
 
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations?
-        true
-      end
-
       def set_standard_conforming_strings
         execute("SET standard_conforming_strings = on", "SCHEMA")
       end

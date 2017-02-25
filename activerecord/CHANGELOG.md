@@ -1,3 +1,7 @@
+*   Deprecate `supports_migrations?` on connection adapters.
+
+    *Ryuta Kamizono*
+
 *   Fix regression of #1969 with SELECT aliases in HAVING clause.
 
     *Eugene Kenny*

@@ -548,12 +548,10 @@ module ActiveRecord
       end
 
       def call(env)
-        if connection.supports_migrations?
-          mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-          if @last_check < mtime
-            ActiveRecord::Migration.check_pending!(connection)
-            @last_check = mtime
-          end
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
+          ActiveRecord::Migration.check_pending!(connection)
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -1098,8 +1096,6 @@ module ActiveRecord
     end
 
     def initialize(direction, migrations, target_version = nil)
-      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
