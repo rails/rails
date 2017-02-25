@@ -32,6 +32,14 @@ module Rails
   # This allows you to override entire operations, like the creation of the
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
+  #
+  #  class CustomAppBuilder < Rails::AppBuilder
+  #    def test
+  #      @generator.gem "rspec-rails", group: [:development, :test]
+  #      run "bundle install"
+  #      generate "rspec:install"
+  #    end
+  #  end
   class AppBuilder
     def rakefile
       template "Rakefile"
