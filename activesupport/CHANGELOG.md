@@ -1,8 +1,9 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
-
 *   `ActiveSupport::Gzip.decompress` now checks checksum and length in footer.
 
     *Dylan Thacker-Smith*
+
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
 
