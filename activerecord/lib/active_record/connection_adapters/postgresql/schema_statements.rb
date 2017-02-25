@@ -367,9 +367,7 @@ module ActiveRecord
             SELECT column_name
               FROM information_schema.key_column_usage kcu
               JOIN information_schema.table_constraints tc
-                ON kcu.table_name = tc.table_name
-               AND kcu.table_schema = tc.table_schema
-               AND kcu.constraint_name = tc.constraint_name
+             USING (table_schema, table_name, constraint_name)
              WHERE constraint_type = 'PRIMARY KEY'
                AND kcu.table_name = #{scope[:name]}
                AND kcu.table_schema = #{scope[:schema]}
