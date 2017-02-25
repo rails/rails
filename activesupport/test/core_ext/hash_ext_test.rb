@@ -8,6 +8,8 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
 
 class HashExtTest < ActiveSupport::TestCase
+  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
+
   class IndifferentHash < ActiveSupport::HashWithIndifferentAccess
   end
 
@@ -589,6 +591,26 @@ class HashExtTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_compact
+    hash_contain_nil_value = @strings.merge("z" => nil)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
+    compacted_hash = hash.compact
+
+    assert_equal(@strings, compacted_hash)
+    assert_equal(hash_contain_nil_value, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, compacted_hash
+
+    empty_hash = ActiveSupport::HashWithIndifferentAccess.new
+    compacted_hash = empty_hash.compact
+
+    assert_equal compacted_hash, empty_hash
+
+    non_empty_hash = ActiveSupport::HashWithIndifferentAccess.new(foo: :bar)
+    compacted_hash = non_empty_hash.compact
+
+    assert_equal compacted_hash, non_empty_hash
+  end
+
   def test_indifferent_to_hash
     # Should convert to a Hash with String keys.
     assert_equal @strings, @mixed.with_indifferent_access.to_hash
@@ -1068,6 +1090,30 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, hash[:a]
     assert_equal 3, hash[:b]
   end
+
+  def test_inheriting_from_top_level_hash_with_indifferent_access_preserves_ancestors_chain
+    klass = Class.new(::HashWithIndifferentAccess)
+    assert_equal ActiveSupport::HashWithIndifferentAccess, klass.ancestors[1]
+  end
+
+  def test_inheriting_from_hash_with_indifferent_access_properly_dumps_ivars
+    klass = Class.new(::HashWithIndifferentAccess) do
+      def initialize(*)
+        @foo = "bar"
+        super
+      end
+    end
+
+    yaml_output = klass.new.to_yaml
+
+    # `hash-with-ivars` was introduced in 2.0.9 (https://git.io/vyUQW)
+    if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("2.0.9")
+      assert_includes yaml_output, "hash-with-ivars"
+      assert_includes yaml_output, "@foo: bar"
+    else
+      assert_includes yaml_output, "hash"
+    end
+  end
 end
 
 class IWriteMyOwnXML
@@ -1113,6 +1159,8 @@ class HashExtToParamTests < ActiveSupport::TestCase
 end
 
 class HashToXmlTest < ActiveSupport::TestCase
+  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
+
   def setup
     @xml_options = { root: :person, skip_instruct: true, indent: 0 }
   end

@@ -97,6 +97,16 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughOrderError < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
+      if owner_class_name && reflection && through_reflection
+        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
+      else
+        super("Cannot have a has_many :through association before the through association is defined.")
+      end
+    end
+  end
+
   class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
@@ -369,23 +379,23 @@ module ActiveRecord
       #
       # === Overriding generated methods
       #
-      # Association methods are generated in a module that is included into the model class,
-      # which allows you to easily override with your own methods and call the original
-      # generated method with +super+. For example:
+      # Association methods are generated in a module included into the model
+      # class, making overrides easy. The original generated method can thus be
+      # called with +super+:
       #
       #   class Car < ActiveRecord::Base
       #     belongs_to :owner
       #     belongs_to :old_owner
+      #
       #     def owner=(new_owner)
       #       self.old_owner = self.owner
       #       super
       #     end
       #   end
       #
-      # If your model class is <tt>Project</tt>, then the module is
-      # named <tt>Project::GeneratedAssociationMethods</tt>. The +GeneratedAssociationMethods+ module is
-      # included in the model class immediately after the (anonymous) generated attributes methods
-      # module, meaning an association will override the methods for an attribute with the same name.
+      # The association methods module is included immediately after the
+      # generated attributes methods module, meaning an association will
+      # override the methods for an attribute with the same name.
       #
       # == Cardinality and associations
       #
@@ -1817,7 +1827,7 @@ module ActiveRecord
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
 
-          join_model = builder.through_model
+          join_model = ActiveSupport::Deprecation.silence { builder.through_model }
 
           const_set join_model.name, join_model
           private_constant join_model.name
@@ -1846,8 +1856,8 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
-          self._reflections[name.to_s].parent_reflection = habtm_reflection
+          ActiveSupport::Deprecation.silence { has_many name, scope, hm_options, &extension }
+          _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end
   end

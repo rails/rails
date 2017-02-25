@@ -101,6 +101,17 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
+  def test_uses_serializable_hash_with_frozen_hash
+    def @contact.serializable_hash(options = nil)
+      super({ only: %w(name) }.freeze)
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{awesome}, json
+    assert_no_match %r{age}, json
+  end
+
   def test_uses_serializable_hash_with_only_option
     def @contact.serializable_hash(options = nil)
       super(only: %w(name))

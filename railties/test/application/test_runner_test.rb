@@ -15,6 +15,16 @@ module ApplicationTests
       teardown_app
     end
 
+    def test_run_via_backwardscompatibility
+      require "rails/test_unit/minitest_plugin"
+
+      assert_nothing_raised do
+        Minitest.run_via[:ruby] = true
+      end
+
+      assert_predicate Minitest.run_via, :ruby?
+    end
+
     def test_run_single_file
       create_test_file :models, "foo"
       create_test_file :models, "bar"
@@ -60,16 +70,18 @@ module ApplicationTests
     end
 
     def test_run_units
-      skip "we no longer have the concept of unit tests. Just different directories..."
       create_test_file :models, "foo"
       create_test_file :helpers, "bar_helper"
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
-      run_test_units_command.tap do |output|
-        assert_match "FooTest", output
-        assert_match "BarHelperTest", output
-        assert_match "BazUnitTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:units`.tap do |output|
+          assert_match "FooTest", output
+          assert_match "BarHelperTest", output
+          assert_match "BazUnitTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
@@ -107,16 +119,18 @@ module ApplicationTests
     end
 
     def test_run_functionals
-      skip "we no longer have the concept of functional tests. Just different directories..."
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
-      run_test_functionals_command.tap do |output|
-        assert_match "FooMailerTest", output
-        assert_match "BarControllerTest", output
-        assert_match "BazFunctionalTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:functionals`.tap do |output|
+          assert_match "FooMailerTest", output
+          assert_match "BarControllerTest", output
+          assert_match "BazFunctionalTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
@@ -534,6 +548,32 @@ module ApplicationTests
       output = Dir.chdir(app_path) { `bin/rake test TESTOPTS='-v --seed=1234'` }
       assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
       assert_match "seed=1234", output, "passing TEST= should run selected test"
+    end
+
+    def test_rake_runs_multiple_test_tasks
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      output = Dir.chdir(app_path) { `bin/rake test:models test:controllers TESTOPTS='-v'` }
+      assert_match "AccountTest#test_truth", output
+      assert_match "AccountsControllerTest#test_truth", output
+    end
+
+    def test_rake_db_and_test_tasks_parses_args_correctly
+      create_test_file :models, "account"
+      output = Dir.chdir(app_path) { `bin/rake db:migrate test:models TESTOPTS='-v' && echo ".tables" | rails dbconsole` }
+      assert_match "AccountTest#test_truth", output
+      assert_match "ar_internal_metadata", output
+    end
+
+    def test_warnings_option
+      app_file "test/models/warnings_test.rb", <<-RUBY
+        require 'test_helper'
+        def test_warnings
+          a = 1
+        end
+      RUBY
+      assert_match(/warning: assigned but unused variable/,
+        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
     end
 
     private

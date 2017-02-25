@@ -54,6 +54,12 @@ module ActionController
 
     private
 
+      def _process_variant(options)
+        if defined?(request) && !request.nil? && request.variant.present?
+          options[:variant] = request.variant
+        end
+      end
+
       def _render_in_priorities(options)
         RENDER_FORMATS_IN_PRIORITY.each do |format|
           return options[format] if options.key?(format)
@@ -108,7 +114,7 @@ module ActionController
 
         self.status = status if status
         self.content_type = content_type if content_type
-        self.headers["Location"] = url_for(location) if location
+        headers["Location"] = url_for(location) if location
 
         super
       end

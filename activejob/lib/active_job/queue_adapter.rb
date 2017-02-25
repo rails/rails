@@ -1,4 +1,3 @@
-require "active_job/queue_adapters/inline_adapter"
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob

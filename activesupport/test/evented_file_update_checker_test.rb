@@ -7,6 +7,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
   def setup
     skip if ENV["LISTEN"] == "0"
+    require "listen"
     super
   end
 
@@ -30,11 +31,6 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     wait # wait for the events to fire
   end
 
-  def rm_f(files)
-    super
-    wait
-  end
-
   test "notifies forked processes" do
     jruby_skip "Forking not available on JRuby"
 
@@ -43,7 +39,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     checker = new_checker(tmpfiles) {}
     assert !checker.updated?
 
-    # Pipes used for flow controll across fork.
+    # Pipes used for flow control across fork.
     boot_reader,  boot_writer  = IO.pipe
     touch_reader, touch_writer = IO.pipe
 

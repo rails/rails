@@ -82,6 +82,10 @@ module Rails
           !options[:skip_namespace] && namespace
         end
 
+        def namespace_dirs
+          @namespace_dirs ||= namespace.name.split("::").map(&:underscore)
+        end
+
         def file_path # :doc:
           @file_path ||= (class_path + [file_name]).join("/")
         end
@@ -95,11 +99,11 @@ module Rails
         end
 
         def namespaced_class_path # :doc:
-          @namespaced_class_path ||= [namespaced_path] + @class_path
+          @namespaced_class_path ||= namespace_dirs + @class_path
         end
 
         def namespaced_path # :doc:
-          @namespaced_path ||= namespace.name.split("::").first.underscore
+          @namespaced_path ||= namespace_dirs.join("/")
         end
 
         def class_name # :doc:
@@ -219,7 +223,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if self.respond_to?(:controller_class_name) # for ScaffoldBase
+            name = if respond_to?(:controller_class_name) # for ScaffoldBase
               controller_class_name
             else
               class_name

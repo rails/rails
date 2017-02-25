@@ -11,7 +11,6 @@ module ActiveRecord
                        :before_commit_without_transaction_enrollment,
                        :commit_without_transaction_enrollment,
                        :rollback_without_transaction_enrollment,
-                       terminator: deprecated_false_terminator,
                        scope: [:kind, :name]
     end
 

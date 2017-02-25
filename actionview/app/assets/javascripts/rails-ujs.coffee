@@ -14,7 +14,7 @@
   refreshCSRFTokens, CSRFProtection
   enableElement, disableElement
   handleConfirm
-  handleRemote, validateForm, formSubmitButtonClick, handleMetaClick
+  handleRemote, formSubmitButtonClick, handleMetaClick
   handleMethod
 } = Rails
 
@@ -25,9 +25,9 @@ if jQuery? and not jQuery.rails
     CSRFProtection(xhr) unless options.crossDomain
 
 Rails.start = ->
-  # Cut down on the number of issues from people inadvertently including jquery_ujs twice
-  # by detecting and raising an error when it happens.
-  throw new Error('jquery-ujs has already been loaded!') if window._rails_loaded
+  # Cut down on the number of issues from people inadvertently including
+  # rails-ujs twice by detecting and raising an error when it happens.
+  throw new Error('rails-ujs has already been loaded!') if window._rails_loaded
 
   # This event works the same as the load event, except that it fires every
   # time the page is loaded.
@@ -58,7 +58,6 @@ Rails.start = ->
   delegate document, Rails.inputChangeSelector, 'change', handleRemote
 
   delegate document, Rails.formSubmitSelector, 'submit', handleConfirm
-  delegate document, Rails.formSubmitSelector, 'submit', validateForm
   delegate document, Rails.formSubmitSelector, 'submit', handleRemote
   # Normal mode submit
   # Slight timeout so that the submit button gets properly serialized

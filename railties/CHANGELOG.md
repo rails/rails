@@ -1,4 +1,60 @@
-*  The `log:clear` task clear all environments log files by default.
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Fix running multiple tests in one `rake` command
+
+    e.g. `bin/rake test:models test:controllers`
+
+    *Dominic Cleal*
+
+*   Add option to configure Ruby's warning behaviour to test runner.
+
+    *Yuji Yaginuma*
+
+*   Initialize git repo when generating new app, if option `--skip-git`
+    is not provided.
+
+    *Dino Maric*
+
+*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+
+    *Junichi Ito*
+
+*   Make every Rails command work within engines.
+
+    *Sean Collins*, *Yuji Yaginuma*
+
+*   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
+
+    Fixes #27591.
+
+    *Prathamesh Sonpatki*
+
+*   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
+
+    *Daniel Deng*
+
+*   Remove deprecated `CONTROLLER` environment variable for `routes` task.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated tasks: `rails:update`, `rails:template`, `rails:template:copy`,
+    `rails:update:configs` and `rails:update:bin`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated file `rails/rack/debugger`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.serve_static_files`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.static_cache_control`.
+
+    *Rafael Mendonça França*
+
+*   The `log:clear` task clear all environments log files by default.
 
     *Yuji Yaginuma*
 
@@ -14,7 +70,7 @@
 
     *DHH*
 
-*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+*   Add Yarn support in new apps with a yarn binstub and package.json. Skippable via --skip-yarn option.
 
     *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
 

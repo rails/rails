@@ -1,4 +1,5 @@
 require "abstract_unit"
+require "timeout"
 require "concurrent/atomic/count_down_latch"
 Thread.abort_on_exception = true
 

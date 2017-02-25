@@ -256,8 +256,8 @@ module Rails
             last = extract_last_module(nesting)
 
             if last && last.const_defined?(last_name.camelize, false)
-              raise Error, "The name '#{class_name}' is either already used in your application " <<
-                           "or reserved by Ruby on Rails. Please choose an alternative and run "  <<
+              raise Error, "The name '#{class_name}' is either already used in your application " \
+                           "or reserved by Ruby on Rails. Please choose an alternative and run "  \
                            "this generator again."
             end
           end
@@ -331,7 +331,7 @@ module Rails
         def self.prepare_for_invocation(name, value) #:nodoc:
           return super unless value.is_a?(String) || value.is_a?(Symbol)
 
-          if value && constants = self.hooks[name]
+          if value && constants = hooks[name]
             value = name if TrueClass === value
             Rails::Generators.find_by_namespace(value, *constants)
           elsif klass = Rails::Generators.find_by_namespace(value)

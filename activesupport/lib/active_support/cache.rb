@@ -6,7 +6,6 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -71,8 +70,8 @@ module ActiveSupport
       # each of elements in the array will be turned into parameters/keys and
       # concatenated into a single key. For example:
       #
-      #   expand_cache_key([:foo, :bar])               # => "foo/bar"
-      #   expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar])               # => "foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)

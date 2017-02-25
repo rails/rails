@@ -241,8 +241,6 @@ module ActionView
       end
 
       def write_fragment_for(name, options)
-        # VIEW TODO: Make #capture usable outside of ERB
-        # This dance is needed because Builder can't use capture
         pos = output_buffer.length
         yield
         output_safe = output_buffer.html_safe?

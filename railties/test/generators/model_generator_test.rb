@@ -220,6 +220,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     ActiveRecord::Base.timestamped_migrations = true
   end
 
+  def test_migration_with_configured_path
+    old_paths = Rails.application.config.paths["db/migrate"]
+    Rails.application.config.paths.add "db/migrate", with: "db2/migrate"
+
+    run_generator
+
+    assert_migration "db2/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
   def test_model_with_references_attribute_generates_belongs_to_associations
     run_generator ["product", "name:string", "supplier:references"]
     assert_file "app/models/product.rb", /belongs_to :supplier/

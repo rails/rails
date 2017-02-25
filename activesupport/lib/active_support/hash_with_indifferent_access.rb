@@ -269,6 +269,10 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(*args, &block) }
     end
 
+    def compact
+      dup.tap(&:compact!)
+    end
+
     # Convert to a regular hash with string keys.
     def to_hash
       _new_hash = Hash.new
@@ -311,5 +315,7 @@ module ActiveSupport
       end
   end
 end
+
+# :stopdoc:
 
 HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess

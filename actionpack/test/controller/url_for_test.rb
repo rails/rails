@@ -26,7 +26,7 @@ module AbstractController
                                              action: :index
             }
           }.url_helpers
-          self.default_url_options[:host] = "example.com"
+          default_url_options[:host] = "example.com"
         }
 
         path = klass.new.fun_path(controller: :articles,

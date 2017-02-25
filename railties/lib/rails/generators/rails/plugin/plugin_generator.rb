@@ -91,6 +91,7 @@ task default: :test
       opts[:skip_bundle] = true
       opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,7 +113,6 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
         remove_file "doc"
         remove_file "Gemfile"
@@ -186,7 +186,7 @@ task default: :test
                                   desc: "Skip gemspec file"
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
-                                        desc: "If creating plugin in application's directory " +
+                                        desc: "If creating plugin in application's directory " \
                                                  "skip adding entry to Gemfile"
 
       class_option :api,          type: :boolean, default: false,
@@ -195,10 +195,6 @@ task default: :test
       def initialize(*args)
         @dummy_path = nil
         super
-
-        unless plugin_path
-          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
-        end
       end
 
       public_task :set_default_accessors!
@@ -415,7 +411,6 @@ task default: :test
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false
@@ -437,7 +432,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path

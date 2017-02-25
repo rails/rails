@@ -5,7 +5,7 @@ module ActionView
     included do
       class_attribute :_view_paths
       self._view_paths = ActionView::PathSet.new
-      self._view_paths.freeze
+      _view_paths.freeze
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,

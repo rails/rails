@@ -1603,7 +1603,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "account/login", to: redirect("/login")
     end
 
-    previous_host, self.host = self.host, "www.example.com:3000"
+    previous_host, self.host = host, "www.example.com:3000"
 
     get "/account/login"
     verify_redirect "http://www.example.com:3000/login"

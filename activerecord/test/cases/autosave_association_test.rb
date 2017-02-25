@@ -37,7 +37,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
       private
 
         def should_be_cool
-          unless self.first_name == "cool"
+          unless first_name == "cool"
             errors.add :first_name, "not cool"
           end
         end

@@ -3,7 +3,6 @@ require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
-require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module QueryMethods
@@ -657,7 +656,7 @@ module ActiveRecord
       end
 
       self.where_clause = self.where_clause.or(other.where_clause)
-      self.having_clause = self.having_clause.or(other.having_clause)
+      self.having_clause = having_clause.or(other.having_clause)
 
       self
     end
@@ -839,16 +838,12 @@ module ActiveRecord
     def distinct(value = true)
       spawn.distinct!(value)
     end
-    alias uniq distinct
-    deprecate uniq: :distinct
 
     # Like #distinct, but modifies relation in place.
     def distinct!(value = true) # :nodoc:
       self.distinct_value = value
       self
     end
-    alias uniq! distinct!
-    deprecate uniq!: :distinct!
 
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.

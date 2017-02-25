@@ -31,7 +31,6 @@ module ActiveRecord
 
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-        set_inverse_instance(record)
 
         if raise
           record.save!(validate: validate)
@@ -101,7 +100,7 @@ module ActiveRecord
         end
 
         def delete_or_nullify_all_records(method)
-          count = delete_count(method, self.scope)
+          count = delete_count(method, scope)
           update_counter(-count)
         end
 

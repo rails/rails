@@ -476,7 +476,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
-    assert_equal "Failed to remove the existing associated ship. " +
+    assert_equal "Failed to remove the existing associated ship. " \
                  "The record failed to save after its foreign key was set to nil.", error.message
   end
 
@@ -648,6 +648,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
+    has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
   end
 
   class SpecialAuthor < ActiveRecord::Base
@@ -655,11 +656,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     has_one :book, class_name: "SpecialBook", foreign_key: "author_id"
   end
 
-  def test_assocation_enum_works_properly
+  class SpecialSupscription < ActiveRecord::Base
+    self.table_name = "subscriptions"
+    belongs_to :book, class_name: "SpecialBook"
+  end
+
+  def test_association_enum_works_properly
     author = SpecialAuthor.create!(name: "Test")
     book = SpecialBook.create!(status: "published")
     author.book = book
 
     refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
+  end
+
+  def test_association_enum_works_properly_with_nested_join
+    author = SpecialAuthor.create!(name: "Test")
+    book = SpecialBook.create!(status: "published")
+    author.book = book
+
+    where_clause = { books: { subscriptions: { subscriber_id: nil } } }
+    assert_nothing_raised do
+      SpecialAuthor.joins(book: :subscription).where.not(where_clause)
+    end
   end
 end

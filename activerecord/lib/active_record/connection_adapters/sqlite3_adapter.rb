@@ -95,6 +95,8 @@ module ActiveRecord
 
         @active     = nil
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+
+        configure_connection
       end
 
       def supports_ddl_transactions?
@@ -120,12 +122,12 @@ module ActiveRecord
         true
       end
 
-      def supports_primary_key? #:nodoc:
+      def requires_reloading?
         true
       end
 
-      def requires_reloading?
-        true
+      def supports_foreign_keys_in_create?
+        sqlite_version >= "3.6.19"
       end
 
       def supports_views?
@@ -183,6 +185,19 @@ module ActiveRecord
 
       def supports_explain?
         true
+      end
+
+      # REFERENTIAL INTEGRITY ====================================
+
+      def disable_referential_integrity # :nodoc:
+        old = select_value("PRAGMA foreign_keys")
+
+        begin
+          execute("PRAGMA foreign_keys = OFF")
+          yield
+        ensure
+          execute("PRAGMA foreign_keys = #{old}")
+        end
       end
 
       #--
@@ -316,6 +331,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
           sql = <<-SQL
             SELECT sql
@@ -416,6 +437,24 @@ module ActiveRecord
         column = column_for(table_name, column_name)
         alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)
+      end
+
+      def add_reference(table_name, ref_name, **options) # :nodoc:
+        super(table_name, ref_name, type: :integer, **options)
+      end
+      alias :add_belongs_to :add_reference
+
+      def foreign_keys(table_name)
+        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info.map do |row|
+          options = {
+            column: row["from"],
+            primary_key: row["to"],
+            on_delete: extract_foreign_key_action(row["on_delete"]),
+            on_update: extract_foreign_key_action(row["on_update"])
+          }
+          ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
       end
 
       private
@@ -519,6 +558,8 @@ module ActiveRecord
             RecordNotUnique.new(message)
           when /.* may not be NULL/, /NOT NULL constraint failed: .*/
             NotNullViolation.new(message)
+          when /FOREIGN KEY constraint failed/i
+            InvalidForeignKey.new(message)
           else
             super
           end
@@ -567,6 +608,18 @@ module ActiveRecord
 
         def create_table_definition(*args)
           SQLite3::TableDefinition.new(*args)
+        end
+
+        def extract_foreign_key_action(specifier)
+          case specifier
+          when "CASCADE"; :cascade
+          when "SET NULL"; :nullify
+          when "RESTRICT"; :restrict
+          end
+        end
+
+        def configure_connection
+          execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
   end

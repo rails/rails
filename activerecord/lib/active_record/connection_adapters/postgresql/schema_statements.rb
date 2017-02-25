@@ -3,22 +3,6 @@ require "active_support/core_ext/string/strip"
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation
-        private
-
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.array)
-            super
-          end
-
-          def add_column_options!(sql, options)
-            if options[:collation]
-              sql << " COLLATE \"#{options[:collation]}\""
-            end
-            super
-          end
-      end
-
       module SchemaStatements
         # Drops the database specified on the +name+ attribute
         # and creates it again using the provided +options+.
@@ -148,7 +132,12 @@ module ActiveRecord
         end
 
         # Verifies existence of an index with a given name.
-        def index_name_exists?(table_name, index_name, default)
+        def index_name_exists?(table_name, index_name, default = nil)
+          unless default.nil?
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing default to #index_name_exists? is deprecated without replacement.
+            MSG
+          end
           table = Utils.extract_schema_qualified_name(table_name.to_s)
           index = Utils.extract_schema_qualified_name(index_name.to_s)
 
@@ -166,7 +155,13 @@ module ActiveRecord
         end
 
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
+        def indexes(table_name, name = nil) # :nodoc:
+          if name
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing name to #indexes is deprecated without replacement.
+            MSG
+          end
+
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
           result = query(<<-SQL, "SCHEMA")
@@ -435,17 +430,18 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
+          name = Utils.extract_schema_qualified_name(table_name.to_s)
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
-            WITH pk_constraint AS (
-              SELECT conrelid, unnest(conkey) AS connum FROM pg_constraint
-              WHERE contype = 'p'
-                AND conrelid = #{quote(quote_table_name(table_name))}::regclass
-            ), cons AS (
-              SELECT conrelid, connum, row_number() OVER() AS rownum FROM pk_constraint
-            )
-            SELECT attr.attname FROM pg_attribute attr
-            INNER JOIN cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.connum
-            ORDER BY cons.rownum
+            SELECT column_name
+              FROM information_schema.key_column_usage kcu
+              JOIN information_schema.table_constraints tc
+                ON kcu.table_name = tc.table_name
+               AND kcu.table_schema = tc.table_schema
+               AND kcu.constraint_name = tc.constraint_name
+             WHERE constraint_type = 'PRIMARY KEY'
+               AND kcu.table_name = #{quote(name.identifier)}
+               AND kcu.table_schema = #{name.schema ? quote(name.schema) : "ANY (current_schemas(false))"}
+             ORDER BY kcu.ordinal_position
           SQL
         end
 
@@ -480,7 +476,7 @@ module ActiveRecord
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
-          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:array])
+          sql_type = type_to_sql(type, options)
           sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
           if options[:collation]
             sql << " COLLATE \"#{options[:collation]}\""
@@ -488,7 +484,7 @@ module ActiveRecord
           if options[:using]
             sql << " USING #{options[:using]}"
           elsif options[:cast_as]
-            cast_as_type = type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale], options[:array])
+            cast_as_type = type_to_sql(options[:cast_as], options)
             sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
           end
           execute sql
@@ -624,7 +620,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -649,7 +645,7 @@ module ActiveRecord
               else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
               end
             else
-              super(type, limit, precision, scale)
+              super
             end
 
           sql << "[]" if array && type != :primary_key

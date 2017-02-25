@@ -1,3 +1,93 @@
+*   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
+    `ActiveSupport::HashWithIndifferentAccess` should be used instead.
+
+    *Robin Dupret* (#28157)
+
+*   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
+    `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
+
+    *Jeff Latz*
+
+*   `ActiveSupport::Gzip.decompress` now checks checksum and length in footer.
+
+    *Dylan Thacker-Smith*
+
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
+
+    *Adam Rice*
+
+*   Deprecate `.halt_callback_chains_on_return_false`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
+*   Deprecate passing string to `:if` and `:unless` conditional options
+    on `set_callback` and `skip_callback`.
+
+    *Ryuta Kamizono*
+
+*   Raise `ArgumentError` when passing string to define callback.
+
+    *Ryuta Kamizono*
+
+*   Updated Unicode version to 9.0.0
+
+    Now we can handle new emojis such like "👩‍👩‍👧‍👦" ("\u{1F469}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}").
+
+    version 8.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 4
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👦👧‍👩‍👩‍"
+
+    version 9.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 1
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👩‍👩‍👧‍👦"
+
+    *Fumiaki MATSUSHIMA*
+
+*   Changed `ActiveSupport::Inflector#transliterate` to raise `ArgumentError` when it receives
+    anything except a string.
+
+    *Kevin McPhillips*
+
+*   Fixed bugs that `StringInquirer#respond_to_missing?` and
+    `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
+
+    *Akira Matsuda*
+
+*   Fix inconsistent results when parsing large durations and constructing durations from code
+
+        ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
+
+    Duration parsing made independent from any moment of time:
+    Fixed length in seconds is assigned to each duration part during parsing.
+
+    Changed duration of months and years in seconds to more accurate and logical:
+
+     1. The value of 365.2425 days in Gregorian year is more accurate
+        as it accounts for every 400th non-leap year.
+
+     2. Month's length is bound to year's duration, which makes
+        sensible comparisons like `12.months == 1.year` to be `true`
+        and nonsensical ones like `30.days == 1.month` to be `false`.
+
+    Calculations on times and dates with durations shouldn't be affected as
+    duration's numeric value isn't used in calculations, only parts are used.
+
+    Methods on `Numeric` like `2.days` now use these predefined durations
+    to avoid duplicating of duration constants through the codebase and
+    eliminate creation of intermediate durations.
+
+    *Andrey Novikov, Andrew White*
+
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
 
@@ -9,76 +99,76 @@
 
     *Yuji Yaginuma*
 
-*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`.
 
     *Andrew White*
 
-*   Remove deprecated separator argument from `parameterize`
+*   Remove deprecated separator argument from `parameterize`.
 
     *Andrew White*
 
-*   Remove deprecated method `Numeric#to_formatted_s`
+*   Remove deprecated method `Numeric#to_formatted_s`.
 
     *Andrew White*
 
-*   Remove deprecated method `alias_method_chain`
+*   Remove deprecated method `alias_method_chain`.
 
     *Andrew White*
 
-*   Remove deprecated constant `MissingSourceFile`
+*   Remove deprecated constant `MissingSourceFile`.
 
     *Andrew White*
 
 *   Remove deprecated methods `Module.qualified_const_defined?`,
-    `Module.qualified_const_get` and `Module.qualified_const_set`
+    `Module.qualified_const_get` and `Module.qualified_const_set`.
 
     *Andrew White*
 
-*   Remove deprecated `:prefix` option from `number_to_human_size`
+*   Remove deprecated `:prefix` option from `number_to_human_size`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/struct.rb`
+*   Remove deprecated file `active_support/core_ext/struct.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `Module.local_constants`
+*   Remove deprecated method `Module.local_constants`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`.
 
     *Andrew White*
 
-*   Ensure duration parsing is consistent across DST changes
+*   Ensure duration parsing is consistent across DST changes.
 
     Previously `ActiveSupport::Duration.parse` used `Time.current` and
     `Time#advance` to calculate the number of seconds in the duration

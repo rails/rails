@@ -198,10 +198,10 @@ module ActiveSupport
 
     # Removes the module part from the expression in the string.
     #
-    #   demodulize('ActiveRecord::CoreExtensions::String::Inflections') # => "Inflections"
-    #   demodulize('Inflections')                                       # => "Inflections"
-    #   demodulize('::Inflections')                                     # => "Inflections"
-    #   demodulize('')                                                  # => ""
+    #   demodulize('ActiveSupport::Inflector::Inflections') # => "Inflections"
+    #   demodulize('Inflections')                           # => "Inflections"
+    #   demodulize('::Inflections')                         # => "Inflections"
+    #   demodulize('')                                      # => ""
     #
     # See also #deconstantize.
     def demodulize(path)

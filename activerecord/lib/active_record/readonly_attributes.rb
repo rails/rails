@@ -11,7 +11,7 @@ module ActiveRecord
       # Attributes listed as readonly will be used to create a new record but update operations will
       # ignore these fields.
       def attr_readonly(*attributes)
-        self._attr_readonly = Set.new(attributes.map(&:to_s)) + (self._attr_readonly || [])
+        self._attr_readonly = Set.new(attributes.map(&:to_s)) + (_attr_readonly || [])
       end
 
       # Returns an array of all the attributes that have been specified as readonly.

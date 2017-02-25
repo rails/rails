@@ -30,13 +30,7 @@ module ActiveRecord
           reload
         end
 
-        if null_scope?
-          # Cache the proxy separately before the owner has an id
-          # or else a post-save proxy will still lack the id
-          @null_proxy ||= CollectionProxy.create(klass, self)
-        else
-          @proxy ||= CollectionProxy.create(klass, self)
-        end
+        CollectionProxy.create(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -47,9 +41,7 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= (
             column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
@@ -299,6 +291,8 @@ module ActiveRecord
             target << record
           end
 
+          set_inverse_instance(record)
+
           yield(record) if block_given?
         rescue
           if index
@@ -311,14 +305,13 @@ module ActiveRecord
         end
 
         callback(:after_add, record) unless skip_callbacks
-        set_inverse_instance(record)
 
         record
       end
 
-      def scope(opts = {})
-        scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+      def scope
+        scope = super
+        scope.none! if null_scope?
         scope
       end
 

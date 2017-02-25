@@ -41,10 +41,15 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    # Returns the number of elements in the rows array.
     def length
       @rows.length
     end
 
+    # Calls the given block once for each element in row collection, passing
+    # row as parameter.
+    #
+    # Returns an +Enumerator+ if no block is given.
     def each
       if block_given?
         hash_rows.each { |row| yield row }
@@ -53,6 +58,7 @@ module ActiveRecord
       end
     end
 
+    # Returns an array of hashes representing each row record.
     def to_hash
       hash_rows
     end
@@ -60,11 +66,12 @@ module ActiveRecord
     alias :map! :map
     alias :collect! :map
 
-    # Returns true if there are no records.
+    # Returns true if there are no records, otherwise false.
     def empty?
       rows.empty?
     end
 
+    # Returns an array of hashes representing each row record.
     def to_ary
       hash_rows
     end
@@ -73,11 +80,15 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    # Returns the first record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
     def first
       return nil if @rows.empty?
       Hash[@columns.zip(@rows.first)]
     end
 
+    # Returns the last record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
     def last
       return nil if @rows.empty?
       Hash[@columns.zip(@rows.last)]

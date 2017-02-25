@@ -355,14 +355,6 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_load
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db")
-          .returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
-      end
-
-      def test_structure_load
-        filename = "awesome-file.sql"
         expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", "--noop"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do

@@ -66,9 +66,10 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    assert_raise(ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
+    assert_kind_of Mysql2::Error, error.cause
   end
 
   def test_quote_after_disconnect
@@ -82,6 +83,22 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_active_after_disconnect
     @connection.disconnect!
     assert_equal false, @connection.active?
+  end
+
+  def test_wait_timeout_as_string
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge(wait_timeout: "60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
+  end
+
+  def test_wait_timeout_as_url
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "mysql2:///?wait_timeout=60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
   end
 
   def test_mysql_connection_collation_is_configured
@@ -119,7 +136,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_passing_arbitary_flags_to_adapter
+  def test_passing_arbitrary_flags_to_adapter
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
       assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]

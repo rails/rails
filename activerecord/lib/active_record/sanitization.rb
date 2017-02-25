@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Sanitization
     extend ActiveSupport::Concern
@@ -46,7 +45,7 @@ module ActiveRecord
         #
         #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
         #   # => "name=NULL and group_id='4'"
-        def sanitize_sql_for_assignment(assignments, default_table_name = self.table_name) # :doc:
+        def sanitize_sql_for_assignment(assignments, default_table_name = table_name) # :doc:
           case assignments
           when Array; sanitize_sql_array(assignments)
           when Hash;  sanitize_sql_hash_for_assignment(assignments, default_table_name)
@@ -207,9 +206,9 @@ module ActiveRecord
         end
     end
 
-    # TODO: Deprecate this
     def quoted_id # :nodoc:
       self.class.connection.quote(@attributes[self.class.primary_key].value_for_database)
     end
+    deprecate :quoted_id
   end
 end

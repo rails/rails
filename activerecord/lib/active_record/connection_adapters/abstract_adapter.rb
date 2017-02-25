@@ -107,6 +107,7 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
+        @lock = Monitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -176,7 +177,7 @@ module ActiveRecord
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
-            msg << "it is already in use by a different thread: #{@owner}. " <<
+            msg << "it is already in use by a different thread: #{@owner}. " \
                    "Current thread: #{Thread.current}."
           end
           raise ActiveRecordError, msg
@@ -194,8 +195,8 @@ module ActiveRecord
       def expire
         if in_use?
           if @owner != Thread.current
-            raise ActiveRecordError, "Cannot expire connection, " <<
-              "it is owned by a different thread: #{@owner}. " <<
+            raise ActiveRecordError, "Cannot expire connection, " \
+              "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{Thread.current}."
           end
 
@@ -236,11 +237,10 @@ module ActiveRecord
         false
       end
 
-      # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables?
-      def supports_primary_key?
-        false
+      def supports_primary_key? # :nodoc:
+        true
       end
+      deprecate :supports_primary_key?
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
@@ -310,6 +310,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating foreign key constraints
+      # in the same statement as creating the table?
+      def supports_foreign_keys_in_create?
+        supports_foreign_keys?
+      end
+
       # Does this adapter support views?
       def supports_views?
         false
@@ -338,6 +344,11 @@ module ActiveRecord
       # Does this adapter support multi-value insert?
       def supports_multi_insert?
         true
+      end
+
+      # Does this adapter support virtual columns?
+      def supports_virtual_columns?
+        false
       end
 
       # This is meant to be implemented by the adapters that support extensions
@@ -441,15 +452,15 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
-        table[attribute].eq(Arel::Nodes::BindParam.new)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
+        table[attribute].eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value)
+      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
+          table[attribute].lower.eq(table.lower(value))
         else
-          table[attribute].eq(Arel::Nodes::BindParam.new)
+          table[attribute].eq(value)
         end
       end
 
@@ -497,6 +508,10 @@ module ActiveRecord
           result << offset
         end
         result
+      end
+
+      def default_index_type?(index) # :nodoc:
+        index.using.nil?
       end
 
       private
@@ -591,7 +606,11 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
-            connection_id:     object_id) { yield }
+            connection_id:     object_id) do
+              @lock.synchronize do
+                yield
+              end
+            end
         rescue => e
           raise translate_exception_class(e, sql)
         end

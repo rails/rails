@@ -13,9 +13,9 @@ require "models/speedometer"
 require "models/ship_part"
 require "models/treasure"
 require "models/developer"
+require "models/post"
 require "models/comment"
 require "models/rating"
-require "models/post"
 
 class NumericData < ActiveRecord::Base
   self.table_name = "numeric_data"
@@ -166,14 +166,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     firm_id_attribute = Account.arel_table[:firm_id]
     assert_equal 3, accounts.count(firm_id_attribute)
@@ -421,10 +421,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
-
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).uniq.count
-    end
   end
 
   def test_count_with_aliased_attribute

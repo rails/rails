@@ -9,7 +9,7 @@ module ActiveRecord
       # available.
       def to_key
         sync_with_transaction_state
-        key = self.id
+        key = id
         [key] if key
       end
 

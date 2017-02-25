@@ -2,6 +2,7 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
+require "rails/secrets"
 
 module Rails
   class Application
@@ -48,8 +49,8 @@ INFO
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
-            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " +
-            "(ie, make it writable for user and group: chmod 0664 #{path}). " +
+            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " \
+            "(ie, make it writable for user and group: chmod 0664 #{path}). " \
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
           )
           logger
@@ -76,6 +77,11 @@ INFO
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
+      end
+
+      initializer :set_secrets_root, group: :all do
+        Rails::Secrets.root = root
+        Rails::Secrets.read_encrypted_secrets = config.read_encrypted_secrets
       end
     end
   end

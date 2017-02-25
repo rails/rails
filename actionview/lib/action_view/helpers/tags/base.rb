@@ -16,7 +16,14 @@ module ActionView
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
-          @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
+
+          if Regexp.last_match
+            @generate_indexed_names = true
+            @auto_index = retrieve_autoindex(Regexp.last_match.pre_match)
+          else
+            @generate_indexed_names = false
+            @auto_index = nil
+          end
         end
 
         # This is what child classes implement.
@@ -167,7 +174,11 @@ module ActionView
           end
 
           def name_and_id_index(options)
-            options.key?("index") ? options.delete("index") || "" : @auto_index
+            if options.key?("index")
+              options.delete("index") || ""
+            elsif @generate_indexed_names
+              @auto_index || ""
+            end
           end
 
           def skip_default_ids?

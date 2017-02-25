@@ -54,12 +54,6 @@ module ActiveRecord
         end
       end
 
-      def test_primary_key_raises_error_if_table_not_found
-        assert_raises(ActiveRecord::StatementInvalid) do
-          @connection.primary_key("unobtainium")
-        end
-      end
-
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
@@ -263,9 +257,12 @@ module ActiveRecord
 
       def test_index_with_opclass
         with_example_table do
-          @connection.add_index "ex", "data varchar_pattern_ops", name: "with_opclass"
-          index = @connection.indexes("ex").find { |idx| idx.name == "with_opclass" }
+          @connection.add_index "ex", "data varchar_pattern_ops"
+          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_varchar_pattern_ops" }
           assert_equal "data varchar_pattern_ops", index.columns
+
+          @connection.remove_index "ex", "data varchar_pattern_ops"
+          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_varchar_pattern_ops" }
         end
       end
 

@@ -178,24 +178,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dumps_index_columns_in_right_order
-    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_index/).first.strip
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }, using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, using: :btree', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
   end
 
   def test_schema_dumps_partial_indices
-    index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
-    elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
-      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+      assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
     end
@@ -248,9 +244,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
 
     def test_schema_dumps_index_type
-      output = standard_dump
-      assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
-      assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
+      output = dump_table_schema "key_tests"
+      assert_match %r{t\.index \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext$}, output
+      assert_match %r{t\.index \["pizza"\], name: "index_key_tests_on_pizza"$}, output
     end
   end
 
@@ -261,23 +257,34 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
-      output = standard_dump
+      output = dump_table_schema "defaults"
       assert_match %r{t\.bigint\s+"bigint_default",\s+default: 0}, output
     end
 
     def test_schema_dump_includes_limit_on_array_type
-      output = standard_dump
+      output = dump_table_schema "bigint_array"
       assert_match %r{t\.bigint\s+"big_int_data_points\",\s+array: true}, output
     end
 
     def test_schema_dump_allows_array_of_decimal_defaults
-      output = standard_dump
+      output = dump_table_schema "bigint_array"
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
     def test_schema_dump_expression_indices
-      index_definition = standard_dump.split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index", using: :btree', index_definition
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
+    end
+
+    def test_schema_dump_interval_type
+      output = dump_table_schema "postgresql_times"
+      assert_match %r{t\.interval\s+"time_interval"$}, output
+      assert_match %r{t\.interval\s+"scaled_time_interval",\s+precision: 6$}, output
+    end
+
+    def test_schema_dump_oid_type
+      output = dump_table_schema "postgresql_oids"
+      assert_match %r{t\.oid\s+"obj_id"$}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
@@ -341,9 +348,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       create_table("dogs") do |t|
         t.column :name, :string
-        t.column :owner_id, :bigint
+        t.references :owner
         t.index [:name]
-        t.foreign_key :dog_owners, column: "owner_id" if supports_foreign_keys?
+        t.foreign_key :dog_owners, column: "owner_id"
       end
     end
     def down

@@ -9,7 +9,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = "8.0.0"
+      UNICODE_VERSION = "9.0.0"
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -57,9 +57,12 @@ module ActiveSupport
           previous = codepoints[pos - 1]
           current = codepoints[pos]
 
+          # See http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
           should_break =
+            if pos == eoc
+              true
             # GB3. CR X LF
-            if previous == database.boundary[:cr] && current == database.boundary[:lf]
+            elsif previous == database.boundary[:cr] && current == database.boundary[:lf]
               false
             # GB4. (Control|CR|LF) ÷
             elsif previous && in_char_class?(previous, [:control, :cr, :lf])
@@ -76,11 +79,8 @@ module ActiveSupport
             # GB8. (LVT|T) X (T)
             elsif in_char_class?(previous, [:lvt, :t]) && database.boundary[:t] === current
               false
-            # GB8a. Regional_Indicator X Regional_Indicator
-            elsif database.boundary[:regional_indicator] === previous && database.boundary[:regional_indicator] === current
-              false
-            # GB9. X Extend
-            elsif database.boundary[:extend] === current
+            # GB9. X (Extend | ZWJ)
+            elsif in_char_class?(current, [:extend, :zwj])
               false
             # GB9a. X SpacingMark
             elsif database.boundary[:spacingmark] === current
@@ -88,7 +88,17 @@ module ActiveSupport
             # GB9b. Prepend X
             elsif database.boundary[:prepend] === previous
               false
-            # GB10. Any ÷ Any
+            # GB10. (E_Base | EBG) Extend* X E_Modifier
+            elsif (marker...pos).any? { |i| in_char_class?(codepoints[i], [:e_base, :e_base_gaz]) && codepoints[i + 1...pos].all? { |c| database.boundary[:extend] === c } } && database.boundary[:e_modifier] === current
+              false
+            # GB11. ZWJ X (Glue_After_Zwj | EBG)
+            elsif database.boundary[:zwj] === previous && in_char_class?(current, [:glue_after_zwj, :e_base_gaz])
+              false
+            # GB12. ^ (RI RI)* RI X RI
+            # GB13. [^RI] (RI RI)* RI X RI
+            elsif codepoints[marker..pos].all? { |c| database.boundary[:regional_indicator] === c } && codepoints[marker..pos].count { |c| database.boundary[:regional_indicator] === c }.even?
+              false
+            # GB999. Any ÷ Any
             else
               true
             end

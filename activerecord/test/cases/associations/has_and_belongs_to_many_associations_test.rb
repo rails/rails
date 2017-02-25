@@ -86,8 +86,10 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
-class DeveloperWithConstantClassName < Developer
-  has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+ActiveSupport::Deprecation.silence do
+  class DeveloperWithConstantClassName < Developer
+    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+  end
 end
 
 class DeveloperWithExtendOption < Developer
@@ -743,8 +745,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped_having
-    assert_equal 2, projects(:active_record).well_payed_salary_groups.to_a.size
-    assert projects(:active_record).well_payed_salary_groups.all? { |g| g.salary > 10000 }
+    assert_equal 2, projects(:active_record).well_paid_salary_groups.to_a.size
+    assert projects(:active_record).well_paid_salary_groups.all? { |g| g.salary > 10000 }
   end
 
   def test_get_ids

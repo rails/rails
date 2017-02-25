@@ -18,7 +18,7 @@ class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.table_name = :lock_without_defaults_cust
-  self.column_defaults # to test @column_defaults caching.
+  column_defaults # to test @column_defaults caching.
   self.locking_column = :custom_lock_version
 end
 
@@ -536,7 +536,10 @@ unless in_memory_db?
         Person.transaction do
           person = Person.find 1
           old, person.first_name = person.first_name, "fooman"
-          person.lock!
+          # Locking a dirty record is deprecated
+          assert_deprecated do
+            person.lock!
+          end
           assert_equal old, person.first_name
         end
       end

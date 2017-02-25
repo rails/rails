@@ -12,6 +12,7 @@ require "rake"
   restart
   routes
   tmp
+  yarn
 ).tap { |arr|
   arr << "statistics" if Rake.application.current_scope.empty?
 }.each do |task|

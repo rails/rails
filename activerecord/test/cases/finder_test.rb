@@ -117,8 +117,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fourth Topic of the day", records[2].title
   end
 
-  def test_find_passing_active_record_object_is_deprecated
-    assert_deprecated do
+  def test_find_passing_active_record_object_is_not_permitted
+    assert_raises(ArgumentError) do
       Topic.find(Topic.last)
     end
   end
@@ -167,8 +167,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, relation.exists?(false)
   end
 
-  def test_exists_passing_active_record_object_is_deprecated
-    assert_deprecated do
+  def test_exists_passing_active_record_object_is_not_permitted
+    assert_raises(ArgumentError) do
       Topic.exists?(Topic.new)
     end
   end
@@ -337,6 +337,11 @@ class FinderTest < ActiveRecord::TestCase
     author = authors(:david)
     assert_equal author.post, Post.find_by(author: Author.where(id: author))
     assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
+  end
+
+  def test_find_by_and_where_consistency_with_active_record_instance
+    author = authors(:david)
+    assert_equal Post.where(author_id: author).take, Post.find_by(author_id: author)
   end
 
   def test_take
@@ -858,13 +863,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = ?", "37signals' go'es agains"]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = ?", "37signals' go'es against"]).first
   end
 
   def test_named_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = :name", { name: "37signals' go'es agains" }]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = :name", { name: "37signals' go'es against" }]).first
   end
 
   def test_named_bind_variables

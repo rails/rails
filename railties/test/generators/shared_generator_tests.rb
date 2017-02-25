@@ -109,6 +109,7 @@ module SharedGeneratorTests
   def test_skip_git
     run_generator [destination_root, "--skip-git", "--full"]
     assert_no_file(".gitignore")
+    assert_no_directory(".git")
   end
 
   def test_skip_keeps

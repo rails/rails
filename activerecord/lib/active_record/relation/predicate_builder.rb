@@ -113,7 +113,7 @@ module ActiveRecord
 
       def build_for_association_query(column_name, value)
         parts, binds = [], []
-        AssociationQueryValue.queries_for(table, column_name, value).each do |query|
+        AssociationQueryValue.queries_for(table.associated_table(column_name), value).each do |query|
           prts, bvs = build_from_hash(query)
           parts << prts
           binds.concat(bvs)

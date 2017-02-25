@@ -150,7 +150,7 @@ The type of an attribute is given the opportunity to change how dirty
 tracking is performed.
 
 See its
-[documentation](http://api.rubyonrails.org/classes/ActiveRecord/Attributes/ClassMethods.html)
+[documentation](http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html)
 for a detailed write up.
 
 
@@ -242,7 +242,7 @@ Please refer to the [Changelog][railties] for detailed changes.
      [Pull Request](https://github.com/rails/rails/pull/22288))
 
 *   New applications are generated with the evented file system monitor enabled
-    on Linux and Mac OS X. The feature can be opted out by passing
+    on Linux and macOS. The feature can be opted out by passing
     `--skip-listen` to the generator.
     ([commit](https://github.com/rails/rails/commit/de6ad5665d2679944a9ee9407826ba88395a1003),
     [commit](https://github.com/rails/rails/commit/94dbc48887bf39c241ee2ce1741ee680d773f202))
@@ -498,6 +498,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   The `datetime_tag` helper now generates an input tag with the type of
     `datetime-local`.
     ([Pull Request](https://github.com/rails/rails/pull/25469))
+
+*   Allow blocks while rendering with the `render partial:` helper.
+    ([Pull Request](https://github.com/rails/rails/pull/17974))
 
 Action Mailer
 -------------

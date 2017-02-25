@@ -46,6 +46,7 @@ module ActiveRecord
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
+        timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob", limit: 65535 },
@@ -67,8 +68,8 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < "5.0.0"
-          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
+        if version < "5.1.10"
+          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.1.10."
         end
       end
 
@@ -90,10 +91,6 @@ module ActiveRecord
 
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
-        true
-      end
-
-      def supports_primary_key?
         true
       end
 
@@ -138,6 +135,14 @@ module ActiveRecord
           version >= "5.3.0"
         else
           version >= "5.6.4"
+        end
+      end
+
+      def supports_virtual_columns?
+        if mariadb?
+          version >= "5.2.0"
+        else
+          version >= "5.7.5"
         end
       end
 
@@ -367,6 +372,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
+        if name
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing name to #indexes is deprecated without replacement.
+          MSG
+        end
+
         indexes = []
         current_index = nil
         execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
@@ -521,6 +532,7 @@ module ActiveRecord
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{quote(schema)}
             AND fk.table_name = #{quote(name)}
+            AND rc.table_name = #{quote(name)}
         SQL
 
         fk_info.map do |row|
@@ -559,7 +571,7 @@ module ActiveRecord
       end
 
       # Maps logical Rails types to MySQL-specific data types.
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
+      def type_to_sql(type, limit: nil, precision: nil, scale: nil, unsigned: nil, **) # :nodoc:
         sql = \
           case type.to_s
           when "integer"
@@ -575,7 +587,7 @@ module ActiveRecord
               binary_to_sql(limit)
             end
           else
-            super(type, limit, precision, scale)
+            super
           end
 
         sql << " unsigned" if unsigned && type != :primary_key
@@ -604,9 +616,9 @@ module ActiveRecord
         SQL
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new))
+          table[attribute].eq(Arel::Nodes::Bin.new(value))
         else
           super
         end
@@ -638,6 +650,10 @@ module ActiveRecord
 
       def valid_type?(type)
         !native_database_types[type].nil?
+      end
+
+      def default_index_type?(index) # :nodoc:
+        index.using == :btree || super
       end
 
       private
@@ -693,7 +709,7 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          if /time/.match?(sql_type)
+          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
             super || 0
           else
             super
@@ -854,9 +870,9 @@ module ActiveRecord
           variables["sql_auto_is_null"] = 0
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = @config[:wait_timeout]
+          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
           wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
+          variables["wait_timeout"] = wait_timeout
 
           defaults = [":default", :default].to_set
 

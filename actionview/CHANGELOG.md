@@ -1,3 +1,29 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Change the ERB handler from Erubis to Erubi.
+
+    Erubi is an Erubis fork that's svelte, simple, and currently maintained.
+    Plus it supports `--enable-frozen-string-literal` in Ruby 2.3+.
+
+    Compatibility: Drops support for `<%===` tags for debug output.
+    These were an unused, undocumented side effect of the Erubis
+    implementation.
+
+    Deprecation: The Erubis handler will be removed in Rails 5.2, for the
+    handful of folks using it directly.
+
+    *Jeremy Evans*
+
+*   Allow render locals to be assigned to instance variables in a view.
+
+    Fixes #27480.
+
+    *Andrew White*
+
+*   Add `check_parameters` option to `current_page?` which makes it more strict.
+
+    *Maksym Pugach*
+
 *   Return correct object name in form helper method after `fields_for`.
 
     Fixes #26931.

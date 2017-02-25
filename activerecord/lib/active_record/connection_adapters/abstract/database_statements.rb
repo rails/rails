@@ -51,8 +51,7 @@ module ActiveRecord
 
       # Returns a single value from a record
       def select_value(arel, name = nil, binds = [])
-        arel, binds = binds_from_relation arel, binds
-        if result = select_rows(to_sql(arel, binds), name, binds).first
+        if result = select_rows(arel, name, binds).first
           result.first
         end
       end
@@ -60,14 +59,13 @@ module ActiveRecord
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil, binds = [])
-        arel, binds = binds_from_relation arel, binds
-        select_rows(to_sql(arel, binds), name, binds).map(&:first)
+        select_rows(arel, name, binds).map(&:first)
       end
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil, binds = [])
-        exec_query(sql, name, binds).rows
+      def select_rows(arel, name = nil, binds = [])
+        select_all(arel, name, binds).rows
       end
 
       # Executes the SQL statement in the context of this connection and returns
@@ -126,22 +124,16 @@ module ActiveRecord
         id_value || last_inserted_id(value)
       end
       alias create insert
-      alias insert_sql insert
-      deprecate insert_sql: :insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
         exec_update(to_sql(arel, binds), name, binds)
       end
-      alias update_sql update
-      deprecate update_sql: :update
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         exec_delete(to_sql(arel, binds), name, binds)
       end
-      alias delete_sql delete
-      deprecate delete_sql: :delete
 
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+

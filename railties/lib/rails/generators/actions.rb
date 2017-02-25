@@ -269,7 +269,7 @@ module Rails
           if args.size == 1
             say args.first.to_s unless options.quiet?
           else
-            args << (self.behavior == :invoke ? :green : :red)
+            args << (behavior == :invoke ? :green : :red)
             say_status(*args)
           end
         end

@@ -4,8 +4,8 @@ require "rails-dom-testing"
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
-      super "Unable to determine the mailer to test from #{name}. " +
-        "You'll need to specify it using tests YourMailer in your " +
+      super "Unable to determine the mailer to test from #{name}. " \
+        "You'll need to specify it using tests YourMailer in your " \
         "test case definition"
     end
   end
@@ -57,7 +57,7 @@ module ActionMailer
         end
 
         def mailer_class
-          if mailer = self._mailer_class
+          if mailer = _mailer_class
             mailer
           else
             tests determine_default_mailer(name)

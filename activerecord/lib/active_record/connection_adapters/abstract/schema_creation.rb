@@ -15,9 +15,9 @@ module ActiveRecord
         end
 
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options, to: :@conn
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options, to: :@conn
         private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options
 
         private
 
@@ -29,7 +29,7 @@ module ActiveRecord
           end
 
           def visit_ColumnDefinition(o)
-            o.sql_type ||= type_to_sql(o.type, o.limit, o.precision, o.scale)
+            o.sql_type = type_to_sql(o.type, o.options)
             column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
@@ -49,7 +49,7 @@ module ActiveRecord
               statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
             end
 
-            if supports_foreign_keys?
+            if supports_foreign_keys_in_create?
               statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
             end
 
@@ -96,17 +96,7 @@ module ActiveRecord
           end
 
           def column_options(o)
-            column_options = {}
-            column_options[:null] = o.null unless o.null.nil?
-            column_options[:default] = o.default unless o.default.nil?
-            column_options[:column] = o
-            column_options[:first] = o.first
-            column_options[:after] = o.after
-            column_options[:auto_increment] = o.auto_increment
-            column_options[:primary_key] = o.primary_key
-            column_options[:collation] = o.collation
-            column_options[:comment] = o.comment
-            column_options
+            o.options.merge(column: o)
           end
 
           def add_column_options!(sql, options)

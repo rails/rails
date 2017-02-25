@@ -56,6 +56,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_jobs_when_performing_with_only_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 1, only: HelloJob do
+        perform_enqueued_jobs only: LoggingJob do
+          HelloJob.perform_later("sean")
+          LoggingJob.perform_later("yves")
+        end
+      end
+    end
+  end
+
   def test_assert_no_enqueued_jobs_with_no_block
     assert_nothing_raised do
       assert_no_enqueued_jobs
@@ -106,6 +117,27 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       assert_enqueued_jobs 1, only: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_only_and_queue_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 1, only: HelloJob, queue: :some_queue do
+        HelloJob.set(queue: :some_queue).perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_queue_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 2, queue: :default do
+        HelloJob.perform_later
+        LoggingJob.perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.set(queue: :other_queue).perform_later
       end
     end
   end
@@ -526,5 +558,22 @@ end
 class InheritedJobTest < ActiveJob::TestCase
   def test_queue_adapter_is_test_adapter
     assert_instance_of ActiveJob::QueueAdapters::TestAdapter, InheritedJob.queue_adapter
+  end
+end
+
+class QueueAdapterJobTest < ActiveJob::TestCase
+  def before_setup
+    @original_autoload_paths = ActiveSupport::Dependencies.autoload_paths
+    ActiveSupport::Dependencies.autoload_paths = %w(test/jobs)
+    super
+  end
+
+  def after_teardown
+    ActiveSupport::Dependencies.autoload_paths = @original_autoload_paths
+    super
+  end
+
+  def test_queue_adapter_is_test_adapter
+    assert_instance_of ActiveJob::QueueAdapters::TestAdapter, QueueAdapterJob.queue_adapter
   end
 end

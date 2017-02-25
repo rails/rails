@@ -51,7 +51,7 @@ module ApplicationTests
 
     def setup
       build_app
-      supress_default_config
+      suppress_default_config
     end
 
     def teardown
@@ -59,7 +59,7 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    def supress_default_config
+    def suppress_default_config
       FileUtils.mv("#{app_path}/config/environments", "#{app_path}/config/__environments__")
     end
 
@@ -75,6 +75,18 @@ module ApplicationTests
         Rails.env = "development"
         assert_equal "development", Rails.env
         assert_nil ENV["RAILS_ENV"]
+      end
+    end
+
+    test "Rails.env falls back to development if RAILS_ENV is blank and RACK_ENV is nil" do
+      with_rails_env("") do
+        assert_equal "development", Rails.env
+      end
+    end
+
+    test "Rails.env falls back to development if RACK_ENV is blank and RAILS_ENV is nil" do
+      with_rack_env("") do
+        assert_equal "development", Rails.env
       end
     end
 
@@ -369,26 +381,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_files is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.serve_static_files = true
-        end
-
-        assert application.config.public_file_server.enabled
-      end
-    end
-
-    test "config.static_cache_control is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.static_cache_control = "public, max-age=60"
-        end
-
-        assert_equal application.config.static_cache_control, "public, max-age=60"
-      end
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
@@ -631,9 +623,10 @@ module ApplicationTests
 
       assert_equal "", app.config.secret_token
       assert_nil app.secrets.secret_key_base
-      assert_raise ArgumentError, /\AA secret is required/ do
+      e = assert_raise ArgumentError do
         app.key_generator
       end
+      assert_match(/\AA secret is required/, e.message)
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
@@ -992,7 +985,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render plain: env["action_dispatch.show_exceptions"]
+          render plain: request.env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -1192,11 +1185,12 @@ module ApplicationTests
     end
 
     test "config.session_store with :active_record_store without activerecord-session_store gem" do
-      assert_raise RuntimeError, /activerecord-session_store/ do
+      e = assert_raise RuntimeError do
         make_basic_app do |application|
           application.config.session_store :active_record_store
         end
       end
+      assert_match(/activerecord-session_store/, e.message)
     end
 
     test "default session store initializer does not overwrite the user defined session store even if it is disabled" do

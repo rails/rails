@@ -42,6 +42,7 @@ DEFAULT_APP_FILES = %w(
   test/helpers
   test/mailers
   test/integration
+  test/system
   vendor
   tmp
   tmp/cache
@@ -208,7 +209,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.send(:update_config_files) }
 
       assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
-        assert_match(/ActiveSupport\.halt_callback_chains_on_return_false = true/, content)
         assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
         assert_no_match(/Rails\.application\.config\.ssl_options/, content)
       end
@@ -335,12 +335,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/^  config\.read_encrypted_secrets = true/, content)
     end
   end
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.0'"
+    assert_gem "puma", "'~> 3.7'"
   end
 
   def test_generator_if_skip_puma_is_given
@@ -419,6 +420,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_if_skip_yarn_is_given
+    run_generator [destination_root, "--skip-yarn"]
+
+    assert_no_file "package.json"
+    assert_no_file "bin/yarn"
+  end
+
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
@@ -490,16 +498,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_for_yarn
     run_generator([destination_root])
-    assert_file "vendor/package.json", /dependencies/
+    assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
   end
 
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-yarn"])
-    assert_no_file "vendor/package.json"
+    assert_no_file "package.json"
 
     assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
+    end
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/node_modules/, content)
+      assert_no_match(/yarn-error\.log/, content)
     end
   end
 
@@ -585,6 +598,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
+    assert_no_match(/run  git init/, output)
   end
 
   def test_application_name_with_spaces
@@ -724,6 +738,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_version_control_initializes_git_repo
+    run_generator [destination_root]
+    assert_directory ".git"
+  end
+
   def test_create_keeps
     run_generator
     folders_with_keep = %w(
@@ -770,7 +789,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -785,11 +804,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 3, @sequence_step
+    assert_equal 4, @sequence_step
+  end
+
+  def test_system_tests_directory_generated
+    run_generator
+
+    assert_file("test/system/.keep")
+    assert_directory("test/system")
+  end
+
+  def test_system_tests_are_not_generated_on_system_test_skip
+    run_generator [destination_root, "--skip-system-test"]
+
+    assert_no_directory("test/system")
+  end
+
+  def test_system_tests_are_not_generated_on_test_skip
+    run_generator [destination_root, "--skip-test"]
+
+    assert_no_directory("test/system")
   end
 
   private
-
     def stub_rails_application(root)
       Rails.application.config.root = root
       Rails.application.class.stub(:name, "Myapp") do

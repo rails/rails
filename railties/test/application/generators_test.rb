@@ -184,5 +184,12 @@ module ApplicationTests
 
       Rails::Command.send(:remove_const, "APP_PATH")
     end
+
+    test "help does not show hidden namespaces" do
+      FileUtils.cd(rails_root) do
+        output = `bin/rails generate --help`
+        assert_no_match "active_record:migration", output
+      end
+    end
   end
 end

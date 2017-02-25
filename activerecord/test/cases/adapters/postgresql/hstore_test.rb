@@ -171,6 +171,25 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_not hstore.changed?
     end
 
+    def test_dirty_from_user_equal
+      settings = { "alongkey" => "anything", "key" => "value" }
+      hstore = Hstore.create!(settings: settings)
+
+      hstore.settings = { "key" => "value", "alongkey" => "anything" }
+      assert_equal settings, hstore.settings
+      refute hstore.changed?
+    end
+
+    def test_hstore_dirty_from_database_equal
+      settings = { "alongkey" => "anything", "key" => "value" }
+      hstore = Hstore.create!(settings: settings)
+      hstore.reload
+
+      assert_equal settings, hstore.settings
+      hstore.settings = settings
+      refute hstore.changed?
+    end
+
     def test_gen1
       assert_equal('" "=>""', @type.serialize(" " => ""))
     end

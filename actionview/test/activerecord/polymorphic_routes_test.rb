@@ -45,7 +45,7 @@ class ModelDelegate
   end
 end
 
-module Blog
+module Weblog
   class Post < ActiveRecord::Base
     self.table_name = "projects"
   end
@@ -61,7 +61,7 @@ end
 
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
-  self.default_url_options[:host] = "example.com"
+  default_url_options[:host] = "example.com"
 
   def setup
     @project = Project.new
@@ -72,8 +72,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @fax = Fax.new
     @delegator = ModelDelegator.new
     @series = Series.new
-    @blog_post = Blog::Post.new
-    @blog_blog = Blog::Blog.new
+    @blog_post = Weblog::Post.new
+    @blog_blog = Weblog::Blog.new
   end
 
   def assert_url(url, args)
@@ -86,8 +86,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_string
     with_test_routes do
-      # FIXME: why are these different? Symbol case passes through to
-      # `polymorphic_url`, but the String case doesn't.
+      assert_equal "/projects", polymorphic_path("projects")
       assert_equal "http://example.com/projects", polymorphic_url("projects")
       assert_equal "projects", url_for("projects")
     end

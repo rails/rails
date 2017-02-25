@@ -418,8 +418,7 @@ module ActiveRecord
         records.each { |record| record.update(attributes) }
       else
         if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             You are passing an instance of ActiveRecord::Base to `update`.
             Please pass the id of the object by calling `.id`.
           MSG
@@ -613,15 +612,6 @@ module ActiveRecord
     def joined_includes_values
       includes_values & joins_values
     end
-
-    # {#uniq}[rdoc-ref:QueryMethods#uniq] and
-    # {#uniq!}[rdoc-ref:QueryMethods#uniq!] are silently deprecated.
-    # #uniq_value delegates to #distinct_value to maintain backwards compatibility.
-    # Use #distinct_value instead.
-    def uniq_value
-      distinct_value
-    end
-    deprecate uniq_value: :distinct_value
 
     # Compares two relations for equality.
     def ==(other)

@@ -1,5 +1,6 @@
 require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
+require "active_support/core_ext/regexp"
 require "active_support/i18n"
 
 module ActiveSupport
@@ -43,13 +44,14 @@ module ActiveSupport
         end
 
         def add(words)
-          concat(words.flatten.map(&:downcase))
-          @regex_array += map { |word| to_regex(word) }
+          words = words.flatten.map(&:downcase)
+          concat(words)
+          @regex_array += words.map { |word| to_regex(word) }
           self
         end
 
         def uncountable?(str)
-          @regex_array.any? { |regex| regex === str }
+          @regex_array.any? { |regex| regex.match? str }
         end
 
         private

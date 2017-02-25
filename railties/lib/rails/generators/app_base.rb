@@ -42,9 +42,6 @@ module Rails
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        type: :boolean, aliases: "-B", default: false,
-                                          desc: "Don't run bundle install"
-
         class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
                                           desc: "Skip .gitignore file"
 
@@ -84,6 +81,9 @@ module Rails
 
         class_option :skip_test,          type: :boolean, aliases: "-T", default: false,
                                           desc: "Skip test files"
+
+        class_option :skip_system_test,   type: :boolean, default: false,
+                                          desc: "Skip system test files"
 
         class_option :dev,                type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
@@ -193,7 +193,7 @@ module Rails
       def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.0", comment)
+        GemfileEntry.new("puma", "~> 3.7", comment)
       end
 
       def include_all_railties? # :doc:
@@ -246,7 +246,6 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
-          GemfileEntry.github("arel", "rails/arel")
         ]
         if options.dev?
           [
@@ -264,14 +263,13 @@ module Rails
       end
 
       def rails_version_specifier(gem_version = Rails.gem_version)
-        if gem_version.prerelease?
-          next_series = gem_version
-          next_series = next_series.bump while next_series.segments.size > 2
-
-          [">= #{gem_version}", "< #{next_series}"]
-        elsif gem_version.segments.size == 3
+        if gem_version.segments.size == 3 || gem_version.release.segments.size == 3
+          # ~> 1.2.3
+          # ~> 1.2.3.pre4
           "~> #{gem_version}"
         else
+          # ~> 1.2.3, >= 1.2.3.4
+          # ~> 1.2.3, >= 1.2.3.4.pre5
           patch = gem_version.segments[0, 3].join(".")
           ["~> #{patch}", ">= #{gem_version}"]
         end

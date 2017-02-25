@@ -22,7 +22,7 @@ module Rails
 
         # Tries to get the description from a USAGE file one folder above the command
         # root.
-        def desc(usage = nil, description = nil)
+        def desc(usage = nil, description = nil, options = {})
           if usage
             super
           else
@@ -56,7 +56,9 @@ module Rails
         end
 
         def perform(command, args, config) # :nodoc:
-          command = nil if Thor::HELP_MAPPINGS.include?(args.first)
+          if Rails::Command::HELP_MAPPINGS.include?(args.first)
+            command, args = "help", []
+          end
 
           dispatch(command, args.dup, nil, config)
         end
@@ -111,7 +113,7 @@ module Rails
         # For a `Rails::Command::TestCommand` placed in `rails/command/test_command.rb`
         # would return `rails/test`.
         def default_command_root
-          path = File.expand_path(File.join("../commands", command_name), __dir__)
+          path = File.expand_path(File.join("../commands", command_root_namespace), __dir__)
           path if File.exist?(path)
         end
 
@@ -129,6 +131,18 @@ module Rails
               super
             end
           end
+
+          def command_root_namespace
+            (namespace.split(":") - %w( rails )).first
+          end
+      end
+
+      def help
+        if command_name = self.class.command_name
+          self.class.command_help(shell, command_name)
+        else
+          super
+        end
       end
     end
   end

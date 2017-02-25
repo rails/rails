@@ -121,12 +121,20 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_records_user_supplied_options
+    server_options = parse_arguments(["-p", 3001])
+    assert_equal [:Port], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["--port", 3001])
+    assert_equal [:Port], server_options[:user_supplied_options]
+  end
+
   def test_default_options
-    old_default_options = parse_arguments
+    server = Rails::Server.new
+    old_default_options = server.default_options
 
     Dir.chdir("..") do
-      default_options = parse_arguments
-      assert_equal old_default_options, default_options
+      assert_equal old_default_options, server.default_options
     end
   end
 

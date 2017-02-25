@@ -421,6 +421,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
     assert_file "bin/rails", /ENGINE_PATH = File.expand_path\('..\/..\/lib\/bukkits\/engine', __FILE__\)/
     assert_file "bin/rails", /ENGINE_ROOT = File.expand_path\('..\/..', __FILE__\)/
+    assert_file "bin/rails", %r|APP_PATH = File.expand_path\('../../test/dummy/config/application', __FILE__\)|
     assert_file "bin/rails", /require 'rails\/all'/
     assert_file "bin/rails", /require 'rails\/engine\/commands'/
   end
@@ -490,6 +491,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
+    assert_no_directory "test/dummy/.git"
   end
 
   def test_skipping_test_files
@@ -529,6 +531,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
+  ensure
+    Object.send(:remove_const, "APP_PATH")
+    FileUtils.rm gemfile_path
+  end
+
+  def test_creating_plugin_only_specify_plugin_name_in_app_directory_adds_gemfile_entry
+    # simulate application existence
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set("APP_PATH", Rails.root)
+    FileUtils.touch gemfile_path
+
+    FileUtils.cd(destination_root)
+    run_generator ["bukkits"]
+
+    assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
   ensure
     Object.send(:remove_const, "APP_PATH")
     FileUtils.rm gemfile_path

@@ -3,7 +3,7 @@ require "cases/helper"
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
-      class FakeColumn < Struct.new(:name)
+      FakeColumn = Struct.new(:name) do
         def type; :integer; end
       end
 

@@ -109,7 +109,7 @@ module Rails
   #
   # == Endpoint
   #
-  # An engine can also be a rack application. It can be useful if you have a rack application that
+  # An engine can also be a Rack application. It can be useful if you have a Rack application that
   # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
@@ -128,7 +128,7 @@ module Rails
   #
   # == Middleware stack
   #
-  # As an engine can now be a rack endpoint, it can also have a middleware
+  # As an engine can now be a Rack endpoint, it can also have a middleware
   # stack. The usage is exactly the same as in <tt>Application</tt>:
   #
   #   module MyEngine
@@ -380,7 +380,7 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod.name))
 
-        self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+        routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
@@ -499,7 +499,7 @@ module Rails
       paths["app/helpers"].existent
     end
 
-    # Returns the underlying rack application for this engine.
+    # Returns the underlying Rack application for this engine.
     def app
       @app || @app_build_lock.synchronize {
         @app ||= begin
@@ -549,7 +549,7 @@ module Rails
       load(seed_file) if seed_file
     end
 
-    # Add configured load paths to ruby load paths and remove duplicates.
+    # Add configured load paths to Ruby's load path, and remove duplicate entries.
     initializer :set_load_path, before: :bootstrap_hook do
       _all_load_paths.reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
@@ -573,7 +573,7 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      routing_paths = self.paths["config/routes.rb"].existent
+      routing_paths = paths["config/routes.rb"].existent
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)
@@ -661,7 +661,6 @@ module Rails
       end
 
       def self.find_root_with_flag(flag, root_path, default = nil) #:nodoc:
-
         while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
           parent = File.dirname(root_path)
           root_path = parent != root_path && parent

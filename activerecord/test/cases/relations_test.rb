@@ -1622,9 +1622,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
-  def test_update_on_relation_passing_active_record_object_is_deprecated
+  def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_deprecated(/update/) do
+    assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
   end
@@ -1638,17 +1638,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["Foo", "Foo"], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq(true).map(&:name) }
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
-
-    assert_deprecated do
-      assert_equal ["Foo", "Foo"], query.uniq(true).uniq(false).map(&:name)
-    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank
@@ -1944,6 +1938,18 @@ class RelationTest < ActiveRecord::TestCase
     Topic.all.by_lifo
     assert Topic.all.class.method_defined?(:by_lifo)
     assert !Post.all.respond_to?(:by_lifo)
+  end
+
+  def test_unscope_with_subquery
+    p1 = Post.where(id: 1)
+    p2 = Post.where(id: 2)
+
+    assert_not_equal p1, p2
+
+    comments = Comment.where(post: p1).unscope(where: :post_id).where(post: p2)
+
+    assert_not_equal p1.first.comments, comments
+    assert_equal p2.first.comments, comments
   end
 
   def test_unscope_removes_binds

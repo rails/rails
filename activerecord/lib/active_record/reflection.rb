@@ -1,5 +1,6 @@
 require "thread"
 require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -175,8 +176,19 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
+      # Returns a list of scopes that should be applied for this Reflection
+      # object when querying the database.
+      def scopes
+        scope ? [scope] : []
+      end
+
+      def scope_chain
+        chain.map(&:scopes)
+      end
+      deprecate :scope_chain
+
       def constraints
-        scope_chain.flatten
+        chain.map(&:scopes).flatten
       end
 
       def counter_cache_column
@@ -321,7 +333,7 @@ module ActiveRecord
         end
     end
 
-    # Holds all the meta-data about an aggregation as it was specified in the
+    # Holds all the metadata about an aggregation as it was specified in the
     # Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def mapping
@@ -330,7 +342,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about an association as it was specified in the
+    # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       # Returns the target association's class.
@@ -364,6 +376,17 @@ module ActiveRecord
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = {}
         @scope_lock = Mutex.new
+
+        if options[:class_name] && options[:class_name].class == Class
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a class to the `class_name` is deprecated and will raise
+            an ArgumentError in Rails 5.2. It eagerloads more classes than
+            necessary and potentially creates circular dependencies.
+
+            Please pass the class name as a string:
+            `#{macro} :#{name}, class_name: '#{options[:class_name]}'`
+          MSG
+        end
       end
 
       def association_scope_cache(conn, owner)
@@ -398,7 +421,7 @@ module ActiveRecord
       end
 
       def association_primary_key_type
-        klass.type_for_attribute(association_primary_key)
+        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       def active_record_primary_key
@@ -448,12 +471,6 @@ module ActiveRecord
 
       def nested?
         false
-      end
-
-      # An array of arrays of scopes. Each item in the outside array corresponds to a reflection
-      # in the #chain.
-      def scope_chain
-        scope ? [[scope]] : [[]]
       end
 
       def has_scope?
@@ -698,7 +715,7 @@ module ActiveRecord
       end
     end
 
-    # Holds all the meta-data about a :through association as it was specified
+    # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection
@@ -785,45 +802,12 @@ module ActiveRecord
         through_reflection.clear_association_scope_cache
       end
 
-      # Consider the following example:
-      #
-      #   class Person
-      #     has_many :articles
-      #     has_many :comment_tags, through: :articles
-      #   end
-      #
-      #   class Article
-      #     has_many :comments
-      #     has_many :comment_tags, through: :comments, source: :tags
-      #   end
-      #
-      #   class Comment
-      #     has_many :tags
-      #   end
-      #
-      # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
-      # but only Comment.tags will be represented in the #chain. So this method creates an array
-      # of scopes corresponding to the chain.
-      def scope_chain
-        @scope_chain ||= begin
-          scope_chain = source_reflection.scope_chain.map(&:dup)
+      def scopes
+        source_reflection.scopes + super
+      end
 
-          # Add to it the scope from this reflection (if any)
-          scope_chain.first << scope if scope
-
-          through_scope_chain = through_reflection.scope_chain.map(&:dup)
-
-          if options[:source_type]
-            type = foreign_type
-            source_type = options[:source_type]
-            through_scope_chain.first << lambda { |object|
-              where(type => source_type)
-            }
-          end
-
-          # Recursively fill out the rest of the array from the through reflection
-          scope_chain + through_scope_chain
-        end
+      def source_type_scope
+        through_reflection.klass.where(foreign_type => options[:source_type])
       end
 
       def has_scope?
@@ -851,7 +835,7 @@ module ActiveRecord
       end
 
       def association_primary_key_type
-        klass.type_for_attribute(association_primary_key)
+        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -931,6 +915,14 @@ module ActiveRecord
           raise HasOneThroughCantAssociateThroughCollection.new(active_record.name, self, through_reflection)
         end
 
+        if parent_reflection.nil?
+          reflections = active_record.reflections.keys.map(&:to_sym)
+
+          if reflections.index(through_reflection.name) > reflections.index(name)
+            raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)
+          end
+        end
+
         check_validity_of_inverse!
       end
 
@@ -961,8 +953,7 @@ module ActiveRecord
         end
       end
 
-      protected
-
+      private
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.send(:actual_source_reflection)
         end
@@ -973,7 +964,6 @@ module ActiveRecord
 
         def inverse_name; delegate_reflection.send(:inverse_name); end
 
-      private
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
@@ -989,6 +979,15 @@ module ActiveRecord
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
+      end
+
+      def scopes
+        scopes = @previous_reflection.scopes
+        if @previous_reflection.options[:source_type]
+          scopes + [@previous_reflection.source_type_scope]
+        else
+          scopes
+        end
       end
 
       def klass

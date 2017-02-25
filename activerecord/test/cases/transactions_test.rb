@@ -206,16 +206,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal posts_count, author.posts.reload.size
   end
 
-  def test_cancellation_from_returning_false_in_before_filter
-    def @first.before_save_for_transaction
-      false
-    end
-
-    assert_deprecated do
-      @first.save
-    end
-  end
-
   def test_cancellation_from_before_destroy_rollbacks_in_destroy
     add_cancelling_before_destroy_with_db_side_effect_to_topic @first
     nbooks_before_destroy = Book.count
@@ -279,7 +269,11 @@ class TransactionTest < ActiveRecord::TestCase
       e = assert_raises(RuntimeError) { new_topic.save }
       assert_equal "Make the transaction rollback", e.message
       assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
-      assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      if id_snapshot.nil?
+        assert_nil new_topic.id, "The topic should have its old id"
+      else
+        assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      end
       assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
     end
   end

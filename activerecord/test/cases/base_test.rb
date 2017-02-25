@@ -4,6 +4,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/category"
+require "models/categorization"
 require "models/company"
 require "models/customer"
 require "models/developer"
@@ -33,8 +34,6 @@ class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -45,8 +44,6 @@ class CreditCard < ActiveRecord::Base
   class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
@@ -55,12 +52,6 @@ class ReadonlyTitlePost < Post
 end
 
 class Weird < ActiveRecord::Base; end
-
-class Boolean < ActiveRecord::Base
-  def has_fun
-    super
-  end
-end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -105,6 +96,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_primary_key_with_no_id
     assert_nil Edge.primary_key
+  end
+
+  def test_primary_key_and_references_columns_should_be_identical_type
+    pk = Author.columns_hash["id"]
+    ref = Post.columns_hash["author_id"]
+
+    assert_equal pk.bigint?, ref.bigint?
   end
 
   def test_many_mutations
@@ -1366,12 +1364,6 @@ class BasicsTest < ActiveRecord::TestCase
     company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
       company.touch :updated_at
-    end
-  end
-
-  def test_uniq_delegates_to_scoped
-    assert_deprecated do
-      assert_equal Bird.all.distinct, Bird.uniq
     end
   end
 

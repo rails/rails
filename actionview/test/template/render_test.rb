@@ -220,15 +220,15 @@ module RenderTestCases
 
   def test_render_partial_with_invalid_option_as
     e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in") }
-    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
-      "make sure it starts with lowercase letter, " +
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
+      "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
     e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in") }
-    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
-      "make sure it starts with lowercase letter, " +
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
+      "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
@@ -253,7 +253,7 @@ module RenderTestCases
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
-    assert_equal "Trace of template inclusion: #{File.expand_path("#{FIXTURE_LOAD_PATH}/test/sub_template_raise.html.erb")}", e.sub_template_message
+    assert_match %r{Trace of template inclusion: .*test/sub_template_raise.html.erb}, e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
@@ -299,6 +299,15 @@ module RenderTestCases
   def test_render_partial_collection_without_as
     assert_equal "local_inspector,local_inspector_counter,local_inspector_iteration",
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
+    a = {}
+    b = {}
+    def a.to_partial_path; "test/partial_iteration_1"; end
+    def b.to_partial_path; "test/partial_iteration_2"; end
+
+    assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
   end
 
   def test_render_partial_with_empty_collection_should_return_nil
@@ -393,13 +402,11 @@ module RenderTestCases
     assert_equal :partial_name_local_variable, exception.cause.name
   end
 
-  # TODO: The reason for this test is unclear, improve documentation
-  def test_render_partial_and_fallback_to_layout
+  def test_render_partial_with_no_block_given_to_yield
     assert_equal "Before (Josh)\n\nAfter", @view.render(partial: "test/layout_for_partial", locals: { name: "Josh" })
   end
 
-  # TODO: The reason for this test is unclear, improve documentation
-  def test_render_missing_xml_partial_and_raise_missing_template
+  def test_render_partial_with_non_existent_format_and_raise_missing_template
     @view.formats = [:xml]
     assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/layout_for_partial") }
   ensure
@@ -424,7 +431,7 @@ module RenderTestCases
   end
 
   CustomHandler = lambda do |template|
-    "@output_buffer = ''\n" +
+    "@output_buffer = ''\n" \
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
@@ -475,11 +482,9 @@ module RenderTestCases
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers
-    ActiveSupport::Deprecation.silence do
-      %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
-        assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-        assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
-      end
+    %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
+      assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
+      assert_raises(ActionView::MissingTemplate) { @view.render(file: "test/malformed/#{name}") }
     end
   end
 

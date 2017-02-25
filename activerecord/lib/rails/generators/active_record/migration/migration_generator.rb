@@ -10,7 +10,7 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.

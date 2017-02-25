@@ -44,7 +44,7 @@ module ActiveRecord
     end
 
     def associated_table(table_name)
-      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.singularize)
+      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
       if !association && table_name == arel_table.name
         return self

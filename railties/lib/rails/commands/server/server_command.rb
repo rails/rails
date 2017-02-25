@@ -95,7 +95,7 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
-      DEFAULT_PID_PATH = File.expand_path("tmp/pids/server.pid").freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
 
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port.", banner: :port, default: 3000
@@ -133,22 +133,55 @@ module Rails
       no_commands do
         def server_options
           {
-            server:             @server,
-            log_stdout:         @log_stdout,
-            Port:               port,
-            Host:               host,
-            DoNotReverseLookup: true,
-            config:             options[:config],
-            environment:        environment,
-            daemonize:          options[:daemon],
-            pid:                options[:pid],
-            caching:            options["dev-caching"],
-            restart_cmd:        restart_command
+            user_supplied_options: user_supplied_options,
+            server:                @server,
+            log_stdout:            @log_stdout,
+            Port:                  port,
+            Host:                  host,
+            DoNotReverseLookup:    true,
+            config:                options[:config],
+            environment:           environment,
+            daemonize:             options[:daemon],
+            pid:                   pid,
+            caching:               options["dev-caching"],
+            restart_cmd:           restart_command
           }
         end
       end
 
       private
+        def user_supplied_options
+          @user_supplied_options ||= begin
+            # Convert incoming options array to a hash of flags
+            #   ["-p", "3001", "-c", "foo"] # => {"-p" => true, "-c" => true}
+            user_flag = {}
+            @original_options.each_with_index { |command, i| user_flag[command] = true if i.even? }
+
+            # Collect all options that the user has explicitly defined so we can
+            # differentiate them from defaults
+            user_supplied_options = []
+            self.class.class_options.select do |key, option|
+              if option.aliases.any? { |name| user_flag[name] } || user_flag["--#{option.name}"]
+                name = option.name.to_sym
+                case name
+                when :port
+                  name = :Port
+                when :binding
+                  name = :Host
+                when :"dev-caching"
+                  name = :caching
+                when :daemonize
+                  name = :daemon
+                end
+                user_supplied_options << name
+              end
+            end
+            user_supplied_options << :Host if ENV["Host"]
+            user_supplied_options << :Port if ENV["PORT"]
+            user_supplied_options.uniq
+          end
+        end
+
         def port
           ENV.fetch("PORT", options[:port]).to_i
         end
@@ -163,6 +196,10 @@ module Rails
 
         def restart_command
           "bin/rails server #{@server} #{@original_options.join(" ")}"
+        end
+
+        def pid
+          File.expand_path(options[:pid])
         end
 
         def self.banner(*)

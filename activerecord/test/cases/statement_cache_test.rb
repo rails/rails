@@ -105,5 +105,31 @@ module ActiveRecord
 
       refute_equal book, other_book
     end
+
+    def test_find_by_does_not_use_statement_cache_if_table_name_is_changed
+      book = Book.create(name: "my book")
+
+      Book.find_by(name: book.name) # warming the statement cache.
+
+      # changing the table name should change the query that is not cached.
+      Book.table_name = :birds
+      assert_nil Book.find_by(name: book.name)
+    ensure
+      Book.table_name = :books
+    end
+
+    def test_find_does_not_use_statement_cache_if_table_name_is_changed
+      book = Book.create(name: "my book")
+
+      Book.find(book.id) # warming the statement cache.
+
+      # changing the table name should change the query that is not cached.
+      Book.table_name = :birds
+      assert_raise ActiveRecord::RecordNotFound do
+        Book.find(book.id)
+      end
+    ensure
+      Book.table_name = :books
+    end
   end
 end

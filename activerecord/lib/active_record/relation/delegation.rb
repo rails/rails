@@ -15,7 +15,10 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub("::".freeze, "_".freeze), delegate
+          mangled_name = klass.name.gsub("::".freeze, "_".freeze)
+          const_set mangled_name, delegate
+          private_constant mangled_name
+
           cache[klass] = delegate
         end
       end
@@ -35,6 +38,7 @@ module ActiveRecord
 
     delegate :to_xml, :encode_with, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
              :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :to_sentence, :to_formatted_s,
              :shuffle, :split, :index, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
@@ -110,7 +114,7 @@ module ActiveRecord
         arel.respond_to?(method, include_private)
     end
 
-    protected
+    private
 
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)

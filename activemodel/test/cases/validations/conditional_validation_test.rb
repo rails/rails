@@ -43,7 +43,9 @@ class ConditionalValidationTest < ActiveModel::TestCase
 
   def test_if_validation_using_string_true
     # When the evaluated string returns true
-    Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: "a = 1; a == 1")
+    ActiveSupport::Deprecation.silence do
+      Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: "a = 1; a == 1")
+    end
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.invalid?
     assert t.errors[:title].any?
@@ -52,7 +54,9 @@ class ConditionalValidationTest < ActiveModel::TestCase
 
   def test_unless_validation_using_string_true
     # When the evaluated string returns true
-    Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: "a = 1; a == 1")
+    ActiveSupport::Deprecation.silence do
+      Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: "a = 1; a == 1")
+    end
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
     assert_empty t.errors[:title]
@@ -60,7 +64,9 @@ class ConditionalValidationTest < ActiveModel::TestCase
 
   def test_if_validation_using_string_false
     # When the evaluated string returns false
-    Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: "false")
+    ActiveSupport::Deprecation.silence do
+      Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", if: "false")
+    end
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
     assert_empty t.errors[:title]
@@ -68,7 +74,9 @@ class ConditionalValidationTest < ActiveModel::TestCase
 
   def test_unless_validation_using_string_false
     # When the evaluated string returns false
-    Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: "false")
+    ActiveSupport::Deprecation.silence do
+      Topic.validates_length_of(:title, maximum: 5, too_long: "hoo %{count}", unless: "false")
+    end
     t = Topic.new("title" => "uhohuhoh", "content" => "whatever")
     assert t.invalid?
     assert t.errors[:title].any?
@@ -118,7 +126,9 @@ class ConditionalValidationTest < ActiveModel::TestCase
   # ensure that it works correctly
   def test_validation_with_if_as_string
     Topic.validates_presence_of(:title)
-    Topic.validates_presence_of(:author_name, if: "title.to_s.match('important')")
+    ActiveSupport::Deprecation.silence do
+      Topic.validates_presence_of(:author_name, if: "title.to_s.match('important')")
+    end
 
     t = Topic.new
     assert t.invalid?, "A topic without a title should not be valid"

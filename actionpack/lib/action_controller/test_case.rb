@@ -354,7 +354,7 @@ module ActionController
         end
 
         def controller_class
-          if current_controller_class = self._controller_class
+          if current_controller_class = _controller_class
             current_controller_class
           else
             self.controller_class = determine_default_controller_class(name)
@@ -534,6 +534,7 @@ module ActionController
             @request.delete_header "HTTP_ACCEPT"
           end
           @request.query_string = ""
+          @request.env.delete "PATH_INFO"
 
           @response.sent!
         end

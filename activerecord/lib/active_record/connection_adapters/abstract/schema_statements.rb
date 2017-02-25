@@ -69,7 +69,9 @@ module ActiveRecord
       end
 
       # Returns an array of indexes for the given table.
-      # def indexes(table_name, name = nil) end
+      def indexes(table_name, name = nil)
+        raise NotImplementedError, "#indexes is not implemented"
+      end
 
       # Checks to see if an index exists on a table for a given index definition.
       #
@@ -120,7 +122,7 @@ module ActiveRecord
         checks = []
         checks << lambda { |c| c.name == column_name }
         checks << lambda { |c| c.type == type } if type
-        migration_keys.each do |attr|
+        column_options_keys.each do |attr|
           checks << lambda { |c| c.send(attr) == options[attr] } if options.key?(attr)
         end
 
@@ -271,8 +273,8 @@ module ActiveRecord
 
         yield td if block_given?
 
-        if options[:force] && data_source_exists?(table_name)
-          drop_table(table_name, options)
+        if options[:force]
+          drop_table(table_name, **options, if_exists: true)
         end
 
         result = execute schema_creation.accept td
@@ -766,16 +768,17 @@ module ActiveRecord
             raise ArgumentError, "You must specify the index name"
           end
         else
-          index_name(table_name, column: options)
+          index_name(table_name, index_name_options(options))
         end
       end
 
       # Verifies the existence of an index with a given name.
-      #
-      # The default argument is returned if the underlying implementation does not define the indexes method,
-      # as there's no way to determine the correct answer in that case.
-      def index_name_exists?(table_name, index_name, default)
-        return default unless respond_to?(:indexes)
+      def index_name_exists?(table_name, index_name, default = nil)
+        unless default.nil?
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing default to #index_name_exists? is deprecated without replacement.
+          MSG
+        end
         index_name = index_name.to_s
         indexes(table_name).detect { |i| i.name == index_name }
       end
@@ -826,8 +829,8 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
-      def add_reference(table_name, *args)
-        ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
+      def add_reference(table_name, ref_name, **options)
+        ReferenceDefinition.new(ref_name, options).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
@@ -854,6 +857,7 @@ module ActiveRecord
           else
             foreign_key_options = { to_table: reference_name }
           end
+          foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
@@ -994,27 +998,27 @@ module ActiveRecord
       end
 
       def insert_versions_sql(versions) # :nodoc:
-        sm_table = ActiveRecord::Migrator.schema_migrations_table_name
+        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         if versions.is_a?(Array)
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.map { |v| "('#{v}')" }.join(",\n")
+          sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
           sql << ";\n\n"
           sql
         else
-          "INSERT INTO #{sm_table} (version) VALUES ('#{versions}');"
+          "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
         end
       end
 
-      # Should not be called normally, but this operation is non-destructive.
-      # The migrations module handles this automatically.
-      def initialize_schema_migrations_table
+      def initialize_schema_migrations_table # :nodoc:
         ActiveRecord::SchemaMigration.create_table
       end
+      deprecate :initialize_schema_migrations_table
 
-      def initialize_internal_metadata_table
+      def initialize_internal_metadata_table # :nodoc:
         ActiveRecord::InternalMetadata.create_table
       end
+      deprecate :initialize_internal_metadata_table
 
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
@@ -1032,7 +1036,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
         end
 
         inserting = (versions - migrated).select { |v| v < version }
@@ -1050,7 +1054,7 @@ module ActiveRecord
         end
       end
 
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+      def type_to_sql(type, limit: nil, precision: nil, scale: nil, **) # :nodoc:
         type = type.to_sym if type
         if native = native_database_types[type]
           column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
@@ -1068,7 +1072,7 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
-          elsif [:datetime, :time].include?(type) && precision ||= native[:precision]
+          elsif [:datetime, :timestamp, :time, :interval].include?(type) && precision ||= native[:precision]
             if (0..6) === precision
               column_type_sql << "(#{precision})"
             else
@@ -1120,18 +1124,14 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
-        if column_name.is_a?(String) && /\W/.match?(column_name)
-          column_names = column_name
-        else
-          column_names = Array(column_name)
-        end
+        column_names = index_column_names(column_name)
 
         options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
-        index_name ||= index_name(table_name, index_name_options(column_names))
+        index_name ||= index_name(table_name, column_names)
 
         if options.key?(:algorithm)
           algorithm = index_algorithms.fetch(options[:algorithm]) {
@@ -1147,7 +1147,7 @@ module ActiveRecord
 
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
-        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name, false)
+        if data_source_exists?(table_name) && index_name_exists?(table_name, index_name)
           raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' already exists"
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
@@ -1170,6 +1170,9 @@ module ActiveRecord
       end
 
       private
+        def column_options_keys
+          [:limit, :precision, :scale, :default, :null, :collation, :comment]
+        end
 
         def add_index_sort_order(quoted_columns, **options)
           if order = options[:order]
@@ -1208,13 +1211,13 @@ module ActiveRecord
 
           if options.is_a?(Hash)
             checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-            column_names = Array(options[:column]).map(&:to_s)
+            column_names = index_column_names(options[:column])
           else
-            column_names = Array(options).map(&:to_s)
+            column_names = index_column_names(options)
           end
 
-          if column_names.any?
-            checks << lambda { |i| i.columns.join("_and_") == column_names.join("_and_") }
+          if column_names.present?
+            checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
           end
 
           raise ArgumentError, "No name or columns specified" if checks.none?
@@ -1261,8 +1264,16 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
+        def index_column_names(column_names)
+          if column_names.is_a?(String) && /\W/.match?(column_names)
+            column_names
+          else
+            Array(column_names)
+          end
+        end
+
         def index_name_options(column_names)
-          if column_names.is_a?(String)
+          if column_names.is_a?(String) && /\W/.match?(column_names)
             column_names = column_names.scan(/\w+/).join("_")
           end
 

@@ -62,6 +62,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
+    # System tests
+    assert_file "test/system/product_lines_test.rb" do |test|
+      assert_match(/class ProductLinesTest < ApplicationSystemTestCase/, test)
+    end
+
     # Views
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
@@ -488,6 +493,26 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         `bin/rails g scaffold User name:string age:integer;
         bin/rails db:migrate`
       end
+      assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
+    end
+  end
+
+  def test_scaffold_tests_pass_by_default_inside_namespaced_mountable_engine
+    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits-admin --mountable` }
+
+    engine_path = File.join(destination_root, "bukkits-admin")
+
+    Dir.chdir(engine_path) do
+      quietly do
+        `bin/rails g scaffold User name:string age:integer;
+        bin/rails db:migrate`
+      end
+
+      assert_file "bukkits-admin/app/controllers/bukkits/admin/users_controller.rb" do |content|
+        assert_match(/module Bukkits::Admin/, content)
+        assert_match(/class UsersController < ApplicationController/, content)
+      end
+
       assert_match(/8 runs, 10 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end

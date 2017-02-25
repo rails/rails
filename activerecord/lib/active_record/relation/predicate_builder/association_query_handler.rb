@@ -1,21 +1,17 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      def self.queries_for(table, column, value)
-        associated_table = table.associated_table(column)
-        klass = if associated_table.polymorphic_association?
-          case Array === value ? value.first : value
+      def self.queries_for(table, value)
+        if table.polymorphic_association?
+          case value.is_a?(Array) ? value.first : value
           when Base, Relation
-            value = [value] unless Array === value
-            PolymorphicArrayValue
-          else
-            AssociationQueryValue
+            value = [value] unless value.is_a?(Array)
+            klass = PolymorphicArrayValue
           end
-        else
-          AssociationQueryValue
         end
 
-        klass.new(associated_table, value).queries
+        klass ||= AssociationQueryValue
+        klass.new(table, value).queries
       end
 
       def initialize(table, value)

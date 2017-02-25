@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/filters"
-
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -269,10 +267,20 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " +
-                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" +
+          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
+                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
                 "Seed loader should respond to load_seed method"
         end
+      end
+
+      # Dumps the schema cache in YAML format for the connection into the file
+      #
+      # ==== Examples:
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      def dump_schema_cache(conn, filename)
+        conn.schema_cache.clear!
+        conn.data_sources.each { |table| conn.schema_cache.add(table) }
+        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
       end
 
       private

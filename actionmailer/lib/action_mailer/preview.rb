@@ -63,7 +63,7 @@ module ActionMailer
       # interceptors will be informed so that they can transform the message
       # as they would if the mail was actually being delivered.
       def call(email)
-        preview = self.new
+        preview = new
         message = preview.public_send(email)
         inform_preview_interceptors(message)
         message
