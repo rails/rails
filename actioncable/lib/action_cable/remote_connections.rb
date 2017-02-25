@@ -34,6 +34,8 @@ module ActionCable
 
         include Connection::Identification, Connection::InternalChannel
 
+        delegate :connection_identifiers, to: :server
+
         def initialize(server, ids)
           @server = server
           set_identifier_instance_vars(ids)
@@ -42,11 +44,6 @@ module ActionCable
         # Uses the internal channel to disconnect the connection.
         def disconnect
           server.broadcast internal_channel, type: "disconnect"
-        end
-
-        # Returns all the identifiers that were applied to this connection.
-        def identifiers
-          server.connection_identifiers
         end
 
         private
@@ -59,7 +56,7 @@ module ActionCable
 
           def valid_identifiers?(ids)
             keys = ids.keys
-            identifiers.all? { |id| keys.include?(id) }
+            connection_identifiers.all? { |id| keys.include?(id) }
           end
       end
   end
