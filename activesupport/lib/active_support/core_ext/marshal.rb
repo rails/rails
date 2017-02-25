@@ -2,8 +2,8 @@ require 'active_support/core_ext/module/aliasing'
 
 module Marshal
   class << self
-    def load_with_autoloading(source)
-      load_without_autoloading(source)
+    def load_with_autoloading(source, proc = nil)
+      load_without_autoloading(source, proc)
     rescue ArgumentError, NameError => exc
       if exc.message.match(%r|undefined class/module (.+?)(::)?\z|)
         # try loading the class/module
