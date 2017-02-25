@@ -15,7 +15,7 @@ module ActionCable
           if identifier.present?
             callback = -> (message) { process_internal_message decode(message) }
             streams.add(INTERNAL_CHANNEL_ID, internal_channel, callback) do
-              logger.info "Registered connection (#{connection_identifier})"
+              logger.info "Registered connection (#{identifier})"
             end
           end
         end
@@ -27,7 +27,7 @@ module ActionCable
         def process_internal_message(message)
           case message["type"]
           when "disconnect"
-            logger.info "Removing connection (#{connection_identifier})"
+            logger.info "Removing connection (#{identifier})"
             socket.close
           end
         rescue Exception => e

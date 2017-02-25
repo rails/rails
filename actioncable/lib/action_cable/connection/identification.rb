@@ -31,6 +31,15 @@ module ActionCable
         @identifier
       end
 
+      def connection_identifier
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The "#connection_identifier" method is deprecated and
+          will be removed in Rails 5.2. Please use the "#identifier" method
+          instead.
+        MSG
+        identifier
+      end
+
       private
         def connection_gid(ids)
           ids.map do |o|
