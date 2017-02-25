@@ -6,6 +6,7 @@ module ActiveRecord
     class IntegerTest < ActiveRecord::TestCase
       test "simple values" do
         type = Type::Integer.new
+        assert_nil type.type_cast_from_user("")
         assert_equal 1, type.type_cast_from_user(1)
         assert_equal 1, type.type_cast_from_user('1')
         assert_equal 1, type.type_cast_from_user('1ignore')
