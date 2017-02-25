@@ -1,3 +1,8 @@
+*   Raise error `UnknownMigrationVersionError` on the movement of migrations
+    when the current migration does not exist.
+
+    *bogdanvlviv*
+
 *   Fix `bin/rails db:forward` first migration.
 
     *bogdanvlviv*
