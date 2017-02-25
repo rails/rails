@@ -1,3 +1,10 @@
+*   Commit flash changes when using a redirect route.
+
+    Fixes #27992.
+
+    *Andrew White*
+
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Prefer `remove_method` over `undef_method` when reloading routes
