@@ -1,3 +1,7 @@
+*   `ActiveSupport::Gzip.decompress` now checks checksum and length in footer.
+
+    *Dylan Thacker-Smith*
+
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
 
     *Adam Rice*
