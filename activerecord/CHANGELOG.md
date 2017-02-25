@@ -1,3 +1,5 @@
+## Rails 5.0.2.rc1 (February 24, 2017) ##
+
 *   Fix `wait_timeout` to configurable for mysql2 adapter.
 
     Fixes #26556.

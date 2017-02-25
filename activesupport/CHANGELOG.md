@@ -1,3 +1,5 @@
+## Rails 5.0.2.rc1 (February 24, 2017) ##
+
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
     `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.

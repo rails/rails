@@ -1,3 +1,5 @@
+## Rails 5.0.2.rc1 (February 24, 2017) ##
+
 *   Fix running multiple tests in one `rake` command
 
     e.g. `bin/rake test:models test:controllers`
