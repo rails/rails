@@ -13,7 +13,7 @@
 
     ``` ruby
     resource :basket
-    resolve(class: "Basket") { [:basket] }
+    resolve("Basket") { [:basket] }
     ```
 
     ``` erb
