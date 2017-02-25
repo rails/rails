@@ -1,3 +1,9 @@
+*   Commit flash changes when using a redirect route.
+
+    Fixes #27992.
+
+    *Andrew White*
+
 *   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`.
 
     *Julia López*
