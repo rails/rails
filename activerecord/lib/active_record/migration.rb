@@ -1104,7 +1104,13 @@ module ActiveRecord
 
       def move(direction, migrations_paths, steps)
         migrator = new(direction, migrations(migrations_paths))
-        start_index = migrator.migrations.index(migrator.current_migration)
+
+        start_index =
+          if current_version == 0
+            0
+          else
+            migrator.migrations.index(migrator.current_migration)
+          end
 
         if start_index
           finish = migrator.migrations[start_index + steps]

@@ -1,3 +1,7 @@
+*   Fix `bin/rails db:forward` first migration.
+
+    *bogdanvlviv*
+
 *   Support Descending Indexes for MySQL.
 
     MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.

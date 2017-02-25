@@ -142,6 +142,31 @@ module ApplicationTests
         end
       end
 
+      test "migration status after rollback and forward" do
+        Dir.chdir(app_path) do
+          `bin/rails generate model user username:string password:string;
+           bin/rails generate migration add_email_to_users email:string;
+           bin/rails db:migrate`
+
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+          `bin/rails db:rollback STEP=2`
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/down\s+\d{14}\s+Create users/, output)
+          assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+          `bin/rails db:forward STEP=2`
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+        end
+      end
+
       test "migration status after rollback and redo without timestamps" do
         add_to_config("config.active_record.timestamped_migrations = false")
 
