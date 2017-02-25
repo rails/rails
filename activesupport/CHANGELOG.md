@@ -1,3 +1,8 @@
+*   Soft-deprecated the top-level `HashWithIndifferentAcces` constant.
+    `ActiveSupport::HashWithIndifferentAccess` should be used instead.
+
+    *Robin Dupret* (#28157)
+
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
     `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
