@@ -1,4 +1,4 @@
-*   Soft-deprecated the top-level `HashWithIndifferentAcces` constant.
+*   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
     `ActiveSupport::HashWithIndifferentAccess` should be used instead.
 
     *Robin Dupret* (#28157)
