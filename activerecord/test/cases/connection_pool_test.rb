@@ -307,14 +307,17 @@ module ActiveRecord
         end
       end
 
-      def test_automatic_reconnect=
+      def test_automatic_reconnect_restores_after_disconnect
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
         assert pool.connection
 
         pool.disconnect!
         assert pool.connection
+      end
 
+      def test_automatic_reconnect_can_be_disabled
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         pool.disconnect!
         pool.automatic_reconnect = false
 
