@@ -215,7 +215,7 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
-        @table_alias_length = nil
+        @max_identifier_length = nil
 
         connect
         add_pg_encoders
@@ -358,8 +358,9 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @table_alias_length ||= query("SHOW max_identifier_length", "SCHEMA")[0][0].to_i
+        @max_identifier_length ||= select_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
+      alias index_name_length table_alias_length
 
       # Set the authorized user for this session
       def session_auth=(user)
