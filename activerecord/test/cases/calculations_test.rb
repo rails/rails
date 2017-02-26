@@ -234,6 +234,9 @@ class CalculationsTest < ActiveRecord::TestCase
     end
 
     queries.each do |query|
+      # `table_alias_length` in `column_alias_for` would execute
+      # "SHOW max_identifier_length" statement in PostgreSQL adapter.
+      next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
   end
