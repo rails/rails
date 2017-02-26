@@ -42,7 +42,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.update("set @@wait_timeout=1")
     sleep 2
     assert !@connection.active?
-
+  ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
