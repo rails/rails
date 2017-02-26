@@ -1,3 +1,7 @@
+*   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `supports_migrations?` on connection adapters.
 
     *Ryuta Kamizono*
