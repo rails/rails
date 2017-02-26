@@ -1,3 +1,19 @@
+*   Add `ActiveSupport::Duration#before` and `#after` as aliases for `#until` and `#since`
+
+    These read more like English and require less mental gymnastics to read and write.
+
+    Before:
+
+        2.weeks.since(customer_start_date)
+        5.days.until(today)
+
+    After:
+
+        2.weeks.after(customer_start_date)
+        5.days.before(today)
+
+    *Nick Johnstone*
+
 *   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
     `ActiveSupport::HashWithIndifferentAccess` should be used instead.
 
@@ -5,7 +21,7 @@
 
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
-    `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
+    `Marshal.method(:load).super_method.call(source, proc)` just to be able to pass a proc.
 
     *Jeff Latz*
 
@@ -20,7 +36,7 @@
 
     *Adam Rice*
 
-*   Deprecate `.halt_callback_chains_on_return_false`.
+*   Deprecate `ActiveSupport.halt_callback_chains_on_return_false`.
 
     *Rafael Mendonça França*
 
@@ -83,7 +99,7 @@
     duration's numeric value isn't used in calculations, only parts are used.
 
     Methods on `Numeric` like `2.days` now use these predefined durations
-    to avoid duplicating of duration constants through the codebase and
+    to avoid duplication of duration constants through the codebase and
     eliminate creation of intermediate durations.
 
     *Andrey Novikov, Andrew White*

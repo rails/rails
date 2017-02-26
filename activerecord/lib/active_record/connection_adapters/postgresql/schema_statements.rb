@@ -489,7 +489,7 @@ module ActiveRecord
           end
           execute sql
 
-          change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
+          change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
           change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end

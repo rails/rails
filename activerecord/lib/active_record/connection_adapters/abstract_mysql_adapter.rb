@@ -786,11 +786,11 @@ module ActiveRecord
         def change_column_sql(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
 
-          unless options_include_default?(options)
+          unless options.key?(:default)
             options[:default] = column.default
           end
 
-          unless options.has_key?(:null)
+          unless options.key?(:null)
             options[:null] = column.null
           end
 
