@@ -171,7 +171,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
+      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] defaults to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
       # [<tt>:primary_key</tt>]
@@ -303,6 +303,13 @@ module ActiveRecord
       #   create_join_table(:assemblies, :parts)
       #
       # You can pass an +options+ hash which can include the following keys:
+      # [<tt>:id</tt>]
+      #   Whether to automatically add a primary key column. Defaults to false.
+      #
+      #   A Symbol can be used to specify the type of the generated primary key column.
+      # [<tt>:primary_key</tt>]
+      #   The name of the primary key, if one is to be added automatically.
+      #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
       # [<tt>:column_options</tt>]
@@ -334,7 +341,9 @@ module ActiveRecord
       #     part_id int NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
-      def create_join_table(table_1, table_2, options = {})
+      def create_join_table(table_1, table_2, **options)
+        options.reverse_merge!(id: false)
+
         join_table_name = find_join_table_name(table_1, table_2, options)
 
         column_options = options.delete(:column_options) || {}
@@ -343,7 +352,7 @@ module ActiveRecord
 
         t1_column, t2_column = [table_1, table_2].map { |t| t.to_s.singularize.foreign_key }
 
-        create_table(join_table_name, options.merge!(id: false)) do |td|
+        create_table(join_table_name, options) do |td|
           td.send type, t1_column, column_options
           td.send type, t2_column, column_options
           yield td if block_given?

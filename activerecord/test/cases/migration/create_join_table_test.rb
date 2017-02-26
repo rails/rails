@@ -22,6 +22,60 @@ module ActiveRecord
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
       end
 
+      def test_create_join_table_with_id
+        connection.create_join_table :artists, :musics, id: :integer
+
+        assert_equal %w(artist_id id music_id), connection.columns(:artists_musics).map(&:name).sort
+      end
+
+      def test_create_join_table_with_specified_primary_key
+        connection.create_join_table :artists, :musics, id: :integer, primary_key: :custom_name_id
+
+        assert_equal %w(artist_id custom_name_id music_id), connection.columns(:artists_musics).map(&:name).sort
+      end
+
+      def test_create_join_table_without_id_primary_key_is_ignored
+        connection.create_join_table :artists, :musics, primary_key: :custom_name_id
+
+        assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
+      end
+
+      def test_create_join_table_with_id_sets_specified_type_integer
+        connection.create_join_table :artists, :musics, id: :integer
+
+        assert_equal(
+          :integer,
+          connection.columns(:artists_musics).find { |c| c.name == "id" }.type
+        )
+      end
+
+      def test_create_join_table_with_id_sets_specified_type_string
+        connection.create_join_table :artists, :musics, id: :string
+
+        assert_equal(
+          :string,
+          connection.columns(:artists_musics).find { |c| c.name == "id" }.type
+        )
+      end
+
+      def test_create_join_table_with_specified_primary_key_sets_specified_type_integer
+        connection.create_join_table :artists, :musics, id: :integer, primary_key: :custom_name_id
+
+        assert_equal(
+          :integer,
+          connection.columns(:artists_musics).find { |c| c.name == "custom_name_id" }.type
+        )
+      end
+
+      def test_create_join_table_with_specified_primary_key_sets_specified_type_string
+        connection.create_join_table :artists, :musics, id: :string, primary_key: :custom_name_id
+
+        assert_equal(
+          :string,
+          connection.columns(:artists_musics).find { |c| c.name == "custom_name_id" }.type
+        )
+      end
+
       def test_create_join_table_set_not_null_by_default
         connection.create_join_table :artists, :musics
 
