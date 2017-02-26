@@ -1,3 +1,8 @@
+*   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.0.6 (September 07, 2017) ##
 
 *   No changes.
