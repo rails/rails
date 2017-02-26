@@ -1,3 +1,7 @@
+*   Fix regression of #1969 with SELECT aliases in HAVING clause.
+
+    *Eugene Kenny*
+
 *   Fix `wait_timeout` to configurable for mysql2 adapter.
 
     Fixes #26556.
