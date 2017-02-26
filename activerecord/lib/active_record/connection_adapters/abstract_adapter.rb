@@ -440,7 +440,7 @@ module ActiveRecord
       # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
         if ignored.size > 0
-          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no affect and has been deprecated. Please remove all arguments from the #verify method call.")
+          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no effect and has been deprecated. Please remove all arguments from the #verify method call.")
         end
         reconnect! unless active?
       end
