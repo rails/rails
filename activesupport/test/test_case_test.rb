@@ -338,3 +338,35 @@ class TestOrderTest < ActiveSupport::TestCase
     assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
   end
 end
+
+class SetupAllAndTeardownAllTest < ActiveSupport::TestCase
+  self.test_order = :sorted
+
+  setup_all :reset_callback_record, :foo
+  setup :bar, :baz
+  teardown :quux, :qux
+  teardown_all :sentinel, :garply
+
+  def test_setup_all
+    assert_equal %w(foo bar baz), @called_back
+  end
+
+  def test_setup_all_2
+    assert_equal %w(foo bar baz qux quux bar baz), @called_back
+  end
+
+  private
+    %w(foo bar baz qux quux garply).each do |method|
+      define_method(method) do
+        @called_back << method
+      end
+    end
+
+    def reset_callback_record
+      @called_back = []
+    end
+
+    def sentinel
+      assert_equal %w(foo bar baz qux quux bar baz qux quux garply), @called_back
+    end
+end

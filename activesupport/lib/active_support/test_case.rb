@@ -9,6 +9,8 @@ require "active_support/testing/isolation"
 require "active_support/testing/constant_lookup"
 require "active_support/testing/time_helpers"
 require "active_support/testing/file_fixtures"
+require "active_support/testing/setup_all_and_teardown_all"
+require "active_support/testing/transactional_test_case"
 require "active_support/core_ext/kernel/reporting"
 
 module ActiveSupport
@@ -44,6 +46,8 @@ module ActiveSupport
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
+    include ActiveSupport::Testing::SetupAllAndTeardownAll
+    include ActiveSupport::Testing::TransactionalTestCase
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::TimeHelpers

@@ -1042,3 +1042,25 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
     assert_kind_of OtherDog, other_dogs(:lassie)
   end
 end
+
+class TransactionalTestCasePreTest < ActiveRecord::TestCase
+  setup_all do
+    Topic.destroy_all
+  end
+end
+
+class TransactionalTestCaseTest < ActiveRecord::TestCase
+  self.use_transactional_test_case = true
+
+  fixtures :topics
+
+  def test_topics_created
+    assert_equal 5, Topic.count
+  end
+end
+
+class TransactionalTestCasePostTest < ActiveRecord::TestCase
+  def test_topics_rolled_back
+    assert_equal 0, Topic.count
+  end
+end
