@@ -1,3 +1,7 @@
+*   Fix regression of #1969 with SELECT aliases in HAVING clause.
+
+    *Eugene Kenny*
+
 *   Deprecate using `#quoted_id` in quoting.
 
     *Ryuta Kamizono*
