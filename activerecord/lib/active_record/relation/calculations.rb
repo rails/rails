@@ -282,6 +282,7 @@ module ActiveRecord
             operation,
             distinct).as(aggregate_alias)
         ]
+        select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
           if field.respond_to?(:as)
