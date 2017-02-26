@@ -703,6 +703,29 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil topic.bonus_time
   end
 
+  def test_attributes_without_keys
+    category = Category.new(name: "Ruby")
+
+    expected_attributes = category.attribute_names.map do |attribute_name|
+      [attribute_name, category.public_send(attribute_name)]
+    end.to_h
+
+    assert_instance_of Hash, category.attributes
+    assert_equal expected_attributes, category.attributes
+  end
+
+  def test_attributes_with_keys
+    category = Category.new(name: "Ruby")
+
+    expected_attributes = category.attribute_names.map do |attribute_name|
+      [attribute_name, category.public_send(attribute_name)]
+    end.to_h
+
+    assert_instance_of Hash, category.attributes
+    assert_equal expected_attributes.slice("id", "name"), category.attributes("id", :name)
+    assert_equal({}, category.attributes(:undefined_key))
+  end
+
   def test_boolean
     b_nil = Boolean.create("value" => nil)
     nil_id = b_nil.id

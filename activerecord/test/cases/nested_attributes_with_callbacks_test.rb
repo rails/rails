@@ -37,7 +37,7 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
 
   def existing_birds_attributes
     @birds.map do |bird|
-      bird.attributes.slice("id", "name")
+      bird.attributes(:id, :name)
     end
   end
 

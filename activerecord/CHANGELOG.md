@@ -1,3 +1,12 @@
+*   Add `#attributes` filter the attributes by keys as arguments.
+
+        person = Person.create(name: 'Francesco', age: 22)
+
+        person.attributes(:id, :name, :created_at)
+        # => {"id"=>3, "name"=>"Francesco","created_at"=>Sun, 21 Oct 2012 04:53:04}
+
+    *bogdanvlviv*
+
 *   Deprecate using `#quoted_id` in quoting.
 
     *Ryuta Kamizono*
