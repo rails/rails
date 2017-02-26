@@ -393,7 +393,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find first Topic with 'id'" do
       Topic.first!
     end
   end
@@ -415,7 +415,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_bang
     assert Topic.second!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find second Topic with 'id'" do
       Topic.second!
     end
   end
@@ -437,7 +437,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_bang
     assert Topic.third!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find third Topic with 'id'" do
       Topic.third!
     end
   end
@@ -459,7 +459,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fourth_bang
     assert Topic.fourth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find fourth Topic with 'id'" do
       Topic.fourth!
     end
   end
@@ -481,7 +481,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find fifth Topic with 'id'" do
       Topic.fifth!
     end
   end
@@ -560,7 +560,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_model_class_responds_to_last_bang
     assert_equal topics(:fifth), Topic.last!
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find last Topic with 'id'" do
       Topic.delete_all
       Topic.last!
     end
