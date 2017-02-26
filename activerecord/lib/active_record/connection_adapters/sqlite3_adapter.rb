@@ -163,7 +163,7 @@ module ActiveRecord
         true
       end
 
-      def valid_type?(type)
+      def valid_type?(type) # :nodoc:
         true
       end
 
