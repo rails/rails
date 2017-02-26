@@ -1904,7 +1904,7 @@ module ActionDispatch
             ast = Journey::Parser.parse path
 
             mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
-            @set.add_route(mapping, ast, as, anchor)
+            @set.add_route(mapping, as)
           end
 
           def match_root_route(options)
