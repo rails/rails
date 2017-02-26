@@ -307,7 +307,7 @@ module ActiveRecord
         end
       end
 
-      def test_automatic_reconnect=
+      def test_automatic_reconnect
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
         assert pool.connection
