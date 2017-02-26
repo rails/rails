@@ -80,9 +80,11 @@ module ActiveRecord
 
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) #:nodoc:
-          log(sql, name) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              result_as_array @connection.async_exec(sql)
+          with_connection_verify(::ActiveRecord::StatementInvalid) do
+            log(sql, name) do
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                result_as_array @connection.async_exec(sql)
+              end
             end
           end
         end
@@ -92,9 +94,11 @@ module ActiveRecord
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
         def execute(sql, name = nil)
-          log(sql, name) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql)
+          with_connection_verify(::ActiveRecord::StatementInvalid) do
+            log(sql, name) do
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                @connection.async_exec(sql)
+              end
             end
           end
         end

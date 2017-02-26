@@ -108,6 +108,7 @@ module ActiveRecord
         @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
         @lock = Monitor.new
+        @connection_verified = false
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -442,6 +443,10 @@ module ActiveRecord
         reconnect! unless active?
       end
 
+      def defer_verify!
+        @connection_verified = false
+      end
+
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.
@@ -515,6 +520,20 @@ module ActiveRecord
       end
 
       private
+
+        def with_connection_verify(exception_class)
+          tries = 3
+          begin
+            yield
+          rescue exception_class
+            tries -= 1
+            raise if tries <= 0 || @connection_verified
+            verify!
+            retry
+          ensure
+            @connection_verified = true
+          end
+        end
 
         def initialize_type_map(m)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean

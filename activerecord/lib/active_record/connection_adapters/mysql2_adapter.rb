@@ -80,7 +80,9 @@ module ActiveRecord
       #++
 
       def quote_string(string)
-        @connection.escape(string)
+        with_connection_verify(Mysql2::Error) do
+          @connection.escape(string)
+        end
       end
 
       #--

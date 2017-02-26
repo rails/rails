@@ -26,6 +26,35 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_deferred_verify
+    pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+
+    Mysql2::Client.any_instance.expects(:ping).never
+
+    2.times do
+      conn = pool.checkout
+      assert conn
+      pool.checkin(conn)
+    end
+  end
+
+  def test_deferred_verify_with_reconnection
+    pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+
+    Mysql2::Client.any_instance.expects(:ping).never
+
+    pool.with_connection do |conn|
+      conn.update("set @@wait_timeout=1")
+    end
+    sleep 2
+
+    Mysql2::Client.any_instance.expects(:ping).once
+
+    pool.with_connection do |conn|
+      conn.execute("select 1+1")
+    end
+  end
+
   def test_truncate
     rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
     count = rows.first.values.first
@@ -78,6 +107,12 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_raise(Mysql2::Error) do
       @connection.quote("string")
     end
+  end
+
+  def test_no_ping_on_connect
+    @connection.disconnect!
+    Mysql2::Client.any_instance.expects(:ping).never
+    @connection.reconnect!
   end
 
   def test_active_after_disconnect

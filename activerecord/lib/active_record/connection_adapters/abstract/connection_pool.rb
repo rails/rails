@@ -803,7 +803,7 @@ module ActiveRecord
 
         def checkout_and_verify(c)
           c._run_checkout_callbacks do
-            c.verify!
+            c.defer_verify!
           end
           c
         rescue
