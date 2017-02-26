@@ -178,6 +178,7 @@ module ActiveRecord
         "umm -- looks like you didn't break the connection, because we're still " \
         "successfully querying with the same connection pid."
 
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end
