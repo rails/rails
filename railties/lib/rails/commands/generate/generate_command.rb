@@ -3,11 +3,13 @@ require "rails/generators"
 module Rails
   module Command
     class GenerateCommand < Base # :nodoc:
-      def help
-        require_application_and_environment!
-        load_generators
+      no_commands do
+        def help
+          require_application_and_environment!
+          load_generators
 
-        Rails::Generators.help self.class.command_name
+          Rails::Generators.help self.class.command_name
+        end
       end
 
       def perform(*)

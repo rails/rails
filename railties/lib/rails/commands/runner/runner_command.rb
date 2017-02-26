@@ -5,9 +5,11 @@ module Rails
         default: Rails::Command.environment.dup,
         desc: "The environment for the runner to operate under (test/development/production)"
 
-      def help
-        super
-        puts self.class.desc
+      no_commands do
+        def help
+          super
+          puts self.class.desc
+        end
       end
 
       def self.banner(*)
