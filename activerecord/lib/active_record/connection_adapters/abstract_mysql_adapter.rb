@@ -89,11 +89,6 @@ module ActiveRecord
         /mariadb/i.match?(full_version)
       end
 
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations?
-        true
-      end
-
       def supports_bulk_alter? #:nodoc:
         true
       end

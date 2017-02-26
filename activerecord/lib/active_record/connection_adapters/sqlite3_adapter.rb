@@ -117,11 +117,6 @@ module ActiveRecord
         true
       end
 
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations? #:nodoc:
-        true
-      end
-
       def requires_reloading?
         true
       end

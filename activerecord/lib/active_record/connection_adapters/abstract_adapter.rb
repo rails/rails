@@ -232,10 +232,10 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      # Does this adapter support migrations?
-      def supports_migrations?
-        false
+      def supports_migrations? # :nodoc:
+        true
       end
+      deprecate :supports_migrations?
 
       def supports_primary_key? # :nodoc:
         true

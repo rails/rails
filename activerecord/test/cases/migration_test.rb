@@ -1142,4 +1142,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_deprecate_migration_keys
     assert_deprecated { ActiveRecord::Base.connection.migration_keys }
   end
+
+  def test_deprecate_supports_migrations
+    assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
+  end
 end

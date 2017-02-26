@@ -104,64 +104,62 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nil(second_row["author_email_address"])
   end
 
-  if ActiveRecord::Base.connection.supports_migrations?
-    def test_inserts_with_pre_and_suffix
-      # Reset cache to make finds on the new table work
-      ActiveRecord::FixtureSet.reset_cache
+  def test_inserts_with_pre_and_suffix
+    # Reset cache to make finds on the new table work
+    ActiveRecord::FixtureSet.reset_cache
 
-      ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
-        t.column :title, :string
-        t.column :author_name, :string
-        t.column :author_email_address, :string
-        t.column :written_on, :datetime
-        t.column :bonus_time, :time
-        t.column :last_read, :date
-        t.column :content, :string
-        t.column :approved, :boolean, default: true
-        t.column :replies_count, :integer, default: 0
-        t.column :parent_id, :integer
-        t.column :type, :string, limit: 50
-      end
-
-      # Store existing prefix/suffix
-      old_prefix = ActiveRecord::Base.table_name_prefix
-      old_suffix = ActiveRecord::Base.table_name_suffix
-
-      # Set a prefix/suffix we can test against
-      ActiveRecord::Base.table_name_prefix = "prefix_"
-      ActiveRecord::Base.table_name_suffix = "_suffix"
-
-      other_topic_klass = Class.new(ActiveRecord::Base) do
-        def self.name
-          "OtherTopic"
-        end
-      end
-
-      topics = [create_fixtures("other_topics")].flatten.first
-
-      # This checks for a caching problem which causes a bug in the fixtures
-      # class-level configuration helper.
-      assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
-
-      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
-      assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
-      assert_equal("The First Topic", first_row["title"])
-
-      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
-      assert_nil(second_row["author_email_address"])
-
-      assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
-      # This assertion should preferably be the last in the list, because calling
-      # other_topic_klass.table_name sets a class-level instance variable
-      assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
-
-    ensure
-      # Restore prefix/suffix to its previous values
-      ActiveRecord::Base.table_name_prefix = old_prefix
-      ActiveRecord::Base.table_name_suffix = old_suffix
-
-      ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
+    ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
+      t.column :title, :string
+      t.column :author_name, :string
+      t.column :author_email_address, :string
+      t.column :written_on, :datetime
+      t.column :bonus_time, :time
+      t.column :last_read, :date
+      t.column :content, :string
+      t.column :approved, :boolean, default: true
+      t.column :replies_count, :integer, default: 0
+      t.column :parent_id, :integer
+      t.column :type, :string, limit: 50
     end
+
+    # Store existing prefix/suffix
+    old_prefix = ActiveRecord::Base.table_name_prefix
+    old_suffix = ActiveRecord::Base.table_name_suffix
+
+    # Set a prefix/suffix we can test against
+    ActiveRecord::Base.table_name_prefix = "prefix_"
+    ActiveRecord::Base.table_name_suffix = "_suffix"
+
+    other_topic_klass = Class.new(ActiveRecord::Base) do
+      def self.name
+        "OtherTopic"
+      end
+    end
+
+    topics = [create_fixtures("other_topics")].flatten.first
+
+    # This checks for a caching problem which causes a bug in the fixtures
+    # class-level configuration helper.
+    assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
+
+    first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
+    assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
+    assert_equal("The First Topic", first_row["title"])
+
+    second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
+    assert_nil(second_row["author_email_address"])
+
+    assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
+    # This assertion should preferably be the last in the list, because calling
+    # other_topic_klass.table_name sets a class-level instance variable
+    assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
+
+  ensure
+    # Restore prefix/suffix to its previous values
+    ActiveRecord::Base.table_name_prefix = old_prefix
+    ActiveRecord::Base.table_name_suffix = old_suffix
+
+    ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
   end
 
   def test_insert_with_datetime
