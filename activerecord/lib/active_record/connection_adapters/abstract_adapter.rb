@@ -154,8 +154,8 @@ module ActiveRecord
         Arel::Visitors::ToSql.new(self)
       end
 
-      def valid_type?(type)
-        false
+      def valid_type?(type) # :nodoc:
+        !native_database_types[type].nil?
       end
 
       def schema_creation

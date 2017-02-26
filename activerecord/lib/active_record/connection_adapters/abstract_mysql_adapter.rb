@@ -648,10 +648,6 @@ module ActiveRecord
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
-      def valid_type?(type)
-        !native_database_types[type].nil?
-      end
-
       def default_index_type?(index) # :nodoc:
         index.using == :btree || super
       end

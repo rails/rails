@@ -376,10 +376,6 @@ module ActiveRecord
         @use_insert_returning
       end
 
-      def valid_type?(type)
-        !native_database_types[type].nil?
-      end
-
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
       end
