@@ -121,6 +121,24 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_host
+    with_rails_env "development" do
+      options = parse_arguments([])
+      assert_equal "localhost", options[:Host]
+    end
+
+    with_rails_env "production" do
+      options = parse_arguments([])
+      assert_equal "0.0.0.0", options[:Host]
+    end
+
+    with_rails_env "development" do
+      args = ["-b", "127.0.0.1"]
+      options = parse_arguments(args)
+      assert_equal "127.0.0.1", options[:Host]
+    end
+  end
+
   def test_records_user_supplied_options
     server_options = parse_arguments(["-p", 3001])
     assert_equal [:Port], server_options[:user_supplied_options]
