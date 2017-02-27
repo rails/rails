@@ -16,6 +16,11 @@ module ActiveRecord
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
+  # Raised when an attempt was made to lock a connection pool to a single thread
+  # when the pool was already locked to a different thread.
+  class ConnectionPoolLockError < ActiveRecordError
+  end
+
   module ConnectionAdapters
     # Connection pool base class for managing Active Record database
     # connections.
@@ -359,6 +364,9 @@ module ActiveRecord
 
       def lock_thread=(lock_thread)
         if lock_thread
+          if @lock_thread && @lock_thread != Thread.current
+            raise ConnectionPoolLockError
+          end
           @lock_thread = Thread.current
         else
           @lock_thread = nil

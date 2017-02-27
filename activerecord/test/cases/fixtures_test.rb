@@ -1057,6 +1057,11 @@ class TransactionalTestCaseTest < ActiveRecord::TestCase
   def test_topics_created
     assert_equal 5, Topic.count
   end
+
+  teardown_all do
+    # Ensure the connection pool is not thread-unlocked after each individual test transaction.
+    assert_not_nil ActiveRecord::Base.connection.pool.instance_variable_get(:@lock_thread)
+  end
 end
 
 class TransactionalTestCasePostTest < ActiveRecord::TestCase

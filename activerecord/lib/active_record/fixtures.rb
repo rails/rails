@@ -969,8 +969,7 @@ module ActiveRecord
         # Begin transactions for connections already established
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
-          connection.pool.lock_thread = true
+          connection.begin_transaction joinable: false, lock_thread: true
         end
 
         # When connections are established in the future, begin a transaction too
@@ -1009,9 +1008,6 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
-          connection.pool.lock_thread = false unless defined?(use_transactional_tests?) &&
-            use_transactional_test_case?
-
         end
         @fixture_connections.clear
       else

@@ -37,11 +37,12 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def lock_thread; false; end
       def add_record(record); end
     end
 
     class Transaction #:nodoc:
-      attr_reader :connection, :state, :records, :savepoint_name
+      attr_reader :connection, :state, :records, :savepoint_name, :lock_thread
       attr_writer :joinable
 
       def initialize(connection, options, run_commit_callbacks: false)
@@ -50,6 +51,7 @@ module ActiveRecord
         @records = []
         @joinable = options.fetch(:joinable, true)
         @run_commit_callbacks = run_commit_callbacks
+        @lock_thread = options.fetch(:lock_thread, false)
       end
 
       def add_record(record)
@@ -159,6 +161,7 @@ module ActiveRecord
           end
 
         @stack.push(transaction)
+        @connection.pool.lock_thread = true if transaction.lock_thread
         transaction
       end
 
@@ -168,7 +171,7 @@ module ActiveRecord
         begin
           transaction.before_commit_records
         ensure
-          @stack.pop
+          pop_stack
         end
 
         transaction.commit
@@ -176,9 +179,15 @@ module ActiveRecord
       end
 
       def rollback_transaction(transaction = nil)
-        transaction ||= @stack.pop
+        transaction ||= pop_stack
         transaction.rollback
         transaction.rollback_records
+      end
+
+      def pop_stack
+        transaction = @stack.pop
+        @connection.pool.lock_thread = @stack.any?(&:lock_thread)
+        transaction
       end
 
       def within_new_transaction(options = {})

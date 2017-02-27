@@ -15,8 +15,7 @@ module ActiveSupport
           if use_transactional_test_case?
             @test_case_connections = enlist_fixture_connections.select(&:supports_savepoints?)
             @test_case_connections.each do |connection|
-              connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
+              connection.begin_transaction joinable: false, lock_thread: true
             end
           end
         end
@@ -25,7 +24,6 @@ module ActiveSupport
           if use_transactional_test_case && @test_case_connections
             @test_case_connections.each do |connection|
               connection.rollback_transaction if connection.transaction_open?
-              connection.pool.lock_thread = false
             end
           end
         end
