@@ -16,6 +16,8 @@ module ActiveSupport
         def run(reporter, options = {})
           @reporter = reporter
           @instance = run_callbacks :setup_all
+          # @time is set by `time_it`, and needs to be removed before the instance is reused.
+          @instance.remove_instance_variable :@time
           super(reporter, options)
           run_callbacks :teardown_all
         end
@@ -33,7 +35,7 @@ module ActiveSupport
         private
 
           def run_callbacks(name)
-            instance = new("run_callbacks")
+            instance = new(name)
             instance.time_it do
               instance.capture_exceptions do
                 instance.run_callbacks(name)
