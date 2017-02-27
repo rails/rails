@@ -1,5 +1,7 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -88,6 +90,25 @@ module ActiveSupport
       @parts.default = 0
     end
 
+    def coerce(other) #:nodoc:
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Implicit coercion of ActiveSupport::Duration to a Numeric
+        is deprecated and will raise a TypeError in Rails 5.2.
+      MSG
+
+      [other, value]
+    end
+
+    # Compares one Duration with another or a Numeric to this Duration.
+    # Numeric values are treated as seconds.
+    def <=>(other)
+      if Duration === other
+        value <=> other.value
+      elsif Numeric === other
+        value <=> other
+      end
+    end
+
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
@@ -107,6 +128,24 @@ module ActiveSupport
     # values are treated as seconds.
     def -(other)
       self + (-other)
+    end
+
+    # Multiplies this Duration by a Numeric and returns a new Duration.
+    def *(other)
+      if Numeric === other
+        Duration.new(value * other, parts.map { |type, number| [type, number * other] })
+      else
+        value * other
+      end
+    end
+
+    # Devides this Duration by a Numeric and returns a new Duration.
+    def /(other)
+      if Numeric === other
+        Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+      else
+        value / other
+      end
     end
 
     def -@ #:nodoc:
@@ -211,8 +250,6 @@ module ActiveSupport
     def iso8601(precision: nil)
       ISO8601Serializer.new(self, precision: precision).serialize
     end
-
-    delegate :<=>, to: :value
 
     private
 
