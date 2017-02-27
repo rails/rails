@@ -1,3 +1,10 @@
+*   Remove the option `encode_special_chars` misnomer from `strip_tags`
+
+    As of rails-html-sanitizer v1.0.3 sanitizer will ignore the
+    `encode_special_chars` option. Fixes #28060.
+
+    *Andrew Hood*
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Change the ERB handler from Erubis to Erubi.
