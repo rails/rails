@@ -984,8 +984,7 @@ module ActiveRecord
             end
 
             if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
+              connection.begin_transaction joinable: false, lock_thread: true
               @fixture_connections << connection
             end
           end
