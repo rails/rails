@@ -359,7 +359,7 @@ module ActionView
         if include_selected
           include = selected.select{|s| container.find{|element| option_text_and_value(element).last == s}.nil?}
           unless include.empty?
-            container = [selected] + container
+            container = [include] + container
           end
         end
 
