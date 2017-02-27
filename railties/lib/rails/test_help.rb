@@ -11,7 +11,7 @@ require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
 
-if defined?(Capbyara)
+if defined?(Capybara) && defined?(Puma)
   require "action_dispatch/system_test_case"
 end
 
@@ -49,7 +49,7 @@ class ActionDispatch::IntegrationTest
   end
 end
 
-if defined? Capybara
+if defined?(Capybara) && defined?(Puma)
   class ActionDispatch::SystemTestCase
     def before_setup # :nodoc:
       @routes = Rails.application.routes
