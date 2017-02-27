@@ -351,8 +351,16 @@ module ActionView
       def options_for_select(container, selected = nil)
         return container if String === container
 
-        selected, disabled = extract_selected_and_disabled(selected).map do |r|
+        selected, disabled, include_selected = extract_selected_and_disabled(selected)
+        selected, disabled = [selected, disabled].map do |r|
           Array(r).map(&:to_s)
+        end
+        
+        if include_selected
+          include = selected.select{|s| container.find{|element| option_text_and_value(element).last == s}.nil?}
+          unless include.empty?
+            container = [selected] + container
+          end
         end
 
         container.map do |element|
@@ -395,7 +403,7 @@ module ActionView
         options = collection.map do |element|
           [value_for_collection(element, text_method), value_for_collection(element, value_method), option_html_attributes(element)]
         end
-        selected, disabled = extract_selected_and_disabled(selected)
+        selected, disabled, include_selected = extract_selected_and_disabled(selected)
         select_deselect = {
           selected: extract_values_from_collection(collection, value_method, selected),
           disabled: extract_values_from_collection(collection, value_method, disabled)
@@ -776,12 +784,12 @@ module ActionView
 
         def extract_selected_and_disabled(selected)
           if selected.is_a?(Proc)
-            [selected, nil]
+            [selected, nil, nil]
           else
             selected = Array.wrap(selected)
             options = selected.extract_options!.symbolize_keys
             selected_items = options.fetch(:selected, selected)
-            [selected_items, options[:disabled]]
+            [selected_items, options[:disabled], options[:include_selected]]
           end
         end
 
