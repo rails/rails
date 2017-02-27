@@ -13,7 +13,7 @@ module ActiveSupport
 
         setup_all do
           if use_transactional_test_case?
-            @test_case_connections = enlist_fixture_connections
+            @test_case_connections = enlist_fixture_connections.select(&:supports_savepoints?)
             @test_case_connections.each do |connection|
               connection.begin_transaction joinable: false
               connection.pool.lock_thread = true
