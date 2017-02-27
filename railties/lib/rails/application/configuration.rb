@@ -14,7 +14,7 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
-                    :read_encrypted_secrets
+                    :rake_eager_load, :read_encrypted_secrets
 
       attr_writer :log_level
       attr_reader :encoding, :api_only
@@ -52,6 +52,7 @@ module Rails
         @debug_exception_response_format = nil
         @x                               = Custom.new
         @enable_dependency_loading       = false
+        @rake_eager_load                 = false
         @read_encrypted_secrets          = false
       end
 

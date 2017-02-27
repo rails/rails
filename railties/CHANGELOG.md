@@ -1,3 +1,11 @@
+*   Allow configuration of eager_load behaviour for rake environment:
+    
+        `config.rake_eager_load`
+
+    Defaults to `false` as per previous behaviour.
+
+    *Thierry Joyal*
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Fix running multiple tests in one `rake` command

@@ -1545,5 +1545,21 @@ module ApplicationTests
       assert_equal 301, last_response.status
       assert_equal "https://example.org/", last_response.location
     end
+
+    test "rake_eager_load is false by default" do
+      app "development"
+      assert_equal false,  Rails.application.config.rake_eager_load
+    end
+
+    test "rake_eager_load is set correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+        config.rake_eager_load = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, Rails.application.config.rake_eager_load
+    end
   end
 end
