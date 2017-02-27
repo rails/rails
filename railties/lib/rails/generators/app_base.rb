@@ -322,7 +322,7 @@ module Rails
         return [] unless options[:webpack]
 
         comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        GemfileEntry.github "webpacker", "rails/webpacker", nil, comment
+        GemfileEntry.new "webpacker", nil, comment
       end
 
       def jbuilder_gemfile_entry
