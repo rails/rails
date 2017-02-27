@@ -10,7 +10,7 @@ module ActionMailer
     end
   end
 
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ApplicationTestCase
     module ClearTestDeliveries
       extend ActiveSupport::Concern
 
