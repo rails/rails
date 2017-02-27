@@ -406,7 +406,8 @@ module ActionView
         selected, disabled, include_selected = extract_selected_and_disabled(selected)
         select_deselect = {
           selected: extract_values_from_collection(collection, value_method, selected),
-          disabled: extract_values_from_collection(collection, value_method, disabled)
+          disabled: extract_values_from_collection(collection, value_method, disabled),
+          include_selected: include_selected
         }
 
         options_for_select(options, select_deselect)
