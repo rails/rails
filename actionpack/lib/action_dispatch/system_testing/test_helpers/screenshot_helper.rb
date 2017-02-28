@@ -22,7 +22,7 @@ module ActionDispatch
         # fails add +take_failed_screenshot+ to the teardown block before clearing
         # sessions.
         def take_failed_screenshot
-          take_screenshot if failed?
+          take_screenshot if failed? && supports_screenshot?
         end
 
         private
@@ -54,6 +54,10 @@ module ActionDispatch
 
           def failed?
             !passed? && !skipped?
+          end
+
+          def supports_screenshot?
+            page.driver.public_methods(false).include?(:save_screenshot)
           end
       end
     end
