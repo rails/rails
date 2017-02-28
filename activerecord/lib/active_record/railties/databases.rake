@@ -114,6 +114,7 @@ db_namespace = namespace :db do
 
       file_list =
           ActiveRecord::Tasks::DatabaseTasks.migrations_paths.flat_map do |path|
+            next unless File.readable? path
             Dir.foreach(path).map do |file|
               next unless ActiveRecord::Migrator.match_to_migration_filename?(file)
 
@@ -122,7 +123,11 @@ db_namespace = namespace :db do
               status = db_list.delete(version) ? "up" : "down"
               [status, version, (name + scope).humanize]
             end.compact
-          end
+          end.compact
+
+      if file_list.empty?
+        abort 'Migration files do not exist yet.'
+      end
 
       db_list.map! do |version|
         ["up", version, "********** NO FILE **********"]
