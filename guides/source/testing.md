@@ -1435,6 +1435,10 @@ variable. We then ensure that it was sent (the first assert), then, in the
 second batch of assertions, we ensure that the email does indeed contain what we
 expect. The helper `read_fixture` is used to read in the content from this file.
 
+NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present.
+If the mailer provides both, you can test your fixture against specific parts 
+with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
+
 Here's the content of the `invite` fixture:
 
 ```
