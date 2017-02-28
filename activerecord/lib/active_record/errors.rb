@@ -332,4 +332,10 @@ module ActiveRecord
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
   end
+
+  # UnknownAttributeReference is raised when an unknown and potentially unsafe
+  # value is passed to a query method when allow_unsafe_raw_sql is set to
+  # disabled.
+  class UnknownAttributeReference < ActiveRecordError
+  end
 end

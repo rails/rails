@@ -319,7 +319,7 @@ module ActiveRecord
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
+      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.order_values += args
@@ -342,7 +342,7 @@ module ActiveRecord
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      restrict_order_args(args) unless klass.allow_unsafe_raw_sql == :enabled
+      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -935,6 +935,13 @@ module ActiveRecord
 
     private
 
+      # Extract column names from arguments passed to #order or #reorder.
+      def column_names_from_order_arguments(args)
+        args = args.dup
+        orderings = args.extract_options!
+        columns = args | orderings.keys
+      end
+
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
@@ -1140,28 +1147,6 @@ module ActiveRecord
             arg
           end
         end.flatten!
-      end
-
-      # Only allow column names and directions as arguments to #order and
-      # #reorder. Other arguments will cause an ArugmentError to be raised.
-      def restrict_order_args(args)
-        args = args.dup
-        orderings = args.extract_options!
-        columns = args | orderings.keys
-
-        unrecognized = columns.reject do |c|
-          klass.respond_to_attribute?(c) ||
-            c.kind_of?(Arel::Node) ||
-            c.is_a?(Arel::Nodes::SqlLiteral)
-        end
-
-        if unrecognized.any?
-          if klass.allow_unsafe_raw_sql == :deprecated
-            ActiveSupport::Deprecation.warn "Ordering other than by column name (by #{unrecognized.inspect}) is considered dangerous and potentially vulnerable to SQL injection. Known-safe values can be wrapped in Arel.sql(...)."
-          else
-            raise ArgumentError, "Invalid order column: #{unrecognized}"
-          end
-        end
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

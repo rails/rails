@@ -158,27 +158,20 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      unrecognized = column_names.reject do |cn|
-        @klass.respond_to_attribute?(cn) ||
-          cn.kind_of?(Arel::Node) ||
-          cn.is_a?(Arel::Nodes::SqlLiteral)
+      if loaded? && (column_names.map(&:to_s) - attribute_names_and_aliases).empty?
+        return records.pluck(*column_names)
       end
 
-      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
-        records.pluck(*column_names)
-      elsif has_include?(column_names.first)
+      if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
-      elsif @klass.allow_unsafe_raw_sql == :enabled || unrecognized.none?
+      else
+        enforce_raw_sql_whitelist(column_names)
         relation = spawn
         relation.select_values = column_names.map { |cn|
           @klass.respond_to_attribute?(cn) ? arel_attribute(cn) : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bound_attributes)
         result.cast_values(klass.attribute_types)
-      elsif @klass.allow_unsafe_raw_sql == :deprecated
-        ActiveSupport::Deprecation.warn "Plucking things other than collumn names (#{unrecognized.inspect}) is considered dangerous and potentially vulnerable to SQL injection. Known-safe values can be wrapped in Arel.sql(...)."
-      else
-        raise ArgumentError, "Invalid column name(s): #{unrecognized.inspect}"
       end
     end
 

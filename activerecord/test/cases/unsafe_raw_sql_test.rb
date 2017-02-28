@@ -70,7 +70,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "order: disallows invalid column name" do
     with_config(:disabled) do
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.order("title asc").pluck(:id)
       end
     end
@@ -86,7 +86,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "order: disallows invalid column with direction" do
     with_config(:disabled) do
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.order(foo: :asc).pluck(:id)
       end
     end
@@ -103,7 +103,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: logs deprecation warning for unrecognized column" do
     with_config(:deprecated) do
       ActiveSupport::Deprecation.expects(:warn).with do |msg|
-        msg =~ /\AOrdering other than by .*length\(title\)/
+        msg =~ /\ADangerous query method used with .*length\(title\)/
       end
 
       Post.order("length(title)")
@@ -157,7 +157,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "pluck: disallows invalid column name" do
     with_config(:disabled) do
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.pluck("length(title)")
       end
     end
@@ -165,7 +165,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "pluck: disallows invalid column name amongst valid names" do
     with_config(:disabled) do
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.pluck(:title, "length(title)")
       end
     end
@@ -173,7 +173,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "pluck: disallows invalid column names with includes" do
     with_config(:disabled) do
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
         Post.includes(:comments).pluck(:title, "length(title)")
       end
     end
@@ -190,7 +190,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: logs deprecation warning" do
     with_config(:deprecated) do
       ActiveSupport::Deprecation.expects(:warn).with do |msg|
-        msg =~ /\APlucking things other .*length\(title\)/
+        msg =~ /\ADangerous query method used with .*length\(title\)/
       end
 
       Post.includes(:comments).pluck(:title, "length(title)")
