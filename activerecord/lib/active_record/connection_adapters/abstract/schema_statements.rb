@@ -334,18 +334,16 @@ module ActiveRecord
       #     part_id int NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
-      def create_join_table(table_1, table_2, options = {})
+      def create_join_table(table_1, table_2, column_options: {}, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
 
-        column_options = options.delete(:column_options) || {}
-        column_options.reverse_merge!(null: false)
-        type = column_options.delete(:type) || :integer
+        column_options.reverse_merge!(null: false, index: false)
 
-        t1_column, t2_column = [table_1, table_2].map { |t| t.to_s.singularize.foreign_key }
+        t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.send type, t1_column, column_options
-          td.send type, t2_column, column_options
+          td.references t1_ref, column_options
+          td.references t2_ref, column_options
           yield td if block_given?
         end
       end

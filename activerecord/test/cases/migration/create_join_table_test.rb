@@ -12,7 +12,7 @@ module ActiveRecord
 
       teardown do
         %w(artists_musics musics_videos catalog).each do |table_name|
-          connection.drop_table table_name if connection.table_exists?(table_name)
+          connection.drop_table table_name, if_exists: true
         end
       end
 
@@ -76,6 +76,17 @@ module ActiveRecord
         end
 
         assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
+      end
+
+      def test_create_join_table_respects_reference_key_type
+        connection.create_join_table :artists, :musics do |t|
+          t.references :video
+        end
+
+        artist_id, music_id, video_id = connection.columns(:artists_musics).sort_by(&:name)
+
+        assert_equal video_id.sql_type, artist_id.sql_type
+        assert_equal video_id.sql_type, music_id.sql_type
       end
 
       def test_drop_join_table
