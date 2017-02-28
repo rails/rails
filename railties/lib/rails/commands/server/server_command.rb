@@ -177,7 +177,7 @@ module Rails
                 user_supplied_options << name
               end
             end
-            user_supplied_options << :Host if ENV["Host"]
+            user_supplied_options << :Host if ENV["HOST"]
             user_supplied_options << :Port if ENV["PORT"]
             user_supplied_options.uniq
           end
