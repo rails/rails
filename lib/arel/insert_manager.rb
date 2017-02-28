@@ -34,6 +34,7 @@ module Arel
         end
         @ast.values = create_values values, @ast.columns
       end
+      self
     end
 
     def create_values values, columns
