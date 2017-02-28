@@ -49,22 +49,6 @@ module ActiveRecord
         end
       end
 
-      def test_valid_column
-        with_example_table do
-          column = @conn.columns("ex").find { |col| col.name == "id" }
-          assert @conn.valid_type?(column.type)
-        end
-      end
-
-      # sqlite3 databases should be able to support any type and not just the
-      # ones mentioned in the native_database_types.
-      #
-      # Therefore test_invalid column should always return true even if the
-      # type is not valid.
-      def test_invalid_column
-        assert @conn.valid_type?(:foobar)
-      end
-
       def test_column_types
         owner = Owner.create!(name: "hello".encode("ascii-8bit"))
         owner.reload
