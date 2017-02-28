@@ -88,6 +88,13 @@ module Arel
           INSERT INTO "users" ("id") VALUES (1)
         }
       end
+
+      it 'is chainable' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new
+        insert_result = manager.insert [[table[:id],1]]
+        assert_equal manager, insert_result
+      end
     end
 
     describe 'into' do
