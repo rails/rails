@@ -422,11 +422,12 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table :defaults, force: true do |t|
+    @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
       t.time     :time_with_default,     default: "07:17:04"
+      t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
     end
 
     if current_adapter?(:PostgreSQLAdapter)
@@ -438,17 +439,17 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    return unless @connection
-    @connection.drop_table "defaults", if_exists: true
+    @connection.drop_table "dump_defaults", if_exists: true
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
-    output = dump_table_schema("defaults")
+    output = dump_table_schema("dump_defaults")
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
-    assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
-    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output
-    assert_match %r{t\.time\s+"time_with_default",\s+default: '2000-01-01 07:17:04'}, output
+    assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
+    assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
+    assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end
 
   def test_schema_dump_with_float_column_infinity_default
