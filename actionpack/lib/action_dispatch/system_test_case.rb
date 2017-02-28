@@ -106,10 +106,10 @@ module ActionDispatch
     #   driven_by :selenium, screen_size: [800, 800]
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
       driver = if selenium?(driver)
-                 SystemTesting::Browser.new(using, screen_size)
-               else
-                 SystemTesting::Driver.new(driver)
-               end
+        SystemTesting::Browser.new(using, screen_size)
+      else
+        SystemTesting::Driver.new(driver)
+      end
 
       setup { driver.use }
       teardown { driver.reset }
