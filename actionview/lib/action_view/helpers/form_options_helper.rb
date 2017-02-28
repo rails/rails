@@ -355,9 +355,9 @@ module ActionView
         selected, disabled = [selected, disabled].map do |r|
           Array(r).map(&:to_s)
         end
-        
+
         if include_selected
-          include = selected.select{|s| container.find{|element| option_text_and_value(element).last == s}.nil?}
+          include = selected.select { |s| container.find { |element| option_text_and_value(element).last == s }.nil? }
           unless include.empty?
             container = [include] + container
           end
