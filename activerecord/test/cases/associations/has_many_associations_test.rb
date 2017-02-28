@@ -2107,6 +2107,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_equal target.object_id, ary.object_id
   end
 
+  def test_dup_should_dup_load_target
+    original = topics(:first).replies
+    dupped = topics(:first).replies.dup
+
+    assert_not_equal original.object_id, dupped.object_id
+    assert_not_equal original.load_target.object_id, dupped.load_target.object_id
+  end
+
   def test_merging_with_custom_attribute_writer
     bulb = Bulb.new(color: "red")
     assert_equal "RED!", bulb.color
