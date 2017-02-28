@@ -33,10 +33,6 @@ module ActiveRecord
         super klass, klass.arel_table, klass.predicate_builder
       end
 
-      def initialize_dup(other) # :nodoc:
-        @association = @association.deep_dup
-      end
-
       def target
         @association.target
       end
