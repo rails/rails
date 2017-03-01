@@ -18,6 +18,17 @@ module Rails
       end
 
       def edit
+        if ENV["EDITOR"].empty?
+          say "No $EDITOR to open decrypted secrets in. Assign one like this:"
+          say ""
+          say %(EDITOR="mate --wait" bin/rails secrets:edit)
+          say ""
+          say "For editors that fork and exit immediately, it's important to pass a wait flag,"
+          say "otherwise the secrets will be saved immediately with no chance to edit."
+
+          return
+        end
+
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
