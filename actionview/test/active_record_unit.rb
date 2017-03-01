@@ -70,6 +70,7 @@ class ActiveRecordTestConnector
 end
 
 class ActiveRecordTestCase < ActionController::TestCase
+  include ActiveRecord::TransactionalTest
   include ActiveRecord::TestFixtures
 
   # Set our fixture path

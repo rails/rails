@@ -861,7 +861,6 @@ module ActiveRecord
       class_attribute :fixture_path, instance_writer: false
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
-      class_attribute :use_transactional_tests
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
       class_attribute :config
@@ -872,7 +871,6 @@ module ActiveRecord
       self.config = ActiveRecord::Base
 
       self.fixture_class_names = {}
-      self.use_transactional_tests = true
     end
 
     module ClassMethods
@@ -953,9 +951,7 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
-      @fixture_connections = []
       @@already_loaded_fixtures ||= {}
-      @connection_subscriber = nil
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
@@ -965,33 +961,6 @@ module ActiveRecord
           @loaded_fixtures = load_fixtures(config)
           @@already_loaded_fixtures[self.class] = @loaded_fixtures
         end
-
-        # Begin transactions for connections already established
-        @fixture_connections = enlist_fixture_connections
-        @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
-          connection.pool.lock_thread = true
-        end
-
-        # When connections are established in the future, begin a transaction too
-        @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
-          spec_name = payload[:spec_name] if payload.key?(:spec_name)
-
-          if spec_name
-            begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
-            rescue ConnectionNotEstablished
-              connection = nil
-            end
-
-            if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
-              @fixture_connections << connection
-            end
-          end
-        end
-
       # Load fixtures for every test.
       else
         ActiveRecord::FixtureSet.reset_cache
@@ -1005,14 +974,7 @@ module ActiveRecord
 
     def teardown_fixtures
       # Rollback changes if a transaction is active.
-      if run_in_transaction?
-        ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
-        @fixture_connections.each do |connection|
-          connection.rollback_transaction if connection.transaction_open?
-          connection.pool.lock_thread = false
-        end
-        @fixture_connections.clear
-      else
+      unless run_in_transaction?
         ActiveRecord::FixtureSet.reset_cache
       end
 

@@ -3,6 +3,7 @@ require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
 require "active_record/fixtures"
+require "active_record/transactional_test"
 
 require "cases/validations_repair_helper"
 
@@ -13,6 +14,7 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
+    include ActiveRecord::TransactionalTest
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
 

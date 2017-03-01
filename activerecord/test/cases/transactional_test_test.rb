@@ -1,9 +1,9 @@
 require "cases/helper"
 
-class TestFixturesTest < ActiveRecord::TestCase
+class TransactionalTestTest < ActiveRecord::TestCase
   setup do
     @klass = Class.new
-    @klass.include(ActiveRecord::TestFixtures)
+    @klass.include(ActiveRecord::TransactionalTest)
   end
 
   def test_use_transactional_tests_defaults_to_true

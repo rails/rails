@@ -104,6 +104,7 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nil(second_row["author_email_address"])
   end
 
+  self.uses_transaction :test_inserts_with_pre_and_suffix
   def test_inserts_with_pre_and_suffix
     # Reset cache to make finds on the new table work
     ActiveRecord::FixtureSet.reset_cache
@@ -658,7 +659,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); false; end
     end.new
     fire_connection_notification(connection)
-    teardown_fixtures
+    teardown_transaction
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
   end
 
@@ -709,33 +710,6 @@ class ManyToManyFixturesWithClassDefined < ActiveRecord::TestCase
   def test_this_should_run_cleanly
     assert true
   end
-end
-
-class FixturesBrokenRollbackTest < ActiveRecord::TestCase
-  def blank_setup
-    @fixture_connections = [ActiveRecord::Base.connection]
-  end
-  alias_method :ar_setup_fixtures, :setup_fixtures
-  alias_method :setup_fixtures, :blank_setup
-  alias_method :setup, :blank_setup
-
-  def blank_teardown; end
-  alias_method :ar_teardown_fixtures, :teardown_fixtures
-  alias_method :teardown_fixtures, :blank_teardown
-  alias_method :teardown, :blank_teardown
-
-  def test_no_rollback_in_teardown_unless_transaction_active
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
-    assert_raise(RuntimeError) { ar_setup_fixtures }
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
-    assert_nothing_raised { ar_teardown_fixtures }
-    assert_equal 0, ActiveRecord::Base.connection.open_transactions
-  end
-
-  private
-    def load_fixtures(config)
-      raise "argh"
-    end
 end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase

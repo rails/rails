@@ -161,6 +161,7 @@ module ActiveRecord
   end
 
   autoload :TestFixtures, "active_record/fixtures"
+  autoload :TransactionalTest, "active_record/transactional_test"
 
   def self.eager_load!
     super
