@@ -1,4 +1,5 @@
 require "yaml"
+require "openssl"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
