@@ -64,15 +64,15 @@ module ActiveRecord
           end
         end
 
-        ignore_tables = configuration['ignore_tables']
+        ignore_tables = configuration["ignore_tables"]
         unless ignore_tables.blank?
-          args += ignore_tables.split(',').map do |table|
+          args += ignore_tables.split(",").map do |table|
             "-T #{table}"
           end
         end
 
-        args << configuration['database']
-        run_cmd('pg_dump', args, 'dumping')
+        args << configuration["database"]
+        run_cmd("pg_dump", args, "dumping")
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 

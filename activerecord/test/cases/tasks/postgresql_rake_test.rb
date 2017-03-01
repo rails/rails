@@ -265,9 +265,9 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_ignores_tables
-        @configuration['ignore_tables'] = 'foo,bar'
+        @configuration["ignore_tables"] = "foo,bar"
 
-        Kernel.expects(:system).with('pg_dump', '-s', '-x', '-O', '-f', @filename, '-T foo', '-T bar', 'my-app-db').returns(true)
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T foo", "-T bar", "my-app-db").returns(true)
 
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
