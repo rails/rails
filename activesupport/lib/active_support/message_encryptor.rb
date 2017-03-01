@@ -61,7 +61,7 @@ module ActiveSupport
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || "aes-256-cbc"
+      @cipher = options[:cipher] || DEFAULT_CIPHER
       @digest = options[:digest] || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal
