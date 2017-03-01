@@ -1,5 +1,19 @@
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
+*   Add encrypted secrets in `config/secrets.yml.enc`.
+
+    Allow storing production secrets straight in the revision control system by
+    encrypting them.
+
+    Use `bin/rails secrets:setup` to opt-in by generating `config/secrets.yml.enc`
+    for the secrets themselves and `config/secrets.yml.key` for the encryption key.
+
+    Edit secrets with `bin/rails secrets:edit`.
+
+    See `bin/rails secrets:setup --help` for more.
+
+    *Kasper Timm Hansen*
+
 *   Fix running multiple tests in one `rake` command
 
     e.g. `bin/rake test:models test:controllers`
