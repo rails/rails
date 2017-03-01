@@ -4,6 +4,9 @@
 
     *Andrew White*
 
+
+## Rails 5.0.2 (March 01, 2017) ##
+
 *   Make `with_routing` test helper work when testing controllers inheriting from `ActionController::API`.
 
     *Julia López*

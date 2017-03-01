@@ -1,3 +1,5 @@
+## Rails 5.0.2 (March 01, 2017) ##
+
 *   Allow render locals to be assigned to instance variables in a view.
 
     Fixes #27480.
