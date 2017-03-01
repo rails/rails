@@ -1,4 +1,4 @@
-## Rails 5.0.2.rc1 (February 24, 2017) ##
+## Rails 5.0.2 (March 01, 2017) ##
 
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
