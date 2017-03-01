@@ -576,6 +576,34 @@ module ApplicationTests
         capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
     end
 
+    def test_reset_sessions_before_rollback_on_system_tests
+      app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class ResetSessionBeforeRollbackTest < ApplicationSystemTestCase
+          def teardown_fixtures
+            puts "rollback"
+            super
+          end
+
+          Capybara.singleton_class.prepend(Module.new do
+            def reset_sessions!
+              puts "reset sessions"
+              super
+            end
+          end)
+
+          test "dummy" do
+          end
+        end
+      RUBY
+
+      run_test_command("test/system/reset_session_before_rollback_test.rb").tap do |output|
+        assert_match "reset sessions\nrollback", output
+        assert_match "1 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb")
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
