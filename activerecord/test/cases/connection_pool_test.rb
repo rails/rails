@@ -66,7 +66,7 @@ module ActiveRecord
         assert_equal 1, active_connections(pool).size
 
         Thread.new {
-          pool.with_connection do |conn|
+          pool.with_connection(Thread.current) do |conn|
             assert conn
             assert_equal 2, active_connections(pool).size
           end
@@ -189,7 +189,7 @@ module ActiveRecord
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            thread_connection = pool.connection
+            thread_connection = pool.connection(Thread.current)
             assert_not_nil thread_connection
             thread_connection.close
           end
@@ -347,9 +347,9 @@ module ActiveRecord
       class ConnectionTestModel < ActiveRecord::Base
       end
 
-      def test_connection_notification_is_called
+      def test_connection_pool_notification_is_called
         payloads = []
-        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+        subscription = ActiveSupport::Notifications.subscribe("!connection_pool.active_record") do |name, started, finished, unique_id, payload|
           payloads << payload
         end
         ConnectionTestModel.establish_connection :arunit
@@ -461,13 +461,16 @@ module ActiveRecord
       def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
         with_single_connection_pool do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
-            conn               = pool.connection # drain the only available connection
+            conn = pool.connection # drain the only available connection
+            def conn.requires_reloading? # make sure it gets removed from the pool by clear_reloadable_connections
+              true
+            end
             second_thread_done = Concurrent::Event.new
 
             begin
               # create a first_thread and let it get into the FIFO queue first
               first_thread = Thread.new do
-                pool.with_connection { second_thread_done.wait }
+                pool.with_connection(Thread.current) { second_thread_done.wait }
               end
 
               # wait for first_thread to get in queue
@@ -531,7 +534,7 @@ module ActiveRecord
           end
 
           stuck_thread = Thread.new do
-            pool.with_connection {}
+            pool.with_connection(Thread.current) {}
           end
 
           # wait for stuck_thread to get in queue

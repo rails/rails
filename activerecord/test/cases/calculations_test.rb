@@ -189,7 +189,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).count }
+    queries = capture_sql(false) { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
@@ -197,7 +197,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.offset(1).count }
+    queries = capture_sql(false) { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
@@ -205,14 +205,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_with_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).offset(1).count }
+    queries = capture_sql(false) { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_no_limit_no_offset
-    queries = assert_sql { Account.count }
+    queries = capture_sql(false) { Account.count }
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
@@ -228,7 +228,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_apply_distinct_in_count
-    queries = assert_sql do
+    queries = capture_sql(false) do
       Account.distinct.count
       Account.group(:firm_id).distinct.count
     end

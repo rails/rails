@@ -1867,7 +1867,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_first_nth_or_last_on_new_record_should_not_run_queries
     firm = Firm.new
 
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       firm.clients.first
       firm.clients.second
       firm.clients.last

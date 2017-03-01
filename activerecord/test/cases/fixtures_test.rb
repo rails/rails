@@ -668,9 +668,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with("book").returns(connection)
       message_bus = ActiveSupport::Notifications.instrumenter
       payload = {
-        spec_name: "book",
-        config: nil,
-        connection_id: connection.object_id
+        connection: connection
       }
 
       message_bus.instrument("!connection.active_record", payload) {}
@@ -1038,5 +1036,17 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
 
     assert_kind_of Dog, dogs(:sophie)
     assert_kind_of OtherDog, other_dogs(:lassie)
+  end
+end
+
+class DeferredFixtureEnrolmentTest < ActiveSupport::TestCase
+  # Establish a new connection pool but not a DB connection
+  class NewConnectionModel < ActiveRecord::Base
+    establish_connection(adapter: "fake")
+  end
+
+  test "Does not create connection to newly established connection pool" do
+    pools = ActiveRecord::Base.connection_handler.connection_pool_list
+    assert_empty pools.find { |pool| pool.spec.name == NewConnectionModel.to_s }.connections
   end
 end

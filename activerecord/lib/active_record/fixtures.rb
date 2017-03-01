@@ -975,20 +975,12 @@ module ActiveRecord
 
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
-          spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          connection = payload[:connection] if payload.key?(:connection)
 
-          if spec_name
-            begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
-            rescue ConnectionNotEstablished
-              connection = nil
-            end
-
-            if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
-              @fixture_connections << connection
-            end
+          if connection && !@fixture_connections.include?(connection)
+            connection.begin_transaction joinable: false
+            connection.pool.lock_thread = true
+            @fixture_connections << connection
           end
         end
 
@@ -1020,7 +1012,7 @@ module ActiveRecord
     end
 
     def enlist_fixture_connections
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:active_connection?).compact
     end
 
     private

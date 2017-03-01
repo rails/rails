@@ -504,7 +504,6 @@ unless in_memory_db?
     fixtures :people, :readers
 
     def setup
-      Person.connection_pool.clear_reloadable_connections!
       # Avoid introspection queries during tests.
       Person.columns; Reader.columns
     end

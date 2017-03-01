@@ -370,8 +370,8 @@ module ActiveRecord
       #
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
-      def connection
-        @thread_cached_conns[connection_cache_key(@lock_thread || Thread.current)] ||= checkout
+      def connection(owner_thread = @lock_thread || Thread.current)
+        @thread_cached_conns[connection_cache_key(owner_thread)] ||= checkout
       end
 
       # Returns true if there is an open connection being used for the current thread.
@@ -390,7 +390,7 @@ module ActiveRecord
       # This method only works for connections that have been obtained through
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
-      def release_connection(owner_thread = Thread.current)
+      def release_connection(owner_thread = @lock_thread || Thread.current)
         if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
           checkin conn
         end
@@ -400,14 +400,14 @@ module ActiveRecord
       # already exists yield it to the block. If no such connection
       # exists checkout a connection, yield it to the block, and checkin the
       # connection when finished.
-      def with_connection
-        unless conn = @thread_cached_conns[connection_cache_key(Thread.current)]
-          conn = connection
+      def with_connection(owner_thread = @lock_thread || Thread.current)
+        unless conn = @thread_cached_conns[connection_cache_key(owner_thread)]
+          conn = connection(owner_thread)
           fresh_connection = true
         end
         yield conn
       ensure
-        release_connection if fresh_connection
+        release_connection(owner_thread) if fresh_connection
       end
 
       # Returns true if a connection has already been opened.
@@ -803,7 +803,12 @@ module ActiveRecord
 
         def checkout_and_verify(c)
           c._run_checkout_callbacks do
-            c.verify!
+            ActiveSupport::Notifications.instrumenter.instrument(
+              "!connection.active_record",
+              connection: c
+            ) do
+              c.verify!
+            end
           end
           c
         rescue
@@ -888,7 +893,7 @@ module ActiveRecord
           payload[:config] = spec.config
         end
 
-        message_bus.instrument("!connection.active_record", payload) do
+        message_bus.instrument("!connection_pool.active_record", payload) do
           owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
         end
 

@@ -12,9 +12,9 @@ module ActiveRecord
 
     def setup
       super
+      @connection = ActiveRecord::Base.connection
       @subscriber = SQLSubscriber.new
       @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
-      @connection = ActiveRecord::Base.connection
     end
 
     def teardown
