@@ -683,7 +683,7 @@ Ruby instruction to be executed -- in this case, Active Support's `week` method.
    51:   #
    52:   #   2.weeks # => 14 days
    53:   def weeks
-=> 54:     ActiveSupport::Duration.new(self * 7.days, [[:days, self * 7]])
+=> 54:     ActiveSupport::Duration.weeks(self)
    55:   end
    56:   alias :week :weeks
    57:

@@ -1,3 +1,16 @@
+*   Fix inconsistent results when parsing large durations and constructing durations from code
+
+        ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
+
+    Duration parsing made independent from any moment of time:
+    Fixed length in seconds is assigned to each duration part during parsing.
+
+    Methods on `Numeric` like `2.days` now use these predefined durations
+    to avoid duplicating of duration constants through the codebase and
+    eliminate creation of intermediate durations.
+
+    *Andrey Novikov, Andrew White*
+
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
     `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
