@@ -18,7 +18,7 @@ module Rails
       end
 
       def edit
-        if ENV["EDITOR"].empty?
+        if ENV["EDITOR"].to_s.empty?
           say "No $EDITOR to open decrypted secrets in. Assign one like this:"
           say ""
           say %(EDITOR="mate --wait" bin/rails secrets:edit)
