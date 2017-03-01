@@ -59,7 +59,7 @@ module Rails
         stylesheets: true,
         stylesheet_engine: :css,
         scaffold_stylesheet: true,
-        test_framework: false,
+        test_framework: nil,
         template_engine: :erb
       }
     }
