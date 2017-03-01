@@ -279,4 +279,18 @@ module FileUpdateCheckerSharedTests
       new_checker([])
     end
   end
+
+  test "should pass modified files as block parameter" do
+    FileUtils.touch(tmpfiles)
+
+    modified_files = []
+    checker = new_checker(tmpfiles) { |paths| modified_files.concat paths }
+
+    refute_predicate checker, :updated?
+
+    touch(tmpfiles[1..-1])
+
+    assert checker.execute_if_updated
+    assert_equal tmpfiles[1..-1], modified_files
+  end
 end

@@ -49,6 +49,7 @@ module ActiveSupport
       @lcsp       = @ph.longest_common_subpath(@dirs.keys)
       @pid        = Process.pid
       @boot_mutex = Mutex.new
+      @updated_files = Concurrent::Array.new
 
       if (@dtw = directories_to_watch).any?
         # Loading listen triggers warnings. These are originated by a legit
@@ -78,7 +79,8 @@ module ActiveSupport
 
     def execute
       @updated.make_false
-      @block.call
+      @block.arity == 1 ? @block.call(@updated_files) : @block.call
+      @updated_files.clear
     end
 
     def execute_if_updated
@@ -95,8 +97,10 @@ module ActiveSupport
       end
 
       def changed(modified, added, removed)
+        updated_files = (modified + added + removed)
+        @updated_files.concat updated_files
         unless updated?
-          @updated.make_true if (modified + added + removed).any? { |f| watching?(f) }
+          @updated.make_true if updated_files.any? { |f| watching?(f) }
         end
       end
 

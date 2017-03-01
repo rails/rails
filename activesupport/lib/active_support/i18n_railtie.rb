@@ -56,11 +56,11 @@ module I18n
       I18n.enforce_available_locales = enforce_available_locales
 
       directories = watched_dirs_with_extensions(reloadable_paths)
-      reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
+      reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do |files|
         I18n.load_path.keep_if { |p| File.exist?(p) }
         I18n.load_path |= reloadable_paths.map(&:existent).flatten
 
-        I18n.reload!
+        I18n.backend.load_translations(files)
       end
 
       app.reloaders << reloader

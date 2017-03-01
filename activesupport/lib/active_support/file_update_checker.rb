@@ -76,9 +76,10 @@ module ActiveSupport
     # Executes the given block and updates the latest watched files and
     # timestamp.
     def execute
-      @last_watched   = watched
+      @last_watched = watched
+      @last_updated = @last_watched.reject { |path| File.mtime(path) <= @last_update_at }
       @last_update_at = updated_at(@last_watched)
-      @block.call
+      @block.arity == 1 ? @block.call(@last_updated) : @block.call
     ensure
       @watched = nil
       @updated_at = nil
