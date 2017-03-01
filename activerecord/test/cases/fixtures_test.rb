@@ -639,7 +639,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
 
   def test_transaction_created_on_connection_notification
     connection = stub(transaction_open?: false)
-    connection.expects(:begin_transaction).with(joinable: false)
+    connection.expects(:begin_transaction).with(joinable: false, lock_thread: true)
     pool = connection.stubs(:pool).returns(ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.spec))
     pool.stubs(:lock_thread=).with(false)
     fire_connection_notification(connection)
