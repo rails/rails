@@ -39,8 +39,7 @@ module Rails
       end
 
       def key
-        [(ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key)]
-          .pack("H*")
+        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
       end
 
       def encrypt(data)
@@ -103,7 +102,7 @@ module Rails
         end
 
         def encryptor
-          @encryptor ||= ActiveSupport::MessageEncryptor.new(key, cipher: CIPHER)
+          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
         end
     end
   end
