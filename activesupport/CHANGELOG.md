@@ -1,3 +1,15 @@
+*   Update `DateTime#change` to support `:usec` and `:nsec` options.
+
+    Adding support for these options now allows us to update the `DateTime#end_of`
+    methods to match the equivalent `Time#end_of` methods, e.g:
+
+        datetime = DateTime.now.end_of_day
+        datetime.nsec == 999999999 # => true
+
+    Fixes #21424.
+
+    *Dan Moore*, *Andrew White*
+
 *   Add `ActiveSupport::Duration#before` and `#after` as aliases for `#until` and `#since`
 
     These read more like English and require less mental gymnastics to read and write.
@@ -20,7 +32,7 @@
     *Robin Dupret* (#28157)
 
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
-    argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do
     `Marshal.method(:load).super_method.call(source, proc)` just to be able to pass a proc.
 
     *Jeff Latz*
