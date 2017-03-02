@@ -50,6 +50,9 @@ module ActionController
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
     #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
+    # Statements after redirect_to in our controller get executed, so redirect_to doesn't stop the execution of the function.
+     # To terminate the execution of the function immediately after the redirect_to, use return.
+    #   redirect_to post_url(@post) and return
     def redirect_to(options = {}, response_status = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
