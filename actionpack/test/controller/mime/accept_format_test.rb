@@ -85,8 +85,9 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
   end
 
-  def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
-    get :index, format: :js
-    assert_equal "Hello Firefox", @response.body
+  def test_no_html_fallback_for_javascript_format
+    assert_raise ActionController::UnknownFormat do
+      get :index, format: :js
+    end
   end
 end

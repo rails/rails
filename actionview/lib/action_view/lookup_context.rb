@@ -241,13 +241,11 @@ module ActionView
     end
     private :initialize_details
 
-    # Override formats= to expand ["*/*"] values and automatically
-    # add :html as fallback to :js.
+    # Override formats= to expand ["*/*"] values.
     def formats=(values)
       if values
         values.concat(default_formats) if values.delete "*/*".freeze
         if values == [:js]
-          values << :html
           @html_fallback_for_js = true
         end
       end
