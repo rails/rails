@@ -13,8 +13,7 @@ module Rails
       end
     end
 
-    CIPHER = "aes-128-gcm"
-
+    @cipher = "aes-128-gcm"
     @read_encrypted_secrets = false
     @root = File # Wonky, but ensures `join` uses the current directory.
 
@@ -33,9 +32,7 @@ module Rails
       end
 
       def generate_key
-        SecureRandom.hex(
-          OpenSSL::Cipher.new(CIPHER).key_len
-        )
+        SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
       end
 
       def key
@@ -102,7 +99,7 @@ module Rails
         end
 
         def encryptor
-          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
+          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: @cipher)
         end
     end
   end
