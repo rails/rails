@@ -1,3 +1,4 @@
+require "yaml"
 require "active_support/message_encryptor"
 
 module Rails
