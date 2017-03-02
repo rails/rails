@@ -1,3 +1,19 @@
+*   Improve encryption for encrypted secrets.
+
+    Switch to aes-128-gcm authenticated encryption. Also generate a random
+    initialization vector for each encryption so the same input and key can
+    generate different encrypted data.
+
+    Double the encryption key entropy by properly extracting the underlying
+    bytes from the hexadecimal seed key.
+
+    NOTE: Since the encryption mechanism has been switched, you need to run
+    this script to upgrade:
+
+    https://gist.github.com/kaspth/bc37989c2f39a5642112f28b1d93f343
+
+    *Stephen Touset*
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Add encrypted secrets in `config/secrets.yml.enc`.
