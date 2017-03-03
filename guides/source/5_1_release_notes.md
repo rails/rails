@@ -33,22 +33,180 @@ Major Features
 
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
+Rails 5.1 will allow managing JavaScript dependencies
+from NPM via Yarn.This will make it easy to use libraries like React, VueJS
+or any other library from NPM world. The Yarn support is integrated with
+the asset pipeline so that all dependencies will work seamlessly with the
+Rails 5.1 app.
+
+### Optional Webpack support
+
+Rails apps can use Webpack easily now using the [Webpacker](https://github.com/rails/webpacker)
+gem. New Rails 5.1 app can be generated using `--webpack` switch to enable Webpack integration.
+
+This is fully compatible with the asset pipeline, which you can continue to use for
+images, fonts, sounds, whatever. You can even have some JavaScript on the asset pipeline
+and some done via Webpack. It’s all managed via Yarn that’s on by default.
+
+### jQuery no longer a default dependency
+
+jQuery was required by default in earlier versions of Rails to provide features like
+`data-remote`, `data-confirm` and other parts of Rails UJS. It is no longer required,
+as the `rails-ujs` is now written using plain vanilla JavaScript.
+
+You can still use jQuery if needed, but it is no longer required by default.
+
 ### System tests
 
 [Pull Request](https://github.com/rails/rails/pull/26703)
+
+Rails 5.1 has support for writing Capybara tests baked in in the form of
+System tests. Now you don't have to worry about configuring Capybara and
+database cleaning strategies for such tests. Rails 5.1 provides a wrapper
+for running such tests in chrome with additional features such as failure
+screenshots.
 
 ### Encrypted secrets
 
 [Pull Request](https://github.com/rails/rails/pull/28038)
 
+Rails will now allow management of application secrets in a secure way
+built on top of [sekrets](https://github.com/ahoward/sekrets) gem.
+
+Run `bin/rails secrets:setup` to setup a new encrypted secrets file. It will
+generate a master key which needs to be stored outside of the repository and it will
+allow checking in the actual secrets in the revision control.
+
+The secrets will be decrypted in production either using `RAILS_MASTER_KEY` from
+the ENV or injected key file.
+
 ### Parameterized mailers
 
 [Pull Request](https://github.com/rails/rails/pull/27825)
+
+Allows specifying common params used for all methods in a mailer class
+to share instance variables, headers and other common setup.
+
+``` ruby
+class InvitationsMailer < ApplicationMailer
+
+  before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
+  before_action { @account = params[:inviter].account }
+
+  def account_invitation
+    mail subject: "#{@inviter.name} invited you to their Basecamp (#{@account.name})"
+  end
+
+  def project_invitation
+    @project    = params[:project]
+    @summarizer = ProjectInvitationSummarizer.new(@project.bucket)
+
+    mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
+  end
+end
+
+InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.deliver_later
+```
 
 ### Direct & resolved routes
 
 [Pull Request](https://github.com/rails/rails/pull/23138)
 
+Rails 5.1 has added two new methods - `resolve` and `direct` to the routing
+DSL.
+
+The `resolve` method allows customizing polymorphic mapping of models.
+
+``` ruby
+resource :basket
+
+resolve(class: "Basket") { [:basket] }
+```
+
+``` erb
+<%= form_for @basket do |form| %>
+  <!-- basket form -->
+<% end %>
+```
+
+This will generate the singular URL `/basket` instead of usual `/baskets/:id`.
+
+The `direct` method allows creation of custom URL helpers.
+
+``` ruby
+direct(:homepage) { "http://www.rubyonrails.org" }
+
+>> homepage_url
+=> "http://www.rubyonrails.org"
+```
+
+The return value of the block must be a valid argument for the `url_for`
+method. So you can pass a valid string URL, or a hash, or an array, or an
+Active Model instance or an Active Model class.
+
+``` ruby
+direct :commentable do |model|
+  [ model, anchor: model.dom_id ]
+end
+
+direct :main do
+  { controller: 'pages', action: 'index', subdomain: 'www' }
+end
+```
+
+### Unification of form_for and form_tag into form_with
+
+[Pull Request](https://github.com/rails/rails/pull/26976)
+
+Before Rails 5.1, there were two interfaces for handling HTML forms,
+`form_for` for model instances and `form_tag` for custom URLs.
+
+Rails 5.1 combines both of these interfaces with `form_with` and
+can generate form tags based on URLs, scopes or models.
+
+``` erb
+# Using just a URL:
+
+<%= form_with url: posts_path do |form| %>
+  <%= form.text_field :title %>
+<% end %>
+
+# =>
+<form action="/posts" method="post" data-remote="true">
+  <input type="text" name="title">
+</form>
+
+# Adding a scope prefixes the input field names:
+
+<%= form_with scope: :post, url: posts_path do |form| %>
+  <%= form.text_field :title %>
+<% end %>
+# =>
+<form action="/posts" method="post" data-remote="true">
+  <input type="text" name="post[title]">
+</form>
+
+# Using a model infers both the URL and scope:
+
+<%= form_with model: Post.new do |form| %>
+  <%= form.text_field :title %>
+<% end %>
+# =>
+<form action="/posts" method="post" data-remote="true">
+  <input type="text" name="post[title]">
+</form>
+
+# An existing model makes an update form and fills out field values:
+
+<%= form_with model: Post.first do |form| %>
+  <%= form.text_field :title %>
+<% end %>
+# =>
+<form action="/posts/1" method="post" data-remote="true">
+  <input type="hidden" name="_method" value="patch">
+  <input type="text" name="post[title]" value="<the title of the post>">
+</form>
+```
 
 Railties
 --------
