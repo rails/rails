@@ -176,6 +176,6 @@ class SerializationTest < ActiveModel::TestCase
                 "address" => { "street" => "123 Lane" },
                 "friends" => [{ "name" => "Joe" },
                            { "name" => "Sue" }] }
-    assert_equal expected, @user.serializable_hash(include: [ address: { only: "street" } , friends: {only: "name"}])
+    assert_equal expected, @user.serializable_hash(include: [ address: { only: "street" } , friends: { only: "name" }])
   end
 end
