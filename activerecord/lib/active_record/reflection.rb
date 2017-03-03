@@ -196,6 +196,21 @@ module ActiveRecord
         end
       end
 
+      def klass_join_scope(table, predicate_builder) # :nodoc:
+        if klass.current_scope
+          klass.current_scope.clone.tap { |scope|
+            scope.joins_values = []
+          }
+        else
+          relation = ActiveRecord::Relation.create(
+            klass,
+            table,
+            predicate_builder,
+          )
+          klass.send(:build_default_scope, relation)
+        end
+      end
+
       def constraints
         chain.map(&:scopes).flatten
       end
