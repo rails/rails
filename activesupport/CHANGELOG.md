@@ -1,3 +1,81 @@
+*   Add `rfc3339` aliases to `xmlschema` for `Time` and `ActiveSupport::TimeWithZone`
+
+    For naming consistency when using the RFC 3339 profile of ISO 8601 in applications.
+
+    *Andrew White*
+
+*   Add `Time.rfc3339` parsing method
+
+    The `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
+    without a offset in contravention of the RFC 3339 standard. This method
+    enforces that constraint and raises an `ArgumentError` if it doesn't.
+
+    *Andrew White*
+
+*   Add `ActiveSupport::TimeZone.rfc3339` parsing method
+
+    Previously there was no way to get a RFC 3339 timestamp into a specific
+    timezone without either using `parse` or chaining methods. The new method
+    allows parsing directly into the timezone, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("1999-12-31T14:00:00Z")
+        => Fri, 31 Dec 1999 14:00:00 HST -10:00
+
+    This new method has stricter semantics than the current `parse` method
+    and will raise an `ArgumentError` instead of returning nil, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("foobar")
+        ArgumentError: invalid date
+        >> Time.zone.parse("foobar")
+        => nil
+
+    It will also raise an `ArgumentError` when either the time or offset
+    components are missing, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("1999-12-31")
+        ArgumentError: invalid date
+        >> Time.zone.rfc3339("1999-12-31T14:00:00")
+        ArgumentError: invalid date
+
+    *Andrew White*
+
+*   Add `ActiveSupport::TimeZone.iso8601` parsing method
+
+    Previously there was no way to get a ISO 8601 timestamp into a specific
+    timezone without either using `parse` or chaining methods. The new method
+    allows parsing directly into the timezone, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("1999-12-31T14:00:00Z")
+        => Fri, 31 Dec 1999 14:00:00 HST -10:00
+
+    If the timestamp is a ISO 8601 date (YYYY-MM-DD) then the time is set
+    to midnight, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("1999-12-31")
+        => Fri, 31 Dec 1999 00:00:00 HST -10:00
+
+    This new method has stricter semantics than the current `parse` method
+    and will raise an `ArgumentError` instead of returning nil, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("foobar")
+        ArgumentError: invalid date
+        >> Time.zone.parse("foobar")
+        => nil
+
+    *Andrew White*
+
 *   Deprecate implicit coercion of `ActiveSupport::Duration`
 
     Currently `ActiveSupport::Duration` implicitly converts to a seconds
