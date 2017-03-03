@@ -34,7 +34,7 @@ module ActiveRecord
             table = tables.shift
             klass = reflection.klass
 
-            join_keys   = reflection.join_keys(klass)
+            join_keys   = reflection.join_keys
             key         = join_keys.key
             foreign_key = join_keys.foreign_key
 
