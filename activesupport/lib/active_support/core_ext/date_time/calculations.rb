@@ -157,17 +157,12 @@ class DateTime
   end
   alias_method :getlocal, :localtime
 
-  # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
+  # Returns a <tt>DateTime</tt> instance of the simultaneous time in the UTC timezone.
   #
   #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
   #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 UTC
   def utc
-    utc = new_offset(0)
-
-    Time.utc(
-      utc.year, utc.month, utc.day,
-      utc.hour, utc.min, utc.sec + utc.sec_fraction
-    )
+    new_offset(0)
   end
   alias_method :getgm, :utc
   alias_method :getutc, :utc

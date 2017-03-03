@@ -322,7 +322,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_utc
-    assert_instance_of Time, DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
+    assert_instance_of DateTime, DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 16, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 15, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-5, 24)).utc
     assert_equal DateTime.civil(2005, 2, 21, 10, 11, 12, 0), DateTime.civil(2005, 2, 21, 10, 11, 12, 0).utc

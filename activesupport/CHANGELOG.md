@@ -1,5 +1,16 @@
+*   Restore the return type of `DateTime#utc`
+
+    In Rails 5.0 the return type of `DateTime#utc` was changed to `Time` to be
+    consistent with the new `DateTime#localtime` method. When these changes were
+    backported in #27553 this inadvertently changed the return type in a patcn
+    release. Since `DateTime#localtime` was new in Rails 4.2.8 it's okay to
+    restore the return type of `DateTime#utc` but keep `DateTime#localtime` as
+    returning `Time` without breaking backwards compatibility.
+
+    *Andrew White*
+
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
-    argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do
     `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
 
     *Jeff Latz*
