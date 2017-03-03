@@ -23,7 +23,7 @@ module ActiveRecord
 
         JoinInformation = Struct.new :joins, :binds
 
-        def join_constraints(foreign_table, foreign_klass, node, join_type, tables, chain)
+        def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
           joins         = []
           binds         = []
           tables        = tables.reverse
@@ -46,7 +46,7 @@ module ActiveRecord
                 item
               else
                 ActiveRecord::Relation.create(klass, table, predicate_builder)
-                  .instance_exec(node, &item)
+                  .instance_exec(&item)
               end
             end
 
