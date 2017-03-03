@@ -340,6 +340,41 @@ module ActiveSupport
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from an ISO 8601 string.
+    #
+    #   Time.zone = 'Hawaii'                     # => "Hawaii"
+    #   Time.zone.iso8601('1999-12-31T14:00:00') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If the time components are missing then they will be set to zero.
+    #
+    #   Time.zone = 'Hawaii'            # => "Hawaii"
+    #   Time.zone.iso8601('1999-12-31') # => Fri, 31 Dec 1999 00:00:00 HST -10:00
+    #
+    # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
+    # which returns +nil+ when given an invalid date string.
+    def iso8601(str)
+      parts = Date._iso8601(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      time = Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset, 0)
+      )
+
+      if parts[:offset]
+        TimeWithZone.new(time.utc, self)
+      else
+        TimeWithZone.new(nil, self, time)
+      end
+    end
+
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from parsed string.
     #
     #   Time.zone = 'Hawaii'                   # => "Hawaii"
