@@ -187,6 +187,15 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
+      def join_scopes(table, predicate_builder) # :nodoc:
+        if scope
+          [ActiveRecord::Relation.create(klass, table, predicate_builder)
+            .instance_exec(&scope)]
+        else
+          []
+        end
+      end
+
       def constraints
         chain.map(&:scopes).flatten
       end
@@ -806,6 +815,10 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
+      def join_scopes(table, predicate_builder) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder) + super
+      end
+
       def source_type_scope
         through_reflection.klass.where(foreign_type => options[:source_type])
       end
@@ -983,6 +996,15 @@ module ActiveRecord
 
       def scopes
         scopes = @previous_reflection.scopes
+        if @previous_reflection.options[:source_type]
+          scopes + [@previous_reflection.source_type_scope]
+        else
+          scopes
+        end
+      end
+
+      def join_scopes(table, predicate_builder) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
         if @previous_reflection.options[:source_type]
           scopes + [@previous_reflection.source_type_scope]
         else

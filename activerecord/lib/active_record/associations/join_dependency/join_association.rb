@@ -41,14 +41,7 @@ module ActiveRecord
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
             predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-            scope_chain_items = reflection.scopes.map do |item|
-              if item.is_a?(Relation)
-                item
-              else
-                ActiveRecord::Relation.create(klass, table, predicate_builder)
-                  .instance_exec(&item)
-              end
-            end
+            scope_chain_items = reflection.join_scopes(table, predicate_builder)
 
             klass_scope =
               if klass.current_scope
