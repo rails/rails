@@ -394,6 +394,36 @@ module ActiveSupport
       parts_to_time(Date._parse(str, false), now)
     end
 
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from an RFC 3339 string.
+    #
+    #   Time.zone = 'Hawaii'                     # => "Hawaii"
+    #   Time.zone.rfc3339('2000-01-01T00:00:00Z') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If the time or zone components are missing then an +ArgumentError+ will
+    # be raised. This is much stricter than either +parse+ or +iso8601+ which
+    # allow for missing components.
+    #
+    #   Time.zone = 'Hawaii'            # => "Hawaii"
+    #   Time.zone.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    def rfc3339(str)
+      parts = Date._rfc3339(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      time = Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour),
+        parts.fetch(:min),
+        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset)
+      )
+
+      TimeWithZone.new(time.utc, self)
+    end
+
     # Parses +str+ according to +format+ and returns an ActiveSupport::TimeWithZone.
     #
     # Assumes that +str+ is a time in the time zone +self+,
