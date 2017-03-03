@@ -80,7 +80,7 @@ It is only soft-deprecated, which means that your code will not break at the
 moment and no deprecation warning will be displayed but this constant will be
 removed in the future.
 
-Also, if you have pretty old YAML documents containg dumps of such objects,
+Also, if you have pretty old YAML documents containing dumps of such objects,
 you may need to load and dump them again to make sure that they reference
 the right constant and that loading them won't break in the future.
 
