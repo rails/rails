@@ -1,3 +1,55 @@
+*   Deprecate implicit coercion of `ActiveSupport::Duration`
+
+    Currently `ActiveSupport::Duration` implicitly converts to a seconds
+    value when used in a calculation except for the explicit examples of
+    addition and subtraction where the duration is the receiver, e.g:
+
+        >> 2 * 1.day
+        => 172800
+
+    This results in lots of confusion especially when using durations
+    with dates because adding/subtracting a value from a date treats
+    integers as a day and not a second, e.g:
+
+        >> Date.today
+        => Wed, 01 Mar 2017
+        >> Date.today + 2 * 1.day
+        => Mon, 10 Apr 2490
+
+    To fix this we're implementing `coerce` so that we can provide a
+    deprecation warning with the intent of removing the implicit coercion
+    in Rails 5.2, e.g:
+
+        >> 2 * 1.day
+        DEPRECATION WARNING: Implicit coercion of ActiveSupport::Duration
+        to a Numeric is deprecated and will raise a TypeError in Rails 5.2.
+        => 172800
+
+    In Rails 5.2 it will raise `TypeError`, e.g:
+
+        >> 2 * 1.day
+        TypeError: ActiveSupport::Duration can't be coerced into Integer
+
+    This is the same behavior as with other types in Ruby, e.g:
+
+        >> 2 * "foo"
+        TypeError: String can't be coerced into Integer
+        >> "foo" * 2
+        => "foofoo"
+
+    As part of this deprecation add `*` and `/` methods to `AS::Duration`
+    so that calculations that keep the duration as the receiver work
+    correctly whether the final receiver is a `Date` or `Time`, e.g:
+
+        >> Date.today
+        => Wed, 01 Mar 2017
+        >> Date.today + 1.day * 2
+        => Fri, 03 Mar 2017
+
+    Fixes #27457.
+
+    *Andrew White*
+
 *   Update `DateTime#change` to support `:usec` and `:nsec` options.
 
     Adding support for these options now allows us to update the `DateTime#end_of`

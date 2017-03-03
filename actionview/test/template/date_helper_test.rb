@@ -832,7 +832,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_select_date_with_too_big_range_between_start_year_and_end_year
     assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: 2000, end_year: 20000, prefix: "date[first]", order: [:month, :day, :year]) }
-    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: Date.today.year - 100.years, end_year: 2000, prefix: "date[first]", order: [:month, :day, :year]) }
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: 100, end_year: 2000, prefix: "date[first]", order: [:month, :day, :year]) }
   end
 
   def test_select_date_can_have_more_then_1000_years_interval_if_forced_via_parameter
