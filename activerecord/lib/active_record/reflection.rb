@@ -173,7 +173,15 @@ module ActiveRecord
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
       def join_keys(association_klass)
-        JoinKeys.new(foreign_key, active_record_primary_key)
+        JoinKeys.new(join_pk(association_klass), join_fk)
+      end
+
+      def join_pk(klass)
+        foreign_key
+      end
+
+      def join_fk
+        active_record_primary_key
       end
 
       # Returns a list of scopes that should be applied for this Reflection
@@ -711,9 +719,12 @@ module ActiveRecord
         end
       end
 
-      def join_keys(association_klass)
-        key = polymorphic? ? association_primary_key(association_klass) : association_primary_key
-        JoinKeys.new(key, foreign_key)
+      def join_fk
+        foreign_key
+      end
+
+      def join_pk(klass)
+        polymorphic? ? association_primary_key(klass) : association_primary_key
       end
 
       def join_id_for(owner) # :nodoc:
