@@ -1,3 +1,11 @@
+*   Add `Time.rfc3339` parsing method
+
+    The `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
+    without a offset in contravention of the RFC 3339 standard. This method
+    enforces that constraint and raises an `ArgumentError` if it doesn't.
+
+    *Andrew White*
+
 *   Add `ActiveSupport::TimeZone.rfc3339` parsing method
 
     Previously there was no way to get a RFC 3339 timestamp into a specific
