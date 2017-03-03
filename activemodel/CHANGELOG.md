@@ -1,3 +1,6 @@
+*   Don't only take the first hash key in serialization :includes. Doing so silently loses options in `includes: [:account, {address: {only: id}, user: {only: id}]`
+
+    *Mike Mangino*
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Remove deprecated behavior that halts callbacks when the return is false.
