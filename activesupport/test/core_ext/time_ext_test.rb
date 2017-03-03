@@ -569,6 +569,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
+  def test_rfc3339_with_fractional_seconds
+    time = Time.new(1999, 12, 31, 19, 0, Rational(1, 8), -18000)
+    assert_equal "1999-12-31T19:00:00.125-05:00", time.rfc3339(3)
+  end
+
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date
   end

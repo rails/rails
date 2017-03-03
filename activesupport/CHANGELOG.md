@@ -1,3 +1,9 @@
+*   Add `rfc3339` aliases to `xmlschema` for `Time` and `ActiveSupport::TimeWithZone`
+
+    For naming consistency when using the RFC 3339 profile of ISO 8601 in applications.
+
+    *Andrew White*
+
 *   Add `Time.rfc3339` parsing method
 
     The `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
