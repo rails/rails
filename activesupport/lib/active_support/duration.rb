@@ -139,7 +139,7 @@ module ActiveSupport
       end
     end
 
-    # Devides this Duration by a Numeric and returns a new Duration.
+    # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
       if Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
