@@ -1,3 +1,25 @@
+*   Add options `show_first` and `hidden_items_word` to ActiveSupport's
+    `Array#to_sentence`.
+
+    It is sometimes helpful to only show a subset of long lists when using
+    `to_sentence`. Let's say you have a dashboard that displays the names of
+    people who have sent you a message and it's been awhile since your last
+    login.
+
+    Instead of seeing this:
+
+        senders.to_sentence + " left you messages"
+        # => "Paul Smith, Heidi Adler, Anna White, Jacob Winkler, Sam Summers,
+        Emma Jones, Chad Young and Joe Schmoe left you messages."
+
+    You could see this:
+
+        senders.to_sentence(show_first: 2, hidden_items_word: "other person") +
+          " left you messages"
+        # => "Paul Smith, Heidi Adler, and 4 other people left you messages."
+
+    *Paul Smith*
+
 *   Deprecate implicit coercion of `ActiveSupport::Duration`
 
     Currently `ActiveSupport::Duration` implicitly converts to a seconds

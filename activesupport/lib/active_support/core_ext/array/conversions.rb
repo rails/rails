@@ -20,6 +20,10 @@ class Array
   #   in arrays with two elements (default: " and ").
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
   #   in arrays with three or more elements (default: ", and ").
+  # * <tt>:show_first</tt> - Show the first X elements in the array. If there are
+  #   more items than X, append "and X others" (default: `nil`).
+  # * <tt>:hidden_items_word</tt> - The word to use when used with the :show_first
+  #   option (default: "other").
   # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
@@ -32,13 +36,18 @@ class Array
   #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
   #
   #   ['one', 'two'].to_sentence(passing: 'invalid option')
-  #   # => ArgumentError: Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale
+  #   # => ArgumentError: Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale, :show_first, :hidden_items_word
   #
   #   ['one', 'two'].to_sentence(two_words_connector: '-')
   #   # => "one-two"
   #
   #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
   #   # => "one or two or at least three"
+  #
+  #   ['one', 'two', 'three'].to_sentence(show_first: 1)
+  #   # => "one and 2 others"
+  #   ['one', 'two', 'three'].to_sentence(show_first: 2, last_word_connector: ', and also ', hidden_items_word: 'other number')
+  #   # => "one, two, and also 1 other number"
   #
   # Using <tt>:locale</tt> option:
   #
@@ -50,19 +59,24 @@ class Array
   #   #         words_connector: " o "
   #   #         two_words_connector: " y "
   #   #         last_word_connector: " o al menos "
+  #   #         hidden_items_word: "otro"
   #
   #   ['uno', 'dos'].to_sentence(locale: :es)
   #   # => "uno y dos"
   #
   #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
   #   # => "uno o dos o al menos tres"
+  #
+  #   ['uno', 'dos', 'tres'].to_sentence(locale: :es, show_first: 1)
+  #   # => "uno y 2 otros"
   def to_sentence(options = {})
-    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
+    options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale, :show_first, :hidden_items_word)
 
     default_connectors = {
       words_connector: ", ",
       two_words_connector: " and ",
-      last_word_connector: ", and "
+      last_word_connector: ", and ",
+      hidden_items_word: "other"
     }
     if defined?(I18n)
       i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
@@ -70,15 +84,22 @@ class Array
     end
     options = default_connectors.merge!(options)
 
-    case length
-    when 0
-      ""
-    when 1
-      "#{self[0]}"
-    when 2
-      "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
+    show_first = options.delete(:show_first)
+    if show_first && length > show_first
+      hidden_items_length = length - show_first
+      hidden_items_suffix = "#{hidden_items_length} #{options[:hidden_items_word]}".pluralize(hidden_items_length)
+      (take(show_first) << hidden_items_suffix).to_sentence(options)
     else
-      "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
+      case length
+      when 0
+        ""
+      when 1
+        "#{self[0]}"
+      when 2
+        "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
+      else
+        "#{self[0...-1].join(options[:words_connector])}#{options[:last_word_connector]}#{self[-1]}"
+      end
     end
   end
 

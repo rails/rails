@@ -25,6 +25,14 @@ class ToSentenceTest < ActiveSupport::TestCase
     assert_equal "one, two and three", ["one", "two", "three"].to_sentence(last_word_connector: " and ")
   end
 
+  def test_to_sentence_with_show_first
+    assert_equal "one and 2 others", ["one", "two", "three"].to_sentence(show_first: 1)
+    assert_equal "one and also 2 others", ["one", "two", "three"].to_sentence(two_words_connector: " and also ", show_first: 1)
+    assert_equal "one, two, and 1 other", ["one", "two", "three"].to_sentence(show_first: 2)
+    assert_equal "one, two, and also 1 other", ["one", "two", "three"].to_sentence(last_word_connector: ", and also ", show_first: 2)
+    assert_equal "one, two, and three", ["one", "two", "three"].to_sentence(show_first: 3)
+  end
+
   def test_two_elements
     assert_equal "one and two", ["one", "two"].to_sentence
     assert_equal "one two", ["one", "two"].to_sentence(two_words_connector: " ")
@@ -58,7 +66,7 @@ class ToSentenceTest < ActiveSupport::TestCase
       ["one", "two"].to_sentence(passing: "invalid option")
     end
 
-    assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale"
+    assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale, :show_first, :hidden_items_word"
   end
 
   def test_always_returns_string
