@@ -871,6 +871,8 @@ module ActionDispatch
             end
 
             return req.path_parameters
+          else
+            req.path_parameters = {}
           end
         end
 
