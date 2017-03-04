@@ -218,7 +218,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sqlite3 (1.3.12)
+    sqlite3 (1.3.13)
     stackprof (0.2.10)
     sucker_punch (1.6.0)
       celluloid (~> 0.17.2)
