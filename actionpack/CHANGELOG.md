@@ -1,3 +1,9 @@
+*   Silence Puma start-up messages running system tests.
+
+    Fixes #28109.
+
+    *Yuji Yaginuma* (#28284)
+
 *   Commit flash changes when using a redirect route.
 
     Fixes #27992.
