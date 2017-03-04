@@ -862,7 +862,7 @@ module ActionController
   #     end
   #
   #     # This will pass with flying colors as long as there's a person key in the
-  #     # parameters, otherwise it'll raise an ActionController::MissingParameter
+  #     # parameters, otherwise it'll raise an ActionController::ParameterMissing
   #     # exception, which will get caught by ActionController::Base and turned
   #     # into a 400 Bad Request reply.
   #     def update
