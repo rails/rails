@@ -1,3 +1,7 @@
+*   Fix `rake db:schema:load` with subdirectories.
+
+    *Ryuta Kamizono*
+
 *   Fix `rake db:migrate:status` with subdirectories.
 
     *Ryuta Kamizono*
