@@ -1056,10 +1056,6 @@ module ActiveRecord
         Array(@migrations_paths)
       end
 
-      def match_to_migration_filename?(filename) # :nodoc:
-        Migration::MigrationFilenameRegexp.match?(File.basename(filename))
-      end
-
       def parse_migration_filename(filename) # :nodoc:
         File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
       end
@@ -1067,9 +1063,7 @@ module ActiveRecord
       def migrations(paths)
         paths = Array(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
-
-        migrations = files.map do |file|
+        migrations = migration_files(paths).map do |file|
           version, name, scope = parse_migration_filename(file)
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -1079,6 +1073,30 @@ module ActiveRecord
         end
 
         migrations.sort_by(&:version)
+      end
+
+      def migrations_status(paths)
+        paths = Array(paths)
+
+        db_list = ActiveRecord::SchemaMigration.normalized_versions
+
+        file_list = migration_files(paths).map do |file|
+          version, name, scope = parse_migration_filename(file)
+          raise IllegalMigrationNameError.new(file) unless version
+          version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+          status = db_list.delete(version) ? "up" : "down"
+          [status, version, (name + scope).humanize]
+        end.compact
+
+        db_list.map! do |version|
+          ["up", version, "********** NO FILE **********"]
+        end
+
+        (db_list + file_list).sort_by { |_, version, _| version }
+      end
+
+      def migration_files(paths)
+        Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
       end
 
       private
