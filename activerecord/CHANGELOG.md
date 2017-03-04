@@ -1,3 +1,13 @@
+*   Don't share options between reference id and type columns
+
+    When using a polymorphic reference column in a migration, sharing options
+    between the two columns doesn't make sense since they are different types.
+    The `reference_id` column is usually an integer and the `reference_type`
+    column a string so options like `unsigned: true` will result in an invalid
+    table definition.
+
+    *Ryuta Kamizono*
+
 *   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
 
     *Ryuta Kamizono*
