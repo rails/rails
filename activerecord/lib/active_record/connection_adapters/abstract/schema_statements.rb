@@ -1022,13 +1022,13 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, paths) # :nodoc:
-        paths = Array(paths)
+      def assume_migrated_upto_version(version, migrations_paths)
+        migrations_paths = Array(migrations_paths)
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        versions = ActiveRecord::Migrator.migration_files(paths).map do |file|
+        versions = ActiveRecord::Migrator.migration_files(migrations_paths).map do |file|
           ActiveRecord::Migrator.parse_migration_filename(file).first.to_i
         end
 
