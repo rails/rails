@@ -610,9 +610,9 @@ For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
-$ bin/rails generate system_test users_create_test
+$ bin/rails generate system_test users_create
       invoke test_unit
-      create test/system/users_create_test.rb
+      create test/system/users_creates_test.rb
 ```
 
 Here's what a freshly-generated system test looks like:
@@ -620,10 +620,12 @@ Here's what a freshly-generated system test looks like:
 ```ruby
 require "application_system_test_case"
 
-class UsersCreateTest < ApplicationSystemTestCase
-  visit users_url
-
-  assert_selector "h1", text: "Users"
+class UsersCreatesTest < ApplicationSystemTestCase
+  # test "visiting the index" do
+  #   visit users_creates_url
+  #
+  #   assert_selector "h1", text: "UsersCreate"
+  # end
 end
 ```
 
@@ -1436,7 +1438,7 @@ second batch of assertions, we ensure that the email does indeed contain what we
 expect. The helper `read_fixture` is used to read in the content from this file.
 
 NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present.
-If the mailer provides both, you can test your fixture against specific parts 
+If the mailer provides both, you can test your fixture against specific parts
 with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
 
 Here's the content of the `invite` fixture:
