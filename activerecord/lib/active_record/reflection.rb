@@ -172,8 +172,8 @@ module ActiveRecord
 
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
-      def join_keys(association_klass)
-        JoinKeys.new(foreign_key, active_record_primary_key)
+      def join_keys
+        get_join_keys klass
       end
 
       # Returns a list of scopes that should be applied for this Reflection
@@ -186,6 +186,30 @@ module ActiveRecord
         chain.map(&:scopes)
       end
       deprecate :scope_chain
+
+      def join_scopes(table, predicate_builder) # :nodoc:
+        if scope
+          [ActiveRecord::Relation.create(klass, table, predicate_builder)
+            .instance_exec(&scope)]
+        else
+          []
+        end
+      end
+
+      def klass_join_scope(table, predicate_builder) # :nodoc:
+        if klass.current_scope
+          klass.current_scope.clone.tap { |scope|
+            scope.joins_values = []
+          }
+        else
+          relation = ActiveRecord::Relation.create(
+            klass,
+            table,
+            predicate_builder,
+          )
+          klass.send(:build_default_scope, relation)
+        end
+      end
 
       def constraints
         chain.map(&:scopes).flatten
@@ -260,6 +284,20 @@ module ActiveRecord
       def chain
         collect_join_chain
       end
+
+      def get_join_keys(association_klass)
+        JoinKeys.new(join_pk(association_klass), join_fk)
+      end
+
+      private
+
+        def join_pk(_)
+          foreign_key
+        end
+
+        def join_fk
+          active_record_primary_key
+        end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -687,11 +725,6 @@ module ActiveRecord
         end
       end
 
-      def join_keys(association_klass)
-        key = polymorphic? ? association_primary_key(association_klass) : association_primary_key
-        JoinKeys.new(key, foreign_key)
-      end
-
       def join_id_for(owner) # :nodoc:
         owner[foreign_key]
       end
@@ -700,6 +733,14 @@ module ActiveRecord
 
         def calculate_constructable(macro, options)
           !polymorphic?
+        end
+
+        def join_fk
+          foreign_key
+        end
+
+        def join_pk(klass)
+          polymorphic? ? association_primary_key(klass) : association_primary_key
         end
     end
 
@@ -720,7 +761,7 @@ module ActiveRecord
     class ThroughReflection < AbstractReflection #:nodoc:
       attr_reader :delegate_reflection
       delegate :foreign_key, :foreign_type, :association_foreign_key,
-               :active_record_primary_key, :type, to: :source_reflection
+               :active_record_primary_key, :type, :get_join_keys, to: :source_reflection
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection
@@ -806,6 +847,10 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
+      def join_scopes(table, predicate_builder) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder) + super
+      end
+
       def source_type_scope
         through_reflection.klass.where(foreign_type => options[:source_type])
       end
@@ -814,10 +859,6 @@ module ActiveRecord
         scope || options[:source_type] ||
           source_reflection.has_scope? ||
           through_reflection.has_scope?
-      end
-
-      def join_keys(association_klass)
-        source_reflection.join_keys(association_klass)
       end
 
       # A through association is nested if there would be more than one join table
@@ -954,6 +995,7 @@ module ActiveRecord
       end
 
       private
+
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.send(:actual_source_reflection)
         end
@@ -990,6 +1032,15 @@ module ActiveRecord
         end
       end
 
+      def join_scopes(table, predicate_builder) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
+        if @previous_reflection.options[:source_type]
+          scopes + [@previous_reflection.source_type_scope]
+        else
+          scopes
+        end
+      end
+
       def klass
         @reflection.klass
       end
@@ -1006,10 +1057,6 @@ module ActiveRecord
         @reflection.plural_name
       end
 
-      def join_keys(association_klass)
-        @reflection.join_keys(association_klass)
-      end
-
       def type
         @reflection.type
       end
@@ -1022,6 +1069,10 @@ module ActiveRecord
         type = @previous_reflection.foreign_type
         source_type = @previous_reflection.options[:source_type]
         lambda { |object| where(type => source_type) }
+      end
+
+      def get_join_keys(association_klass)
+        @reflection.get_join_keys(association_klass)
       end
     end
 
