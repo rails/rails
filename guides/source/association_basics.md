@@ -582,13 +582,29 @@ class CreateBooks < ActiveRecord::Migration[5.0]
       t.string   :book_number
       t.integer  :author_id
     end
-
-    add_index :books, :author_id
   end
 end
 ```
 
 If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
+
+It's a good practice to add an index on the foreign key to improve queries
+performance and a foreign key constraint to ensure referential data integrity:
+
+```ruby
+class CreateBooks < ActiveRecord::Migration[5.0]
+  def change
+    create_table :books do |t|
+      t.datetime :published_at
+      t.string   :book_number
+      t.integer  :author_id
+    end
+    
+    add_index :books, :author_id
+    add_foreign_key :books, :authors
+  end
+end
+```
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
