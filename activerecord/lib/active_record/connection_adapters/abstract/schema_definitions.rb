@@ -116,16 +116,12 @@ module ActiveRecord
 
       private
 
-        def as_options(value, default = {})
-          if value.is_a?(Hash)
-            value
-          else
-            default
-          end
+        def as_options(value)
+          value.is_a?(Hash) ? value : {}
         end
 
         def polymorphic_options
-          as_options(polymorphic, options)
+          as_options(polymorphic)
         end
 
         def index_options
