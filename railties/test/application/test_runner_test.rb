@@ -604,6 +604,52 @@ module ApplicationTests
       end
     end
 
+    def test_system_tests_are_not_run_with_the_default_test_command
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("").tap do |output|
+        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_system_tests_are_not_run_through_rake_test
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rake test` }
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+    end
+
+    def test_system_tests_are_run_through_rake_test_when_given_in_TEST
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rake test TEST=test/system/dummy_test.rb` }
+      assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb")
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
