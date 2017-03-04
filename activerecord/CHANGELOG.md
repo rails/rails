@@ -1,3 +1,7 @@
+*   Deprecate `ActiveRecord::QueryMethods#where` with blank condition.
+
+    *bogdanvlviv*
+
 *   Fix `rake db:schema:load` with subdirectories.
 
     *Ryuta Kamizono*

@@ -219,8 +219,10 @@ module ActiveRecord
     end
 
     def test_where_with_blank_conditions
-      [[], {}, nil, ""].each do |blank|
-        assert_equal 4, Edge.where(blank).order("sink_id").to_a.size
+      [[], {}, nil, false, ""].each do |blank|
+        assert_deprecated do
+          assert_equal Edge.count, Edge.where(blank).to_a.size
+        end
       end
     end
 
