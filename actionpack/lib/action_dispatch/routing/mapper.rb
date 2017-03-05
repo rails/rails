@@ -2054,7 +2054,7 @@ module ActionDispatch
         # your url helper definition, e.g:
         #
         #   direct :browse, page: 1, size: 10 do |options|
-        #     [ :products, options.merge(params.permit(:page, :size)) ]
+        #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
         #   end
         #
         # In this instance the `params` object comes from the context in which the the
