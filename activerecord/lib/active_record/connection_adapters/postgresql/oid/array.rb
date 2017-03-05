@@ -23,7 +23,7 @@ module ActiveRecord
             when ::String
               type_cast_array(@pg_decoder.decode(value), :deserialize)
             when Data
-              deserialize(value.values)
+              type_cast_array(value.values, :deserialize)
             else
               super
             end
