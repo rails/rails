@@ -2,7 +2,6 @@ require "capybara/dsl"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/server"
-require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
 
@@ -105,20 +104,12 @@ module ActionDispatch
     #
     #   driven_by :selenium, screen_size: [800, 800]
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
-      driver = if selenium?(driver)
-                 SystemTesting::Browser.new(using, screen_size)
-               else
-                 SystemTesting::Driver.new(driver)
-               end
+      driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size)
 
       setup { driver.use }
       teardown { driver.reset }
 
       SystemTesting::Server.new.run
-    end
-
-    def self.selenium?(driver) # :nodoc:
-      driver == :selenium
     end
   end
 

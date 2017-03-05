@@ -1,11 +1,5 @@
 require "abstract_unit"
 
-class DrivenByCaseTestTest < ActiveSupport::TestCase
-  test "selenium? returns false if driver is poltergeist" do
-    assert_not ActionDispatch::SystemTestCase.selenium?(:poltergeist)
-  end
-end
-
 class DrivenByRackTestTest < ActionDispatch::SystemTestCase
   driven_by :rack_test
 
