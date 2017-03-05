@@ -730,6 +730,9 @@ Run the system tests.
 bin/rails test:system
 ```
 
+NOTE: By default, running `bin/rails test` won't run your system tests.
+Make sure to run `bin/rails test:system` to actually run them.
+
 #### Creating articles system test
 
 Now let's test the flow for creating a new article in our blog.

@@ -1,3 +1,8 @@
+*   Avoid running system tests by default with the `bin/rails test`
+    and `bin/rake test` commands since they may be expansive.
+
+    *Robin Dupret* (#28286)
+
 *   Improve encryption for encrypted secrets.
 
     Switch to aes-128-gcm authenticated encryption. Also generate a random
