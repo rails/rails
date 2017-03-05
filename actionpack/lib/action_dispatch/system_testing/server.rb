@@ -11,7 +11,7 @@ module ActionDispatch
       private
         def register
           Capybara.register_server :rails_puma do |app, port, host|
-            Rack::Handler::Puma.run(app, Port: port, Threads: "0:1", Silent: true)
+            Rack::Handler::Puma.run(app, Port: port, Threads: "0:1")
           end
         end
 
