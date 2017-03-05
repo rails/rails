@@ -996,7 +996,7 @@ module ActiveRecord
       end
 
       def insert_versions_sql(versions) # :nodoc:
-        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
+        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
         if versions.is_a?(Array)
           sql = "INSERT INTO #{sm_table} (version) VALUES\n"
@@ -1025,7 +1025,7 @@ module ActiveRecord
       def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
-        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
+        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
         migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
         versions = ActiveRecord::Migrator.migration_files(migrations_paths).map do |file|
