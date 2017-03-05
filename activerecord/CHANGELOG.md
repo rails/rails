@@ -1,3 +1,9 @@
+*   Fix `deserialize` with JSON array.
+
+    Fixes #28285.
+
+    *Ryuta Kamizono*
+
 *   Fix `rake db:schema:load` with subdirectories.
 
     *Ryuta Kamizono*
