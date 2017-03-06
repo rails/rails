@@ -12,10 +12,6 @@ module ActionDispatch
         setup
       end
 
-      def reset
-        Capybara.current_driver = @current
-      end
-
       private
         def selenium?
           @name == :selenium
@@ -31,7 +27,6 @@ module ActionDispatch
 
         def setup
           Capybara.current_driver = @name
-          @current = Capybara.current_driver
         end
     end
   end

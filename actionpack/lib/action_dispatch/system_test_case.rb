@@ -83,12 +83,19 @@ module ActionDispatch
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
+    def initialize(*) # :nodoc:
+      super
+      self.class.superclass.driver.use
+    end
+
     def self.start_application # :nodoc:
       Capybara.app = Rack::Builder.new do
         map "/" do
           run Rails.application
         end
       end
+
+      SystemTesting::Server.new.run
     end
 
     # System Test configuration options
@@ -104,12 +111,12 @@ module ActionDispatch
     #
     #   driven_by :selenium, screen_size: [800, 800]
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
-      driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size)
+      @driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size)
+    end
 
-      setup { driver.use }
-      teardown { driver.reset }
-
-      SystemTesting::Server.new.run
+    # Returns the driver object for the initialized system test
+    def self.driver
+      @driver ||= SystemTestCase.driven_by(:selenium)
     end
   end
 
