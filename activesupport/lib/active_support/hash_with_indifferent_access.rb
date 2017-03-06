@@ -195,6 +195,19 @@ module ActiveSupport
       indices.collect { |key| self[convert_key(key)] }
     end
 
+    # Returns an array of the values at the specified indices, but also
+    # raises an exception when one of the keys can't be found.
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new
+    #   hash[:a] = 'x'
+    #   hash[:b] = 'y'
+    #   hash.fetch_values('a', 'b') # => ["x", "y"]
+    #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
+    #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
+    def fetch_values(*indices, &block)
+      indices.collect { |key| fetch(key, &block) }
+    end if Hash.method_defined?(:fetch_values)
+
     # Returns a shallow copy of the hash.
     #
     #   hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
