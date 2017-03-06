@@ -297,6 +297,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not new_developer.destroyed?
   end
 
+  def test_save_with_unsetting_duplicate_pk_of_new_record
+    id = Topic.create(title: "first").id
+    topic = Topic.new
+    topic.id = id
+    assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) { topic.save! }
+    topic.id = nil
+    assert_nothing_raised { topic.save! }
+  end
+
   def test_create_many
     topics = Topic.create([ { "title" => "first" }, { "title" => "second" }])
     assert_equal 2, topics.size

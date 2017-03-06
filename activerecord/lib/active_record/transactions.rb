@@ -310,7 +310,9 @@ module ActiveRecord
     end
 
     def save!(*) #:nodoc:
-      with_transaction_returning_status { super }
+      rollback_active_record_state! do
+        with_transaction_returning_status { super }
+      end
     end
 
     def touch(*) #:nodoc:
