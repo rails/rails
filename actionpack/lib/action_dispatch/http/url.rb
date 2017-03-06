@@ -1,4 +1,5 @@
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/hash/transform_values"
 
 module ActionDispatch
   module Http
@@ -80,6 +81,18 @@ module ActionDispatch
 
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
+          params.transform_values! do |value|
+            if value.respond_to?(:permitted?)
+              unless value.permitted?
+                raise ArgumentError, "Attempting to generate a URL from non-sanitized request parameters!" \
+                  " Whitelist and sanitize passed parameters to be secure."
+              end
+              value.to_h
+            else
+              value
+            end
+          end
+
           params.reject! { |_, v| v.to_param.nil? }
           query = params.to_query
           path << "?#{query}" unless query.empty?
