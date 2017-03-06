@@ -1,3 +1,7 @@
+*   Make the order of `Hash#reverse_merge!` consistent with `HashWithIndifferentAccess`.
+
+    *Erol Fornoles*
+
 *   Add `rfc3339` aliases to `xmlschema` for `Time` and `ActiveSupport::TimeWithZone`
 
     For naming consistency when using the RFC 3339 profile of ISO 8601 in applications.
