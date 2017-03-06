@@ -591,15 +591,15 @@ module ActiveRecord
     #    # SELECT * FROM users WHERE name != 'Jon'
     #
     # See WhereChain for more details on #not.
-    #
-    # === blank condition
-    #
-    # If the condition is any blank-ish object, then #where is a no-op and returns
-    # the current relation.
     def where(opts = :chain, *rest)
       if :chain == opts
         WhereChain.new(spawn)
       elsif opts.blank?
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Query with blank condition is deprecated and will raise an
+          exception in Rails 5.3.
+        MSG
+
         self
       else
         spawn.where!(opts, *rest)
