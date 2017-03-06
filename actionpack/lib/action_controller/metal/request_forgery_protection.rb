@@ -398,7 +398,9 @@ module ActionController #:nodoc:
       def valid_request_origin?
         if forgery_protection_origin_check
           # We accept blank origin headers because some user agents don't send it.
-          request.origin.nil? || request.origin == request.base_url
+          # Chrome sends "null" instead of not sending the Origin header when the folling is set in head:
+          # <meta name="referrer" content="no-referrer">
+          request.origin.nil? || request.origin == "null" || request.origin == request.base_url
         else
           true
         end
