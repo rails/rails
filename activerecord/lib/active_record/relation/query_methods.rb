@@ -348,7 +348,7 @@ module ActiveRecord
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :includes, :from,
-                                     :readonly, :having])
+                                     :readonly, :having, :left_outer_joins])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
