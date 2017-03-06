@@ -349,12 +349,13 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update_with_optimistic_locking
     person = Person.new(first_name: "foo")
-    old_lock_version = person.lock_version
 
     with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
+
+    old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
       assert_queries(0) { 2.times { person.save! } }
