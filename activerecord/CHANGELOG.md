@@ -1,3 +1,9 @@
+*   Make `save!` consistent with `save` behavior on transaction state.
+
+    Fixes #28274.
+
+    *Erol Fornoles*
+
 *   Fix `rake db:schema:load` with subdirectories.
 
     *Ryuta Kamizono*
