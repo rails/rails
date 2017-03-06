@@ -280,7 +280,7 @@ module Rails
         case options[:database]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
         when "postgresql"     then ["pg", ["~> 0.18"]]
-        when "oracle"         then ["ruby-oci8", nil]
+        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
@@ -296,7 +296,6 @@ module Rails
           case options[:database]
           when "postgresql" then options[:database].replace "jdbcpostgresql"
           when "mysql"      then options[:database].replace "jdbcmysql"
-          when "oracle"     then options[:database].replace "jdbc"
           when "sqlite3"    then options[:database].replace "jdbcsqlite3"
           end
         end
