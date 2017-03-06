@@ -6,6 +6,7 @@ module ActiveSupport
       self.namespace      = :human
       self.validate_float = true
 
+      #Instance method inherited and invoked from ActiveSupport::NumberHelper::NumberConverter
       def convert
         @number = Float(number)
 
