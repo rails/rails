@@ -271,6 +271,7 @@ module InflectorTestCases
     "¿por qué?"             => "¿Por Qué?",
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
+    "this was 'fake news'"  => "This Was 'Fake News'",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
   }
 

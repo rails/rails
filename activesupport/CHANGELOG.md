@@ -1,3 +1,19 @@
+*   Update `titlelize` regex to allow apostrophes
+
+    In 4b685aa the regex in `titlelize` was updated to not match apostrophes to
+    better reflect the nature of the transformation. Unfortunately this had the
+    side effect of breaking capitalization on the first word of a sub-string, e.g:
+
+        >> "This was 'fake news'".titleize
+        => "This Was 'fake News'"
+
+    This is fixed by extending the look-behind to also check for a word
+    character on the other side of the apostrophe.
+
+    Fixes #28312.
+
+    *Andrew White*
+
 *   Add `rfc3339` aliases to `xmlschema` for `Time` and `ActiveSupport::TimeWithZone`
 
     For naming consistency when using the RFC 3339 profile of ISO 8601 in applications.
