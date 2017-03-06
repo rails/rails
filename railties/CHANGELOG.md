@@ -1,5 +1,5 @@
 *   Avoid running system tests by default with the `bin/rails test`
-    and `bin/rake test` commands since they may be expansive.
+    and `bin/rake test` commands since they may be expensive.
 
     *Robin Dupret* (#28286)
 
