@@ -1,6 +1,6 @@
-*   Update `titlelize` regex to allow apostrophes
+*   Update `titleize` regex to allow apostrophes
 
-    In 4b685aa the regex in `titlelize` was updated to not match apostrophes to
+    In 4b685aa the regex in `titleize` was updated to not match apostrophes to
     better reflect the nature of the transformation. Unfortunately this had the
     side effect of breaking capitalization on the first word of a sub-string, e.g:
 
