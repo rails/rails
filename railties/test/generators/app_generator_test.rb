@@ -291,6 +291,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_sqlserver_database
+    run_generator([destination_root, "-d", "sqlserver"])
+    assert_file "config/database.yml", /sqlserver/
+    assert_gem "activerecord-sqlserver-adapter"
+    assert_gem "tiny_tds"
+  end
+
   def test_config_jdbcmysql_database
     run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /mysql/
