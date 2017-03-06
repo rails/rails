@@ -25,6 +25,16 @@ module MultibyteTestHelpers
   ASCII_STRING = "ohayo".freeze
   BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT").freeze
 
+  def setup
+    ActiveSupport::Multibyte::Unicode.backend = :native if ActiveSupport::Multibyte::Unicode::Backend.support_native_unicode_implementation?
+    super
+  end
+
+  def teardown
+    super
+    ActiveSupport::Multibyte::Unicode.backend = :non_native if ActiveSupport::Multibyte::Unicode::Backend.support_native_unicode_implementation?
+  end
+
   def chars(str)
     ActiveSupport::Multibyte::Chars.new(str)
   end
