@@ -248,10 +248,24 @@ module InflectorTestCases
     "_external_id"    => "External"
   }
 
+  UnderscoreToHumanWithKeepIdSuffix = {
+    'ThisIsAStringEndingWithId' => 'This Is A String Ending With Id',
+    'EmployeeId'                => 'Employee Id',
+    'underground'               => 'Underground',
+    '_id'                       => 'Id',
+    '_external_id'              => 'External Id'
+  }
+
   UnderscoreToHumanWithoutCapitalize = {
     "employee_salary" => "employee salary",
     "employee_id"     => "employee",
     "underground"     => "underground"
+  }
+
+  MixtureToTitleCaseWithKeepIdSuffix = {
+    'this_is_a_string_ending_with_id' => 'This Is A String Ending With Id',
+    'EmployeeId'                      => 'Employee Id',
+    'Author Id'                       => 'Author Id'
   }
 
   MixtureToTitleCase = {

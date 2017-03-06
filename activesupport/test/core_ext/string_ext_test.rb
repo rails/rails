@@ -78,6 +78,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_titleize_with_keep_id_suffix
+    MixtureToTitleCaseWithKeepIdSuffix.each do |before, titleized|
+      assert_equal(titleized, before.titleize(keep_id_suffix: true))
+    end
+  end
+
   def test_upcase_first
     assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
@@ -196,6 +202,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, underscore.humanize(capitalize: false))
+    end
+  end
+
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, underscore.humanize(keep_id_suffix: true))
     end
   end
 

@@ -119,6 +119,13 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
+    define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
+        "mixture to TitleCase with keep_id_suffix failed for #{before}")
+    end
+  end
+
   def test_camelize
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
@@ -321,6 +328,12 @@ class InflectorTest < ActiveSupport::TestCase
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, ActiveSupport::Inflector.humanize(underscore, capitalize: false))
+    end
+  end
+
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
     end
   end
 
