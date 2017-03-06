@@ -1024,7 +1024,7 @@ module ActiveRecord
 
       def get_all_versions(connection = Base.connection)
         if SchemaMigration.table_exists?
-          SchemaMigration.all.map { |x| x.version.to_i }.sort
+          SchemaMigration.all_versions.map(&:to_i)
         else
           []
         end
