@@ -77,7 +77,7 @@ module ActiveRecord
         when :string, :text        then value
         when :integer              then klass.value_to_integer(value)
         when :float                then value.to_f
-        when :decimal              then klass.value_to_decimal(value)
+        when :decimal              then klass.value_to_decimal(value, precision)
         when :datetime, :timestamp then klass.string_to_time(value)
         when :time                 then klass.string_to_dummy_time(value)
         when :date                 then klass.string_to_date(value)
@@ -94,7 +94,7 @@ module ActiveRecord
         when :string, :text        then var_name
         when :integer              then "#{klass}.value_to_integer(#{var_name})"
         when :float                then "#{var_name}.to_f"
-        when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
+        when :decimal              then "#{klass}.value_to_decimal(#{var_name}, #{precision})"
         when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
         when :time                 then "#{klass}.string_to_dummy_time(#{var_name})"
         when :date                 then "#{klass}.string_to_date(#{var_name})"
@@ -180,12 +180,14 @@ module ActiveRecord
         end
 
         # convert something to a BigDecimal
-        def value_to_decimal(value)
+        def value_to_decimal(value, precision=nil)
           # Using .class is faster than .is_a? and
           # subclasses of BigDecimal will be handled
           # in the else clause
           if value.class == BigDecimal
             value
+          elsif value.class == Rational
+            value.to_d(precision)
           elsif value.respond_to?(:to_d)
             value.to_d
           else
