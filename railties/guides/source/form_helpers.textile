@@ -754,7 +754,7 @@ produces exactly the same output as the previous example.
 
 h3. Forms to external resources
 
-If you need to post some data to an external resource it is still great to build your from using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
+If you need to post some data to an external resource it is still great to build your form using rails form helpers. But sometimes you need to set an +authenticity_token+ for this resource. You can do it by passing an +:authenticity_token => 'your_external_token'+ parameter to the +form_tag+ options:
 
 <erb>
 <%= form_tag 'http://farfar.away/form', :authenticity_token => 'external_token') do %>
