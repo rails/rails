@@ -105,13 +105,21 @@ module ActiveModel
     private
       # Fires notifications to model's observers
       #
-      # def save
-      #   notify_observers(:before_save)
-      #   ...
-      #   notify_observers(:after_save)
-      # end
-      def notify_observers(method)
-        self.class.notify_observers(method, self)
+      #   def save
+      #     notify_observers(:before_save)
+      #     ...
+      #     notify_observers(:after_save)
+      #   end
+      #
+      # Custom notifications can be sent in a similar fashion:
+      #
+      #   notify_observers(:custom_notification, :foo)
+      #
+      # This will call +custom_notification+, passing as arguments
+      # the current object and :foo.
+      #
+      def notify_observers(method, *extra_args)
+        self.class.notify_observers(method, self, *extra_args)
       end
   end
 
@@ -225,10 +233,10 @@ module ActiveModel
 
     # Send observed_method(object) if the method exists and
     # the observer is enabled for the given object's class.
-    def update(observed_method, object, &block) #:nodoc:
+    def update(observed_method, object, *extra_args, &block) #:nodoc:
       return unless respond_to?(observed_method)
       return if disabled_for?(object)
-      send(observed_method, object, &block)
+      send(observed_method, object, *extra_args, &block)
     end
 
     # Special method sent by the observed class when it is inherited.
