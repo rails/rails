@@ -18,6 +18,7 @@ require 'set'
 module ActiveSupport
   class << self
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
+      :use_dot_net_json_time_format, :use_dot_net_json_time_format=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
       :to => :'ActiveSupport::JSON::Encoding'
   end
@@ -105,6 +106,8 @@ module ActiveSupport
       class << self
         # If true, use ISO 8601 format for dates and times. Otherwise, fall back to the Active Support legacy format.
         attr_accessor :use_standard_json_time_format
+        # If true, use /Date(MILLIS_SINCE_EPOC)/ for dates and times. Not compatible with :use_standard_json_time_format
+        attr_accessor :use_dot_net_json_time_format
 
         attr_accessor :escape_regex
         attr_reader :escape_html_entities_in_json
@@ -255,7 +258,10 @@ end
 
 class Time
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport.use_dot_net_json_time_format
+      ms = (self.to_f * 1000.0).to_i
+      "\/Date(#{ms})\/"
+    elsif ActiveSupport.use_standard_json_time_format
       xmlschema
     else
       %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
@@ -265,7 +271,10 @@ end
 
 class Date
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport.use_dot_net_json_time_format
+      ms = (self.to_time.to_f * 1000.0).to_i
+      "\/Date(#{ms})\/"
+    elsif ActiveSupport.use_standard_json_time_format
       strftime("%Y-%m-%d")
     else
       strftime("%Y/%m/%d")
@@ -275,7 +284,10 @@ end
 
 class DateTime
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport.use_dot_net_json_time_format
+      ms = (self.to_time.to_f * 1000.0).to_i
+      "\/Date(#{ms})\/"
+    elsif ActiveSupport.use_standard_json_time_format
       xmlschema
     else
       strftime('%Y/%m/%d %H:%M:%S %z')
