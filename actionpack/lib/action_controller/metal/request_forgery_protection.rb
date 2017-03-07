@@ -79,11 +79,11 @@ module ActionController #:nodoc:
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
       config_accessor :forgery_protection_origin_check
-      self.forgery_protection_origin_check = false
+      self.forgery_protection_origin_check = true
 
       # Controls whether form-action/method specific CSRF tokens are used.
       config_accessor :per_form_csrf_tokens
-      self.per_form_csrf_tokens = false
+      self.per_form_csrf_tokens = true
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
