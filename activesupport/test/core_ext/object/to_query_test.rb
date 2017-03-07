@@ -20,10 +20,8 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_query_equal "a=%5B10%5D", "a" => "[10]".html_safe
   end
 
-  def test_nil_parameter_value
-    empty = Object.new
-    def empty.to_param; nil end
-    assert_query_equal "a=", "a" => empty
+  def test_nil_to_parameter_value
+    assert_equal "a", nil.to_query("a")
   end
 
   def test_nested_conversion
@@ -57,7 +55,7 @@ class ToQueryTest < ActiveSupport::TestCase
       a: 1, b: { c: 3, d: {} }
     assert_query_equal "",
       a: { b: { c: {} } }
-    assert_query_equal "b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=&p=12",
+    assert_query_equal "b%5Bc%5D=false&b%5Be%5D&b%5Bf%5D=&p=12",
       p: 12, b: { c: false, e: nil, f: "" }
     assert_query_equal "b%5Bc%5D=3&b%5Bf%5D=",
       b: { c: 3, k: {}, f: "" }
