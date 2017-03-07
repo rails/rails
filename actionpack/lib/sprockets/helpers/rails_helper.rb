@@ -54,7 +54,16 @@ module Sprockets
       def asset_path(source, options = {})
         source = source.logical_path if source.respond_to?(:logical_path)
         path = asset_paths.compute_public_path(source, asset_prefix, options.merge(:body => true))
-        options[:body] ? "#{path}?body=1" : path
+        default_url_options = url_options.dup.delete_if { |k,v|
+          [:host, :port, :protocol, :_path_segments, :script_name].include?(k)
+        }
+        default_url_options.merge!("body" => 1) if options[:body]
+        if default_url_options.empty?
+          path
+        else
+          params = default_url_options.collect {|k,v| "#{k}=#{v}"}.join("&")
+          "#{path}?#{params}"
+        end
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
