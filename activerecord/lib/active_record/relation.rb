@@ -409,8 +409,16 @@ module ActiveRecord
       if conditions
         where(conditions).delete_all
       else
-        statement = arel.compile_delete
-        affected = @klass.connection.delete(statement, 'SQL', bind_values)
+        stmt = Arel::DeleteManager.new(arel.engine)
+        stmt.from(table)
+
+        if joins_values.any?
+          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+        else
+          stmt.wheres = arel.constraints
+        end
+
+        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
 
         reset
         affected
