@@ -279,11 +279,18 @@ module ActiveRecord
             :connection_id => object_id,
             :binds         => binds) { yield }
         rescue Exception => e
-          message = "#{e.class.name}: #{e.message}: #{sql}"
-          @logger.debug message if @logger
-          exception = translate_exception(e, message)
-          exception.set_backtrace e.backtrace
-          raise exception
+          # if the exception does not respond to result, it is probably
+          # not the intended sql execution exception. Re-throw it without
+          # any translation.
+          if e.respond_to?(:result)
+            message = "#{e.class.name}: #{e.message}: #{sql}"
+            @logger.debug message if @logger
+            exception = translate_exception(e, message)
+            exception.set_backtrace e.backtrace
+            raise exception
+          else
+            raise e
+          end
         end
 
         def translate_exception(e, message)
