@@ -192,6 +192,12 @@
 
     *Juan M. Cuello + Dembskiy Alexander*
 
+*   Trigger a save on `has_one association=(associate)` when the associate contents have changed.
+
+    Fix #8856.
+
+    *Chris Thompson*
+
 *   Reload the association target if it's stale. `@stale_state` should be nil
     when a model isn't saved.
     Fixes #7526.
