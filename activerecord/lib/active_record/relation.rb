@@ -44,7 +44,7 @@ module ActiveRecord
       end
 
       im = arel.create_insert
-      im.into @table
+      im.into arel_table(Hash[*values.map{|k,v| [k.name,v]}.flatten])
 
       conn = @klass.connection
 

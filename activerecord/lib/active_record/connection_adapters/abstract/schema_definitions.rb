@@ -271,6 +271,14 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
+      #
+      # Builds a SQL check constraint
+      #
+      # @param [String] constraint a SQL constraint
+      def check_constraint(constraint)
+        @columns << Struct.new(:to_sql).new("CHECK (#{constraint})")
+      end
+
       # Returns a String whose contents are the column definitions
       # concatenated together. This string can then be prepended and appended to
       # to generate the final SQL to create the table.
