@@ -325,6 +325,7 @@ module ActionDispatch
     # be included by the session middleware.
     def reset_session
       if session && session.respond_to?(:destroy)
+        controller_instance.token_store.clean(controller_instance)
         session.destroy
       else
         self.session = {}

@@ -1,6 +1,12 @@
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
+class DummyKeyGenerator
+  def generate_key(_secret)
+    "03312270731a2ed0d11ed091c2338a06"
+  end
+end
+
 # common controller actions
 module RequestForgeryProtectionActions
   def index
@@ -84,6 +90,24 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class RequestForgeryProtectionControllerUsingSessionStore < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery token_store: :session_store
+
+  def test
+    head :ok
+  end
+end
+
+class RequestForgeryProtectionControllerUsingCookieStore < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery token_store: :cookie_store
+
+  def test
+    head :ok
+  end
+end
+
 class PrependProtectForgeryBaseController < ActionController::Base
   before_action :custom_action
   attr_accessor :called_callbacks
@@ -150,6 +174,7 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
     @token = Base64.strict_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
@@ -519,14 +544,8 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
 end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
-  class NullSessionDummyKeyGenerator
-    def generate_key(secret)
-      "03312270731a2ed0d11ed091c2338a06"
-    end
-  end
-
   def setup
-    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
   end
 
   test "should allow to set signed cookies" do
@@ -629,6 +648,7 @@ end
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
     super
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
@@ -667,6 +687,7 @@ end
 
 class PerFormTokensControllerTest < ActionController::TestCase
   def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -678,7 +699,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
-    actual = @controller.send(:per_form_csrf_token, session, "/path", "post").size
+    actual = @controller.send(:per_form_csrf_token, "/path", "post").size
     assert_equal expected, actual
   end
 
@@ -859,7 +880,46 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     def assert_matches_session_token_on_server(form_token, method = "post")
       actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
-      expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
+      expected = @controller.send(:per_form_csrf_token, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
+end
+
+class RequestForgeryProtectionControllerUsingCookieStoreTest < ActionController::TestCase
+  def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
+  end
+
+  test "it works" do
+    token = @controller.send(:form_authenticity_token)
+
+    post :test, params: { custom_authenticity_token: token }
+    assert_response :success
+  end
+end
+
+class RequestForgeryProtectionControllerUsingSessionStoreTest < ActionController::TestCase
+  def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
+  end
+
+  test "it works" do
+    token = @controller.send(:form_authenticity_token)
+
+    post :test, params: { custom_authenticity_token: token }
+    assert_response :success
+  end
+end
+
+class RequestForgeryProtectionControllerUsingFallbackStoreTest < ActionController::TestCase
+  def setup
+    @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = DummyKeyGenerator.new
+  end
+
+  test "it works" do
+    token = @controller.send(:form_authenticity_token)
+
+    post :test, params: { custom_authenticity_token: token }
+    assert_response :success
+  end
 end
