@@ -180,6 +180,7 @@ ActiveRecord::Schema.define do
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+  add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
 
   create_table :vegetables, :force => true do |t|
     t.string :name

@@ -144,6 +144,18 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_add_partial_index
+      skip 'only on pg' unless current_adapter?(:PostgreSQLAdapter)
+
+      Person.connection.add_column "people", "last_name", :string, :limit => 100
+      assert_nothing_raised { Person.connection.add_index("people", "last_name", :where => "first_name = 'john doe'") }
+
+      assert Person.connection.index_exists?("people", "last_name")
+
+      assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+      assert !Person.connection.index_exists?("people", "last_name")
+    end
+
     def test_index_symbol_names
       assert_nothing_raised { Person.connection.add_index :people, :primary_contact_id, :name => :symbol_index_name }
       assert Person.connection.index_exists?(:people, :primary_contact_id, :name => :symbol_index_name)
