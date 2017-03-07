@@ -414,6 +414,14 @@ module Rails
           File.expand_path(engine.root.to_s) == expanded_path
         }
       end
+
+      def mounted_path
+        my_route = Rails.application.routes.routes.detect do |route|
+          route.app == self
+        end
+        raise "#{self} is not yet mounted." unless my_route
+        my_route.path.spec.to_s
+      end
     end
 
     delegate :middleware, :root, :paths, :to => :config
