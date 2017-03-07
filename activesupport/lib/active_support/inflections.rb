@@ -25,6 +25,7 @@ module ActiveSupport
     inflect.plural(/(quiz)$/i, '\1zes')
 
     inflect.singular(/s$/i, '')
+    inflect.singular(/(ss)$/i, '\1')
     inflect.singular(/(n)ews$/i, '\1ews')
     inflect.singular(/([ti])a$/i, '\1um')
     inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, '\1\2sis')

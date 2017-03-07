@@ -257,6 +257,13 @@ class InflectorTest < Test::Unit::TestCase
     end
   end
 
+  def test_classify_with_complex_singular
+    assert_nothing_raised do
+      assert_equal 'Address', ActiveSupport::Inflector.classify(:address)
+      assert_equal 'Address', ActiveSupport::Inflector.classify(:addresses)
+    end
+  end
+
   def test_classify_with_symbol
     assert_nothing_raised do
       assert_equal 'FooBar', ActiveSupport::Inflector.classify(:foo_bars)
@@ -295,7 +302,7 @@ class InflectorTest < Test::Unit::TestCase
       ActiveSupport::Inflector.constantize(string)
     end
   end
-  
+
   def test_safe_constantize
     run_safe_constantize_tests_on do |string|
       ActiveSupport::Inflector.safe_constantize(string)
