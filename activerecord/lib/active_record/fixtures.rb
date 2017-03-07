@@ -507,7 +507,7 @@ module ActiveRecord
             # Cap primary key sequences to max(pk).
             if connection.respond_to?(:reset_pk_sequence!)
               table_names.each do |table_name|
-                connection.reset_pk_sequence!(table_name.tr('/', '_'))
+                connection.reset_pk_sequence!("#{ActiveRecord::Base.table_name_prefix}#{table_name.tr('/', '_')}#{ActiveRecord::Base.table_name_suffix}")
               end
             end
           end
