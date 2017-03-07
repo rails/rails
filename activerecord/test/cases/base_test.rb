@@ -2211,7 +2211,9 @@ class BasicsTest < ActiveRecord::TestCase
     Bulb.create(:car => car)
 
     key = car.cache_key
-    car.bulb.touch
+    Bulb.transaction do
+      car.bulb.touch
+    end
     car.reload
     assert_not_equal key, car.cache_key
   ensure
