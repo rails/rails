@@ -118,7 +118,7 @@ module ActionController
     # :call-seq:
     #   as_json(options=nil)
     #
-    # Returns a hash that can be used as the JSON representation for the params.
+    # Returns a hash that can be used as the JSON representation for the parameters.
 
     ##
     # :method: empty?
@@ -126,7 +126,7 @@ module ActionController
     # :call-seq:
     #   empty?()
     #
-    # Returns true if the object has no key/value pairs.
+    # Returns true if the parameters have no key/value pairs.
 
     ##
     # :method: has_key?
