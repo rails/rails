@@ -106,6 +106,13 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_with_id_as
+    expected_options = {:controller => 'messages', :action => 'show', :other_id => '1'}
+    with_restful_routing :messages, :id_as => :other_id do
+      assert_recognizes(expected_options, :path => 'messages/1', :method => :get)
+    end
+  end
+
   def test_irregular_id_with_no_constraints_should_raise_error
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
 
