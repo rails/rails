@@ -1462,6 +1462,20 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
+  def test_route_with_constraint_class_that_checks_parameters
+    foo_constraint = Class.new {
+      def matches? request
+        request.params[:foo] == 'bar'
+      end
+    }
+
+    set.draw do
+      match '/:foo' => 'foo#index', :constraints => foo_constraint.new
+    end
+
+    assert_equal({:controller => 'foo', :action => 'index', :foo => 'bar'}, set.recognize_path('/bar'))
+  end
+
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       match 'page/:name' => 'pages#show',

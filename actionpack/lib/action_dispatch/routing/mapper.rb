@@ -23,8 +23,12 @@ module ActionDispatch
           @app, @constraints, @request = app, constraints, request
         end
 
-        def matches?(env)
+        def matches?(env, params = {})
           req = @request.new(env)
+
+          params.each do |key, value|
+            req.params[key] = value
+          end
 
           @constraints.each { |constraint|
             if constraint.respond_to?(:matches?) && !constraint.matches?(req)
