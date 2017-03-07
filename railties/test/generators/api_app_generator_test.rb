@@ -61,15 +61,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_skips_per_form_csrf_token_and_origin_check_configs_for_api_apps
-    run_generator
-
-    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
-      assert_no_match(/per_form_csrf_tokens/, initializer_content)
-      assert_no_match(/forgery_protection_origin_check/, initializer_content)
-    end
-  end
-
   private
 
     def default_files
