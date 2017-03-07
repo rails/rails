@@ -12,3 +12,4 @@ end
 class Topic < BeastResource
   self.site += '/forums/:forum_id'
 end
+

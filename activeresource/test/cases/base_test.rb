@@ -7,6 +7,7 @@ require "fixtures/beast"
 require "fixtures/proxy"
 require "fixtures/address"
 require "fixtures/subscription_plan"
+require "fixtures/hierarchy"
 require 'active_support/json'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/hash/conversions'
@@ -47,6 +48,21 @@ class BaseTest < Test::Unit::TestCase
     actor.site = 'http://localhost:31337'
     actor.site = nil
     assert_nil actor.site
+  end
+
+  def test_connection_class_assignable_and_inheritable
+    assert_same ActiveResource::Connection, RootResource.connection_class
+    assert_same ParentConnection, ParentResource.connection_class
+    assert_same ParentConnection, ChildResource.connection_class
+  end
+
+  def test_connection_class_changes_connection    
+    assert_not_same ParentResource.connection, RootResource.connection
+    assert_same ChildResource.connection, ParentResource.connection
+
+    assert_instance_of ActiveResource::Connection, RootResource.connection
+    assert_instance_of ParentConnection, ParentResource.connection
+    assert_instance_of ParentConnection, ChildResource.connection
   end
 
   def test_proxy_accessor_accepts_uri_or_string_argument
