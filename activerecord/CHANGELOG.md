@@ -1,3 +1,13 @@
+*   Check whether `Rails.application` defined before calling it
+
+    In #27674 we changed the migration generator to generate migrations at the
+    path defined in `Rails.application.config.paths` however the code checked
+    for the presence of the `Rails` constant but not the `Rails.application`
+    method which caused problems when using Active Record and generators outside
+    of the context of a Rails application.
+
+    Fixes #28325.
+
 *   Fix `deserialize` with JSON array.
 
     Fixes #28285.
