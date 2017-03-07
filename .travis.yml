@@ -93,17 +93,17 @@ matrix:
     - rvm: 2.4.0
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.8.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.8.0
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.8.0
     - env: "GEM=ac:integration"
   fast_finish: true
 
