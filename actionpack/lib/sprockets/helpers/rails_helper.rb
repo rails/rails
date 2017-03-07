@@ -23,6 +23,8 @@ module Sprockets
         body  = options.key?(:body)  ? options.delete(:body)  : false
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
+        options.except!(:cache, :concat)
+
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
@@ -39,6 +41,8 @@ module Sprockets
         debug   = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body    = options.key?(:body)  ? options.delete(:body)  : false
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
+
+        options.except!(:cache, :concat)
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
