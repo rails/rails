@@ -199,7 +199,8 @@ module ActiveSupport #:nodoc:
         # Raise the first error for this set. If this const_missing came from an
         # earlier const_missing, this will result in the real error bubbling
         # all the way up
-        raise error
+        raise error.class, error.message,
+              caller.reject { |l| l.starts_with? __FILE__ }
       end
 
       def unloadable(const_desc = self)
@@ -518,8 +519,7 @@ module ActiveSupport #:nodoc:
       end
 
       raise NameError,
-            "uninitialized constant #{qualified_name}",
-            caller.reject {|l| l.starts_with? __FILE__ }
+            "uninitialized constant #{qualified_name}"
     end
 
     # Remove the constants that have been autoloaded, and those that have been
