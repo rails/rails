@@ -658,8 +658,8 @@ end
 
 The driver name is a required argument for `driven_by`. The optional arguments
 that can be passed to `driven_by` are `:using` for the browser (this will only
-be used for non-headless drivers like Selenium), `:on` for the port Puma should
-use, and `:screen_size` to change the size of the screen for screenshots.
+be used for non-headless drivers like Selenium), and `:screen_size` to change
+the size of the screen for screenshots.
 
 ```ruby
 require "test_helper"
