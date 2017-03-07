@@ -1,3 +1,12 @@
+*   Make `nil.to_query` return `key`.
+
+    Fixes #28322 so that:
+
+        >> {key: nil}.to_query
+        => "key"
+        >> Rack::Utils.parse_nested_query("key")
+        => {key: nil}
+
 *   Update `titleize` regex to allow apostrophes
 
     In 4b685aa the regex in `titleize` was updated to not match apostrophes to
