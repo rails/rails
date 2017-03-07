@@ -13,6 +13,7 @@ aliases = {
 
 command = ARGV.shift
 command = aliases[command] || command
+RAILS_COMMAND = command
 
 case command
 when 'generate', 'destroy', 'plugin'
