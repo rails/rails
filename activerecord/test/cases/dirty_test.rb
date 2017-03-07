@@ -121,7 +121,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_time_attributes_changes_without_time_zone
+  def test_datetime_attributes_changes_without_time_zone
 
     target = Class.new(ActiveRecord::Base)
     target.table_name = 'pirates'
@@ -562,6 +562,19 @@ class DirtyTest < ActiveRecord::TestCase
       topic.written_on += 0.3
 
       assert topic.written_on_changed?, 'Fractional second update not detected'
+    end
+  end
+
+  def test_time_attributes_do_not_convert_zone
+    in_time_zone 'Paris' do
+      topic = Topic.new(:bonus_time => Time.now)
+      original_bonus_time = topic.bonus_time
+      topic.save!
+
+      topic.bonus_time = Time.now + 1.day
+      assert topic.bonus_time_changed?
+      assert_equal original_bonus_time, topic.bonus_time_was
+      assert_equal original_bonus_time.zone, topic.bonus_time_was.zone
     end
   end
 
