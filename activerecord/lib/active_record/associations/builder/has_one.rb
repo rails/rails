@@ -55,7 +55,21 @@ module ActiveRecord::Associations::Builder
       def define_restrict_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
-          raise ActiveRecord::DeleteRestrictionError.new(name) unless send(name).nil?
+          unless send(name).nil?
+            msg = "has_one association :dependent => :restrict option, no longer raises an " \
+                  "ActiveRecord::DeleteRestrictionError and is going to be deprecated in the " \
+                  "next version. In order for the exception be raised, please set " \
+                  "ActiveRecord::Base.dependent_restrict_raises = true."
+
+            ActiveSupport::Deprecation.warn msg
+
+            if dependent_restrict_raises == true
+              raise ActiveRecord::DeleteRestrictionError.new(name)
+            else
+              self.errors.add(:base, "Cannot delete record because dependent #{name} exists")
+              return false
+            end
+          end
         end
       end
   end
