@@ -320,6 +320,11 @@ module ActionView
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
+      def asset_path(source)
+        asset_paths.compute_public_path(source, '')
+      end
+      alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
+
       # Returns an html image tag for the +source+. The +source+ can be a full
       # path or a file that exists in your public images directory.
       #
