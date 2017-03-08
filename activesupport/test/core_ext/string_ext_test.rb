@@ -3,11 +3,13 @@ require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'
 require 'constantize_test_cases'
+require 'builder'
 
 require 'active_support/inflector'
 require 'active_support/core_ext/string'
 require 'active_support/time'
 require 'active_support/core_ext/string/strip'
+require 'active_support/core_ext/string/xchar'
 require 'active_support/core_ext/string/output_safety'
 
 module Ace
@@ -514,5 +516,16 @@ class StringExcludeTest < ActiveSupport::TestCase
   test 'inverse of #include' do
     assert_equal false, 'foo'.exclude?('o')
     assert_equal true, 'foo'.exclude?('p')
+  end
+end
+
+class StringBuilderFastXSTest < Test::Unit::TestCase
+  def test_build_xml_instruct_to_escaped_string
+    xml = Builder::XmlMarkup.new
+
+    assert_nothing_raised do
+    	xml.instruct!
+      assert_equal '<?xml version="1.0" encoding="UTF-8"?>', xml
+    end
   end
 end
