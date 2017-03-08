@@ -57,8 +57,8 @@ class Hash
   #       "TrueClass"  => "boolean",
   #       "FalseClass" => "boolean",
   #       "Date"       => "date",
-  #       "DateTime"   => "datetime",
-  #       "Time"       => "datetime"
+  #       "DateTime"   => "dateTime",
+  #       "Time"       => "dateTime"
   #     }
   #
   # By default the root node is "hash", but that's configurable via the <tt>:root</tt> option.
