@@ -758,6 +758,18 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal 'not_get_or_post', params[:action]
   end
 
+  def test_recognize_all_option
+    rs.draw do
+      match '/match' => 'books#all', :via => :all
+    end
+
+    params = rs.recognize_path("/match", :method => :get)
+    assert_equal 'all', params[:action]
+
+    params = rs.recognize_path("/match", :method => :post)
+    assert_equal 'all', params[:action]
+  end
+
   def test_subpath_recognized
     rs.draw do
       match '/books/:id/edit'    => 'subpath_books#edit'
