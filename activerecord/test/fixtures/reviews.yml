@@ -1,0 +1,14 @@
+positive_review:
+  author_id: 2
+  book_id: 1
+  positive: true
+
+david_positive_review:
+  author_id: 1
+  book_id: 2
+  positive: true
+
+negative_review:
+  author_id: 3
+  book_id: 1
+  positive: false
