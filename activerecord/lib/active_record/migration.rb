@@ -676,8 +676,15 @@ module ActiveRecord
       target = migrations.detect { |m| m.version == @target_version }
       raise UnknownMigrationVersionError.new(@target_version) if target.nil?
       unless (up? && migrated.include?(target.version.to_i)) || (down? && !migrated.include?(target.version.to_i))
-        target.migrate(@direction)
-        record_version_state_after_migrating(target.version)
+        begin
+          ddl_transaction do
+            target.migrate(@direction)
+            record_version_state_after_migrating(target.version)
+          end
+        rescue => e
+          disclaimer = Base.connection.supports_ddl_transactions? ? ", the migration canceled" : ""
+          raise StandardError, "An error has occurred#{disclaimer}:\n\n#{e}", e.backtrace
+        end
       end
     end
 
