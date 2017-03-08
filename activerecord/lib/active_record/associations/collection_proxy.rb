@@ -41,7 +41,7 @@ module ActiveRecord
       delegate :group, :order, :limit, :joins, :where, :preload, :eager_load, :includes, :from,
                :lock, :readonly, :having, :pluck, :to => :scoped
 
-      delegate :target, :load_target, :loaded?, :to => :@association
+      delegate :reset, :target, :load_target, :loaded?, :to => :@association
 
       delegate :select, :find, :first, :last,
                :build, :create, :create!,
