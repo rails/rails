@@ -1,3 +1,9 @@
+*   Fix `ActionController::Renderer#with_defaults` does not work
+
+    Fixes `NameError: undefined local variable or method `env'`.
+
+    *Hiroyuki Ishii*
+
 *   Added `#reverse_merge` and `#reverse_merge!` methods to `ActionController::Parameters`
 
     *Edouard Chin*, *Mitsutaka Mimura*
