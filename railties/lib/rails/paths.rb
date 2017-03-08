@@ -72,6 +72,10 @@ module Rails
         filter_by(:autoload_once?)
       end
 
+      def skip_eager_load
+        @skip_eager_load ||= all_paths.select{|path| !path.eager_load?}.flatten
+      end
+
       def eager_load
         filter_by(:eager_load?)
       end
