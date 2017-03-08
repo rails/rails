@@ -191,5 +191,10 @@ class ErrorsTest < ActiveModel::TestCase
       person.errors.generate_message(:name, :blank)
     }
   end
+
+  test "can add errors to non-attributes with translations" do
+    person = Person.new
+    person.errors.add(:not_an_attribute, :invalid)
+  end
 end
 
