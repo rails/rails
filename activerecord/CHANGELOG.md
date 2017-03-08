@@ -50,6 +50,11 @@
 
     *Eugene Kalenkovich*
 
+*   Fix validate uniqueness in has_many :through association using `+=`
+    operator.
+
+    *Kassio Borges*
+
 *   Load fixtures from linked folders.
 
     *Kassio Borges*
