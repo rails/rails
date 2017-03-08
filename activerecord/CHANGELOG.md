@@ -1,3 +1,7 @@
+*   Deprecate `Migrator.schema_migrations_table_name`.
+
+    *Ryuta Kamizono*
+
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the
