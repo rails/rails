@@ -53,7 +53,7 @@ class Pirate < ActiveRecord::Base
     attributes.delete('_reject_me_if_new').present? && !persisted?
   end
 
-  attr_accessor :cancel_save_from_callback
+  attr_accessor :cancel_save_from_callback, :parrots_limit
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method
     false
