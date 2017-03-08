@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'active_support/inflector'
 require 'active_support/descendants_tracker'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/class/attribute'
@@ -138,6 +139,7 @@ module ActiveSupport
       end
 
       def matches?(_kind, _filter)
+        _filter = _method_name_for_object_filter(_kind, _filter) if @is_object_filter
         @kind == _kind && @filter == _filter
       end
 
@@ -263,6 +265,14 @@ module ActiveSupport
         conditions.flatten.join(" && ")
       end
 
+      def _method_name_for_object_filter(kind, filter)
+        class_name = filter.kind_of?(Class) ? filter.to_s : filter.class.to_s
+        class_name.gsub!(/<|>|#/, '')
+        class_name.gsub!(/\/|:/, "_")
+
+        "_callback_#{kind}_#{class_name.underscore}"
+      end
+
       # Filters support:
       #
       #   Arrays::  Used in conditions. This is used to specify
@@ -285,7 +295,7 @@ module ActiveSupport
       #     on the object.
       #
       def _compile_filter(filter)
-        method_name = "_callback_#{@kind}_#{next_id}"
+        @is_object_filter = false
         case filter
         when Array
           filter.map {|f| _compile_filter(f)}
@@ -294,11 +304,15 @@ module ActiveSupport
         when String
           "(#{filter})"
         when Proc
+          method_name = "_callback_#{@kind}_#{next_id}"
           @klass.send(:define_method, method_name, &filter)
           return method_name if filter.arity <= 0
 
           method_name << (filter.arity == 1 ? "(self)" : " self, Proc.new ")
         else
+          method_name = _method_name_for_object_filter(kind, filter)
+          @is_object_filter = true
+
           @klass.send(:define_method, "#{method_name}_object") { filter }
 
           _normalize_legacy_filter(kind, filter)

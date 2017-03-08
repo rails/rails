@@ -67,6 +67,16 @@ module CallbacksTest
     end
   end
 
+  class CallbackClass
+    def self.before(model)
+      model.history << [:before_save, :class]
+    end
+    
+    def self.after(model)
+      model.history << [:after_save, :class]
+    end
+  end
+
   class Person < Record
     [:before_save, :after_save].each do |callback_method|
       callback_method_sym = callback_method.to_sym
@@ -74,6 +84,7 @@ module CallbacksTest
       send(callback_method, callback_string(callback_method_sym))
       send(callback_method, callback_proc(callback_method_sym))
       send(callback_method, callback_object(callback_method_sym.to_s.gsub(/_save/, '')))
+      send(callback_method, CallbackClass)
       send(callback_method) { |model| model.history << [callback_method_sym, :block] }
     end
 
@@ -87,6 +98,7 @@ module CallbacksTest
     skip_callback :save, :after, :before_save_method, :unless => :yes
     skip_callback :save, :after, :before_save_method, :if => :no
     skip_callback :save, :before, :before_save_method, :unless => :no
+    skip_callback :save, :before, CallbackClass , :if => :yes
     def yes; true; end
     def no; false; end
   end
@@ -432,6 +444,7 @@ module CallbacksTest
         [:before_save, :object],
         [:before_save, :block],
         [:after_save, :block],
+        [:after_save, :class],
         [:after_save, :object],
         [:after_save, :proc],
         [:after_save, :string],
@@ -458,8 +471,10 @@ module CallbacksTest
         [:before_save, :string],
         [:before_save, :proc],
         [:before_save, :object],
+        [:before_save, :class],
         [:before_save, :block],
         [:after_save, :block],
+        [:after_save, :class],
         [:after_save, :object],
         [:after_save, :proc],
         [:after_save, :string],
@@ -685,8 +700,10 @@ module CallbacksTest
         [:before_save, :string],
         [:before_save, :proc],
         [:before_save, :object],
+        [:before_save, :class],
         [:before_save, :block],
         [:after_save, :block],
+        [:after_save, :class],
         [:after_save, :object],
         [:after_save, :proc],
         [:after_save, :string],
