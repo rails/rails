@@ -59,7 +59,7 @@ module Sprockets
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
       def image_path(source)
-        path_to_asset(source)
+        source.empty? ? '' : path_to_asset(source)
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
