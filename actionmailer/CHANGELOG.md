@@ -29,7 +29,8 @@
 
 ## Rails 3.2.14 (Jul 22, 2013) ##
 
-*   No changes.
+* Explicit multipart messages no longer set the order of the MIME parts.
+  *Nate Berkopec*
 
 
 ## Rails 3.2.13 (Mar 18, 2013) ##
