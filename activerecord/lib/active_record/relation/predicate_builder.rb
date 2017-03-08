@@ -10,7 +10,8 @@ module ActiveRecord
           if value.empty?
             '1 = 2'
           else
-            build_from_hash(engine, value, table, false)
+            bool = !is_model_attribute?(engine, column)
+            build_from_hash(engine, value, table, bool)
           end
         else
           column = column.to_s
@@ -59,5 +60,11 @@ module ActiveRecord
 
       predicates.flatten
     end
+
+    private
+
+      def self.is_model_attribute?(klass, column)
+        klass.column_names.include? column.to_s
+      end
   end
 end
