@@ -87,7 +87,9 @@ module ActionDispatch
 
     class CookieJar #:nodoc:
       include Enumerable
-
+      
+      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
+      
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
       # **.**, ***.** style TLDs like co.uk or com.au
@@ -169,6 +171,8 @@ module ActionDispatch
           value = options
           options = { :value => value }
         end
+        
+        raise CookieOverflow if options[:value].to_s.size > MAX_COOKIE_SIZE
 
         handle_options(options)
 
@@ -277,7 +281,6 @@ module ActionDispatch
     end
 
     class SignedCookieJar < CookieJar #:nodoc:
-      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
 
       def initialize(parent_jar, secret)
@@ -302,7 +305,6 @@ module ActionDispatch
           options = { :value => @verifier.generate(options) }
         end
 
-        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
       end
 
