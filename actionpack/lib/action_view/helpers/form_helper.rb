@@ -1398,10 +1398,21 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def button(value=nil, options={})
+      # ==== Examples
+      #   button("Create a post")
+      #   # => <button name='button' type='submit'>Create post</button>
+      #
+      #   button do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Ask me!</strong>
+      #   #    </button>
+      #
+       def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options)
+        @template.button_tag(value, options, &block)
       end
 
       def emitted_hidden_id?
