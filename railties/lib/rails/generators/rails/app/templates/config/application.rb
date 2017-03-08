@@ -69,6 +69,9 @@ module <%= app_const_base %>
 
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
+
+    # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
+    # config.assets.precompile += %w( search.js )
 <% end -%>
   end
 end

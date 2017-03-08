@@ -37,5 +37,8 @@
 
   # Expands the lines which load the assets
   config.assets.debug = true
+
+  # Raises an exception if an included asset is not found in config.assets.precompile
+  config.assets.enforce_precompile = true
   <%- end -%>
 end
