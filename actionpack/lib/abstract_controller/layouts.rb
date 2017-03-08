@@ -275,7 +275,9 @@ module AbstractController
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
-        name_clause = if name
+        name_clause = if anonymous?
+          "super"
+        else
           <<-RUBY
             lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
           RUBY
@@ -315,7 +317,7 @@ module AbstractController
 
           layout_definition = if parent.nil?
               name_clause
-            elsif name
+            elsif !anonymous?
               <<-RUBY
                 if template = lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first
                   ActiveSupport::Deprecation.warn 'Layout found at "#{_implied_layout_name}" for #{name} but parent controller ' \
