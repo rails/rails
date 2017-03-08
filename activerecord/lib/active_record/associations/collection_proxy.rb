@@ -69,9 +69,14 @@ module ActiveRecord
       end
 
       def respond_to?(name, include_private = false)
-        super ||
-        (load_target && target.respond_to?(name, include_private)) ||
-        proxy_association.klass.respond_to?(name, include_private)
+        if super
+          true
+        elsif [:marshal_dump, :_dump].include?(name)
+          false
+        else
+          (load_target && target.respond_to?(name, include_private)) ||
+            proxy_association.klass.respond_to?(name, include_private)
+        end
       end
 
       def method_missing(method, *args, &block)
