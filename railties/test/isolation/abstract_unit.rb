@@ -241,10 +241,15 @@ module TestHelpers
     end
 
     def app_file(path, contents)
-      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", 'w') do |f|
+      fpath = "#{app_path}/#{path}"
+      mtime = File.file?(fpath) ? File.mtime(fpath) : Time.now
+
+      FileUtils.mkdir_p File.dirname(fpath)
+      File.open(fpath, 'w') do |f|
         f.puts contents
       end
+
+      File.utime(File.atime(fpath), mtime + 1, fpath)
     end
 
     def remove_file(path)
