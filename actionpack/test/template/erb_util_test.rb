@@ -16,6 +16,10 @@ class ErbUtilTest < Test::Unit::TestCase
     end
   end
 
+  def test_json_escape_does_not_remove_quotes
+    assert_equal 'a lovely "', json_escape('a lovely "')
+  end
+
   def test_json_escape_returns_unsafe_strings_when_passed_unsafe_strings
     value = json_escape("asdf")
     assert !value.html_safe?
