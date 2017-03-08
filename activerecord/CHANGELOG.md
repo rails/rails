@@ -1,3 +1,9 @@
+*   Fix longer sequence name detection for serial columns.
+
+    Fixes #28332.
+
+    *Ryuta Kamizono*
+
 *   MySQL: Don't lose `auto_increment: true` in the `db/schema.rb`.
 
     Fixes #30894.
