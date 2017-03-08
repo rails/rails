@@ -30,6 +30,14 @@ module ActionView
         @request.env.delete('PATH_INFO')
         @params = {}
       end
+
+      if defined?(Rails.application) && Rails.application
+        define_method :_routes do
+          Rails.application.routes
+        end
+
+        helper Rails.application.routes.url_helpers
+      end
     end
 
     module Behavior
