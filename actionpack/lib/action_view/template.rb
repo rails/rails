@@ -163,6 +163,7 @@ module ActionView
     def refresh(view)
       raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
       lookup  = view.lookup_context
+      lookup.formats = self.formats
       pieces  = @virtual_path.split("/")
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
