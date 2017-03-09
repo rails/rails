@@ -3,16 +3,29 @@ namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task :generate => 'generate:html'
 
+  # Guides are written in UTF-8, but the environment may be configured for some
+  # other locale, these tasks are responsible for ensuring the default external
+  # encoding is UTF-8.
+  #
+  # Real use cases: Generation was reported to fail on a machine configured with
+  # GBK (Chinese). The docs server once got misconfigured somehow and had "C",
+  # which broke generation too.
+  task :encoding do
+    %w(LANG LANGUAGE LC_ALL).each do |env_var|
+      ENV[env_var] = "en_US.UTF-8"
+    end
+  end
+
   namespace :generate do
 
     desc "Generate HTML guides"
-    task :html do
+    task :html => :encoding do
       ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/kindlepublishing"
-    task :kindle do
+    task :kindle => :encoding do
       unless `kindlerb -v 2> /dev/null` =~ /kindlerb 0.1.1/
         abort "Please `gem install kindlerb` and make sure you have `kindlegen` in your PATH"
       end
@@ -26,7 +39,7 @@ namespace :guides do
 
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-  task :validate do
+  task :validate => :encoding do
     ruby "w3c_validator.rb"
   end
 
