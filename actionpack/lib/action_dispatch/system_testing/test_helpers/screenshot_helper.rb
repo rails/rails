@@ -57,7 +57,7 @@ module ActionDispatch
           end
 
           def supports_screenshot?
-            page.driver.public_methods(false).include?(:save_screenshot)
+            Capybara.current_driver != :rack_test
           end
       end
     end
