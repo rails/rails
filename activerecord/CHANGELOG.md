@@ -1,3 +1,9 @@
+*   Fix select with block doesn't return newly built records in has_many association.
+
+    Fixes #28348.
+
+    *Ryuta Kamizono*
+
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the
