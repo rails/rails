@@ -644,7 +644,7 @@ system tests should live.
 
 If you want to change the default settings you can simply change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
-Poltergeist. First add the Poltergeist gem to your Gemfile. Then in your
+Poltergeist. First add the `poltergeist` gem to your Gemfile. Then in your
 `application_system_test_case.rb` file do the following:
 
 ```ruby
@@ -722,7 +722,7 @@ class ArticlesTest < ApplicationSystemTestCase
 end
 ```
 
-The test should see that there is an h1 on the articles index and pass.
+The test should see that there is an `h1` on the articles index page and pass.
 
 Run the system tests.
 
@@ -760,7 +760,7 @@ text. Once the fields are filled in, "Create Article" is clicked on which will
 send a POST request to create the new article in the database.
 
 We will be redirected back to the the articles index page and there we assert
-that the text from the article title is on the articles index page.
+that the text from the new article's title is on the articles index page.
 
 #### Taking it further
 
