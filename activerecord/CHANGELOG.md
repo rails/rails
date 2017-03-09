@@ -1,3 +1,7 @@
+*   Deprecate `Migrator.schema_migrations_table_name`.
+
+    *Ryuta Kamizono*
+
 *   Fix select with block doesn't return newly built records in has_many association.
 
     Fixes #28348.
