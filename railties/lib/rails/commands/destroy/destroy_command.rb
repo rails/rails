@@ -3,8 +3,10 @@ require "rails/generators"
 module Rails
   module Command
     class DestroyCommand < Base # :nodoc:
-      def help
-        Rails::Generators.help self.class.command_name
+      no_commands do
+        def help
+          Rails::Generators.help self.class.command_name
+        end
       end
 
       def perform(*)

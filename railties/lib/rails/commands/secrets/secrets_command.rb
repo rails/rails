@@ -4,10 +4,12 @@ require "rails/secrets"
 module Rails
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
-      def help
-        say "Usage:\n  #{self.class.banner}"
-        say ""
-        say self.class.desc
+      no_commands do
+        def help
+          say "Usage:\n  #{self.class.banner}"
+          say ""
+          say self.class.desc
+        end
       end
 
       def setup

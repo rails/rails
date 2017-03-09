@@ -64,7 +64,7 @@ module Rails
         end
 
         def printing_commands
-          namespace.sub(/^rails:/, "")
+          namespaced_commands
         end
 
         def executable
@@ -134,6 +134,12 @@ module Rails
 
           def command_root_namespace
             (namespace.split(":") - %w( rails )).first
+          end
+
+          def namespaced_commands
+            commands.keys.map do |key|
+              key == command_root_namespace ? key : "#{command_root_namespace}:#{key}"
+            end
           end
       end
 
