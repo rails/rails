@@ -1,3 +1,7 @@
+*   Added `#reverse_merge` and `#reverse_merge!` methods to `ActionController::Parameters`
+
+    *Edouard Chin*
+
 *   Fix malformed URLS when using `ApplicationController.renderer`
 
     The Rack environment variable `rack.url_scheme` was not being set so `scheme` was
