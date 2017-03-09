@@ -1206,7 +1206,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "ordering with a primary key does return the same count" do
-    scope = Post.eager_load(:comments).order('comments.id, comments.body').limit(15)
+    scope = Post.eager_load(:comments).order("comments.id, comments.body").limit(15)
     assert_equal Post.limit(15).count, scope.count
   end
 
