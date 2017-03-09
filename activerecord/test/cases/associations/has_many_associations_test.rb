@@ -783,6 +783,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [1], posts(:welcome).comments.select { |c| c.id == 1 }.map(&:id)
   end
 
+  def test_select_with_block_and_dirty_target
+    assert_equal 2, posts(:welcome).comments.select { true }.size
+    posts(:welcome).comments.build
+    assert_equal 3, posts(:welcome).comments.select { true }.size
+  end
+
   def test_select_without_foreign_key
     assert_equal companies(:first_firm).accounts.first.credit_limit, companies(:first_firm).accounts.select(:credit_limit).first.credit_limit
   end
