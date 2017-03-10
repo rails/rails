@@ -660,6 +660,21 @@ module ActionController
       self
     end
 
+    # Returns a new <tt>ActionController::Parameters</tt> with all keys from
+    # current hash merged into +other_hash+.
+    def reverse_merge(other_hash)
+      new_instance_with_inherited_permitted_status(
+        other_hash.to_h.merge(@parameters)
+      )
+    end
+
+    # Returns current <tt>ActionController::Parameters</tt> instance with
+    # current hash merged into +other_hash+.
+    def reverse_merge!(other_hash)
+      @parameters.merge!(other_hash.to_h) { |key, left, right| left }
+      self
+    end
+
     # This is required by ActiveModel attribute assignment, so that user can
     # pass +Parameters+ to a mass assignment methods in a model. It should not
     # matter as we are using +HashWithIndifferentAccess+ internally.

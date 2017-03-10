@@ -302,6 +302,35 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person][:age]
   end
 
+  test "#reverse_merge with parameters" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    merged_params = @params.reverse_merge(default_params)
+
+    assert_equal "1234", merged_params[:id]
+    refute_predicate merged_params[:person], :empty?
+  end
+
+  test "not permitted is sticky beyond reverse_merge!" do
+    merged_params = @params.reverse_merge(a: "b")
+
+    refute_predicate @params, :permitted?
+  end
+
+  test "permitted is sticky beyond reverse_merge!" do
+    @params.permit!
+    merged_params = @params.reverse_merge(a: "b")
+
+    assert_predicate @params, :permitted?
+  end
+
+  test "#reverse_merge! with parameters" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    @params.reverse_merge!(default_params)
+
+    assert_equal "1234", @params[:id]
+    refute_predicate @params[:person], :empty?
+  end
+
   test "modifying the parameters" do
     @params[:person][:hometown] = "Chicago"
     @params[:person][:family] = { brother: "Jonas" }
