@@ -1,6 +1,6 @@
 *   Added `#reverse_merge` and `#reverse_merge!` methods to `ActionController::Parameters`
 
-    *Edouard Chin*
+    *Edouard Chin & Mitsutaka Mimura*
 
 *   Fix malformed URLS when using `ApplicationController.renderer`
 
