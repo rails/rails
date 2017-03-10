@@ -244,6 +244,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_cookie_with_empty_domain
+      cookies[:user_name] = { value: "rizanreza", domain: "" }
+      head :ok
+    end
+
     def delete_cookie_with_domains
       cookies.delete(:user_name, domain: %w(example1.com example2.com .example3.com))
       head :ok
@@ -1074,6 +1079,12 @@ class CookiesTest < ActionController::TestCase
     get :set_cookie_with_domains
     assert_response :success
     assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/"
+  end
+
+  def test_setting_cookie_with_empty_domain
+    get :set_cookie_with_empty_domain
+    assert_response :success
+    assert_cookie_header "user_name=rizanreza; path=/"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
