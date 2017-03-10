@@ -85,6 +85,7 @@ module ActionController
       def normalize_keys(env)
         new_env = {}
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
       end
 

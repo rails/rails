@@ -4,10 +4,13 @@ require "rake/file_list"
 module Rails
   class TestRequirer # :nodoc:
     class << self
-      def require_files(patterns)
+      def require_files(patterns, exclude_patterns = [])
         patterns = expand_patterns(patterns)
 
-        Rake::FileList[patterns.compact.presence || "test/**/*_test.rb"].to_a.each do |file|
+        file_list = Rake::FileList[patterns.compact.presence || "test/**/*_test.rb"]
+        file_list.exclude(exclude_patterns)
+
+        file_list.to_a.each do |file|
           require File.expand_path(file)
         end
       end

@@ -2,7 +2,6 @@ require "capybara/dsl"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/server"
-require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
 
@@ -84,12 +83,19 @@ module ActionDispatch
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
+    def initialize(*) # :nodoc:
+      super
+      self.class.superclass.driver.use
+    end
+
     def self.start_application # :nodoc:
       Capybara.app = Rack::Builder.new do
         map "/" do
           run Rails.application
         end
       end
+
+      SystemTesting::Server.new.run
     end
 
     # System Test configuration options
@@ -105,20 +111,12 @@ module ActionDispatch
     #
     #   driven_by :selenium, screen_size: [800, 800]
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
-      driver = if selenium?(driver)
-                 SystemTesting::Browser.new(using, screen_size)
-               else
-                 SystemTesting::Driver.new(driver)
-               end
-
-      setup { driver.use }
-      teardown { driver.reset }
-
-      SystemTesting::Server.new.run
+      @driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size)
     end
 
-    def self.selenium?(driver) # :nodoc:
-      driver == :selenium
+    # Returns the driver object for the initialized system test
+    def self.driver
+      @driver ||= SystemTestCase.driven_by(:selenium)
     end
   end
 

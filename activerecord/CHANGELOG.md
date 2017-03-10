@@ -1,3 +1,49 @@
+*   Deprecate `Migrator.schema_migrations_table_name`.
+
+    *Ryuta Kamizono*
+
+*   Fix select with block doesn't return newly built records in has_many association.
+
+    Fixes #28348.
+
+    *Ryuta Kamizono*
+
+*   Check whether `Rails.application` defined before calling it
+
+    In #27674 we changed the migration generator to generate migrations at the
+    path defined in `Rails.application.config.paths` however the code checked
+    for the presence of the `Rails` constant but not the `Rails.application`
+    method which caused problems when using Active Record and generators outside
+    of the context of a Rails application.
+
+    Fixes #28325.
+
+    *Andrew White*
+
+*   Fix `deserialize` with JSON array.
+
+    Fixes #28285.
+
+    *Ryuta Kamizono*
+
+*   Fix `rake db:schema:load` with subdirectories.
+
+    *Ryuta Kamizono*
+
+*   Fix `rake db:migrate:status` with subdirectories.
+
+    *Ryuta Kamizono*
+
+*   Don't share options between reference id and type columns
+
+    When using a polymorphic reference column in a migration, sharing options
+    between the two columns doesn't make sense since they are different types.
+    The `reference_id` column is usually an integer and the `reference_type`
+    column a string so options like `unsigned: true` will result in an invalid
+    table definition.
+
+    *Ryuta Kamizono*
+
 *   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
 
     *Ryuta Kamizono*

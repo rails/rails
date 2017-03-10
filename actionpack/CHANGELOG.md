@@ -1,3 +1,13 @@
+*   Fix malformed URLS when using `ApplicationController.renderer`
+
+    The Rack environment variable `rack.url_scheme` was not being set so `scheme` was
+    returning `nil`. This caused URLs to be malformed with the default settings.
+    Fix this by setting `rack.url_scheme` when the environment is normalized.
+
+    Fixes #28151.
+
+    *George Vrettos*
+
 *   Commit flash changes when using a redirect route.
 
     Fixes #27992.

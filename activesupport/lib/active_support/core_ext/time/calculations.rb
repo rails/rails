@@ -53,6 +53,29 @@ class Time
     end
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
+
+    # Creates a +Time+ instance from an RFC 3339 string.
+    #
+    #   Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+    #
+    # If the time or offset components are missing then an +ArgumentError+ will be raised.
+    #
+    #   Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    def rfc3339(str)
+      parts = Date._rfc3339(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour),
+        parts.fetch(:min),
+        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset)
+      )
+    end
   end
 
   # Returns the number of seconds since 00:00:00.

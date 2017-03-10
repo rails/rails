@@ -54,9 +54,9 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
   test "reading from key file" do
     run_secrets_generator do
-      File.binwrite("config/secrets.yml.key", "How do I know you feel it?")
+      File.binwrite("config/secrets.yml.key", "00112233445566778899aabbccddeeff")
 
-      assert_equal "How do I know you feel it?", Rails::Secrets.key
+      assert_equal "00112233445566778899aabbccddeeff", Rails::Secrets.key
     end
   end
 

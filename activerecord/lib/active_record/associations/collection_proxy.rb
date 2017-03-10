@@ -78,7 +78,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select(:id, :name )
+      #   person.pets.select(:id, :name)
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -1121,7 +1121,7 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) + [:scoping]
+      } - self.public_instance_methods(false) - [:select] + [:scoping]
 
       delegate(*delegate_methods, to: :scope)
 

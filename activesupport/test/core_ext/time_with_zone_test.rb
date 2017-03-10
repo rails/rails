@@ -144,6 +144,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema(nil)
   end
 
+  def test_iso8601_with_fractional_seconds
+    @twz += Rational(1, 8)
+    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.iso8601(3)
+  end
+
+  def test_rfc3339_with_fractional_seconds
+    @twz += Rational(1, 8)
+    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.rfc3339(3)
+  end
+
   def test_to_yaml
     yaml = <<-EOF.strip_heredoc
       --- !ruby/object:ActiveSupport::TimeWithZone

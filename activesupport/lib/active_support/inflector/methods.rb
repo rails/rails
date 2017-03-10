@@ -161,7 +161,7 @@ module ActiveSupport
     #   titleize('TheManWithoutAPast')       # => "The Man Without A Past"
     #   titleize('raiders_of_the_lost_ark')  # => "Raiders Of The Lost Ark"
     def titleize(word)
-      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { |match| match.capitalize }
+      humanize(underscore(word)).gsub(/\b(?<!\w['’`])[a-z]/) { |match| match.capitalize }
     end
 
     # Creates the name of a table like Rails does for models to table names.

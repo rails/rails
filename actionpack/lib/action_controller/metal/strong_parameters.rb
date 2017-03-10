@@ -112,6 +112,77 @@ module ActionController
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
+    ##
+    # :method: as_json
+    #
+    # :call-seq:
+    #   as_json(options=nil)
+    #
+    # Returns a hash that can be used as the JSON representation for the parameters.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq:
+    #   empty?()
+    #
+    # Returns true if the parameters have no key/value pairs.
+
+    ##
+    # :method: has_key?
+    #
+    # :call-seq:
+    #   has_key?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: has_value?
+    #
+    # :call-seq:
+    #   has_value?(value)
+    #
+    # Returns true if the given value is present for some key in the parameters.
+
+    ##
+    # :method: include?
+    #
+    # :call-seq:
+    #   include?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: key?
+    #
+    # :call-seq:
+    #   key?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: keys
+    #
+    # :call-seq:
+    #   keys()
+    #
+    # Returns a new array of the keys of the parameters.
+
+    ##
+    # :method: value?
+    #
+    # :call-seq:
+    #   value?(value)
+    #
+    # Returns true if the given value is present for some key in the parameters.
+
+    ##
+    # :method: values
+    #
+    # :call-seq:
+    #   values()
+    #
+    # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
       :as_json, to: :@parameters
 
@@ -862,7 +933,7 @@ module ActionController
   #     end
   #
   #     # This will pass with flying colors as long as there's a person key in the
-  #     # parameters, otherwise it'll raise an ActionController::MissingParameter
+  #     # parameters, otherwise it'll raise an ActionController::ParameterMissing
   #     # exception, which will get caught by ActionController::Base and turned
   #     # into a 400 Bad Request reply.
   #     def update

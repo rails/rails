@@ -62,9 +62,9 @@ module Minitest
     options[:patterns] = opts.order! unless run_via.rake?
   end
 
-  def self.rake_run(patterns) # :nodoc:
+  def self.rake_run(patterns, exclude_patterns = []) # :nodoc:
     self.run_via = :rake unless run_via.set?
-    ::Rails::TestRequirer.require_files(patterns)
+    ::Rails::TestRequirer.require_files(patterns, exclude_patterns)
     autorun
   end
 
@@ -88,7 +88,13 @@ module Minitest
     # If run via `ruby` we've been passed the files to run directly, or if run
     # via `rake` then they have already been eagerly required.
     unless run_via.ruby? || run_via.rake?
-      ::Rails::TestRequirer.require_files(options[:patterns])
+      # If there are no given patterns, we can assume that the user
+      # simply runs the `bin/rails test` command without extra arguments.
+      if options[:patterns].empty?
+        ::Rails::TestRequirer.require_files(options[:patterns], ["test/system/**/*"])
+      else
+        ::Rails::TestRequirer.require_files(options[:patterns])
+      end
     end
 
     unless options[:full_backtrace] || ENV["BACKTRACE"]

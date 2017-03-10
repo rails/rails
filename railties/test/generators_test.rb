@@ -200,7 +200,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
     self.class.class_eval(<<-end_eval, __FILE__, __LINE__ + 1)
       class WithOptionsGenerator < Rails::Generators::Base
-        class_option :generate, :default => true
+        class_option :generate, default: true, type: :boolean
       end
     end_eval
 

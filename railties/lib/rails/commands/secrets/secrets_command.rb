@@ -4,10 +4,12 @@ require "rails/secrets"
 module Rails
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
-      def help
-        say "Usage:\n  #{self.class.banner}"
-        say ""
-        say self.class.desc
+      no_commands do
+        def help
+          say "Usage:\n  #{self.class.banner}"
+          say ""
+          say self.class.desc
+        end
       end
 
       def setup
@@ -18,16 +20,27 @@ module Rails
       end
 
       def edit
+        if ENV["EDITOR"].to_s.empty?
+          say "No $EDITOR to open decrypted secrets in. Assign one like this:"
+          say ""
+          say %(EDITOR="mate --wait" bin/rails secrets:edit)
+          say ""
+          say "For editors that fork and exit immediately, it's important to pass a wait flag,"
+          say "otherwise the secrets will be saved immediately with no chance to edit."
+
+          return
+        end
+
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          puts "Waiting for secrets file to be saved. Abort with Ctrl-C."
+          say "Waiting for secrets file to be saved. Abort with Ctrl-C."
           system("\$EDITOR #{tmp_path}")
         end
 
-        puts "New secrets encrypted and saved."
+        say "New secrets encrypted and saved."
       rescue Interrupt
-        puts "Aborted changing encrypted secrets: nothing saved."
+        say "Aborted changing encrypted secrets: nothing saved."
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       end

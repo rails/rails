@@ -25,7 +25,7 @@ module ActiveRecord
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, chain_head, chain_tail)
+        add_constraints(scope, owner, reflection, chain_head, chain_tail)
       end
 
       def join_type
@@ -60,8 +60,8 @@ module ActiveRecord
           table.create_join(table, table.create_on(constraint), join_type)
         end
 
-        def last_chain_scope(scope, table, reflection, owner, association_klass)
-          join_keys = reflection.join_keys(association_klass)
+        def last_chain_scope(scope, table, reflection, owner)
+          join_keys = reflection.join_keys
           key = join_keys.key
           foreign_key = join_keys.foreign_key
 
@@ -80,8 +80,8 @@ module ActiveRecord
           value_transformation.call(value)
         end
 
-        def next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
-          join_keys = reflection.join_keys(association_klass)
+        def next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
+          join_keys = reflection.join_keys
           key = join_keys.key
           foreign_key = join_keys.foreign_key
 
@@ -120,10 +120,10 @@ module ActiveRecord
           [runtime_reflection, previous_reflection]
         end
 
-        def add_constraints(scope, owner, association_klass, refl, chain_head, chain_tail)
+        def add_constraints(scope, owner, refl, chain_head, chain_tail)
           owner_reflection = chain_tail
           table = owner_reflection.alias_name
-          scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
+          scope = last_chain_scope(scope, table, owner_reflection, owner)
 
           reflection = chain_head
           while reflection
@@ -132,7 +132,7 @@ module ActiveRecord
 
             unless reflection == chain_tail
               foreign_table = next_reflection.alias_name
-              scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
+              scope = next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
             end
 
             # Exclude the scope of the association itself, because that

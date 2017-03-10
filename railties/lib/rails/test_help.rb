@@ -11,10 +11,6 @@ require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
 
-if defined?(Capybara) && defined?(Puma)
-  require "action_dispatch/system_test_case"
-end
-
 if defined?(ActiveRecord::Base)
   ActiveRecord::Migration.maintain_test_schema!
 
@@ -46,14 +42,5 @@ class ActionDispatch::IntegrationTest
   def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
-  end
-end
-
-if defined?(Capybara) && defined?(Puma)
-  class ActionDispatch::SystemTestCase
-    def before_setup # :nodoc:
-      @routes = Rails.application.routes
-      super
-    end
   end
 end

@@ -569,6 +569,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS.delete(:custom)
   end
 
+  def test_rfc3339_with_fractional_seconds
+    time = Time.new(1999, 12, 31, 19, 0, Rational(1, 8), -18000)
+    assert_equal "1999-12-31T19:00:00.125-05:00", time.rfc3339(3)
+  end
+
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Time.local(2005, 2, 21, 17, 44, 30).to_date
   end
@@ -909,6 +914,37 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_year
     assert_equal Time.local(2011, 1, 1, 0, 0, 0)..Time.local(2011, 12, 31, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_year
+  end
+
+  def test_rfc3339_parse
+    time = Time.rfc3339("1999-12-31T19:00:00.125-05:00")
+
+    assert_equal 1999, time.year
+    assert_equal 12, time.month
+    assert_equal 31, time.day
+    assert_equal 19, time.hour
+    assert_equal 0, time.min
+    assert_equal 0, time.sec
+    assert_equal 125000, time.usec
+    assert_equal(-18000, time.utc_offset)
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("1999-12-31")
+    end
+
+    assert_equal "invalid date", exception.message
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("1999-12-31T19:00:00")
+    end
+
+    assert_equal "invalid date", exception.message
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("foobar")
+    end
+
+    assert_equal "invalid date", exception.message
   end
 end
 

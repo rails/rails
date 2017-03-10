@@ -84,8 +84,46 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised { Date.today - Date.today }
   end
 
+  def test_plus
+    assert_equal 2.seconds, 1.second + 1.second
+    assert_instance_of ActiveSupport::Duration, 1.second + 1.second
+    assert_equal 2.seconds, 1.second + 1
+    assert_instance_of ActiveSupport::Duration, 1.second + 1
+  end
+
+  def test_minus
+    assert_equal 1.second, 2.seconds - 1.second
+    assert_instance_of ActiveSupport::Duration, 2.seconds - 1.second
+    assert_equal 1.second, 2.seconds - 1
+    assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+  end
+
+  def test_multiply
+    assert_equal 7.days, 1.day * 7
+    assert_instance_of ActiveSupport::Duration, 1.day * 7
+
+    assert_deprecated do
+      assert_equal 86400, 1.day * 1.second
+    end
+  end
+
+  def test_divide
+    assert_equal 1.day, 7.days / 7
+    assert_instance_of ActiveSupport::Duration, 7.days / 7
+
+    assert_deprecated do
+      assert_equal 1, 1.day / 1.day
+    end
+  end
+
+  def test_date_added_with_multiplied_duration
+    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+  end
+
   def test_plus_with_time
-    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    assert_deprecated do
+      assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    end
   end
 
   def test_time_plus_duration_returns_same_time_datatype
@@ -102,6 +140,13 @@ class DurationTest < ActiveSupport::TestCase
       1.second.ago("")
     end
     assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+  end
+
+  def test_implicit_coercion_is_deprecated
+    assert_deprecated { 1 + 1.second }
+    assert_deprecated { 1 - 1.second }
+    assert_deprecated { 1 * 1.second }
+    assert_deprecated { 1 / 1.second }
   end
 
   def test_fractional_weeks
@@ -241,13 +286,20 @@ class DurationTest < ActiveSupport::TestCase
   def test_comparable
     assert_equal(-1, (0.seconds <=> 1.second))
     assert_equal(-1, (1.second <=> 1.minute))
-    assert_equal(-1, (1 <=> 1.minute))
+
+    assert_deprecated do
+      assert_equal(-1, (1 <=> 1.minute))
+    end
+
     assert_equal(0, (0.seconds <=> 0.seconds))
     assert_equal(0, (0.seconds <=> 0.minutes))
     assert_equal(0, (1.second <=> 1.second))
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
-    assert_equal(1, (61 <=> 1.minute))
+
+    assert_deprecated do
+      assert_equal(1, (61 <=> 1.minute))
+    end
   end
 
   def test_twelve_months_equals_one_year
