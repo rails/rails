@@ -18,6 +18,8 @@
 
     Fixes #28325.
 
+    *Andrew White*
+
 *   Fix `deserialize` with JSON array.
 
     Fixes #28285.
