@@ -260,7 +260,7 @@
     to avoid duplication of duration constants through the codebase and
     eliminate creation of intermediate durations.
 
-    *Andrey Novikov, Andrew White*
+    *Andrey Novikov*, *Andrew White*
 
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
@@ -499,28 +499,28 @@
     *John Gesimondo*
 
 *   `travel/travel_to` travel time helpers, now raise on nested calls,
-     as this can lead to confusing time stubbing.
+    as this can lead to confusing time stubbing.
 
-     Instead of:
+    Instead of:
 
-         travel_to 2.days.from_now do
-           # 2 days from today
-           travel_to 3.days.from_now do
-             # 5 days from today
-           end
-         end
+        travel_to 2.days.from_now do
+          # 2 days from today
+          travel_to 3.days.from_now do
+            # 5 days from today
+          end
+        end
 
-     preferred way to achieve above is:
+    preferred way to achieve above is:
 
-         travel 2.days do
-           # 2 days from today
-         end
+        travel 2.days do
+          # 2 days from today
+        end
 
-         travel 5.days do
-           # 5 days from today
-         end
+        travel 5.days do
+          # 5 days from today
+        end
 
-     *Vipul A M*
+    *Vipul A M*
 
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
