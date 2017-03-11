@@ -262,7 +262,7 @@ module ActionController
     alias_method :to_unsafe_hash, :to_unsafe_h
 
     # Convert all hashes in values into parameters, then yield each pair in
-    # the same way as <tt>Hash#each_pair</tt>
+    # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
       @parameters.each_pair do |key, value|
         yield key, convert_hashes_to_parameters(key, value)
@@ -410,7 +410,7 @@ module ActionController
     #
     #   params.permit(preferences: {})
     #
-    # but be careful because this opens the door to arbitrary input. In this
+    # Be careful because this opens the door to arbitrary input. In this
     # case, +permit+ ensures values in the returned structure are permitted
     # scalars and filters out anything else.
     #
@@ -646,15 +646,15 @@ module ActionController
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> with all keys from
-    # +other_hash+ merges into current hash.
+    # +other_hash+ merged into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
         @parameters.merge(other_hash.to_h)
       )
     end
 
-    # Returns current <tt>ActionController::Parameters</tt> instance which
-    # +other_hash+ merges into current hash.
+    # Returns current <tt>ActionController::Parameters</tt> instance with
+    # +other_hash+ merged into current hash.
     def merge!(other_hash)
       @parameters.merge!(other_hash.to_h)
       self
@@ -715,7 +715,7 @@ module ActionController
 
     undef_method :to_param
 
-    # Returns duplicate of object including all parameters
+    # Returns duplicate of object including all parameters.
     def deep_dup
       self.class.new(@parameters.deep_dup).tap do |duplicate|
         duplicate.permitted = @permitted
@@ -935,7 +935,7 @@ module ActionController
   # whitelisted.
   #
   # In addition, parameters can be marked as required and flow through a
-  # predefined raise/rescue flow to end up as a 400 Bad Request with no
+  # predefined raise/rescue flow to end up as a <tt>400 Bad Request</tt> with no
   # effort.
   #
   #   class PeopleController < ActionController::Base
@@ -959,7 +959,7 @@ module ActionController
   #
   #     private
   #       # Using a private method to encapsulate the permissible parameters is
-  #       # just a good pattern since you'll be able to reuse the same permit
+  #       # a good pattern since you'll be able to reuse the same permit
   #       # list between create and update. Also, you can specialize this method
   #       # with per-user checking of permissible attributes.
   #       def person_params

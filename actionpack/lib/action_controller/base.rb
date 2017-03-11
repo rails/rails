@@ -8,7 +8,7 @@ module ActionController
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
   #
   # By default, only the ApplicationController in a \Rails application inherits from <tt>ActionController::Base</tt>. All other
-  # controllers in turn inherit from ApplicationController. This gives you one class to configure things such as
+  # controllers inherit from ApplicationController. This gives you one class to configure things such as
   # request forgery protection and filtering of sensitive request parameters.
   #
   # A sample controller could look like this:
@@ -30,7 +30,7 @@ module ActionController
   #
   # Unlike index, the create action will not render a template. After performing its main purpose (creating a
   # new post), it initiates a redirect instead. This redirect works by returning an external
-  # "302 Moved" HTTP response that takes the user to the index action.
+  # <tt>302 Moved</tt> HTTP response that takes the user to the index action.
   #
   # These two methods represent the two basic action archetypes used in Action Controllers: Get-and-show and do-and-redirect.
   # Most actions are variations on these themes.
@@ -59,7 +59,7 @@ module ActionController
   #   <input type="text" name="post[name]" value="david">
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
-  # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
+  # A request coming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
   # If the address input had been named <tt>post[address][street]</tt>, the <tt>params</tt> would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
@@ -74,7 +74,7 @@ module ActionController
   #
   #   session[:person] = Person.authenticate(user_name, password)
   #
-  # And retrieved again through the same hash:
+  # You can retrieve it again through the same hash:
   #
   #   Hello #{session[:person]}
   #

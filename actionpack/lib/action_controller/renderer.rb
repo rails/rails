@@ -5,7 +5,7 @@ module ActionController
   # without requirement of being in controller actions.
   #
   # You get a concrete renderer class by invoking ActionController::Base#renderer.
-  # For example,
+  # For example:
   #
   #   ApplicationController.renderer
   #
@@ -18,7 +18,7 @@ module ActionController
   #   ApplicationController.render template: '...'
   #
   # #render allows you to use the same options that you can use when rendering in a controller.
-  # For example,
+  # For example:
   #
   #   FooController.render :action, locals: { ... }, assigns: { ... }
   #

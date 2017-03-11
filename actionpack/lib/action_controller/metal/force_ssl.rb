@@ -10,9 +10,9 @@ module ActionController
   #
   # Note that if you are really concerned about your application security,
   # you might consider using +config.force_ssl+ in your config file instead.
-  # That will ensure all the data transferred via HTTPS protocol and prevent
-  # the user from getting their session hijacked when accessing the site over
-  # unsecured HTTP protocol.
+  # That will ensure all the data is transferred via HTTPS protocol and will
+  # prevent the user from getting their session hijacked when accessing the
+  # site over unsecured HTTP protocol.
   module ForceSSL
     extend ActiveSupport::Concern
     include AbstractController::Callbacks
@@ -71,7 +71,7 @@ module ActionController
     # Redirect the existing request to use the HTTPS protocol.
     #
     # ==== Parameters
-    # * <tt>host_or_options</tt> - Either a host name or any of the url &
+    # * <tt>host_or_options</tt> - Either a host name or any of the url and
     #   redirect options available to the <tt>force_ssl</tt> method.
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?
