@@ -415,28 +415,10 @@ module ActiveRecord
         end
       end
 
-      SPLIT_ORDER_VALUES_REGEX = /,(?![^()]*+\))/
       def limited_ids_for(relation)
-        distinct_key = "#{quoted_table_name}.#{quoted_primary_key}"
-
-        order_values = relation.order_values.map { |o| o.is_a?(String) ? o.split(SPLIT_ORDER_VALUES_REGEX) : o }.flatten
-        values = @klass.connection.columns_for_distinct(distinct_key, order_values)
-
-        if relation.distinct_value
-          outer_relation = relation.except(:select).select(values)
-          bound_attributes = outer_relation.bound_attributes
-        else
-          original_limit = relation.limit_value
-          original_offset = relation.offset_value
-          relation = relation.except(:select, :limit, :offset).select(values)
-          bound_attributes = relation.bound_attributes
-          outer_relation = @klass.from("(#{relation.to_sql}) select_alias").group("select_alias.#{primary_key}").
-            select("select_alias.#{primary_key}")
-          outer_relation = outer_relation.limit(original_limit).offset(original_offset)
-          bound_attributes += outer_relation.bound_attributes
-        end
-
-        @klass.connection.select_values(outer_relation.arel, "SQL", bound_attributes)
+        primary_key = "#{quoted_table_name}.#{quoted_primary_key}"
+        relation = @klass.connection.relation_for_distinct(primary_key, relation)
+        @klass.connection.select_values(relation.arel, "SQL", relation.bound_attributes)
       end
 
       def using_limitable_reflections?(reflections)
