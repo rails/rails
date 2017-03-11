@@ -310,17 +310,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     refute_predicate merged_params[:person], :empty?
   end
 
-  test "not permitted is sticky beyond reverse_merge!" do
-    merged_params = @params.reverse_merge(a: "b")
-
-    refute_predicate @params, :permitted?
+  test "not permitted is sticky beyond reverse_merge" do
+    refute_predicate @params.reverse_merge(a: "b"), :permitted?
   end
 
-  test "permitted is sticky beyond reverse_merge!" do
+  test "permitted is sticky beyond reverse_merge" do
     @params.permit!
-    merged_params = @params.reverse_merge(a: "b")
-
-    assert_predicate @params, :permitted?
+    assert_predicate @params.reverse_merge(a: "b"), :permitted?
   end
 
   test "#reverse_merge! with parameters" do
