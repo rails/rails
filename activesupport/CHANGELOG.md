@@ -1,3 +1,35 @@
+*   Introduce `ActiveSupport::TestCase.describe`
+
+    Groups relevant tests together. Turns the code below...
+
+        class ParentsControllerTest < ActionDispatch::IntegrationTest
+          test 'POST /v1/parents registers a new parent'
+          test 'POST /v1/parents allows empty email for the kid'
+          test 'POST /v1/parents ...'
+
+          test 'PUT /v1/parents/:id updates a parent'
+          test 'PUT /v1/parents/:id can set a card'
+          test 'PUT /v1/parents/:id ...'
+        end
+
+    Into the following... 👇
+
+        class ParentsControllerTest < ActionDispatch::IntegrationTest
+          describe 'POST /v1/parents' do
+            test 'registers a new parent'
+            test 'allows empty email for the kid'
+            # ...
+          end
+
+          describe 'PUT /v1/parents/:id' do
+            test 'updates a parent'
+            test 'can set a card'
+            # ...
+          end
+        end
+
+    *Genadi Samokovarov*
+
 *   Update `titleize` regex to allow apostrophes
 
     In 4b685aa the regex in `titleize` was updated to not match apostrophes to
