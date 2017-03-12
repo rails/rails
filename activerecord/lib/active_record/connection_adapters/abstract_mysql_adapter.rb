@@ -835,6 +835,17 @@ module ActiveRecord
           end
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
+          unless variables["time_zone"]
+            if ActiveRecord::Base.default_timezone == :utc
+              variables["time_zone"] = "+00:00"
+            else
+              offset = Time.now.utc_offset / 3600.0
+              sign = offset >= 0 ? "+" : "-"
+              offset = offset.abs
+              variables["time_zone"] = "%s%d:%d" % [sign, offset, 60 * (offset - offset.to_i)]
+            end
+          end
+
           # NAMES does not have an equals sign, see
           # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
           # (trailing comma because variable_assignments will always have content)
