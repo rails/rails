@@ -615,7 +615,7 @@ The two dashes start a comment ignoring everything after it. So the query return
 Usually a web application includes access control. The user enters their login credentials and the web application tries to find the matching record in the users table. The application grants access when it finds a record. However, an attacker may possibly bypass this check with SQL injection. The following shows a typical database query in Rails to find the first record in the users table which matches the login credentials parameters supplied by the user.
 
 ```ruby
-User.first("login = '#{params[:name]}' AND password = '#{params[:password]}'")
+User.find_by("login = '#{params[:name]}' AND password = '#{params[:password]}'")
 ```
 
 If an attacker enters ' OR '1'='1 as the name, and ' OR '2'>'1 as the password, the resulting SQL query will be:
@@ -762,7 +762,7 @@ s = sanitize(user_input, tags: tags, attributes: %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, and &gt; by their uninterpreted representations in HTML (`&amp;`, `&quot;`, `&lt;`, and `&gt;`). 
+As a second step, _it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, and &gt; by their uninterpreted representations in HTML (`&amp;`, `&quot;`, `&lt;`, and `&gt;`).
 
 ##### Obfuscation and Encoding Injection
 
