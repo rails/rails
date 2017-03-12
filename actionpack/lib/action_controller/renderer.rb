@@ -54,11 +54,6 @@ module ActionController
       self.class.new controller, env, defaults
     end
 
-    # Create a new renderer for the same controller but with new defaults.
-    def with_defaults(defaults)
-      self.class.new controller, env, self.defaults.merge(defaults)
-    end
-
     # Accepts a custom Rack environment to render templates in.
     # It will be merged with the default Rack environment defined by
     # +ActionController::Renderer::DEFAULTS+.
