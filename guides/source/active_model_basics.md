@@ -294,7 +294,7 @@ objects.
 ### Serialization
 
 `ActiveModel::Serialization` provides basic serialization for your object.
-You need to declare an attributes hash which contains the attributes you want to
+You need to declare an attributes Hash which contains the attributes you want to
 serialize. Attributes must be strings, not symbols.
 
 ```ruby
@@ -309,7 +309,7 @@ class Person
 end
 ```
 
-Now you can access a serialized hash of your object using the `serializable_hash` method.
+Now you can access a serialized Hash of your object using the `serializable_hash` method.
 
 ```ruby
 person = Person.new
@@ -320,13 +320,14 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides an `ActiveModel::Serializers::JSON` serializer.
-This module automatically includes the `ActiveModel::Serialization`.
+Active Model also provides the `ActiveModel::Serializers::JSON` module
+for JSON serializing / deserializing. This module automatically includes the
+previously discussed `ActiveModel::Serialization` module.
 
 ##### ActiveModel::Serializers::JSON
 
-To use the `ActiveModel::Serializers::JSON` you only need to change from
-`ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
+To use `ActiveModel::Serializers::JSON` you only need to change the
+module you are including from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
 
 ```ruby
 class Person
@@ -340,7 +341,8 @@ class Person
 end
 ```
 
-With the `as_json` method you have a hash representing the model.
+The `as_json` method, similar to `serializable_hash`, provides a Hash representing
+the model.
 
 ```ruby
 person = Person.new
@@ -349,8 +351,8 @@ person.name = "Bob"
 person.as_json # => {"name"=>"Bob"}
 ```
 
-From a JSON string you define the attributes of the model.
-You need to have the `attributes=` method defined on your class:
+You can also define the attributes for a model from a JSON string.
+However, you need to define the `attributes=` method on your class:
 
 ```ruby
 class Person
@@ -370,7 +372,7 @@ class Person
 end
 ```
 
-Now it is possible to create an instance of person and set the attributes using `from_json`.
+Now it is possible to create an instance of `Person` and set attributes using `from_json`.
 
 ```ruby
 json = { name: 'Bob' }.to_json
@@ -390,8 +392,8 @@ class Person
 end
 ```
 
-With the `human_attribute_name` you can transform attribute names into a more
-human format. The human format is defined in your locale file.
+With the `human_attribute_name` method, you can transform attribute names into a
+more human-readable format. The human-readable format is defined in your locale file(s).
 
 * config/locales/app.pt-BR.yml
 
@@ -412,7 +414,7 @@ Person.human_attribute_name('name') # => "Nome"
 `ActiveModel::Lint::Tests` allows you to test whether an object is compliant with
 the Active Model API.
 
-* app/models/person.rb
+* `app/models/person.rb`
 
     ```ruby
     class Person
@@ -420,7 +422,7 @@ the Active Model API.
     end
     ```
 
-* test/models/person_test.rb
+* `test/models/person_test.rb`
 
     ```ruby
     require 'test_helper'
@@ -455,9 +457,9 @@ features out of the box.
 ### SecurePassword
 
 `ActiveModel::SecurePassword` provides a way to securely store any
-password in an encrypted form. On including this module, a
+password in an encrypted form. When you include this module, a
 `has_secure_password` class method is provided which defines
-an accessor named `password` with certain validations on it.
+a `password` accessor with certain validations on it.
 
 #### Requirements
 
