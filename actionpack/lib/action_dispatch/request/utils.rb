@@ -40,7 +40,6 @@ module ActionDispatch
 
       class ParamEncoder # :nodoc:
         # Convert nested Hash to HashWithIndifferentAccess.
-        #
         def self.normalize_encode_params(params)
           case params
           when Array
@@ -63,7 +62,7 @@ module ActionDispatch
         end
       end
 
-      # Remove nils from the params hash
+      # Remove nils from the params hash.
       class NoNilParamEncoder < ParamEncoder # :nodoc:
         def self.handle_array(params)
           list = super

@@ -48,7 +48,7 @@ module ActionDispatch
   # By default, <tt>ActionDispatch::SystemTestCase</tt> is driven by the
   # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
   #
-  # Changing the driver configuration options are easy. Let's say you want to use
+  # Changing the driver configuration options is easy. Let's say you want to use
   # the Firefox browser instead of Chrome. In your +application_system_test_case.rb+
   # file add the following:
   #

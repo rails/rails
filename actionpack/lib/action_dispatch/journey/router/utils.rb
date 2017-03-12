@@ -5,7 +5,7 @@ module ActionDispatch
         # Normalizes URI path.
         #
         # Strips off trailing slash and ensures there is a leading slash.
-        # Also converts downcase url encoded string to uppercase.
+        # Also converts downcase URL encoded string to uppercase.
         #
         #   normalize_path("/foo")  # => "/foo"
         #   normalize_path("/foo/") # => "/foo"

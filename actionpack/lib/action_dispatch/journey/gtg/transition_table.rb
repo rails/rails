@@ -109,7 +109,6 @@ module ActionDispatch
           svg         = to_svg
           javascripts = [states, fsm_js]
 
-          # Annoying hack warnings
           fun_routes  = fun_routes
           stylesheets = stylesheets
           svg         = svg

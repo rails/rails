@@ -247,7 +247,7 @@ module ActionDispatch
           wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
         end
 
-        # this modifies the passed request_env directly
+        # This modifies the passed request_env directly.
         if wrapped_headers.present?
           Http::Headers.from_hash(request_env).merge!(wrapped_headers)
         end
@@ -258,7 +258,7 @@ module ActionDispatch
         session = Rack::Test::Session.new(_mock_session)
 
         # NOTE: rack-test v0.5 doesn't build a default uri correctly
-        # Make sure requested path is always a full uri
+        # Make sure requested path is always a full URI.
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
@@ -325,8 +325,8 @@ module ActionDispatch
 
       def create_session(app)
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
-          # If the app is a Rails app, make url_helpers available on the session
-          # This makes app.url_for and app.foo_path available in the console
+          # If the app is a Rails app, make url_helpers available on the session.
+          # This makes app.url_for and app.foo_path available in the console.
           if app.respond_to?(:routes)
             include app.routes.url_helpers
             include app.routes.mounted_helpers

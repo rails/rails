@@ -113,10 +113,10 @@ module ActionDispatch
         default_url_options
       end
 
-      # Generate a url based on the options provided, default_url_options and the
+      # Generate a URL based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
       #
-      # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
+      # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be

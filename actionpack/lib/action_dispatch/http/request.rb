@@ -114,7 +114,7 @@ module ActionDispatch
 
     HTTP_METHOD_LOOKUP = {}
 
-    # Populate the HTTP method lookup cache
+    # Populate the HTTP method lookup cache.
     HTTP_METHODS.each { |method|
       HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
     }
@@ -165,12 +165,12 @@ module ActionDispatch
 
     def show_exceptions? # :nodoc:
       # We're treating `nil` as "unset", and we want the default setting to be
-      # `true`.  This logic should be extracted to `env_config` and calculated
+      # `true`. This logic should be extracted to `env_config` and calculated
       # once.
       !(get_header("action_dispatch.show_exceptions".freeze) == false)
     end
 
-    # Returns a symbol form of the #request_method
+    # Returns a symbol form of the #request_method.
     def request_method_symbol
       HTTP_METHOD_LOOKUP[request_method]
     end
@@ -182,7 +182,7 @@ module ActionDispatch
       @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header("REQUEST_METHOD"))
     end
 
-    # Returns a symbol form of the #method
+    # Returns a symbol form of the #method.
     def method_symbol
       HTTP_METHOD_LOOKUP[method]
     end
@@ -267,7 +267,7 @@ module ActionDispatch
     # (which sets the action_dispatch.request_id environment variable).
     #
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
-    # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
+    # This relies on the Rack variable set by the ActionDispatch::RequestId middleware.
     def request_id
       get_header ACTION_DISPATCH_REQUEST_ID
     end
@@ -339,7 +339,7 @@ module ActionDispatch
       Session::Options.set self, options
     end
 
-    # Override Rack's GET method to support indifferent access
+    # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
         rack_query_params = super || {}
@@ -352,7 +352,7 @@ module ActionDispatch
     end
     alias :query_parameters :GET
 
-    # Override Rack's POST method to support indifferent access
+    # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
         pr = parse_formatted_parameters(params_parsers) do |params|
