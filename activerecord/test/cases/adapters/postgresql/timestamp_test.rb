@@ -43,6 +43,28 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
   ensure
     @connection.reconnect!
   end
+
+  def test_timestamp_with_zone_values_with_local_timezone
+    time = Time.now.utc.change(usec: 0)
+    timestamp = nil
+
+    with_timezone_config default: :local do
+      with_env_tz "America/New_York" do
+        @connection.reconnect!
+
+        timestamp = PostgresqlTimestampWithZone.create!(id: 2, time: time)
+        timestamp.reload
+        assert_equal time, timestamp.time
+      end
+    end
+
+    @connection.reconnect!
+
+    timestamp.reload
+    assert_equal time, timestamp.time
+  ensure
+    @connection.reconnect!
+  end
 end
 
 class PostgresqlTimestampFixtureTest < ActiveRecord::PostgreSQLTestCase

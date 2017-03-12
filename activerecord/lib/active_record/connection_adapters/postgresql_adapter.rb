@@ -201,9 +201,6 @@ module ActiveRecord
         super(connection, logger, config)
 
         @connection_parameters = connection_parameters
-
-        # @local_tz is initialized as nil to avoid warnings when connect tries to use it
-        @local_tz = nil
         @max_identifier_length = nil
 
         connect
@@ -219,7 +216,6 @@ module ActiveRecord
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map
-        @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
 
@@ -695,8 +691,9 @@ module ActiveRecord
           unless variables["timezone"]
             if ActiveRecord::Base.default_timezone == :utc
               variables["timezone"] = "UTC"
-            elsif @local_tz
-              variables["timezone"] = @local_tz
+            else
+              offset = Time.now.utc_offset / 3600.0
+              variables["timezone"] = offset
             end
           end
 
