@@ -132,7 +132,7 @@ class Person
   end
 
   def last_name
-    @last_nameperson.changes # => {"first_name"=>[nil, "First Name"]}
+    @last_name
   end
 
   def last_name=(value)
