@@ -25,6 +25,17 @@ module ActionDispatch
         end
       end
 
+      def content_mime_charset
+        fetch_header("action_dispatch.request.content_mime_charset") do |k|
+          v = if get_header("CONTENT_TYPE") =~ /charset=([^()<>@,;:\"\/[\\]?.=\s]*)/i
+                $1.strip.downcase
+              else
+                nil
+              end
+          set_header k, v
+        end
+      end
+
       def content_type
         content_mime_type && content_mime_type.to_s
       end

@@ -7,6 +7,15 @@ module ActionDispatch
 
       DEFAULT_PARSERS = {
         Mime[:json].symbol => -> (raw_post) {
+          if raw_post.encoding == Encoding::BINARY
+            # UTF-8 is the default encoding for JSON.
+            raw_post = raw_post.force_encoding(Encoding::UTF_8)
+          end
+
+          unless raw_post.valid_encoding?
+            raise Rack::Utils::InvalidParameterError, "Invalid #{raw_post.encoding.to_s} sequence"
+          end
+
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : { _json: data }
         }
@@ -96,11 +105,18 @@ module ActionDispatch
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
 
+          begin
+            encoding = Encoding.find(content_mime_charset || Encoding::BINARY)
+          rescue ArgumentError
+            encoding = Encoding::BINARY
+          end
+
           strategy = parsers.fetch(content_mime_type.symbol) { return yield }
 
           begin
-            strategy.call(raw_post)
+            strategy.call(raw_post.force_encoding(encoding))
           rescue # JSON or Ruby code block errors
+            raw_post.force_encoding(Encoding::BINARY)
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
