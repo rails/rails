@@ -6,9 +6,8 @@ module ActionController #:nodoc:
       helper_method :cookies if defined?(helper_method)
     end
 
-    private
-      def cookies
-        request.cookie_jar
-      end
+    def cookies
+      request.cookie_jar
+    end
   end
 end

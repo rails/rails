@@ -85,6 +85,9 @@ module ActionController #:nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
+      config_accessor :token_store
+      self.token_store = nil
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -114,16 +117,25 @@ module ActionController #:nodoc:
       #
       #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
       # * <tt>:with</tt> - Set the method to handle unverified request.
+      # * <tt>:token_store</tt> - Set the strategy of storing the CSRF token. You can supply a hash with custom options
+      #   (if the strategy supports that), such as a cookie name, an object, inheriting from
+      #   ActionController::RequestForgeryProtection::TokenStoreStrategies::TokenStore.
       #
       # Valid unverified request handling methods are:
       # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
+      #
+      # You can choose from three token storage strategies or pass your own:
+      # * <tt>:session_store</tt> – the classic strategy, the token is stored within the session.
+      # * <tt>:cookie_store</tt> – stores the token in a cookie, separate from the session.
+      # * <tt>:fallback_store</tt> – a temporary store that allows you to smoothly switch between different stores.
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
 
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
+        self.token_store = build_token_store_strategy(options[:token_store] || :session_store)
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
       end
@@ -134,6 +146,25 @@ module ActionController #:nodoc:
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
           raise ArgumentError, "Invalid request forgery protection method, use :null_session, :exception, or :reset_session"
+        end
+
+        def build_token_store_strategy(token_store)
+          case token_store
+          when Symbol, String
+            token_store_strategy_class(token_store).new
+          when Hash
+            token_store_strategy_class(token_store[:strategy]).new(token_store[:options])
+          when ActionController::RequestForgeryProtection::TokenStoreStrategies::TokenStore
+            token_store
+          else
+            raise ArgumentError, "Invalid request forgery protection :token_store param, should be Symbol, String, Hash or TokenStore instance"
+          end
+        end
+
+        def token_store_strategy_class(name)
+          ActionController::RequestForgeryProtection::TokenStoreStrategies.const_get(name.to_s.classify)
+        rescue NameError
+          raise ArgumentError, "Invalid token store strategy name, use :session_store, :cookie_store or :fallback_store"
         end
     end
 
@@ -193,6 +224,90 @@ module ActionController #:nodoc:
 
         def handle_unverified_request
           raise ActionController::InvalidAuthenticityToken
+        end
+      end
+    end
+
+    module TokenStoreStrategies
+      class TokenStore
+        def fetch(controller, &block)
+          get(controller) || set(controller, &block)
+        end
+
+        def get(controller)
+          raise NotImplementedError
+        end
+
+        def set(controller)
+          raise NotImplementedError
+        end
+
+        def clean
+          raise NotImplementedError
+        end
+      end
+
+      class CookieStore < TokenStore
+        def initialize(name: nil, cookie_params: {})
+          @name = name || :_csrf_token
+          @cookie_params = cookie_params.reverse_merge(expires: 1.year.from_now, httponly: true)
+        end
+
+        def get(controller)
+          controller.cookies.signed[@name]
+        end
+
+        def set(controller)
+          yield.tap { |value| controller.cookies.signed[@name] = @cookie_params.merge(value: value) }
+        end
+
+        def clean(controller)
+          controller.cookies.delete(@name)
+        end
+      end
+
+      class SessionStore < TokenStore
+        def initialize(name: nil)
+          @name = name || :_csrf_token
+        end
+
+        def get(controller)
+          controller.session[@name]
+        end
+
+        def set(controller)
+          controller.session[@name] = yield
+        end
+
+        def clean(controller)
+          controller.session.delete(@name)
+        end
+      end
+
+      # You can use this strategy, if you need to smoothly switch from one strategy to another without losing old
+      # tokens, i.e. switch back from CookieStore to SessionStore, or vice versa.
+      class FallbackStore < TokenStore
+        # Requires two TokenStore instances passed as params:
+        # * <tt>primary</tt> – the one you're switching to.
+        # * <tt>secondary</tt> – the one you're switching from.
+        def initialize(primary:, secondary:)
+          unless primary.is_a?(TokenStore) && secondary.is_a?(TokenStore)
+            raise ArgumentError, "You need to specify primary and secondary token stores to use FallbackStore strategy"
+          end
+          @primary, @secondary = primary, secondary
+        end
+
+        def get(controller)
+          @primary.get(controller) || @secondary.get(controller)
+        end
+
+        def set(controller, &block)
+          @primary.set(controller, &block)
+        end
+
+        def clean(controller)
+          @primary.clean(controller)
+          @secondary.clean(controller)
         end
       end
     end
@@ -273,7 +388,7 @@ module ActionController #:nodoc:
       # Checks if any of the authenticity tokens from the request are valid.
       def any_authenticity_token_valid? # :doc:
         request_authenticity_tokens.any? do |token|
-          valid_authenticity_token?(session, token)
+          valid_authenticity_token?(token)
         end
       end
 
@@ -284,20 +399,20 @@ module ActionController #:nodoc:
 
       # Sets the token value for the current session.
       def form_authenticity_token(form_options: {})
-        masked_authenticity_token(session, form_options: form_options)
+        masked_authenticity_token(form_options: form_options)
       end
 
       # Creates a masked version of the authenticity token that varies
       # on each request. The masking is used to mitigate SSL attacks
       # like BREACH.
-      def masked_authenticity_token(session, form_options: {}) # :doc:
+      def masked_authenticity_token(form_options: {}) # :doc:
         action, method = form_options.values_at(:action, :method)
 
         raw_token = if per_form_csrf_tokens && action && method
           action_path = normalize_action_path(action)
-          per_form_csrf_token(session, action_path, method)
+          per_form_csrf_token(action_path, method)
         else
-          real_csrf_token(session)
+          real_csrf_token
         end
 
         one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
@@ -309,7 +424,7 @@ module ActionController #:nodoc:
       # Checks the client's masked token to see if it matches the
       # session token. Essentially the inverse of
       # +masked_authenticity_token+.
-      def valid_authenticity_token?(session, encoded_masked_token) # :doc:
+      def valid_authenticity_token?(encoded_masked_token) # :doc:
         if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
           return false
         end
@@ -328,13 +443,12 @@ module ActionController #:nodoc:
           # This is actually an unmasked token. This is expected if
           # you have just upgraded to masked tokens, but should stop
           # happening shortly after installing this gem
-          compare_with_real_token masked_token, session
+          compare_with_real_token(masked_token)
 
         elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
           csrf_token = unmask_token(masked_token)
 
-          compare_with_real_token(csrf_token, session) ||
-            valid_per_form_csrf_token?(csrf_token, session)
+          compare_with_real_token(csrf_token) || valid_per_form_csrf_token?(csrf_token)
         else
           false # Token is malformed
         end
@@ -348,14 +462,13 @@ module ActionController #:nodoc:
         xor_byte_strings(one_time_pad, encrypted_csrf_token)
       end
 
-      def compare_with_real_token(token, session) # :doc:
-        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token(session))
+      def compare_with_real_token(token) # :doc:
+        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token)
       end
 
-      def valid_per_form_csrf_token?(token, session) # :doc:
+      def valid_per_form_csrf_token?(token) # :doc:
         if per_form_csrf_tokens
           correct_token = per_form_csrf_token(
-            session,
             normalize_action_path(request.fullpath),
             request.request_method
           )
@@ -366,15 +479,17 @@ module ActionController #:nodoc:
         end
       end
 
-      def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
-        Base64.strict_decode64(session[:_csrf_token])
+      # Returns a decoded CSRF token from the session or cookie and generates it
+      # if it wasn't set before.
+      def real_csrf_token
+        real_csrf_token = token_store.fetch(self) { SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH) }
+        Base64.strict_decode64(real_csrf_token)
       end
 
-      def per_form_csrf_token(session, action_path, method) # :doc:
+      def per_form_csrf_token(action_path, method) # :doc:
         OpenSSL::HMAC.digest(
           OpenSSL::Digest::SHA256.new,
-          real_csrf_token(session),
+          real_csrf_token,
           [action_path, method.downcase].join("#")
         )
       end
