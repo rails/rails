@@ -1,7 +1,9 @@
 *   Remove the option `encode_special_chars` misnomer from `strip_tags`
 
-    As of rails-html-sanitizer v1.0.3 sanitizer will ignore the
-    `encode_special_chars` option. Fixes #28060.
+    As of rails-html-sanitizer v1.0.3, the sanitizer will ignore the
+    `encode_special_chars` option.
+
+    Fixes #28060.
 
     *Andrew Hood*
 
