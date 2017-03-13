@@ -8,9 +8,20 @@ module ActionDispatch
         # +take_screenshot+ can be used at any point in your system tests to take
         # a screenshot of the current state. This can be useful for debugging or
         # automating visual testing.
+        #
+        # The screenshot will be displayed in your console, if supported.
+        #
+        # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
+        # control the output. Possible values are:
+        # * [+inline+ (default)]    display the screenshot in the terminal using the
+        #                           iTerm image protocol (http://iterm2.com/documentation-images.html).
+        # * [+simple+]              only display the screenshot path.
+        #                           This is the default value if the +CI+ environment variables
+        #                           is defined.
+        # * [+artifact+]            display the screenshot in the terminal, using the terminal
+        #                           artifact format (http://buildkite.github.io/terminal/inline-images/).
         def take_screenshot
           save_image
-          puts "[Screenshot]: #{image_path}"
           puts display_image
         end
 
@@ -38,14 +49,32 @@ module ActionDispatch
             page.save_screenshot(Rails.root.join(image_path))
           end
 
+          def output_type
+            # Environment variables have priority
+            output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] || ENV["CAPYBARA_INLINE_SCREENSHOT"]
+
+            # If running in a CI environment, default to simple
+            output_type ||= "simple" if ENV["CI"]
+
+            # Default
+            output_type ||= "inline"
+
+            output_type
+          end
+
           def display_image
-            if ENV["CAPYBARA_INLINE_SCREENSHOT"] == "artifact"
-              "\e]1338;url=artifact://#{image_path}\a"
-            else
+            message = "[Screenshot]: #{image_path}\n"
+
+            case output_type
+            when "artifact"
+              message << "\e]1338;url=artifact://#{image_path}\a\n"
+            when "inline"
               name = inline_base64(File.basename(image_path))
               image = inline_base64(File.read(image_path))
-              "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a"
+              message << "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a\n"
             end
+
+            message
           end
 
           def inline_base64(path)
