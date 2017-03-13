@@ -2,15 +2,15 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 
 module ActionController
-  # This module provides a method which will redirect the browser to use HTTPS
-  # protocol. This will ensure that user's sensitive information will be
+  # This module provides a method which will redirect the browser to use the secured HTTPS
+  # protocol. This will ensure that users' sensitive information will be
   # transferred safely over the internet. You _should_ always force the browser
   # to use HTTPS when you're transferring sensitive information such as
   # user authentication, account information, or credit card information.
   #
   # Note that if you are really concerned about your application security,
   # you might consider using +config.force_ssl+ in your config file instead.
-  # That will ensure all the data is transferred via HTTPS protocol and will
+  # That will ensure all the data is transferred via HTTPS, and will
   # prevent the user from getting their session hijacked when accessing the
   # site over unsecured HTTP protocol.
   module ForceSSL
@@ -23,7 +23,7 @@ module ActionController
 
     module ClassMethods
       # Force the request to this particular controller or specified actions to be
-      # under HTTPS protocol.
+      # through the HTTPS protocol.
       #
       # If you need to disable this for any reason (e.g. development) then you can use
       # an +:if+ or +:unless+ condition.
