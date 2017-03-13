@@ -21,6 +21,9 @@
   <div class="field">
     <%%= f.label :password_confirmation %>
     <%%= f.password_field :password_confirmation %>
+<% elsif attribute.reference? -%>
+    <%%= f.label :<%= attribute.column_name %> %><br>
+    <%%= f.collection_select :<%= attribute.column_name %>, <%= attribute.name.classify %>.all, :id, :id %>
 <% else -%>
     <%%= f.label :<%= attribute.column_name %> %>
     <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
