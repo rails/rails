@@ -1,6 +1,4 @@
-*   Fix `ActionController::Renderer#with_defaults` does not work
-
-    Fixes `NameError: undefined local variable or method `env'`.
+*   Fix `NameError` raised in `ActionController::Renderer#with_defaults`
 
     *Hiroyuki Ishii*
 
