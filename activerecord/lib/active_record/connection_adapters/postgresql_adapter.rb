@@ -568,13 +568,13 @@ module ActiveRecord
 
           if supports_ranges?
             query = <<-SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
+              SELECT DISTINCT on (t.typname) t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
           else
             query = <<-SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+              SELECT DISTINCT on (t.typname) t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
               FROM pg_type as t
             SQL
           end
