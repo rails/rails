@@ -14,9 +14,9 @@ module Rails
         return help unless generator
 
         require_application_and_environment!
-        Rails.application.load_generators
+        load_generators
 
-        Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails.root
+        Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
       end
     end
   end
