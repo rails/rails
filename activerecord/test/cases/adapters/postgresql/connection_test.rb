@@ -212,6 +212,21 @@ module ActiveRecord
       end
     end
 
+    def test_set_session_time_zone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { time_zone: "America/New_York" }))
+        time_zone = ActiveRecord::Base.connection.select_value("SHOW TIME ZONE")
+        assert_equal "America/New_York", time_zone
+      end
+    end
+
+    def test_set_session_time_zone_default
+      run_without_connection do |orig_connection|
+        # This should execute a query that does not raise an error
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { time_zone: :default }))
+      end
+    end
+
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
       list_advisory_locks = <<-SQL

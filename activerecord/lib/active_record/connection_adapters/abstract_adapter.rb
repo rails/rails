@@ -637,6 +637,10 @@ module ActiveRecord
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
         end
+
+        def default_variable?(v)
+          v == ":default".freeze || v == :default
+        end
     end
   end
 end
