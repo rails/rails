@@ -50,6 +50,11 @@ module ActiveSupport
     # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
     # derivation function.
     #
+    # First additional parameter is used as the signature key for +MessageVerifier+.
+    # This allows you to specify keys to encrypt and sign data.
+    #
+    #    ActiveSupport::MessageEncryptor.new('secret', 'signature_key')
+    #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
