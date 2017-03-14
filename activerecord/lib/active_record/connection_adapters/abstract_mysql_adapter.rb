@@ -324,7 +324,7 @@ module ActiveRecord
 
       def data_sources
         sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(@config[:database])}"
+        sql << "WHERE table_schema = DATABASE()"
 
         select_values(sql, 'SCHEMA')
       end
@@ -350,7 +350,7 @@ module ActiveRecord
         schema, name = extract_schema_qualified_name(table_name)
 
         sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+        sql << "WHERE table_schema = #{schema} AND table_name = #{name}"
 
         select_values(sql, 'SCHEMA').any?
       end
@@ -365,7 +365,7 @@ module ActiveRecord
         schema, name = extract_schema_qualified_name(view_name)
 
         sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
+        sql << " AND table_schema = #{schema} AND table_name = #{name}"
 
         select_values(sql, 'SCHEMA').any?
       end
@@ -414,8 +414,8 @@ module ActiveRecord
         select_value(<<-SQL.strip_heredoc, 'SCHEMA')
           SELECT table_comment
           FROM information_schema.tables
-          WHERE table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+          WHERE table_schema = #{schema}
+            AND table_name = #{name}
         SQL
       end
 
@@ -528,9 +528,9 @@ module ActiveRecord
           JOIN information_schema.referential_constraints rc
           USING (constraint_schema, constraint_name)
           WHERE fk.referenced_column_name IS NOT NULL
-            AND fk.table_schema = #{quote(schema)}
-            AND fk.table_name = #{quote(name)}
-            AND rc.table_name = #{quote(name)}
+            AND fk.table_schema = #{schema}
+            AND fk.table_name = #{name}
+            AND rc.table_name = #{name}
         SQL
 
         fk_info.map do |row|
@@ -607,8 +607,8 @@ module ActiveRecord
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
-            AND table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+            AND table_schema = #{schema}
+            AND table_name = #{name}
           ORDER BY ordinal_position
         SQL
       end
@@ -904,8 +904,8 @@ module ActiveRecord
       end
 
       def extract_schema_qualified_name(string) # :nodoc:
-        schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
-        schema, name = @config[:database], schema unless name
+        schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/).map { |s| quote(s) }
+        schema, name = "DATABASE()", schema unless name
         [schema, name]
       end
 
