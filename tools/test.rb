@@ -16,5 +16,5 @@ end
 
 ActiveSupport::TestCase.extend Rails::LineFiltering
 Rails::TestUnitReporter.executable = "bin/test"
-Minitest.run_via[:rails] = true
+Minitest.run_via = :rails
 require "active_support/testing/autorun"

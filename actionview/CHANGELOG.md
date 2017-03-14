@@ -1,3 +1,34 @@
+*   Remove the option `encode_special_chars` misnomer from `strip_tags`
+
+    As of rails-html-sanitizer v1.0.3, the sanitizer will ignore the
+    `encode_special_chars` option.
+
+    Fixes #28060.
+
+    *Andrew Hood*
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Change the ERB handler from Erubis to Erubi.
+
+    Erubi is an Erubis fork that's svelte, simple, and currently maintained.
+    Plus it supports `--enable-frozen-string-literal` in Ruby 2.3+.
+
+    Compatibility: Drops support for `<%===` tags for debug output.
+    These were an unused, undocumented side effect of the Erubis
+    implementation.
+
+    Deprecation: The Erubis handler will be removed in Rails 5.2, for the
+    handful of folks using it directly.
+
+    *Jeremy Evans*
+
+*   Allow render locals to be assigned to instance variables in a view.
+
+    Fixes #27480.
+
+    *Andrew White*
+
 *   Add `check_parameters` option to `current_page?` which makes it more strict.
 
     *Maksym Pugach*
@@ -67,6 +98,23 @@
     ```
 
     *Peter Schilling*, *Matthew Draper*
+
+*   Add `:skip_pipeline` option to several asset tag helpers
+
+    `javascript_include_tag`, `stylesheet_link_tag`, `favicon_link_tag`,
+    `image_tag` and `audio_tag` now accept a `:skip_pipeline` option which can
+    be set to true to bypass the asset pipeline and serve the assets from the
+    public folder.
+
+    *Richard Schneeman*
+
+*   Add `:poster_skip_pipeline` option to the `video_tag` helper
+
+    `video_tag` now accepts a `:poster_skip_pipeline` option which can be used
+    in combination with the `:poster` option to bypass the asset pipeline and
+    serve the poster image for the video from the public folder.
+
+    *Richard Schneeman*
 
 *   Show cache hits and misses when rendering partials.
 

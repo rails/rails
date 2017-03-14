@@ -4,6 +4,7 @@ module ActiveModel
   module Type
     class Decimal < Value # :nodoc:
       include Helpers::Numeric
+      BIGDECIMAL_PRECISION = 18
 
       def type
         :decimal
@@ -20,8 +21,14 @@ module ActiveModel
             case value
             when ::Float
               convert_float_to_big_decimal(value)
-            when ::Numeric, ::String
-              BigDecimal(value, precision.to_i)
+            when ::Numeric
+              BigDecimal(value, precision || BIGDECIMAL_PRECISION)
+            when ::String
+              begin
+                value.to_d
+              rescue ArgumentError
+                BigDecimal(0)
+              end
             else
               if value.respond_to?(:to_d)
                 value.to_d

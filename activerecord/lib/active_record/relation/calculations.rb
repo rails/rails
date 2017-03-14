@@ -37,11 +37,8 @@ module ActiveRecord
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
-      if block_given?
-        to_a.count { |*block_args| yield(*block_args) }
-      else
-        calculate(:count, column_name)
-      end
+      return super() if block_given?
+      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -75,8 +72,8 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(column_name = nil, &block)
-      return super(&block) if block_given?
+    def sum(column_name = nil)
+      return super() if block_given?
       calculate(:sum, column_name)
     end
 
@@ -232,7 +229,7 @@ module ActiveRecord
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order)
+          relation = unscope(:order).distinct!(false)
 
           column = aggregate_column(column_name)
 
@@ -282,7 +279,7 @@ module ActiveRecord
             operation,
             distinct).as(aggregate_alias)
         ]
-        select_values += select_values unless having_clause.empty?
+        select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
           if field.respond_to?(:as)
@@ -292,7 +289,7 @@ module ActiveRecord
           end
         }
 
-        relation = except(:group)
+        relation = except(:group).distinct!(false)
         relation.group_values  = group_fields
         relation.select_values = select_values
 

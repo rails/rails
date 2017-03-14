@@ -286,19 +286,30 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_is_not_available_when_using_a_not_connected_connection
-    spec_name = Task.connection_specification_name
-    conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
-    ActiveRecord::Base.connection_handler.establish_connection(conf)
-    Task.connection_specification_name = "test2"
-    refute Task.connected?
+    with_temporary_connection_pool do
+      spec_name = Task.connection_specification_name
+      conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
+      ActiveRecord::Base.connection_handler.establish_connection(conf)
+      Task.connection_specification_name = "test2"
+      refute Task.connected?
 
-    Task.cache do
-      Task.connection # warmup postgresql connection setup queries
-      assert_queries(2) { Task.find(1); Task.find(1) }
+      Task.cache do
+        begin
+          if in_memory_db?
+            Task.connection.create_table :tasks do |t|
+              t.datetime :starting
+              t.datetime :ending
+            end
+            ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
+          end
+          Task.connection # warmup postgresql connection setup queries
+          assert_queries(2) { Task.find(1); Task.find(1) }
+        ensure
+          ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
+          Task.connection_specification_name = spec_name
+        end
+      end
     end
-  ensure
-    ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
-    Task.connection_specification_name = spec_name
   end
 
   def test_query_cache_executes_new_queries_within_block
@@ -442,6 +453,10 @@ end
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
 
+  def teardown
+    Task.connection.clear_query_cache
+  end
+
   def test_cache_gets_cleared_after_migration
     # warm the cache
     Post.find(1)
@@ -516,5 +531,17 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         p.categories.delete_all
       end
     end
+  end
+
+  test "threads use the same connection" do
+    @connection_1 = ActiveRecord::Base.connection.object_id
+
+    thread_a = Thread.new do
+      @connection_2 = ActiveRecord::Base.connection.object_id
+    end
+
+    thread_a.join
+
+    assert_equal @connection_1, @connection_2
   end
 end

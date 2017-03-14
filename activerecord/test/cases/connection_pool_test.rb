@@ -307,14 +307,17 @@ module ActiveRecord
         end
       end
 
-      def test_automatic_reconnect=
+      def test_automatic_reconnect_restores_after_disconnect
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
         assert pool.connection
 
         pool.disconnect!
         assert pool.connection
+      end
 
+      def test_automatic_reconnect_can_be_disabled
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -399,7 +402,7 @@ module ActiveRecord
             all_threads_in_new_connection.wait
           end
         rescue Timeout::Error
-          flunk "pool unable to establish connections concurrently or implementation has " <<
+          flunk "pool unable to establish connections concurrently or implementation has " \
                 "changed, this test then needs to patch a different :new_connection method"
         ensure
           # clean up the threads
@@ -441,7 +444,7 @@ module ActiveRecord
         end
       end
 
-      def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_aquire_all_connections_proceed_anyway
+      def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_acquire_all_connections_proceed_anyway
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         [:disconnect!, :clear_reloadable_connections!].each do |group_action_method|
           @pool.with_connection do |connection|

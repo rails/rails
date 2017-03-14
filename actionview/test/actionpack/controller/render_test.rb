@@ -1,45 +1,14 @@
 require "abstract_unit"
 require "active_model"
+require "controller/fake_models"
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
 end
 
-class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-
-  undef_method :to_json
-
-  def to_xml(options = {})
-    if options[:builder]
-      options[:builder].name name
-    else
-      "<name>#{name}</name>"
-    end
-  end
-
-  def to_js(options = {})
-    "name: #{name.inspect}"
-  end
-  alias :to_text :to_js
-
-  def errors
-    []
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def cache_key
-    name.to_s
-  end
-end
-
 module Quiz
   #Models
-  class Question < Struct.new(:name, :id)
+  Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -55,9 +24,6 @@ module Quiz
     end
   end
 end
-
-class BadCustomer < Customer; end
-class GoodCustomer < Customer; end
 
 module Fun
   class GamesController < ApplicationController

@@ -536,7 +536,10 @@ unless in_memory_db?
         Person.transaction do
           person = Person.find 1
           old, person.first_name = person.first_name, "fooman"
-          person.lock!
+          # Locking a dirty record is deprecated
+          assert_deprecated do
+            person.lock!
+          end
           assert_equal old, person.first_name
         end
       end

@@ -33,6 +33,22 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal "&quot;a&quot; &lt;br/&gt; &lt;b&gt; &lt;br/&gt; &lt;c&gt;", joined
   end
 
+  test "safe_join should return the safe string separated by $, when second argument is not passed" do
+    default_delimeter = $,
+
+    begin
+      $, = nil
+      joined = safe_join(["a", "b"])
+      assert_equal "ab", joined
+
+      $, = "|"
+      joined = safe_join(["a", "b"])
+      assert_equal "a|b", joined
+    ensure
+      $, = default_delimeter
+    end
+  end
+
   test "to_sentence should escape non-html_safe values" do
     actual = to_sentence(%w(< > & ' "))
     assert actual.html_safe?
@@ -86,5 +102,16 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal "one, twothree", to_sentence(["one", "two", "three"], last_word_connector: nil)
     assert_equal "one, two three", to_sentence(["one", "two", "three"], last_word_connector: " ")
     assert_equal "one, two and three", to_sentence(["one", "two", "three"], last_word_connector: " and ")
+  end
+
+  test "to_sentence is not affected by $," do
+    separator_was = $,
+    $, = "|"
+    begin
+      assert_equal "one and two", to_sentence(["one", "two"])
+      assert_equal "one, two, and three", to_sentence(["one", "two", "three"])
+    ensure
+      $, = separator_was
+    end
   end
 end

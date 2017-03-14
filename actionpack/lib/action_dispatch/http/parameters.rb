@@ -30,7 +30,7 @@ module ActionDispatch
       end
 
       module ClassMethods
-        # Configure the parameter parser for a give mime type.
+        # Configure the parameter parser for a given mime type.
         #
         # It accepts a hash where the key is the symbol of the mime type
         # and the value is a proc.

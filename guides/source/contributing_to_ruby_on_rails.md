@@ -67,7 +67,7 @@ can expect it to be marked "invalid" as soon as it's reviewed.
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
 anything that causes incorrect behavior. Sometimes,
-the core team will have to make a judgement call. That said, the distinction
+the core team will have to make a judgment call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
 
@@ -335,10 +335,12 @@ file.
 
 #### Testing Active Record
 
-First, create the databases you'll need. For MySQL and PostgreSQL,
-running the SQL statements `create database activerecord_unittest` and
-`create database activerecord_unittest2` is sufficient. This is not
-necessary for SQLite3.
+First, create the databases you'll need. You can find a list of the required 
+table names, usernames, and passwords in `activerecord/test/config.example.yml`.
+
+For MySQL and PostgreSQL, running the SQL statements `create database
+activerecord_unittest` and `create database activerecord_unittest2` is
+sufficient. This is not necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:
 

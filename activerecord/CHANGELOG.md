@@ -1,11 +1,206 @@
+*   Deprecate `Migrator.schema_migrations_table_name`.
+
+    *Ryuta Kamizono*
+
+*   Fix select with block doesn't return newly built records in has_many association.
+
+    Fixes #28348.
+
+    *Ryuta Kamizono*
+
+*   Check whether `Rails.application` defined before calling it
+
+    In #27674 we changed the migration generator to generate migrations at the
+    path defined in `Rails.application.config.paths` however the code checked
+    for the presence of the `Rails` constant but not the `Rails.application`
+    method which caused problems when using Active Record and generators outside
+    of the context of a Rails application.
+
+    Fixes #28325.
+
+    *Andrew White*
+
+*   Fix `deserialize` with JSON array.
+
+    Fixes #28285.
+
+    *Ryuta Kamizono*
+
+*   Fix `rake db:schema:load` with subdirectories.
+
+    *Ryuta Kamizono*
+
+*   Fix `rake db:migrate:status` with subdirectories.
+
+    *Ryuta Kamizono*
+
+*   Don't share options between reference id and type columns
+
+    When using a polymorphic reference column in a migration, sharing options
+    between the two columns doesn't make sense since they are different types.
+    The `reference_id` column is usually an integer and the `reference_type`
+    column a string so options like `unsigned: true` will result in an invalid
+    table definition.
+
+    *Ryuta Kamizono*
+
+*   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `supports_migrations?` on connection adapters.
+
+    *Ryuta Kamizono*
+
+*   Fix regression of #1969 with SELECT aliases in HAVING clause.
+
+    *Eugene Kenny*
+
+*   Deprecate using `#quoted_id` in quoting.
+
+    *Ryuta Kamizono*
+
+*   Fix `wait_timeout` to configurable for mysql2 adapter.
+
+    Fixes #26556.
+
+    *Ryuta Kamizono*
+
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Correctly dump native timestamp types for MySQL.
+
+    The native timestamp type in MySQL is different from datetime type.
+    Internal representation of the timestamp type is UNIX time, This means
+    that timestamp columns are affected by time zone.
+
+        > SET time_zone = '+00:00';
+        Query OK, 0 rows affected (0.00 sec)
+
+        > INSERT INTO time_with_zone(ts,dt) VALUES (NOW(),NOW());
+        Query OK, 1 row affected (0.02 sec)
+
+        > SELECT * FROM time_with_zone;
+        +---------------------+---------------------+
+        | ts                  | dt                  |
+        +---------------------+---------------------+
+        | 2016-02-07 22:11:44 | 2016-02-07 22:11:44 |
+        +---------------------+---------------------+
+        1 row in set (0.00 sec)
+
+        > SET time_zone = '-08:00';
+        Query OK, 0 rows affected (0.00 sec)
+
+        > SELECT * FROM time_with_zone;
+        +---------------------+---------------------+
+        | ts                  | dt                  |
+        +---------------------+---------------------+
+        | 2016-02-07 14:11:44 | 2016-02-07 22:11:44 |
+        +---------------------+---------------------+
+        1 row in set (0.00 sec)
+
+    *Ryuta Kamizono*
+
+*   All integer-like PKs are autoincrement unless they have an explicit default.
+
+    *Matthew Draper*
+
+*   Omit redundant `using: :btree` for schema dumping.
+
+    *Ryuta Kamizono*
+
+*   Deprecate passing `default` to `index_name_exists?`.
+
+    *Ryuta Kamizono*
+
+*   PostgreSQL: schema dumping support for interval and OID columns.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `supports_primary_key?` on connection adapters since it's
+    been long unused and unsupported.
+
+    *Ryuta Kamizono*
+
+*   Make `table_name=` reset current statement cache,
+    so queries are not run against the previous table name.
+
+    *namusyaka*
+
+*   Allow `ActiveRecord::Base#as_json` to be passed a frozen Hash.
+
+    *Isaac Betesh*
+
+*   Fix inspection behavior when the :id column is not primary key.
+
+    *namusyaka*
+
+*   Deprecate locking records with unpersisted changes.
+
+    *Marc Schütz*
+
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ColumnDumper#migration_keys`.
+
+    *Ryuta Kamizono*
+
+*   Fix `association_primary_key_type` for reflections with symbol primary key.
+
+    Fixes #27864.
+
+    *Daniel Colson*
+
+*   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
+
+    MySQL generated columns: https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html
+    MariaDB virtual columns: https://mariadb.com/kb/en/mariadb/virtual-computed-columns/
+
+    Declare virtual columns with `t.virtual name, type: …, as: "expression"`.
+    Pass `stored: true` to persist the generated value (false by default).
+
+    Example:
+
+        create_table :generated_columns do |t|
+          t.string  :name
+          t.virtual :upper_name,  type: :string,  as: "UPPER(name)"
+          t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
+          t.index :name_length  # May be indexed, too!
+        end
+
+    *Ryuta Kamizono*
+
+*   Deprecate `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
+
+    *Ryuta Kamizono*
+
+*   Support foreign key creation for SQLite3.
+
+    *Ryuta Kamizono*
+
+*   Place generated migrations into the path set by `config.paths["db/migrate"]`.
+
+    *Kevin Glowacz*
+
+*   Raise `ActiveRecord::InvalidForeignKey` when a foreign key constraint fails on SQLite3.
+
+    *Ryuta Kamizono*
+
+*   Add the touch option to `#increment!` and `#decrement!`.
+
+    *Hiroaki Izu*
+
 *   Deprecate passing a class to the `class_name` because it eagerloads more classes than
     necessary and potentially creates circular dependencies.
 
     *Kir Shatrov*
 
-*   Raise error when has_many through is defined before through association
+*   Raise error when has_many through is defined before through association.
 
-    Fixes #26834
+    Fixes #26834.
 
     *Chris Holmes*
 
@@ -126,7 +321,7 @@
     *Rafael Mendonça França*
 
 *   Set `:time` as a timezone aware type and remove deprecation when
-    `config.active_record.time_zone_aware_types` is not explictly set.
+    `config.active_record.time_zone_aware_types` is not explicitly set.
 
     *Rafael Mendonça França*
 
@@ -416,7 +611,7 @@
 
     *Ryuta Kamizono*
 
-*   Sqlite3 migrations to add a column to an existing table can now be
+*   SQLite3 migrations to add a column to an existing table can now be
     successfully rolled back when the column was given and invalid column
     type.
 

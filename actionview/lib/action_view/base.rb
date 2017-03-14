@@ -11,7 +11,7 @@ module ActionView #:nodoc:
   # = Action View Base
   #
   # Action View templates can be written in several ways.
-  # If the template file has a <tt>.erb</tt> extension, then it uses the erubis[https://rubygems.org/gems/erubis]
+  # If the template file has a <tt>.erb</tt> extension, then it uses the erubi[https://rubygems.org/gems/erubi]
   # template system which can embed Ruby into an HTML document.
   # If the template file has a <tt>.builder</tt> extension, then Jim Weirich's Builder::XmlMarkup library is used.
   #

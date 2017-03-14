@@ -301,6 +301,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal ["arr", "arr matey!"], pirate.catchphrase_change
   end
 
+  def test_virtual_attribute_will_change
+    assert_deprecated do
+      parrot = Parrot.create!(name: "Ruby")
+      parrot.send(:attribute_will_change!, :cancel_save_from_callback)
+      assert parrot.has_changes_to_save?
+    end
+  end
+
   def test_association_assignment_changes_foreign_key
     pirate = Pirate.create!(catchphrase: "jarl")
     pirate.parrot = Parrot.create!(name: "Lorre")
@@ -558,18 +566,17 @@ class DirtyTest < ActiveRecord::TestCase
     travel_back
   end
 
-  if ActiveRecord::Base.connection.supports_migrations?
-    class Testings < ActiveRecord::Base; end
-    def test_field_named_field
-      ActiveRecord::Base.connection.create_table :testings do |t|
-        t.string :field
-      end
-      assert_nothing_raised do
-        Testings.new.attributes
-      end
-    ensure
-      ActiveRecord::Base.connection.drop_table :testings rescue nil
+  class Testings < ActiveRecord::Base; end
+  def test_field_named_field
+    ActiveRecord::Base.connection.create_table :testings do |t|
+      t.string :field
     end
+    assert_nothing_raised do
+      Testings.new.attributes
+    end
+  ensure
+    ActiveRecord::Base.connection.drop_table :testings rescue nil
+    ActiveRecord::Base.clear_cache!
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds

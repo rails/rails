@@ -66,12 +66,20 @@ class ParametersPermitTest < ActiveSupport::TestCase
     values.each do |value|
       params = ActionController::Parameters.new(id: value)
       permitted = params.permit(:id)
-      assert_equal value, permitted[:id]
+      if value.nil?
+        assert_nil permitted[:id]
+      else
+        assert_equal value, permitted[:id]
+      end
 
       @struct_fields.each do |sf|
         params = ActionController::Parameters.new(sf => value)
         permitted = params.permit(:sf)
-        assert_equal value, permitted[sf]
+        if value.nil?
+          assert_nil permitted[sf]
+        else
+          assert_equal value, permitted[sf]
+        end
       end
     end
   end
@@ -187,11 +195,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit(:username, preferences: {}, hacked: {})
 
-    assert permitted.permitted?
-    assert permitted[:preferences].permitted?
-    assert permitted[:preferences][:font].permitted?
-    assert permitted[:preferences][:dubious].all?(&:permitted?)
-
     assert_equal "fxn",             permitted[:username]
     assert_equal "Marazul",         permitted[:preferences][:scheme]
     assert_equal "Source Code Pro", permitted[:preferences][:font][:name]
@@ -297,6 +300,31 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert_equal "1234", @params[:id]
     assert_equal "32", @params[:person][:age]
+  end
+
+  test "#reverse_merge with parameters" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    merged_params = @params.reverse_merge(default_params)
+
+    assert_equal "1234", merged_params[:id]
+    refute_predicate merged_params[:person], :empty?
+  end
+
+  test "not permitted is sticky beyond reverse_merge" do
+    refute_predicate @params.reverse_merge(a: "b"), :permitted?
+  end
+
+  test "permitted is sticky beyond reverse_merge" do
+    @params.permit!
+    assert_predicate @params.reverse_merge(a: "b"), :permitted?
+  end
+
+  test "#reverse_merge! with parameters" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    @params.reverse_merge!(default_params)
+
+    assert_equal "1234", @params[:id]
+    refute_predicate @params[:person], :empty?
   end
 
   test "modifying the parameters" do

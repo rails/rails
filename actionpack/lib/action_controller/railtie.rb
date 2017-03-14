@@ -42,7 +42,7 @@ module ActionController
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
-      # Ensure readers methods get compiled
+      # Ensure readers methods get compiled.
       options.asset_host        ||= app.config.asset_host
       options.relative_url_root ||= app.config.relative_url_root
 

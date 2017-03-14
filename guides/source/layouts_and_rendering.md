@@ -411,6 +411,8 @@ render formats: :xml
 render formats: [:json, :xml]
 ```
 
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
 #### Finding Layouts
 
 To find the current layout, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the `PhotosController` class will use `app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`). If there is no such controller-specific layout, Rails will use `app/views/layouts/application.html.erb` or `app/views/layouts/application.builder`. If there is no `.erb` layout, Rails will use a `.builder` layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
@@ -1155,7 +1157,7 @@ To pass a local variable to a partial in only specific cases use the `local_assi
   <%= render article, full: true %>
   ```
 
-* `_articles.html.erb`
+* `_article.html.erb`
 
   ```erb
   <h2><%= article.title %></h2>

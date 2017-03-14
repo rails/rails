@@ -36,6 +36,8 @@ module ActionDispatch
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
+        req.commit_flash
+
         body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
@@ -137,6 +139,9 @@ module ActionDispatch
       #
       #   get "/stories" => redirect("/posts")
       #
+      # This will redirect the user, while ignoring certain parts of the request, including query string, etc.
+      # `/stories`, `/stories?foo=bar`, etc all redirect to `/posts`.
+      #
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
@@ -165,6 +170,11 @@ module ActionDispatch
       #
       #   get 'stores/:name',       to: redirect(subdomain: 'stores', path: '/%{name}')
       #   get 'stores/:name(*all)', to: redirect(subdomain: 'stores', path: '/%{name}%{all}')
+      #   get '/stories', to: redirect(path: '/posts')
+      #
+      # This will redirect the user, while changing only the specified parts of the request,
+      # for example the `path` option in the last example.
+      # `/stories`, `/stories?foo=bar`, redirect to `/posts` and `/posts?foo=bar` respectively.
       #
       # Finally, an object which responds to call can be supplied to redirect, allowing you to reuse
       # common redirect routes. The call method must accept two arguments, params and request, and return

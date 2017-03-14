@@ -17,17 +17,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_valid_column
-    with_example_table do
-      column = @conn.columns("ex").find { |col| col.name == "id" }
-      assert @conn.valid_type?(column.type)
-    end
-  end
-
-  def test_invalid_column
-    assert_not @conn.valid_type?(:foobar)
-  end
-
   def test_columns_for_distinct_zero_orders
     assert_equal "posts.id",
       @conn.columns_for_distinct("posts.id", [])

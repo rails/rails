@@ -57,6 +57,8 @@ module ActiveSupport
     #   transliterate('Jürgen')
     #   # => "Juergen"
     def transliterate(string, replacement = "?".freeze)
+      raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
           replacement: replacement)

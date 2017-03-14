@@ -1,3 +1,15 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Correctly set test adapter when configure the queue adapter on a per job.
+
+    Fixes #26360.
+
+    *Yuji Yaginuma*
+
+*   Push skipped jobs to `enqueued_jobs` when using `perform_enqueued_jobs` with a `only` filter in tests
+
+    *Alexander Pauly*
+
 *   Removed deprecated support to passing the adapter class to `.queue_adapter`.
 
     *Rafael Mendonça França*

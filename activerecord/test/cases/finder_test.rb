@@ -497,7 +497,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(5).second_to_last
 
     #test with limit
-    # assert_nil Topic.limit(1).second # TODO: currently failing
+    assert_nil Topic.limit(1).second
     assert_nil Topic.limit(1).second_to_last
   end
 
@@ -526,9 +526,9 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(5).third_to_last
 
     # test with limit
-    # assert_nil Topic.limit(1).third # TODO: currently failing
+    assert_nil Topic.limit(1).third
     assert_nil Topic.limit(1).third_to_last
-    # assert_nil Topic.limit(2).third # TODO: currently failing
+    assert_nil Topic.limit(2).third
     assert_nil Topic.limit(2).third_to_last
   end
 
@@ -863,13 +863,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = ?", "37signals' go'es agains"]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = ?", "37signals' go'es against"]).first
   end
 
   def test_named_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = :name", { name: "37signals' go'es agains" }]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = :name", { name: "37signals' go'es against" }]).first
   end
 
   def test_named_bind_variables

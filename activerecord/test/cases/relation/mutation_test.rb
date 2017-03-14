@@ -3,7 +3,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    class FakeKlass < Struct.new(:table_name, :name)
+    FakeKlass = Struct.new(:table_name, :name) do
       extend ActiveRecord::Delegation::DelegateCache
       inherited self
 

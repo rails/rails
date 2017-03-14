@@ -1,0 +1,94 @@
+module ActionDispatch
+  module SystemTesting
+    module TestHelpers
+      # Screenshot helper for system testing
+      module ScreenshotHelper
+        # Takes a screenshot of the current page in the browser.
+        #
+        # +take_screenshot+ can be used at any point in your system tests to take
+        # a screenshot of the current state. This can be useful for debugging or
+        # automating visual testing.
+        #
+        # The screenshot will be displayed in your console, if supported.
+        #
+        # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
+        # control the output. Possible values are:
+        # * [+inline+ (default)]    display the screenshot in the terminal using the
+        #                           iTerm image protocol (http://iterm2.com/documentation-images.html).
+        # * [+simple+]              only display the screenshot path.
+        #                           This is the default value if the +CI+ environment variables
+        #                           is defined.
+        # * [+artifact+]            display the screenshot in the terminal, using the terminal
+        #                           artifact format (http://buildkite.github.io/terminal/inline-images/).
+        def take_screenshot
+          save_image
+          puts display_image
+        end
+
+        # Takes a screenshot of the current page in the browser if the test
+        # failed.
+        #
+        # +take_failed_screenshot+ is included in <tt>application_system_test_case.rb</tt>
+        # that is generated with the application. To take screenshots when a test
+        # fails add +take_failed_screenshot+ to the teardown block before clearing
+        # sessions.
+        def take_failed_screenshot
+          take_screenshot if failed? && supports_screenshot?
+        end
+
+        private
+          def image_name
+            failed? ? "failures_#{method_name}" : method_name
+          end
+
+          def image_path
+            "tmp/screenshots/#{image_name}.png"
+          end
+
+          def save_image
+            page.save_screenshot(Rails.root.join(image_path))
+          end
+
+          def output_type
+            # Environment variables have priority
+            output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] || ENV["CAPYBARA_INLINE_SCREENSHOT"]
+
+            # If running in a CI environment, default to simple
+            output_type ||= "simple" if ENV["CI"]
+
+            # Default
+            output_type ||= "inline"
+
+            output_type
+          end
+
+          def display_image
+            message = "[Screenshot]: #{image_path}\n"
+
+            case output_type
+            when "artifact"
+              message << "\e]1338;url=artifact://#{image_path}\a\n"
+            when "inline"
+              name = inline_base64(File.basename(image_path))
+              image = inline_base64(File.read(image_path))
+              message << "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a\n"
+            end
+
+            message
+          end
+
+          def inline_base64(path)
+            Base64.encode64(path).gsub("\n", "")
+          end
+
+          def failed?
+            !passed? && !skipped?
+          end
+
+          def supports_screenshot?
+            Capybara.current_driver != :rack_test
+          end
+      end
+    end
+  end
+end

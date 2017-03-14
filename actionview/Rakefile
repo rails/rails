@@ -1,4 +1,5 @@
 require "rake/testtask"
+require "fileutils"
 
 desc "Default Task"
 task default: :test
@@ -23,6 +24,32 @@ namespace :test do
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+  end
+
+  task :ujs do
+    begin
+      Dir.mkdir("log")
+      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1")
+
+      start_time = Time.now
+
+      loop do
+        break if system("lsof -i :4567 >/dev/null")
+
+        if Time.now - start_time > 5
+          puts "Timed out after 5 seconds"
+          exit 1
+        end
+      end
+
+      system("npm run lint && phantomjs ../ci/phantomjs.js http://localhost:4567/")
+      status = $?.to_i
+    ensure
+      Process.kill("KILL", pid) if pid
+      FileUtils.rm_f("log")
+    end
+
+    exit status
   end
 
   namespace :integration do

@@ -43,10 +43,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
-    ActiveRecord::Base.connection.initialize_schema_migrations_table
-    ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
+    ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::SchemaMigration.delete_all
 
-    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
@@ -337,20 +337,20 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_schema_migrations_table_name
-    original_schema_migrations_table_name = ActiveRecord::Migrator.schema_migrations_table_name
+    original_schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-    assert_equal "schema_migrations", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "schema_migrations", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.schema_migrations_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_changed_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "changed", ActiveRecord::SchemaMigration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
     Reminder.reset_table_name
@@ -916,7 +916,6 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         @indexes ||= Person.connection.indexes("delete_me")
       end
   end # AlterTableMigrationsTest
-
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase
@@ -1133,5 +1132,22 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
+  end
+
+  def test_deprecate_initialize_internal_tables
+    assert_deprecated { ActiveRecord::Base.connection.initialize_schema_migrations_table }
+    assert_deprecated { ActiveRecord::Base.connection.initialize_internal_metadata_table }
+  end
+
+  def test_deprecate_migration_keys
+    assert_deprecated { ActiveRecord::Base.connection.migration_keys }
+  end
+
+  def test_deprecate_supports_migrations
+    assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
+  end
+
+  def test_deprecate_schema_migrations_table_name
+    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
   end
 end

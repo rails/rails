@@ -63,12 +63,12 @@ $(document).bind('submit', function(e) {
   }
 })
 
-var MouseEvent = window.MouseEvent
+var _MouseEvent = window.MouseEvent
 
 try {
-  new MouseEvent()
+  new _MouseEvent()
 } catch (e) {
-  MouseEvent = function(type, options) {
+  _MouseEvent = function(type, options) {
     var evt = document.createEvent('MouseEvents')
     evt.initMouseEvent(type, options.bubbles, options.cancelable, window, options.detail, 0, 0, 80, 20, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, 0, null)
     return evt
@@ -76,12 +76,12 @@ try {
 }
 
 $.fn.extend({
-  // trigger an native click event
+  // trigger a native click event
   triggerNative: function(type, options) {
     var el = this[0],
         event,
         Evt = {
-          'click': MouseEvent,
+          'click': _MouseEvent,
           'change': Event,
           'pageshow': PageTransitionEvent,
           'submit': Event

@@ -21,8 +21,8 @@ end
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render plain: "called status"; end
-  def location; render plain: "called location"; end
+  def status; raise "Should not be called!"; end
+  def location; raise "Should not be called!"; end
 
   def simple_redirect
     redirect_to action: "hello_world"

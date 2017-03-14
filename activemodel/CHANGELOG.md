@@ -1,3 +1,13 @@
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
+*   Remove unused `ActiveModel::TestCase` class.
+
+    *Yuji Yaginuma*
+
 *   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
 
     *Iain Beeston*

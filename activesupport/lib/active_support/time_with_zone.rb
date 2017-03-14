@@ -148,6 +148,7 @@ module ActiveSupport
       "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z'.freeze)}"
     end
     alias_method :iso8601, :xmlschema
+    alias_method :rfc3339, :xmlschema
 
     # Coerces time to a string for JSON encoding. The default format is ISO 8601.
     # You can get %Y/%m/%d %H:%M:%S +offset style by setting
@@ -427,7 +428,8 @@ module ActiveSupport
     end
 
     def freeze
-      period; utc; time # preload instance variables before freezing
+      # preload instance variables before freezing
+      period; utc; time; to_datetime
       super
     end
 

@@ -59,7 +59,7 @@ module Rails
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible
-        # to tell scaffold entities how to generate an specific method for the
+        # to tell scaffold entities how to generate a specific method for the
         # ORM. Check Rails::Generators::ActiveModel for more information.
         def orm_class
           @orm_class ||= begin

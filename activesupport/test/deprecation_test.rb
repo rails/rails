@@ -285,6 +285,16 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_deprecated_constant_with_custom_message
+    deprecator = deprecator_with_messages
+
+    klass = Class.new
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator, message: "foo"))
+
+    klass::OLD.to_s
+    assert_match "foo", deprecator.messages.last
+  end
+
   def test_deprecated_instance_variable_with_instance_deprecator
     deprecator = deprecator_with_messages
 

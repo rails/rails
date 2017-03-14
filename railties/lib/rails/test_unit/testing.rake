@@ -4,15 +4,15 @@ require "rails/test_unit/minitest_plugin"
 
 task default: :test
 
-desc "Runs all tests in test folder"
+desc "Runs all tests in test folder except system ones"
 task :test do
   $: << "test"
-  pattern = if ENV.key?("TEST")
-    ENV["TEST"]
+
+  if ENV.key?("TEST")
+    Minitest.rake_run([ENV["TEST"]])
   else
-    "test"
+    Minitest.rake_run(["test"], ["test/system/**/*"])
   end
-  Minitest.rake_run([pattern])
 end
 
 namespace :test do
@@ -46,5 +46,10 @@ namespace :test do
   task functionals: "test:prepare" do
     $: << "test"
     Minitest.rake_run(["test/controllers", "test/mailers", "test/functional"])
+  end
+
+  task system: "test:prepare" do
+    $: << "test"
+    Minitest.rake_run(["test/system"])
   end
 end

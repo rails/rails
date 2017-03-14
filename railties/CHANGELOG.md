@@ -1,3 +1,65 @@
+*   Avoid running system tests by default with the `bin/rails test`
+    and `bin/rake test` commands since they may be expensive.
+
+    Fixes #28286.
+
+    *Robin Dupret*
+
+*   Improve encryption for encrypted secrets.
+
+    Switch to aes-128-gcm authenticated encryption. Also generate a random
+    initialization vector for each encryption so the same input and key can
+    generate different encrypted data.
+
+    Double the encryption key entropy by properly extracting the underlying
+    bytes from the hexadecimal seed key.
+
+    NOTE: Since the encryption mechanism has been switched, you need to run
+    this script to upgrade:
+
+    https://gist.github.com/kaspth/bc37989c2f39a5642112f28b1d93f343
+
+    *Stephen Touset*
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Add encrypted secrets in `config/secrets.yml.enc`.
+
+    Allow storing production secrets straight in the revision control system by
+    encrypting them.
+
+    Use `bin/rails secrets:setup` to opt-in by generating `config/secrets.yml.enc`
+    for the secrets themselves and `config/secrets.yml.key` for the encryption key.
+
+    Edit secrets with `bin/rails secrets:edit`.
+
+    See `bin/rails secrets:setup --help` for more.
+
+    *Kasper Timm Hansen*
+
+*   Fix running multiple tests in one `rake` command
+
+    e.g. `bin/rake test:models test:controllers`
+
+    *Dominic Cleal*
+
+*   Add option to configure Ruby's warning behaviour to test runner.
+
+    *Yuji Yaginuma*
+
+*   Initialize git repo when generating new app, if option `--skip-git`
+    is not provided.
+
+    *Dino Maric*
+
+*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+
+    *Junichi Ito*
+
+*   Make every Rails command work within engines.
+
+    *Sean Collins*, *Yuji Yaginuma*
+
 *   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
 
     Fixes #27591.
@@ -45,7 +107,7 @@
 
     *DHH*
 
-*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+*   Add Yarn support in new apps with a yarn binstub and package.json. Skippable via --skip-yarn option.
 
     *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
 

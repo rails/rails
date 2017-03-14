@@ -50,6 +50,13 @@ module ActiveRecord
         assert column_exists?(table_name, :taggable_type, :string, default: "Photo")
       end
 
+      def test_does_not_share_options_with_reference_type_column
+        add_reference table_name, :taggable, type: :integer, limit: 2, polymorphic: true
+        assert column_exists?(table_name, :taggable_id, :integer, limit: 2)
+        assert column_exists?(table_name, :taggable_type, :string)
+        assert_not column_exists?(table_name, :taggable_type, :string, limit: 2)
+      end
+
       def test_creates_named_index
         add_reference table_name, :tag, index: { name: "index_taggings_on_tag_id" }
         assert index_exists?(table_name, :tag_id, name: "index_taggings_on_tag_id")

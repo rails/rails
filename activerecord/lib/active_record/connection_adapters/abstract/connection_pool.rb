@@ -353,6 +353,16 @@ module ActiveRecord
         @threads_blocking_new_connections = 0
 
         @available = ConnectionLeasingQueue.new self
+
+        @lock_thread = false
+      end
+
+      def lock_thread=(lock_thread)
+        if lock_thread
+          @lock_thread = Thread.current
+        else
+          @lock_thread = nil
+        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -361,7 +371,7 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(Thread.current)] ||= checkout
+        @thread_cached_conns[connection_cache_key(@lock_thread || Thread.current)] ||= checkout
       end
 
       # Returns true if there is an open connection being used for the current thread.
@@ -967,7 +977,7 @@ module ActiveRecord
         end
 
         def pool_from_any_process_for(spec_name)
-          owner_to_pool = @owner_to_pool.values.find { |v| v[spec_name] }
+          owner_to_pool = @owner_to_pool.values.reverse.find { |v| v[spec_name] }
           owner_to_pool && owner_to_pool[spec_name]
         end
     end

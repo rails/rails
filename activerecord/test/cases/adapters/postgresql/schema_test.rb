@@ -301,13 +301,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_index_name_exists
     with_schema_search_path(SCHEMA_NAME) do
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
-      assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index", true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
+      assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index")
     end
   end
 
@@ -363,14 +363,6 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_primary_key_assuming_schema_search_path
     with_schema_search_path(SCHEMA_NAME) do
       assert_equal "id", @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
-    end
-  end
-
-  def test_primary_key_raises_error_if_table_not_found_on_schema_search_path
-    with_schema_search_path(SCHEMA2_NAME) do
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.primary_key(PK_TABLE_NAME)
-      end
     end
   end
 

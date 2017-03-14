@@ -22,7 +22,7 @@ module ActionController
     #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
+    # The redirection happens as a <tt>302 Found</tt> header unless otherwise specified using the <tt>:status</tt> option:
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently
@@ -36,7 +36,7 @@ module ActionController
     # If you are using XHR requests other than GET or POST and redirecting after the
     # request then some browsers will follow the redirect using the original request
     # method. This may lead to undesirable behavior such as a double DELETE. To work
-    # around this  you can return a <tt>303 See Other</tt> status code which will be
+    # around this you can return a <tt>303 See Other</tt> status code which will be
     # followed using a GET request.
     #
     #   redirect_to posts_url, status: :see_other
@@ -50,13 +50,16 @@ module ActionController
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
     #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
+    # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
+    # To terminate the execution of the function immediately after the +redirect_to+, use return.
+    #   redirect_to post_url(@post) and return
     def redirect_to(options = {}, response_status = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(request, options)
-      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
+      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
     end
 
     # Redirects the browser to the page that issued the request (the referrer)

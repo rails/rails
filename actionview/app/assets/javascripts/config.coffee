@@ -1,21 +1,21 @@
 #= export Rails
 
 @Rails =
-  # Link elements bound by jquery-ujs
+  # Link elements bound by rails-ujs
   linkClickSelector: 'a[data-confirm], a[data-method], a[data-remote]:not([disabled]), a[data-disable-with], a[data-disable]'
 
-  # Button elements bound by jquery-ujs
+  # Button elements bound by rails-ujs
   buttonClickSelector:
     selector: 'button[data-remote]:not([form]), button[data-confirm]:not([form])'
     exclude: 'form button'
 
-  # Select elements bound by jquery-ujs
+  # Select elements bound by rails-ujs
   inputChangeSelector: 'select[data-remote], input[data-remote], textarea[data-remote]'
 
-  # Form elements bound by jquery-ujs
+  # Form elements bound by rails-ujs
   formSubmitSelector: 'form'
 
-  # Form input elements bound by jquery-ujs
+  # Form input elements bound by rails-ujs
   formInputClickSelector: 'form input[type=submit], form input[type=image], form button[type=submit], form button:not([type]), input[type=submit][form], input[type=image][form], button[type=submit][form], button[form]:not([type])'
 
   # Form input elements disabled during form submission
@@ -23,9 +23,6 @@
 
   # Form input elements re-enabled after form submission
   formEnableSelector: 'input[data-disable-with]:disabled, button[data-disable-with]:disabled, textarea[data-disable-with]:disabled, input[data-disable]:disabled, button[data-disable]:disabled, textarea[data-disable]:disabled'
-
-  # Form required input elements
-  requiredInputSelector: 'input[name][required]:not([disabled]), textarea[name][required]:not([disabled])'
 
   # Form file input elements
   fileInputSelector: 'input[name][type=file]:not([disabled])'

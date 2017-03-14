@@ -3,7 +3,7 @@ module ActiveRecord
     module SQLite3
       module ColumnMethods
         def primary_key(name, type = :primary_key, **options)
-          if options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
+          if %i(integer bigint).include?(type) && (options.delete(:auto_increment) == true || !options.key?(:default))
             type = :primary_key
           end
 
@@ -13,6 +13,11 @@ module ActiveRecord
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        def references(*args, **options)
+          super(*args, type: :integer, **options)
+        end
+        alias :belongs_to :references
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

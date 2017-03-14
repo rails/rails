@@ -261,10 +261,6 @@ module ActiveRecord
       coder.represent_seq(nil, records)
     end
 
-    def as_json(options = nil) #:nodoc:
-      records.as_json(options)
-    end
-
     # Returns size of the records.
     def size
       loaded? ? @records.length : count(:all)

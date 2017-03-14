@@ -1,3 +1,269 @@
+*   Update `titleize` regex to allow apostrophes
+
+    In 4b685aa the regex in `titleize` was updated to not match apostrophes to
+    better reflect the nature of the transformation. Unfortunately, this had the
+    side effect of breaking capitalization on the first word of a sub-string, e.g:
+
+        >> "This was 'fake news'".titleize
+        => "This Was 'fake News'"
+
+    This is fixed by extending the look-behind to also check for a word
+    character on the other side of the apostrophe.
+
+    Fixes #28312.
+
+    *Andrew White*
+
+*   Add `rfc3339` aliases to `xmlschema` for `Time` and `ActiveSupport::TimeWithZone`
+
+    For naming consistency when using the RFC 3339 profile of ISO 8601 in applications.
+
+    *Andrew White*
+
+*   Add `Time.rfc3339` parsing method
+
+    `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
+    without a offset in contravention of the RFC 3339 standard. This method
+    enforces that constraint and raises an `ArgumentError` if it doesn't.
+
+    *Andrew White*
+
+*   Add `ActiveSupport::TimeZone.rfc3339` parsing method
+
+    Previously, there was no way to get a RFC 3339 timestamp into a specific
+    timezone without either using `parse` or chaining methods. The new method
+    allows parsing directly into the timezone, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("1999-12-31T14:00:00Z")
+        => Fri, 31 Dec 1999 14:00:00 HST -10:00
+
+    This new method has stricter semantics than the current `parse` method,
+    and will raise an `ArgumentError` instead of returning nil, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("foobar")
+        ArgumentError: invalid date
+        >> Time.zone.parse("foobar")
+        => nil
+
+    It will also raise an `ArgumentError` when either the time or offset
+    components are missing, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.rfc3339("1999-12-31")
+        ArgumentError: invalid date
+        >> Time.zone.rfc3339("1999-12-31T14:00:00")
+        ArgumentError: invalid date
+
+    *Andrew White*
+
+*   Add `ActiveSupport::TimeZone.iso8601` parsing method
+
+    Previously, there was no way to get a ISO 8601 timestamp into a specific
+    timezone without either using `parse` or chaining methods. The new method
+    allows parsing directly into the timezone, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("1999-12-31T14:00:00Z")
+        => Fri, 31 Dec 1999 14:00:00 HST -10:00
+
+    If the timestamp is a ISO 8601 date (YYYY-MM-DD), then the time is set
+    to midnight, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("1999-12-31")
+        => Fri, 31 Dec 1999 00:00:00 HST -10:00
+
+    This new method has stricter semantics than the current `parse` method,
+    and will raise an `ArgumentError` instead of returning nil, e.g:
+
+        >> Time.zone = "Hawaii"
+        => "Hawaii"
+        >> Time.zone.iso8601("foobar")
+        ArgumentError: invalid date
+        >> Time.zone.parse("foobar")
+        => nil
+
+    *Andrew White*
+
+*   Deprecate implicit coercion of `ActiveSupport::Duration`
+
+    Currently `ActiveSupport::Duration` implicitly converts to a seconds
+    value when used in a calculation except for the explicit examples of
+    addition and subtraction where the duration is the receiver, e.g:
+
+        >> 2 * 1.day
+        => 172800
+
+    This results in lots of confusion especially when using durations
+    with dates because adding/subtracting a value from a date treats
+    integers as a day and not a second, e.g:
+
+        >> Date.today
+        => Wed, 01 Mar 2017
+        >> Date.today + 2 * 1.day
+        => Mon, 10 Apr 2490
+
+    To fix this we're implementing `coerce` so that we can provide a
+    deprecation warning with the intent of removing the implicit coercion
+    in Rails 5.2, e.g:
+
+        >> 2 * 1.day
+        DEPRECATION WARNING: Implicit coercion of ActiveSupport::Duration
+        to a Numeric is deprecated and will raise a TypeError in Rails 5.2.
+        => 172800
+
+    In Rails 5.2 it will raise `TypeError`, e.g:
+
+        >> 2 * 1.day
+        TypeError: ActiveSupport::Duration can't be coerced into Integer
+
+    This is the same behavior as with other types in Ruby, e.g:
+
+        >> 2 * "foo"
+        TypeError: String can't be coerced into Integer
+        >> "foo" * 2
+        => "foofoo"
+
+    As part of this deprecation add `*` and `/` methods to `AS::Duration`
+    so that calculations that keep the duration as the receiver work
+    correctly whether the final receiver is a `Date` or `Time`, e.g:
+
+        >> Date.today
+        => Wed, 01 Mar 2017
+        >> Date.today + 1.day * 2
+        => Fri, 03 Mar 2017
+
+    Fixes #27457.
+
+    *Andrew White*
+
+*   Update `DateTime#change` to support `:usec` and `:nsec` options.
+
+    Adding support for these options now allows us to update the `DateTime#end_of`
+    methods to match the equivalent `Time#end_of` methods, e.g:
+
+        datetime = DateTime.now.end_of_day
+        datetime.nsec == 999999999 # => true
+
+    Fixes #21424.
+
+    *Dan Moore*, *Andrew White*
+
+*   Add `ActiveSupport::Duration#before` and `#after` as aliases for `#until` and `#since`
+
+    These read more like English and require less mental gymnastics to read and write.
+
+    Before:
+
+        2.weeks.since(customer_start_date)
+        5.days.until(today)
+
+    After:
+
+        2.weeks.after(customer_start_date)
+        5.days.before(today)
+
+    *Nick Johnstone*
+
+*   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
+    `ActiveSupport::HashWithIndifferentAccess` should be used instead.
+
+    Fixes #28157.
+
+    *Robin Dupret*
+
+*   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do
+    `Marshal.method(:load).super_method.call(source, proc)` just to be able to pass a proc.
+
+    *Jeff Latz*
+
+*   `ActiveSupport::Gzip.decompress` now checks checksum and length in footer.
+
+    *Dylan Thacker-Smith*
+
+
+## Rails 5.1.0.beta1 (February 23, 2017) ##
+
+*   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
+
+    *Adam Rice*
+
+*   Deprecate `ActiveSupport.halt_callback_chains_on_return_false`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior that halts callbacks when the return is false.
+
+    *Rafael Mendonça França*
+
+*   Deprecate passing string to `:if` and `:unless` conditional options
+    on `set_callback` and `skip_callback`.
+
+    *Ryuta Kamizono*
+
+*   Raise `ArgumentError` when passing string to define callback.
+
+    *Ryuta Kamizono*
+
+*   Updated Unicode version to 9.0.0
+
+    Now we can handle new emojis such like "👩‍👩‍👧‍👦" ("\u{1F469}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}").
+
+    version 8.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 4
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👦👧‍👩‍👩‍"
+
+    version 9.0.0
+
+        "👩‍👩‍👧‍👦".mb_chars.grapheme_length # => 1
+        "👩‍👩‍👧‍👦".mb_chars.reverse # => "👩‍👩‍👧‍👦"
+
+    *Fumiaki MATSUSHIMA*
+
+*   Changed `ActiveSupport::Inflector#transliterate` to raise `ArgumentError` when it receives
+    anything except a string.
+
+    *Kevin McPhillips*
+
+*   Fixed bugs that `StringInquirer#respond_to_missing?` and
+    `ArrayInquirer#respond_to_missing?` do not fallback to `super`.
+
+    *Akira Matsuda*
+
+*   Fix inconsistent results when parsing large durations and constructing durations from code
+
+        ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
+
+    Duration parsing made independent from any moment of time:
+    Fixed length in seconds is assigned to each duration part during parsing.
+
+    Changed duration of months and years in seconds to more accurate and logical:
+
+     1. The value of 365.2425 days in Gregorian year is more accurate
+        as it accounts for every 400th non-leap year.
+
+     2. Month's length is bound to year's duration, which makes
+        sensible comparisons like `12.months == 1.year` to be `true`
+        and nonsensical ones like `30.days == 1.month` to be `false`.
+
+    Calculations on times and dates with durations shouldn't be affected as
+    duration's numeric value isn't used in calculations, only parts are used.
+
+    Methods on `Numeric` like `2.days` now use these predefined durations
+    to avoid duplication of duration constants through the codebase and
+    eliminate creation of intermediate durations.
+
+    *Andrey Novikov*, *Andrew White*
+
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
 
@@ -9,76 +275,76 @@
 
     *Yuji Yaginuma*
 
-*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+*   Remove deprecated class `ActiveSupport::Concurrency::Latch`.
 
     *Andrew White*
 
-*   Remove deprecated separator argument from `parameterize`
+*   Remove deprecated separator argument from `parameterize`.
 
     *Andrew White*
 
-*   Remove deprecated method `Numeric#to_formatted_s`
+*   Remove deprecated method `Numeric#to_formatted_s`.
 
     *Andrew White*
 
-*   Remove deprecated method `alias_method_chain`
+*   Remove deprecated method `alias_method_chain`.
 
     *Andrew White*
 
-*   Remove deprecated constant `MissingSourceFile`
+*   Remove deprecated constant `MissingSourceFile`.
 
     *Andrew White*
 
 *   Remove deprecated methods `Module.qualified_const_defined?`,
-    `Module.qualified_const_get` and `Module.qualified_const_set`
+    `Module.qualified_const_get` and `Module.qualified_const_set`.
 
     *Andrew White*
 
-*   Remove deprecated `:prefix` option from `number_to_human_size`
+*   Remove deprecated `:prefix` option from `number_to_human_size`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+*   Remove deprecated file `active_support/core_ext/time/marshal.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/struct.rb`
+*   Remove deprecated file `active_support/core_ext/struct.rb`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `Module.local_constants`
+*   Remove deprecated method `Module.local_constants`.
 
     *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
+*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
+*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
+*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
+*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`.
 
     *Andrew White*
 
-*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
+*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`.
 
     *Andrew White*
 
-*   Ensure duration parsing is consistent across DST changes
+*   Ensure duration parsing is consistent across DST changes.
 
     Previously `ActiveSupport::Duration.parse` used `Time.current` and
     `Time#advance` to calculate the number of seconds in the duration
@@ -235,28 +501,28 @@
     *John Gesimondo*
 
 *   `travel/travel_to` travel time helpers, now raise on nested calls,
-     as this can lead to confusing time stubbing.
+    as this can lead to confusing time stubbing.
 
-     Instead of:
+    Instead of:
 
-         travel_to 2.days.from_now do
-           # 2 days from today
-           travel_to 3.days.from_now do
-             # 5 days from today
-           end
-         end
+        travel_to 2.days.from_now do
+          # 2 days from today
+          travel_to 3.days.from_now do
+            # 5 days from today
+          end
+        end
 
-     preferred way to achieve above is:
+    preferred way to achieve above is:
 
-         travel 2.days do
-           # 2 days from today
-         end
+        travel 2.days do
+          # 2 days from today
+        end
 
-         travel 5.days do
-           # 5 days from today
-         end
+        travel 5.days do
+          # 5 days from today
+        end
 
-     *Vipul A M*
+    *Vipul A M*
 
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.

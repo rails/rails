@@ -32,6 +32,14 @@ module Rails
   # This allows you to override entire operations, like the creation of the
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
+  #
+  #  class CustomAppBuilder < Rails::AppBuilder
+  #    def test
+  #      @generator.gem "rspec-rails", group: [:development, :test]
+  #      run "bundle install"
+  #      generate "rspec:install"
+  #    end
+  #  end
   class AppBuilder
     def rakefile
       template "Rakefile"
@@ -51,6 +59,12 @@ module Rails
 
     def gitignore
       template "gitignore", ".gitignore"
+    end
+
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init"
+      end
     end
 
     def app
@@ -144,6 +158,12 @@ module Rails
       template "test/test_helper.rb"
     end
 
+    def system_test
+      empty_directory_with_keep_file "test/system"
+
+      template "test/application_system_test_case.rb"
+    end
+
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
@@ -154,7 +174,7 @@ module Rails
       empty_directory_with_keep_file "vendor"
 
       unless options[:skip_yarn]
-        template "package.json", "vendor/package.json"
+        template "package.json"
       end
     end
   end
@@ -181,10 +201,6 @@ module Rails
       def initialize(*args)
         super
 
-        unless app_path
-          raise Error, "Application name should be provided in arguments. For details run: rails --help"
-        end
-
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
@@ -205,6 +221,7 @@ module Rails
         build(:configru)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
+        build(:version_control)
       end
 
       def create_app_files
@@ -259,6 +276,10 @@ module Rails
         build(:test) unless options[:skip_test]
       end
 
+      def create_system_test_files
+        build(:system_test) unless options[:skip_system_test] || options[:skip_test] || options[:api]
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -267,7 +288,7 @@ module Rails
         build(:vendor)
 
         if options[:skip_yarn]
-          remove_file "vendor/package.json"
+          remove_file "package.json"
         end
       end
 

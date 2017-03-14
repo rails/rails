@@ -163,7 +163,7 @@ module StaticTests
     assert_equal file_name, env["PATH_INFO"]
   end
 
-  def test_serves_gzip_with_propper_content_type_fallback
+  def test_serves_gzip_with_proper_content_type_fallback
     file_name = "/gzip/foo.zoo"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip file_name, response
@@ -224,7 +224,7 @@ module StaticTests
 
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
-      actual   = Zlib::GzipReader.new(StringIO.new(response.body)).read
+      actual   = ActiveSupport::Gzip.decompress(response.body)
       assert_equal expected, actual
     end
 

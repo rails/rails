@@ -20,7 +20,8 @@ class Module
   # ==== Options
   # * <tt>:to</tt> - Specifies the target object
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
-  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ from being raised
+  # * <tt>:allow_nil</tt> - if set to true, prevents a +Module::DelegationError+
+  #   from being raised
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -112,18 +113,19 @@ class Module
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the target is +nil+ and does not respond to the delegated method a
-  # +NoMethodError+ is raised, as with any other value. Sometimes, however, it
-  # makes sense to be robust to that situation and that is the purpose of the
-  # <tt>:allow_nil</tt> option: If the target is not +nil+, or it is and
-  # responds to the method, everything works as usual. But if it is +nil+ and
-  # does not respond to the delegated method, +nil+ is returned.
+  # +Module::DelegationError+ is raised, as with any other value. Sometimes,
+  # however, it makes sense to be robust to that situation and that is the
+  # purpose of the <tt>:allow_nil</tt> option: If the target is not +nil+, or it
+  # is and responds to the method, everything works as usual. But if it is +nil+
+  # and does not respond to the delegated method, +nil+ is returned.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
   #     delegate :age, to: :profile
   #   end
   #
-  #   User.new.age # raises NoMethodError: undefined method `age'
+  #   User.new.age
+  #   # => Module::DelegationError: User#age delegated to profile.age, but profile is nil
   #
   # But if not having a profile yet is fine and should not be an error
   # condition:
@@ -258,7 +260,7 @@ class Module
   #   end
   #
   # The target can be anything callable within the object. E.g. instance
-  # variables, methods, constants ant the likes.
+  # variables, methods, constants and the likes.
   def delegate_missing_to(target)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)

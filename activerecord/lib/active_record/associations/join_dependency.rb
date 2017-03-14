@@ -32,7 +32,7 @@ module ActiveRecord
           @alias_cache[node][column]
         end
 
-        class Table < Struct.new(:node, :columns) # :nodoc:
+        Table = Struct.new(:node, :columns) do # :nodoc:
           def table
             Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
           end
@@ -171,7 +171,7 @@ module ActiveRecord
           chain         = child.reflection.chain
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, child, join_type, tables, child.reflection.scope_chain, chain)
+          child.join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
         end
 
         def make_outer_joins(parent, child)

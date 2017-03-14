@@ -1547,7 +1547,7 @@ SELECT people.id, people.name, comments.text
 FROM people
 INNER JOIN comments
   ON comments.person_id = people.id
-WHERE comments.created_at = '2015-01-01'
+WHERE comments.created_at > '2015-01-01'
 ```
 
 ### Retrieving specific data from multiple tables
@@ -1871,7 +1871,7 @@ Which will execute:
 
 ```sql
 SELECT count(DISTINCT clients.id) AS count_all FROM clients
-  LEFT OUTER JOIN orders ON orders.client_id = client.id WHERE
+  LEFT OUTER JOIN orders ON orders.client_id = clients.id WHERE
   (clients.first_name = 'Ryan' AND orders.status = 'received')
 ```
 

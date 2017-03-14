@@ -476,7 +476,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
-    assert_equal "Failed to remove the existing associated ship. " +
+    assert_equal "Failed to remove the existing associated ship. " \
                  "The record failed to save after its foreign key was set to nil.", error.message
   end
 
@@ -661,7 +661,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     belongs_to :book, class_name: "SpecialBook"
   end
 
-  def test_assocation_enum_works_properly
+  def test_association_enum_works_properly
     author = SpecialAuthor.create!(name: "Test")
     book = SpecialBook.create!(status: "published")
     author.book = book
@@ -669,7 +669,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 
-  def test_assocation_enum_works_properly_with_nested_join
+  def test_association_enum_works_properly_with_nested_join
     author = SpecialAuthor.create!(name: "Test")
     book = SpecialBook.create!(status: "published")
     author.book = book

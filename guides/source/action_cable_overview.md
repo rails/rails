@@ -240,8 +240,8 @@ WebNotificationsChannel.broadcast_to(
 ```
 
 The `WebNotificationsChannel.broadcast_to` call places a message in the current
-subscription adapter (by default `redis` for production and `async` for development and 
-test environments)'s pubsub queue under a separate broadcasting name for each user. 
+subscription adapter (by default `redis` for production and `async` for development and
+test environments)'s pubsub queue under a separate broadcasting name for each user.
 For a user with an ID of 1, the broadcasting name would be `web_notifications:1`.
 
 The channel has been instructed to stream everything that arrives at
@@ -530,7 +530,7 @@ Action Cable has two required configurations: a subscription adapter and allowed
 ### Subscription Adapter
 
 By default, Action Cable looks for a configuration file in `config/cable.yml`.
-The file must specify an adapter and a URL for each Rails environment. See the
+The file must specify an adapter for each Rails environment. See the
 [Dependencies](#dependencies) section for additional information on adapters.
 
 ```yaml
@@ -543,7 +543,28 @@ test:
 production:
   adapter: redis
   url: redis://10.10.3.153:6381
+  channel_prefix: appname_production
 ```
+#### Adapter Configuration
+
+Below is a list of the subscription adapters available for end users.
+
+##### Async Adapter
+
+The async adapter is intended for development/testing and should not be used in production.
+
+##### Redis Adapter
+
+Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
+of the adapters require users to provide a URL pointing to the Redis server.
+Additionally, a channel_prefix may be provided to avoid channel name collisions
+when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
+
+##### PostgreSQL Adapter
+
+The PostgreSQL adapter uses Active Record's connection pool, and thus the
+application's `config/database.yml` database configuration, for its connection.
+This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
 ### Allowed Request Origins
 

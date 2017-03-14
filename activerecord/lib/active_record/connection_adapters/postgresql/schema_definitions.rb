@@ -42,6 +42,7 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
+          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
           if type == :uuid
             options[:default] = options.fetch(:default, "gen_random_uuid()")
           elsif options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
@@ -87,6 +88,10 @@ module ActiveRecord
           args.each { |name| column(name, :inet, options) }
         end
 
+        def interval(*args, **options)
+          args.each { |name| column(name, :interval, options) }
+        end
+
         def int4range(*args, **options)
           args.each { |name| column(name, :int4range, options) }
         end
@@ -117,6 +122,10 @@ module ActiveRecord
 
         def numrange(*args, **options)
           args.each { |name| column(name, :numrange, options) }
+        end
+
+        def oid(*args, **options)
+          args.each { |name| column(name, :oid, options) }
         end
 
         def point(*args, **options)
@@ -172,24 +181,8 @@ module ActiveRecord
         end
       end
 
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :array
-      end
-
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
-
-        def new_column_definition(name, type, options) # :nodoc:
-          column = super
-          column.array = options[:array]
-          column
-        end
-
-        private
-
-          def create_column_definition(name, type)
-            PostgreSQL::ColumnDefinition.new name, type
-          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

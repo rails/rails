@@ -85,7 +85,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.data_sources.sort - @connection.views
+        sorted_tables = @connection.tables.sort
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
@@ -188,7 +188,7 @@ HEADER
         index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
         index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
         index_parts << "where: #{index.where.inspect}" if index.where
-        index_parts << "using: #{index.using.inspect}" if index.using
+        index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts

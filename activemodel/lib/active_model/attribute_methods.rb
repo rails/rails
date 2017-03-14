@@ -289,7 +289,7 @@ module ActiveModel
             generate_method = "define_method_#{matcher.method_missing_target}"
 
             if respond_to?(generate_method, true)
-              send(generate_method, attr_name)
+              send(generate_method, attr_name.to_s)
             else
               define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
             end

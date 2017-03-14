@@ -133,6 +133,9 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
+  # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
+  # default settings per-mailer.
+  #
   # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
   #
   # = Sending mail
@@ -288,20 +291,19 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
-  # can define methods that evaluate as the message is being generated:
+  # Finally, Action Mailer also supports passing <tt>Proc</tt> and <tt>Lambda</tt> objects into the default hash,
+  # so you can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
-  #     default 'X-Special-Header' => Proc.new { my_method }
+  #     default 'X-Special-Header' => Proc.new { my_method }, to: -> { @inviter.email_address }
   #
   #     private
-  #
   #       def my_method
   #         'some complex call'
   #       end
   #   end
   #
-  # Note that the proc is evaluated right at the start of the mail message generation, so if you
+  # Note that the proc/lambda is evaluated right at the start of the mail message generation, so if you
   # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
@@ -324,7 +326,6 @@ module ActionMailer
   #     end
   #
   #     private
-  #
   #       def add_inline_attachment!
   #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
   #       end
@@ -430,10 +431,11 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>. Defaults to +mailers+.
   class Base < AbstractController::Base
     include DeliveryMethods
     include Rescuable
+    include Parameterized
     include Previews
 
     abstract!
@@ -580,7 +582,7 @@ module ActionMailer
       end
 
       def respond_to_missing?(method, include_all = false)
-        action_methods.include?(method.to_s)
+        action_methods.include?(method.to_s) || super
       end
     end
 
@@ -599,7 +601,8 @@ module ActionMailer
     def process(method_name, *args) #:nodoc:
       payload = {
         mailer: self.class.name,
-        action: method_name
+        action: method_name,
+        args: args
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -888,7 +891,7 @@ module ActionMailer
         default_values = self.class.default.map do |key, value|
           [
             key,
-            value.is_a?(Proc) ? instance_eval(&value) : value
+            value.is_a?(Proc) ? instance_exec(&value) : value
           ]
         end.to_h
 
@@ -972,7 +975,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer"
+        "action_mailer".freeze
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)

@@ -84,8 +84,46 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised { Date.today - Date.today }
   end
 
+  def test_plus
+    assert_equal 2.seconds, 1.second + 1.second
+    assert_instance_of ActiveSupport::Duration, 1.second + 1.second
+    assert_equal 2.seconds, 1.second + 1
+    assert_instance_of ActiveSupport::Duration, 1.second + 1
+  end
+
+  def test_minus
+    assert_equal 1.second, 2.seconds - 1.second
+    assert_instance_of ActiveSupport::Duration, 2.seconds - 1.second
+    assert_equal 1.second, 2.seconds - 1
+    assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+  end
+
+  def test_multiply
+    assert_equal 7.days, 1.day * 7
+    assert_instance_of ActiveSupport::Duration, 1.day * 7
+
+    assert_deprecated do
+      assert_equal 86400, 1.day * 1.second
+    end
+  end
+
+  def test_divide
+    assert_equal 1.day, 7.days / 7
+    assert_instance_of ActiveSupport::Duration, 7.days / 7
+
+    assert_deprecated do
+      assert_equal 1, 1.day / 1.day
+    end
+  end
+
+  def test_date_added_with_multiplied_duration
+    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+  end
+
   def test_plus_with_time
-    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    assert_deprecated do
+      assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
+    end
   end
 
   def test_time_plus_duration_returns_same_time_datatype
@@ -102,6 +140,13 @@ class DurationTest < ActiveSupport::TestCase
       1.second.ago("")
     end
     assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
+  end
+
+  def test_implicit_coercion_is_deprecated
+    assert_deprecated { 1 + 1.second }
+    assert_deprecated { 1 - 1.second }
+    assert_deprecated { 1 * 1.second }
+    assert_deprecated { 1 / 1.second }
   end
 
   def test_fractional_weeks
@@ -179,6 +224,19 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
+  def test_before_and_afer
+    t = Time.local(2000)
+    assert_equal t + 1, 1.second.after(t)
+    assert_equal t - 1, 1.second.before(t)
+  end
+
+  def test_before_and_after_without_argument
+    Time.stub(:now, Time.local(2000)) do
+      assert_equal Time.now - 1.second, 1.second.before
+      assert_equal Time.now + 1.second, 1.second.after
+    end
+  end
+
   def test_adding_hours_across_dst_boundary
     with_env_tz "CET" do
       assert_equal Time.local(2009, 3, 29, 0, 0, 0) + 24.hours, Time.local(2009, 3, 30, 1, 0, 0)
@@ -228,13 +286,43 @@ class DurationTest < ActiveSupport::TestCase
   def test_comparable
     assert_equal(-1, (0.seconds <=> 1.second))
     assert_equal(-1, (1.second <=> 1.minute))
-    assert_equal(-1, (1 <=> 1.minute))
+
+    assert_deprecated do
+      assert_equal(-1, (1 <=> 1.minute))
+    end
+
     assert_equal(0, (0.seconds <=> 0.seconds))
     assert_equal(0, (0.seconds <=> 0.minutes))
     assert_equal(0, (1.second <=> 1.second))
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
-    assert_equal(1, (61 <=> 1.minute))
+
+    assert_deprecated do
+      assert_equal(1, (61 <=> 1.minute))
+    end
+  end
+
+  def test_twelve_months_equals_one_year
+    assert_equal 12.months, 1.year
+  end
+
+  def test_thirty_days_does_not_equal_one_month
+    assert_not_equal 30.days, 1.month
+  end
+
+  def test_adding_one_month_maintains_day_of_month
+    (1..11).each do |month|
+      [1, 14, 28].each do |day|
+        assert_equal Date.civil(2016, month + 1, day), Date.civil(2016, month, day) + 1.month
+      end
+    end
+
+    assert_equal Date.civil(2017, 1, 1),  Date.civil(2016, 12, 1) + 1.month
+    assert_equal Date.civil(2017, 1, 14),  Date.civil(2016, 12, 14) + 1.month
+    assert_equal Date.civil(2017, 1, 28),  Date.civil(2016, 12, 28) + 1.month
+
+    assert_equal Date.civil(2015, 2, 28), Date.civil(2015, 1, 31) + 1.month
+    assert_equal Date.civil(2016, 2, 29), Date.civil(2016, 1, 31) + 1.month
   end
 
   # ISO8601 string examples are taken from ISO8601 gem at https://github.com/arnau/ISO8601/blob/b93d466840/spec/iso8601/duration_spec.rb
@@ -341,6 +429,21 @@ class DurationTest < ActiveSupport::TestCase
           assert_equal 604800, ActiveSupport::Duration.parse("P7D").to_i
           assert_equal 604800, ActiveSupport::Duration.parse("P1W").to_i
         end
+      end
+    end
+  end
+
+  def test_iso8601_parsing_equivalence_with_numeric_extensions_over_long_periods
+    with_env_tz eastern_time_zone do
+      with_tz_default "Eastern Time (US & Canada)" do
+        assert_equal 3.months, ActiveSupport::Duration.parse("P3M")
+        assert_equal 3.months.to_i, ActiveSupport::Duration.parse("P3M").to_i
+        assert_equal 10.months, ActiveSupport::Duration.parse("P10M")
+        assert_equal 10.months.to_i, ActiveSupport::Duration.parse("P10M").to_i
+        assert_equal 3.years, ActiveSupport::Duration.parse("P3Y")
+        assert_equal 3.years.to_i, ActiveSupport::Duration.parse("P3Y").to_i
+        assert_equal 10.years, ActiveSupport::Duration.parse("P10Y")
+        assert_equal 10.years.to_i, ActiveSupport::Duration.parse("P10Y").to_i
       end
     end
   end

@@ -36,8 +36,10 @@ class Build
 
   def run!(options = {})
     self.options.update(options)
+
     Dir.chdir(dir) do
       announce(heading)
+
       if guides?
         run_bug_report_templates
       else
@@ -69,7 +71,7 @@ class Build
       end
       tasks
     else
-      ["test", ("isolated" if isolated?), ("integration" if integration?)].compact.join(":")
+      ["test", ("isolated" if isolated?), ("integration" if integration?), ("ujs" if ujs?)].compact.join(":")
     end
   end
 
@@ -90,6 +92,10 @@ class Build
 
   def guides?
     gem == "guides"
+  end
+
+  def ujs?
+    component.split(":").last == "ujs"
   end
 
   def isolated?
@@ -151,10 +157,10 @@ ENV["GEM"].split(",").each do |gem|
     next if gem == "ac:integration" && isolated
     next if gem == "aj:integration" && isolated
     next if gem == "guides" && isolated
+    next if gem == "av:ujs" && isolated
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
-
   end
 end
 

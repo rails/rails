@@ -1,5 +1,6 @@
 require "date"
 require "abstract_unit"
+require "timeout"
 require "inflector_test_cases"
 require "constantize_test_cases"
 
@@ -222,7 +223,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     original = %{\u205f\u3000 A string surrounded by various unicode spaces,
       with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
-    expected = "A string surrounded by various unicode spaces, " +
+    expected = "A string surrounded by various unicode spaces, " \
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:

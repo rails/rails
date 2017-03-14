@@ -53,6 +53,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     @params.each_pair { |key, value| assert_not(value.permitted?) if key == "person" }
   end
 
+  test "empty? returns true when params contains no key/value pairs" do
+    params = ActionController::Parameters.new
+    assert params.empty?
+  end
+
+  test "empty? returns false when any params are present" do
+    refute @params.empty?
+  end
+
   test "except retains permitted status" do
     @params.permit!
     assert @params.except(:person).permitted?
@@ -73,6 +82,45 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "fetch retains unpermitted status" do
     assert_not @params.fetch(:person).permitted?
     assert_not @params[:person].fetch(:name).permitted?
+  end
+
+  test "has_key? returns true if the given key is present in the params" do
+    assert @params.has_key?(:person)
+  end
+
+  test "has_key? returns false if the given key is not present in the params" do
+    refute @params.has_key?(:address)
+  end
+
+  test "has_value? returns true if the given value is present in the params" do
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
+    assert params.has_value?("Chicago")
+  end
+
+  test "has_value? returns false if the given value is not present in the params" do
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
+    refute @params.has_value?("New York")
+  end
+
+  test "include? returns true if the given key is present in the params" do
+    assert @params.include?(:person)
+  end
+
+  test "include? returns false if the given key is not present in the params" do
+    refute @params.include?(:address)
+  end
+
+  test "key? returns true if the given key is present in the params" do
+    assert @params.key?(:person)
+  end
+
+  test "key? returns false if the given key is not present in the params" do
+    refute @params.key?(:address)
+  end
+
+  test "keys returns an array of the keys of the params" do
+    assert_equal ["person"], @params.keys
+    assert_equal ["age", "name", "addresses"], @params[:person].keys
   end
 
   test "reject retains permitted status" do
@@ -118,6 +166,21 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "transform_values retains unpermitted status" do
     assert_not @params.transform_values { |v| v }.permitted?
+  end
+
+  test "value? returns true if the given value is present in the params" do
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
+    assert params.value?("Chicago")
+  end
+
+  test "value? returns false if the given value is not present in the params" do
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
+    refute params.value?("New York")
+  end
+
+  test "values returns an array of the values of the params" do
+    params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
+    assert_equal ["Chicago", "Illinois"], params.values
   end
 
   test "values_at retains permitted status" do

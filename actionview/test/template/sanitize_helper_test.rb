@@ -10,6 +10,7 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal "on my mind\nall day long", strip_links("<a href='almost'>on my mind</a>\n<A href='almost'>all day long</A>")
     assert_equal "Magic", strip_links("<a href='http://www.rubyonrails.com/'>Mag<a href='http://www.ruby-lang.org/'>ic")
     assert_equal "My mind\nall <b>day</b> long", strip_links("<a href='almost'>My mind</a>\n<A href='almost'>all <b>day</b> long</A>")
+    assert_equal "&lt;malformed &amp; link", strip_links('<<a href="https://example.org">malformed & link</a>')
   end
 
   def test_sanitize_form
@@ -26,6 +27,7 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal("Dont touch me", strip_tags("Dont touch me"))
     assert_equal("This is a test.", strip_tags("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
     assert_equal "This has a  here.", strip_tags("This has a <!-- comment --> here.")
+    assert_equal("Jekyll &amp; Hyde", strip_tags("Jekyll & Hyde"))
     assert_equal "", strip_tags("<script>")
   end
 

@@ -7,14 +7,14 @@ end
 
 gemspec
 
-gem "arel", github: "rails/arel"
-
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
+
+gem "capybara", "~> 2.7.0"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
@@ -37,7 +37,7 @@ gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", requi
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
-gem "rubocop", require: false
+gem "rubocop", ">= 0.47", require: false
 
 group :doc do
   gem "sdoc", "1.0.0.rc1"
@@ -51,13 +51,16 @@ gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 
+# Action View. For testing Erubis handler deprecation.
+gem "erubis", "~> 2.7.0", require: false
+
 # Active Job.
 group :job do
-  gem "resque", github: "resque/resque", require: false
+  gem "resque", require: false
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false, github: "collectiveidea/delayed_job"
+  gem "delayed_job", require: false
   gem "queue_classic", github: "QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
@@ -65,7 +68,7 @@ group :job do
   #TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem "qu-redis", require: false
-  gem "delayed_job_active_record", require: false, github: "collectiveidea/delayed_job_active_record"
+  gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
 
@@ -81,6 +84,7 @@ group :cable do
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
+  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.
