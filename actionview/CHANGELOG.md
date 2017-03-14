@@ -99,6 +99,23 @@
 
     *Peter Schilling*, *Matthew Draper*
 
+*   Add `:skip_pipeline` option to several asset tag helpers
+
+    `javascript_include_tag`, `stylesheet_link_tag`, `favicon_link_tag`,
+    `image_tag` and `audio_tag` now accept a `:skip_pipeline` option which can
+    be set to true to bypass the asset pipeline and serve the assets from the
+    public folder.
+
+    *Richard Schneeman*
+
+*   Add `:poster_skip_pipeline` option to the `video_tag` helper
+
+    `video_tag` now accepts a `:poster_skip_pipeline` option which can be used
+    in combination with the `:poster` option to bypass the asset pipeline and
+    serve the poster image for the video from the public folder.
+
+    *Richard Schneeman*
+
 *   Show cache hits and misses when rendering partials.
 
     Partials using the `cache` helper will show whether a render hit or missed
