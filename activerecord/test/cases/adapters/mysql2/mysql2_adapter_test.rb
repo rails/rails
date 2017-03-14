@@ -65,6 +65,16 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       @conn.columns_for_distinct("posts.id", [order])
   end
 
+  def test_table_exists_acts_upon_current_database
+    previous_db = @conn.select_value("SELECT DATABASE()")
+
+    assert @conn.table_exists?("accounts")
+    @conn.execute("USE activerecord_unittest2")
+    assert_not @conn.table_exists?("accounts")
+  ensure
+    @conn.execute("USE #{previous_db}")
+  end
+
   private
 
   def with_example_table(definition = 'id int auto_increment primary key, number int, data varchar(255)', &block)
