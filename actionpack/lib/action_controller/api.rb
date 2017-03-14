@@ -81,10 +81,9 @@ module ActionController
   #     end
   #   end
   #
-  # Quite straightforward. Make sure to check the modules included in
-  # <tt>ActionController::Base</tt> if you want to use any other
-  # functionality that is not provided by <tt>ActionController::API</tt>
-  # out of the box.
+  # Make sure to check the modules included in <tt>ActionController::Base</tt>
+  # if you want to use any other functionality that is not provided
+  # by <tt>ActionController::API</tt> out of the box.
   class API < Metal
     abstract!
 

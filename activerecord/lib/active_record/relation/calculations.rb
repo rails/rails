@@ -37,11 +37,8 @@ module ActiveRecord
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
-      if block_given?
-        to_a.count { |*block_args| yield(*block_args) }
-      else
-        calculate(:count, column_name)
-      end
+      return super() if block_given?
+      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -75,8 +72,8 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(column_name = nil, &block)
-      return super(&block) if block_given?
+    def sum(column_name = nil)
+      return super() if block_given?
       calculate(:sum, column_name)
     end
 

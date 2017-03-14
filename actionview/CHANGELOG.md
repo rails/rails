@@ -1,7 +1,9 @@
 *   Remove the option `encode_special_chars` misnomer from `strip_tags`
 
-    As of rails-html-sanitizer v1.0.3 sanitizer will ignore the
-    `encode_special_chars` option. Fixes #28060.
+    As of rails-html-sanitizer v1.0.3, the sanitizer will ignore the
+    `encode_special_chars` option.
+
+    Fixes #28060.
 
     *Andrew Hood*
 
@@ -96,6 +98,23 @@
     ```
 
     *Peter Schilling*, *Matthew Draper*
+
+*   Add `:skip_pipeline` option to several asset tag helpers
+
+    `javascript_include_tag`, `stylesheet_link_tag`, `favicon_link_tag`,
+    `image_tag` and `audio_tag` now accept a `:skip_pipeline` option which can
+    be set to true to bypass the asset pipeline and serve the assets from the
+    public folder.
+
+    *Richard Schneeman*
+
+*   Add `:poster_skip_pipeline` option to the `video_tag` helper
+
+    `video_tag` now accepts a `:poster_skip_pipeline` option which can be used
+    in combination with the `:poster` option to bypass the asset pipeline and
+    serve the poster image for the video from the public folder.
+
+    *Richard Schneeman*
 
 *   Show cache hits and misses when rendering partials.
 

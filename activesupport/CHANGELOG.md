@@ -1,7 +1,7 @@
 *   Update `titleize` regex to allow apostrophes
 
     In 4b685aa the regex in `titleize` was updated to not match apostrophes to
-    better reflect the nature of the transformation. Unfortunately this had the
+    better reflect the nature of the transformation. Unfortunately, this had the
     side effect of breaking capitalization on the first word of a sub-string, e.g:
 
         >> "This was 'fake news'".titleize
@@ -22,7 +22,7 @@
 
 *   Add `Time.rfc3339` parsing method
 
-    The `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
+    `Time.xmlschema` and consequently its alias `iso8601` accepts timestamps
     without a offset in contravention of the RFC 3339 standard. This method
     enforces that constraint and raises an `ArgumentError` if it doesn't.
 
@@ -30,7 +30,7 @@
 
 *   Add `ActiveSupport::TimeZone.rfc3339` parsing method
 
-    Previously there was no way to get a RFC 3339 timestamp into a specific
+    Previously, there was no way to get a RFC 3339 timestamp into a specific
     timezone without either using `parse` or chaining methods. The new method
     allows parsing directly into the timezone, e.g:
 
@@ -39,7 +39,7 @@
         >> Time.zone.rfc3339("1999-12-31T14:00:00Z")
         => Fri, 31 Dec 1999 14:00:00 HST -10:00
 
-    This new method has stricter semantics than the current `parse` method
+    This new method has stricter semantics than the current `parse` method,
     and will raise an `ArgumentError` instead of returning nil, e.g:
 
         >> Time.zone = "Hawaii"
@@ -63,7 +63,7 @@
 
 *   Add `ActiveSupport::TimeZone.iso8601` parsing method
 
-    Previously there was no way to get a ISO 8601 timestamp into a specific
+    Previously, there was no way to get a ISO 8601 timestamp into a specific
     timezone without either using `parse` or chaining methods. The new method
     allows parsing directly into the timezone, e.g:
 
@@ -72,7 +72,7 @@
         >> Time.zone.iso8601("1999-12-31T14:00:00Z")
         => Fri, 31 Dec 1999 14:00:00 HST -10:00
 
-    If the timestamp is a ISO 8601 date (YYYY-MM-DD) then the time is set
+    If the timestamp is a ISO 8601 date (YYYY-MM-DD), then the time is set
     to midnight, e.g:
 
         >> Time.zone = "Hawaii"
@@ -80,7 +80,7 @@
         >> Time.zone.iso8601("1999-12-31")
         => Fri, 31 Dec 1999 00:00:00 HST -10:00
 
-    This new method has stricter semantics than the current `parse` method
+    This new method has stricter semantics than the current `parse` method,
     and will raise an `ArgumentError` instead of returning nil, e.g:
 
         >> Time.zone = "Hawaii"
@@ -175,7 +175,9 @@
 *   Soft-deprecated the top-level `HashWithIndifferentAccess` constant.
     `ActiveSupport::HashWithIndifferentAccess` should be used instead.
 
-    *Robin Dupret* (#28157)
+    Fixes #28157.
+
+    *Robin Dupret*
 
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
     argument for `Marshal#load( source [, proc] )`. This way we don't have to do
@@ -260,7 +262,7 @@
     to avoid duplication of duration constants through the codebase and
     eliminate creation of intermediate durations.
 
-    *Andrey Novikov, Andrew White*
+    *Andrey Novikov*, *Andrew White*
 
 *   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
     to false.
@@ -499,28 +501,28 @@
     *John Gesimondo*
 
 *   `travel/travel_to` travel time helpers, now raise on nested calls,
-     as this can lead to confusing time stubbing.
+    as this can lead to confusing time stubbing.
 
-     Instead of:
+    Instead of:
 
-         travel_to 2.days.from_now do
-           # 2 days from today
-           travel_to 3.days.from_now do
-             # 5 days from today
-           end
-         end
+        travel_to 2.days.from_now do
+          # 2 days from today
+          travel_to 3.days.from_now do
+            # 5 days from today
+          end
+        end
 
-     preferred way to achieve above is:
+    preferred way to achieve above is:
 
-         travel 2.days do
-           # 2 days from today
-         end
+        travel 2.days do
+          # 2 days from today
+        end
 
-         travel 5.days do
-           # 5 days from today
-         end
+        travel 5.days do
+          # 5 days from today
+        end
 
-     *Vipul A M*
+    *Vipul A M*
 
 *   Support parsing JSON time in ISO8601 local time strings in
     `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.

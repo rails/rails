@@ -1,3 +1,11 @@
+*   Fix `NameError` raised in `ActionController::Renderer#with_defaults`
+
+    *Hiroyuki Ishii*
+
+*   Added `#reverse_merge` and `#reverse_merge!` methods to `ActionController::Parameters`
+
+    *Edouard Chin*, *Mitsutaka Mimura*
+
 *   Fix malformed URLS when using `ApplicationController.renderer`
 
     The Rack environment variable `rack.url_scheme` was not being set so `scheme` was
@@ -325,7 +333,7 @@
         redirects to
         POST https://example.com/articles (i.e. ArticlesContoller#create)
 
-   *Chirag Singhal*
+    *Chirag Singhal*
 
 *   Add `:as` option to `ActionController:TestCase#process` and related methods.
 

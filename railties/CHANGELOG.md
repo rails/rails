@@ -1,7 +1,9 @@
 *   Avoid running system tests by default with the `bin/rails test`
     and `bin/rake test` commands since they may be expensive.
 
-    *Robin Dupret* (#28286)
+    Fixes #28286.
+
+    *Robin Dupret*
 
 *   Improve encryption for encrypted secrets.
 

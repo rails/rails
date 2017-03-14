@@ -31,6 +31,8 @@ module ActiveRecord
       # Returns the relation names useable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
+        select_values(data_source_sql, "SCHEMA")
+      rescue NotImplementedError
         tables | views
       end
 
@@ -39,12 +41,14 @@ module ActiveRecord
       #   data_source_exists?(:ebooks)
       #
       def data_source_exists?(name)
+        select_values(data_source_sql(name), "SCHEMA").any? if name.present?
+      rescue NotImplementedError
         data_sources.include?(name.to_s)
       end
 
       # Returns an array of table names defined in the database.
       def tables
-        raise NotImplementedError, "#tables is not implemented"
+        select_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -52,12 +56,14 @@ module ActiveRecord
       #   table_exists?(:developers)
       #
       def table_exists?(table_name)
+        select_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
+      rescue NotImplementedError
         tables.include?(table_name.to_s)
       end
 
       # Returns an array of view names defined in the database.
       def views
-        raise NotImplementedError, "#views is not implemented"
+        select_values(data_source_sql(type: "VIEW"), "SCHEMA")
       end
 
       # Checks to see if the view +view_name+ exists on the database.
@@ -65,6 +71,8 @@ module ActiveRecord
       #   view_exists?(:ebooks)
       #
       def view_exists?(view_name)
+        select_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
+      rescue NotImplementedError
         views.include?(view_name.to_s)
       end
 
@@ -1303,6 +1311,14 @@ module ActiveRecord
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def data_source_sql(name = nil, type: nil)
+          raise NotImplementedError
+        end
+
+        def quoted_scope(name = nil, type: nil)
+          raise NotImplementedError
         end
     end
   end

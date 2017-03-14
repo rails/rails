@@ -490,9 +490,6 @@ If you set `:only_integer` to `true`, then it will use the
 regular expression to validate the attribute's value. Otherwise, it will try to
 convert the value to a number using `Float`.
 
-WARNING. Note that the regular expression above allows a trailing newline
-character.
-
 ```ruby
 class Player < ApplicationRecord
   validates :points, numericality: true

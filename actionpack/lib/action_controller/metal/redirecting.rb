@@ -22,7 +22,7 @@ module ActionController
     #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
+    # The redirection happens as a <tt>302 Found</tt> header unless otherwise specified using the <tt>:status</tt> option:
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently
@@ -36,7 +36,7 @@ module ActionController
     # If you are using XHR requests other than GET or POST and redirecting after the
     # request then some browsers will follow the redirect using the original request
     # method. This may lead to undesirable behavior such as a double DELETE. To work
-    # around this  you can return a <tt>303 See Other</tt> status code which will be
+    # around this you can return a <tt>303 See Other</tt> status code which will be
     # followed using a GET request.
     #
     #   redirect_to posts_url, status: :see_other

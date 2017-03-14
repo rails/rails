@@ -47,6 +47,17 @@ module ActiveSupport
             assert_raises(RuntimeError) { middleware.call({}) }
             assert_nil LocalCacheRegistry.cache_for(key)
           end
+
+          def test_local_cache_cleared_on_throw
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new("<3", key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), "should have a cache"
+              throw :warden
+            })
+            assert_throws(:warden) { middleware.call({}) }
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
         end
       end
     end
