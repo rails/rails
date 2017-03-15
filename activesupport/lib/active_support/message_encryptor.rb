@@ -53,7 +53,7 @@ module ActiveSupport
     # First additional parameter is used as the signature key for +MessageVerifier+.
     # This allows you to specify keys to encrypt and sign data.
     #
-    #    ActiveSupport::MessageEncryptor.new('secret', 'signature_key')
+    #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
     #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
