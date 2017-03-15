@@ -4962,3 +4962,64 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     assert_equal "bar", response.body
   end
 end
+
+class TestRecognizePath < ActionDispatch::IntegrationTest
+  class PageConstraint
+    attr_reader :key, :pattern
+
+    def initialize(key, pattern)
+      @key = key
+      @pattern = pattern
+    end
+
+    def matches?(request)
+      request.path_parameters[key] =~ pattern
+    end
+  end
+
+  stub_controllers do |routes|
+    Routes = routes
+    routes.draw do
+      get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
+      get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
+
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+
+      get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
+      get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
+    end
+  end
+
+  APP = build_app Routes
+  def app
+    APP
+  end
+
+  def test_hash_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/hash/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_proc_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/proc/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_class_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/class/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  private
+
+    def recognize_path(*args)
+      Routes.recognize_path(*args)
+    end
+end

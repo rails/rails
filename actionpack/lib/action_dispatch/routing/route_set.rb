@@ -860,8 +860,7 @@ module ActionDispatch
               params[key] = URI.parser.unescape(value)
             end
           end
-          old_params = req.path_parameters
-          req.path_parameters = old_params.merge params
+          req.path_parameters = params
           app = route.app
           if app.matches?(req) && app.dispatcher?
             begin
