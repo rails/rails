@@ -133,7 +133,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_generates_correct_session_key
+  def test_app_update_generates_correct_session_key
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -156,7 +156,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/cors.rb"
   end
 
-  def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
+  def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -168,7 +168,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
+  def test_app_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -183,7 +183,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_dont_set_file_watcher
+  def test_app_update_dont_set_file_watcher
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -197,7 +197,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_does_not_create_new_framework_defaults_by_default
+  def test_app_update_does_not_create_new_framework_defaults_by_default
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -215,7 +215,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_does_not_create_rack_cors
+  def test_app_update_does_not_create_rack_cors
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -227,7 +227,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_does_not_remove_rack_cors_if_already_present
+  def test_app_update_does_not_remove_rack_cors_if_already_present
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
