@@ -6,10 +6,6 @@
 
     *Yuji Yaginuma*
 
-*   Push skipped jobs to `enqueued_jobs` when using `perform_enqueued_jobs` with a `only` filter in tests
-
-    *Alexander Pauly*
-
 *   Removed deprecated support to passing the adapter class to `.queue_adapter`.
 
     *Rafael Mendonça França*
