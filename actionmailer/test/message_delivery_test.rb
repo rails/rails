@@ -76,8 +76,8 @@ class MessageDeliveryTest < ActiveSupport::TestCase
 
   test "should enqueue a delivery with a delay" do
     travel_to Time.new(2004, 11, 24, 01, 04, 44) do
-      assert_performed_with(job: ActionMailer::DeliveryJob, at: Time.current + 600.seconds, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
-        @mail.deliver_later wait: 600.seconds
+      assert_performed_with(job: ActionMailer::DeliveryJob, at: Time.current + 10.minutes, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
+        @mail.deliver_later wait: 10.minutes
       end
     end
   end

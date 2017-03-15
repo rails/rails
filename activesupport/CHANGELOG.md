@@ -1,3 +1,19 @@
+*   Remove implicit coercion deprecation of durations
+
+    In #28204 we deprecated implicit conversion of durations to a numeric which
+    represented the number of seconds in the duration because of unwanted side
+    effects with calculations on durations and dates. This unfortunately had
+    the side effect of forcing a explicit cast when configuring third-party
+    libraries like expiration in Redis, e.g:
+
+        redis.expire("foo", 5.minutes)
+
+    To work around this we've removed the deprecation and added a private class
+    that wraps the numeric and can perform calculation involving durations and
+    ensure that they remain a duration irrespective of the order of operations.
+
+    *Andrew White*
+
 *   Update `titleize` regex to allow apostrophes
 
     In 4b685aa the regex in `titleize` was updated to not match apostrophes to

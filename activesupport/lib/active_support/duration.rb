@@ -1,4 +1,5 @@
 require "active_support/core_ext/array/conversions"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/string/filters"
 require "active_support/deprecation"
@@ -9,6 +10,66 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
+    class Scalar < Numeric #:nodoc:
+      attr_reader :value
+      delegate :to_i, :to_f, :to_s, to: :value
+
+      def initialize(value)
+        @value = value
+      end
+
+      def coerce(other)
+        [Scalar.new(other), self]
+      end
+
+      def -@
+        Scalar.new(-value)
+      end
+
+      def <=>(other)
+        if Scalar === other || Duration === other
+          value <=> other.value
+        elsif Numeric === other
+          value <=> other
+        else
+          nil
+        end
+      end
+
+      def +(other)
+        calculate(:+, other)
+      end
+
+      def -(other)
+        calculate(:-, other)
+      end
+
+      def *(other)
+        calculate(:*, other)
+      end
+
+      def /(other)
+        calculate(:/, other)
+      end
+
+      private
+        def calculate(op, other)
+          if Scalar === other
+            Scalar.new(value.public_send(op, other.value))
+          elsif Duration === other
+            Duration.seconds(value).public_send(op, other)
+          elsif Numeric === other
+            Scalar.new(value.public_send(op, other))
+          else
+            raise_type_error(other)
+          end
+        end
+
+        def raise_type_error(other)
+          raise TypeError, "no implicit conversion of #{other.class} into #{self.class}"
+        end
+    end
+
     SECONDS_PER_MINUTE = 60
     SECONDS_PER_HOUR   = 3600
     SECONDS_PER_DAY    = 86400
@@ -91,12 +152,11 @@ module ActiveSupport
     end
 
     def coerce(other) #:nodoc:
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Implicit coercion of ActiveSupport::Duration to a Numeric
-        is deprecated and will raise a TypeError in Rails 5.2.
-      MSG
-
-      [other, value]
+      if Scalar === other
+        [other, self]
+      else
+        [Scalar.new(other), self]
+      end
     end
 
     # Compares one Duration with another or a Numeric to this Duration.
@@ -132,19 +192,23 @@ module ActiveSupport
 
     # Multiplies this Duration by a Numeric and returns a new Duration.
     def *(other)
-      if Numeric === other
+      if Scalar === other || Duration === other
+        Duration.new(value * other.value, parts.map { |type, number| [type, number * other.value] })
+      elsif Numeric === other
         Duration.new(value * other, parts.map { |type, number| [type, number * other] })
       else
-        value * other
+        raise_type_error(other)
       end
     end
 
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
-      if Numeric === other
+      if Scalar === other || Duration === other
+        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value] })
+      elsif Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
       else
-        value / other
+        raise_type_error(other)
       end
     end
 
@@ -273,6 +337,10 @@ module ActiveSupport
 
       def method_missing(method, *args, &block)
         value.send(method, *args, &block)
+      end
+
+      def raise_type_error(other)
+        raise TypeError, "no implicit conversion of #{other.class} into #{self.class}"
       end
   end
 end
