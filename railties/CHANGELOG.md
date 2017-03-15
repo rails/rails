@@ -126,6 +126,10 @@
 
     *Tsukuru Tanimichi*
 
+*   Add `--skip-coffee` option to `rails new`
+
+    *Seunghwan Oh*
+
 *   Allow the use of listen's 3.1.x branch
 
     *Esteban Santana Santana*
