@@ -229,7 +229,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `Rails::Rack::Logger` notifies the logs that the request has begun. After request is complete, flushes all the logs.
 * `ActionDispatch::ShowExceptions` rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
 * `ActionDispatch::RequestId` makes a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method.
-* `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
+* `ActionDispatch::RemoteIp` checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options. Optionally, the first IP address from the X-Forwarded-For header can be used by configuring the config.action_dispatch.use_first_ip_from_header option.
 * `Rack::Sendfile` intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
 * `ActionDispatch::Callbacks` runs the prepare callbacks before serving the request.
 * `ActionDispatch::Cookies` sets cookies for the request.
