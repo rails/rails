@@ -105,7 +105,7 @@ class RequestIP < BaseRequestTest
   end
 
   test "use first ip from header" do
-    request = stub_request({:use_first_ip_from_header => true, "HTTP_X_FORWARDED_FOR" => "10.0.0.1, 3.4.5.6"})
+    request = stub_request(:use_first_ip_from_header => true, "HTTP_X_FORWARDED_FOR" => "10.0.0.1, 3.4.5.6")
     assert_equal "10.0.0.1", request.remote_ip
   end
 

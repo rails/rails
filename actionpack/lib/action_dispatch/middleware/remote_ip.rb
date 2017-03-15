@@ -59,7 +59,7 @@ module ActionDispatch
     # ignore those IP addresses, and return the one that you want.
     #
     # To use the first address that is probably accurate, use the
-    # config.action_dispatch.use_first_ip_from_header option this matches the 
+    # config.action_dispatch.use_first_ip_from_header option this matches the
     # general format (https://en.wikipedia.org/wiki/X-Forwarded-For)
     def initialize(app, ip_spoofing_check = true, custom_proxies = nil, use_first_ip_from_header = false)
       @app = app
@@ -115,14 +115,14 @@ module ActionDispatch
       # the last address left, which was presumably set by one of those proxies.
       #
       # To instead use the first address that is probably accurate, use the
-      # config.action_dispatch.use_first_ip_from_header option this matches the 
+      # config.action_dispatch.use_first_ip_from_header option this matches the
       # general format (https://en.wikipedia.org/wiki/X-Forwarded-For)
       def calculate_ip
         # Set by the Rack web server, this is a single value.
         remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse
+        client_ips = ips_from(@req.client_ip).reverse
 
         if @use_first_ip_from_header
           forwarded_ips = ips_from(@req.x_forwarded_for)
