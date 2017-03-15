@@ -558,4 +558,59 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/6 runs, 8 assertions, 0 failures, 0 errors/, `bin/rails test 2>&1`)
     end
   end
+
+  def test_scaffold_on_invoke_inside_mountable_engine
+    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    engine_path = File.join(destination_root, "bukkits")
+
+    Dir.chdir(engine_path) do
+      quietly { `bin/rails generate scaffold User name:string age:integer` }
+
+      assert File.exist?("app/models/bukkits/user.rb")
+      assert File.exist?("test/models/bukkits/user_test.rb")
+      assert File.exist?("test/fixtures/bukkits/users.yml")
+
+      assert File.exist?("app/controllers/bukkits/users_controller.rb")
+      assert File.exist?("test/controllers/bukkits/users_controller_test.rb")
+
+      assert File.exist?("app/views/bukkits/users/index.html.erb")
+      assert File.exist?("app/views/bukkits/users/edit.html.erb")
+      assert File.exist?("app/views/bukkits/users/show.html.erb")
+      assert File.exist?("app/views/bukkits/users/new.html.erb")
+      assert File.exist?("app/views/bukkits/users/_form.html.erb")
+
+      assert File.exist?("app/helpers/bukkits/users_helper.rb")
+
+      assert File.exist?("app/assets/javascripts/bukkits/users.js")
+      assert File.exist?("app/assets/stylesheets/bukkits/users.css")
+    end
+  end
+
+  def test_scaffold_on_revoke_inside_mountable_engine
+    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    engine_path = File.join(destination_root, "bukkits")
+
+    Dir.chdir(engine_path) do
+      quietly { `bin/rails generate scaffold User name:string age:integer` }
+      quietly { `bin/rails destroy scaffold User` }
+
+      assert_not File.exist?("app/models/bukkits/user.rb")
+      assert_not File.exist?("test/models/bukkits/user_test.rb")
+      assert_not File.exist?("test/fixtures/bukkits/users.yml")
+
+      assert_not File.exist?("app/controllers/bukkits/users_controller.rb")
+      assert_not File.exist?("test/controllers/bukkits/users_controller_test.rb")
+
+      assert_not File.exist?("app/views/bukkits/users/index.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/edit.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/show.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/new.html.erb")
+      assert_not File.exist?("app/views/bukkits/users/_form.html.erb")
+
+      assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
+
+      assert_not File.exist?("app/assets/javascripts/bukkits/users.js")
+      assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
+    end
+  end
 end
