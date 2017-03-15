@@ -606,7 +606,6 @@ You can also inspect for an object method this way:
 @new_record = true
 @readonly = false
 @transaction_state = nil
-@txn = nil
 ```
 
 You can also use `display` to start watching variables. This is a good way of
