@@ -123,7 +123,7 @@ module ActiveRecord
 
       # Returns whether this class is an abstract class or not.
       def abstract_class?
-        defined?(@abstract_class) && @abstract_class == true
+        instance_variable_defined?(:@abstract_class) && @abstract_class == true
       end
 
       def sti_name
