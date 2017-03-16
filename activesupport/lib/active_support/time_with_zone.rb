@@ -411,6 +411,15 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
+    # Returns an instance of <tt>Time</tt>
+    def to_time
+      if preserve_timezone
+        @to_time_with_instance_offset ||= getlocal(utc_offset)
+      else
+        @to_time_with_system_offset ||= getlocal
+      end
+    end
+
     # So that +self+ <tt>acts_like?(:time)</tt>.
     def acts_like_time?
       true
@@ -429,7 +438,7 @@ module ActiveSupport
 
     def freeze
       # preload instance variables before freezing
-      period; utc; time; to_datetime
+      period; utc; time; to_datetime; to_time
       super
     end
 
