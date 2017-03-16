@@ -9,8 +9,6 @@ module ActiveSupport
     #
     # This parser allows negative parts to be present in pattern.
     class ISO8601Parser # :nodoc:
-      class ParsingError < ::ArgumentError; end
-
       PERIOD_OR_COMMA = /\.|,/
       PERIOD = ".".freeze
       COMMA = ",".freeze
@@ -94,7 +92,7 @@ module ActiveSupport
         end
 
         def raise_parsing_error(reason = nil)
-          raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
+          raise ArgumentError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
         end
 
         # Checks for various semantic errors as stated in ISO 8601 standard.
