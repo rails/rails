@@ -6,6 +6,8 @@ class Time
 
   remove_possible_method :to_time
 
+  # Either return +self+ or the time in the local system timezone depending
+  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
   def to_time
     preserve_timezone ? self : getlocal
   end
