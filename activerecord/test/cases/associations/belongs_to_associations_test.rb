@@ -116,6 +116,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
+  def test_default
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, default: -> { david }
+    end
+
+    ship = model.create!
+    assert_equal david, ship.developer
+
+    ship = model.create!(developer: jamis)
+    assert_equal jamis, ship.developer
+
+    ship.update!(developer: nil)
+    assert_equal david, ship.developer
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 

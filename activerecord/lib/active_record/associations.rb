@@ -1647,6 +1647,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        # [:default]
+        #   Provide a callable (i.e. proc or lambda) to specify that the association should
+        #   be initialized with a particular record before validation. 
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1660,6 +1663,7 @@ module ActiveRecord
         #   belongs_to :comment, touch: true
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
+        #   belongs_to :account, default: -> { company.account }
         def belongs_to(name, scope = nil, options = {})
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
