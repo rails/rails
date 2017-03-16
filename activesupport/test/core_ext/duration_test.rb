@@ -305,17 +305,17 @@ class DurationTest < ActiveSupport::TestCase
   def test_scalar_unary_minus
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
-    assert_equal -10, -scalar
+    assert_equal(-10, -scalar)
     assert_instance_of ActiveSupport::Duration::Scalar, -scalar
   end
 
   def test_scalar_compare
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
-    assert_equal 1, scalar <=> 5
-    assert_equal 0, scalar <=> 10
-    assert_equal -1, scalar <=> 15
-    assert_equal nil, scalar <=> "foo"
+    assert_equal(1, scalar <=> 5)
+    assert_equal(0, scalar <=> 10)
+    assert_equal(-1, scalar <=> 15)
+    assert_equal(nil, scalar <=> "foo")
   end
 
   def test_scalar_plus
