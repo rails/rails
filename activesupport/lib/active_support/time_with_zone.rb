@@ -411,7 +411,9 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
-    # Returns an instance of <tt>Time</tt>
+    # Returns an instance of +Time+, either with the same UTC offset
+    # as +self+ or in the local system timezone depending on the setting
+    # of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
       if preserve_timezone
         @to_time_with_instance_offset ||= getlocal(utc_offset)

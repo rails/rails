@@ -10,9 +10,5 @@ module DateAndTime
     # this behavior, but new apps will have an initializer that sets
     # this to true, because the new behavior is preferred.
     mattr_accessor(:preserve_timezone, instance_writer: false) { false }
-
-    def to_time
-      preserve_timezone ? getlocal(utc_offset) : getlocal
-    end
   end
 end
