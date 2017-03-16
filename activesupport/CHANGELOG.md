@@ -1,3 +1,10 @@
+*   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
+    raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
+    Properly pass through the frozen `Time` or `ActiveSupport::TimeWithZone` object
+    when calling `#to_time`.
+
+    *Kevin McPhillips* & *Andrew White*
+
 *   Fix inconsistent results when parsing large durations and constructing durations from code
 
         ActiveSupport::Duration.parse('P3Y') == 3.years # It should be true
