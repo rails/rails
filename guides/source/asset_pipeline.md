@@ -335,7 +335,7 @@ an asset has been updated and if so loads it into the page:
 <%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
 ```
 
-In regular views you can access images in the `public/assets/images` directory
+In regular views you can access images in the `app/assets/images` directory
 like this:
 
 ```erb
