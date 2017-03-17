@@ -247,17 +247,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_without_default_should_update_with_lock_col
-    t1 = LockWithoutDefault.create(title: "title1", lock_version: 6)
-
-    assert_equal 6, t1.lock_version
-
-    t1.update(lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.lock_version
-  end
-
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -269,12 +258,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.lock_version
-
-    assert_queries(1) { t1.update(title: "title3", lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.lock_version
 
     t2 = LockWithoutDefault.new(title: "title1")
 
@@ -321,17 +304,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_with_custom_column_without_default_should_update_with_lock_col
-    t1 = LockWithCustomColumnWithoutDefault.create(title: "title1", custom_lock_version: 6)
-
-    assert_equal 6, t1.custom_lock_version
-
-    t1.update(custom_lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.custom_lock_version
-  end
-
   def test_lock_with_custom_column_without_default_queries_count
     t1 = LockWithCustomColumnWithoutDefault.create(title: "title1")
 
@@ -343,12 +315,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.custom_lock_version
-
-    assert_queries(1) { t1.update(title: "title3", custom_lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.custom_lock_version
 
     t2 = LockWithCustomColumnWithoutDefault.new(title: "title1")
 
