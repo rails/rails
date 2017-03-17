@@ -1,3 +1,17 @@
+*   Add `:default` option to `belongs_to`.
+
+    Use it to specify that an association should be initialized with a particular
+    record before validation. For example:
+
+        # Before
+        belongs_to :account
+        before_validation -> { self.account ||= Current.account }
+
+        # After
+        belongs_to :account, default: -> { Current.account }
+
+    *George Claghorn*
+
 *   Deprecate `Migrator.schema_migrations_table_name`.
 
     *Ryuta Kamizono*
