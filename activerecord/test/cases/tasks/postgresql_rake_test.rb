@@ -217,23 +217,36 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(structure_dump: true)
+        @connection    = stub(schema_search_path: nil, structure_dump: true)
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
         }
-        @filename = "awesome-file.sql"
+        @filename = "/tmp/awesome-file.sql"
+        FileUtils.touch(@filename)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
         Kernel.stubs(:system)
-        File.stubs(:open)
+      end
+
+      def teardown
+        FileUtils.rm_f(@filename)
       end
 
       def test_structure_dump
         Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
 
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+
+      def test_structure_dump_header_comments_removed
+        Kernel.stubs(:system).returns(true)
+        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+
+        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
       end
 
       def test_structure_dump_with_extra_flags

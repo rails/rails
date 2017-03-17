@@ -1,3 +1,10 @@
+*   Remove comments from structure.sql when using postgresql adapter to avoid
+    version-specific parts of the file.
+
+    Fixes #28153.
+
+    *Ari Pollak*
+
 *   Add `:default` option to `belongs_to`.
 
     Use it to specify that an association should be initialized with a particular
