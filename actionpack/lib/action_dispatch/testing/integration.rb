@@ -192,11 +192,10 @@ module ActionDispatch
       # HTTP methods in integration tests. +#process+ is only required when using a
       # request method that doesn't have a method defined in the integration tests.
       #
-      # This method returns a Response object, which one can use to
-      # inspect the details of the response. Furthermore, if this method was
+      # This method returns a response status. Furthermore, if this method was
       # called from an ActionDispatch::IntegrationTest object, then that
-      # object's <tt>@response</tt> instance variable will point to the same
-      # response object.
+      # object's <tt>@response</tt> instance variable will point to Response object
+      # which one can use to inspect the details of the response.
       #
       # Example:
       #   process :get, '/author', params: { since: 201501011400 }
