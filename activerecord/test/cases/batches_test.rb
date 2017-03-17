@@ -1,6 +1,7 @@
 require "cases/helper"
 require "models/post"
 require "models/subscriber"
+require "models/zine"
 
 class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers
@@ -23,6 +24,13 @@ class EachTest < ActiveRecord::TestCase
     assert_queries(1) do
       result = Post.find_each(batch_size: 100000) {}
       assert_nil result
+    end
+  end
+
+  def test_each_should_return_enumerator_without_block
+    assert_no_queries do
+      result = Post.find_each(batch_size: 100000)
+      assert_kind_of Enumerator, result
     end
   end
 
@@ -52,15 +60,47 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_each_should_raise_if_select_is_set_without_id
+  def test_each_should_raise_if_select_is_set_without_primary_key
     assert_raise(ArgumentError) do
-      Post.select(:title).find_each(batch_size: 1) { |post|
+      Post.select(:title).find_each(batch_size: 1) do |post|
         flunk "should not call this block"
-      }
+      end
     end
+
+    assert_raise(ArgumentError) do
+      Subscriber.select(:name).find_each(batch_size: 1) do
+        flunk "should not call this block"
+      end
+    end
+
+    Zine.primary_key = "title"
+    assert_raise(ArgumentError) do
+      Zine.select(:id).find_each(batch_size: 1) do
+        flunk "should not call this block"
+      end
+    end
+  ensure
+    Zine.primary_key = "id"
   end
 
-  def test_each_should_execute_if_id_is_in_select
+  def test_each_should_not_raise_if_select_is_set_primary_key
+    assert_nothing_raised do
+      Post.select(:id).find_each(batch_size: 1) {}
+    end
+
+    assert_nothing_raised do
+      Subscriber.select(:nick).find_each(batch_size: 1) {}
+    end
+
+    Zine.primary_key = "title"
+    assert_nothing_raised do
+      Zine.select(:title).find_each(batch_size: 1) {}
+    end
+  ensure
+    Zine.primary_key = "id"
+  end
+
+  def test_each_should_execute_if_primary_key_is_in_select
     assert_queries(6) do
       Post.select("id, title, type").find_each(batch_size: 2) do |post|
         assert_kind_of Post, post
@@ -92,7 +132,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_warn_if_order_scope_is_set
     assert_called(ActiveRecord::Base.logger, :warn) do
-      Post.order("title").find_each { |post| post }
+      Post.order("title").find_each {}
     end
   end
 
@@ -100,7 +140,7 @@ class EachTest < ActiveRecord::TestCase
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     assert_nothing_raised do
-      Post.order("comments_count DESC").find_each { |post| post }
+      Post.order("comments_count DESC").find_each {}
     end
   ensure
     ActiveRecord::Base.logger = previous_logger
@@ -133,13 +173,17 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_in_batches_shouldnt_execute_query_unless_needed
+  def test_find_in_batches_should_not_execute_query_unless_needed
     assert_queries(2) do
-      Post.find_in_batches(batch_size: @total) { |batch| assert_kind_of Array, batch }
+      Post.find_in_batches(batch_size: @total) do |batch|
+        assert_kind_of Array, batch
+      end
     end
 
     assert_queries(1) do
-      Post.find_in_batches(batch_size: @total + 1) { |batch| assert_kind_of Array, batch }
+      Post.find_in_batches(batch_size: @total + 1) do |batch|
+        assert_kind_of Array, batch
+      end
     end
   end
 
@@ -227,7 +271,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) {}
+      Post.find_in_batches({ batch_size: 2, start: 1 }.freeze) {}
     end
   end
 
@@ -364,6 +408,30 @@ class EachTest < ActiveRecord::TestCase
     Post.in_batches(of: 1, load: true) do |relation|
       assert relation.loaded?
     end
+  end
+
+  def test_in_batches_should_not_be_loaded_when_primary_key_is_title
+    Zine.primary_key = "title"
+
+    Zine.in_batches(of: 1) do |relation|
+      assert_not relation.loaded?
+    end
+
+    Zine.in_batches(of: 1, load: false) do |relation|
+      assert_not relation.loaded?
+    end
+  ensure
+    Zine.primary_key = "id"
+  end
+
+  def test_in_batches_should_be_loaded_when_primary_key_is_title
+    Zine.primary_key = "title"
+
+    Zine.in_batches(of: 1, load: true) do |relation|
+      assert relation.loaded?
+    end
+  ensure
+    Zine.primary_key = "id"
   end
 
   def test_in_batches_if_not_loaded_executes_more_queries
