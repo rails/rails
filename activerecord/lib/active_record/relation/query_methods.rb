@@ -1130,7 +1130,12 @@ module ActiveRecord
             arel_attribute(arg).asc
           when Hash
             arg.map { |field, dir|
-              arel_attribute(field).send(dir.downcase)
+              case field
+              when Arel::Nodes::SqlLiteral
+                field.send(dir.downcase)
+              else
+                arel_attribute(field).send(dir.downcase)
+              end
             }
           else
             arg

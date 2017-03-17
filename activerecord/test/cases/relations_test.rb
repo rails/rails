@@ -218,14 +218,31 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
-  def test_finding_with_reverted_assoc_order
+  def test_finding_with_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_assoc_order
     topics = Topic.order(id: :asc).reverse_order
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_function
     topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_arel_assoc_order_with_function
+    topics = Topic.order(Arel.sql("length(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -248,6 +265,12 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+    end
+  end
+
+  def test_reverse_arel_assoc_order_with_multiargument_function
+    assert_nothing_raised do
+      Topic.order(Arel.sql("REPLACE(title, '', '')") => :asc).reverse_order
     end
   end
 
