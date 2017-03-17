@@ -396,7 +396,7 @@ config.cache_store = :file_store, "/path/to/cache/directory"
 ```
 
 With this cache store, multiple server processes on the same host can share a
-cache. The cache store is appropriate for low to medium traffic sites that are
+cache. This cache store is appropriate for low to medium traffic sites that are
 served off one or two hosts. Server processes running on different hosts could
 share a cache by using a shared file system, but that setup is not recommended.
 
@@ -568,6 +568,20 @@ You can also set the strong ETag directly on the response.
 
 ```ruby
   response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
+```
+
+Caching in Development
+----------------------
+
+It's common to want to test the caching strategy of your application
+in developement mode. Rails provides the rake task `dev:cache` to 
+easily toggle caching on/off.
+
+```bash
+$ bin/rails dev:cache
+Development mode is now being cached.
+$ bin/rails dev:cache
+Development mode is no longer being cached.
 ```
 
 References
