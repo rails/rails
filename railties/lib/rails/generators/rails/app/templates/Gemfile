@@ -34,7 +34,7 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   <%- unless options.skip_system_test? || options.api? -%>
   # Adds support for Capybara system testing and selenium driver
-  gem 'capybara', '~> 2.7.0'
+  gem 'capybara', '~> 2.13.0'
   gem 'selenium-webdriver'
   <%- end -%>
 end

@@ -1,4 +1,5 @@
 require "capybara/dsl"
+require "capybara/minitest"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/server"
@@ -80,6 +81,7 @@ module ActionDispatch
   # tests as long as you include the required gems and files.
   class SystemTestCase < IntegrationTest
     include Capybara::DSL
+    include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
