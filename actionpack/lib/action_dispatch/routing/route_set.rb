@@ -164,13 +164,13 @@ module ActionDispatch
 
           @path_helpers_module.module_eval do
             define_method(:"#{name}_path") do |*args|
-              helper.call(self, args, only_path: true)
+              helper.call(self, args, true)
             end
           end
 
           @url_helpers_module.module_eval do
             define_method(:"#{name}_url") do |*args|
-              helper.call(self, args)
+              helper.call(self, args, false)
             end
           end
         end
@@ -509,6 +509,10 @@ module ActionDispatch
               @_proxy.url_for(options)
             end
 
+            def route_for(name, *args)
+              @_proxy.route_for(name, *args)
+            end
+
             def optimize_routes_generation?
               @_proxy.optimize_routes_generation?
             end
@@ -613,26 +617,14 @@ module ActionDispatch
           @block = block
         end
 
-        def call(t, args, outer_options = {})
+        def call(t, args, only_path = false)
           options = args.extract_options!
-          url_options = eval_block(t, args, options)
+          url = t.url_for(eval_block(t, args, options))
 
-          case url_options
-          when String
-            t.url_for(url_options)
-          when Hash
-            t.url_for(url_options.merge(outer_options))
-          when ActionController::Parameters
-            if url_options.permitted?
-              t.url_for(url_options.to_h.merge(outer_options))
-            else
-              raise ArgumentError, "Generating a URL from non sanitized request parameters is insecure!"
-            end
-          when Array
-            opts = url_options.extract_options!
-            t.url_for(url_options.push(opts.merge(outer_options)))
+          if only_path
+            "/" + url.partition(%r{(?<!/)/(?!/)}).last
           else
-            t.url_for([url_options, outer_options])
+            url
           end
         end
 
