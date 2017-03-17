@@ -120,7 +120,7 @@ The `resolve` method allows customizing polymorphic mapping of models.
 ``` ruby
 resource :basket
 
-resolve(class: "Basket") { [:basket] }
+resolve("Basket") { [:basket] }
 ```
 
 ``` erb
