@@ -134,7 +134,7 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      mattr_accessor :belongs_to_required_by_default, instance_accessor: false
+      mattr_accessor :belongs_to_required_by_default, instance_accessor: true
 
       class_attribute :default_connection_handler, instance_writer: false
 

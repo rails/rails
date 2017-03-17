@@ -44,7 +44,7 @@ env:
     - "GEM=railties"
     - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj"
-    - "GEM=as PRESERVE_TIMEZONES=1"
+    - "GEM=as PRESERVE_TIMEZONES=0"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"

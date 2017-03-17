@@ -18,7 +18,7 @@ Thread.abort_on_exception = true
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-# Default to old to_time behavior but allow running tests with new behavior
+# Default to new to_time behavior but allow running tests with old behavior
 ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 
 # Disable available locale checks to avoid warnings running the test suite.
