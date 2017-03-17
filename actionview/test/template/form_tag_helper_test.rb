@@ -173,7 +173,12 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_file_field_tag_with_options
-    assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
+    assert_dom_equal "<input accept=\"image\/jpeg\" name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix", accept: "image/jpeg")
+  end
+
+  def test_file_field_tag_with_mime_type_accept_option
+    Mime::Type.register "image/png,image/gif,image/jpeg", :pics
+    assert_dom_equal "<input accept=\"image\/png,image\/gif,image\/jpeg\" name=\"picsplz\" type=\"file\" id=\"picsplz\" />", file_field_tag("picsplz", accept: :pics)
   end
 
   def test_password_field_tag

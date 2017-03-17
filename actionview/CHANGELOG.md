@@ -151,6 +151,27 @@
 
     *Steven Harman*
 
+*   `file_field`'s and `file_field_tag`'s `accept` option supports the same MIME type symbol as the
+     `send_file`'s `type` option.
+
+    Example usages of file_field and file_field_tag helpers before:
+
+    ```ruby
+    file_field :attached, accept: 'text/csv'
+
+    file_field_tag :attached, accept: 'text/csv'
+    ```
+
+    Example usages after:
+
+    ```ruby
+    file_field :attached, accept: :csv
+
+    file_field_tag :attached, accept: :csv
+    ```
+
+    *Yasuhiro Sugino*
+
 *   New syntax for tag helpers. Avoid positional parameters and support HTML5 by default.
     Example usage of tag helpers before:
 

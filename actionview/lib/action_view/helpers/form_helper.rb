@@ -1171,7 +1171,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * <tt>:accept</tt> - If set to either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
       #   file_field(:user, :avatar)
@@ -1182,6 +1182,9 @@ module ActionView
       #
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
+      #
+      #   file_field(:post, :attached, accept: :csv)
+      #   # => <input accept="text/csv" type="file" id="post_attached" name="post[attached]" />
       #
       #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
       #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />

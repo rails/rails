@@ -251,7 +251,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You can use custom MIME Type symbols that you've registered in the file `config/initializers/mime_types.rb`. You still need to set up model validations.
       #
       # ==== Examples
       #   file_field_tag 'attachment'
@@ -272,6 +272,12 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
+        options = options.stringify_keys
+
+        if accept = options["accept"]
+          options["accept"] = Mime[accept] || accept
+        end
+
         text_field_tag(name, nil, options.merge(type: :file))
       end
 
