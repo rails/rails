@@ -192,6 +192,10 @@ module ActionDispatch
         end
       end
 
+      def route_for(name, *args) # :nodoc:
+        public_send(:"#{name}_url", *args)
+      end
+
       protected
 
         def optimize_routes_generation?
