@@ -164,6 +164,10 @@ module ActionDispatch
       # implicitly used by +url_for+ can always be overwritten like shown on the
       # last +url_for+ calls.
       def url_for(options = nil)
+        full_url_for(options)
+      end
+
+      def full_url_for(options = nil) # :nodoc:
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
