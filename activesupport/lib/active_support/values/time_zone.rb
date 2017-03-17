@@ -45,6 +45,7 @@ module ActiveSupport
       "Mexico City"                  => "America/Mexico_City",
       "Monterrey"                    => "America/Monterrey",
       "Central America"              => "America/Guatemala",
+      "El Salvador"                  => "America/El_Salvador",
       "Eastern Time (US & Canada)"   => "America/New_York",
       "Indiana (East)"               => "America/Indiana/Indianapolis",
       "Bogota"                       => "America/Bogota",
