@@ -257,7 +257,9 @@ class Time
   # can be chronologically compared with a Time
   def compare_with_coercion(other)
     # we're avoiding Time#to_datetime cause it's expensive
-    if other.is_a?(Time)
+    if other.class == Time
+      compare_without_coercion(other)
+    elsif other.is_a?(Time)
       compare_without_coercion(other.to_time)
     else
       to_datetime <=> other

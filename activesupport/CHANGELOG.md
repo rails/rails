@@ -1,3 +1,10 @@
+*   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
+    raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
+    Properly pass through the frozen `Time` or `ActiveSupport::TimeWithZone` object
+    when calling `#to_time`.
+
+    *Kevin McPhillips* & *Andrew White*
+
 *   Restore the return type of `DateTime#utc`
 
     In Rails 5.0 the return type of `DateTime#utc` was changed to `Time` to be
