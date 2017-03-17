@@ -5,6 +5,7 @@ module ActionDispatch
         @name = name
         @browser = options[:using]
         @screen_size = options[:screen_size]
+        @options = options[:options]
       end
 
       def use
@@ -19,7 +20,7 @@ module ActionDispatch
 
         def register
           Capybara.register_driver @name do |app|
-            Capybara::Selenium::Driver.new(app, browser: @browser).tap do |driver|
+            Capybara::Selenium::Driver.new(app, { browser: @browser }.merge(@options)).tap do |driver|
               driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
             end
           end
