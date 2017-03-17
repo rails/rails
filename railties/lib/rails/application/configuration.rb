@@ -55,6 +55,34 @@ module Rails
         @read_encrypted_secrets          = false
       end
 
+      def load_defaults(target_version)
+        case target_version.to_s
+        when "5.0"
+          if defined?(action_controller)
+            action_controller.per_form_csrf_tokens = true
+            action_controller.forgery_protection_origin_check = true
+          end
+
+          ActiveSupport.to_time_preserves_timezone = true
+
+          if defined?(active_record)
+            active_record.belongs_to_required_by_default = true
+          end
+
+          self.ssl_options = { hsts: { subdomains: true } }
+
+        when "5.1"
+          load_defaults "5.0"
+
+          if defined?(assets)
+            assets.unknown_asset_fallback = false
+          end
+
+        else
+          raise "Unknown version #{target_version.to_s.inspect}"
+        end
+      end
+
       def encoding=(value)
         @encoding = value
         silence_warnings do
