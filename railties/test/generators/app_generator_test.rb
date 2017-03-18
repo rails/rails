@@ -156,6 +156,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/cors.rb"
   end
 
+  def test_new_application_doesnt_need_defaults
+    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
+  end
+
   def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
@@ -197,21 +201,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_does_not_create_new_framework_defaults_by_default
+  def test_app_update_create_new_framework_defaults
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
-        assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
-        assert_no_match(/Rails\.application\.config\.ssl_options/, content)
-      end
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
     end
   end
 
@@ -367,10 +368,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/update" do |update_content|
       assert_no_match(/db:migrate/, update_content)
     end
-
-    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
-      assert_no_match(/belongs_to_required_by_default/, initializer_content)
-    end
   end
 
   def test_generator_if_skip_action_mailer_is_given
@@ -415,9 +412,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
-    assert_file "config/initializers/new_framework_defaults.rb" do |content|
-      assert_no_match(/unknown_asset_fallback/, content)
-    end
+    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
   end
 
   def test_generator_if_skip_yarn_is_given

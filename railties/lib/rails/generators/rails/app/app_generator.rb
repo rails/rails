@@ -371,6 +371,14 @@ module Rails
         end
       end
 
+      def delete_new_framework_defaults
+        # Sprockets owns the only new default for 5.1: if it's disabled,
+        # we don't want the file.
+        unless options[:update] && !options[:skip_sprockets]
+          remove_file "config/initializers/new_framework_defaults_5_1.rb"
+        end
+      end
+
       def delete_bin_yarn_if_skip_yarn_option
         remove_file "bin/yarn" if options[:skip_yarn]
       end
