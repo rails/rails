@@ -112,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal "The First Topic", topics.first.title
@@ -123,7 +123,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first_with_limit
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal ["The First Topic",
@@ -136,7 +136,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_get_more_than_available
     topics = Topic.all.order("id ASC")
     unloaded_first = topics.first(10)
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       loaded_first = topics.first(10)
@@ -1155,7 +1155,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1166,7 +1166,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1176,7 +1176,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
     assert ! posts.loaded?
 
-    posts.to_a # force load
+    posts.load # force load
     assert_no_queries { assert_equal 0, posts.size }
   end
 
@@ -1205,7 +1205,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! no_posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal false, best_posts.empty? }
   end
 
