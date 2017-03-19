@@ -133,7 +133,7 @@ resolve("Basket") { [:basket] }
 <% end %>
 ```
 
-This will generate the singular URL `/basket` instead of usual `/baskets/:id`.
+This will generate the singular URL `/basket` instead of the usual `/baskets/:id`.
 
 The `direct` method allows creation of custom URL helpers.
 
@@ -145,8 +145,8 @@ direct(:homepage) { "http://www.rubyonrails.org" }
 ```
 
 The return value of the block must be a valid argument for the `url_for`
-method. So you can pass a valid string URL, or a hash, or an array, or an
-Active Model instance or an Active Model class.
+method. So, you can pass a valid string URL, Hash, array, an
+Active Model instance, or an Active Model class.
 
 ``` ruby
 direct :commentable do |model|
@@ -162,10 +162,10 @@ end
 
 [Pull Request](https://github.com/rails/rails/pull/26976)
 
-Before Rails 5.1, there were two interfaces for handling HTML forms,
+Before Rails 5.1, there were two interfaces for handling HTML forms:
 `form_for` for model instances and `form_tag` for custom URLs.
 
-Rails 5.1 combines both of these interfaces with `form_with` and
+Rails 5.1 combines both of these interfaces with `form_with`, and
 can generate form tags based on URLs, scopes or models.
 
 ``` erb
