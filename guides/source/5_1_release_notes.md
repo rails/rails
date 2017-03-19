@@ -41,6 +41,8 @@ Rails 5.1 app.
 
 ### Optional Webpack support
 
+[Pull Request](https://github.com/rails/rails/pull/27288)
+
 Rails apps can integrate with [Webpack](https://webpack.js.org/), a JavaScript
 asset bundler, more easily using the new [Webpacker](https://github.com/rails/webpacker)
 gem. Use the `--webpack` flag when generating new applications to enable Webpack
