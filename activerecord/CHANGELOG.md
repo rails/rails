@@ -749,7 +749,7 @@
 
     *Johannes Opper*
 
-*   Introduce `ActiveRecord::TransactionSerializationError` for catching
+*   Introduce new Active Record transaction error classes for catching
     transaction serialization failures or deadlocks.
 
     *Erol Fornoles*
