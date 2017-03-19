@@ -13,7 +13,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
     end
@@ -198,12 +197,7 @@ module ActiveRecord
       end
 
       def can_be_bound?(column_name, value)
-        case value
-        when Array, Range
-          table.type(column_name).respond_to?(:subtype)
-        else
-          !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
-        end
+        !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
       end
 
       def build_bind_param(column_name, value)
