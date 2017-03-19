@@ -65,7 +65,6 @@ module ActiveRecord
             prts, bvs = associated_predicate_builder(column_name).build_from_hash(value)
             parts.concat(prts)
             binds.concat(bvs)
-            next
           when table.associated_with?(column_name)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
@@ -75,14 +74,13 @@ module ActiveRecord
             prts, bvs = build_for_association_query(column_name, value)
             parts.concat(prts)
             binds.concat(bvs)
-            next
           when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
             prts, bvs = build_for_array(column_name, value)
             parts.concat(prts)
             binds.concat(bvs)
-            next
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
+            parts << build(column_name, value)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -96,12 +94,15 @@ module ActiveRecord
             end
 
             value = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
-          when can_be_bound?(column_name, value.is_a?(Base) ? value = value.id : value)
-            binds << build_bind_param(column_name, value)
-            value = Arel::Nodes::BindParam.new
+            parts << build(column_name, value)
+          else
+            value = value.id if value.is_a?(Base)
+            if can_be_bound?(column_name, value)
+              binds << build_bind_param(column_name, value)
+              value = Arel::Nodes::BindParam.new
+            end
+            parts << build(column_name, value)
           end
-
-          parts << build(table.arel_attribute(column_name), value)
         end
 
         [parts, binds]
@@ -109,8 +110,8 @@ module ActiveRecord
 
     private
 
-      def build(attribute, value)
-        handler_for(value).call(attribute, value)
+      def build(column_name, value)
+        handler_for(value).call(table.arel_attribute(column_name), value)
       end
 
       def build_for_association_query(column_name, value)
