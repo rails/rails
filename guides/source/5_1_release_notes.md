@@ -34,7 +34,7 @@ Major Features
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
 Rails 5.1 will allow managing JavaScript dependencies
-from NPM via Yarn.This will make it easy to use libraries like React, VueJS
+from NPM via Yarn. This will make it easy to use libraries like React, VueJS
 or any other library from NPM world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
 Rails 5.1 app.
@@ -50,7 +50,8 @@ integration.
 
 This is fully compatible with the asset pipeline, which you can continue to use for
 images, fonts, sounds, and other assets. You can even have some JavaScript code
-managed by the asset pipeline, and other code processed via Webpack. It’s all managed via Yarn that’s on by default.
+managed by the asset pipeline, and other code processed via Webpack. All of this is managed
+by Yarn, which is enabled by default.
 
 ### jQuery no longer a default dependency
 
@@ -62,14 +63,14 @@ offerings. It is no longer required, as the UJS has been rewritten to use plain,
 vanilla JavaScript. This code now ships inside of Action View as
 `rails-ujs`.
 
-You can still use jQuery version if needed, but it is no longer required by default.
+You can still use the jQuery version if needed, but it is no longer required by default.
 
 ### System tests
 
 [Pull Request](https://github.com/rails/rails/pull/26703)
 
-Rails 5.1 has support for writing Capybara tests baked in in the form of
-System tests. Now you don't have to worry about configuring Capybara and
+Rails 5.1 has baked-in support for writing Capybara tests, in the form of
+System tests. You need no longer worry about configuring Capybara and
 database cleaning strategies for such tests. Rails 5.1 provides a wrapper
 for running tests in Chrome with additional features such as failure
 screenshots.
@@ -78,15 +79,16 @@ screenshots.
 
 [Pull Request](https://github.com/rails/rails/pull/28038)
 
-Rails will now allow management of application secrets in a secure way
-built on top of the [sekrets](https://github.com/ahoward/sekrets) gem.
+Rails will now allow management of application secrets in a secure way,
+building on top of the [sekrets](https://github.com/ahoward/sekrets) gem.
 
-Run `bin/rails secrets:setup` to setup a new encrypted secrets file. It will
-generate a master key which needs to be stored outside of the repository, and it will
-allow checking in the actual secrets in the revision control.
+Run `bin/rails secrets:setup` to setup a new encrypted secrets file. This will
+also generate a master key, which must be stored outside of the repository. The
+secrets themselves can then be safely checked into the revision control system,
+in an encrypted form.
 
-The secrets will be decrypted in production using either the `RAILS_MASTER_KEY`
-environment variable from a key file.
+Secrets will be decrypted in production, using a key stored either in the
+`RAILS_MASTER_KEY` environment variable, or in a key file.
 
 ### Parameterized mailers
 
@@ -149,7 +151,7 @@ direct(:homepage) { "http://www.rubyonrails.org" }
 ```
 
 The return value of the block must be a valid argument for the `url_for`
-method. So, you can pass a valid string URL, Hash, array, an
+method. So, you can pass a valid string URL, Hash, Array, an
 Active Model instance, or an Active Model class.
 
 ``` ruby
