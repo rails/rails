@@ -18,6 +18,10 @@ module ActiveModel
         :boolean
       end
 
+      def serialize(value)
+        cast(value)
+      end
+
       private
 
         def cast_value(value)
