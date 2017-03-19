@@ -141,7 +141,7 @@ module ApplicationTests
             end
 
             def engine_asset_path
-              render inline: "<%= asset_path 'images/foo.png' %>"
+              render inline: "<%= asset_path 'images/foo.png', skip_pipeline: true %>"
             end
           end
         end

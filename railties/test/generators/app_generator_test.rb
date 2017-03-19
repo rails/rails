@@ -160,6 +160,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
   end
 
+  def test_new_application_load_defaults
+    app_root = File.join(destination_root, "myfirstapp")
+    run_generator [app_root]
+    output = nil
+
+    Dir.chdir(app_root) do
+      output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
+    end
+
+    assert_equal "false\n", output
+  end
+
   def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]

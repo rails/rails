@@ -58,14 +58,14 @@ module Rails
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
-          if defined?(action_controller)
+          if respond_to?(:action_controller)
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
           end
 
           ActiveSupport.to_time_preserves_timezone = true
 
-          if defined?(active_record)
+          if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
           end
 
@@ -74,7 +74,7 @@ module Rails
         when "5.1"
           load_defaults "5.0"
 
-          if defined?(assets)
+          if respond_to?(:assets)
             assets.unknown_asset_fallback = false
           end
 
