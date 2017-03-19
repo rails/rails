@@ -49,10 +49,6 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
-    def build(attribute, value)
-      handler_for(value).call(attribute, value)
-    end
-
     # TODO Change this to private once we've dropped Ruby 2.2 support.
     # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
@@ -109,6 +105,12 @@ module ActiveRecord
         end
 
         [parts, binds]
+      end
+
+    private
+
+      def build(attribute, value)
+        handler_for(value).call(attribute, value)
       end
 
       def build_for_association_query(column_name, value)
@@ -169,8 +171,6 @@ module ActiveRecord
 
         [parts, binds]
       end
-
-    private
 
       def associated_predicate_builder(association_name)
         self.class.new(table.associated_table(association_name))
