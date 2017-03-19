@@ -41,20 +41,24 @@ Rails 5.1 app.
 
 ### Optional Webpack support
 
-Rails apps can use Webpack easily now using the [Webpacker](https://github.com/rails/webpacker)
-gem. New Rails 5.1 app can be generated using `--webpack` switch to enable Webpack integration.
+Rails apps can integrate with [Webpack](https://webpack.js.org/), a JavaScript
+asset bundler, more easily using the new [Webpacker](https://github.com/rails/webpacker)
+gem. Use the `--webpack` flag when generating new applications to enable Webpack
+integration.
 
 This is fully compatible with the asset pipeline, which you can continue to use for
-images, fonts, sounds, whatever. You can even have some JavaScript on the asset pipeline
-and some done via Webpack. It’s all managed via Yarn that’s on by default.
+images, fonts, sounds, and other assets. You can even have some JavaScript code
+managed by the asset pipeline, and other code processed via Webpack. It’s all managed via Yarn that’s on by default.
 
 ### jQuery no longer a default dependency
 
-jQuery was required by default in earlier versions of Rails to provide features like
-`data-remote`, `data-confirm` and other parts of Rails UJS. It is no longer required,
-as the `rails-ujs` is now written using plain vanilla JavaScript.
+jQuery was required by default in earlier versions of Rails to provide features
+like `data-remote`, `data-confirm` and other parts of Rails' Unobtrusive JavaScript
+offerings. It is no longer required, as the UJS has been rewritten to use plain,
+vanilla JavaScript. This code now ships inside of Action View as
+`rails-ujs`.
 
-You can still use jQuery if needed, but it is no longer required by default.
+You can still use jQuery version if needed, but it is no longer required by default.
 
 ### System tests
 
@@ -63,7 +67,7 @@ You can still use jQuery if needed, but it is no longer required by default.
 Rails 5.1 has support for writing Capybara tests baked in in the form of
 System tests. Now you don't have to worry about configuring Capybara and
 database cleaning strategies for such tests. Rails 5.1 provides a wrapper
-for running such tests in chrome with additional features such as failure
+for running tests in Chrome with additional features such as failure
 screenshots.
 
 ### Encrypted secrets
@@ -71,14 +75,14 @@ screenshots.
 [Pull Request](https://github.com/rails/rails/pull/28038)
 
 Rails will now allow management of application secrets in a secure way
-built on top of [sekrets](https://github.com/ahoward/sekrets) gem.
+built on top of the [sekrets](https://github.com/ahoward/sekrets) gem.
 
 Run `bin/rails secrets:setup` to setup a new encrypted secrets file. It will
-generate a master key which needs to be stored outside of the repository and it will
+generate a master key which needs to be stored outside of the repository, and it will
 allow checking in the actual secrets in the revision control.
 
-The secrets will be decrypted in production either using `RAILS_MASTER_KEY` from
-the ENV or injected key file.
+The secrets will be decrypted in production using either the `RAILS_MASTER_KEY`
+environment variable from a key file.
 
 ### Parameterized mailers
 
@@ -112,7 +116,7 @@ InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.
 
 [Pull Request](https://github.com/rails/rails/pull/23138)
 
-Rails 5.1 has added two new methods - `resolve` and `direct` to the routing
+Rails 5.1 has added two new methods, `resolve` and `direct`, to the routing
 DSL.
 
 The `resolve` method allows customizing polymorphic mapping of models.
