@@ -54,6 +54,8 @@ managed by the asset pipeline, and other code processed via Webpack. It’s all 
 
 ### jQuery no longer a default dependency
 
+[Pull Request](https://github.com/rails/rails/pull/27113)
+
 jQuery was required by default in earlier versions of Rails to provide features
 like `data-remote`, `data-confirm` and other parts of Rails' Unobtrusive JavaScript
 offerings. It is no longer required, as the UJS has been rewritten to use plain,
