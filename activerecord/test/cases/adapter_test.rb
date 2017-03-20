@@ -216,6 +216,15 @@ module ActiveRecord
       assert result.is_a?(ActiveRecord::Result)
     end
 
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_select_all_with_legacy_binds
+        post = Post.create!(title: "foo", body: "bar")
+        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
+        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new.to_sql}", nil, [[nil, post.id]])
+        assert_equal expected.to_hash, result.to_hash
+      end
+    end
+
     def test_select_methods_passing_a_association_relation
       author = Author.create!(name: "john")
       Post.create!(author: author, title: "foo", body: "bar")
