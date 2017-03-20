@@ -77,6 +77,40 @@ module ActiveRecord
         assert_equal 0, active_connections(pool).size
       end
 
+      def test_using_connection
+        @conn_thread_1 = pool.connection
+        Thread.new do
+          # If no connection active for this thread, 'using_connection' should
+          # use the given connection within the body, then forget it was ever
+          # there.
+          assert !pool.active_connection?
+          pool.using_connection(@conn_thread_1) do
+            assert_equal @conn_thread_1, pool.connection
+          end
+          assert !pool.active_connection?
+
+          # If some pre-existing connection exists, that should likewise be
+          # suspended during 'using_connection', and restored after.
+          conn_thread_2 = pool.connection
+          assert pool.active_connection?
+          assert_not_equal @conn_thread_1, pool.connection
+          pool.using_connection(@conn_thread_1) do
+            assert_equal @conn_thread_1, pool.connection
+          end
+          assert_equal conn_thread_2, pool.connection
+
+          # Lastly, we should still clean up if exceptions are thrown...
+          begin
+            pool.using_connection(@conn_thread_1) do
+              raise RuntimeError, "pool dummy exception"
+            end
+          rescue RuntimeError => e
+            assert_equal "pool dummy exception", e.message # not some other...
+          end
+          assert_equal conn_thread_2, pool.connection
+        end.join
+      end
+
       def test_active_connection_in_use
         assert !pool.active_connection?
         main_thread = pool.connection

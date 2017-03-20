@@ -90,10 +90,42 @@ module ActionDispatch
       self.class.superclass.driver.use
     end
 
+    # For transactional tests, we want the server thread to use the
+    # same DB connection that the test runner uses to set up the
+    # fixtures, so they share transactional state.  But for
+    # non-transactional tests, we want an environment free of that
+    # kind of black magic.  We arrange that like so:
+
+    cattr_accessor :cached_db_connection
+    cattr_accessor :currently_running_test
+
+    setup do
+      SystemTestCase.cached_db_connection = ActiveRecord::Base.connection
+      SystemTestCase.currently_running_test = self
+    end
+
+    teardown do
+      # Don't leave references to potentially stale DB connections
+      # lying around
+      SystemTestCase.cached_db_connection = nil
+      SystemTestCase.currently_running_test = nil
+    end
+
+    def self.with_db_connection_for_web_service
+      if SystemTestCase.currently_running_test.class.use_transactional_tests
+        conn = SystemTestCase.cached_db_connection
+        ActiveRecord::Base.connection_pool.using_connection(conn) do
+          yield
+        end
+      else
+        yield
+      end
+    end
+
     def self.start_application # :nodoc:
-      Capybara.app = Rack::Builder.new do
-        map "/" do
-          run Rails.application
+      Capybara.app = lambda do |request_env|
+        SystemTestCase.with_db_connection_for_web_service do
+          Rails.application.call(request_env)
         end
       end
 
