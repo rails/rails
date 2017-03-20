@@ -301,7 +301,7 @@ task default: :test
       end
 
       def engine?
-        full? || mountable?
+        full? || mountable? || options[:engine]
       end
 
       def full?

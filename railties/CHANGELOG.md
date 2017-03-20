@@ -1,3 +1,7 @@
+*   Add `app:update` task to engines.
+
+    *Yuji Yaginuma*
+
 *   Avoid running system tests by default with the `bin/rails test`
     and `bin/rake test` commands since they may be expensive.
 

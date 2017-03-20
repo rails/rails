@@ -1,6 +1,7 @@
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
+require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
@@ -729,6 +730,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/module Bukkits/, record)
       assert_match(/class ApplicationJob < ActiveJob::Base/, record)
     end
+  end
+
+  def test_app_update_generates_bin_file
+    run_generator [destination_root, "--mountable"]
+
+    Object.const_set("ENGINE_ROOT", destination_root)
+    FileUtils.rm("#{destination_root}/bin/rails")
+
+    quietly { Rails::Engine::Updater.run(:create_bin_files) }
+
+    assert_file "#{destination_root}/bin/rails" do |content|
+      assert_match(%r|APP_PATH = File\.expand_path\('\.\./\.\./test/dummy/config/application', __FILE__\)|, content)
+    end
+  ensure
+    Object.send(:remove_const, "ENGINE_ROOT")
   end
 
   private

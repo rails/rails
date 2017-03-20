@@ -1,6 +1,17 @@
 task "load_app" do
   namespace :app do
     load APP_RAKEFILE
+
+    desc "Update some initially generated files"
+    task update: [ "update:bin" ]
+
+    namespace :update do
+      require "rails/engine/updater"
+      # desc "Adds new executables to the engine bin/ directory"
+      task :bin do
+        Rails::Engine::Updater.run(:create_bin_files)
+      end
+    end
   end
   task environment: "app:environment"
 
