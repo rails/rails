@@ -1601,6 +1601,19 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal(name_param, "mypage")
   end
 
+  def test_route_with_constraints_and_defaults_must_receive_params
+    set.draw do
+      scope constraints: lambda { |_| false }, defaults: { subdomain: "subdomain" } do
+        get "/", to: "posts#index"
+      end
+
+      get "/", to: "posts#index"
+    end
+
+    assert_equal({ controller: "posts", action: "index" },
+      set.recognize_path("http://example.org/"))
+  end
+
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       get "page/:name" => "pages#show",

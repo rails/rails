@@ -1,3 +1,7 @@
+*   ActionDispatch::Routing::RouteSet#recognize_path resets path_parameters every time a route fails to match
+
+    *Hiroyuki Ishii*
+
 *   Fix `NameError` raised in `ActionController::Renderer#with_defaults`
 
     *Hiroyuki Ishii*
