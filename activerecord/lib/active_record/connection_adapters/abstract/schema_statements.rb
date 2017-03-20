@@ -105,10 +105,12 @@ module ActiveRecord
         indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end
 
-      # Returns an array of Column objects for the table specified by +table_name+.
-      # See the concrete implementation for details on the expected parameter values.
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name)
-        raise NotImplementedError, "#columns is not implemented"
+        table_name = table_name.to_s
+        column_definitions(table_name).map do |field|
+          new_column_from_field(table_name, field)
+        end
       end
 
       # Checks to see if a column exists in a given table.
