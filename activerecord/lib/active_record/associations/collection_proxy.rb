@@ -1154,8 +1154,9 @@ module ActiveRecord
         end
 
         def method_missing(method, *args, &block)
-          if scope.respond_to?(method)
-            scope.public_send(method, *args, &block)
+          if scope.respond_to?(method) && scope.extending_values.any?
+            extend(*scope.extending_values)
+            public_send(method, *args, &block)
           else
             super
           end
