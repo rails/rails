@@ -121,7 +121,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_default_callbacks(model, reflection)
       model.before_validation lambda { |o|
-        o.association(reflection.name).default o.instance_exec(&reflection.options[:default])
+        o.association(reflection.name).default(&reflection.options[:default])
       }
     end
 
