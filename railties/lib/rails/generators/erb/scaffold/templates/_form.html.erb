@@ -1,4 +1,4 @@
-<%%= form_with(model: <%= singular_table_name %>, local: true) do |f| %>
+<%%= form_with(model: <%= singular_table_name %>, local: true) do |form| %>
   <%% if <%= singular_table_name %>.errors.any? %>
     <div id="error_explanation">
       <h2><%%= pluralize(<%= singular_table_name %>.errors.count, "error") %> prohibited this <%= singular_table_name %> from being saved:</h2>
@@ -14,21 +14,21 @@
 <% attributes.each do |attribute| -%>
   <div class="field">
 <% if attribute.password_digest? -%>
-    <%%= f.label :password %>
-    <%%= f.password_field :password %>
+    <%%= form.label :password %>
+    <%%= form.password_field :password %>
   </div>
 
   <div class="field">
-    <%%= f.label :password_confirmation %>
-    <%%= f.password_field :password_confirmation %>
+    <%%= form.label :password_confirmation %>
+    <%%= form.password_field :password_confirmation %>
 <% else -%>
-    <%%= f.label :<%= attribute.column_name %> %>
-    <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
+    <%%= form.label :<%= attribute.column_name %> %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %> %>
 <% end -%>
   </div>
 
 <% end -%>
   <div class="actions">
-    <%%= f.submit %>
+    <%%= form.submit %>
   </div>
 <%% end %>
