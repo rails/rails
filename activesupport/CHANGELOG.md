@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
 *   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
     raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
     Properly pass through the frozen `Time` or `ActiveSupport::TimeWithZone` object

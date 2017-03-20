@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
 *   Add `app:update` task to engines.
 
     *Yuji Yaginuma*

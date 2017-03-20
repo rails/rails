@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
 *   Remove comments from structure.sql when using postgresql adapter to avoid
     version-specific parts of the file.
 

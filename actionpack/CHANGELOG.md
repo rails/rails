@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
 *   Fix `NameError` raised in `ActionController::Renderer#with_defaults`
 
     *Hiroyuki Ishii*

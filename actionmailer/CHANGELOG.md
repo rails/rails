@@ -1,3 +1,8 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Add `:args` to `process.action_mailer` event.

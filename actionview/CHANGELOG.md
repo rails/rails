@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc1 (March 20, 2017) ##
+
 *   Remove the option `encode_special_chars` misnomer from `strip_tags`
 
     As of rails-html-sanitizer v1.0.3, the sanitizer will ignore the
