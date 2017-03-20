@@ -92,6 +92,17 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
+  #
+  # Note that you may use a non-integer column to persist the enumerated value.
+  #
+  #   create_table :conversations do |t|
+  #     t.column :status, :string, default: 'active'
+  #   end
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: { active: 'active', archived: 'archived' }
+  #   end
+  #
 
   module Enum
     def self.extended(base) # :nodoc:

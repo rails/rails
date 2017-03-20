@@ -10,6 +10,7 @@ awdr:
   illustrator_visibility: :visible
   font_size: :medium
   difficulty: :medium
+  cover: :soft
 
 rfr:
   author_id: 1
