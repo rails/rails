@@ -1,3 +1,16 @@
+*   Add `:compose` option to `has_many`.
+
+    Generates additionnal has_many for each given association scope.
+
+        # Before
+        has_many :posts
+        has_many :published_posts, -> { published }, class_name: "Post"
+
+        # After
+        has_many :posts, compose: :published
+
+    *Julien Grillot*
+
 *   Load only needed records on `ActiveRecord::Relation#inspect`.
 
     Instead of loading all records and returning only a subset of those, just

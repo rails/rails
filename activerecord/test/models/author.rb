@@ -1,5 +1,7 @@
 class Author < ActiveRecord::Base
-  has_many :posts
+  has_many :posts, compose: [:containing_the_letter_a]
+  has_many :titled_with_an_apostrophe_posts, -> { titled_with_an_apostrophe }, class_name: "Post", compose: :containing_the_letter_a
+
   has_many :serialized_posts
   has_one :post
   has_many :very_special_comments, through: :posts

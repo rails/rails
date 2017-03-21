@@ -2260,6 +2260,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "hello", post.comments_with_extend_2.greeting
   end
 
+  test "has_many association with compose option" do
+    author = Author.create!(name: "Scope lover")
+    author.posts.create!([
+      { title: "' apostrophe", body: "'b'..'z' letters" },
+      { title: "no apostrophe", body: "'a' letter" },
+      { title: "' apostrophe", body: "'a' letter" },
+      { title: "no apostrophe", body: "'b'..'z' letters" }
+    ])
+    assert_equal 2, author.containing_the_letter_a_posts.count
+    assert_equal 1, author.containing_the_letter_a_titled_with_an_apostrophe_posts.count
+  end
+
   test "delete record with complex joins" do
     david = authors(:david)
 

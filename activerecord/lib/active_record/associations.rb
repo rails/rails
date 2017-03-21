@@ -1353,6 +1353,12 @@ module ActiveRecord
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   section above.)
+        # [:compose]
+        #   Generates additionnal has_many for each given association scope.
+        #   <tt>has_many :posts, compose: [:published]</tt>
+        #   is equivalent to:
+        #   <tt>has_many :posts</tt>
+        #   <tt>has_many :published_posts, -> { published }, class_name: "Post"</tt>
         # [:source]
         #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1392,9 +1398,30 @@ module ActiveRecord
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
+        #   has_many :posts, compose: :published
         def has_many(name, scope = nil, options = {}, &extension)
+          if scope.is_a?(Hash)
+            options = scope
+            scope   = nil
+          end
+
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
+
+          if options[:compose]
+            composition_options = { class_name: reflection.class_name }.merge(options).except(:compose)
+            Array(options[:compose]).each do |scope_name|
+              if scope
+                composition_scope = -> { send(scope_name).merge(scope) }
+              else
+                composition_scope = -> { send(scope_name) }
+              end
+              reflection = Builder::HasMany.build(
+                self, :"#{scope_name}_#{name}", composition_scope, composition_options, &extension
+              )
+              Reflection.add_reflection self, "#{scope_name}_#{name}", reflection
+            end
+          end
         end
 
         # Specifies a one-to-one association with another class. This method should only be used
