@@ -65,6 +65,11 @@
 
     *Nicholas Firth-McCoy*
 
+*   Default `config.assets.quiet = true` in the development environment. Suppress
+    logging of assets requests by default.
+
+    *Kevin McPhillips*
+
 *   Add `config/initializers/to_time_preserves_timezone.rb`, which tells
     Active Support to preserve the receiver's timezone when calling `to_time`.
     This matches the new behavior that will be part of Ruby 2.4.
