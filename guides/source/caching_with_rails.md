@@ -574,7 +574,7 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in developement mode. Rails provides the rake task `dev:cache` to 
+in development mode. Rails provides the rake task `dev:cache` to 
 easily toggle caching on/off.
 
 ```bash
