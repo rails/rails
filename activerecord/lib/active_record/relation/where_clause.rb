@@ -148,9 +148,9 @@ module ActiveRecord
               (binds_index...(binds_index + binds_contains)).each do |i|
                 except_binds[i] = true
               end
-
-              binds_index += binds_contains
             end
+
+            binds_index += binds_contains if binds_contains
 
             except
           end
