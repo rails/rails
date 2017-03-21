@@ -158,6 +158,21 @@ module ActiveSupport
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
+    # Checks the hash for keys matching the arguments passed in:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new
+    #   hash['key1'] = 'value1'
+    #   hash['key2'] = 'value2'
+    #   hash.keys?(:key1, :key2)   # => true
+    #   hash.keys?('key1', 'key2') # => true
+    def keys?(*keys)
+      !keys.inject([]) do |results, key|
+        results << key?(key)
+      end.include?(false)
+    end
+
+    alias_method :has_keys?, :keys?
+
     # Same as <tt>Hash#[]</tt> where the key passed as argument can be
     # either a string or a symbol:
     #
