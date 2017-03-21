@@ -91,7 +91,7 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: [:environment, :load_config] do
-      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+      version = ENV["VERSION"] ? Integer(ENV["VERSION"]) : nil
       raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
@@ -99,7 +99,7 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: [:environment, :load_config] do
-      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+      version = ENV["VERSION"] ? Integer(ENV["VERSION"]) : nil
       raise "VERSION is required - To go down one migration, run db:rollback" unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
@@ -125,14 +125,14 @@ db_namespace = namespace :db do
 
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: [:environment, :load_config] do
-    step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+    step = ENV["STEP"] ? Integer(ENV["STEP"]) : 1
     ActiveRecord::Migrator.rollback(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
     db_namespace["_dump"].invoke
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task forward: [:environment, :load_config] do
-    step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+    step = ENV["STEP"] ? Integer(ENV["STEP"]) : 1
     ActiveRecord::Migrator.forward(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
     db_namespace["_dump"].invoke
   end
