@@ -681,7 +681,7 @@ XML
 
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
-    assert_equal "foo", @request.path
+    assert_equal "/test_case_test/test/test_params/foo", @request.path
   end
 
   def test_path_params_reset_between_request
