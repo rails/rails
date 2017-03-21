@@ -1970,6 +1970,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal p2.first.comments, comments
   end
 
+  def test_unscope_specific_where_value
+    posts = Post.where(title: "Welcome to the weblog", body: "Such a lovely day")
+
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+    assert_equal 1, posts.unscope(where: :body).count
+  end
+
   def test_unscope_removes_binds
     left = Post.where(id: Arel::Nodes::BindParam.new)
     column = Post.columns_hash["id"]
