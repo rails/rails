@@ -246,6 +246,7 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
+          GemfileEntry.github("arel", "rails/arel"),
         ]
         if options.dev?
           [

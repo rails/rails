@@ -78,6 +78,9 @@ module Rails
             assets.unknown_asset_fallback = false
           end
 
+        when "5.2"
+          load_defaults "5.1"
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
