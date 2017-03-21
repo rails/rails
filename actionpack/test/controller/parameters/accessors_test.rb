@@ -99,7 +99,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "has_value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute @params.has_value?("New York")
+    refute params.has_value?("New York")
   end
 
   test "include? returns true if the given key is present in the params" do
