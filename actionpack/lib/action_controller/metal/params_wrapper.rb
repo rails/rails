@@ -105,7 +105,11 @@ module ActionController
 
           unless super || exclude
             if m.respond_to?(:attribute_names) && m.attribute_names.any?
-              self.include = m.attribute_names
+              if m.respond_to?(:stored_attributes) && !m.stored_attributes.empty?
+                self.include = m.attribute_names + m.stored_attributes.values.flatten.map(&:to_s)
+              else
+                self.include = m.attribute_names
+              end
             end
           end
         end
