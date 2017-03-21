@@ -679,6 +679,11 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_path_is_kept_after_the_request
+    get :test_params, params: { id: "foo" }
+    assert_equal "foo", @request.path
+  end
+
   def test_path_params_reset_between_request
     get :test_params, params: { id: "foo" }
     assert_equal "foo", @request.path_parameters[:id]
@@ -726,20 +731,6 @@ XML
 
     get :test_format
     assert_equal "text/html", @response.body
-  end
-
-  def test_request_path_info_and_format_reset
-    get :test_format, format: "json"
-    assert_equal "application/json", @response.body
-
-    get :test_uri, format: "json"
-    assert_equal "/test_case_test/test/test_uri.json", @response.body
-
-    get :test_format
-    assert_equal "text/html", @response.body
-
-    get :test_uri
-    assert_equal "/test_case_test/test/test_uri", @response.body
   end
 
   def test_request_format_kwarg_overrides_params
