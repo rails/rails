@@ -29,11 +29,11 @@ module ActiveRecord
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
       conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
-      # Forward only valid config params to PGconn.connect.
-      valid_conn_param_keys = PGconn.conndefaults_hash.keys + [:requiressl]
+      # Forward only valid config params to PG::Connection.connect.
+      valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
-      # The postgres drivers don't allow the creation of an unconnected PGconn object,
+      # The postgres drivers don't allow the creation of an unconnected PG::Connection object,
       # so just pass a nil connection object for the time being.
       ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
     end
@@ -201,8 +201,8 @@ module ActiveRecord
           end
 
           def connection_active?
-            @connection.status == PGconn::CONNECTION_OK
-          rescue PGError
+            @connection.status == PG::CONNECTION_OK
+          rescue PG::Error
             false
           end
       end
@@ -249,7 +249,7 @@ module ActiveRecord
       def active?
         @connection.query "SELECT 1"
         true
-      rescue PGError
+      rescue PG::Error
         false
       end
 
@@ -414,7 +414,7 @@ module ActiveRecord
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
 
-          case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
+          case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
             RecordNotUnique.new(message)
           when FOREIGN_KEY_VIOLATION
@@ -651,7 +651,7 @@ module ActiveRecord
         CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
         def is_cached_plan_failure?(e)
           pgerror = e.cause
-          code = pgerror.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)
           code == FEATURE_NOT_SUPPORTED && pgerror.message.include?(CACHED_PLAN_HEURISTIC)
         rescue
           false
@@ -690,7 +690,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @connection = PGconn.connect(@connection_parameters)
+          @connection = PG.connect(@connection_parameters)
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")
