@@ -36,7 +36,7 @@ module ApplicationTests
     end
 
     def test_should_set_argv_when_running_code
-      output = Dir.chdir(app_path) { 
+      output = Dir.chdir(app_path) {
         # Both long and short args, at start and end of ARGV
         `bin/rails runner "puts ARGV.join(',')" --foo a1 -b a2 a3 --moo`
       }
