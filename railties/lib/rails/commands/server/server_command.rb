@@ -188,10 +188,12 @@ module Rails
         end
 
         def host
-          unless (default_host = options[:binding])
+          if options[:binding]
+            options[:binding]
+          else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
+            ENV.fetch("HOST", default_host)
           end
-          ENV.fetch("HOST", default_host)
         end
 
         def environment
