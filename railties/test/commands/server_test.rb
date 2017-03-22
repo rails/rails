@@ -139,6 +139,14 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_argument_precedence_over_environment_variable
+    switch_env "HOST", "1.2.3.4" do
+      args = ["-b", "127.0.0.1"]
+      options = parse_arguments(args)
+      assert_equal "127.0.0.1", options[:Host]
+    end
+  end
+
   def test_records_user_supplied_options
     server_options = parse_arguments(["-p", 3001])
     assert_equal [:Port], server_options[:user_supplied_options]
