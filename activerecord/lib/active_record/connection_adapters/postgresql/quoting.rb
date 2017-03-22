@@ -33,7 +33,7 @@ module ActiveRecord
 
         # Quotes schema names for use in SQL queries.
         def quote_schema_name(name)
-          PGconn.quote_ident(name)
+          PG::Connection.quote_ident(name)
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -42,7 +42,7 @@ module ActiveRecord
 
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) # :nodoc:
-          @quoted_column_names[name] ||= PGconn.quote_ident(super).freeze
+          @quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
         end
 
         # Quote date/time values for use in SQL input.
@@ -105,7 +105,7 @@ module ActiveRecord
             case value
             when Type::Binary::Data
               # Return a bind param hash with format as binary.
-              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+              # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
               # for more information
               { value: value.to_s, format: 1 }
             when OID::Xml::Data, OID::Bit::Data
