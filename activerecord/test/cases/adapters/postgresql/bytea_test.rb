@@ -89,6 +89,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     Thread.new do
       other_conn = ActiveRecord::Base.connection
       other_conn.execute("SET standard_conforming_strings = off")
+      other_conn.execute("SET escape_string_warning = off")
     end.join
 
     test_via_to_sql
