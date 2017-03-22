@@ -62,8 +62,10 @@ module ActionView
             node
           end
         else
-          logger.error "  '#{name}' file doesn't exist, so no dependencies"
-          logger.error "  Couldn't find template for digesting: #{name}"
+          unless name.include?('#') # Dynamic template partial names can never be tracked
+            logger.error "  Couldn't find template for digesting: #{name}"
+          end
+
           seen[name] ||= Missing.new(name, logical_name, nil)
         end
       end
