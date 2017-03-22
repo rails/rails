@@ -199,20 +199,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_dont_set_file_watcher
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/environments/development.rb" do |content|
-        assert_match(/# config.file_watcher/, content)
-      end
-    end
-  end
-
   def test_app_update_create_new_framework_defaults
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
