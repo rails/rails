@@ -115,6 +115,7 @@ module ActionDispatch
   end
 
   module ParamsParser
-    ParseError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("ActionDispatch::ParamsParser::ParseError", "ActionDispatch::Http::Parameters::ParseError")
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+    deprecate_constant "ParseError", "ActionDispatch::Http::Parameters::ParseError"
   end
 end
