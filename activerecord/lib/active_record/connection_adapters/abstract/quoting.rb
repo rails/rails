@@ -152,16 +152,15 @@ module ActiveRecord
         "'#{quote_string(value.to_s)}'"
       end
 
-      private
-
-        def type_casted_binds(binds)
-          if binds.first.is_a?(Array)
-            binds.map { |column, value| type_cast(value, column) }
-          else
-            binds.map { |attr| type_cast(attr.value_for_database) }
-          end
+      def type_casted_binds(binds) # :nodoc:
+        if binds.first.is_a?(Array)
+          binds.map { |column, value| type_cast(value, column) }
+        else
+          binds.map { |attr| type_cast(attr.value_for_database) }
         end
+      end
 
+      private
         def id_value_for_database(value)
           if primary_key = value.class.primary_key
             value.instance_variable_get(:@attributes)[primary_key].value_for_database
