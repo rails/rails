@@ -160,7 +160,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
-    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed
+    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed.
     module ChainedCookieJars
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
       #
@@ -345,16 +345,16 @@ module ActionDispatch
         options[:path] ||= "/"
 
         if options[:domain] == :all || options[:domain] == "all"
-          # if there is a provided tld length then we use it otherwise default domain regexp
+          # If there is a provided tld length then we use it otherwise default domain regexp.
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
-          # if host is not ip and matches domain regexp
+          # If host is not ip and matches domain regexp.
           # (ip confirms to domain regexp so we explicitly check for ip)
           options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
             ".#{$&}"
           end
         elsif options[:domain].is_a? Array
-          # if host matches one of the supplied domains without a dot in front of it
+          # If host matches one of the supplied domains without a dot in front of it.
           options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
         end
       end
@@ -404,7 +404,7 @@ module ActionDispatch
         @delete_cookies[name.to_s] == options
       end
 
-      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
+      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie.
       def clear(options = {})
         @cookies.each_key { |k| delete(k, options) }
       end

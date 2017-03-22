@@ -120,7 +120,7 @@ module ActionDispatch
   #   controller :blog do
   #     get 'blog/show'     => :list
   #     get 'blog/delete'   => :delete
-  #     get 'blog/edit' => :edit
+  #     get 'blog/edit'     => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit

@@ -154,7 +154,7 @@ module ActionDispatch
         end
       end
 
-      # Loop through the requirements AST
+      # Loop through the requirements AST.
       class Each < FunctionalVisitor # :nodoc:
         def visit(node, block)
           block.call(node)

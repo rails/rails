@@ -1,7 +1,7 @@
 module ActionDispatch
   module SystemTesting
     module TestHelpers
-      # Screenshot helper for system testing
+      # Screenshot helper for system testing.
       module ScreenshotHelper
         # Takes a screenshot of the current page in the browser.
         #

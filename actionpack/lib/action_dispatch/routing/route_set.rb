@@ -295,7 +295,7 @@ module ActionDispatch
         end
 
         private
-          # Create a url helper allowing ordered parameters to be associated
+          # Create a URL helper allowing ordered parameters to be associated
           # with corresponding dynamic segments, so you can do:
           #
           #   foo_url(bar, baz, bang)

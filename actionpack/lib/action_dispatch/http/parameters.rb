@@ -13,7 +13,7 @@ module ActionDispatch
       }
 
       # Raised when raw data from the request cannot be parsed by the parser
-      # defined for request's content mime type.
+      # defined for request's content MIME type.
       class ParseError < StandardError
         def initialize
           super($!.message)
@@ -30,9 +30,9 @@ module ActionDispatch
       end
 
       module ClassMethods
-        # Configure the parameter parser for a given mime type.
+        # Configure the parameter parser for a given MIME type.
         #
-        # It accepts a hash where the key is the symbol of the mime type
+        # It accepts a hash where the key is the symbol of the MIME type
         # and the value is a proc.
         #
         #     original_parsers = ActionDispatch::Request.parameter_parsers
@@ -100,7 +100,7 @@ module ActionDispatch
 
           begin
             strategy.call(raw_post)
-          rescue # JSON or Ruby code block errors
+          rescue # JSON or Ruby code block errors.
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 

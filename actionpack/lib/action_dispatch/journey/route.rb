@@ -89,8 +89,15 @@ module ActionDispatch
         end
       end
 
+      # Needed for `rails routes`. Picks up succinctly defined requirements
+      # for a route, for example route
+      #
+      #   get 'photo/:id', :controller => 'photos', :action => 'show',
+      #     :id => /[A-Z]\d{5}/
+      #
+      # will have {:controller=>"photos", :action=>"show", :id=>/[A-Z]\d{5}/}
+      # as requirements.
       def requirements
-        # needed for rails `rails routes`
         @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/ == v
         }
