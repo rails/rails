@@ -127,6 +127,8 @@ module ActiveRecord
               else
                 result[column_name] = nil
               end
+            elsif value.is_a?(Array)
+              value.each { |v| binds.concat(v.bound_attributes) if v.is_a?(Relation) }
             end
           end
         end

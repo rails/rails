@@ -711,6 +711,11 @@ class RelationTest < ActiveRecord::TestCase
     assert authors.to_a.blank?
   end
 
+  def test_where_with_relations_in_array
+    authors = Author.where(id: [Author.where(id: 1), Author.where(id: 2)])
+    assert_equal Author.where(id: [1, 2]), authors.to_a
+  end
+
   def test_where_with_ar_object
     author = Author.first
     authors = Author.all.where(id: author)
