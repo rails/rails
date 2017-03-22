@@ -743,10 +743,6 @@ module ActiveRecord
       #   #    ]
 
       #--
-      def uniq
-        load_target.uniq
-      end
-
       def calculate(operation, column_name)
         null_scope? ? scope.calculate(operation, column_name) : super
       end
