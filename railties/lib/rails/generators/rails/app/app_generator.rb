@@ -84,6 +84,16 @@ module Rails
       chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
+    def bin_when_updating
+      bin_yarn_exist = File.exist?("bin/yarn")
+
+      bin
+
+      if options[:api] && !bin_yarn_exist
+        remove_file "bin/yarn"
+      end
+    end
+
     def config
       empty_directory "config"
 
@@ -106,6 +116,8 @@ module Rails
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
       action_cable_config_exist = File.exist?("config/cable.yml")
       rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
+      assets_config_exist = File.exist?("config/initializers/assets.rb")
+      new_framework_defaults_5_1_exist = File.exist?("config/initializers/new_framework_defaults_5_1.rb")
 
       config
 
@@ -119,6 +131,22 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if options[:api]
+        unless cookie_serializer_config_exist
+          remove_file "config/initializers/cookies_serializer.rb"
+        end
+
+        unless assets_config_exist
+          remove_file "config/initializers/assets.rb"
+        end
+
+        # Sprockets owns the only new default for 5.1:
+        # In API-only Applications, we don't want the file.
+        unless new_framework_defaults_5_1_exist
+          remove_file "config/initializers/new_framework_defaults_5_1.rb"
+        end
       end
     end
 
@@ -229,6 +257,11 @@ module Rails
       def create_bin_files
         build(:bin)
       end
+
+      def update_bin_files
+        build(:bin_when_updating)
+      end
+      remove_task :update_bin_files
 
       def create_config_files
         build(:config)
