@@ -59,24 +59,19 @@ module ActiveRecord
 
         parts, binds = [], []
         attributes.each do |column_name, value|
+          prts, bnds = nil, nil
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
-            prts, bvs = associated_predicate_builder(column_name).build_from_hash(value)
-            parts.concat(prts)
-            binds.concat(bvs)
+            prts, bnds = associated_predicate_builder(column_name).build_from_hash(value)
           when table.associated_with?(column_name)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
             #
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
-            prts, bvs = build_for_association_query(column_name, value)
-            parts.concat(prts)
-            binds.concat(bvs)
+            prts, bnds = build_for_association_query(column_name, value)
           when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
-            prts, bvs = build_for_array(column_name, value)
-            parts.concat(prts)
-            binds.concat(bvs)
+            prts, bnds = build_for_array(column_name, value)
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
             parts << build(column_name, value)
@@ -102,6 +97,9 @@ module ActiveRecord
             end
             parts << build(column_name, value)
           end
+
+          parts.concat(prts) if prts
+          binds.concat(bnds) if bnds
         end
 
         [parts, binds]
