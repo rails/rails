@@ -452,14 +452,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_javascript_libraries_if_required
-    run_generator [destination_root, "-j", "jquery"]
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require jquery}, contents
-    end
-    assert_gem "jquery-rails"
-  end
-
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
