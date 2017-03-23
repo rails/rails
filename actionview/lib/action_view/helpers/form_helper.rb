@@ -474,6 +474,8 @@ module ActionView
       end
       private :apply_form_for_options!
 
+      mattr_accessor(:form_with_generates_remote_forms) { true }
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
@@ -1503,7 +1505,7 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: false, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
