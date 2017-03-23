@@ -124,21 +124,31 @@ class Method
 end
 
 class Complex
-  # Complexes are not duplicable:
-  #
-  # Complex(1).duplicable? # => false
-  # Complex(1).dup         # => TypeError: can't copy Complex
-  def duplicable?
-    false
+  begin
+    Complex(1).dup
+  rescue TypeError
+
+    # Complexes are not duplicable for RUBY_VERSION < 2.5.0:
+    #
+    # Complex(1).duplicable? # => false
+    # Complex(1).dup         # => TypeError: can't copy Complex
+    def duplicable?
+      false
+    end
   end
 end
 
 class Rational
-  # Rationals are not duplicable:
-  #
-  # Rational(1).duplicable? # => false
-  # Rational(1).dup         # => TypeError: can't copy Rational
-  def duplicable?
-    false
+  begin
+    Rational(1).dup
+  rescue TypeError
+
+    # Rationals are not duplicable for RUBY_VERSION < 2.5.0:
+    #
+    # Rational(1).duplicable? # => false
+    # Rational(1).dup         # => TypeError: can't copy Rational
+    def duplicable?
+      false
+    end
   end
 end
