@@ -128,7 +128,7 @@ class Complex
     Complex(1).dup
   rescue TypeError
 
-    # Complexes are not duplicable for RUBY_VERSION < 2.5.0:
+    # Complexes are not duplicable:
     #
     # Complex(1).duplicable? # => false
     # Complex(1).dup         # => TypeError: can't copy Complex
@@ -143,7 +143,7 @@ class Rational
     Rational(1).dup
   rescue TypeError
 
-    # Rationals are not duplicable for RUBY_VERSION < 2.5.0:
+    # Rationals are not duplicable:
     #
     # Rational(1).duplicable? # => false
     # Rational(1).dup         # => TypeError: can't copy Rational
