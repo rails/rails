@@ -387,10 +387,10 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
-New Rails projects will be configured to use this implementation in the
-development environment by default. (Note that, because processes will not share
-cache data, if using `:memory_store` it will not be possible to manually read,
-write or expire the cache via the Rails console.)
+New Rails projects are configured to use this implementation in development environment by default. 
+
+NOTE: Since processes will not share cache data when using `:memory_store`, 
+it will not be possible to manually read, write or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
 
