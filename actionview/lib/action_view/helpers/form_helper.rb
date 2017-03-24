@@ -113,6 +113,7 @@ module ActionView
       include UrlHelper
       include ModelNaming
       include RecordIdentifier
+      include FormErrorsHelper
 
       attr_internal :default_form_builder
 
