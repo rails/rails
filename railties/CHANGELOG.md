@@ -1,3 +1,7 @@
+*   Add useful links to the welcome page
+
+    *Dino Maric*
+
 *   Specify form field ids when generating a scaffold.
 
     This makes sure that the labels are linked up with the fields. The

@@ -38,6 +38,10 @@
       width: 700px;
       text-align: center;
     }
+
+    .useful-resources > a {
+      padding-right: 0.3em;
+    }
   </style>
 </head>
 
@@ -58,6 +62,14 @@
         <strong>Rails version:</strong> <%= Rails.version %><br />
         <strong>Ruby version:</strong> <%= RUBY_VERSION %> (<%= RUBY_PLATFORM %>)
       </p>
+
+      <div class="useful-resources">
+        <%= link_to "Blog", "http://weblog.rubyonrails.org/", target: "_blank" %>
+        <%= link_to "Guides", "http://guides.rubyonrails.org/", target: "_blank" %>
+        <%= link_to "API", "http://api.rubyonrails.org/", target: "_blank" %>
+        <%= link_to "Ask for help", "http://stackoverflow.com/questions/tagged/ruby-on-rails", target: "_blank" %>
+        <%= link_to "Contribute on GitHub", "https://github.com/rails/rails", target: "_blank" %>
+      </div>
     </section>
   </div>
 </body>
