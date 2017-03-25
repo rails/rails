@@ -98,13 +98,13 @@ Anything you can do to make bug reports more succinct or easier to reproduce hel
 
 ### Testing Patches
 
-You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. To apply someone's changes you need first to create a dedicated branch:
+You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. In order to apply someone's changes, you need to first create a dedicated branch:
 
 ```bash
 $ git checkout -b testing_branch
 ```
 
-Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
+Then, you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
 ```bash
 $ git remote add JohnSmith https://github.com/JohnSmith/rails.git
