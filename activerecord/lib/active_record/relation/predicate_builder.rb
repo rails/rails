@@ -121,6 +121,7 @@ module ActiveRecord
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
           else
+            value = value.id if value.is_a?(Base)
             if can_be_bound?(column_name, value)
               bind_attribute = build_bind_attribute(column_name, value)
               if value.is_a?(StatementCache::Substitute) || !bind_attribute.value_for_database.nil?
