@@ -87,6 +87,7 @@ module ActiveRecord
         binds = []
 
         attributes.each do |column_name, value|
+          binds.concat(value.bound_attributes) if value.is_a?(Relation)
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
@@ -99,9 +100,6 @@ module ActiveRecord
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
             result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
-            binds.concat(value.bound_attributes) if value.is_a?(Relation)
-          when value.is_a?(Relation)
-            binds += value.bound_attributes
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
