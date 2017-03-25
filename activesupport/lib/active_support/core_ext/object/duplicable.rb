@@ -106,8 +106,8 @@ require "bigdecimal"
 class BigDecimal
   # BigDecimals are duplicable:
   #
-  # BigDecimal.new("1.2").duplicable? # => true
-  # BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
+  #   BigDecimal.new("1.2").duplicable? # => true
+  #   BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
   def duplicable?
     true
   end
@@ -130,8 +130,8 @@ class Complex
 
     # Complexes are not duplicable:
     #
-    # Complex(1).duplicable? # => false
-    # Complex(1).dup         # => TypeError: can't copy Complex
+    #   Complex(1).duplicable? # => false
+    #   Complex(1).dup         # => TypeError: can't copy Complex
     def duplicable?
       false
     end
@@ -145,8 +145,8 @@ class Rational
 
     # Rationals are not duplicable:
     #
-    # Rational(1).duplicable? # => false
-    # Rational(1).dup         # => TypeError: can't copy Rational
+    #   Rational(1).duplicable? # => false
+    #   Rational(1).dup         # => TypeError: can't copy Rational
     def duplicable?
       false
     end
