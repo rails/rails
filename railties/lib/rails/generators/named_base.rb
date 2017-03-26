@@ -149,6 +149,10 @@ module Rails
           "new_#{singular_table_name}_url"
         end
 
+        def field_id(attribute_name)
+          [singular_table_name, attribute_name].join('_')
+        end
+
         def singular_table_name # :doc:
           @singular_table_name ||= (pluralize_table_names? ? table_name.singularize : table_name)
         end

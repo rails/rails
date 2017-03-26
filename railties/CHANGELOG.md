@@ -1,3 +1,11 @@
+*   Specify form field ids when generating a scaffold.
+
+    This makes sure that the labels are linked up with the fields. The
+    regression was introduced when the template was switched to
+    `form_with`.
+
+    *Yves Senn*
+
 ## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   Add `app:update` task to engines.
