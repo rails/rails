@@ -970,7 +970,6 @@ module ActiveRecord
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
-          connection.pool.lock_thread = true
         end
 
         # When connections are established in the future, begin a transaction too
@@ -986,7 +985,6 @@ module ActiveRecord
 
             if connection && !@fixture_connections.include?(connection)
               connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
               @fixture_connections << connection
             end
           end
@@ -1009,7 +1007,6 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
-          connection.pool.lock_thread = false
         end
         @fixture_connections.clear
       else
