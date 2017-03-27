@@ -1,8 +1,6 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/association_query_handler"
-    require "active_record/relation/predicate_builder/base_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -15,23 +13,13 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Base, BaseHandler.new(self))
-      register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
-      register_handler(Array, ArrayHandler.new(self))
-      register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
-      register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
-    def build_from_hash(attributes)
+    def build_for_hash(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
-      expand_from_hash(attributes)
-    end
-
-    def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes)
-      create_binds_for_hash(attributes)
+      build_from_hash(attributes)
     end
 
     def self.references(attributes)
@@ -60,41 +48,33 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
-    def build(attribute, value)
-      handler_for(value).call(attribute, value)
-    end
-
     # TODO Change this to private once we've dropped Ruby 2.2 support.
     # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :table
 
-      def expand_from_hash(attributes)
-        return ["1=0"] if attributes.empty?
+      def build_from_hash(attributes)
+        return [["1=0"], []] if attributes.empty?
 
-        attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
-            associated_predicate_builder(key).expand_from_hash(value)
-          else
-            build(table.arel_attribute(key), value)
-          end
-        end
-      end
-
-      def create_binds_for_hash(attributes)
-        result = attributes.dup
-        binds = []
-
+        parts, binds = [], []
         attributes.each do |column_name, value|
+          prts, bnds = nil, nil
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
-            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
-            result[column_name] = attrs
-            binds += bvs
-            next
+            prts, bnds = associated_predicate_builder(column_name).build_from_hash(value)
+          when table.associated_with?(column_name)
+            # Find the foreign key when using queries such as:
+            # Post.where(author: author)
+            #
+            # For polymorphic relationships, find the foreign key and type:
+            # PriceEstimate.where(estimate_of: treasure)
+            prts, bnds = build_for_association_query(column_name, value)
+          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            prts, bnds = build_for_array(column_name, value)
           when value.is_a?(Relation)
-            binds += value.bound_attributes
+            binds.concat(value.bound_attributes)
+            parts << build(column_name, value)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -107,28 +87,88 @@ module ActiveRecord
               last = Arel::Nodes::BindParam.new
             end
 
-            result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
+            value = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
+            parts << build(column_name, value)
           else
+            value = value.id if value.is_a?(Base)
             if can_be_bound?(column_name, value)
-              result[column_name] = Arel::Nodes::BindParam.new
               binds << build_bind_param(column_name, value)
+              value = Arel::Nodes::BindParam.new
             end
+            parts << build(column_name, value)
           end
 
-          # Find the foreign key when using queries such as:
-          # Post.where(author: author)
-          #
-          # For polymorphic relationships, find the foreign key and type:
-          # PriceEstimate.where(estimate_of: treasure)
-          if table.associated_with?(column_name)
-            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
-          end
+          parts.concat(prts) if prts
+          binds.concat(bnds) if bnds
         end
 
-        [result, binds]
+        [parts, binds]
       end
 
     private
+
+      def build(column_name, value)
+        handler_for(value).call(table.arel_attribute(column_name), value)
+      end
+
+      def build_for_association_query(column_name, value)
+        parts, binds = [], []
+        AssociationQueryValue.queries_for(table.associated_table(column_name), value).each do |query|
+          prts, bvs = build_from_hash(query)
+          parts << prts
+          binds.concat(bvs)
+        end
+
+        if parts.size > 1
+          parts = [parts.map { |type, id| Arel::Nodes::Grouping.new(type.and(id)) }.inject(&:or)]
+        else
+          parts.flatten!
+        end
+
+        [parts, binds]
+      end
+
+      def build_for_array(column_name, value)
+        return [["1=0"], []] if value.empty?
+        return build_from_hash(column_name => value.first) if value.size == 1
+
+        parts, binds = [], []
+        values, nils = [], false
+
+        value.each do |v|
+          case v
+          when Range, Relation
+            prts, bvs = build_from_hash(column_name => v)
+            parts.concat(prts)
+            binds.concat(bvs)
+          else
+            v = v.id if v.is_a?(Base)
+            if v.nil?
+              nils = true
+            else
+              values << v
+            end
+          end
+        end
+
+        if values.size == 1
+          prts, bvs = build_from_hash(column_name => values.first)
+          parts.concat(prts)
+          binds.concat(bvs)
+        elsif values.size > 1
+          parts << table.arel_attribute(column_name).in(values)
+        end
+
+        if nils
+          parts << table.arel_attribute(column_name).eq(nil)
+        end
+
+        if parts.size > 1
+          parts = [parts.inject(&:or)]
+        end
+
+        [parts, binds]
+      end
 
       def associated_predicate_builder(association_name)
         self.class.new(table.associated_table(association_name))
@@ -155,13 +195,7 @@ module ActiveRecord
       end
 
       def can_be_bound?(column_name, value)
-        return if table.associated_with?(column_name)
-        case value
-        when Array, Range
-          table.type(column_name).respond_to?(:subtype)
-        else
-          !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
-        end
+        !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
       end
 
       def build_bind_param(column_name, value)

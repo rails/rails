@@ -15,12 +15,12 @@ module ActiveRecord
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
           attributes.stringify_keys!
 
-          if perform_case_sensitive?(options = other.last)
-            parts, binds = build_for_case_sensitive(attributes, options)
-          else
-            attributes, binds = predicate_builder.create_binds(attributes)
-            parts = predicate_builder.build_from_hash(attributes)
-          end
+          parts, binds = \
+            if perform_case_sensitive?(options = other.last)
+              build_for_case_sensitive(attributes, options)
+            else
+              predicate_builder.build_for_hash(attributes)
+            end
         when Arel::Nodes::Node
           parts = [opts]
         else
