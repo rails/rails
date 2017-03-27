@@ -12,7 +12,7 @@
   fire, delegate
   getData, $
   refreshCSRFTokens, CSRFProtection
-  enableElement, disableElement
+  enableElement, disableElement, handleDisabledElement
   handleConfirm
   handleRemote, formSubmitButtonClick, handleMetaClick
   handleMethod
@@ -44,19 +44,23 @@ Rails.start = ->
   delegate document, Rails.buttonDisableSelector, 'ajax:complete', enableElement
   delegate document, Rails.buttonDisableSelector, 'ajax:stopped', enableElement
 
+  delegate document, Rails.linkClickSelector, 'click', handleDisabledElement
   delegate document, Rails.linkClickSelector, 'click', handleConfirm
   delegate document, Rails.linkClickSelector, 'click', handleMetaClick
   delegate document, Rails.linkClickSelector, 'click', disableElement
   delegate document, Rails.linkClickSelector, 'click', handleRemote
   delegate document, Rails.linkClickSelector, 'click', handleMethod
 
+  delegate document, Rails.buttonClickSelector, 'click', handleDisabledElement
   delegate document, Rails.buttonClickSelector, 'click', handleConfirm
   delegate document, Rails.buttonClickSelector, 'click', disableElement
   delegate document, Rails.buttonClickSelector, 'click', handleRemote
 
+  delegate document, Rails.inputChangeSelector, 'change', handleDisabledElement
   delegate document, Rails.inputChangeSelector, 'change', handleConfirm
   delegate document, Rails.inputChangeSelector, 'change', handleRemote
 
+  delegate document, Rails.formSubmitSelector, 'submit', handleDisabledElement
   delegate document, Rails.formSubmitSelector, 'submit', handleConfirm
   delegate document, Rails.formSubmitSelector, 'submit', handleRemote
   # Normal mode submit
@@ -65,6 +69,7 @@ Rails.start = ->
   delegate document, Rails.formSubmitSelector, 'ajax:send', disableElement
   delegate document, Rails.formSubmitSelector, 'ajax:complete', enableElement
 
+  delegate document, Rails.formInputClickSelector, 'click', handleDisabledElement
   delegate document, Rails.formInputClickSelector, 'click', handleConfirm
   delegate document, Rails.formInputClickSelector, 'click', formSubmitButtonClick
 
