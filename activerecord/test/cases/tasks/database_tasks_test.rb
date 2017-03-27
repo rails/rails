@@ -294,6 +294,14 @@ module ActiveRecord
       ENV['VERBOSE'], ENV['VERSION'] = verbose, version
     end
 
+    def test_migrate_raise_error_on_empty_version
+      version = ENV["VERSION"]
+      ENV["VERSION"] = ""
+      assert_raise(RuntimeError, "Empty VERSION provided") { ActiveRecord::Tasks::DatabaseTasks.migrate }
+    ensure
+      ENV["VERSION"] = version
+    end
+
     def test_migrate_clears_schema_cache_afterward
       ActiveRecord::Base.expects(:clear_cache!)
       ActiveRecord::Tasks::DatabaseTasks.migrate
