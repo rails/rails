@@ -1,3 +1,7 @@
+*   Remove -j (--javascript) option from `rails new` command.
+
+    *claudiob*
+
 *   Specify form field ids when generating a scaffold.
 
     This makes sure that the labels are linked up with the fields. The
@@ -5,6 +9,7 @@
     `form_with`.
 
     *Yves Senn*
+
 
 ## Rails 5.1.0.rc1 (March 20, 2017) ##
 
