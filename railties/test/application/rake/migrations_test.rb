@@ -37,6 +37,22 @@ module ApplicationTests
         end
       end
 
+      test "migration with empty version" do
+        Dir.chdir(app_path) do
+          output = `bin/rails db:migrate VERSION= 2>&1`
+          assert_match(/Empty VERSION provided/, output)
+
+          output = `bin/rails db:migrate:redo VERSION= 2>&1`
+          assert_match(/Empty VERSION provided/, output)
+
+          output = `bin/rails db:migrate:up VERSION= 2>&1`
+          assert_match(/VERSION is required/, output)
+
+          output = `bin/rails db:migrate:down VERSION= 2>&1`
+          assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
+        end
+      end
+
       test "model and migration generator with change syntax" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
