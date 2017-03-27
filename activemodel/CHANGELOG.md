@@ -1,3 +1,8 @@
+*   Avoid converting integer as a string into float.
+
+    *namusyaka*
+
+
 ## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   No changes.
