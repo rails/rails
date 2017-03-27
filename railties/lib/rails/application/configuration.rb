@@ -14,9 +14,8 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
-                    :read_encrypted_secrets
+                    :read_encrypted_secrets, :log_level
 
-      attr_writer :log_level
       attr_reader :encoding, :api_only
 
       def initialize(*)
@@ -35,7 +34,7 @@ module Rails
         @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
-        @log_level                       = nil
+        @log_level                       = :debug
         @generators                      = app_generators
         @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                  = [:all]
@@ -150,10 +149,6 @@ module Rails
               "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
-      end
-
-      def log_level
-        @log_level ||= (Rails.env.production? ? :info : :debug)
       end
 
       def colorize_logging
