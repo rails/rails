@@ -723,11 +723,6 @@ module ActiveRecord
           end
         end
 
-        # Returns the current ID of a table's sequence.
-        def last_insert_id_result(sequence_name)
-          exec_query("SELECT currval('#{sequence_name}')", "SQL")
-        end
-
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:

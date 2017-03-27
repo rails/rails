@@ -257,7 +257,7 @@ module ActiveRecord
         end
 
         def serial_sequence(table, column)
-          select_value("SELECT pg_get_serial_sequence('#{table}', '#{column}')", "SCHEMA")
+          select_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
         end
 
         # Sets the sequence of a table's primary key to the specified value.
@@ -268,7 +268,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              select_value("SELECT setval('#{quoted_sequence}', #{value})", "SCHEMA")
+              select_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -293,14 +293,14 @@ module ActiveRecord
             max_pk = select_value("select MAX(#{quote_column_name pk}) from #{quote_table_name(table)}")
             if max_pk.nil?
               if postgresql_version >= 100000
-                minvalue = select_value("SELECT seqmin from pg_sequence where seqrelid = '#{quoted_sequence}'::regclass")
+                minvalue = select_value("SELECT seqmin from pg_sequence where seqrelid = #{quote(quoted_sequence)}::regclass")
               else
                 minvalue = select_value("SELECT min_value FROM #{quoted_sequence}")
               end
             end
 
             select_value(<<-end_sql, "SCHEMA")
-              SELECT setval('#{quoted_sequence}', #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})
+              SELECT setval(#{quote(quoted_sequence)}, #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})
             end_sql
           end
         end
@@ -325,7 +325,7 @@ module ActiveRecord
               AND seq.relnamespace  = nsp.oid
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
-              AND dep.refobjid      = '#{quote_table_name(table)}'::regclass
+              AND dep.refobjid      = #{quote(quote_table_name(table))}::regclass
           end_sql
 
           if result.nil? || result.empty?
@@ -343,7 +343,7 @@ module ActiveRecord
               JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
-              WHERE t.oid = '#{quote_table_name(table)}'::regclass
+              WHERE t.oid = #{quote(quote_table_name(table))}::regclass
                 AND cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate'
             end_sql
