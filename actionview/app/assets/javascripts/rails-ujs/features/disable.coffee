@@ -2,6 +2,10 @@
 
 { matches, getData, setData, stopEverything, formElements } = Rails
 
+Rails.handleDisabledElement = (e) ->
+  element = this
+  stopEverything(e) if element.disabled
+
 # Unified function to enable an element (link, button and form)
 Rails.enableElement = (e) ->
   element = if e instanceof Event then e.target else e
