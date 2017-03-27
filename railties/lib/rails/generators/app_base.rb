@@ -413,6 +413,10 @@ module Rails
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
+      def depends_on_system_test?
+        !(options[:skip_system_test] || options[:skip_test] || options[:api])
+      end
+
       def depend_on_listen?
         !options[:skip_listen] && os_supports_listen_out_of_the_box?
       end

@@ -275,7 +275,7 @@ module Rails
       end
 
       def create_system_test_files
-        build(:system_test) unless options[:skip_system_test] || options[:skip_test] || options[:api]
+        build(:system_test) if depends_on_system_test?
       end
 
       def create_tmp_files
