@@ -1,23 +1,23 @@
-* Return unmapped timezones from `country_zones`
+*   Return unmapped timezones from `country_zones`
 
-  If a country doesn't exist in the MAPPINGS hash then create a new
-  `ActiveSupport::Timezone` instance using the supplied timezone id.
+    If a country doesn't exist in the MAPPINGS hash then create a new
+    `ActiveSupport::Timezone` instance using the supplied timezone id.
 
-  Fixes #28431.
+    Fixes #28431.
 
-  *Andrew White*
+    *Andrew White*
 
-* Add ActiveSupport::Deprecation::DeprecatedConstantAccessor
+*   Add ActiveSupport::Deprecation::DeprecatedConstantAccessor
 
-  Provides transparent deprecation of constants, compatible with exceptions.
-  Example usage:
+    Provides transparent deprecation of constants, compatible with exceptions.
+    Example usage:
 
-      module Example
-        include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-        deprecate_constant 'OldException', 'Elsewhere::NewException'
-      end
+        module Example
+          include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+          deprecate_constant 'OldException', 'Elsewhere::NewException'
+        end
 
-  *Dominic Cleal*
+    *Dominic Cleal*
 
 
 ## Rails 5.1.0.rc1 (March 20, 2017) ##
