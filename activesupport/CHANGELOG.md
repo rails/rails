@@ -1,3 +1,12 @@
+* Return unmapped timezones from `country_zones`
+
+  If a country doesn't exist in the MAPPINGS hash then create a new
+  `ActiveSupport::Timezone` instance using the supplied timezone id.
+
+  Fixes #28431.
+
+  *Andrew White*
+
 * Add ActiveSupport::Deprecation::DeprecatedConstantAccessor
 
   Provides transparent deprecation of constants, compatible with exceptions.

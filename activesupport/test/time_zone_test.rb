@@ -714,6 +714,10 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
   end
 
+  def test_country_zones_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones(:sv), ActiveSupport::TimeZone["America/El_Salvador"]
+  end
+
   def test_to_yaml
     assert_equal("--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n", ActiveSupport::TimeZone["Hawaii"].to_yaml)
     assert_equal("--- !ruby/object:ActiveSupport::TimeZone\nname: Europe/London\n", ActiveSupport::TimeZone["Europe/London"].to_yaml)
