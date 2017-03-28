@@ -84,14 +84,6 @@ module ActiveRecord
         SQLite3::Table.new(table_name, base)
       end
 
-      def schema_creation # :nodoc:
-        SQLite3::SchemaCreation.new self
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::SQLite.new(self)
-      end
-
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
@@ -266,22 +258,6 @@ module ActiveRecord
       end
 
       # SCHEMA STATEMENTS ========================================
-
-      def new_column_from_field(table_name, field) # :nondoc:
-        case field["dflt_value"]
-        when /^null$/i
-          field["dflt_value"] = nil
-        when /^'(.*)'$/m
-          field["dflt_value"] = $1.gsub("''", "'")
-        when /^"(.*)"$/m
-          field["dflt_value"] = $1.gsub('""', '"')
-        end
-
-        collation = field["collation"]
-        sql_type = field["type"]
-        type_metadata = fetch_type_metadata(sql_type)
-        new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
-      end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
@@ -559,16 +535,8 @@ module ActiveRecord
           end
         end
 
-        def create_table_definition(*args)
-          SQLite3::TableDefinition.new(*args)
-        end
-
-        def extract_foreign_key_action(specifier)
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          when "RESTRICT"; :restrict
-          end
+        def arel_visitor
+          Arel::Visitors::SQLite.new(self)
         end
 
         def configure_connection

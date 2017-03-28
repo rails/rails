@@ -976,16 +976,6 @@ module ActiveRecord
         foreign_key_for(from_table, options_or_to_table).present?
       end
 
-      def foreign_key_for(from_table, options_or_to_table = {}) # :nodoc:
-        return unless supports_foreign_keys?
-        foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
-      end
-
-      def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
-        foreign_key_for(from_table, options_or_to_table) || \
-          raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
-      end
-
       def foreign_key_column_for(table_name) # :nodoc:
         prefix = Base.table_name_prefix
         suffix = Base.table_name_suffix
@@ -1003,19 +993,6 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         versions = ActiveRecord::SchemaMigration.all_versions
         insert_versions_sql(versions)
-      end
-
-      def insert_versions_sql(versions) # :nodoc:
-        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
-
-        if versions.is_a?(Array)
-          sql = "INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
-          sql << ";\n\n"
-          sql
-        else
-          "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
-        end
       end
 
       def initialize_schema_migrations_table # :nodoc:
@@ -1263,12 +1240,27 @@ module ActiveRecord
           end
         end
 
+        def schema_creation
+          SchemaCreation.new(self)
+        end
+
         def create_table_definition(*args)
           TableDefinition.new(*args)
         end
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
+        end
+
+        def fetch_type_metadata(sql_type)
+          cast_type = lookup_cast_type(sql_type)
+          SqlTypeMetadata.new(
+            sql_type: sql_type,
+            type: cast_type.type,
+            limit: cast_type.limit,
+            precision: cast_type.precision,
+            scale: cast_type.scale,
+          )
         end
 
         def index_column_names(column_names)
@@ -1295,6 +1287,24 @@ module ActiveRecord
           end
         end
 
+        def foreign_key_for(from_table, options_or_to_table = {})
+          return unless supports_foreign_keys?
+          foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
+        end
+
+        def foreign_key_for!(from_table, options_or_to_table = {})
+          foreign_key_for(from_table, options_or_to_table) || \
+            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
+        end
+
+        def extract_foreign_key_action(specifier)
+          case specifier
+          when "CASCADE"; :cascade
+          when "SET NULL"; :nullify
+          when "RESTRICT"; :restrict
+          end
+        end
+
         def validate_index_length!(table_name, new_name, internal = false)
           max_index_length = internal ? index_name_length : allowed_index_name_length
 
@@ -1313,6 +1323,19 @@ module ActiveRecord
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def insert_versions_sql(versions)
+          sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+
+          if versions.is_a?(Array)
+            sql = "INSERT INTO #{sm_table} (version) VALUES\n"
+            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << ";\n\n"
+            sql
+          else
+            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
+          end
         end
 
         def data_source_sql(name = nil, type: nil)

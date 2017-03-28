@@ -22,14 +22,6 @@ module ActiveRecord
         MySQL::Table.new(table_name, base)
       end
 
-      def schema_creation # :nodoc:
-        MySQL::SchemaCreation.new(self)
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::MySQL.new(self)
-      end
-
       ##
       # :singleton-method:
       # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>
@@ -169,10 +161,6 @@ module ActiveRecord
       # this method must be implemented to provide a uniform interface.
       def each_hash(result) # :nodoc:
         raise NotImplementedError
-      end
-
-      def new_column(*args) #:nodoc:
-        MySQL::Column.new(*args)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -344,16 +332,6 @@ module ActiveRecord
         end
 
         indexes
-      end
-
-      def new_column_from_field(table_name, field) # :nodoc:
-        type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-        if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-          default, default_function = nil, field[:Default]
-        else
-          default, default_function = field[:Default], nil
-        end
-        new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
       end
 
       def table_comment(table_name) # :nodoc:
@@ -658,10 +636,6 @@ module ActiveRecord
           end
         end
 
-        def fetch_type_metadata(sql_type, extra = "")
-          MySQL::TypeMetadata.new(super(sql_type), extra: extra)
-        end
-
         def add_index_length(quoted_columns, **options)
           if length = options[:length]
             case length
@@ -864,19 +838,12 @@ module ActiveRecord
           end
         end
 
-        def extract_foreign_key_action(specifier) # :nodoc:
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          end
-        end
-
         def create_table_info(table_name) # :nodoc:
           select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
         end
 
-        def create_table_definition(*args) # :nodoc:
-          MySQL::TableDefinition.new(*args)
+        def arel_visitor
+          Arel::Visitors::MySQL.new(self)
         end
 
         def mismatched_foreign_key(message)

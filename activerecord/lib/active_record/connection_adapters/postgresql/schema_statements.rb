@@ -144,25 +144,6 @@ module ActiveRecord
           end.compact
         end
 
-        def new_column_from_field(table_name, field) # :nondoc:
-          column_name, type, default, notnull, oid, fmod, collation, comment = field
-          oid = oid.to_i
-          fmod = fmod.to_i
-          type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
-          default_value = extract_value_from_default(default)
-          default_function = extract_default_function(default_value, default)
-          PostgreSQLColumn.new(
-            column_name,
-            default_value,
-            type_metadata,
-            !notnull,
-            table_name,
-            default_function,
-            collation,
-            comment: comment.presence
-          )
-        end
-
         def table_options(table_name) # :nodoc:
           if comment = table_comment(table_name)
             { comment: comment }
@@ -538,14 +519,6 @@ module ActiveRecord
           end
         end
 
-        def extract_foreign_key_action(specifier) # :nodoc:
-          case specifier
-          when "c"; :cascade
-          when "n"; :nullify
-          when "r"; :restrict
-          end
-        end
-
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \
@@ -593,19 +566,53 @@ module ActiveRecord
           [super, *order_columns].join(", ")
         end
 
-        def fetch_type_metadata(column_name, sql_type, oid, fmod)
-          cast_type = get_oid_type(oid, fmod, column_name, sql_type)
-          simple_type = SqlTypeMetadata.new(
-            sql_type: sql_type,
-            type: cast_type.type,
-            limit: cast_type.limit,
-            precision: cast_type.precision,
-            scale: cast_type.scale,
-          )
-          PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
-        end
-
         private
+          def schema_creation
+            PostgreSQL::SchemaCreation.new(self)
+          end
+
+          def create_table_definition(*args)
+            PostgreSQL::TableDefinition.new(*args)
+          end
+
+          def new_column_from_field(table_name, field)
+            column_name, type, default, notnull, oid, fmod, collation, comment = field
+            type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
+            default_value = extract_value_from_default(default)
+            default_function = extract_default_function(default_value, default)
+
+            PostgreSQLColumn.new(
+              column_name,
+              default_value,
+              type_metadata,
+              !notnull,
+              table_name,
+              default_function,
+              collation,
+              comment: comment.presence
+            )
+          end
+
+          def fetch_type_metadata(column_name, sql_type, oid, fmod)
+            cast_type = get_oid_type(oid, fmod, column_name, sql_type)
+            simple_type = SqlTypeMetadata.new(
+              sql_type: sql_type,
+              type: cast_type.type,
+              limit: cast_type.limit,
+              precision: cast_type.precision,
+              scale: cast_type.scale,
+            )
+            PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
+          end
+
+          def extract_foreign_key_action(specifier)
+            case specifier
+            when "c"; :cascade
+            when "n"; :nullify
+            when "r"; :restrict
+            end
+          end
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
