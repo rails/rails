@@ -1,3 +1,33 @@
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
+
+    Change `#keys` to only return the keys that don't have empty messages.
+
+    Change `#values` to only return the not empty values.
+
+     Example:
+
+         # Before
+         person = Person.new
+         person.errors.keys     # => []
+         person.errors.values   # => []
+         person.errors.messages # => {}
+         person.errors[:name]   # => []
+         person.errors.messages # => {:name => []}
+         person.errors.keys     # => [:name]
+         person.errors.values   # => [[]]
+
+         # After
+         person = Person.new
+         person.errors.keys     # => []
+         person.errors.values   # => []
+         person.errors.messages # => {}
+         person.errors[:name]   # => []
+         person.errors.messages # => {:name => []}
+         person.errors.keys     # => []
+         person.errors.values   # => []
+
+    *bogdanvlviv*
+
 *   Avoid converting integer as a string into float.
 
     *namusyaka*

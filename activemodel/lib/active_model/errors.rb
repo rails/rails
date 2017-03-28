@@ -132,15 +132,6 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
-    #
-    # Note that, if you try to get errors of an attribute which has
-    # no errors associated with it, this method will instantiate
-    # an empty error list for it and +keys+ will return an array
-    # of error keys which includes this attribute.
-    #
-    #   person.errors.keys    # => []
-    #   person.errors[:name]  # => []
-    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -181,7 +172,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.values
+      messages.reject do |key, value|
+        value.empty?
+      end.values
     end
 
     # Returns all message keys.
@@ -189,7 +182,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.keys
+      messages.reject do |key, value|
+        value.empty?
+      end.keys
     end
 
     # Returns +true+ if no errors are found, +false+ otherwise.
