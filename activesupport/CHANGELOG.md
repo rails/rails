@@ -1,3 +1,12 @@
+*   Return unmapped timezones from `country_zones`
+
+    If a country doesn't exist in the MAPPINGS hash then create a new
+    `ActiveSupport::Timezone` instance using the supplied timezone id.
+
+    Fixes #28431.
+
+    *Andrew White*
+
 *   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
     raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
     Properly pass through the frozen `Time` or `ActiveSupport::TimeWithZone` object
@@ -22,7 +31,7 @@
 ## Rails 5.0.2 (March 01, 2017) ##
 
 *   In Core Extensions, make `MarshalWithAutoloading#load` pass through the second, optional
-    argument for `Marshal#load( source [, proc] )`. This way we don't have to do 
+    argument for `Marshal#load( source [, proc] )`. This way we don't have to do
     `Marshal.method(:load).super_method.call(sourse, proc)` just to be able to pass a proc.
 
     *Jeff Latz*
