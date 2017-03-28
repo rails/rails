@@ -1,3 +1,8 @@
+*   `ActiveSupport::EventedFileUpdateChecker` no longer listens to
+    directories outside of the application directory.
+
+    *radiospiel*
+
 *   Return unmapped timezones from `country_zones`
 
     If a country doesn't exist in the MAPPINGS hash then create a new
