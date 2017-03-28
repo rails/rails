@@ -109,8 +109,8 @@ class String
   #   'man from the boondocks'.titleize                       # => "Man From The Boondocks"
   #   'x-men: the last stand'.titleize                        # => "X Men: The Last Stand"
   #   'string_ending_with_id'.titleize(keep_id_suffix: true)  # => "String Ending With Id"
-  def titleize(options = {})
-    ActiveSupport::Inflector.titleize(self, options)
+  def titleize(keep_id_suffix: false)
+    ActiveSupport::Inflector.titleize(self, keep_id_suffix: keep_id_suffix)
   end
   alias_method :titlecase, :titleize
 
@@ -224,8 +224,8 @@ class String
   #   'author_id'.humanize(capitalize: false)       # => "author"
   #   '_id'.humanize                                # => "Id"
   #   'author_id'.humanize(keep_id_suffix: true)    # => "Author Id"
-  def humanize(options = {})
-    ActiveSupport::Inflector.humanize(self, options)
+  def humanize(capitalize: true, keep_id_suffix: false)
+    ActiveSupport::Inflector.humanize(self, capitalize: capitalize, keep_id_suffix: keep_id_suffix)
   end
 
   # Converts just the first character to uppercase.

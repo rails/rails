@@ -124,13 +124,13 @@ module ActiveSupport
     #
     #   humanize('ssl_error') # => "SSL error"
     #
-    def humanize(lower_case_and_underscored_word, options = {})
+    def humanize(lower_case_and_underscored_word, capitalize: true, keep_id_suffix: false)
       result = lower_case_and_underscored_word.to_s.dup
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
       result.sub!(/\A_+/, "".freeze)
-      unless options.fetch(:keep_id_suffix, false)
+      unless keep_id_suffix
         result.sub!(/_id\z/, "".freeze)
       end
       result.tr!("_".freeze, " ".freeze)
@@ -139,7 +139,7 @@ module ActiveSupport
         "#{inflections.acronyms[match] || match.downcase}"
       end
 
-      if options.fetch(:capitalize, true)
+      if capitalize
         result.sub!(/\A\w/) { |match| match.upcase }
       end
 
@@ -170,8 +170,10 @@ module ActiveSupport
     #   titleize('TheManWithoutAPast')                           # => "The Man Without A Past"
     #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
     #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
-    def titleize(word, options = {})
-      humanize(underscore(word), options).gsub(/\b(?<!\w['’`])[a-z]/) { |match| match.capitalize }
+    def titleize(word, keep_id_suffix: false)
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`])[a-z]/) do |match|
+        match.capitalize
+      end
     end
 
     # Creates the name of a table like Rails does for models to table names.
