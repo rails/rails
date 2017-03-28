@@ -87,6 +87,14 @@ module ActionView
       end
     end
 
+    initializer "action_view.setup_etag_with_template_digest" do |app|
+      ActiveSupport.on_load(:action_controller_base) do
+        etag do |options|
+          determine_template_etag(options) if etag_with_template_digest
+        end
+      end
+    end
+
     initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
     end

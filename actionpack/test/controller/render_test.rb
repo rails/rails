@@ -4,9 +4,6 @@ require "abstract_unit"
 require "controller/fake_models"
 
 class TestControllerWithExtraEtags < ActionController::Base
-  def self.controller_name; "test"; end
-  def self.controller_path; "test"; end
-
   etag { nil  }
   etag { "ab" }
   etag { :cde }
@@ -24,16 +21,6 @@ class TestControllerWithExtraEtags < ActionController::Base
   def strong
     render plain: "stale" if stale?(strong_etag: "strong", template: false)
   end
-
-  def with_template
-    if stale? template: "test/hello_world"
-      render plain: "stale"
-    end
-  end
-
-  def with_implicit_template
-    fresh_when(etag: "123")
-  end
 end
 
 class ImplicitRenderTestController < ActionController::Base
@@ -41,14 +28,6 @@ class ImplicitRenderTestController < ActionController::Base
   end
 
   def empty_action_with_template
-  end
-end
-
-module Namespaced
-  class ImplicitRenderTestController < ActionController::Base
-    def hello_world
-      fresh_when(etag: "abc")
-    end
   end
 end
 
@@ -581,40 +560,6 @@ class EtagRenderTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_etag_reflects_template_digest
-    get :with_template
-    assert_response :ok
-    assert_not_nil etag = @response.etag
-
-    request.if_none_match = etag
-    get :with_template
-    assert_response :not_modified
-
-    modify_template("test/hello_world") do
-      request.if_none_match = etag
-      get :with_template
-      assert_response :ok
-      assert_not_equal etag, @response.etag
-    end
-  end
-
-  def test_etag_reflects_implicit_template_digest
-    get :with_implicit_template
-    assert_response :ok
-    assert_not_nil etag = @response.etag
-
-    request.if_none_match = etag
-    get :with_implicit_template
-    assert_response :not_modified
-
-    modify_template("test/with_implicit_template") do
-      request.if_none_match = etag
-      get :with_implicit_template
-      assert_response :ok
-      assert_not_equal etag, @response.etag
-    end
-  end
-
   private
     def weak_etag(record)
       "W/#{strong_etag record}"
@@ -623,28 +568,6 @@ class EtagRenderTest < ActionController::TestCase
     def strong_etag(record)
       %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
     end
-end
-
-class NamespacedEtagRenderTest < ActionController::TestCase
-  tests Namespaced::ImplicitRenderTestController
-  include TemplateModificationHelper
-
-  def test_etag_reflects_template_digest
-    get :hello_world
-    assert_response :ok
-    assert_not_nil etag = @response.etag
-
-    request.if_none_match = etag
-    get :hello_world
-    assert_response :not_modified
-
-    modify_template("namespaced/implicit_render_test/hello_world") do
-      request.if_none_match = etag
-      get :hello_world
-      assert_response :ok
-      assert_not_equal etag, @response.etag
-    end
-  end
 end
 
 class MetalRenderTest < ActionController::TestCase

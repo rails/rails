@@ -25,12 +25,6 @@ module ActionController
 
     included do
       class_attribute :etag_with_template_digest, default: true
-
-      ActiveSupport.on_load :action_view, yield: true do
-        etag do |options|
-          determine_template_etag(options) if etag_with_template_digest
-        end
-      end
     end
 
     private
