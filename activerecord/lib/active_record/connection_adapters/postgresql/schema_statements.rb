@@ -362,16 +362,14 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
-            SELECT column_name
-              FROM information_schema.key_column_usage kcu
-              JOIN information_schema.table_constraints tc
-             USING (table_schema, table_name, constraint_name)
-             WHERE constraint_type = 'PRIMARY KEY'
-               AND kcu.table_name = #{scope[:name]}
-               AND kcu.table_schema = #{scope[:schema]}
-             ORDER BY kcu.ordinal_position
+            SELECT a.attname FROM pg_index i
+            CROSS JOIN generate_subscripts(i.indkey, 1) k
+             JOIN pg_attribute a
+               ON a.attrelid = i.indrelid
+              AND a.attnum = i.indkey[k]
+            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
+              AND i.indisprimary
           SQL
         end
 
