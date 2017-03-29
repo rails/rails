@@ -87,7 +87,7 @@ module ActionDispatch
 
     def initialize(*) # :nodoc:
       super
-      self.class.superclass.driver.use
+      self.class.driver.use
     end
 
     def self.start_application # :nodoc:
@@ -99,6 +99,8 @@ module ActionDispatch
 
       SystemTesting::Server.new.run
     end
+
+    class_attribute :driver, instance_accessor: false
 
     # System Test configuration options
     #
@@ -113,13 +115,10 @@ module ActionDispatch
     #
     #   driven_by :selenium, screen_size: [800, 800]
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
-      @driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
+      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
     end
 
-    # Returns the driver object for the initialized system test
-    def self.driver
-      @driver ||= SystemTestCase.driven_by(:selenium)
-    end
+    driven_by :selenium
   end
 
   SystemTestCase.start_application
