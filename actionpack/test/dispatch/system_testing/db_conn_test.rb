@@ -20,11 +20,11 @@ end
 
 module MockConnectionPool
   def self.connection
-    Thread.current['db_connection'] ||= Object.new
+    Thread.current["db_connection"] ||= Object.new
   end
 
   def self.using_connection(conn)
-    saved_conn = Thread.current['db_connection']
+    saved_conn = Thread.current["db_connection"]
     begin
       Thread.current["db_connection"] = conn
       yield
