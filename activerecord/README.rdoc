@@ -197,28 +197,27 @@ Source code can be downloaded as part of the Rails project on GitHub:
 
 == Getting Started
 
-1.install sqlite to your PC
+"1. Install SQLite on your computer"
 
 Here is example for Mac User. 
 Please use suitable install command for your environment.
 
   $ brew install sqlite
 
-
-2.install ActiveRecord gem
+"2. Install activerecord gem"
   
   $ gem install activerecord
 
-3.install sqlite3 gem
+"3. Install sqlite3 gem"
 
   $ gem install sqlite3
 
-4.prepare simple.rb locally
-https://github.com/rails/rails/blob/master/activerecord/examples/simple.rb
+"4. Create simple.rb"
+* https://github.com/rails/rails/blob/master/activerecord/examples/simple.rb
 
-5.execute simple.rb
+"5. Execute simple.rb"
 
-  $ ruby sample.rb
+  $ ruby simple.rb
   #<ActiveRecord::Relation [#<Person id: 1, name: "bob">]>
   #<ActiveRecord::Relation []>
 
