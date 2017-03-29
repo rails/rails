@@ -719,7 +719,7 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-"after" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running. Please note that "after" filters are executed only after a successful action but not when an exception was raised in the request cycle.
+"after" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running. Please note that "after" filters are executed only after a successful action, but not when an exception is raised in the request cycle.
 
 "around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
