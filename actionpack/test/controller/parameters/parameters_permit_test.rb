@@ -310,6 +310,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
     refute_predicate merged_params[:person], :empty?
   end
 
+  test "#with_defaults is an alias of reverse_merge" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    merged_params = @params.with_defaults(default_params)
+
+    assert_equal "1234", merged_params[:id]
+    refute_predicate merged_params[:person], :empty?
+  end
+
   test "not permitted is sticky beyond reverse_merge" do
     refute_predicate @params.reverse_merge(a: "b"), :permitted?
   end
@@ -322,6 +330,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "#reverse_merge! with parameters" do
     default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
     @params.reverse_merge!(default_params)
+
+    assert_equal "1234", @params[:id]
+    refute_predicate @params[:person], :empty?
+  end
+
+  test "#with_defaults! is an alias of reverse_merge!" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    @params.with_defaults!(default_params)
 
     assert_equal "1234", @params[:id]
     refute_predicate @params[:person], :empty?

@@ -535,6 +535,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal "clobber", hash[:another]
   end
 
+  def test_indifferent_with_defaults_aliases_reverse_merge
+    hash = HashWithIndifferentAccess.new key: :old_value
+    actual = hash.with_defaults key: :new_value
+    assert_equal :old_value, actual[:key]
+
+    hash = HashWithIndifferentAccess.new key: :old_value
+    hash.with_defaults! key: :new_value
+    assert_equal :old_value, hash[:key]
+  end
+
   def test_indifferent_deleting
     get_hash = proc { { a: "foo" }.with_indifferent_access }
     hash = get_hash.call
@@ -845,6 +855,21 @@ class HashExtTest < ActiveSupport::TestCase
     # Should be an alias for reverse_merge!
     merged = options.dup
     assert_equal expected, merged.reverse_update(defaults)
+    assert_equal expected, merged
+  end
+
+  def test_with_defaults_aliases_reverse_merge
+    defaults = { a: "x", b: "y", c: 10 }.freeze
+    options  = { a: 1, b: 2 }
+    expected = { a: 1, b: 2, c: 10 }
+
+    # Should be an alias for reverse_merge
+    assert_equal expected, options.with_defaults(defaults)
+    assert_not_equal expected, options
+
+    # Should be an alias for reverse_merge!
+    merged = options.dup
+    assert_equal expected, merged.with_defaults!(defaults)
     assert_equal expected, merged
   end
 
