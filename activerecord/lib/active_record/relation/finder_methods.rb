@@ -224,7 +224,7 @@ module ActiveRecord
       fifth || raise_record_not_found_exception!
     end
 
-    # Find the forty-second record. Also known as accessing "the reddit".
+    # Find the forty-second record. Also known as accessing "the answer to life the universe and everything".
     # If no order is defined it will order by primary key.
     #
     #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
