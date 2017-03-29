@@ -1,3 +1,13 @@
+*   Load only needed records on `ActiveRecord::Relation#inspect`.
+
+    Instead of loading all records and returning only a subset of those, just
+    load the records as needed.
+
+    Fixes #25537.
+
+    *Hendy Tanata*
+
+
 ## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   Remove comments from structure.sql when using postgresql adapter to avoid
