@@ -166,5 +166,9 @@ end_warning
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
     end
+
+    initializer "active_record.preload_models" do |app|
+      Dir[Rails.root.join('app','models','*.rb')].map {|f| File.basename(f, '.*').camelize.constantize }
+    end
   end
 end
