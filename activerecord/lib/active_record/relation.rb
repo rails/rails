@@ -635,7 +635,9 @@ module ActiveRecord
     end
 
     def inspect
-      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
+      subject = loaded? ? records : self
+      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
