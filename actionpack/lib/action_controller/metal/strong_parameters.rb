@@ -667,6 +667,7 @@ module ActionController
         other_hash.to_h.merge(@parameters)
       )
     end
+    alias_method :with_defaults, :reverse_merge
 
     # Returns current <tt>ActionController::Parameters</tt> instance with
     # current hash merged into +other_hash+.
@@ -674,6 +675,7 @@ module ActionController
       @parameters.merge!(other_hash.to_h) { |key, left, right| left }
       self
     end
+    alias_method :with_defaults!, :reverse_merge!
 
     # This is required by ActiveModel attribute assignment, so that user can
     # pass +Parameters+ to a mass assignment methods in a model. It should not
