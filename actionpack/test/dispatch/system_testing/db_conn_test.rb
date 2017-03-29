@@ -19,7 +19,6 @@ module ActiveRecord
 end
 
 module MockConnectionPool
-
   def self.connection
     Thread.current['db_connection'] ||= Object.new
   end
@@ -27,17 +26,15 @@ module MockConnectionPool
   def self.using_connection(conn)
     saved_conn = Thread.current['db_connection']
     begin
-      Thread.current['db_connection'] = conn
+      Thread.current["db_connection"] = conn
       yield
     ensure
-      Thread.current['db_connection'] = saved_conn
+      Thread.current["db_connection"] = saved_conn
     end
   end
-
 end
 
 class TestTransactionalSharing < DrivenByRackTest
-
   cattr_accessor :use_transactional_tests
 
   test "setup happens properly" do
@@ -65,5 +62,4 @@ class TestTransactionalSharing < DrivenByRackTest
       end
     end.join
   end
-  
 end
