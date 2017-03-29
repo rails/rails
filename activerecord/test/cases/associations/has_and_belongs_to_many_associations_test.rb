@@ -111,6 +111,21 @@ class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
     association_foreign_key: "developer_id"
 end
 
+class Kitchen < ActiveRecord::Base
+  has_one :sink
+end
+
+class Sink < ActiveRecord::Base
+  has_and_belongs_to_many :sources, join_table: :edges
+  belongs_to :kitchen
+  accepts_nested_attributes_for :kitchen
+end
+
+class Source < ActiveRecord::Base
+  self.table_name = "men"
+  has_and_belongs_to_many :sinks, join_table: :edges
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -1020,5 +1035,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.partial_writes = original_partial_writes
     end
+  end
+
+  def test_has_and_belongs_to_many_with_belongs_to
+    sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
+    assert_equal 1, sink.sources.count
   end
 end
