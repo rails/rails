@@ -859,6 +859,24 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
+### Creating URLs for non-resourceful routes
+
+In addition to view helpers to generate links for resourceful routes, you may want to create a link to a non-resourceful route that have no named path helpers.
+
+Given a route such as:
+
+```ruby
+get '/randomize_photos/(:limit)', to: 'photos#randomize'
+```
+
+In your view you can then pass link_to a hash of options to generate a link:
+
+```erb
+<%= link_to "Randomize photos", controller: "photos", action: "randomize", limit: 10 %>
+
+# => <a href="/randomize_photos/10">Randomize photos</a>
+```
+
 Customizing Resourceful Routes
 ------------------------------
 
