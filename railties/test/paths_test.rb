@@ -274,3 +274,23 @@ class PathsTest < ActiveSupport::TestCase
     end
   end
 end
+
+class PathsIntegrationTest < ActiveSupport::TestCase
+  test "A failed symlink is still a valid file" do
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        FileUtils.mkdir_p("foo")
+        File.symlink("foo/doesnotexist.rb", "foo/bar.rb")
+        assert_equal true, File.symlink?("foo/bar.rb")
+
+        root = Rails::Paths::Root.new("foo")
+        root.add "bar.rb"
+
+        exception = assert_raises(RuntimeError) do
+          root["bar.rb"].existent
+        end
+        assert_match File.expand_path("foo/bar.rb"), exception.message
+      end
+    end
+  end
+end
