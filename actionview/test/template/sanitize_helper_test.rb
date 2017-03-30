@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-# The exhaustive tests are in test/controller/html/sanitizer_test.rb.
+# The exhaustive tests are in the rails-html-sanitizer gem.
 # This tests that the helpers hook up correctly to the sanitizer classes.
 class SanitizeHelperTest < ActionView::TestCase
   tests ActionView::Helpers::SanitizeHelper
