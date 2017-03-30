@@ -1,3 +1,13 @@
+*   Don't include default headers in `ActionController::Metal` responses
+
+    The commit e16afe6 introduced an unintentional change of behavior where the default
+    headers were included in responses from `ActionController::Metai` based controllers.
+    This is now reverted to the previous behavior of having no default headers.
+
+    Fixes #25820.
+
+    *Jon Moss*
+
 *   Fix malformed URLS when using `ApplicationController.renderer`
 
     The Rack environment variable `rack.url_scheme` was not being set so `scheme` was
