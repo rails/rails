@@ -650,6 +650,56 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
+    def test_run_rake_task_with_rails_test
+      app_file "lib/tasks/test_task.rake", <<-RUBY
+        namespace :testing do
+          task dummy: :environment do
+            puts "run task"
+          end
+        end
+      RUBY
+
+      app_file "test/lib/rake_task_test.rb", <<-RUBY
+        require "test_helper"
+        class RakeTaskTest < ActiveSupport::TestCase
+          test "passes" do
+            Rake::Task['testing:dummy'].invoke
+
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command("test/lib/rake_task_test.rb")
+      assert_match "run task", output
+      assert_match "1 runs, 1 assertions", output
+    end
+
+    def test_run_rake_task_with_rake_test
+      app_file "lib/tasks/test_task.rake", <<-RUBY
+        namespace :testing do
+          task dummy: :environment do
+            puts "run task"
+          end
+        end
+      RUBY
+
+      app_file "test/lib/rake_task_test.rb", <<-RUBY
+        require "test_helper"
+        class RakeTaskTest < ActiveSupport::TestCase
+          test "passes" do
+            Rake::Task['testing:dummy'].invoke
+
+            assert true
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rake test TEST=test/lib/rake_task_test.rb` }
+      assert_equal ["run task"], output.scan(/run task/) # test that rake task loaded only once
+      assert_match "1 runs, 1 assertions", output
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb")
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
