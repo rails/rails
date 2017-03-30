@@ -56,7 +56,7 @@ env:
 
 rvm:
   - 2.2.7
-  - 2.3.3
+  - 2.3.4
   - 2.4.1
   - ruby-head
 
@@ -70,7 +70,7 @@ matrix:
         - memcached
         - redis
         - rabbitmq
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env: "GEM=aj:integration"
       services:
         - memcached
@@ -88,7 +88,7 @@ matrix:
         - memcached
         - redis
         - rabbitmq
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
