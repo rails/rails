@@ -110,12 +110,36 @@ class CreateBooks < ActiveRecord::Migration[5.0]
 
     create_table :books do |t|
       t.belongs_to :author, index: true
-      t.datetime :published_at
+      t.string :name
       t.timestamps
     end
   end
 end
 ```
+
+As an example, using the rails console, let's first create an author:
+
+```ruby
+ @author = Author.create(name: "David Heinemeier Hansson")
+ => #<Author id: 1, name: "David Heinemeier Hansson", ...>
+```
+
+Now we can associate this author with a book:
+
+```ruby
+@book = Book.create(name: "Remote: Office Not Required", author_id: @author.id)
+ => #<Book id: 1, author_id: 1, name: "Remote: Office Not Required", ...>
+```
+
+Note that we inserted the id of the author David Heinemeier Hansson into the `author_id` field of our book. With this association in place we can view this assocation from the perspective of the book:
+
+```ruby
+@book.author
+ => #<Author id: 1, name: "David Heinemeier Hansson", ...>
+ @book.author.name
+ => "David Heinemeier Hansson"
+```
+You may view more examples at the [`belongs_to` Association Reference](#belongs-to-association-reference).
 
 ### The `has_one` Association
 
@@ -158,10 +182,34 @@ create_table :accounts do |t|
   # ...
 end
 ```
+To see this in action, working from the console we can first create a supplier:
+
+```ruby
+@supplier = Supplier.create(name: "Acme")
+ => #<Supplier id: 1, name: "Acme", ...>
+```
+
+Now we can create an account that is automatically associated with this supplier:
+
+```ruby
+@account = @supplier.create_account(account_number: '123')
+ => #<Account id: 1, supplier_id: 1, account_number: "123", ...>
+```
+Note that the `supplier_id` (in this case 1) is inserted into the Accounts table. Now let's add a second account_number for this supplier:
+
+```ruby
+@account = @supplier.create_account(account_number: '456')
+  INSERT INTO "accounts" [["supplier_id", 1], ["account_number", "456"], ...]
+  UPDATE "accounts" [["supplier_id", nil], ..., ["id", 1]]
+ => #<Account id: 2, supplier_id: 1, account_number: "456", ...>
+```
+Now we see the true power of the `has_one` association. Notice that when we inserted another account_number for this same supplier into the database that two things happened. First, we inserted a new record in to the accounts table with an account_number of 456. Second, this command also updated the previous record we inserted into the database and set the supplier_id to nil. This database transaction ensures that a supplier truly only "has one" account.
+
+You may view more examples at the [`has_one` Association Reference](#has-one-association-reference).
 
 ### The `has_many` Association
 
-A `has_many` association indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
+A `has_many` association indicates a one-to-many connection with another model. You will often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -185,12 +233,29 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
 
     create_table :books do |t|
       t.belongs_to :author, index: true
-      t.datetime :published_at
+      t.string :name
       t.timestamps
     end
   end
 end
 ```
+Now we can create an author and book(s), and also view various attributes of each by its association:
+
+```ruby
+@author = Author.create(name: "David Heinemeier Hansson")
+ => #<Author id: 1, name: "David Heinemeier Hansson", ...>
+
+@book1 = @author.books.create(name: "Remote: Office Not Required")
+ => #<Book id: 1, author_id: 1, name: "Remote: Office Not Required", ...>
+
+@book2 = @author.books.create(name: "ReWork")
+ => #<Book id: 2, author_id: 1, name: "ReWork", ...>
+
+ @author.books
+ => [#<Book id: 1, author_id: 1, name: "Remote: Office Not Required", ...>,
+     #<Book id: 2, author_id: 1, name: "ReWork", ...>]>
+ ```
+ In this example we see our author (David Heinemeier Hansson) has many books (*Remote: Office Not Required* and *ReWork*). You may view more examples at the [`has_many` Association Reference](#has-many-association-reference).
 
 ### The `has_many :through` Association
 
@@ -239,7 +304,6 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
   end
 end
 ```
-
 The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
 For example, if you assign:
 
@@ -251,6 +315,32 @@ Then new join models are automatically created for the newly associated objects.
 If some that existed previously are now missing, then their join rows are automatically deleted.
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
+
+To see this association in action let's create a physician and a couple of patients:
+
+```ruby
+@physician = Physician.create(name: "Eileen Uchitelle")
+ => #<Physician id: 2, name: "Eileen Uchitelle", ...>
+@patient1 = Patient.create(name: "David Hansson")
+ => #<Patient id: 4, name: "David Hansson", ...>
+@patient2 = Patient.create(name: "Aaron Patterson")
+ => #<Patient id: 5, name: "Aaron Patterson", ...>
+```
+
+Now let's create appointments to associate the patients to our physician:
+
+```ruby
+@patient1.appointments.create(physician: @physician, appointment_date: Date.today)
+ => #<Appointment id: 1, physician_id: 1, patient_id: 1, appointment_date: "2017-03-17 00:00:00", ...>
+@patient2.appointments.create(physician: @physician, appointment_date: Date.today)
+ => #<Appointment id: 2, physician_id: 1, patient_id: 2, appointment_date: "2017-03-17 00:00:00", ...>
+```
+Note that an appointment contains both a physician and a patient, so Appointments acts as a join table. To see all patients assigned to a physician we can do:
+
+```ruby
+@physician.patients
+ => #[#<Patient id: 1, name: "David Hansson", ...>, #<Patient id: 2, name: "Aaron Patterson", ...>]>
+```
 
 The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
@@ -325,6 +415,42 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
   end
 end
 ```
+To see this in action we might do somthing like:
+
+```ruby
+@supplier = Supplier.create(name: "Acme")
+ => #<Supplier id: 1, name: "Acme", ...>
+
+ @supplier.create_account(account_number: "123")
+ => #<Account id: 1, supplier_id: 1, account_number: "123", ...>
+
+  @account = @supplier.account
+ => #<Account id: 1, supplier_id: 1, account_number: "123", ...>
+
+ @account.create_account_history(credit_rating: 456)
+ => #<AccountHistory id: 1, account_id: 1, credit_rating: 456, ...>
+
+ @supplier.account_history
+ => #<AccountHistory id: 1, account_id: 1, credit_rating: 456, ...>
+ ```
+
+ The call to `@supplier.account_history` returns a single object. This `has_one :through` relationship ensures that only a single object is returned.
+
+ Let's create another account history record:
+
+```ruby
+@supplier.account.create_account_history(credit_rating: 789)
+  INSERT INTO "account_histories" [["account_id", 1], ["credit_rating", 789], ...]
+  UPDATE [["account_id", nil], ["updated_at", 2017-03-22 14:54:40 UTC], ["id", 1]]
+ => #<AccountHistory id: 2, account_id: 1, credit_rating: 789, created_at: "2017-03-22 14:54:40", updated_at: "2017-03-22 14:54:40">
+```
+As in our earlier [`has_one`](##the-has-one-association) example there is an insert statement for the new record that has a credit_rating of 789, but also notice the update statement that sets account_id in the previous record we inserted to nil. We can confirm this with the following console command:
+
+```ruby
+ AccountHistory.all
+  => <AccountHistory id: nil, account_id: 1, credit_rating: 456, ...>
+     <AccountHistory id: 2, account_id: 1, credit_rating: 789, ...>
+```
 
 ### The `has_and_belongs_to_many` Association
 
@@ -364,6 +490,49 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
   end
 end
 ```
+
+To try this out let's first create three parts and three assemblies:
+
+```ruby
+3.times do |i|
+  instance_variable_set("@part#{i + 1}", Part.create(part_number: "000#{i + 1}"))
+end
+...
+3.times do |i|
+  instance_variable_set("@assembly#{i + 1}", Assembly.create(name: "assembly#{i + 1}"))
+end
+```
+
+This will give us three parts and three assemblies. Now let's say we would like part one to be a part of both assemblies one and two. To do this we can do the following:
+
+```ruby
+@part1.assemblies << @assembly1
+ => [#<Assembly id: 4, name: "assembly1", ...>]>
+@part1.assemblies << @assembly2
+ => [#<Assembly id: 1, name: "assembly1", ...>,
+     #<Assembly id: 2, name: "assembly2", ...>]>
+@part1.assemblies
+ => [#<Assembly id: 1, name: "assembly1", ...>,
+     #<Assembly id: 2, name: "assembly2", ...>]>
+```
+
+We can also view this association from the other side of the relationship:
+
+```ruby
+@assembly1.parts
+ => [#<Part id: 1, part_number: "0001", ...>]>
+@assembly2.parts
+ => #<Part id: 1, part_number: "0001", ...>]>
+```
+
+This shows us that a part can have many assemblies. Now lets see the inverse, where an assembly has many parts. Based on the commands above assemblies one and two currently have part one assigned to them. Let's also add part two to assembly one:
+
+```ruby
+@assembly1.parts << @part2
+ => [#<Part id: 1, part_number: "0001", ...>,
+     #<Part id: 2, part_number: "0002", ...>]>
+```
+ You may view more examples at the [`has_and_belongs_to_many` Association Reference](#has-and-belongs-to-many-association-reference).
 
 ### Choosing Between `belongs_to` and `has_one`
 
