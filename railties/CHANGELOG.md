@@ -1,3 +1,11 @@
+*   Raise a error when using a bad symlink
+
+    Previously bad symlinks (where the link destination doesn't exist)
+    would be silent ignored and lead to hard to diagnose problems as
+    the non-existence isn't readily apparent.
+
+    *Richard Schneeman*
+
 *   Remove -j (--javascript) option from `rails new` command.
 
     *claudiob*
