@@ -372,7 +372,7 @@ module ActiveModel
 
         To achieve the same use:
 
-          errors.add(attribute, :empty, options) if value.blank?
+          errors.add(attribute, :blank, options) if value.blank?
       MESSAGE
 
       Array(attributes).each do |attribute|
