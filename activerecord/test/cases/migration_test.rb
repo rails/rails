@@ -446,6 +446,22 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
+  def test_internal_metadata_stores_environment_on_migration_error
+    ActiveRecord::InternalMetadata.delete_all
+
+    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    migration = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        raise "Something broke"
+      end
+    }.new
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+    assert_raise(StandardError) { migrator.migrate }
+    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
