@@ -92,7 +92,7 @@ namespace :assets do
     Blade.build
   end
 
-  desc "Verify compiled Action Cable assets"
+  desc "Verify compiled Action View assets"
   task :verify do
     file = "lib/assets/compiled/rails-ujs.js"
     pathname = Pathname.new("#{dir}/#{file}")
