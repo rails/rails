@@ -1,23 +1,23 @@
 var App = App || {}
 
-App.assertCallbackInvoked = function(callbackName) {
-  ok(true, callbackName + ' callback should have been invoked')
+App.assertCallbackInvoked = function(assert, callbackName) {
+  assert.ok(true, callbackName + ' callback should have been invoked')
 }
 
-App.assertCallbackNotInvoked = function(callbackName) {
-  ok(false, callbackName + ' callback should not have been invoked')
+App.assertCallbackNotInvoked = function(assert, callbackName) {
+  assert.ok(false, callbackName + ' callback should not have been invoked')
 }
 
-App.assertGetRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
+App.assertGetRequest = function(assert, requestEnv) {
+  assert.equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
 }
 
-App.assertPostRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
+App.assertPostRequest = function(assert, requestEnv) {
+  assert.equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
 }
 
-App.assertRequestPath = function(requestEnv, path) {
-  equal(requestEnv['PATH_INFO'], path, 'request should be sent to right url')
+App.assertRequestPath = function(assert, requestEnv, path) {
+  assert.equal(requestEnv['PATH_INFO'], path, 'request should be sent to right url')
 }
 
 App.getVal = function(el) {

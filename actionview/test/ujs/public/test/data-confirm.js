@@ -1,5 +1,5 @@
 QUnit.module('data-confirm', {
-  setup: function() {
+  beforeEach: function() {
     $('#qunit-fixture').append($('<a />', {
       href: '/echo',
       'data-remote': 'true',
@@ -35,224 +35,246 @@ QUnit.module('data-confirm', {
 
     this.windowConfirm = window.confirm
   },
-  teardown: function() {
+  afterEach: function() {
     window.confirm = this.windowConfirm
   }
 })
 
-asyncTest('clicking on a link with data-confirm attribute. Confirm yes.', 6, function() {
+QUnit.test('clicking on a link with data-confirm attribute. Confirm yes.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-confirm:
   window.confirm = function(msg) { message = msg; return true }
 
   $('a[data-confirm]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == true, 'confirm:complete passes in confirm answer (true)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data, 'confirm:complete passes in confirm answer (true)')
     })
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      App.assertGetRequest(assert, data)
 
-      equal(message, 'Are you absolutely sure?')
-      start()
+      assert.equal(message, 'Are you absolutely sure?')
+      done()
     })
     .triggerNative('click')
 })
 
-asyncTest('clicking on a button with data-confirm attribute. Confirm yes.', 6, function() {
+QUnit.test('clicking on a button with data-confirm attribute. Confirm yes.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-confirm:
   window.confirm = function(msg) { message = msg; return true }
 
   $('button[data-confirm]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == true, 'confirm:complete passes in confirm answer (true)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == true, 'confirm:complete passes in confirm answer (true)')
     })
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      App.assertGetRequest(assert, data)
 
-      equal(message, 'Are you absolutely sure?')
-      start()
+      assert.equal(message, 'Are you absolutely sure?')
+      done()
     })
     .triggerNative('click')
 })
 
-asyncTest('clicking on a link with data-confirm attribute. Confirm No.', 3, function() {
+QUnit.test('clicking on a link with data-confirm attribute. Confirm No.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-decline:
   window.confirm = function(msg) { message = msg; return false }
 
   $('a[data-confirm]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == false, 'confirm:complete passes in confirm answer (false)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == false, 'confirm:complete passes in confirm answer (false)')
     })
     .bindNative('ajax:beforeSend', function(e, data, status, xhr) {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    equal(message, 'Are you absolutely sure?')
-    start()
+    assert.equal(message, 'Are you absolutely sure?')
+    done()
   }, 50)
 })
 
-asyncTest('clicking on a button with data-confirm attribute. Confirm No.', 3, function() {
+QUnit.test('clicking on a button with data-confirm attribute. Confirm No.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-decline:
   window.confirm = function(msg) { message = msg; return false }
 
   $('button[data-confirm]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == false, 'confirm:complete passes in confirm answer (false)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == false, 'confirm:complete passes in confirm answer (false)')
     })
     .bindNative('ajax:beforeSend', function(e, data, status, xhr) {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    equal(message, 'Are you absolutely sure?')
-    start()
+    assert.equal(message, 'Are you absolutely sure?')
+    done()
   }, 50)
 })
 
-asyncTest('clicking on a button with data-confirm attribute. Confirm error.', 3, function() {
+QUnit.test('clicking on a button with data-confirm attribute. Confirm error.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-decline:
   window.confirm = function(msg) { message = msg; throw 'some random error' }
 
   $('button[data-confirm]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == false, 'confirm:complete passes in confirm answer (false)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == false, 'confirm:complete passes in confirm answer (false)')
     })
     .bindNative('ajax:beforeSend', function(e, data, status, xhr) {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    equal(message, 'Are you absolutely sure?')
-    start()
+    assert.equal(message, 'Are you absolutely sure?')
+    done()
   }, 50)
 })
 
-asyncTest('clicking on a submit button with form and data-confirm attributes. Confirm No.', 3, function() {
+QUnit.test('clicking on a submit button with form and data-confirm attributes. Confirm No.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-decline:
   window.confirm = function(msg) { message = msg; return false }
 
   $('input[type=submit][form]')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == false, 'confirm:complete passes in confirm answer (false)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == false, 'confirm:complete passes in confirm answer (false)')
     })
     .bindNative('ajax:beforeSend', function(e, data, status, xhr) {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    equal(message, 'Are you absolutely sure?')
-    start()
+    assert.equal(message, 'Are you absolutely sure?')
+    done()
   }, 50)
 })
 
-asyncTest('binding to confirm event of a link and returning false', 1, function() {
+QUnit.test('binding to confirm event of a link and returning false', function(assert) {
+  var done = assert.async();
+
   // redefine confirm function so we can make sure it's not called
   window.confirm = function(msg) {
-    ok(false, 'confirm dialog should not be called')
+    assert.ok(false, 'confirm dialog should not be called')
   }
 
   $('a[data-confirm]')
     .bindNative('confirm', function() {
-      App.assertCallbackInvoked('confirm')
+      App.assertCallbackInvoked(assert, 'confirm')
       return false
     })
     .bindNative('confirm:complete', function() {
-      App.assertCallbackNotInvoked('confirm:complete')
+      App.assertCallbackNotInvoked(assert, 'confirm:complete')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 50)
 })
 
-asyncTest('binding to confirm event of a button and returning false', 1, function() {
+QUnit.test('binding to confirm event of a button and returning false', function(assert) {
+  var done = assert.async();
+
   // redefine confirm function so we can make sure it's not called
   window.confirm = function(msg) {
-    ok(false, 'confirm dialog should not be called')
+    assert.ok(false, 'confirm dialog should not be called')
   }
 
   $('button[data-confirm]')
     .bindNative('confirm', function() {
-      App.assertCallbackInvoked('confirm')
+      App.assertCallbackInvoked(assert, 'confirm')
       return false
     })
     .bindNative('confirm:complete', function() {
-      App.assertCallbackNotInvoked('confirm:complete')
+      App.assertCallbackNotInvoked(assert, 'confirm:complete')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 50)
 })
 
-asyncTest('binding to confirm:complete event of a link and returning false', 2, function() {
+QUnit.test('binding to confirm:complete event of a link and returning false', function(assert) {
+  var done = assert.async();
+
   // auto-confirm:
   window.confirm = function(msg) {
-    ok(true, 'confirm dialog should be called')
+    assert.ok(true, 'confirm dialog should be called')
     return true
   }
 
   $('a[data-confirm]')
     .bindNative('confirm:complete', function() {
-      App.assertCallbackInvoked('confirm:complete')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
       return false
     })
     .bindNative('ajax:beforeSend', function() {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 50)
 })
 
-asyncTest('binding to confirm:complete event of a button and returning false', 2, function() {
+QUnit.test('binding to confirm:complete event of a button and returning false', function(assert) {
+  var done = assert.async();
+
   // auto-confirm:
   window.confirm = function(msg) {
-    ok(true, 'confirm dialog should be called')
+    assert.ok(true, 'confirm dialog should be called')
     return true
   }
 
   $('button[data-confirm]')
     .bindNative('confirm:complete', function() {
-      App.assertCallbackInvoked('confirm:complete')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
       return false
     })
     .bindNative('ajax:beforeSend', function() {
-      App.assertCallbackNotInvoked('ajax:beforeSend')
+      App.assertCallbackNotInvoked(assert, 'ajax:beforeSend')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 50)
 })
 
-asyncTest('a button inside a form only confirms once', 1, function() {
+QUnit.test('a button inside a form only confirms once', function(assert) {
+  var done = assert.async();
+
   var confirmations = 0
   window.confirm = function(msg) {
     confirmations++
@@ -267,11 +289,13 @@ asyncTest('a button inside a form only confirms once', 1, function() {
 
   $('form > button[data-confirm]').triggerNative('click')
 
-  ok(confirmations === 1, 'confirmation counter should be 1, but it was ' + confirmations)
-  start()
+  assert.ok(confirmations === 1, 'confirmation counter should be 1, but it was ' + confirmations)
+  done();
 })
 
-asyncTest('clicking on the children of a link should also trigger a confirm', 6, function() {
+QUnit.test('clicking on the children of a link should also trigger a confirm', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-confirm:
   window.confirm = function(msg) { message = msg; return true }
@@ -279,22 +303,24 @@ asyncTest('clicking on the children of a link should also trigger a confirm', 6,
   $('a[data-confirm]')
     .html('<strong>Click me</strong>')
     .bindNative('confirm:complete', function(e, data) {
-      App.assertCallbackInvoked('confirm:complete')
-      ok(data == true, 'confirm:complete passes in confirm answer (true)')
+      App.assertCallbackInvoked(assert, 'confirm:complete')
+      assert.ok(data == true, 'confirm:complete passes in confirm answer (true)')
     })
     .bindNative('ajax:success', function(e, data, status, xhr) {
-      App.assertCallbackInvoked('ajax:success')
-      App.assertRequestPath(data, '/echo')
-      App.assertGetRequest(data)
+      App.assertCallbackInvoked(assert, 'ajax:success')
+      App.assertRequestPath(assert, data, '/echo')
+      App.assertGetRequest(assert, data)
 
-      equal(message, 'Are you absolutely sure?')
-      start()
+      assert.equal(message, 'Are you absolutely sure?')
+      done()
     })
     .find('strong')
     .triggerNative('click')
 })
 
-asyncTest('clicking on the children of a disabled button should not trigger a confirm.', 1, function() {
+QUnit.test('clicking on the children of a disabled button should not trigger a confirm.', function(assert) {
+  var done = assert.async();
+
   var message
   // auto-decline:
   window.confirm = function(msg) { message = msg; return false }
@@ -302,15 +328,15 @@ asyncTest('clicking on the children of a disabled button should not trigger a co
   $('button[data-confirm][disabled]')
     .html("<strong>Click me</strong>")
     .bindNative('confirm', function() {
-      App.assertCallbackNotInvoked('confirm')
+      App.assertCallbackNotInvoked(assert, 'confirm')
     })
     .find('strong')
     .bindNative('click', function() {
-      App.assertCallbackInvoked('click')
+      App.assertCallbackInvoked(assert, 'click')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    start()
+    done()
   }, 50)
 })
