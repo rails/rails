@@ -228,10 +228,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @cache_hit = true
+          @cache_hit[@virtual_path] = true
           content
         else
-          @cache_hit = false
+          @cache_hit[@virtual_path] = false
           write_fragment_for(name, options, &block)
         end
       end
