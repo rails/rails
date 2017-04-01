@@ -26,7 +26,7 @@ end
 
 module TestsHelper
   def test_to(*names)
-    names = ["/vendor/qunit.js", "settings"] + names
+    names = ["/vendor/qunit2.js", "settings"] + names
     names.map { |name| script_tag name }.join("\n").html_safe
   end
 
