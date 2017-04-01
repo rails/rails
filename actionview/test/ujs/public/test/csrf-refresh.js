@@ -2,7 +2,8 @@
 
 QUnit.module('csrf-refresh', {})
 
-asyncTest('refresh all csrf tokens', 1, function() {
+QUnit.test('refresh all csrf tokens', function(assert) {
+  var done = assert.async();
   var correctToken = 'cf50faa3fe97702ca1ae'
 
   var form = $('<form />')
@@ -17,8 +18,10 @@ asyncTest('refresh all csrf tokens', 1, function() {
   $.rails.refreshCSRFTokens()
   currentToken = $('#qunit-fixture #authenticity_token').val()
 
-  start()
-  equal(currentToken, correctToken)
+  setTimeout(function() {
+    assert.equal(currentToken, correctToken)
+    done()
+  }, 10);
 })
 
 })()
