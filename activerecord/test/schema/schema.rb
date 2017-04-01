@@ -120,6 +120,7 @@ ActiveRecord::Schema.define do
 
   create_table :cars, force: true do |t|
     t.string  :name
+    t.integer :bulbs_count, default: 0
     t.integer :engines_count
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0

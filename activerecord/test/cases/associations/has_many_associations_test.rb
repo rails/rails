@@ -2456,6 +2456,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  test "double updating of object in the before create callback" do
+    reset_callbacks(:create, Bulb) do
+      Bulb.before_create do |record|
+        record.car.increment(:bulbs_count)
+        record.car.save
+      end
+
+      car = Car.create!
+
+      assert_equal 0, car.reload.bulbs_count
+      car.bulbs.create!
+      assert_equal 1, car.reload.bulbs_count
+    end
+  end
+
   class AuthorWithErrorDestroyingAssociation < ActiveRecord::Base
     self.table_name = "authors"
     has_many :posts_with_error_destroying,
