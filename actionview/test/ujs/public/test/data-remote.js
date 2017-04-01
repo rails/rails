@@ -1,4 +1,4 @@
-module('data-remote', {
+QUnit.module('data-remote', {
   setup: function() {
     $('#qunit-fixture')
       .append($('<a />', {

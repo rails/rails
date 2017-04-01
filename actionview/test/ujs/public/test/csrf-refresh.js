@@ -1,6 +1,6 @@
 (function() {
 
-module('csrf-refresh', {})
+QUnit.module('csrf-refresh', {})
 
 asyncTest('refresh all csrf tokens', 1, function() {
   var correctToken = 'cf50faa3fe97702ca1ae'

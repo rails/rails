@@ -1,4 +1,4 @@
-module('data-disable-with', {
+QUnit.module('data-disable-with', {
   setup: function() {
     $('#qunit-fixture').append($('<form />', {
       action: '/echo',

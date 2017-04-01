@@ -1,6 +1,6 @@
 (function() {
 
-module('call-remote-callbacks', {
+QUnit.module('call-remote-callbacks', {
   setup: function() {
     $('#qunit-fixture').append($('<form />', {
       action: '/echo', method: 'get', 'data-remote': 'true'

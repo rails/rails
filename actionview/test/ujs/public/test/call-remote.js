@@ -7,7 +7,7 @@ function buildForm(attrs) {
     .find('form').append($('<input type="text" name="user_name" value="john">'))
 }
 
-module('call-remote')
+QUnit.module('call-remote')
 
 function submit(fn) {
   $('form')

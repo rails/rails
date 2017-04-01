@@ -1,6 +1,6 @@
 (function() {
 
-module('data-method', {
+QUnit.module('data-method', {
   setup: function() {
     $('#qunit-fixture').append($('<a />', {
       href: '/echo', 'data-method': 'delete', text: 'destroy!'

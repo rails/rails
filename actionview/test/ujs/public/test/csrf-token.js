@@ -1,6 +1,6 @@
 (function() {
 
-module('csrf-token', {})
+QUnit.module('csrf-token', {})
 
 asyncTest('find csrf token', 1, function() {
   var correctToken = 'cf50faa3fe97702ca1ae'

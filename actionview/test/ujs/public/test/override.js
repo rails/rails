@@ -2,7 +2,7 @@
 
 var realHref
 
-module('override', {
+QUnit.module('override', {
   setup: function() {
     realHref = $.rails.href
     $('#qunit-fixture')

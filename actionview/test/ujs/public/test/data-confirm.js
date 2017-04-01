@@ -1,4 +1,4 @@
-module('data-confirm', {
+QUnit.module('data-confirm', {
   setup: function() {
     $('#qunit-fixture').append($('<a />', {
       href: '/echo',
