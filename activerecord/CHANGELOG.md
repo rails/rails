@@ -1,12 +1,3 @@
-*   Load only needed records on `ActiveRecord::Relation#inspect`.
-
-    Instead of loading all records and returning only a subset of those, just
-    load the records as needed.
-
-    Fixes #25537.
-
-    *Hendy Tanata*
-
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the
