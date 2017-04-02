@@ -30,14 +30,14 @@ App.disabled = function(el) {
     $.rails.getData(el[0], 'ujs:disabled')
 }
 
-App.checkEnabledState = function(el, text) {
-  ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
+App.checkEnabledState = function(assert, el, text) {
+  assert.ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
+  assert.equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
 }
 
-App.checkDisabledState = function(el, text) {
-  ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
+App.checkDisabledState = function(assert, el, text) {
+  assert.ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
+  assert.equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
 }
 
 // hijacks normal form submit; lets it submit to an iframe to prevent
