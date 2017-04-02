@@ -171,7 +171,7 @@ GEM
     eventmachine (1.2.1-x64-mingw32)
     eventmachine (1.2.1-x86-mingw32)
     execjs (2.7.0)
-    faraday (0.11.0)
+    faraday (0.12.0.1)
       multipart-post (>= 1.2, < 3)
     faye (1.2.3)
       cookiejar (>= 0.3.0)
@@ -390,7 +390,7 @@ DEPENDENCIES
   delayed_job_active_record
   em-hiredis
   erubis (~> 2.7.0)
-  faraday (~> 0.11.0)
+  faraday (~> 0.12.0.1)
   hiredis
   jquery-rails
   json (>= 2.0.0)
