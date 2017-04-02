@@ -1,3 +1,4 @@
+(function() {
 QUnit.module('data-confirm', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<a />', {
@@ -340,3 +341,4 @@ QUnit.test('clicking on the children of a disabled button should not trigger a c
     done()
   }, 50)
 })
+})()
