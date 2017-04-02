@@ -1,5 +1,6 @@
+(function() {
 QUnit.module('data-disable-with', {
-  setup: function() {
+  beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
       action: '/echo',
       'data-remote': 'true',
@@ -38,85 +39,93 @@ QUnit.module('data-disable-with', {
       'data-disable-with': 'clicking...'
     }))
   },
-  teardown: function() {
+  afterEach: function() {
     $(document).unbind('iframe:loaded')
   }
 })
 
-asyncTest('form input field with "data-disable-with" attribute', 7, function() {
+QUnit.test('form input field with "data-disable-with" attribute', function(assert) {
+  var done = assert.async();
+
   var form = $('form[data-remote]'), input = form.find('input[type=text]')
 
-  App.checkEnabledState(input, 'john')
+  App.checkEnabledState(assert, input, 'john')
 
   form.bindNative('ajax:success', function(e, data) {
     setTimeout(function() {
-      App.checkEnabledState(input, 'john')
-      equal(data.params.user_name, 'john')
-      start()
+      App.checkEnabledState(assert, input, 'john')
+      assert.equal(data.params.user_name, 'john')
+      done()
     }, 13)
   })
   form.triggerNative('submit')
 
-  App.checkDisabledState(input, 'processing ...')
+  App.checkDisabledState(assert, input, 'processing ...')
 })
 
-asyncTest('blank form input field with "data-disable-with" attribute', 7, function() {
+QUnit.test('blank form input field with "data-disable-with" attribute', function(assert) {
+  var done = assert.async();
+
   var form = $('form[data-remote]'), input = form.find('input[type=text]')
 
   input.val('')
-  App.checkEnabledState(input, '')
+  App.checkEnabledState(assert, input, '')
 
   form.bindNative('ajax:success', function(e, data) {
     setTimeout(function() {
-      App.checkEnabledState(input, '')
-      equal(data.params.user_name, '')
-      start()
+      App.checkEnabledState(assert, input, '')
+      assert.equal(data.params.user_name, '')
+      done()
     }, 13)
   })
   form.triggerNative('submit')
 
-  App.checkDisabledState(input, 'processing ...')
+  App.checkDisabledState(assert, input, 'processing ...')
 })
 
-asyncTest('form button with "data-disable-with" attribute', 6, function() {
+QUnit.test('form button with "data-disable-with" attribute', function(assert) {
+  var done = assert.async();
+
   var form = $('form[data-remote]'), button = $('<button data-disable-with="submitting ..." name="submit2">Submit</button>')
   form.append(button)
 
-  App.checkEnabledState(button, 'Submit')
+  App.checkEnabledState(assert, button, 'Submit')
 
   form.bindNative('ajax:success', function(e, data) {
     setTimeout(function() {
-      App.checkEnabledState(button, 'Submit')
-      start()
+      App.checkEnabledState(assert, button, 'Submit')
+      done()
     }, 13)
   })
   form.triggerNative('submit')
 
-  App.checkDisabledState(button, 'submitting ...')
+  App.checkDisabledState(assert, button, 'submitting ...')
 })
 
-asyncTest('form input[type=submit][data-disable-with] disables', 6, function() {
-  var form = $('form:not([data-remote])'), input = form.find('input[type=submit]')
+QUnit.test('form input[type=submit][data-disable-with] disables', function(assert) {
+  var done = assert.async();
 
-  App.checkEnabledState(input, 'Submit')
+  var form = $('#qunit-fixture form:not([data-remote])'), input = form.find('input[type=submit]')
+
+  App.checkEnabledState(assert, input, 'Submit')
 
   $(document).bind('iframe:loaded', function(e, data) {
     setTimeout(function() {
-      App.checkDisabledState(input, 'submitting ...')
-      start()
+      App.checkDisabledState(assert, input, 'submitting ...')
+      done()
     }, 30)
   })
   form.triggerNative('submit')
 
   setTimeout(function() {
-    App.checkDisabledState(input, 'submitting ...')
+    App.checkDisabledState(assert, input, 'submitting ...')
   }, 30)
 })
 
-test('form input[type=submit][data-disable-with] re-enables when `pageshow` event is triggered', function() {
-  var form = $('form:not([data-remote])'), input = form.find('input[type=submit]')
+QUnit.test('form input[type=submit][data-disable-with] re-enables when `pageshow` event is triggered', function(assert) {
+  var form = $('#qunit-fixture form:not([data-remote])'), input = form.find('input[type=submit]')
 
-  App.checkEnabledState(input, 'Submit')
+  App.checkEnabledState(assert, input, 'Submit')
 
   // Emulate the disabled state without submitting the form at all, what is the
   // state after going back on firefox after submitting a form.
@@ -124,168 +133,188 @@ test('form input[type=submit][data-disable-with] re-enables when `pageshow` even
   // See https://github.com/rails/jquery-ujs/issues/357
   $.rails.disableElement(form[0])
 
-  App.checkDisabledState(input, 'submitting ...')
+  App.checkDisabledState(assert, input, 'submitting ...')
 
   $(window).triggerNative('pageshow')
 
-  App.checkEnabledState(input, 'Submit')
+  App.checkEnabledState(assert, input, 'Submit')
 })
 
-asyncTest('form[data-remote] input[type=submit][data-disable-with] is replaced in ajax callback', 2, function() {
-  var form = $('form:not([data-remote])').attr('data-remote', 'true'), origFormContents = form.html()
+QUnit.test('form[data-remote] input[type=submit][data-disable-with] is replaced in ajax callback', function(assert) {
+  var done = assert.async();
+
+  var form = $('#qunit-fixture form:not([data-remote])').attr('data-remote', 'true'), origFormContents = form.html()
 
   form.bindNative('ajax:success', function() {
     form.html(origFormContents)
 
     setTimeout(function() {
       var input = form.find('input[type=submit]')
-      App.checkEnabledState(input, 'Submit')
-      start()
+      App.checkEnabledState(assert, input, 'Submit')
+      done()
     }, 30)
   }).triggerNative('submit')
 })
 
-asyncTest('form[data-remote] input[data-disable-with] is replaced with disabled field in ajax callback', 2, function() {
-  var form = $('form:not([data-remote])').attr('data-remote', 'true'), input = form.find('input[type=submit]'),
+QUnit.test('form[data-remote] input[data-disable-with] is replaced with disabled field in ajax callback', function(assert) {
+  var done = assert.async();
+
+  var form = $('#qunit-fixture form:not([data-remote])').attr('data-remote', 'true'), input = form.find('input[type=submit]'),
       newDisabledInput = input.clone().attr('disabled', 'disabled')
 
   form.bindNative('ajax:success', function() {
     input.replaceWith(newDisabledInput)
 
     setTimeout(function() {
-      App.checkEnabledState(newDisabledInput, 'Submit')
-      start()
+      App.checkEnabledState(assert, newDisabledInput, 'Submit')
+      done()
     }, 30)
   }).triggerNative('submit')
 })
 
-asyncTest('form input[type=submit][data-disable-with] using "form" attribute disables', 6, function() {
+QUnit.test('form input[type=submit][data-disable-with] using "form" attribute disables', function(assert) {
+  var done = assert.async();
+
   var form = $('#not_remote'), input = $('input[form=not_remote]')
-  App.checkEnabledState(input, 'Form Attr Submit')
+  App.checkEnabledState(assert, input, 'Form Attr Submit')
 
   $(document).bind('iframe:loaded', function(e, data) {
     setTimeout(function() {
-      App.checkDisabledState(input, 'form attr submitting')
-      start()
+      App.checkDisabledState(assert, input, 'form attr submitting')
+      done()
     }, 30)
   })
   form.triggerNative('submit')
 
   setTimeout(function() {
-    App.checkDisabledState(input, 'form attr submitting')
+    App.checkDisabledState(assert, input, 'form attr submitting')
   }, 30)
 
 })
 
-asyncTest('form[data-remote] textarea[data-disable-with] attribute', 3, function() {
+QUnit.test('form[data-remote] textarea[data-disable-with] attribute', function(assert) {
+  var done = assert.async();
+
   var form = $('form[data-remote]'),
       textarea = $('<textarea data-disable-with="processing ..." name="user_bio">born, lived, died.</textarea>').appendTo(form)
 
   form.bindNative('ajax:success', function(e, data) {
     setTimeout(function() {
-      equal(data.params.user_bio, 'born, lived, died.')
-      start()
+      assert.equal(data.params.user_bio, 'born, lived, died.')
+      done()
     }, 13)
   })
   form.triggerNative('submit')
 
-  App.checkDisabledState(textarea, 'processing ...')
+  App.checkDisabledState(assert, textarea, 'processing ...')
 })
 
-asyncTest('a[data-disable-with] disables', 4, function() {
+QUnit.test('a[data-disable-with] disables', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]')
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link.triggerNative('click')
-  App.checkDisabledState(link, 'clicking...')
-  start()
+  App.checkDisabledState(assert, link, 'clicking...')
+  done()
 })
 
-test('a[data-disable-with] re-enables when `pageshow` event is triggered', function() {
+QUnit.test('a[data-disable-with] re-enables when `pageshow` event is triggered', function(assert) {
   var link = $('a[data-disable-with]')
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link.triggerNative('click')
-  App.checkDisabledState(link, 'clicking...')
+  App.checkDisabledState(assert, link, 'clicking...')
 
   $(window).triggerNative('pageshow')
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 })
 
-asyncTest('a[data-remote][data-disable-with] disables and re-enables', 6, function() {
+QUnit.test('a[data-remote][data-disable-with] disables and re-enables', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]').attr('data-remote', true)
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link
     .bindNative('ajax:beforeSend', function() {
-      App.checkDisabledState(link, 'clicking...')
+      App.checkDisabledState(assert, link, 'clicking...')
     })
     .bindNative('ajax:complete', function() {
       setTimeout( function() {
-        App.checkEnabledState(link, 'Click me')
-        start()
+        App.checkEnabledState(assert, link, 'Click me')
+        done()
       }, 15)
     })
     .triggerNative('click')
 })
 
-asyncTest('a[data-remote][data-disable-with] re-enables when `ajax:before` event is cancelled', 6, function() {
+QUnit.test('a[data-remote][data-disable-with] re-enables when `ajax:before` event is cancelled', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]').attr('data-remote', true)
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link
     .bindNative('ajax:before', function() {
-      App.checkDisabledState(link, 'clicking...')
+      App.checkDisabledState(assert, link, 'clicking...')
       return false
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(link, 'Click me')
-    start()
+    App.checkEnabledState(assert, link, 'Click me')
+    done()
   }, 30)
 })
 
-asyncTest('a[data-remote][data-disable-with] re-enables when `ajax:beforeSend` event is cancelled', 6, function() {
+QUnit.test('a[data-remote][data-disable-with] re-enables when `ajax:beforeSend` event is cancelled', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]').attr('data-remote', true)
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link
     .bindNative('ajax:beforeSend', function() {
-      App.checkDisabledState(link, 'clicking...')
+      App.checkDisabledState(assert, link, 'clicking...')
       return false
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(link, 'Click me')
-    start()
+    App.checkEnabledState(assert, link, 'Click me')
+    done()
   }, 30)
 })
 
-asyncTest('a[data-remote][data-disable-with] re-enables when `ajax:error` event is triggered', 6, function() {
+QUnit.test('a[data-remote][data-disable-with] re-enables when `ajax:error` event is triggered', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]').attr('data-remote', true).attr('href', '/error')
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link
     .bindNative('ajax:beforeSend', function() {
-      App.checkDisabledState(link, 'clicking...')
+      App.checkDisabledState(assert, link, 'clicking...')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(link, 'Click me')
-    start()
+    App.checkEnabledState(assert, link, 'Click me')
+    done()
   }, 30)
 })
 
-asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not disable when `ajax:beforeSend` event is cancelled', 8, function() {
+QUnit.test('form[data-remote] input|button|textarea[data-disable-with] does not disable when `ajax:beforeSend` event is cancelled', function(assert) {
+  var done = assert.async();
+
   var form = $('form[data-remote]'),
       input = form.find('input:text'),
       button = $('<button data-disable-with="submitting ..." name="submit2">Submit</button>').appendTo(form),
@@ -298,94 +327,105 @@ asyncTest('form[data-remote] input|button|textarea[data-disable-with] does not d
     })
     .triggerNative('submit')
 
-  App.checkEnabledState(input, 'john')
-  App.checkEnabledState(button, 'Submit')
-  App.checkEnabledState(textarea, 'born, lived, died.')
-  App.checkEnabledState(submit, 'Submit')
+  App.checkEnabledState(assert, input, 'john')
+  App.checkEnabledState(assert, button, 'Submit')
+  App.checkEnabledState(assert, textarea, 'born, lived, died.')
+  App.checkEnabledState(assert, submit, 'Submit')
 
-  start()
+  done()
 })
 
-asyncTest('ctrl-clicking on a link does not disables the link', 6, function() {
+QUnit.test('ctrl-clicking on a link does not disables the link', function(assert) {
+  var done = assert.async();
+
   var link = $('a[data-disable-with]')
 
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link.triggerNative('click', { metaKey: true })
-  App.checkEnabledState(link, 'Click me')
+  App.checkEnabledState(assert, link, 'Click me')
 
   link.triggerNative('click', { metaKey: true })
-  App.checkEnabledState(link, 'Click me')
-  start()
+  App.checkEnabledState(assert, link, 'Click me')
+  done()
 })
 
-asyncTest('button[data-remote][data-disable-with] disables and re-enables', 6, function() {
+QUnit.test('button[data-remote][data-disable-with] disables and re-enables', function(assert) {
+  var done = assert.async();
+
   var button = $('button[data-remote][data-disable-with]')
 
-  App.checkEnabledState(button, 'Click me')
+  App.checkEnabledState(assert, button, 'Click me')
 
   button
     .bindNative('ajax:send', function() {
-      App.checkDisabledState(button, 'clicking...')
+      App.checkDisabledState(assert, button, 'clicking...')
     })
     .bindNative('ajax:complete', function() {
       setTimeout( function() {
-        App.checkEnabledState(button, 'Click me')
-        start()
+        App.checkEnabledState(assert, button, 'Click me')
+        done()
       }, 15)
     })
     .triggerNative('click')
 })
 
-asyncTest('button[data-remote][data-disable-with] re-enables when `ajax:before` event is cancelled', 6, function() {
+QUnit.test('button[data-remote][data-disable-with] re-enables when `ajax:before` event is cancelled', function(assert) {
+  var done = assert.async();
+
   var button = $('button[data-remote][data-disable-with]')
 
-  App.checkEnabledState(button, 'Click me')
+  App.checkEnabledState(assert, button, 'Click me')
 
   button
     .bindNative('ajax:before', function() {
-      App.checkDisabledState(button, 'clicking...')
+      App.checkDisabledState(assert, button, 'clicking...')
       return false
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(button, 'Click me')
-    start()
+    App.checkEnabledState(assert, button, 'Click me')
+    done()
   }, 30)
 })
 
-asyncTest('button[data-remote][data-disable-with] re-enables when `ajax:beforeSend` event is cancelled', 6, function() {
+QUnit.test('button[data-remote][data-disable-with] re-enables when `ajax:beforeSend` event is cancelled', function(assert) {
+  var done = assert.async();
+
   var button = $('button[data-remote][data-disable-with]')
 
-  App.checkEnabledState(button, 'Click me')
+  App.checkEnabledState(assert, button, 'Click me')
 
   button
     .bindNative('ajax:beforeSend', function() {
-      App.checkDisabledState(button, 'clicking...')
+      App.checkDisabledState(assert, button, 'clicking...')
       return false
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(button, 'Click me')
-    start()
+    App.checkEnabledState(assert, button, 'Click me')
+    done()
   }, 30)
 })
 
-asyncTest('button[data-remote][data-disable-with] re-enables when `ajax:error` event is triggered', 6, function() {
+QUnit.test('button[data-remote][data-disable-with] re-enables when `ajax:error` event is triggered', function(assert) {
+  var done = assert.async();
+
   var button = $('a[data-disable-with]').attr('data-remote', true).attr('href', '/error')
 
-  App.checkEnabledState(button, 'Click me')
+  App.checkEnabledState(assert, button, 'Click me')
 
   button
     .bindNative('ajax:send', function() {
-      App.checkDisabledState(button, 'clicking...')
+      App.checkDisabledState(assert, button, 'clicking...')
     })
     .triggerNative('click')
 
   setTimeout(function() {
-    App.checkEnabledState(button, 'Click me')
-    start()
+    App.checkEnabledState(assert, button, 'Click me')
+    done()
   }, 30)
 })
+})()
