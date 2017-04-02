@@ -84,7 +84,6 @@ group :cable do
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
-  gem "faraday", "~> 0.11.0" # https://github.com/lostisland/faraday/issues/679
   gem "sprockets-export", require: false
 end
 
