@@ -384,6 +384,7 @@ DEPENDENCIES
   delayed_job_active_record
   em-hiredis
   erubis (~> 2.7.0)
+  faraday (~> 0.11.0)
   hiredis
   jquery-rails
   json (>= 2.0.0)
@@ -427,4 +428,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.14.4
+   1.14.6
