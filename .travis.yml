@@ -105,7 +105,7 @@ matrix:
       env:
         - "GEM=am,amo,aj"
     # Test with old (< 9.4.2) postgresql
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env:
         - "GEM=ar:postgresql"
       addons:
