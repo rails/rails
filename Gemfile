@@ -39,7 +39,7 @@ gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", requi
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
-gem "rubocop", ">= 0.47", require: false
+gem "rubocop", ">= 0.48", require: false
 
 group :doc do
   gem "sdoc", "1.0.0.rc1"
