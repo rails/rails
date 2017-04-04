@@ -135,9 +135,7 @@ module ActionDispatch
         }
       end
 
-      # Receives an array of mimes and return the first user sent mime that
-      # matches the order array.
-      #
+      # Returns the first MIME type that matches the provided array of MIME types.
       def negotiate_mime(order)
         formats.each do |priority|
           if priority == Mime::ALL

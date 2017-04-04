@@ -22,7 +22,7 @@ require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
@@ -112,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal "The First Topic", topics.first.title
@@ -123,7 +123,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first_with_limit
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal ["The First Topic",
@@ -136,7 +136,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_get_more_than_available
     topics = Topic.all.order("id ASC")
     unloaded_first = topics.first(10)
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       loaded_first = topics.first(10)
@@ -218,14 +218,31 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
-  def test_finding_with_reverted_assoc_order
+  def test_finding_with_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_assoc_order
     topics = Topic.order(id: :asc).reverse_order
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_function
     topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_arel_assoc_order_with_function
+    topics = Topic.order(Arel.sql("length(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -248,6 +265,12 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+    end
+  end
+
+  def test_reverse_arel_assoc_order_with_multiargument_function
+    assert_nothing_raised do
+      Topic.order(Arel.sql("REPLACE(title, '', '')") => :asc).reverse_order
     end
   end
 
@@ -1132,7 +1155,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1143,7 +1166,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1153,7 +1176,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
     assert ! posts.loaded?
 
-    posts.to_a # force load
+    posts.load # force load
     assert_no_queries { assert_equal 0, posts.size }
   end
 
@@ -1182,7 +1205,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! no_posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal false, best_posts.empty? }
   end
 
@@ -1878,6 +1901,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
+  test "relations don't load all records in #inspect" do
+    assert_sql(/LIMIT/) do
+      Post.all.inspect
+    end
+  end
+
   test "already-loaded relations don't perform a new query in #inspect" do
     relation = Post.limit(2)
     relation.to_a
@@ -1945,6 +1974,14 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_not_equal p1.first.comments, comments
     assert_equal p2.first.comments, comments
+  end
+
+  def test_unscope_specific_where_value
+    posts = Post.where(title: "Welcome to the weblog", body: "Such a lovely day")
+
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+    assert_equal 1, posts.unscope(where: :body).count
   end
 
   def test_unscope_removes_binds

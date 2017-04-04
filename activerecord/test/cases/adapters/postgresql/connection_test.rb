@@ -105,7 +105,7 @@ module ActiveRecord
     end
 
     def test_table_alias_length_logs_name
-      @connection.instance_variable_set("@table_alias_length", nil)
+      @connection.instance_variable_set("@max_identifier_length", nil)
       @connection.table_alias_length
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
@@ -177,7 +177,7 @@ module ActiveRecord
       assert_not_equal original_connection_pid, new_connection_pid,
         "umm -- looks like you didn't break the connection, because we're still " \
         "successfully querying with the same connection pid."
-
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end

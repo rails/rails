@@ -345,7 +345,7 @@ module ActionView
       end
 
       def instrument(action, &block) # :doc:
-        ActiveSupport::Notifications.instrument("#{action}.action_view".freeze, instrument_payload, &block)
+        ActiveSupport::Notifications.instrument("#{action}.action_view", instrument_payload, &block)
       end
 
       def instrument_render_template(&block)

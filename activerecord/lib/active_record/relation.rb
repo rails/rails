@@ -261,10 +261,6 @@ module ActiveRecord
       coder.represent_seq(nil, records)
     end
 
-    def as_json(options = nil) #:nodoc:
-      records.as_json(options)
-    end
-
     # Returns size of the records.
     def size
       loaded? ? @records.length : count(:all)
@@ -639,7 +635,9 @@ module ActiveRecord
     end
 
     def inspect
-      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
+      subject = loaded? ? records : self
+      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"

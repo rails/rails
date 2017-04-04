@@ -65,6 +65,25 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.0 to Rails 5.1
+-------------------------------------
+
+For more information on changes made to Rails 5.1 please see the [release notes](5_1_release_notes.html).
+
+### Top-level `HashWithIndifferentAccess` is soft-deprecated
+
+If your application uses the the top-level `HashWithIndifferentAccess` class, you
+should slowly move your code to use the `ActiveSupport::HashWithIndifferentAccess`
+one.
+
+It is only soft-deprecated, which means that your code will not break at the
+moment and no deprecation warning will be displayed but this constant will be
+removed in the future.
+
+Also, if you have pretty old YAML documents containing dumps of such objects,
+you may need to load and dump them again to make sure that they reference
+the right constant and that loading them won't break in the future.
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 

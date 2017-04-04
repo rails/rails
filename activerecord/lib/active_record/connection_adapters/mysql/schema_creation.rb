@@ -25,6 +25,14 @@ module ActiveRecord
           end
 
           def add_column_options!(sql, options)
+            # By default, TIMESTAMP columns are NOT NULL, cannot contain NULL values,
+            # and assigning NULL assigns the current timestamp. To permit a TIMESTAMP
+            # column to contain NULL, explicitly declare it with the NULL attribute.
+            # See http://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
+            if /\Atimestamp\b/.match?(options[:column].sql_type) && !options[:primary_key]
+              sql << " NULL" unless options[:null] == false || options_include_default?(options)
+            end
+
             if charset = options[:charset]
               sql << " CHARACTER SET #{charset}"
             end

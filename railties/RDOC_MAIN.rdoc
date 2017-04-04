@@ -57,7 +57,7 @@ can read more about Action Pack in its {README}[link:files/actionpack/README_rdo
 
 * The \README file created within your application.
 * {Getting Started with \Rails}[http://guides.rubyonrails.org/getting_started.html].
-* {Ruby on \Rails Tutorial}[http://www.railstutorial.org/book].
+* {Ruby on \Rails Tutorial}[https://www.railstutorial.org/book].
 * {Ruby on \Rails Guides}[http://guides.rubyonrails.org].
 * {The API Documentation}[http://api.rubyonrails.org].
 

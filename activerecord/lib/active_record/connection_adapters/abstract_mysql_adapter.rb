@@ -6,6 +6,7 @@ require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
 require "active_record/connection_adapters/mysql/schema_definitions"
 require "active_record/connection_adapters/mysql/schema_dumper"
+require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
 
 require "active_support/core_ext/string/strip"
@@ -15,17 +16,10 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
       include MySQL::ColumnDumper
+      include MySQL::SchemaStatements
 
       def update_table_definition(table_name, base) # :nodoc:
         MySQL::Table.new(table_name, base)
-      end
-
-      def schema_creation # :nodoc:
-        MySQL::SchemaCreation.new(self)
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::MySQL.new(self)
       end
 
       ##
@@ -46,6 +40,7 @@ module ActiveRecord
         float:       { name: "float" },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
+        timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
         binary:      { name: "blob", limit: 65535 },
@@ -86,11 +81,6 @@ module ActiveRecord
 
       def mariadb? # :nodoc:
         /mariadb/i.match?(full_version)
-      end
-
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations?
-        true
       end
 
       def supports_bulk_alter? #:nodoc:
@@ -171,10 +161,6 @@ module ActiveRecord
       # this method must be implemented to provide a uniform interface.
       def each_hash(result) # :nodoc:
         raise NotImplementedError
-      end
-
-      def new_column(*args) #:nodoc:
-        MySQL::Column.new(*args)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -314,57 +300,6 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
-      def tables # :nodoc:
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
-        sql << " AND table_schema = #{quote(@config[:database])}"
-
-        select_values(sql, "SCHEMA")
-      end
-
-      def views # :nodoc:
-        select_values("SHOW FULL TABLES WHERE table_type = 'VIEW'", "SCHEMA")
-      end
-
-      def data_sources # :nodoc:
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(@config[:database])}"
-
-        select_values(sql, "SCHEMA")
-      end
-
-      def table_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        schema, name = extract_schema_qualified_name(table_name)
-
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def data_source_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        schema, name = extract_schema_qualified_name(table_name)
-
-        sql = "SELECT table_name FROM information_schema.tables "
-        sql << "WHERE table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def view_exists?(view_name) # :nodoc:
-        return false unless view_name.present?
-
-        schema, name = extract_schema_qualified_name(view_name)
-
-        sql = "SELECT table_name FROM information_schema.tables WHERE table_type = 'VIEW'"
-        sql << " AND table_schema = #{quote(schema)} AND table_name = #{quote(name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
       def truncate(table_name, name = nil)
         execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
@@ -399,24 +334,14 @@ module ActiveRecord
         indexes
       end
 
-      def new_column_from_field(table_name, field) # :nodoc:
-        type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-        if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-          default, default_function = nil, field[:Default]
-        else
-          default, default_function = field[:Default], nil
-        end
-        new_column(field[:Field], default, type_metadata, field[:Null] == "YES", table_name, default_function, field[:Collation], comment: field[:Comment].presence)
-      end
-
       def table_comment(table_name) # :nodoc:
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         select_value(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT table_comment
           FROM information_schema.tables
-          WHERE table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+          WHERE table_schema = #{scope[:schema]}
+            AND table_name = #{scope[:name]}
         SQL
       end
 
@@ -516,7 +441,7 @@ module ActiveRecord
       def foreign_keys(table_name)
         raise ArgumentError unless table_name.present?
 
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
@@ -529,9 +454,9 @@ module ActiveRecord
           JOIN information_schema.referential_constraints rc
           USING (constraint_schema, constraint_name)
           WHERE fk.referenced_column_name IS NOT NULL
-            AND fk.table_schema = #{quote(schema)}
-            AND fk.table_name = #{quote(name)}
-            AND rc.table_name = #{quote(name)}
+            AND fk.table_schema = #{scope[:schema]}
+            AND fk.table_name = #{scope[:name]}
+            AND rc.table_name = #{scope[:name]}
         SQL
 
         fk_info.map do |row|
@@ -603,14 +528,14 @@ module ActiveRecord
       def primary_keys(table_name) # :nodoc:
         raise ArgumentError unless table_name.present?
 
-        schema, name = extract_schema_qualified_name(table_name)
+        scope = quoted_scope(table_name)
 
         select_values(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
-            AND table_schema = #{quote(schema)}
-            AND table_name = #{quote(name)}
+            AND table_schema = #{scope[:schema]}
+            AND table_name = #{scope[:name]}
           ORDER BY ordinal_position
         SQL
       end
@@ -645,10 +570,6 @@ module ActiveRecord
 
       def strict_mode?
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
-      end
-
-      def valid_type?(type)
-        !native_database_types[type].nil?
       end
 
       def default_index_type?(index) # :nodoc:
@@ -708,15 +629,11 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          if /time/.match?(sql_type)
+          if /\A(?:date)?time(?:stamp)?\b/.match?(sql_type)
             super || 0
           else
             super
           end
-        end
-
-        def fetch_type_metadata(sql_type, extra = "")
-          MySQL::TypeMetadata.new(super(sql_type), extra: extra)
         end
 
         def add_index_length(quoted_columns, **options)
@@ -785,11 +702,11 @@ module ActiveRecord
         def change_column_sql(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
 
-          unless options_include_default?(options)
+          unless options.key?(:default)
             options[:default] = column.default
           end
 
-          unless options.has_key?(:null)
+          unless options.key?(:null)
             options[:null] = column.null
           end
 
@@ -869,9 +786,9 @@ module ActiveRecord
           variables["sql_auto_is_null"] = 0
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = @config[:wait_timeout]
+          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
           wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = self.class.type_cast_config_to_integer(wait_timeout)
+          variables["wait_timeout"] = wait_timeout
 
           defaults = [":default", :default].to_set
 
@@ -921,19 +838,12 @@ module ActiveRecord
           end
         end
 
-        def extract_foreign_key_action(specifier) # :nodoc:
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          end
-        end
-
         def create_table_info(table_name) # :nodoc:
           select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
         end
 
-        def create_table_definition(*args) # :nodoc:
-          MySQL::TableDefinition.new(*args)
+        def arel_visitor
+          Arel::Visitors::MySQL.new(self)
         end
 
         def mismatched_foreign_key(message)
@@ -946,12 +856,6 @@ module ActiveRecord
             target_table: parts[2],
             primary_key: parts[3],
           )
-        end
-
-        def extract_schema_qualified_name(string) # :nodoc:
-          schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
-          schema, name = @config[:database], schema unless name
-          [schema, name]
         end
 
         def integer_to_sql(limit) # :nodoc:

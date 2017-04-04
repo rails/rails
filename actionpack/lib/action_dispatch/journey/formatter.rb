@@ -15,7 +15,7 @@ module ActionDispatch
 
       def generate(name, options, path_parameters, parameterize = nil)
         constraints = path_parameters.merge(options)
-        missing_keys = nil # need for variable scope
+        missing_keys = nil
 
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize)

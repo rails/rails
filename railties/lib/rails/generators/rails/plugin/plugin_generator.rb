@@ -91,6 +91,8 @@ task default: :test
       opts[:skip_bundle] = true
       opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
+      opts[:skip_turbolinks] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,7 +114,6 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
         remove_file "doc"
         remove_file "Gemfile"
@@ -300,7 +301,7 @@ task default: :test
       end
 
       def engine?
-        full? || mountable?
+        full? || mountable? || options[:engine]
       end
 
       def full?
@@ -432,7 +433,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path

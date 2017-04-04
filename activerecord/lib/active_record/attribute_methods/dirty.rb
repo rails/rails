@@ -50,7 +50,7 @@ module ActiveRecord
         super.tap do
           @previous_mutation_tracker = nil
           clear_mutation_trackers
-          @changed_attributes = HashWithIndifferentAccess.new
+          @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
       end
 
@@ -70,13 +70,13 @@ module ActiveRecord
 
       def changes_applied
         @previous_mutation_tracker = mutation_tracker
-        @changed_attributes = HashWithIndifferentAccess.new
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         clear_mutation_trackers
       end
 
       def clear_changes_information
         @previous_mutation_tracker = nil
-        @changed_attributes = HashWithIndifferentAccess.new
+        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         forget_attribute_assignments
         clear_mutation_trackers
       end
@@ -282,7 +282,7 @@ module ActiveRecord
               #{attr_name} is not an attribute known to Active Record.
               This behavior is deprecated and will be removed in the next
               version of Rails. If you'd like #{attr_name} to be managed
-              by Active Record, add `attribute :#{attr_name} to your class.
+              by Active Record, add `attribute :#{attr_name}` to your class.
             EOW
             mutations_from_database.deprecated_force_change(attr_name)
           end

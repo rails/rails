@@ -113,10 +113,10 @@ module ActionDispatch
         default_url_options
       end
 
-      # Generate a url based on the options provided, default_url_options and the
+      # Generate a URL based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
       #
-      # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
+      # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
@@ -164,6 +164,10 @@ module ActionDispatch
       # implicitly used by +url_for+ can always be overwritten like shown on the
       # last +url_for+ calls.
       def url_for(options = nil)
+        full_url_for(options)
+      end
+
+      def full_url_for(options = nil) # :nodoc:
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
@@ -190,6 +194,10 @@ module ActionDispatch
         else
           HelperMethodBuilder.url.handle_model_call self, options
         end
+      end
+
+      def route_for(name, *args) # :nodoc:
+        public_send(:"#{name}_url", *args)
       end
 
       protected

@@ -1,30 +1,32 @@
-*   Remove deprecated behavior that halts callbacks when the return is false.
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
 
-    *Rafael Mendonça França*
+    Change `#keys` to only return the keys that don't have empty messages.
 
-*   Remove unused `ActiveModel::TestCase` class.
+    Change `#values` to only return the not empty values.
 
-    *Yuji Yaginuma*
+     Example:
 
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+         # Before
+         person = Person.new
+         person.errors.keys     # => []
+         person.errors.values   # => []
+         person.errors.messages # => {}
+         person.errors[:name]   # => []
+         person.errors.messages # => {:name => []}
+         person.errors.keys     # => [:name]
+         person.errors.values   # => [[]]
 
-    *Iain Beeston*
+         # After
+         person = Person.new
+         person.errors.keys     # => []
+         person.errors.values   # => []
+         person.errors.messages # => {}
+         person.errors[:name]   # => []
+         person.errors.messages # => {:name => []}
+         person.errors.keys     # => []
+         person.errors.values   # => []
 
-*   Allow indifferent access in `ActiveModel::Errors`.
-
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
-
-    *Kenichi Kamiya*
-
-*   Removed deprecated `:tokenizer` in the length validator.
-
-    *Rafael Mendonça França*
-
-*   Removed deprecated methods in `ActiveModel::Errors`.
-
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
+    *bogdanvlviv*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.

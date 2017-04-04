@@ -21,17 +21,6 @@ module ActiveRecord
         end
       end
 
-      def test_valid_column
-        with_example_table do
-          column = @connection.columns("ex").find { |col| col.name == "id" }
-          assert @connection.valid_type?(column.type)
-        end
-      end
-
-      def test_invalid_column
-        assert_not @connection.valid_type?(:foobar)
-      end
-
       def test_primary_key
         with_example_table do
           assert_equal "id", @connection.primary_key("ex")
@@ -51,12 +40,6 @@ module ActiveRecord
       def test_primary_key_returns_nil_for_no_pk
         with_example_table "id integer" do
           assert_nil @connection.primary_key("ex")
-        end
-      end
-
-      def test_primary_key_raises_error_if_table_not_found
-        assert_raises(ActiveRecord::StatementInvalid) do
-          @connection.primary_key("unobtainium")
         end
       end
 

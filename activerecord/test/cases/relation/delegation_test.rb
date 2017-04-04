@@ -33,7 +33,7 @@ module ActiveRecord
       :map, :none?, :one?, :partition, :reject, :reverse,
       :sample, :second, :sort, :sort_by, :third,
       :to_ary, :to_set, :to_xml, :to_yaml, :join,
-      :in_groups, :in_groups_of, :to_sentence, :to_formatted_s
+      :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :as_json
     ]
 
     ARRAY_DELEGATES.each do |method|

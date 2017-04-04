@@ -183,6 +183,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_create_without_primary_key_no_extra_query
+    skip if current_adapter?(:OracleAdapter)
+
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "dashboards"
     end
@@ -238,13 +240,13 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
     @connection.drop_table(:auto_increments, if_exists: true)
   end
 
-  def test_primary_key_with_auto_increment
-    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
+  def test_primary_key_with_integer
+    @connection.create_table(:auto_increments, id: :integer, force: true)
     assert_auto_incremented
   end
 
-  def test_primary_key_with_auto_increment_and_bigint
-    @connection.create_table(:auto_increments, id: :bigint, auto_increment: true, force: true)
+  def test_primary_key_with_bigint
+    @connection.create_table(:auto_increments, id: :bigint, force: true)
     assert_auto_incremented
   end
 
@@ -290,6 +292,14 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   test "schema dump primary key includes type and options" do
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
+  end
+
+  if current_adapter?(:Mysql2Adapter) && subsecond_precision_supported?
+    test "schema typed primary key column" do
+      @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
+      schema = dump_table_schema("scheduled_logs")
+      assert_match %r/create_table "scheduled_logs", id: :timestamp, precision: 6/, schema
+    end
   end
 end
 

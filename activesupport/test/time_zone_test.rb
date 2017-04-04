@@ -215,6 +215,95 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal secs, twz.to_f
   end
 
+  def test_iso8601
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1999-12-31T19:00:00")
+    assert_equal Time.utc(1999, 12, 31, 19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_with_fractional_seconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1999-12-31T19:00:00.750")
+    assert_equal 750000, twz.time.usec
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0 + Rational(3, 4)), twz.time
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0 + Rational(3, 4)), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_with_zone
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1999-12-31T14:00:00-10:00")
+    assert_equal Time.utc(1999, 12, 31, 19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_with_invalid_string
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.iso8601("foobar")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_iso8601_with_missing_time_components
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1999-12-31")
+    assert_equal Time.utc(1999, 12, 31, 0, 0, 0), twz.time
+    assert_equal Time.utc(1999, 12, 31, 5, 0, 0), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_with_old_date
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1883-12-31T19:00:00")
+    assert_equal [0, 0, 19, 31, 12, 1883], twz.to_a[0, 6]
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_far_future_date_with_time_zone_offset_in_string
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("2050-12-31T19:00:00-10:00") # i.e., 2050-01-01 05:00:00 UTC
+    assert_equal [0, 0, 0, 1, 1, 2051], twz.to_a[0, 6]
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_iso8601_should_not_black_out_system_timezone_dst_jump
+    with_env_tz("EET") do
+      zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+      twz = zone.iso8601("2012-03-25T03:29:00")
+      assert_equal [0, 29, 3, 25, 3, 2012], twz.to_a[0, 6]
+    end
+  end
+
+  def test_iso8601_should_black_out_app_timezone_dst_jump
+    with_env_tz("EET") do
+      zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+      twz = zone.iso8601("2012-03-11T02:29:00")
+      assert_equal [0, 29, 3, 11, 3, 2012], twz.to_a[0, 6]
+    end
+  end
+
+  def test_iso8601_doesnt_use_local_dst
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["UTC"]
+      twz = zone.iso8601("2013-03-10T02:00:00")
+      assert_equal Time.utc(2013, 3, 10, 2, 0, 0), twz.time
+    end
+  end
+
+  def test_iso8601_handles_dst_jump
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      twz = zone.iso8601("2013-03-10T02:00:00")
+      assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
+    end
+  end
+
   def test_parse
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.parse("1999-12-31 19:00:00")
@@ -310,6 +399,99 @@ class TimeZoneTest < ActiveSupport::TestCase
     with_env_tz "US/Eastern" do
       zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
       twz = zone.parse("2013-03-10 02:00:00")
+      assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
+    end
+  end
+
+  def test_rfc3339
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.rfc3339("1999-12-31T14:00:00-10:00")
+    assert_equal Time.utc(1999, 12, 31, 19), twz.time
+    assert_equal Time.utc(2000), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_rfc3339_with_fractional_seconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.iso8601("1999-12-31T14:00:00.750-10:00")
+    assert_equal 750000, twz.time.usec
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0 + Rational(3, 4)), twz.time
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0 + Rational(3, 4)), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_rfc3339_with_missing_time
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.rfc3339("1999-12-31")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_rfc3339_with_missing_offset
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.rfc3339("1999-12-31T19:00:00")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_rfc3339_with_invalid_string
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.rfc3339("foobar")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_rfc3339_with_old_date
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.rfc3339("1883-12-31T19:00:00-05:00")
+    assert_equal [0, 0, 19, 31, 12, 1883], twz.to_a[0, 6]
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_rfc3339_far_future_date_with_time_zone_offset_in_string
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    twz = zone.rfc3339("2050-12-31T19:00:00-10:00") # i.e., 2050-01-01 05:00:00 UTC
+    assert_equal [0, 0, 0, 1, 1, 2051], twz.to_a[0, 6]
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_rfc3339_should_not_black_out_system_timezone_dst_jump
+    with_env_tz("EET") do
+      zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+      twz = zone.rfc3339("2012-03-25T03:29:00-07:00")
+      assert_equal [0, 29, 3, 25, 3, 2012], twz.to_a[0, 6]
+    end
+  end
+
+  def test_rfc3339_should_black_out_app_timezone_dst_jump
+    with_env_tz("EET") do
+      zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+      twz = zone.rfc3339("2012-03-11T02:29:00-08:00")
+      assert_equal [0, 29, 3, 11, 3, 2012], twz.to_a[0, 6]
+    end
+  end
+
+  def test_rfc3339_doesnt_use_local_dst
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["UTC"]
+      twz = zone.rfc3339("2013-03-10T02:00:00Z")
+      assert_equal Time.utc(2013, 3, 10, 2, 0, 0), twz.time
+    end
+  end
+
+  def test_rfc3339_handles_dst_jump
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      twz = zone.iso8601("2013-03-10T02:00:00-05:00")
       assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
     end
   end
@@ -530,6 +712,10 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_country_zones
     assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
+  end
+
+  def test_country_zones_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones(:sv), ActiveSupport::TimeZone["America/El_Salvador"]
   end
 
   def test_to_yaml

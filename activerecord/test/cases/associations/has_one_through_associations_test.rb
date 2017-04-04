@@ -23,7 +23,7 @@ require "models/customer_carrier"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
-           :dashboards, :speedometers, :authors, :posts, :comments, :categories, :essays, :owners
+           :dashboards, :speedometers, :authors, :author_addresses, :posts, :comments, :categories, :essays, :owners
 
   def setup
     @member = members(:groucho)

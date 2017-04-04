@@ -74,7 +74,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :owner, :logger
+      attr_reader :schema_cache, :owner, :logger, :prepared_statements
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
@@ -93,8 +93,6 @@ module ActiveRecord
         end
       end
 
-      attr_reader :prepared_statements
-
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
@@ -107,6 +105,7 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
+        @lock = Monitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -141,32 +140,8 @@ module ActiveRecord
         end
       end
 
-      def collector
-        if prepared_statements
-          SQLString.new
-        else
-          BindCollector.new
-        end
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::ToSql.new(self)
-      end
-
-      def valid_type?(type)
-        false
-      end
-
-      def schema_creation
-        SchemaCreation.new self
-      end
-
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          new_column_from_field(table_name, field)
-        end
+      def valid_type?(type) # :nodoc:
+        !native_database_types[type].nil?
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -231,10 +206,10 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      # Does this adapter support migrations?
-      def supports_migrations?
-        false
+      def supports_migrations? # :nodoc:
+        true
       end
+      deprecate :supports_migrations?
 
       def supports_primary_key? # :nodoc:
         true
@@ -438,12 +413,15 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
+        if ignored.size > 0
+          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no effect and has been deprecated. Please remove all arguments from the #verify method call.")
+        end
         reconnect! unless active?
       end
 
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
-      # and a PGconn object in case of PostgreSQLAdapter.
+      # and a PG::Connection object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
@@ -477,14 +455,6 @@ module ActiveRecord
         @type_map ||= Type::TypeMap.new.tap do |mapping|
           initialize_type_map(mapping)
         end
-      end
-
-      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
-        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
@@ -605,7 +575,11 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
-            connection_id:     object_id) { yield }
+            connection_id:     object_id) do
+              @lock.synchronize do
+                yield
+              end
+            end
         rescue => e
           raise translate_exception_class(e, sql)
         end
@@ -628,6 +602,18 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def collector
+          if prepared_statements
+            SQLString.new
+          else
+            BindCollector.new
+          end
+        end
+
+        def arel_visitor
+          Arel::Visitors::ToSql.new(self)
         end
     end
   end

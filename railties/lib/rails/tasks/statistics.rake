@@ -17,6 +17,7 @@ STATS_DIRECTORIES = [
   %w(Mailer\ tests      test/mailers),
   %w(Job\ tests         test/jobs),
   %w(Integration\ tests test/integration),
+  %w(System\ tests      test/system),
 ].collect do |name, dir|
   [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
 end.select { |name, dir| File.directory?(dir) }

@@ -32,6 +32,14 @@ module Rails
   # This allows you to override entire operations, like the creation of the
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
+  #
+  #  class CustomAppBuilder < Rails::AppBuilder
+  #    def test
+  #      @generator.gem "rspec-rails", group: [:development, :test]
+  #      run "bundle install"
+  #      generate "rspec:install"
+  #    end
+  #  end
   class AppBuilder
     def rakefile
       template "Rakefile"
@@ -76,6 +84,16 @@ module Rails
       chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
+    def bin_when_updating
+      bin_yarn_exist = File.exist?("bin/yarn")
+
+      bin
+
+      if options[:api] && !bin_yarn_exist
+        remove_file "bin/yarn"
+      end
+    end
+
     def config
       empty_directory "config"
 
@@ -98,10 +116,10 @@ module Rails
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
       action_cable_config_exist = File.exist?("config/cable.yml")
       rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
+      assets_config_exist = File.exist?("config/initializers/assets.rb")
+      new_framework_defaults_5_1_exist = File.exist?("config/initializers/new_framework_defaults_5_1.rb")
 
       config
-
-      gsub_file "config/environments/development.rb", /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
@@ -113,6 +131,22 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if options[:api]
+        unless cookie_serializer_config_exist
+          remove_file "config/initializers/cookies_serializer.rb"
+        end
+
+        unless assets_config_exist
+          remove_file "config/initializers/assets.rb"
+        end
+
+        # Sprockets owns the only new default for 5.1:
+        # In API-only Applications, we don't want the file.
+        unless new_framework_defaults_5_1_exist
+          remove_file "config/initializers/new_framework_defaults_5_1.rb"
+        end
       end
     end
 
@@ -150,6 +184,12 @@ module Rails
       template "test/test_helper.rb"
     end
 
+    def system_test
+      empty_directory_with_keep_file "test/system"
+
+      template "test/application_system_test_case.rb"
+    end
+
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
@@ -160,7 +200,7 @@ module Rails
       empty_directory_with_keep_file "vendor"
 
       unless options[:skip_yarn]
-        template "package.json", "vendor/package.json"
+        template "package.json"
       end
     end
   end
@@ -218,6 +258,11 @@ module Rails
         build(:bin)
       end
 
+      def update_bin_files
+        build(:bin_when_updating)
+      end
+      remove_task :update_bin_files
+
       def create_config_files
         build(:config)
       end
@@ -262,6 +307,10 @@ module Rails
         build(:test) unless options[:skip_test]
       end
 
+      def create_system_test_files
+        build(:system_test) if depends_on_system_test?
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -270,7 +319,7 @@ module Rails
         build(:vendor)
 
         if options[:skip_yarn]
-          remove_file "vendor/package.json"
+          remove_file "package.json"
         end
       end
 
@@ -350,6 +399,14 @@ module Rails
       def delete_api_initializers
         unless options[:api]
           remove_file "config/initializers/cors.rb"
+        end
+      end
+
+      def delete_new_framework_defaults
+        # Sprockets owns the only new default for 5.1: if it's disabled,
+        # we don't want the file.
+        unless options[:update] && !options[:skip_sprockets]
+          remove_file "config/initializers/new_framework_defaults_5_1.rb"
         end
       end
 

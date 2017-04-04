@@ -42,7 +42,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.update("set @@wait_timeout=1")
     sleep 2
     assert !@connection.active?
-
+  ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
@@ -61,6 +61,18 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     sleep 2
     @connection.verify!
     assert @connection.active?
+  end
+
+  def test_verify_with_args_is_deprecated
+    assert_deprecated do
+      @connection.verify!(option: true)
+    end
+    assert_deprecated do
+      @connection.verify!([])
+    end
+    assert_deprecated do
+      @connection.verify!({})
+    end
   end
 
   def test_execute_after_disconnect
@@ -83,6 +95,22 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_active_after_disconnect
     @connection.disconnect!
     assert_equal false, @connection.active?
+  end
+
+  def test_wait_timeout_as_string
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge(wait_timeout: "60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
+  end
+
+  def test_wait_timeout_as_url
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "mysql2:///?wait_timeout=60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
   end
 
   def test_mysql_connection_collation_is_configured

@@ -61,13 +61,26 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_skips_per_form_csrf_token_and_origin_check_configs_for_api_apps
+  def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
-    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
-      assert_no_match(/per_form_csrf_tokens/, initializer_content)
-      assert_no_match(/forgery_protection_origin_check/, initializer_content)
-    end
+    generator = Rails::Generators::AppGenerator.new ["rails"],
+      { api: true, update: true }, destination_root: destination_root, shell: @shell
+    quietly { generator.send(:update_config_files) }
+
+    assert_no_file "config/initializers/cookies_serializer.rb"
+    assert_no_file "config/initializers/assets.rb"
+    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
+  end
+
+  def test_app_update_does_not_generate_unnecessary_bin_files
+    run_generator
+
+    generator = Rails::Generators::AppGenerator.new ["rails"],
+      { api: true, update: true }, destination_root: destination_root, shell: @shell
+    quietly { generator.send(:update_bin_files) }
+
+    assert_no_file "bin/yarn"
   end
 
   private
@@ -117,7 +130,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
          public/favicon.icon
-         vendor/package.json
+         package.json
       )
     end
 end

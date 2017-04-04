@@ -32,6 +32,10 @@ class ParamsWrapperTest < ActionController::TestCase
     def self.attribute_names
       []
     end
+
+    def self.stored_attributes
+      { settings: [:color, :size] }
+    end
   end
 
   class Person
@@ -59,6 +63,17 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
       assert_parameters("username" => "sikachu", "user" => { "username" => "sikachu" })
+    end
+  end
+
+  def test_store_accessors_wrapped
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "username" => "sikachu", "color" => "blue", "size" => "large" }
+        assert_parameters("username" => "sikachu", "color" => "blue", "size" => "large",
+                           "user" => { "username" => "sikachu", "color" => "blue", "size" => "large" })
+      end
     end
   end
 

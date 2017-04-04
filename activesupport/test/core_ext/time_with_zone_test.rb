@@ -144,6 +144,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema(nil)
   end
 
+  def test_iso8601_with_fractional_seconds
+    @twz += Rational(1, 8)
+    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.iso8601(3)
+  end
+
+  def test_rfc3339_with_fractional_seconds
+    @twz += Rational(1, 8)
+    assert_equal "1999-12-31T19:00:00.125-05:00", @twz.rfc3339(3)
+  end
+
   def test_to_yaml
     yaml = <<-EOF.strip_heredoc
       --- !ruby/object:ActiveSupport::TimeWithZone
@@ -421,11 +431,29 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal time, Time.at(time)
   end
 
-  def test_to_time
-    with_env_tz "US/Eastern" do
-      assert_equal Time, @twz.to_time.class
-      assert_equal Time.local(1999, 12, 31, 19), @twz.to_time
-      assert_equal Time.local(1999, 12, 31, 19).utc_offset, @twz.to_time.utc_offset
+  def test_to_time_with_preserve_timezone
+    with_preserve_timezone(true) do
+      with_env_tz "US/Eastern" do
+        time = @twz.to_time
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+      end
+    end
+  end
+
+  def test_to_time_without_preserve_timezone
+    with_preserve_timezone(false) do
+      with_env_tz "US/Eastern" do
+        time = @twz.to_time
+
+        assert_equal Time, time.class
+        assert_equal time.object_id, @twz.to_time.object_id
+        assert_equal Time.local(1999, 12, 31, 19), time
+        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
+      end
     end
   end
 
@@ -507,6 +535,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_nothing_raised do
       @twz.period
       @twz.time
+      @twz.to_datetime
+      @twz.to_time
     end
   end
 

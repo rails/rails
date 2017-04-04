@@ -59,6 +59,10 @@ class Post < ActiveRecord::Base
     def the_association
       proxy_association
     end
+
+    def with_content(content)
+      self.detect { |comment| comment.body == content }
+    end
   end
 
   has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do

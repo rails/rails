@@ -31,6 +31,8 @@ module ActiveRecord
       # Returns the relation names useable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
+        select_values(data_source_sql, "SCHEMA")
+      rescue NotImplementedError
         tables | views
       end
 
@@ -39,12 +41,14 @@ module ActiveRecord
       #   data_source_exists?(:ebooks)
       #
       def data_source_exists?(name)
+        select_values(data_source_sql(name), "SCHEMA").any? if name.present?
+      rescue NotImplementedError
         data_sources.include?(name.to_s)
       end
 
       # Returns an array of table names defined in the database.
       def tables
-        raise NotImplementedError, "#tables is not implemented"
+        select_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -52,12 +56,14 @@ module ActiveRecord
       #   table_exists?(:developers)
       #
       def table_exists?(table_name)
+        select_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
+      rescue NotImplementedError
         tables.include?(table_name.to_s)
       end
 
       # Returns an array of view names defined in the database.
       def views
-        raise NotImplementedError, "#views is not implemented"
+        select_values(data_source_sql(type: "VIEW"), "SCHEMA")
       end
 
       # Checks to see if the view +view_name+ exists on the database.
@@ -65,6 +71,8 @@ module ActiveRecord
       #   view_exists?(:ebooks)
       #
       def view_exists?(view_name)
+        select_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
+      rescue NotImplementedError
         views.include?(view_name.to_s)
       end
 
@@ -97,10 +105,12 @@ module ActiveRecord
         indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end
 
-      # Returns an array of Column objects for the table specified by +table_name+.
-      # See the concrete implementation for details on the expected parameter values.
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name)
-        raise NotImplementedError, "#columns is not implemented"
+        table_name = table_name.to_s
+        column_definitions(table_name).map do |field|
+          new_column_from_field(table_name, field)
+        end
       end
 
       # Checks to see if a column exists in a given table.
@@ -273,8 +283,8 @@ module ActiveRecord
 
         yield td if block_given?
 
-        if options[:force] && data_source_exists?(table_name)
-          drop_table(table_name, options)
+        if options[:force]
+          drop_table(table_name, **options, if_exists: true)
         end
 
         result = execute schema_creation.accept td
@@ -334,18 +344,16 @@ module ActiveRecord
       #     part_id int NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
-      def create_join_table(table_1, table_2, options = {})
+      def create_join_table(table_1, table_2, column_options: {}, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
 
-        column_options = options.delete(:column_options) || {}
-        column_options.reverse_merge!(null: false)
-        type = column_options.delete(:type) || :integer
+        column_options.reverse_merge!(null: false, index: false)
 
-        t1_column, t2_column = [table_1, table_2].map { |t| t.to_s.singularize.foreign_key }
+        t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
         create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.send type, t1_column, column_options
-          td.send type, t2_column, column_options
+          td.references t1_ref, column_options
+          td.references t2_ref, column_options
           yield td if block_given?
         end
       end
@@ -857,6 +865,7 @@ module ActiveRecord
           else
             foreign_key_options = { to_table: reference_name }
           end
+          foreign_key_options[:column] ||= "#{ref_name}_id"
           remove_foreign_key(table_name, **foreign_key_options)
         end
 
@@ -967,16 +976,6 @@ module ActiveRecord
         foreign_key_for(from_table, options_or_to_table).present?
       end
 
-      def foreign_key_for(from_table, options_or_to_table = {}) # :nodoc:
-        return unless supports_foreign_keys?
-        foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
-      end
-
-      def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
-        foreign_key_for(from_table, options_or_to_table) || \
-          raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
-      end
-
       def foreign_key_column_for(table_name) # :nodoc:
         prefix = Base.table_name_prefix
         suffix = Base.table_name_suffix
@@ -992,21 +991,8 @@ module ActiveRecord
       end
 
       def dump_schema_information #:nodoc:
-        versions = ActiveRecord::SchemaMigration.order("version").pluck(:version)
+        versions = ActiveRecord::SchemaMigration.all_versions
         insert_versions_sql(versions)
-      end
-
-      def insert_versions_sql(versions) # :nodoc:
-        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
-
-        if versions.is_a?(Array)
-          sql = "INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
-          sql << ";\n\n"
-          sql
-        else
-          "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
-        end
       end
 
       def initialize_schema_migrations_table # :nodoc:
@@ -1026,12 +1012,11 @@ module ActiveRecord
       def assume_migrated_upto_version(version, migrations_paths)
         migrations_paths = Array(migrations_paths)
         version = version.to_i
-        sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
+        sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
-        migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
-        paths = migrations_paths.map { |p| "#{p}/[0-9]*_*.rb" }
-        versions = Dir[*paths].map do |filename|
-          filename.split("/").last.split("_").first.to_i
+        migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
+        versions = ActiveRecord::Migrator.migration_files(migrations_paths).map do |file|
+          ActiveRecord::Migrator.parse_migration_filename(file).first.to_i
         end
 
         unless migrated.include?(version)
@@ -1071,7 +1056,7 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
-          elsif [:datetime, :time, :interval].include?(type) && precision ||= native[:precision]
+          elsif [:datetime, :timestamp, :time, :interval].include?(type) && precision ||= native[:precision]
             if (0..6) === precision
               column_type_sql << "(#{precision})"
             else
@@ -1255,12 +1240,27 @@ module ActiveRecord
           end
         end
 
+        def schema_creation
+          SchemaCreation.new(self)
+        end
+
         def create_table_definition(*args)
           TableDefinition.new(*args)
         end
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
+        end
+
+        def fetch_type_metadata(sql_type)
+          cast_type = lookup_cast_type(sql_type)
+          SqlTypeMetadata.new(
+            sql_type: sql_type,
+            type: cast_type.type,
+            limit: cast_type.limit,
+            precision: cast_type.precision,
+            scale: cast_type.scale,
+          )
         end
 
         def index_column_names(column_names)
@@ -1287,6 +1287,24 @@ module ActiveRecord
           end
         end
 
+        def foreign_key_for(from_table, options_or_to_table = {})
+          return unless supports_foreign_keys?
+          foreign_keys(from_table).detect { |fk| fk.defined_for? options_or_to_table }
+        end
+
+        def foreign_key_for!(from_table, options_or_to_table = {})
+          foreign_key_for(from_table, options_or_to_table) || \
+            raise(ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}")
+        end
+
+        def extract_foreign_key_action(specifier)
+          case specifier
+          when "CASCADE"; :cascade
+          when "SET NULL"; :nullify
+          when "RESTRICT"; :restrict
+          end
+        end
+
         def validate_index_length!(table_name, new_name, internal = false)
           max_index_length = internal ? index_name_length : allowed_index_name_length
 
@@ -1305,6 +1323,27 @@ module ActiveRecord
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def insert_versions_sql(versions)
+          sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
+
+          if versions.is_a?(Array)
+            sql = "INSERT INTO #{sm_table} (version) VALUES\n"
+            sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
+            sql << ";\n\n"
+            sql
+          else
+            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
+          end
+        end
+
+        def data_source_sql(name = nil, type: nil)
+          raise NotImplementedError
+        end
+
+        def quoted_scope(name = nil, type: nil)
+          raise NotImplementedError
         end
     end
   end

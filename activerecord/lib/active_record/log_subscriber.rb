@@ -44,17 +44,17 @@ module ActiveRecord
     private
 
       def type_casted_binds(binds, casted_binds)
-        casted_binds || binds.map { |attr| type_cast attr.value_for_database }
+        casted_binds || ActiveRecord::Base.connection.type_casted_binds(binds)
       end
 
-      def render_bind(attr, type_casted_value)
-        value = if attr.type.binary? && attr.value
-          "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
-        else
-          type_casted_value
+      def render_bind(attr, value)
+        if attr.is_a?(Array)
+          attr = attr.first
+        elsif attr.type.binary? && attr.value
+          value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
         end
 
-        [attr.name, value]
+        [attr && attr.name, value]
       end
 
       def colorize_payload_name(name, payload_name)
@@ -88,10 +88,6 @@ module ActiveRecord
 
       def logger
         ActiveRecord::Base.logger
-      end
-
-      def type_cast(value)
-        ActiveRecord::Base.connection.type_cast(value)
       end
   end
 end

@@ -260,6 +260,15 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Person.clear_validators!
   end
 
+  def test_validates_numericality_with_exponent_number
+    base = 10_000_000_000_000_000
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: base
+    topic = Topic.new
+    topic.approved = (base + 1).to_s
+
+    assert topic.invalid?
+  end
+
   def test_validates_numericality_with_invalid_args
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than_or_equal_to: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than_or_equal_to: "foo" }

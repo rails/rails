@@ -63,27 +63,28 @@ module ActiveModel
 
     private
 
-      def is_number?(raw_value) # :doc:
+      def is_number?(raw_value)
         !parse_raw_value_as_a_number(raw_value).nil?
       rescue ArgumentError, TypeError
         false
       end
 
-      def parse_raw_value_as_a_number(raw_value) # :doc:
+      def parse_raw_value_as_a_number(raw_value)
+        return raw_value.to_i if is_integer?(raw_value)
         Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
-      def is_integer?(raw_value) # :doc:
+      def is_integer?(raw_value)
         /\A[+-]?\d+\z/ === raw_value.to_s
       end
 
-      def filtered_options(value) # :doc:
+      def filtered_options(value)
         filtered = options.except(*RESERVED_OPTIONS)
         filtered[:value] = value
         filtered
       end
 
-      def allow_only_integer?(record) # :doc:
+      def allow_only_integer?(record)
         case options[:only_integer]
         when Symbol
           record.send(options[:only_integer])
@@ -134,7 +135,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # See <tt>ActiveModel::Validations#validates</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which
       # corresponds to a method:

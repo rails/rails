@@ -134,7 +134,7 @@ XML
     end
 
     def create
-      head :created, location: "created resource"
+      head :created, location: "/resource"
     end
 
     def render_cookie
@@ -679,6 +679,11 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_path_is_kept_after_the_request
+    get :test_params, params: { id: "foo" }
+    assert_equal "/test_case_test/test/test_params/foo", @request.path
+  end
+
   def test_path_params_reset_between_request
     get :test_params, params: { id: "foo" }
     assert_equal "foo", @request.path_parameters[:id]
@@ -726,20 +731,6 @@ XML
 
     get :test_format
     assert_equal "text/html", @response.body
-  end
-
-  def test_request_path_info_and_format_reset
-    get :test_format, format: "json"
-    assert_equal "application/json", @response.body
-
-    get :test_uri, format: "json"
-    assert_equal "/test_case_test/test/test_uri.json", @response.body
-
-    get :test_format
-    assert_equal "text/html", @response.body
-
-    get :test_uri
-    assert_equal "/test_case_test/test/test_uri", @response.body
   end
 
   def test_request_format_kwarg_overrides_params
@@ -893,12 +884,12 @@ XML
     assert_response :created
 
     # Redirect url doesn't care that it wasn't a :redirect response.
-    assert_equal "created resource", @response.redirect_url
+    assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
     # Must be a :redirect response.
     assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_redirected_to "created resource"
+      assert_redirected_to "/resource"
     end
   end
 

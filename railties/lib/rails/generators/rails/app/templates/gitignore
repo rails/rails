@@ -22,8 +22,8 @@
 <% end -%>
 
 <% unless options[:skip_yarn] -%>
-/vendor/node_modules
-/vendor/yarn-error.log
+/node_modules
+/yarn-error.log
 
 <% end -%>
 .byebug_history

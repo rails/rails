@@ -5,6 +5,7 @@ require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
+require "active_record/connection_adapters/sqlite3/schema_statements"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -55,6 +56,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::ColumnDumper
+      include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -82,14 +84,6 @@ module ActiveRecord
         SQLite3::Table.new(table_name, base)
       end
 
-      def schema_creation # :nodoc:
-        SQLite3::SchemaCreation.new self
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::SQLite.new(self)
-      end
-
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
@@ -114,11 +108,6 @@ module ActiveRecord
       # Returns true, since this connection adapter supports prepared statement
       # caching.
       def supports_statement_cache?
-        true
-      end
-
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations? #:nodoc:
         true
       end
 
@@ -160,10 +149,6 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        true
-      end
-
-      def valid_type?(type)
         true
       end
 
@@ -274,61 +259,6 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def data_sources # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def table_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def data_source_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def view_exists?(view_name) # :nodoc:
-        return false unless view_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(view_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def new_column_from_field(table_name, field) # :nondoc:
-        case field["dflt_value"]
-        when /^null$/i
-          field["dflt_value"] = nil
-        when /^'(.*)'$/m
-          field["dflt_value"] = $1.gsub("''", "'")
-        when /^"(.*)"$/m
-          field["dflt_value"] = $1.gsub('""', '"')
-        end
-
-        collation = field["collation"]
-        sql_type = field["type"]
-        type_metadata = fetch_type_metadata(sql_type)
-        new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
-      end
-
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
         if name
@@ -420,11 +350,10 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          include_default = options_include_default?(options)
           definition[column_name].instance_eval do
             self.type    = type
             self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if include_default
+            self.default = options[:default] if options.include?(:default)
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
             self.scale = options[:scale] if options.include?(:scale)
@@ -545,7 +474,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -606,16 +535,8 @@ module ActiveRecord
           end
         end
 
-        def create_table_definition(*args)
-          SQLite3::TableDefinition.new(*args)
-        end
-
-        def extract_foreign_key_action(specifier)
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          when "RESTRICT"; :restrict
-          end
+        def arel_visitor
+          Arel::Visitors::SQLite.new(self)
         end
 
         def configure_connection

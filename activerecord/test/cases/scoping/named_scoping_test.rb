@@ -23,8 +23,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     all_posts = Topic.base
 
     assert_queries(1) do
-      all_posts.collect
-      all_posts.collect
+      all_posts.collect { true }
+      all_posts.collect { true }
     end
   end
 
@@ -161,13 +161,13 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_first_and_last_should_allow_integers_for_limit
-    assert_equal Topic.base.first(2), Topic.base.to_a.first(2)
+    assert_equal Topic.base.first(2), Topic.base.order("id").to_a.first(2)
     assert_equal Topic.base.last(2), Topic.base.order("id").to_a.last(2)
   end
 
   def test_first_and_last_should_not_use_query_when_results_are_loaded
     topics = Topic.base
-    topics.reload # force load
+    topics.load # force load
     assert_no_queries do
       topics.first
       topics.last
@@ -178,7 +178,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.empty?  # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.empty?  # use loaded (no query)
     end
   end
@@ -187,7 +187,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.any?    # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.any?    # use loaded (no query)
     end
   end
@@ -203,7 +203,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_any_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.load # force load
     assert_no_queries { assert topics.any? }
   end
 
@@ -217,7 +217,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.many?   # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.many?   # use loaded (no query)
     end
   end
@@ -233,7 +233,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_many_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.load # force load
     assert_no_queries { assert topics.many? }
   end
 
@@ -384,7 +384,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_size_should_use_length_when_results_are_loaded
     topics = Topic.base
-    topics.reload # force load
+    topics.load # force load
     assert_no_queries do
       topics.size # use loaded (no query)
     end

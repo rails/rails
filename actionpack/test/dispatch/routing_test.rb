@@ -4913,3 +4913,113 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
     )
   end
 end
+
+class FlashRedirectTest < ActionDispatch::IntegrationTest
+  SessionKey = "_myapp_session"
+  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+
+  class KeyGeneratorMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.key_generator"] ||= Generator
+      @app.call(env)
+    end
+  end
+
+  class FooController < ActionController::Base
+    def bar
+      render plain: (flash[:foo] || "foo")
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get "/foo", to: redirect { |params, req| req.flash[:foo] = "bar"; "/bar" }
+    get "/bar", to: "flash_redirect_test/foo#bar"
+  end
+
+  APP = build_app Routes do |middleware|
+    middleware.use KeyGeneratorMiddleware
+    middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
+    middleware.use ActionDispatch::Flash
+    middleware.delete ActionDispatch::ShowExceptions
+  end
+
+  def app
+    APP
+  end
+
+  include Routes.url_helpers
+
+  def test_block_redirect_commits_flash
+    get "/foo", env: { "action_dispatch.key_generator" => Generator }
+    assert_response :redirect
+
+    follow_redirect!
+    assert_equal "bar", response.body
+  end
+end
+
+class TestRecognizePath < ActionDispatch::IntegrationTest
+  class PageConstraint
+    attr_reader :key, :pattern
+
+    def initialize(key, pattern)
+      @key = key
+      @pattern = pattern
+    end
+
+    def matches?(request)
+      request.path_parameters[key] =~ pattern
+    end
+  end
+
+  stub_controllers do |routes|
+    Routes = routes
+    routes.draw do
+      get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
+      get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
+
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+
+      get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
+      get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
+    end
+  end
+
+  APP = build_app Routes
+  def app
+    APP
+  end
+
+  def test_hash_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/hash/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_proc_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/proc/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_class_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/class/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  private
+
+    def recognize_path(*args)
+      Routes.recognize_path(*args)
+    end
+end

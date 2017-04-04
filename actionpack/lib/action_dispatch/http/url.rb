@@ -101,10 +101,8 @@ module ActionDispatch
         end
 
         def add_trailing_slash(path)
-          # includes querysting
           if path.include?("?")
             path.sub!(/\?/, '/\&')
-          # does not have a .format
           elsif !path.include?(".")
             path.sub!(/[^\/]\z|\A\z/, '\&/')
           end

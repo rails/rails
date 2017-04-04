@@ -42,6 +42,7 @@ DEFAULT_APP_FILES = %w(
   test/helpers
   test/mailers
   test/integration
+  test/system
   vendor
   tmp
   tmp/cache
@@ -132,7 +133,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_generates_correct_session_key
+  def test_app_update_generates_correct_session_key
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -155,7 +156,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/initializers/cors.rb"
   end
 
-  def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
+  def test_new_application_doesnt_need_defaults
+    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
+  end
+
+  def test_new_application_load_defaults
+    app_root = File.join(destination_root, "myfirstapp")
+    run_generator [app_root]
+    output = nil
+
+    Dir.chdir(app_root) do
+      output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
+    end
+
+    assert_equal "false\n", output
+  end
+
+  def test_app_update_keep_the_cookie_serializer_if_it_is_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -167,7 +184,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
+  def test_app_update_set_the_cookie_serializer_to_marshal_if_it_is_not_already_configured
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -182,39 +199,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_dont_set_file_watcher
+  def test_app_update_create_new_framework_defaults
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-      assert_file "#{app_root}/config/environments/development.rb" do |content|
-        assert_match(/# config.file_watcher/, content)
-      end
-    end
-  end
-
-  def test_rails_update_does_not_create_new_framework_defaults_by_default
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    FileUtils.rm("#{app_root}/config/initializers/new_framework_defaults.rb")
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults.rb" do |content|
-        assert_match(/Rails\.application\.config.active_record\.belongs_to_required_by_default = false/, content)
-        assert_no_match(/Rails\.application\.config\.ssl_options/, content)
-      end
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
     end
   end
 
-  def test_rails_update_does_not_create_rack_cors
+  def test_app_update_does_not_create_rack_cors
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -226,7 +226,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_update_does_not_remove_rack_cors_if_already_present
+  def test_app_update_does_not_remove_rack_cors_if_already_present
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
@@ -334,12 +334,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
+      assert_match(/^  config\.read_encrypted_secrets = true/, content)
     end
   end
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.0'"
+    assert_gem "puma", "'~> 3.7'"
   end
 
   def test_generator_if_skip_puma_is_given
@@ -364,10 +365,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "bin/update" do |update_content|
       assert_no_match(/db:migrate/, update_content)
-    end
-
-    assert_file "config/initializers/new_framework_defaults.rb" do |initializer_content|
-      assert_no_match(/belongs_to_required_by_default/, initializer_content)
     end
   end
 
@@ -413,15 +410,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
-    assert_file "config/initializers/new_framework_defaults.rb" do |content|
-      assert_no_match(/unknown_asset_fallback/, content)
-    end
+    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
   end
 
   def test_generator_if_skip_yarn_is_given
     run_generator [destination_root, "--skip-yarn"]
 
-    assert_no_file "vendor/package.json"
+    assert_no_file "package.json"
     assert_no_file "bin/yarn"
   end
 
@@ -441,6 +436,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'redis'/
   end
 
+  def test_generator_if_skip_test_is_given
+    run_generator [destination_root, "--skip-test"]
+    assert_file "Gemfile" do |content|
+      assert_no_match(/capybara/, content)
+      assert_no_match(/selenium-webdriver/, content)
+    end
+  end
+
+  def test_generator_if_skip_system_test_is_given
+    run_generator [destination_root, "--skip_system_test"]
+    assert_file "Gemfile" do |content|
+      assert_no_match(/capybara/, content)
+      assert_no_match(/selenium-webdriver/, content)
+    end
+  end
+
+  def test_generator_if_api_is_given
+    run_generator [destination_root, "--api"]
+    assert_file "Gemfile" do |content|
+      assert_no_match(/capybara/, content)
+      assert_no_match(/selenium-webdriver/, content)
+    end
+  end
+
   def test_inclusion_of_javascript_runtime
     run_generator
     if defined?(JRUBY_VERSION)
@@ -455,14 +474,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/javascripts/application.js" do |contents|
       assert_match %r{^//= require rails-ujs}, contents
     end
-  end
-
-  def test_inclusion_of_javascript_libraries_if_required
-    run_generator [destination_root, "-j", "jquery"]
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require jquery}, contents
-    end
-    assert_gem "jquery-rails"
   end
 
   def test_javascript_is_skipped_if_required
@@ -496,21 +507,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_for_yarn
     run_generator([destination_root])
-    assert_file "vendor/package.json", /dependencies/
+    assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
   end
 
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-yarn"])
-    assert_no_file "vendor/package.json"
+    assert_no_file "package.json"
 
     assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
     end
 
     assert_file ".gitignore" do |content|
-      assert_no_match(/vendor\/node_modules/, content)
-      assert_no_match(/vendor\/yarn-error\.log/, content)
+      assert_no_match(/node_modules/, content)
+      assert_no_match(/yarn-error\.log/, content)
     end
   end
 
@@ -805,8 +816,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 4, @sequence_step
   end
 
-  private
+  def test_system_tests_directory_generated
+    run_generator
 
+    assert_file("test/system/.keep")
+    assert_directory("test/system")
+  end
+
+  def test_system_tests_are_not_generated_on_system_test_skip
+    run_generator [destination_root, "--skip-system-test"]
+
+    assert_no_directory("test/system")
+  end
+
+  def test_system_tests_are_not_generated_on_test_skip
+    run_generator [destination_root, "--skip-test"]
+
+    assert_no_directory("test/system")
+  end
+
+  private
     def stub_rails_application(root)
       Rails.application.config.root = root
       Rails.application.class.stub(:name, "Myapp") do

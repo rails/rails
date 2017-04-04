@@ -83,7 +83,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge(association_scope)
+        target_scope.merge!(association_scope)
       end
 
       # The scope for this association.

@@ -439,3 +439,11 @@ class ActiveSupport::TestCase
     skip message if defined?(JRUBY_VERSION)
   end
 end
+
+class DrivenByRackTest < ActionDispatch::SystemTestCase
+  driven_by :rack_test
+end
+
+class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome
+end

@@ -63,7 +63,7 @@ namespace :app do
 
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
-      RailsUpdate.invoke_from_app_generator :create_bin_files
+      RailsUpdate.invoke_from_app_generator :update_bin_files
     end
 
     task :upgrade_guide_info do

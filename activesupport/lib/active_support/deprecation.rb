@@ -15,6 +15,7 @@ module ActiveSupport
     require "active_support/deprecation/instance_delegator"
     require "active_support/deprecation/behaviors"
     require "active_support/deprecation/reporting"
+    require "active_support/deprecation/constant_accessor"
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/core_ext/module/deprecation"
@@ -32,7 +33,7 @@ module ActiveSupport
     # and the second is a library name
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
-    def initialize(deprecation_horizon = "5.2", gem_name = "Rails")
+    def initialize(deprecation_horizon = "5.3", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
       # By default, warnings are not silenced and debugging is off.

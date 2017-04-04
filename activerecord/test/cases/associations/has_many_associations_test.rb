@@ -40,7 +40,7 @@ require "models/zine"
 require "models/interest"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments
+  fixtures :authors, :author_addresses, :posts, :comments
 
   def test_should_generate_valid_sql
     author = authors(:david)
@@ -51,7 +51,7 @@ class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCa
 end
 
 class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
-  fixtures :authors, :essays, :subscribers, :subscriptions, :people
+  fixtures :authors, :author_addresses, :essays, :subscribers, :subscriptions, :people
 
   def test_custom_primary_key_on_new_record_should_fetch_with_query
     subscriber = Subscriber.new(nick: "webster132")
@@ -100,7 +100,7 @@ end
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
-           :developers_projects, :topics, :authors, :comments,
+           :developers_projects, :topics, :authors, :author_addresses, :comments,
            :posts, :readers, :taggings, :cars, :jobs, :tags,
            :categorizations, :zines, :interests
 
@@ -611,21 +611,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_update_all_on_association_accessed_before_save
     firm = Firm.new(name: "Firm")
-    clients_proxy_id = firm.clients.object_id
     firm.clients << Client.first
     firm.save!
     assert_equal firm.clients.count, firm.clients.update_all(description: "Great!")
-    assert_not_equal clients_proxy_id, firm.clients.object_id
   end
 
   def test_update_all_on_association_accessed_before_save_with_explicit_foreign_key
-    # We can use the same cached proxy object because the id is available for the scope
     firm = Firm.new(name: "Firm", id: 100)
-    clients_proxy_id = firm.clients.object_id
     firm.clients << Client.first
     firm.save!
     assert_equal firm.clients.count, firm.clients.update_all(description: "Great!")
-    assert_equal clients_proxy_id, firm.clients.object_id
   end
 
   def test_belongs_to_sanity
@@ -786,6 +781,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_select_with_block
     assert_equal [1], posts(:welcome).comments.select { |c| c.id == 1 }.map(&:id)
+  end
+
+  def test_select_with_block_and_dirty_target
+    assert_equal 2, posts(:welcome).comments.select { true }.size
+    posts(:welcome).comments.build
+    assert_equal 3, posts(:welcome).comments.select { true }.size
   end
 
   def test_select_without_foreign_key
@@ -1902,7 +1903,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_many_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
-    firm.clients.collect  # force load
+    firm.clients.load  # force load
     assert_no_queries { assert firm.clients.many? }
   end
 
@@ -1941,7 +1942,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_none_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
-    firm.clients.collect  # force load
+    firm.clients.load  # force load
     assert_no_queries { assert ! firm.clients.none? }
   end
 
@@ -1976,7 +1977,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_one_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
-    firm.clients.collect  # force load
+    firm.clients.load  # force load
     assert_no_queries { assert ! firm.clients.one? }
   end
 

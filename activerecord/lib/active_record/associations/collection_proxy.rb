@@ -28,12 +28,9 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      delegate :exists?, :update_all, :arel, to: :scope
-
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
-        merge! association.scope(nullify: false)
       end
 
       def target
@@ -81,7 +78,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select(:id, :name )
+      #   person.pets.select(:id, :name)
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -746,10 +743,6 @@ module ActiveRecord
       #   #    ]
 
       #--
-      def uniq
-        load_target.uniq
-      end
-
       def calculate(operation, column_name)
         null_scope? ? scope.calculate(operation, column_name) : super
       end
@@ -956,19 +949,10 @@ module ActiveRecord
         @association
       end
 
-      # We don't want this object to be put on the scoping stack, because
-      # that could create an infinite loop where we call an @association
-      # method, which gets the current scope, which is this object, which
-      # delegates to @association, and so on.
-      def scoping
-        @association.scope.scoping { yield }
-      end
-
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        @association.scope
+        @scope ||= @association.scope
       end
-      alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
@@ -1100,6 +1084,7 @@ module ActiveRecord
       #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
+        @scope = nil
         proxy_association.reload
         self
       end
@@ -1121,10 +1106,20 @@ module ActiveRecord
       #   person.pets  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reset
+        @scope = nil
         proxy_association.reset
         proxy_association.reset_scope
         self
       end
+
+      delegate_methods = [
+        QueryMethods,
+        SpawnMethods,
+      ].flat_map { |klass|
+        klass.public_instance_methods(false)
+      } - self.public_instance_methods(false) - [:select] + [:scoping]
+
+      delegate(*delegate_methods, to: :scope)
 
       private
 
@@ -1148,6 +1143,19 @@ module ActiveRecord
 
         def exec_queries
           load_target
+        end
+
+        def respond_to_missing?(method, _)
+          scope.respond_to?(method) || super
+        end
+
+        def method_missing(method, *args, &block)
+          if scope.respond_to?(method) && scope.extending_values.any?
+            extend(*scope.extending_values)
+            public_send(method, *args, &block)
+          else
+            super
+          end
         end
     end
   end

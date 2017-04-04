@@ -337,20 +337,20 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_schema_migrations_table_name
-    original_schema_migrations_table_name = ActiveRecord::Migrator.schema_migrations_table_name
+    original_schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-    assert_equal "schema_migrations", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "schema_migrations", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.schema_migrations_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_changed_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "changed", ActiveRecord::SchemaMigration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
     Reminder.reset_table_name
@@ -1141,5 +1141,13 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_deprecate_migration_keys
     assert_deprecated { ActiveRecord::Base.connection.migration_keys }
+  end
+
+  def test_deprecate_supports_migrations
+    assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
+  end
+
+  def test_deprecate_schema_migrations_table_name
+    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
   end
 end

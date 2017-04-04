@@ -30,6 +30,16 @@ module ActiveRecord
       assert_nothing_raised { Book.destroy(0) }
     end
 
+    def test_valid_column
+      @connection.native_database_types.each_key do |type|
+        assert @connection.valid_type?(type)
+      end
+    end
+
+    def test_invalid_column
+      assert_not @connection.valid_type?(:foobar)
+    end
+
     def test_tables
       tables = @connection.tables
       assert_includes tables, "accounts"
@@ -204,6 +214,15 @@ module ActiveRecord
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
+    end
+
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_select_all_with_legacy_binds
+        post = Post.create!(title: "foo", body: "bar")
+        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
+        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new.to_sql}", nil, [[nil, post.id]])
+        assert_equal expected.to_hash, result.to_hash
+      end
     end
 
     def test_select_methods_passing_a_association_relation

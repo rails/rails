@@ -1,5 +1,6 @@
 require "date"
 require "abstract_unit"
+require "timeout"
 require "inflector_test_cases"
 require "constantize_test_cases"
 
@@ -74,6 +75,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_titleize
     MixtureToTitleCase.each do |before, titleized|
       assert_equal(titleized, before.titleize)
+    end
+  end
+
+  def test_titleize_with_keep_id_suffix
+    MixtureToTitleCaseWithKeepIdSuffix.each do |before, titleized|
+      assert_equal(titleized, before.titleize(keep_id_suffix: true))
     end
   end
 
@@ -195,6 +202,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, underscore.humanize(capitalize: false))
+    end
+  end
+
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, underscore.humanize(keep_id_suffix: true))
     end
   end
 

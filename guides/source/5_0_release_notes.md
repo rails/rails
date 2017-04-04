@@ -242,7 +242,7 @@ Please refer to the [Changelog][railties] for detailed changes.
      [Pull Request](https://github.com/rails/rails/pull/22288))
 
 *   New applications are generated with the evented file system monitor enabled
-    on Linux and Mac OS X. The feature can be opted out by passing
+    on Linux and macOS. The feature can be opted out by passing
     `--skip-listen` to the generator.
     ([commit](https://github.com/rails/rails/commit/de6ad5665d2679944a9ee9407826ba88395a1003),
     [commit](https://github.com/rails/rails/commit/94dbc48887bf39c241ee2ce1741ee680d773f202))

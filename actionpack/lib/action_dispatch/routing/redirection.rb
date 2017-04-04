@@ -36,6 +36,8 @@ module ActionDispatch
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
+        req.commit_flash
+
         body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
@@ -144,7 +146,7 @@ module ActionDispatch
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
       #
-      # Note that if you return a path without a leading slash then the url is prefixed with the
+      # Note that if you return a path without a leading slash then the URL is prefixed with the
       # current SCRIPT_NAME environment variable. This is typically '/' but may be different in
       # a mounted engine or where the application is deployed to a subdirectory of a website.
       #
@@ -163,7 +165,7 @@ module ActionDispatch
       # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
       # the block to +get+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
-      # The options version of redirect allows you to supply only the parts of the url which need
+      # The options version of redirect allows you to supply only the parts of the URL which need
       # to change, it also supports interpolation of the path similar to the first example.
       #
       #   get 'stores/:name',       to: redirect(subdomain: 'stores', path: '/%{name}')

@@ -548,12 +548,10 @@ module ActiveRecord
       end
 
       def call(env)
-        if connection.supports_migrations?
-          mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-          if @last_check < mtime
-            ActiveRecord::Migration.check_pending!(connection)
-            @last_check = mtime
-          end
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
+          ActiveRecord::Migration.check_pending!(connection)
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -1027,10 +1025,11 @@ module ActiveRecord
       def schema_migrations_table_name
         SchemaMigration.table_name
       end
+      deprecate :schema_migrations_table_name
 
       def get_all_versions(connection = Base.connection)
-        if connection.table_exists?(schema_migrations_table_name)
-          SchemaMigration.all.map { |x| x.version.to_i }.sort
+        if SchemaMigration.table_exists?
+          SchemaMigration.all_versions.map(&:to_i)
         else
           []
         end
@@ -1058,10 +1057,6 @@ module ActiveRecord
         Array(@migrations_paths)
       end
 
-      def match_to_migration_filename?(filename) # :nodoc:
-        Migration::MigrationFilenameRegexp.match?(File.basename(filename))
-      end
-
       def parse_migration_filename(filename) # :nodoc:
         File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
       end
@@ -1069,9 +1064,7 @@ module ActiveRecord
       def migrations(paths)
         paths = Array(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
-
-        migrations = files.map do |file|
+        migrations = migration_files(paths).map do |file|
           version, name, scope = parse_migration_filename(file)
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -1081,6 +1074,30 @@ module ActiveRecord
         end
 
         migrations.sort_by(&:version)
+      end
+
+      def migrations_status(paths)
+        paths = Array(paths)
+
+        db_list = ActiveRecord::SchemaMigration.normalized_versions
+
+        file_list = migration_files(paths).map do |file|
+          version, name, scope = parse_migration_filename(file)
+          raise IllegalMigrationNameError.new(file) unless version
+          version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+          status = db_list.delete(version) ? "up" : "down"
+          [status, version, (name + scope).humanize]
+        end.compact
+
+        db_list.map! do |version|
+          ["up", version, "********** NO FILE **********"]
+        end
+
+        (db_list + file_list).sort_by { |_, version, _| version }
+      end
+
+      def migration_files(paths)
+        Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
       end
 
       private
@@ -1098,8 +1115,6 @@ module ActiveRecord
     end
 
     def initialize(direction, migrations, target_version = nil)
-      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil

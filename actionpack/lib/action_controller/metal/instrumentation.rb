@@ -3,7 +3,7 @@ require "abstract_controller/logger"
 
 module ActionController
   # Adds instrumentation to several ends in ActionController::Base. It also provides
-  # some hooks related with process_action, this allows an ORM like Active Record
+  # some hooks related with process_action. This allows an ORM like Active Record
   # and/or DataMapper to plug in ActionController and show related information.
   #
   # Check ActiveRecord::Railties::ControllerRuntime for an example.

@@ -260,7 +260,7 @@ class Module
   #   end
   #
   # The target can be anything callable within the object. E.g. instance
-  # variables, methods, constants ant the likes.
+  # variables, methods, constants and the likes.
   def delegate_missing_to(target)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)

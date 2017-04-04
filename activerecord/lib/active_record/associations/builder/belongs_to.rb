@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      super + [:polymorphic, :touch, :counter_cache, :optional]
+      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
@@ -16,6 +16,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      add_default_callbacks(model, reflection)       if reflection.options[:default]
     end
 
     def self.define_accessors(mixin, reflection)
@@ -116,6 +117,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.after_save    callback.(:saved_changes), if: :saved_changes?
       model.after_touch   callback.(:changes_to_save)
       model.after_destroy callback.(:changes_to_save)
+    end
+
+    def self.add_default_callbacks(model, reflection)
+      model.before_validation lambda { |o|
+        o.association(reflection.name).default(&reflection.options[:default])
+      }
     end
 
     def self.add_destroy_callbacks(model, reflection)

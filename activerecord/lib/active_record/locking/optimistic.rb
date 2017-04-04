@@ -47,8 +47,6 @@ module ActiveRecord
     #     self.locking_column = :lock_person
     #   end
     #
-    # Please note that the optimistic locking will be ignored if you update the
-    # locking column's value.
     module Optimistic
       extend ActiveSupport::Concern
 
@@ -80,13 +78,11 @@ module ActiveRecord
 
         def _update_record(attribute_names = self.attribute_names)
           return super unless locking_enabled?
-
-          lock_col = self.class.locking_column
-
-          return super if attribute_names.include?(lock_col)
           return 0 if attribute_names.empty?
 
           begin
+            lock_col = self.class.locking_column
+
             previous_lock_value = read_attribute_before_type_cast(lock_col)
 
             increment_lock

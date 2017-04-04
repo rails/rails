@@ -112,6 +112,77 @@ module ActionController
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
+    ##
+    # :method: as_json
+    #
+    # :call-seq:
+    #   as_json(options=nil)
+    #
+    # Returns a hash that can be used as the JSON representation for the parameters.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq:
+    #   empty?()
+    #
+    # Returns true if the parameters have no key/value pairs.
+
+    ##
+    # :method: has_key?
+    #
+    # :call-seq:
+    #   has_key?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: has_value?
+    #
+    # :call-seq:
+    #   has_value?(value)
+    #
+    # Returns true if the given value is present for some key in the parameters.
+
+    ##
+    # :method: include?
+    #
+    # :call-seq:
+    #   include?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: key?
+    #
+    # :call-seq:
+    #   key?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
+    # :method: keys
+    #
+    # :call-seq:
+    #   keys()
+    #
+    # Returns a new array of the keys of the parameters.
+
+    ##
+    # :method: value?
+    #
+    # :call-seq:
+    #   value?(value)
+    #
+    # Returns true if the given value is present for some key in the parameters.
+
+    ##
+    # :method: values
+    #
+    # :call-seq:
+    #   values()
+    #
+    # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
       :as_json, to: :@parameters
 
@@ -191,7 +262,7 @@ module ActionController
     alias_method :to_unsafe_hash, :to_unsafe_h
 
     # Convert all hashes in values into parameters, then yield each pair in
-    # the same way as <tt>Hash#each_pair</tt>
+    # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
       @parameters.each_pair do |key, value|
         yield key, convert_hashes_to_parameters(key, value)
@@ -339,7 +410,7 @@ module ActionController
     #
     #   params.permit(preferences: {})
     #
-    # but be careful because this opens the door to arbitrary input. In this
+    # Be careful because this opens the door to arbitrary input. In this
     # case, +permit+ ensures values in the returned structure are permitted
     # scalars and filters out anything else.
     #
@@ -575,19 +646,36 @@ module ActionController
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> with all keys from
-    # +other_hash+ merges into current hash.
+    # +other_hash+ merged into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
         @parameters.merge(other_hash.to_h)
       )
     end
 
-    # Returns current <tt>ActionController::Parameters</tt> instance which
-    # +other_hash+ merges into current hash.
+    # Returns current <tt>ActionController::Parameters</tt> instance with
+    # +other_hash+ merged into current hash.
     def merge!(other_hash)
       @parameters.merge!(other_hash.to_h)
       self
     end
+
+    # Returns a new <tt>ActionController::Parameters</tt> with all keys from
+    # current hash merged into +other_hash+.
+    def reverse_merge(other_hash)
+      new_instance_with_inherited_permitted_status(
+        other_hash.to_h.merge(@parameters)
+      )
+    end
+    alias_method :with_defaults, :reverse_merge
+
+    # Returns current <tt>ActionController::Parameters</tt> instance with
+    # current hash merged into +other_hash+.
+    def reverse_merge!(other_hash)
+      @parameters.merge!(other_hash.to_h) { |key, left, right| left }
+      self
+    end
+    alias_method :with_defaults!, :reverse_merge!
 
     # This is required by ActiveModel attribute assignment, so that user can
     # pass +Parameters+ to a mass assignment methods in a model. It should not
@@ -629,7 +717,7 @@ module ActionController
 
     undef_method :to_param
 
-    # Returns duplicate of object including all parameters
+    # Returns duplicate of object including all parameters.
     def deep_dup
       self.class.new(@parameters.deep_dup).tap do |duplicate|
         duplicate.permitted = @permitted
@@ -849,7 +937,7 @@ module ActionController
   # whitelisted.
   #
   # In addition, parameters can be marked as required and flow through a
-  # predefined raise/rescue flow to end up as a 400 Bad Request with no
+  # predefined raise/rescue flow to end up as a <tt>400 Bad Request</tt> with no
   # effort.
   #
   #   class PeopleController < ActionController::Base
@@ -862,7 +950,7 @@ module ActionController
   #     end
   #
   #     # This will pass with flying colors as long as there's a person key in the
-  #     # parameters, otherwise it'll raise an ActionController::MissingParameter
+  #     # parameters, otherwise it'll raise an ActionController::ParameterMissing
   #     # exception, which will get caught by ActionController::Base and turned
   #     # into a 400 Bad Request reply.
   #     def update
@@ -873,7 +961,7 @@ module ActionController
   #
   #     private
   #       # Using a private method to encapsulate the permissible parameters is
-  #       # just a good pattern since you'll be able to reuse the same permit
+  #       # a good pattern since you'll be able to reuse the same permit
   #       # list between create and update. Also, you can specialize this method
   #       # with per-user checking of permissible attributes.
   #       def person_params

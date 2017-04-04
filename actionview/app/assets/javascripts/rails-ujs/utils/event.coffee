@@ -6,7 +6,7 @@
 # https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent#Polyfill
 CustomEvent = window.CustomEvent
 
-if typeof CustomEvent is 'function'
+if typeof CustomEvent isnt 'function'
   CustomEvent = (event, params) ->
     evt = document.createEvent('CustomEvent')
     evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)

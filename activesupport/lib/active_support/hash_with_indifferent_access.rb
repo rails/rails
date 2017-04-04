@@ -225,11 +225,13 @@ module ActiveSupport
     def reverse_merge(other_hash)
       super(self.class.new(other_hash))
     end
+    alias_method :with_defaults, :reverse_merge
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
       replace(reverse_merge(other_hash))
     end
+    alias_method :with_defaults!, :reverse_merge!
 
     # Replaces the contents of this hash with other_hash.
     #
@@ -270,7 +272,7 @@ module ActiveSupport
     end
 
     def compact
-      dup.compact!
+      dup.tap(&:compact!)
     end
 
     # Convert to a regular hash with string keys.
@@ -315,5 +317,7 @@ module ActiveSupport
       end
   end
 end
+
+# :stopdoc:
 
 HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess

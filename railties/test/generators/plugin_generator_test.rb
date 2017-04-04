@@ -1,6 +1,7 @@
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
+require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
@@ -491,6 +492,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
+    assert_no_directory "test/dummy/.git"
   end
 
   def test_skipping_test_files
@@ -530,6 +532,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
+  ensure
+    Object.send(:remove_const, "APP_PATH")
+    FileUtils.rm gemfile_path
+  end
+
+  def test_creating_plugin_only_specify_plugin_name_in_app_directory_adds_gemfile_entry
+    # simulate application existence
+    gemfile_path = "#{Rails.root}/Gemfile"
+    Object.const_set("APP_PATH", Rails.root)
+    FileUtils.touch gemfile_path
+
+    FileUtils.cd(destination_root)
+    run_generator ["bukkits"]
+
+    assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
   ensure
     Object.send(:remove_const, "APP_PATH")
     FileUtils.rm gemfile_path
@@ -713,6 +730,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/module Bukkits/, record)
       assert_match(/class ApplicationJob < ActiveJob::Base/, record)
     end
+  end
+
+  def test_app_update_generates_bin_file
+    run_generator [destination_root, "--mountable"]
+
+    Object.const_set("ENGINE_ROOT", destination_root)
+    FileUtils.rm("#{destination_root}/bin/rails")
+
+    quietly { Rails::Engine::Updater.run(:create_bin_files) }
+
+    assert_file "#{destination_root}/bin/rails" do |content|
+      assert_match(%r|APP_PATH = File\.expand_path\('\.\./\.\./test/dummy/config/application', __FILE__\)|, content)
+    end
+  ensure
+    Object.send(:remove_const, "ENGINE_ROOT")
   end
 
   private
