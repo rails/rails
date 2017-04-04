@@ -131,7 +131,7 @@ Now we can associate this author with a book:
  => #<Book id: 1, author_id: 1, name: "Remote: Office Not Required", ...>
 ```
 
-Note that we inserted the id of the author David Heinemeier Hansson into the `author_id` field of our book. With this association in place we can view this assocation from the perspective of the book:
+Note that we inserted the id of the author (David Heinemeier Hansson) into the `author_id` field of our book. With this association in place, we can view this assocation from the perspective of the book:
 
 ```ruby
 @book.author
@@ -182,7 +182,7 @@ create_table :accounts do |t|
   # ...
 end
 ```
-To see this in action, working from the console we can first create a supplier:
+To see this in action, using the rails console we can first create a supplier:
 
 ```ruby
 @supplier = Supplier.create(name: "Acme")
@@ -195,7 +195,7 @@ Now we can create an account that is automatically associated with this supplier
 @account = @supplier.create_account(account_number: '123')
  => #<Account id: 1, supplier_id: 1, account_number: "123", ...>
 ```
-Note that the `supplier_id` (in this case 1) is inserted into the Accounts table. Now let's add a second account_number for this supplier:
+Note that the `supplier_id` (in this case 1) is inserted into the `accounts` table. Now let's add a second `account_number` for this supplier:
 
 ```ruby
 @account = @supplier.create_account(account_number: '456')
@@ -203,7 +203,7 @@ Note that the `supplier_id` (in this case 1) is inserted into the Accounts table
   UPDATE "accounts" [["supplier_id", nil], ..., ["id", 1]]
  => #<Account id: 2, supplier_id: 1, account_number: "456", ...>
 ```
-Now we see the true power of the `has_one` association. Notice that when we inserted another account_number for this same supplier into the database that two things happened. First, we inserted a new record in to the accounts table with an account_number of 456. Second, this command also updated the previous record we inserted into the database and set the supplier_id to nil. This database transaction ensures that a supplier truly only "has one" account.
+Now we see the true power of the `has_one` association. Notice that when we inserted another account_number for this same supplier into the database that two things happened. First, we inserted a new record in to the accounts table with an account_number of 456. Second, this command also updated the previous record we inserted in to the database and set the supplier_id to nil. This database transaction ensures that a supplier truly only "has one" account.
 
 You may view more examples at the [`has_one` Association Reference](#has-one-association-reference).
 
@@ -316,7 +316,7 @@ If some that existed previously are now missing, then their join rows are automa
 
 WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
 
-To see this association in action let's create a physician and a couple of patients:
+To see this association in action, let's create a physician and a couple of patients:
 
 ```ruby
 @physician = Physician.create(name: "Eileen Uchitelle")
@@ -335,7 +335,7 @@ Now let's create appointments to associate the patients to our physician:
 @patient2.appointments.create(physician: @physician, appointment_date: Date.today)
  => #<Appointment id: 2, physician_id: 1, patient_id: 2, appointment_date: "2017-03-17 00:00:00", ...>
 ```
-Note that an appointment contains both a physician and a patient, so Appointments acts as a join table. To see all patients assigned to a physician we can do:
+Note that an `appointment` contains both a physician and a patient, so Appointments acts as a join table. To see all patients assigned to a physician we can do:
 
 ```ruby
 @physician.patients
@@ -444,7 +444,7 @@ To see this in action we might do somthing like:
   UPDATE [["account_id", nil], ["updated_at", 2017-03-22 14:54:40 UTC], ["id", 1]]
  => #<AccountHistory id: 2, account_id: 1, credit_rating: 789, created_at: "2017-03-22 14:54:40", updated_at: "2017-03-22 14:54:40">
 ```
-As in our earlier [`has_one`](##the-has-one-association) example there is an insert statement for the new record that has a credit_rating of 789, but also notice the update statement that sets account_id in the previous record we inserted to nil. We can confirm this with the following console command:
+As in our earlier [`has_one`](##the-has-one-association) example, there is an insert statement for the new record that has a credit_rating of 789, but also notice the update statement that sets account_id in the previous record we inserted to nil. We can confirm this with the following console command:
 
 ```ruby
  AccountHistory.all
