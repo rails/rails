@@ -1,3 +1,7 @@
+*   Fix inconsistency with changed attributes when overriding AR attribute reader.
+
+    *bogdanvlviv*
+
 *   When calling the dynamic fixture accessor method with no arguments it now returns all fixtures of this type.
     Previously this method always returned an empty array.
 
