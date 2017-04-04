@@ -68,12 +68,23 @@ class ClientTest < ActionCable::TestCase
     server.min_threads = 1
     server.max_threads = 4
 
-    t = Thread.new { server.run.join }
-    yield port
+    thread = server.run
 
-  ensure
-    server.stop(true) if server
-    t.join if t
+    begin
+      yield port
+
+    ensure
+      server.stop
+
+      begin
+        thread.join
+      rescue RuntimeError => ex
+        raise unless ex.message =~ /can't modify frozen IOError/
+
+        # Work around https://bugs.ruby-lang.org/issues/13239
+        server.binder.close
+      end
+    end
   end
 
   class SyncClient
