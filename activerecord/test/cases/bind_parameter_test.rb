@@ -3,8 +3,7 @@ require "models/topic"
 require "models/author"
 require "models/post"
 
-if ActiveRecord::Base.connection.supports_statement_cache? &&
-   ActiveRecord::Base.connection.prepared_statements
+if ActiveRecord::Base.connection.prepared_statements
   module ActiveRecord
     class BindParameterTest < ActiveRecord::TestCase
       fixtures :topics, :authors, :author_addresses, :posts
@@ -64,6 +63,10 @@ if ActiveRecord::Base.connection.supports_statement_cache? &&
       def test_logs_legacy_binds_after_type_cast
         binds = [[@pk, "10"]]
         assert_logs_binds(binds)
+      end
+
+      def test_deprecate_supports_statement_cache
+        assert_deprecated { ActiveRecord::Base.connection.supports_statement_cache? }
       end
 
       private
