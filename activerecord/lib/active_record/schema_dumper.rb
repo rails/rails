@@ -17,7 +17,7 @@ module ActiveRecord
     @@ignore_tables = []
 
     class << self
-      def dump(connection=ActiveRecord::Base.connection, stream=STDOUT, config = ActiveRecord::Base)
+      def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         new(connection, generate_options(config)).dump(stream)
         stream
       end
@@ -85,7 +85,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.data_sources.sort - @connection.views
+        sorted_tables = @connection.tables.sort
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
@@ -115,9 +115,7 @@ HEADER
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = @connection.column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
-              pkcolspec.each do |key, value|
-                tbl.print ", #{key}: #{value}"
-              end
+              tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
             tbl.print ", primary_key: #{pk.inspect}"
@@ -128,26 +126,19 @@ HEADER
 
           table_options = @connection.table_options(table)
           if table_options.present?
-            table_options.each do |key, value|
-              tbl.print ", #{key}: #{value.inspect}" if value.present?
-            end
+            tbl.print ", #{format_options(table_options)}"
           end
 
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
-          column_specs = columns.map do |column|
+          columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            @connection.column_spec(column)
-          end.compact
-
-          # find all migration keys used in this table
-          keys = @connection.migration_keys
-
-          column_specs.each do |colspec|
-            values = keys.map { |key| colspec[key] }.compact
-            tbl.puts "    t.#{colspec[:type]} #{values.join(", ")}"
+            type, colspec = @connection.column_spec(column)
+            tbl.print "    t.#{type} #{column.name.inspect}"
+            tbl.print ", #{format_colspec(colspec)}" if colspec.present?
+            tbl.puts
           end
 
           indexes_in_create(table, tbl)
@@ -171,7 +162,7 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([table_name]+index_parts(index)).join(', ')}"
+            "  add_index #{([table_name] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -194,14 +185,10 @@ HEADER
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-
-        index_lengths = (index.lengths || []).compact
-        index_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
-
-        index_orders = index.orders || {}
-        index_parts << "order: #{index.orders.inspect}" if index_orders.any?
+        index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
+        index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
         index_parts << "where: #{index.where.inspect}" if index.where
-        index_parts << "using: #{index.using.inspect}" if index.using
+        index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
@@ -235,6 +222,14 @@ HEADER
 
           stream.puts add_foreign_key_statements.sort.join("\n")
         end
+      end
+
+      def format_colspec(colspec)
+        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
+      end
+
+      def format_options(options)
+        options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
       end
 
       def remove_prefix_and_suffix(table)

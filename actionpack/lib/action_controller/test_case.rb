@@ -3,6 +3,7 @@ require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/hash/keys"
+require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
 require "rails-dom-testing"
 
@@ -12,10 +13,10 @@ module ActionController
   end
 
   module Live
-    # Disable controller / rendering threads in tests.  User tests can access
+    # Disable controller / rendering threads in tests. User tests can access
     # the database on the main thread, so they could open a txn, then the
     # controller thread will open a new connection and try to access data
-    # that's only visible to the main thread's txn.  This is the problem in #23483
+    # that's only visible to the main thread's txn. This is the problem in #23483.
     remove_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
@@ -34,7 +35,7 @@ module ActionController
 
     attr_reader :controller_class
 
-    # Create a new test request with default `env` values
+    # Create a new test request with default `env` values.
     def self.create(controller_class)
       env = {}
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
@@ -112,8 +113,9 @@ module ActionController
           end
         end
 
-        set_header "CONTENT_LENGTH", data.length.to_s
-        set_header "rack.input", StringIO.new(data)
+        data_stream = StringIO.new(data)
+        set_header "CONTENT_LENGTH", data_stream.length.to_s
+        set_header "rack.input", data_stream
       end
 
       fetch_header("PATH_INFO") do |k|
@@ -129,7 +131,7 @@ module ActionController
       include Rack::Test::Utils
 
       def should_multipart?(params)
-        # FIXME: lifted from Rack-Test. We should push this separation upstream
+        # FIXME: lifted from Rack-Test. We should push this separation upstream.
         multipart = false
         query = lambda { |value|
           case value
@@ -298,7 +300,7 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
+  # On top of the collections, you have the complete URL that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
@@ -352,7 +354,7 @@ module ActionController
         end
 
         def controller_class
-          if current_controller_class = self._controller_class
+          if current_controller_class = _controller_class
             current_controller_class
           else
             self.controller_class = determine_default_controller_class(name)
@@ -386,56 +388,41 @@ module ActionController
       #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
-      def get(action, *args)
-        res = process_with_kwargs("GET", action, *args)
+      def get(action, **args)
+        res = process(action, method: "GET", **args)
         cookies.update res.cookies
         res
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
       # See +get+ for more details.
-      def post(action, *args)
-        process_with_kwargs("POST", action, *args)
+      def post(action, **args)
+        process(action, method: "POST", **args)
       end
 
       # Simulate a PATCH request with the given parameters and set/volley the response.
       # See +get+ for more details.
-      def patch(action, *args)
-        process_with_kwargs("PATCH", action, *args)
+      def patch(action, **args)
+        process(action, method: "PATCH", **args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
       # See +get+ for more details.
-      def put(action, *args)
-        process_with_kwargs("PUT", action, *args)
+      def put(action, **args)
+        process(action, method: "PUT", **args)
       end
 
       # Simulate a DELETE request with the given parameters and set/volley the response.
       # See +get+ for more details.
-      def delete(action, *args)
-        process_with_kwargs("DELETE", action, *args)
+      def delete(action, **args)
+        process(action, method: "DELETE", **args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
       # See +get+ for more details.
-      def head(action, *args)
-        process_with_kwargs("HEAD", action, *args)
+      def head(action, **args)
+        process(action, method: "HEAD", **args)
       end
-
-      def xml_http_request(*args)
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          xhr and xml_http_request methods are deprecated in favor of
-          `get :index, xhr: true` and `post :create, xhr: true`
-        MSG
-
-        @request.env["HTTP_X_REQUESTED_WITH"] = "XMLHttpRequest"
-        @request.env["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
-        __send__(*args).tap do
-          @request.env.delete "HTTP_X_REQUESTED_WITH"
-          @request.env.delete "HTTP_ACCEPT"
-        end
-      end
-      alias xhr :xml_http_request
 
       # Simulate an HTTP request to +action+ by specifying request method,
       # parameters and set/volley the response.
@@ -467,40 +454,14 @@ module ActionController
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, *args)
+      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
-
-        if kwarg_request?(args)
-          parameters, session, body, flash, http_method, format, xhr, as = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr, :as)
-        else
-          http_method, parameters, session, flash = args
-          format = nil
-
-          if parameters.is_a?(String) && http_method != "HEAD"
-            body = parameters
-            parameters = nil
-          end
-
-          if parameters || session || flash
-            non_kwarg_request_warning
-          end
-        end
 
         if body
           @request.set_header "RAW_POST_DATA", body
         end
 
-        if http_method
-          http_method = http_method.to_s.upcase
-        else
-          http_method = "GET"
-        end
-
-        parameters ||= {}
-
-        if format
-          parameters[:format] = format
-        end
+        http_method = method.to_s.upcase
 
         @html_document = nil
 
@@ -521,7 +482,11 @@ module ActionController
           format ||= as
         end
 
-        parameters = parameters.symbolize_keys
+        parameters = params.symbolize_keys
+
+        if format
+          parameters[:format] = format
+        end
 
         generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
         generated_path = generated_path(generated_extras)
@@ -549,8 +514,6 @@ module ActionController
         ensure
           @request = @controller.request
           @response = @controller.response
-
-          @request.delete_header "HTTP_COOKIE"
 
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?
@@ -639,38 +602,6 @@ module ActionController
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new
           env
-        end
-
-        def process_with_kwargs(http_method, action, *args)
-          if kwarg_request?(args)
-            args.first.merge!(method: http_method)
-            process(action, *args)
-          else
-            non_kwarg_request_warning if args.any?
-
-            args = args.unshift(http_method)
-            process(action, *args)
-          end
-        end
-
-        REQUEST_KWARGS = %i(params session flash method body xhr)
-        def kwarg_request?(args)
-          args[0].respond_to?(:keys) && (
-            (args[0].key?(:format) && args[0].keys.size == 1) ||
-            args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
-          )
-        end
-
-        def non_kwarg_request_warning
-          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-            ActionController::TestCase HTTP request methods will accept only
-            keyword arguments in future Rails versions.
-
-            Examples:
-
-            get :show, params: { id: 1 }, session: { user_id: 1 }
-            process :update, method: :post, params: { id: 1 }
-          MSG
         end
 
         def document_root_element

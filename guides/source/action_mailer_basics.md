@@ -160,8 +160,8 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 #### Calling the Mailer
 
 Mailers are really just another way to render a view. Instead of rendering a
-view and sending out the HTTP protocol, they are just sending it out through the
-email protocols instead. Due to this, it makes sense to just have your
+view and sending it over the HTTP protocol, they are just sending it out through
+the email protocols instead. Due to this, it makes sense to just have your
 controller tell the Mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
@@ -400,7 +400,7 @@ class UserMailer < ApplicationMailer
     mail(to: @user.email,
          subject: 'Welcome to My Awesome Site') do |format|
       format.html { render 'another_template' }
-      format.text { render text: 'Render text' }
+      format.text { render plain: 'Render text' }
     end
   end
 end
@@ -525,7 +525,7 @@ By using the full URL, your links will now work in your emails.
 
 #### Generating URLs with `url_for`
 
-`url_for` generate full URL by default in templates.
+`url_for` generates a full URL by default in templates.
 
 If you did not configure the `:host` option globally make sure to pass it to
 `url_for`.
@@ -550,8 +550,9 @@ url helper.
 <%= user_url(@user, host: 'example.com') %>
 ```
 
-NOTE: non-`GET` links require [jQuery UJS](https://github.com/rails/jquery-ujs)
-and won't work in mailer templates. They will result in normal `GET` requests.
+NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/master/actionview/app/assets/javascripts) or
+[jQuery UJS](https://github.com/rails/jquery-ujs), and won't work in mailer templates.
+They will result in normal `GET` requests.
 
 ### Adding images in Action Mailer Views
 
@@ -574,7 +575,7 @@ Now you can display an image inside your email.
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
-templates for the same action. So, for our UserMailer example, if you have
+templates for the same action. So, for our `UserMailer` example, if you have
 `welcome_email.text.erb` and `welcome_email.html.erb` in
 `app/views/user_mailer`, Action Mailer will automatically send a multipart email
 with the HTML and text versions setup as different parts.

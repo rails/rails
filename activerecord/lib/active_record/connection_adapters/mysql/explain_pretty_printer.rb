@@ -47,7 +47,7 @@ module ActiveRecord
 
           def build_separator(widths)
             padding = 1
-            "+" + widths.map { |w| "-" * (w + (padding*2)) }.join("+") + "+"
+            "+" + widths.map { |w| "-" * (w + (padding * 2)) }.join("+") + "+"
           end
 
           def build_cells(items, widths)

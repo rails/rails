@@ -18,7 +18,7 @@ module MultibyteTestHelpers
   end
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
-  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
+  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}"
   FileUtils.mkdir_p(CACHE_DIR)
 
   UNICODE_STRING = "こにちわ".freeze
@@ -33,7 +33,7 @@ module MultibyteTestHelpers
     str.to_s.unpack("U*").map { |cp| cp.to_s(16) }.join(" ")
   end
 
-  def assert_equal_codepoints(expected, actual, message=nil)
+  def assert_equal_codepoints(expected, actual, message = nil)
     assert_equal(inspect_codepoints(expected), inspect_codepoints(actual), message)
   end
 end

@@ -171,12 +171,12 @@ module AbstractController
       end
 
       private
-      # Makes all the (instance) methods in the helper module available to templates
-      # rendered through this controller.
-      #
-      # ==== Parameters
-      # * <tt>module</tt> - The module to include into the current helper module
-      #   for the class
+        # Makes all the (instance) methods in the helper module available to templates
+        # rendered through this controller.
+        #
+        # ==== Parameters
+        # * <tt>module</tt> - The module to include into the current helper module
+        #   for the class
         def add_template_helper(mod)
           _helpers.module_eval { include mod }
         end

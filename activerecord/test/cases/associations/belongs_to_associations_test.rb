@@ -116,6 +116,26 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
+  def test_default
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, default: -> { david }
+    end
+
+    ship = model.create!
+    assert_equal david, ship.developer
+
+    ship = model.create!(developer: jamis)
+    assert_equal jamis, ship.developer
+
+    ship.update!(developer: nil)
+    assert_equal david, ship.developer
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
@@ -285,10 +305,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_failing_create!
-    client  = Client.create!(name: "Jimmy")
+    client = Client.create!(name: "Jimmy")
     assert_raise(ActiveRecord::RecordInvalid) { client.create_account! }
     assert_not_nil client.account
     assert client.account.new_record?
+  end
+
+  def test_reloading_the_belonging_object
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_equal "ODEGY", odegy_account.reload_firm.name
   end
 
   def test_natural_assignment_to_nil
@@ -346,7 +376,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_with_select
     assert_equal 1, Company.find(2).firm_with_select.attributes.size
-    assert_equal 1, Company.all.merge!(includes: :firm_with_select ).find(2).firm_with_select.attributes.size
+    assert_equal 1, Company.all.merge!(includes: :firm_with_select).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_without_counter_cache_option
@@ -1047,7 +1077,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.parent = nil
     comment.save!
 
-    assert_equal nil, comment.reload.parent
+    assert_nil comment.reload.parent
     assert_equal 0, comments(:greetings).reload.children_count
   end
 
@@ -1060,6 +1090,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     comment.save!
     assert_equal 1, parent.reload.children_count
+  end
+
+  def test_belongs_to_with_out_of_range_value_assigning
+    model = Class.new(Comment) do
+      def self.name; "Temp"; end
+      validates :post, presence: true
+    end
+
+    comment = model.new
+    comment.post_id = 9223372036854775808 # out of range in the bigint
+
+    assert_nil comment.post
+    assert_not comment.valid?
+    assert_equal [{ error: :blank }], comment.errors.details[:post]
   end
 
   def test_polymorphic_with_custom_primary_key
@@ -1106,12 +1150,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
-  end
-
-  def test_association_force_reload_with_only_true_is_deprecated
-    client = Client.find(3)
-
-    assert_deprecated { client.firm(true) }
   end
 end
 

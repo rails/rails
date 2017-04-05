@@ -1,6 +1,6 @@
 require "set"
+require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/regexp"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:
@@ -277,8 +277,10 @@ module ActiveRecord
   #
   # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes
   #   the column to a different type using the same parameters as add_column.
-  # * <tt>change_column_default(table_name, column_name, default)</tt>: Sets a
-  #   default value for +column_name+ defined by +default+ on +table_name+.
+  # * <tt>change_column_default(table_name, column_name, default_or_changes)</tt>:
+  #   Sets a default value for +column_name+ defined by +default_or_changes+ on
+  #   +table_name+. Passing a hash containing <tt>:from</tt> and <tt>:to</tt>
+  #   as +default_or_changes+ will make this change reversible in the migration.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a +NOT NULL+ constraint on +column_name+. The +null+ flag
   #   indicates whether the value can be +NULL+. See
@@ -520,7 +522,10 @@ module ActiveRecord
     def self.inherited(subclass) # :nodoc:
       super
       if subclass.superclass == Migration
-        subclass.include Compatibility::Legacy
+        raise StandardError, "Directly inheriting from ActiveRecord::Migration is not supported. " \
+          "Please specify the Rails release the migration was written for:\n" \
+          "\n" \
+          "  class #{subclass} < ActiveRecord::Migration[4.2]"
       end
     end
 
@@ -543,12 +548,10 @@ module ActiveRecord
       end
 
       def call(env)
-        if connection.supports_migrations?
-          mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
-          if @last_check < mtime
-            ActiveRecord::Migration.check_pending!(connection)
-            @last_check = mtime
-          end
+        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        if @last_check < mtime
+          ActiveRecord::Migration.check_pending!(connection)
+          @last_check = mtime
         end
         @app.call(env)
       end
@@ -687,7 +690,7 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
-    class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
       end
@@ -767,7 +770,7 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time   = nil
+      time = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
@@ -795,7 +798,7 @@ module ActiveRecord
       @connection = nil
     end
 
-    def write(text="")
+    def write(text = "")
       puts(text) if verbose
     end
 
@@ -805,7 +808,7 @@ module ActiveRecord
       write "== %s %s" % [text, "=" * length]
     end
 
-    def say(message, subitem=false)
+    def say(message, subitem = false)
       write "#{subitem ? "   ->" : "--"} #{message}"
     end
 
@@ -933,7 +936,7 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
+  MigrationProxy = Struct.new(:name, :version, :filename, :scope) do
     def initialize(name, version, filename, scope)
       super
       @migration = nil
@@ -989,11 +992,11 @@ module ActiveRecord
         end
       end
 
-      def rollback(migrations_paths, steps=1)
+      def rollback(migrations_paths, steps = 1)
         move(:down, migrations_paths, steps)
       end
 
-      def forward(migrations_paths, steps=1)
+      def forward(migrations_paths, steps = 1)
         move(:up, migrations_paths, steps)
       end
 
@@ -1022,14 +1025,13 @@ module ActiveRecord
       def schema_migrations_table_name
         SchemaMigration.table_name
       end
+      deprecate :schema_migrations_table_name
 
       def get_all_versions(connection = Base.connection)
-        ActiveSupport::Deprecation.silence do
-          if connection.table_exists?(schema_migrations_table_name)
-            SchemaMigration.all.map { |x| x.version.to_i }.sort
-          else
-            []
-          end
+        if SchemaMigration.table_exists?
+          SchemaMigration.all_versions.map(&:to_i)
+        else
+          []
         end
       end
 
@@ -1055,10 +1057,6 @@ module ActiveRecord
         Array(@migrations_paths)
       end
 
-      def match_to_migration_filename?(filename) # :nodoc:
-        Migration::MigrationFilenameRegexp.match?(File.basename(filename))
-      end
-
       def parse_migration_filename(filename) # :nodoc:
         File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
       end
@@ -1066,9 +1064,7 @@ module ActiveRecord
       def migrations(paths)
         paths = Array(paths)
 
-        files = Dir[*paths.map { |p| "#{p}/**/[0-9]*_*.rb" }]
-
-        migrations = files.map do |file|
+        migrations = migration_files(paths).map do |file|
           version, name, scope = parse_migration_filename(file)
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
@@ -1078,6 +1074,30 @@ module ActiveRecord
         end
 
         migrations.sort_by(&:version)
+      end
+
+      def migrations_status(paths)
+        paths = Array(paths)
+
+        db_list = ActiveRecord::SchemaMigration.normalized_versions
+
+        file_list = migration_files(paths).map do |file|
+          version, name, scope = parse_migration_filename(file)
+          raise IllegalMigrationNameError.new(file) unless version
+          version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+          status = db_list.delete(version) ? "up" : "down"
+          [status, version, (name + scope).humanize]
+        end.compact
+
+        db_list.map! do |version|
+          ["up", version, "********** NO FILE **********"]
+        end
+
+        (db_list + file_list).sort_by { |_, version, _| version }
+      end
+
+      def migration_files(paths)
+        Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
       end
 
       private
@@ -1095,8 +1115,6 @@ module ActiveRecord
     end
 
     def initialize(direction, migrations, target_version = nil)
-      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
-
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
@@ -1104,8 +1122,8 @@ module ActiveRecord
 
       validate(@migrations)
 
-      Base.connection.initialize_schema_migrations_table
-      Base.connection.initialize_internal_metadata_table
+      ActiveRecord::SchemaMigration.create_table
+      ActiveRecord::InternalMetadata.create_table
     end
 
     def current_version
@@ -1163,29 +1181,31 @@ module ActiveRecord
 
     private
 
-    # Used for running a specific migration.
+      # Used for running a specific migration.
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        execute_migration_in_transaction(migration, @direction)
+        result = execute_migration_in_transaction(migration, @direction)
 
         record_environment
+        result
       end
 
-    # Used for running multiple migrations up to or down to a certain value.
+      # Used for running multiple migrations up to or down to a certain value.
       def migrate_without_lock
         if invalid_target?
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        runnable.each do |migration|
+        result = runnable.each do |migration|
           execute_migration_in_transaction(migration, @direction)
         end
 
         record_environment
+        result
       end
 
-    # Stores the current environment in the database.
+      # Stores the current environment in the database.
       def record_environment
         return if down?
         ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
@@ -1195,7 +1215,7 @@ module ActiveRecord
         migrated.include?(migration.version.to_i)
       end
 
-    # Return true if a valid version is not provided.
+      # Return true if a valid version is not provided.
       def invalid_target?
         !target && @target_version && @target_version > 0
       end
@@ -1230,10 +1250,10 @@ module ActiveRecord
       end
 
       def validate(migrations)
-        name ,= migrations.group_by(&:name).find { |_,v| v.length > 1 }
+        name , = migrations.group_by(&:name).find { |_, v| v.length > 1 }
         raise DuplicateMigrationNameError.new(name) if name
 
-        version ,= migrations.group_by(&:version).find { |_,v| v.length > 1 }
+        version , = migrations.group_by(&:version).find { |_, v| v.length > 1 }
         raise DuplicateMigrationVersionError.new(version) if version
       end
 
@@ -1272,7 +1292,7 @@ module ActiveRecord
         @direction == :down
       end
 
-    # Wrap the migration in a transaction only if supported by the adapter.
+      # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration)
         if use_transaction?(migration)
           Base.transaction { yield }

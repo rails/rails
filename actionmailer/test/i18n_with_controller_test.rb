@@ -18,7 +18,7 @@ end
 class TestController < ActionController::Base
   def send_mail
     email = I18nTestMailer.mail_with_i18n_subject("test@localhost").deliver_now
-    render text: "Mail sent - Subject: #{email.subject}"
+    render plain: "Mail sent - Subject: #{email.subject}"
   end
 end
 
@@ -57,16 +57,14 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
     stub_any_instance(Mail::SMTP, instance: Mail::SMTP.new({})) do |instance|
       assert_called(instance, :deliver!) do
         with_translation "de", email_subject: "[Anmeldung] Willkommen" do
-          ActiveSupport::Deprecation.silence do
-            get "/test/send_mail"
-          end
+          get "/test/send_mail"
           assert_equal "Mail sent - Subject: [Anmeldung] Willkommen", @response.body
         end
       end
     end
   end
 
-  protected
+  private
 
     def with_translation(locale, data)
       I18n.backend.store_translations(locale, data)

@@ -6,7 +6,7 @@ module ActiveSupport
 
   module VERSION
     MAJOR = 5
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
     PRE   = "alpha"
 

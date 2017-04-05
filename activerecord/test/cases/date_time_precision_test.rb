@@ -73,7 +73,7 @@ if subsecond_precision_supported?
       assert_match %r{t\.datetime\s+"updated_at",\s+precision: 6,\s+null: false$}, output
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
       def test_datetime_precision_with_zero_should_be_dumped
         @connection.create_table(:foos, force: true) do |t|
           t.timestamps precision: 0

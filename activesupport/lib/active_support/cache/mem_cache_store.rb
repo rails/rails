@@ -26,7 +26,7 @@ module ActiveSupport
     class MemCacheStore < Store
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
-        protected
+        private
           def read_entry(key, options)
             entry = super
             if options[:raw] && local_cache && entry
@@ -35,7 +35,7 @@ module ActiveSupport
             entry
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_entry(key, entry, options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
               raw_entry.expires_at = entry.expires_at
@@ -97,7 +97,7 @@ module ActiveSupport
         options = merged_options(options)
 
         keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
-        raw_values = @data.get_multi(keys_to_names.keys, raw: true)
+        raw_values = @data.get_multi(keys_to_names.keys)
         values = {}
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
@@ -110,7 +110,7 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def increment(name, amount = 1, options = nil) # :nodoc:
+      def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
@@ -123,7 +123,7 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def decrement(name, amount = 1, options = nil) # :nodoc:
+      def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
@@ -143,14 +143,14 @@ module ActiveSupport
         @data.stats
       end
 
-      protected
+      private
         # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           rescue_error_with(nil) { deserialize_entry(@data.get(key, options)) }
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
@@ -164,11 +164,9 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           rescue_error_with(false) { @data.delete(key) }
         end
-
-      private
 
         # Memcache keys are binaries. So we need to force their encoding to binary
         # before applying the regular expression to ensure we are escaping all
@@ -178,14 +176,6 @@ module ActiveSupport
           key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
-          key
-        end
-
-        def escape_key(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `escape_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
           key
         end
 

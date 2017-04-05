@@ -4,7 +4,6 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/association_query_handler"
     require "active_record/relation/predicate_builder/base_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
-    require "active_record/relation/predicate_builder/class_handler"
     require "active_record/relation/predicate_builder/polymorphic_array_handler"
     require "active_record/relation/predicate_builder/range_handler"
     require "active_record/relation/predicate_builder/relation_handler"
@@ -16,7 +15,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Class, ClassHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new)
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
@@ -66,6 +64,8 @@ module ActiveRecord
       handler_for(value).call(attribute, value)
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :table
@@ -87,14 +87,19 @@ module ActiveRecord
         binds = []
 
         attributes.each do |column_name, value|
+          binds.concat(value.bound_attributes) if value.is_a?(Relation)
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
             result[column_name] = attrs
             binds += bvs
-            next
-          when value.is_a?(Relation)
-            binds += value.bound_attributes
+          when table.associated_with?(column_name)
+            # Find the foreign key when using queries such as:
+            # Post.where(author: author)
+            #
+            # For polymorphic relationships, find the foreign key and type:
+            # PriceEstimate.where(estimate_of: treasure)
+            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -113,15 +118,6 @@ module ActiveRecord
               result[column_name] = Arel::Nodes::BindParam.new
               binds << build_bind_param(column_name, value)
             end
-          end
-
-          # Find the foreign key when using queries such as:
-          # Post.where(author: author)
-          #
-          # For polymorphic relationships, find the foreign key and type:
-          # PriceEstimate.where(estimate_of: treasure)
-          if table.associated_with?(column_name)
-            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
           end
         end
 
@@ -155,7 +151,6 @@ module ActiveRecord
       end
 
       def can_be_bound?(column_name, value)
-        return if table.associated_with?(column_name)
         case value
         when Array, Range
           table.type(column_name).respond_to?(:subtype)

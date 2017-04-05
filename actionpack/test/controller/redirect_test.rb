@@ -21,8 +21,8 @@ end
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render plain: "called status"; end
-  def location; render plain: "called location"; end
+  def status; raise "Should not be called!"; end
+  def location; raise "Should not be called!"; end
 
   def simple_redirect
     redirect_to action: "hello_world"
@@ -56,10 +56,6 @@ class RedirectController < ActionController::Base
     redirect_to("/things/stuff", status: 301)
   end
 
-  def redirect_to_back_with_status
-    redirect_to :back, status: 307
-  end
-
   def redirect_back_with_status
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
@@ -86,10 +82,6 @@ class RedirectController < ActionController::Base
 
   def redirect_to_url_with_network_path_reference
     redirect_to "//www.rubyonrails.org/"
-  end
-
-  def redirect_to_back
-    redirect_to :back
   end
 
   def redirect_to_existing_record
@@ -131,7 +123,7 @@ class RedirectController < ActionController::Base
 
   def rescue_errors(e) raise e end
 
-  protected
+  private
     def dashbord_url(id, message)
       url_for action: "dashboard", params: { "id" => id, "message" => message }
     end
@@ -206,17 +198,6 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
-  def test_redirect_to_back_with_status
-    @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-
-    assert_deprecated do
-      get :redirect_to_back_with_status
-    end
-
-    assert_response 307
-    assert_equal "http://www.example.com/coming/from", redirect_to_url
-  end
-
   def test_simple_redirect_using_options
     get :host_redirect
     assert_response :redirect
@@ -257,29 +238,6 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_network_path_reference
     assert_response :redirect
     assert_equal "//www.rubyonrails.org/", redirect_to_url
-  end
-
-  def test_redirect_to_back
-    @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
-
-    assert_deprecated do
-      get :redirect_to_back
-    end
-
-    assert_response :redirect
-    assert_equal "http://www.example.com/coming/from", redirect_to_url
-  end
-
-  def test_redirect_to_back_with_no_referer
-    assert_raise(ActionController::RedirectBackError) {
-      @request.env["HTTP_REFERER"] = nil
-
-      assert_deprecated do
-        get :redirect_to_back
-      end
-
-      get :redirect_to_back
-    }
   end
 
   def test_redirect_back

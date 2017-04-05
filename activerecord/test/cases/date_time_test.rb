@@ -52,7 +52,7 @@ class DateTimeTest < ActiveRecord::TestCase
   end
 
   def test_assign_in_local_timezone
-    now = DateTime.now
+    now = DateTime.civil(2017, 3, 1, 12, 0, 0)
     with_timezone_config default: :local do
       task = Task.new starting: now
       assert_equal now, task.starting

@@ -15,7 +15,7 @@ After reading this guide, you will know:
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
-As mentioned in [Rails
+As mentioned in [Rails'
 README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 --------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, th
 Having a way to reproduce your issue will be very helpful for others to help confirm, investigate and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
 * Template for Active Record (models, database) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_master.rb)
+* Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_master.rb)
 * Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 * Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
 * Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
@@ -66,7 +67,7 @@ can expect it to be marked "invalid" as soon as it's reviewed.
 Sometimes, the line between 'bug' and 'feature' is a hard one to draw.
 Generally, a feature is anything that adds new behavior, while a bug is
 anything that causes incorrect behavior. Sometimes,
-the core team will have to make a judgement call. That said, the distinction
+the core team will have to make a judgment call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
 
@@ -97,13 +98,13 @@ Anything you can do to make bug reports more succinct or easier to reproduce hel
 
 ### Testing Patches
 
-You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. To apply someone's changes you need first to create a dedicated branch:
+You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. In order to apply someone's changes, you need to first create a dedicated branch:
 
 ```bash
 $ git checkout -b testing_branch
 ```
 
-Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
+Then, you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
 ```bash
 $ git remote add JohnSmith https://github.com/JohnSmith/rails.git
@@ -269,33 +270,24 @@ The above are guidelines - please use your best judgment in using them.
 
 ### Benchmark Your Code
 
-If your change has an impact on the performance of Rails, please use the
-[benchmark-ips](https://github.com/evanphx/benchmark-ips) gem to provide
-benchmark results for comparison.
+For changes that might have an impact on performance, please benchmark your
+code and measure the impact. Please share the benchmark script you used as well
+as the results. You should consider including this information in your commit
+message, which allows future contributors to easily verify your findings and
+determine if they are still relevant. (For example, future optimizations in the
+Ruby VM might render certain optimizations unnecessary.)
 
-Here's an example of using benchmark-ips:
+It is very easy to make an optimization that improves performance for a
+specific scenario you care about but regresses on other common cases.
+Therefore, you should test your change against a list of representative
+scenarios. Ideally, they should be based on real-world scenarios extracted
+from production applications.
 
-```ruby
-require 'benchmark/ips'
-
-Benchmark.ips do |x|
-  x.report('addition') { 1 + 2 }
-  x.report('addition with send') { 1.send(:+, 2) }
-end
-```
-
-This will generate a report with the following information:
-
-```
-Calculating -------------------------------------
-            addition   132.013k i/100ms
-  addition with send   125.413k i/100ms
--------------------------------------------------
-            addition      9.677M (± 1.7%) i/s -     48.449M
-  addition with send      6.794M (± 1.1%) i/s -     33.987M
-```
-
-Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/blob/master/README.md) for more information.
+You can use the [benchmark template](https://github.com/rails/rails/blob/master/guides/bug_report_templates/benchmark.rb)
+as a starting point. It includes the boilerplate code to setup a benchmark
+using the [benchmark-ips](https://github.com/evanphx/benchmark-ips) gem. The
+template is designed for testing relatively self-contained changes that can be
+inlined into the script.
 
 ### Running Tests
 
@@ -343,10 +335,12 @@ file.
 
 #### Testing Active Record
 
-First, create the databases you'll need. For MySQL and PostgreSQL,
-running the SQL statements `create database activerecord_unittest` and
-`create database activerecord_unittest2` is sufficient. This is not
-necessary for SQLite3.
+First, create the databases you'll need. You can find a list of the required 
+table names, usernames, and passwords in `activerecord/test/config.example.yml`.
+
+For MySQL and PostgreSQL, running the SQL statements `create database
+activerecord_unittest` and `create database activerecord_unittest2` is
+sufficient. This is not necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:
 

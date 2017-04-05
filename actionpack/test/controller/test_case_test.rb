@@ -100,11 +100,11 @@ HTML
     end
 
     def test_xml_output
-      response.content_type = "application/xml"
+      response.content_type = params[:response_as]
       render plain: <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
+  <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
 </root>
 XML
     end
@@ -134,7 +134,7 @@ XML
     end
 
     def create
-      head :created, location: "created resource"
+      head :created, location: "/resource"
     end
 
     def render_cookie
@@ -229,17 +229,9 @@ XML
     assert_equal params.to_query, @response.body
   end
 
-  def test_deprecated_body_stream
-    params = Hash[:page, { name: "page name" }, "some key", 123]
-
-    assert_deprecated { post :render_body, params.dup }
-
-    assert_equal params.to_query, @response.body
-  end
-
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_document_body_with_post
@@ -247,18 +239,8 @@ XML
     assert_equal "document body", @response.body
   end
 
-  def test_deprecated_document_body_with_post
-    assert_deprecated { post :render_body, "document body" }
-    assert_equal "document body", @response.body
-  end
-
   def test_document_body_with_put
     put :render_body, body: "document body"
-    assert_equal "document body", @response.body
-  end
-
-  def test_deprecated_document_body_with_put
-    assert_deprecated { put :render_body, "document body" }
     assert_equal "document body", @response.body
   end
 
@@ -272,21 +254,11 @@ XML
     assert_equal "><", flash["test"]
   end
 
-  def test_deprecated_process_with_flash
-    assert_deprecated { process :set_flash, "GET", nil, nil, "test" => "value" }
-    assert_equal ">value<", flash["test"]
-  end
-
   def test_process_with_flash
     process :set_flash,
       method: "GET",
       flash: { "test" => "value" }
     assert_equal ">value<", flash["test"]
-  end
-
-  def test_deprecated_process_with_flash_now
-    assert_deprecated { process :set_flash_now, "GET", nil, nil, "test_now" => "value_now" }
-    assert_equal ">value_now<", flash["test_now"]
   end
 
   def test_process_with_flash_now
@@ -311,14 +283,6 @@ XML
     assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
   end
 
-  def test_process_with_session_arg
-    assert_deprecated { process :no_op, "GET", nil, "string" => "value1", symbol: "value2" }
-    assert_equal "value1", session["string"]
-    assert_equal "value1", session[:string]
-    assert_equal "value2", session["symbol"]
-    assert_equal "value2", session[:symbol]
-  end
-
   def test_process_with_session_kwarg
     process :no_op, method: "GET", session: { "string" => "value1", symbol: "value2" }
     assert_equal "value1", session["string"]
@@ -327,29 +291,11 @@ XML
     assert_equal "value2", session[:symbol]
   end
 
-  def test_deprecated_process_merges_session_arg
-    session[:foo] = "bar"
-    assert_deprecated {
-      get :no_op, nil, bar: "baz"
-    }
-    assert_equal "bar", session[:foo]
-    assert_equal "baz", session[:bar]
-  end
-
   def test_process_merges_session_arg
     session[:foo] = "bar"
     get :no_op, session: { bar: "baz" }
     assert_equal "bar", session[:foo]
     assert_equal "baz", session[:bar]
-  end
-
-  def test_deprecated_merged_session_arg_is_retained_across_requests
-    assert_deprecated {
-      get :no_op, nil, foo: "bar"
-    }
-    assert_equal "bar", session[:foo]
-    get :no_op
-    assert_equal "bar", session[:foo]
   end
 
   def test_merged_session_arg_is_retained_across_requests
@@ -393,23 +339,12 @@ XML
     assert_equal "/test_case_test/test/test_uri", @response.body
   end
 
-  def test_deprecated_process_with_request_uri_with_params
-    assert_deprecated { process :test_uri, "GET", id: 7 }
-    assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
   def test_process_with_request_uri_with_params
     process :test_uri,
       method: "GET",
       params: { id: 7 }
 
     assert_equal "/test_case_test/test/test_uri/7", @response.body
-  end
-
-  def test_deprecated_process_with_request_uri_with_params_with_explicit_uri
-    @request.env["PATH_INFO"] = "/explicit/uri"
-    assert_deprecated { process :test_uri, "GET", id: 7 }
-    assert_equal "/explicit/uri", @response.body
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
@@ -439,18 +374,18 @@ XML
     assert_equal "OK", @response.body
   end
 
+  def test_should_impose_childless_html_tags_in_html
+    process :test_xml_output, params: { response_as: "text/html" }
+
+    # <area> auto-closes, so the <p> becomes a sibling
+    assert_select "root > area + p"
+  end
+
   def test_should_not_impose_childless_html_tags_in_xml
-    process :test_xml_output
+    process :test_xml_output, params: { response_as: "application/xml" }
 
-    begin
-      $stderr = StringIO.new
-      assert_select "area" #This will cause a warning if content is processed as HTML
-      $stderr.rewind && err = $stderr.read
-    ensure
-      $stderr = STDERR
-    end
-
-    assert err.empty?
+    # <area> is not special, so the <p> is its child
+    assert_select "root > area > p"
   end
 
   def test_assert_generates
@@ -489,20 +424,6 @@ XML
       set.draw { get("*path" => "pages#show") }
       assert_routing("/company/about", controller: "pages", action: "show", path: "company/about")
     end
-  end
-
-  def test_deprecated_params_passing
-    assert_deprecated {
-      get :test_params, page: { name: "Page name", month: "4", year: "2004", day: "6" }
-    }
-    parsed_params = ::JSON.parse(@response.body)
-    assert_equal(
-      {
-        "controller" => "test_case_test/test", "action" => "test_params",
-        "page" => { "name" => "Page name", "month" => "4", "year" => "2004", "day" => "6" }
-      },
-      parsed_params
-    )
   end
 
   def test_params_passing
@@ -589,16 +510,6 @@ XML
     )
   end
 
-  def test_deprecated_params_passing_path_parameter_is_string_when_not_html_request
-    assert_deprecated { get :test_params, format: "json", id: 1 }
-    parsed_params = ::JSON.parse(@response.body)
-    assert_equal(
-      { "controller" => "test_case_test/test", "action" => "test_params",
-       "format" => "json", "id" => "1" },
-      parsed_params
-    )
-  end
-
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
       get :test_params, params: {
@@ -646,6 +557,11 @@ XML
     assert_equal 2, @request.request_parameters[:num_value]
   end
 
+  def test_using_as_json_sets_format_json
+    post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
+    assert_equal "json", @request.format
+  end
+
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers["Content-Type"] = "text/plain"
     post :render_body, params: { name: "foo.txt" }
@@ -675,11 +591,6 @@ XML
     get :test_params, params: {
       id: 20, foo: Object.new
     }
-    assert_kind_of String, @request.path_parameters[:id]
-  end
-
-  def test_deprecared_id_converted_to_string
-    assert_deprecated { get :test_params, id: 20, foo: Object.new }
     assert_kind_of String, @request.path_parameters[:id]
   end
 
@@ -737,16 +648,10 @@ XML
     assert_nil @request.env["HTTP_ACCEPT"]
   end
 
-  def test_deprecated_xhr_with_params
-    assert_deprecated { xhr :get, :test_params, params: { id: 1 } }
-
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
-  end
-
   def test_xhr_with_params
     get :test_params, params: { id: 1 }, xhr: true
 
-    assert_equal({ "id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   def test_xhr_with_session
@@ -756,23 +661,6 @@ XML
     assert_equal "A wonder", session[:string], "Test session hash should allow indifferent access"
     assert_equal "it works", session["symbol"], "Test session hash should allow indifferent access"
     assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
-  end
-
-  def test_deprecated_xhr_with_session
-    assert_deprecated { xhr :get, :set_session }
-
-    assert_equal "A wonder", session["string"], "A value stored in the session should be available by string key"
-    assert_equal "A wonder", session[:string], "Test session hash should allow indifferent access"
-    assert_equal "it works", session["symbol"], "Test session hash should allow indifferent access"
-    assert_equal "it works", session[:symbol], "Test session hash should allow indifferent access"
-  end
-
-  def test_deprecated_params_reset_between_post_requests
-    assert_deprecated { post :no_op, foo: "bar" }
-    assert_equal "bar", @request.params[:foo]
-
-    post :no_op
-    assert @request.params[:foo].blank?
   end
 
   def test_params_reset_between_post_requests
@@ -789,6 +677,11 @@ XML
 
     get :no_op, params: { foo: "baz" }
     assert_equal "baz", @request.filtered_parameters[:foo]
+  end
+
+  def test_path_is_kept_after_the_request
+    get :test_params, params: { id: "foo" }
+    assert_equal "/test_case_test/test/test_params/foo", @request.path
   end
 
   def test_path_params_reset_between_request
@@ -865,10 +758,10 @@ XML
 
   def test_multiple_mixed_method_process_should_scrub_rack_input
     post :test_params, params: { id: 1, foo: "an foo" }
-    assert_equal({ "id"=>"1", "foo" => "an foo", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "id" => "1", "foo" => "an foo", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
 
     get :test_params, params: { bar: "an bar" }
-    assert_equal({ "bar"=>"an bar", "controller"=>"test_case_test/test", "action"=>"test_params" }, ::JSON.parse(@response.body))
+    assert_equal({ "bar" => "an bar", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
   end
 
   %w(controller response request).each do |variable|
@@ -893,7 +786,7 @@ XML
   READ_PLAIN = "r:binary"
 
   def test_test_uploaded_file
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/png"
     expected = File.read(path)
@@ -908,18 +801,17 @@ XML
     new_content_type = "new content_type"
     file.content_type = new_content_type
     assert_equal new_content_type, file.content_type
-
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
     TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("/mona_lisa.jpg", "image/png")
-      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+      uploaded_file = fixture_file_upload("/ruby_on_rails.jpg", "image/png")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_test_uploaded_file_with_binary
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/png"
 
@@ -931,7 +823,7 @@ XML
   end
 
   def test_fixture_file_upload_with_binary
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     content_type = "image/jpg"
 
@@ -943,46 +835,44 @@ XML
   end
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
-    file = fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
     assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
   end
 
   def test_fixture_file_upload
     post :test_file_upload,
       params: {
-        file: fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+        file: fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
       }
-    assert_equal "159528", @response.body
+    assert_equal "45142", @response.body
   end
 
   def test_fixture_file_upload_relative_to_fixture_path
     TestCaseTest.stub :fixture_path, FILES_DIR do
-      uploaded_file = fixture_file_upload("mona_lisa.jpg", "image/jpg")
-      assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+      uploaded_file = fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
+    end
+  end
+
+  def test_fixture_file_upload_ignores_fixture_path_given_full_path
+    TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
+      uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+      assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
   def test_fixture_file_upload_ignores_nil_fixture_path
-    uploaded_file = fixture_file_upload("#{FILES_DIR}/mona_lisa.jpg", "image/jpg")
-    assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
-  end
-
-  def test_deprecated_action_dispatch_uploaded_file_upload
-    filename = "mona_lisa.jpg"
-    path = "#{FILES_DIR}/#{filename}"
-    assert_deprecated {
-      post :test_file_upload, file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
-    }
-    assert_equal "159528", @response.body
+    uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
+    assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end
 
   def test_action_dispatch_uploaded_file_upload
-    filename = "mona_lisa.jpg"
+    filename = "ruby_on_rails.jpg"
     path = "#{FILES_DIR}/#{filename}"
     post :test_file_upload, params: {
       file: Rack::Test::UploadedFile.new(path, "image/jpg", true)
     }
-    assert_equal "159528", @response.body
+    assert_equal "45142", @response.body
   end
 
   def test_test_uploaded_file_exception_when_file_doesnt_exist
@@ -994,12 +884,12 @@ XML
     assert_response :created
 
     # Redirect url doesn't care that it wasn't a :redirect response.
-    assert_equal "created resource", @response.redirect_url
+    assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
     # Must be a :redirect response.
     assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_redirected_to "created resource"
+      assert_redirected_to "/resource"
     end
   end
 

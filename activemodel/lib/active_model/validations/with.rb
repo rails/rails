@@ -1,3 +1,5 @@
+require "active_support/core_ext/array/extract_options"
+
 module ActiveModel
   module Validations
     class WithValidator < EachValidator # :nodoc:
@@ -43,7 +45,7 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
@@ -59,7 +61,7 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #   See <tt>ActiveModel::Validations#validates!</tt> for more information.
       #
       # If you pass any additional configuration options, they will be passed
       # to the class and available as +options+:

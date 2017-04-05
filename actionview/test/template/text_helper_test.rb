@@ -316,7 +316,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_omission
-    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", omission: "[...]",radius: 5))
+    assert_equal("[...]is a beautiful morn[...]", excerpt("This is a beautiful morning", "beautiful", omission: "[...]", radius: 5))
     assert_equal(
       "This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome tempera[...]",
       excerpt("This is the ultimate supercalifragilisticexpialidoceous very looooooooooooooooooong looooooooooooong beautiful morning with amazing sunshine and awesome temperatures. So what are you gonna do about it?", "very",
@@ -329,7 +329,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_does_not_modify_the_options_hash
-    options = { omission: "[...]",radius: 5 }
+    options = { omission: "[...]", radius: 5 }
     passed_options = options.dup
     excerpt("This is a beautiful morning", "beautiful", passed_options)
     assert_equal options, passed_options
@@ -379,6 +379,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("1.25 counts", pluralize("1.25", "count"))
     assert_equal("1.0 count", pluralize("1.0", "count"))
     assert_equal("1.00 count", pluralize("1.00", "count"))
+    assert_equal("2 counters", pluralize(2, "count", "counters"))
+    assert_equal("0 counters", pluralize(nil, "count", "counters"))
     assert_equal("2 counters", pluralize(2, "count", plural: "counters"))
     assert_equal("0 counters", pluralize(nil, "count", plural: "counters"))
     assert_equal("2 people", pluralize(2, "person"))
@@ -402,12 +404,6 @@ class TextHelperTest < ActionView::TestCase
       assert_equal("2 regions",  pluralize(2, "region", locale: :en))
     ensure
       I18n.locale = old_locale
-    end
-  end
-
-  def test_deprecated_plural_as_positional_argument
-    assert_deprecated do
-      pluralize(2, "count", "counters")
     end
   end
 
@@ -467,11 +463,11 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_with_default_name
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "even", current_cycle
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "odd", current_cycle
-    cycle("even","odd")
+    cycle("even", "odd")
     assert_equal "even", current_cycle
   end
 
@@ -490,13 +486,13 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_with_more_than_two_names
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "1", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "2", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "3", current_cycle
-    cycle(1,2,3)
+    cycle(1, 2, 3)
     assert_equal "1", current_cycle
   end
 

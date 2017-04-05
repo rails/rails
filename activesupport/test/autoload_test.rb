@@ -31,7 +31,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?(@some_class_path)
+    assert_not_includes $LOADED_FEATURES, @some_class_path
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -40,7 +40,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass
     end
 
-    assert !$LOADED_FEATURES.include?(@some_class_path)
+    assert_not_includes $LOADED_FEATURES, @some_class_path
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -51,9 +51,9 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?(@some_class_path)
+    assert_not_includes $LOADED_FEATURES, @some_class_path
     ::Fixtures::Autoload.eager_load!
-    assert $LOADED_FEATURES.include?(@some_class_path)
+    assert_includes $LOADED_FEATURES, @some_class_path
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -64,7 +64,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?(@another_class_path)
+    assert_not_includes $LOADED_FEATURES, @another_class_path
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 
@@ -75,7 +75,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?(@another_class_path)
+    assert_not_includes $LOADED_FEATURES, @another_class_path
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 end

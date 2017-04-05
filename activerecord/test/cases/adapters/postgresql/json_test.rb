@@ -16,6 +16,7 @@ module PostgresqlJSONSharedTestCases
       @connection.create_table("json_data_type") do |t|
         t.public_send column_type, "payload", default: {} # t.json 'payload', default: {}
         t.public_send column_type, "settings"             # t.json 'settings'
+        t.public_send column_type, "objects", array: true # t.json 'objects', array: true
       end
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PostgreSQL without #{column_type} type."
@@ -41,8 +42,8 @@ module PostgresqlJSONSharedTestCases
     @connection.add_column "json_data_type", "permissions", column_type, default: { "users": "read", "posts": ["read", "write"] }
     JsonDataType.reset_column_information
 
-    assert_equal({ "users"=>"read", "posts"=>["read", "write"] }, JsonDataType.column_defaults["permissions"])
-    assert_equal({ "users"=>"read", "posts"=>["read", "write"] }, JsonDataType.new.permissions)
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.column_defaults["permissions"])
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.new.permissions)
   ensure
     JsonDataType.reset_column_information
   end
@@ -75,6 +76,15 @@ module PostgresqlJSONSharedTestCases
     assert_equal({ "string" => "foo", "symbol" => "bar" }, x.reload.payload)
   end
 
+  def test_deserialize_with_array
+    x = JsonDataType.new(objects: ["foo" => "bar"])
+    assert_equal ["foo" => "bar"], x.objects
+    x.save!
+    assert_equal ["foo" => "bar"], x.objects
+    x.reload
+    assert_equal ["foo" => "bar"], x.objects
+  end
+
   def test_type_cast_json
     type = JsonDataType.type_for_attribute("payload")
 
@@ -84,8 +94,8 @@ module PostgresqlJSONSharedTestCases
     assert_equal({ "a_key" => "a_value" }, type.deserialize(data))
 
     assert_equal({}, type.deserialize("{}"))
-    assert_equal({ "key"=>nil }, type.deserialize('{"key": null}'))
-    assert_equal({ "c"=>"}",'"a"'=>'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({ "key" => nil }, type.deserialize('{"key": null}'))
+    assert_equal({ "c" => "}", '"a"' => 'b "a b' }, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite
@@ -104,13 +114,29 @@ module PostgresqlJSONSharedTestCases
   def test_select_multikey
     @connection.execute %q|insert into json_data_type (payload) VALUES ('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}')|
     x = JsonDataType.first
-    assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1,2,3] }, x.payload)
+    assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1, 2, 3] }, x.payload)
   end
 
   def test_null_json
     @connection.execute "insert into json_data_type (payload) VALUES(null)"
     x = JsonDataType.first
-    assert_equal(nil, x.payload)
+    assert_nil(x.payload)
+  end
+
+  def test_select_nil_json_after_create
+    json = JsonDataType.create(payload: nil)
+    x = JsonDataType.where(payload: nil).first
+    assert_equal(json, x)
+  end
+
+  def test_select_nil_json_after_update
+    json = JsonDataType.create(payload: "foo")
+    x = JsonDataType.where(payload: nil).first
+    assert_nil(x)
+
+    json.update_attributes payload: nil
+    x = JsonDataType.where(payload: nil).first
+    assert_equal(json.reload, x)
   end
 
   def test_select_array_json_value

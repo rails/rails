@@ -16,14 +16,12 @@ module ActionView
 
     private
 
-    # Determine the template to be rendered using the given options.
+      # Determine the template to be rendered using the given options.
       def determine_template(options)
         keys = options.has_key?(:locals) ? options[:locals].keys : []
 
         if options.key?(:body)
           Template::Text.new(options[:body])
-        elsif options.key?(:text)
-          Template::Text.new(options[:text], formats.first)
         elsif options.key?(:plain)
           Template::Text.new(options[:plain])
         elsif options.key?(:html)
@@ -40,13 +38,13 @@ module ActionView
             find_template(options[:template], options[:prefixes], false, keys, @details)
           end
         else
-          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html, :text or :body option."
+          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
         end
       end
 
-    # Renders the given template. A string representing the layout can be
-    # supplied as well.
-      def render_template(template, layout_name = nil, locals = nil) #:nodoc:
+      # Renders the given template. A string representing the layout can be
+      # supplied as well.
+      def render_template(template, layout_name = nil, locals = nil)
         view, locals = @view, locals || {}
 
         render_with_layout(layout_name, locals) do |layout|
@@ -56,7 +54,7 @@ module ActionView
         end
       end
 
-      def render_with_layout(path, locals) #:nodoc:
+      def render_with_layout(path, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 
@@ -69,9 +67,9 @@ module ActionView
         end
       end
 
-    # This is the method which actually finds the layout using details in the lookup
-    # context object. If no layout is found, it checks if at least a layout with
-    # the given name exists across all details before raising the error.
+      # This is the method which actually finds the layout using details in the lookup
+      # context object. If no layout is found, it checks if at least a layout with
+      # the given name exists across all details before raising the error.
       def find_layout(layout, keys, formats)
         resolve_layout(layout, keys, formats)
       end

@@ -14,10 +14,12 @@ require "active_support/testing/autorun"
 if defined?(ActiveRecord::Base)
   ActiveRecord::Migration.maintain_test_schema!
 
-  class ActiveSupport::TestCase
-    include ActiveRecord::TestFixtures
-    self.fixture_path = "#{Rails.root}/test/fixtures/"
-    self.file_fixture_path = self.fixture_path + "files"
+  module ActiveSupport
+    class TestCase
+      include ActiveRecord::TestFixtures
+      self.fixture_path = "#{Rails.root}/test/fixtures/"
+      self.file_fixture_path = fixture_path + "files"
+    end
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
@@ -26,6 +28,8 @@ if defined?(ActiveRecord::Base)
     FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
   end
 end
+
+# :enddoc:
 
 class ActionController::TestCase
   def before_setup # :nodoc:

@@ -27,7 +27,7 @@ module ApplicationTests
 
       class ::OmgController < ::ApplicationController
         def index
-          render text: omg_path
+          render plain: omg_path
         end
       end
 

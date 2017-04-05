@@ -51,7 +51,7 @@ module ApplicationTests
 
     def setup
       build_app
-      supress_default_config
+      suppress_default_config
     end
 
     def teardown
@@ -59,7 +59,7 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
-    def supress_default_config
+    def suppress_default_config
       FileUtils.mv("#{app_path}/config/environments", "#{app_path}/config/__environments__")
     end
 
@@ -75,6 +75,18 @@ module ApplicationTests
         Rails.env = "development"
         assert_equal "development", Rails.env
         assert_nil ENV["RAILS_ENV"]
+      end
+    end
+
+    test "Rails.env falls back to development if RAILS_ENV is blank and RACK_ENV is nil" do
+      with_rails_env("") do
+        assert_equal "development", Rails.env
+      end
+    end
+
+    test "Rails.env falls back to development if RACK_ENV is blank and RAILS_ENV is nil" do
+      with_rack_env("") do
+        assert_equal "development", Rails.env
       end
     end
 
@@ -369,26 +381,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_files is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.serve_static_files = true
-        end
-
-        assert application.config.public_file_server.enabled
-      end
-    end
-
-    test "config.static_cache_control is deprecated" do
-      make_basic_app do |application|
-        assert_deprecated do
-          application.config.static_cache_control = "public, max-age=60"
-        end
-
-        assert_equal application.config.static_cache_control, "public, max-age=60"
-      end
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
@@ -398,7 +390,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render text: cookies[:some_key]
+          render plain: cookies[:some_key]
         end
       end
 
@@ -614,7 +606,7 @@ module ApplicationTests
       app "development"
 
       assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
+      assert_nil app.secrets.secret_key_base
       assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
     end
 
@@ -630,10 +622,25 @@ module ApplicationTests
       app "development"
 
       assert_equal "", app.config.secret_token
-      assert_equal nil, app.secrets.secret_key_base
-      assert_raise ArgumentError, /\AA secret is required/ do
+      assert_nil app.secrets.secret_key_base
+      e = assert_raise ArgumentError do
         app.key_generator
       end
+      assert_match(/\AA secret is required/, e.message)
+    end
+
+    test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
+      app_file "config/secrets.yml", <<-YAML
+        development:
+          smtp_settings:
+            address: "smtp.example.com"
+            user_name: "postmaster@example.com"
+            password: "697361616320736c6f616e2028656c6f7265737429"
+      YAML
+
+      app "development"
+
+      assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
     end
 
     test "protect from forgery is the default in a new app" do
@@ -704,7 +711,7 @@ module ApplicationTests
         end
 
         def update
-          render text: "update"
+          render plain: "update"
         end
 
         private
@@ -978,7 +985,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render text: env["action_dispatch.show_exceptions"]
+          render plain: request.env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -1008,7 +1015,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ApplicationController
         def create
-          render text: params[:post].inspect
+          render plain: params[:post].inspect
         end
       end
       RUBY
@@ -1029,7 +1036,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params[:post].permitted? ? "permitted" : "forbidden"
+          render plain: params[:post].permitted? ? "permitted" : "forbidden"
         end
       end
       RUBY
@@ -1043,7 +1050,7 @@ module ApplicationTests
 
       app "development"
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_equal "permitted", last_response.body
     end
 
@@ -1051,7 +1058,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.require(:post).permit(:name)
+          render plain: params.require(:post).permit(:name)
         end
       end
       RUBY
@@ -1067,7 +1074,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }
+      post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
     end
 
@@ -1090,7 +1097,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render text: params.permit(post: [:title])
+          render plain: params.permit(post: [:title])
         end
       end
       RUBY
@@ -1107,7 +1114,7 @@ module ApplicationTests
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
-      post "/posts", post: { "title" =>"zomg" }, format: "json"
+      post "/posts", post: { "title" => "zomg" }, format: "json"
       assert_equal 200, last_response.status
     end
 
@@ -1137,8 +1144,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render text: "HTML" }
-            format.xml { render text: "XML" }
+            format.html { render plain: "HTML" }
+            format.xml { render plain: "XML" }
           end
         end
       end
@@ -1178,11 +1185,12 @@ module ApplicationTests
     end
 
     test "config.session_store with :active_record_store without activerecord-session_store gem" do
-      assert_raise RuntimeError, /activerecord-session_store/ do
+      e = assert_raise RuntimeError do
         make_basic_app do |application|
           application.config.session_store :active_record_store
         end
       end
+      assert_match(/activerecord-session_store/, e.message)
     end
 
     test "default session store initializer does not overwrite the user defined session store even if it is disabled" do
@@ -1190,7 +1198,7 @@ module ApplicationTests
         application.config.session_store :disabled
       end
 
-      assert_equal nil, app.config.session_store
+      assert_nil app.config.session_store
     end
 
     test "default session store initializer sets session store to cookie store" do
@@ -1517,6 +1525,25 @@ module ApplicationTests
       app "development"
 
       assert_equal :default, Rails.configuration.debug_exception_response_format
+    end
+
+    test "controller force_ssl declaration can be used even if session_store is disabled" do
+      make_basic_app do |application|
+        application.config.session_store :disabled
+      end
+
+      class ::OmgController < ActionController::Base
+        force_ssl
+
+        def index
+          render plain: "Yay! You're on Rails!"
+        end
+      end
+
+      get "/"
+
+      assert_equal 301, last_response.status
+      assert_equal "https://example.org/", last_response.location
     end
   end
 end

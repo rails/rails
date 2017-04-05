@@ -6,7 +6,6 @@ require "active_support/core_ext/module/aliasing"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/module/qualified_const"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/load_error"
@@ -108,7 +107,7 @@ module ActiveSupport #:nodoc:
 
       def initialize
         @watching = []
-        @stack = Hash.new { |h,k| h[k] = [] }
+        @stack = Hash.new { |h, k| h[k] = [] }
       end
 
       def each(&block)
@@ -243,7 +242,7 @@ module ActiveSupport #:nodoc:
       # resolution deterministic for constants with the same relative name in
       # different namespaces whose evaluation would depend on load order
       # otherwise.
-      def require_dependency(file_name, message = "No such file to load -- %s")
+      def require_dependency(file_name, message = "No such file to load -- %s.rb")
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
           raise ArgumentError, "the file name must either be a String or implement #to_path -- you passed #{file_name.inspect}"

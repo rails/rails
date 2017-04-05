@@ -23,7 +23,7 @@ module ActiveRecord
       end
 
       def table_exists?
-        ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
+        connection.table_exists?(table_name)
       end
 
       # Creates an internal metadata table with columns +key+ and +value+

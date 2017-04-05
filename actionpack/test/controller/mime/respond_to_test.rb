@@ -273,7 +273,7 @@ class RespondToController < ActionController::Base
     end
   end
 
-  protected
+  private
     def set_layout
       case action_name
       when "all_types_with_layout", "iphone_with_html_response_type"
@@ -519,7 +519,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "Whatever you ask for, I got it", @response.body
   end
 
-  def test_handle_any_any_unkown_format
+  def test_handle_any_any_unknown_format
     get :handle_any_any, format: "php"
     assert_equal "Whatever you ask for, I got it", @response.body
   end

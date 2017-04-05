@@ -43,7 +43,7 @@ module ActiveRecord
           t.column :foo, :string, null: false
         end
 
-        assert_raises(ActiveRecord::StatementInvalid) do
+        assert_raises(ActiveRecord::NotNullViolation) do
           connection.execute "insert into testings (foo) values (NULL)"
         end
       end
@@ -233,7 +233,7 @@ module ActiveRecord
           end
           connection.add_column :testings, :bar, :string, null: false
 
-          assert_raise(ActiveRecord::StatementInvalid) do
+          assert_raise(ActiveRecord::NotNullViolation) do
             connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
           end
         end
@@ -244,12 +244,16 @@ module ActiveRecord
           t.column :foo, :string
         end
 
-        con = connection
-        connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        assert_nothing_raised { connection.add_column :testings, :bar, :string, null: false, default: "default" }
+        quoted_id  = connection.quote_column_name("id")
+        quoted_foo = connection.quote_column_name("foo")
+        quoted_bar = connection.quote_column_name("bar")
+        connection.execute("insert into testings (#{quoted_id}, #{quoted_foo}) values (1, 'hello')")
+        assert_nothing_raised do
+          connection.add_column :testings, :bar, :string, null: false, default: "default"
+        end
 
-        assert_raises(ActiveRecord::StatementInvalid) do
-          connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
+        assert_raises(ActiveRecord::NotNullViolation) do
+          connection.execute("insert into testings (#{quoted_id}, #{quoted_foo}, #{quoted_bar}) values (2, 'hello', NULL)")
         end
       end
 
@@ -265,6 +269,8 @@ module ActiveRecord
 
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "timestamp without time zone", klass.columns_hash["foo"].sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          assert_equal "timestamp", klass.columns_hash["foo"].sql_type
         else
           assert_equal klass.connection.type_to_sql("datetime"), klass.columns_hash["foo"].sql_type
         end
@@ -405,9 +411,9 @@ module ActiveRecord
 
       def test_drop_table_if_exists
         connection.create_table(:testings)
-        ActiveSupport::Deprecation.silence { assert connection.table_exists?(:testings) }
+        assert connection.table_exists?(:testings)
         connection.drop_table(:testings, if_exists: true)
-        ActiveSupport::Deprecation.silence { assert_not connection.table_exists?(:testings) }
+        assert_not connection.table_exists?(:testings)
       end
 
       def test_drop_table_if_exists_nothing_raised

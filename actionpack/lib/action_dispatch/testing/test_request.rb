@@ -9,7 +9,7 @@ module ActionDispatch
       "HTTP_USER_AGENT"          => "Rails Testing",
     )
 
-    # Create a new test request with default `env` values
+    # Create a new test request with default `env` values.
     def self.create(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
       env["rack.request.cookie_hash"] ||= {}.with_indifferent_access
@@ -22,7 +22,7 @@ module ActionDispatch
     private_class_method :default_env
 
     def request_method=(method)
-      set_header("REQUEST_METHOD", method.to_s.upcase)
+      super(method.to_s.upcase)
     end
 
     def host=(host)

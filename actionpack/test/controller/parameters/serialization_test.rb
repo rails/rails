@@ -14,12 +14,10 @@ class ParametersSerializationTest < ActiveSupport::TestCase
 
   test "yaml serialization" do
     params = ActionController::Parameters.new(key: :value)
-    assert_equal <<-end_of_yaml.strip_heredoc, YAML.dump(params)
-      --- !ruby/object:ActionController::Parameters
-      parameters: !ruby/hash:ActiveSupport::HashWithIndifferentAccess
-        key: :value
-      permitted: false
-    end_of_yaml
+    yaml_dump = YAML.dump(params)
+    assert_match("--- !ruby/object:ActionController::Parameters", yaml_dump)
+    assert_match(/parameters: !ruby\/hash:ActiveSupport::HashWithIndifferentAccess\n\s+key: :value/, yaml_dump)
+    assert_match("permitted: false", yaml_dump)
   end
 
   test "yaml deserialization" do

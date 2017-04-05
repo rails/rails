@@ -61,7 +61,7 @@ end
 
 The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
 
-`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
+`ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](http://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
@@ -258,6 +258,17 @@ scalar values, map the key to an empty array:
 params.permit(id: [])
 ```
 
+Sometimes it is not possible or convenient to declare the valid keys of
+a hash parameter or its internal structure. Just map to an empty hash:
+
+```ruby
+params.permit(preferences: {})
+```
+
+but be careful because this opens the door to arbitrary input. In this
+case, `permit` ensures values in the returned structure are permitted
+scalars and filters out anything else.
+
 To whitelist an entire hash of parameters, the `permit!` method can be
 used:
 
@@ -265,9 +276,10 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any sub-hash of it as
-permitted. Extreme care should be taken when using `permit!`, as it
-will allow all current and future model attributes to be mass-assigned.
+This marks the `:log_entry` parameters hash and any sub-hash of it as
+permitted and does not check for permitted scalars, anything is accepted.
+Extreme care should be taken when using `permit!`, as it will allow all current
+and future model attributes to be mass-assigned.
 
 #### Nested Parameters
 
@@ -707,7 +719,7 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-"after" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
+"after" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running. Please note that "after" filters are executed only after a successful action, but not when an exception is raised in the request cycle.
 
 "around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 

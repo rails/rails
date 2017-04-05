@@ -132,43 +132,21 @@ module ApplicationTests
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
     end
 
-    def test_rails_routes_with_controller_environment
+    def test_singular_resource_output_in_rake_routes
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-          get '/basketball', to: 'basketball#index'
+          resource :post
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails routes CONTROLLER=cart` }
-      assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
-                    "Please use `bin/rails routes -c controller_name` instead.",
-                    "Prefix Verb URI Pattern     Controller#Action",
-                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
-
-      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
-    end
-
-    def test_rails_routes_with_namespaced_controller_environment
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          namespace :admin do
-            resource :post
-          end
-        end
-      RUBY
-      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
-                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
-                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
-                         "                PATCH  /admin/post(.:format)      admin/posts#update",
-                         "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
-
-      output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
-      assert_equal expected_output, output
+      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
+                         " new_post GET    /post/new(.:format)  posts#new",
+                         "edit_post GET    /post/edit(.:format) posts#edit",
+                         "     post GET    /post(.:format)      posts#show",
+                         "          PATCH  /post(.:format)      posts#update",
+                         "          PUT    /post(.:format)      posts#update",
+                         "          DELETE /post(.:format)      posts#destroy",
+                         "          POST   /post(.:format)      posts#create\n"].join("\n")
 
       output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
       assert_equal expected_output, output
@@ -210,6 +188,30 @@ module ApplicationTests
 
       output = Dir.chdir(app_path) { `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rails_routes_with_namespaced_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          namespace :admin do
+            resource :post
+          end
+        end
+      RUBY
+      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
+                         "                PATCH  /admin/post(.:format)      admin/posts#update",
+                         "                PUT    /admin/post(.:format)      admin/posts#update",
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
+      assert_equal expected_output, output
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
     end
 
     def test_rails_routes_displays_message_when_no_routes_are_defined
@@ -321,16 +323,6 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
-    def test_db_test_clone_when_using_sql_format
-      add_to_config "config.active_record.schema_format = :sql"
-      output = Dir.chdir(app_path) do
-        `bin/rails generate scaffold user username:string;
-         bin/rails db:migrate;
-         bin/rails db:test:clone 2>&1 --trace`
-      end
-      assert_match(/Execute db:test:clone_structure/, output)
-    end
-
     def test_db_test_prepare_when_using_sql_format
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
@@ -367,14 +359,14 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, "db", "schema_cache.dump"))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates

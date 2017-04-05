@@ -160,10 +160,6 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
-  def respond_with_empty_body
-    render nothing: true
-  end
-
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -171,14 +167,6 @@ class TestController < ActionController::Base
 
   def handle_last_modified_and_etags
     fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
-  end
-
-  def head_with_status_hash
-    head status: :created
-  end
-
-  def head_with_hash_does_not_include_status
-    head warning: :deprecated
   end
 
   def head_created
@@ -325,7 +313,6 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_permitted_dynamic_render_file_hash
-    skip "FIXME: this test passes on 4-2-stable but not master. Why?"
     assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
     response = get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
     assert_equal File.read(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb")),
@@ -379,14 +366,8 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_match(/no-transform/, @response.headers["Cache-Control"])
   end
 
-  def test_render_nothing_deprecated
-    assert_deprecated do
-      get :respond_with_empty_body
-    end
-  end
-
   def test_date_header_when_expires_in
-    time = Time.mktime(2011,10,30)
+    time = Time.mktime(2011, 10, 30)
     Time.stub :now, time do
       get :conditional_hello_with_expires_in
       assert_equal Time.now.httpdate, @response.headers["Date"]
@@ -670,19 +651,6 @@ class HeadRenderTest < ActionController::TestCase
     assert_response :created
   end
 
-  def test_passing_hash_to_head_as_first_parameter_deprecated
-    assert_deprecated do
-      get :head_with_status_hash
-    end
-  end
-
-  def test_head_with_default_value_is_deprecated
-    assert_deprecated do
-      get :head_with_hash_does_not_include_status
-      assert_response :ok
-    end
-  end
-
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
     assert @response.body.blank?
@@ -746,7 +714,7 @@ class HeadRenderTest < ActionController::TestCase
 
     get :head_with_symbolic_status, params: { status: "no_content" }
     assert_equal 204, @response.status
-    assert !@response.headers.include?("Content-Length")
+    assert_not_includes @response.headers, "Content-Length"
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|

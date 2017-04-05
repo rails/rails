@@ -28,6 +28,9 @@ require "models/member"
 require "models/membership"
 require "models/club"
 require "models/organization"
+require "models/user"
+require "models/family"
+require "models/family_tree"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -75,7 +78,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     posts = person_prime.includes(:posts).first.posts
 
     assert_operator posts.length, :>, 1
-    posts.each_cons(2) do |left,right|
+    posts.each_cons(2) do |left, right|
       assert_operator left.id, :>, right.id
     end
   end
@@ -175,7 +178,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     post = Post.new
     person.posts << post
-    assert person.posts.include?(post)
+    assert_includes person.posts, post
   end
 
   def test_associate_existing
@@ -187,10 +190,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert post.people.include?(person)
+      assert_includes post.people, person
     end
 
-    assert post.reload.people.reload.include?(person)
+    assert_includes post.reload.people.reload, person
   end
 
   def test_delete_all_for_with_dependent_option_destroy
@@ -266,7 +269,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       post.people.delete(person)
     end
 
-    assert !post.people.reload.include?(person)
+    assert_not_includes post.people.reload, person
   end
 
   def test_associating_new
@@ -284,10 +287,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert posts(:thinking).people.include?(new_person)
+      assert_includes posts(:thinking).people, new_person
     end
 
-    assert posts(:thinking).reload.people.reload.include?(new_person)
+    assert_includes posts(:thinking).reload.people.reload, new_person
   end
 
   def test_associate_new_by_building
@@ -300,8 +303,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     # Should only need to load the association once
     assert_queries(1) do
-      assert posts(:thinking).people.collect(&:first_name).include?("Bob")
-      assert posts(:thinking).people.collect(&:first_name).include?("Ted")
+      assert_includes posts(:thinking).people.collect(&:first_name), "Bob"
+      assert_includes posts(:thinking).people.collect(&:first_name), "Ted"
     end
 
     # 2 queries for each new record (1 to save the record itself, 1 for the join model)
@@ -312,8 +315,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:thinking).save
     end
 
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Bob")
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Ted")
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Bob"
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Ted"
   end
 
   def test_build_then_save_with_has_many_inverse
@@ -322,7 +325,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person.save
     post.reload
 
-    assert post.people.include?(person)
+    assert_includes post.people, person
   end
 
   def test_build_then_save_with_has_one_inverse
@@ -331,7 +334,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person.save
     post.reload
 
-    assert post.single_people.include?(person)
+    assert_includes post.single_people, person
   end
 
   def test_both_parent_ids_set_when_saving_new
@@ -402,7 +405,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal nil, reference.reload.job_id
+    assert_nil reference.reload.job_id
   ensure
     Reference.make_comments = false
   end
@@ -423,7 +426,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     # Check that the destroy callback on Reference did not run
-    assert_equal nil, person.reload.comments
+    assert_nil person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -485,7 +488,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     references.each do |reference|
-      assert_equal nil, reference.reload.job_id
+      assert_nil reference.reload.job_id
     end
   end
 
@@ -550,12 +553,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(0) {
-      assert posts(:welcome).people.include?(people(:david))
-      assert !posts(:welcome).people.include?(people(:michael))
+      assert_includes posts(:welcome).people, people(:david)
+      assert_not_includes posts(:welcome).people, people(:michael)
     }
 
-    assert posts(:welcome).reload.people.reload.include?(people(:david))
-    assert !posts(:welcome).reload.people.reload.include?(people(:michael))
+    assert_includes posts(:welcome).reload.people.reload, people(:david)
+    assert_not_includes posts(:welcome).reload.people.reload, people(:michael)
   end
 
   def test_replace_order_is_preserved
@@ -591,10 +594,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     # *Now* we actually need the collection so it's loaded
     assert_queries(1) do
-      assert posts(:thinking).people.collect(&:first_name).include?("Jeb")
+      assert_includes posts(:thinking).people.collect(&:first_name), "Jeb"
     end
 
-    assert posts(:thinking).reload.people.reload.collect(&:first_name).include?("Jeb")
+    assert_includes posts(:thinking).reload.people.reload.collect(&:first_name), "Jeb"
   end
 
   def test_through_record_is_built_when_created_with_where
@@ -702,7 +705,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Bob"],
       [:added, :before, "Lary"],
       [:added, :after, "Lary"]
-    ],log.last(6)
+    ], log.last(6)
 
     post.people_with_callbacks.build(first_name: "Ted")
     assert_equal [
@@ -716,7 +719,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Sam"]
     ], log.last(2)
 
-    post.people_with_callbacks = [people(:michael),people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
+    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
     assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
       [:added, :before, "Julian"],
@@ -832,14 +835,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     category = author.named_categories.build(name: "Primary")
     author.save
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.include?(category)
+    assert_includes author.named_categories.reload, category
   end
 
   def test_collection_create_with_nonstandard_primary_key_on_belongs_to
     author   = authors(:mary)
     category = author.named_categories.create(name: "Primary")
     assert Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.include?(category)
+    assert_includes author.named_categories.reload, category
   end
 
   def test_collection_exists
@@ -880,13 +883,34 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       book.subscriber_ids = []
       assert_equal [], book.subscribers.reload
     end
+  end
 
+  def test_collection_singular_ids_setter_with_changed_primary_key
+    company = companies(:first_firm)
+    client = companies(:first_client)
+    company.clients_using_primary_key_ids = [client.name]
+    assert_equal [client], company.clients_using_primary_key
   end
 
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
-    ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids= ids }
+    ids = [Developer.first.id, -9999]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
+    assert_match(/Couldn't find all Developers with 'id'/, e.message)
+  end
+
+  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
+    company = companies(:first_firm)
+    ids = [Client.first.name, "unknown client"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
+    assert_match(/Couldn't find all Clients with 'name'/, e.message)
+  end
+
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
@@ -908,14 +932,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     reference = person.references.build
     job = reference.build_job
-    assert person.jobs.include?(job)
+    assert_includes person.jobs, job
   end
 
   def test_include_method_in_association_through_should_return_true_for_instance_added_with_nested_builds
     author = Author.new
     post = author.posts.build
     comment = post.comments.build
-    assert author.comments.include?(comment)
+    assert_includes author.comments, comment
   end
 
   def test_through_association_readonly_should_be_false
@@ -1022,7 +1046,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     address = author_addresses(:david_address)
 
-    assert post.author_addresses.include?(address)
+    assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
     assert post[:author_count].nil?
   end
@@ -1107,7 +1131,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_obeys_order_on_through_association
     owner = owners(:blackbeard)
-    assert owner.toys.to_sql.include?("pets.name desc")
+    assert_includes owner.toys.to_sql, "pets.name desc"
     assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 
@@ -1182,12 +1206,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil Club.new.special_favourites.distinct_value
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    post = Post.find(1)
-
-    assert_deprecated { post.people(true) }
-  end
-
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
     member = Member.create!
     club = Club.create!
@@ -1214,5 +1232,24 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [other_club], tenant_clubs
   ensure
     TenantMembership.current_member = nil
+  end
+
+  def test_has_many_through_with_scope_should_respect_table_alias
+    family = Family.create!
+    users = 3.times.map { User.create! }
+    FamilyTree.create!(member: users[0], family: family)
+    FamilyTree.create!(member: users[1], family: family)
+    FamilyTree.create!(member: users[2], family: family, token: "wat")
+
+    assert_equal 2, users[0].family_members.to_a.size
+    assert_equal 0, users[2].family_members.to_a.size
+  end
+
+  def test_incorrectly_ordered_through_associations
+    assert_raises(ActiveRecord::HasManyThroughOrderError) do
+      DeveloperWithIncorrectlyOrderedHasManyThrough.create(
+        companies: [Company.create]
+      )
+    end
   end
 end

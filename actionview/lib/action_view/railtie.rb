@@ -3,7 +3,7 @@ require "rails"
 
 module ActionView
   # = Action View Railtie
-  class Railtie < Rails::Railtie # :nodoc:
+  class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = false
     config.action_view.debug_missing_translation = true
@@ -23,7 +23,7 @@ module ActionView
 
     initializer "action_view.set_configs" do |app|
       ActiveSupport.on_load(:action_view) do
-        app.config.action_view.each do |k,v|
+        app.config.action_view.each do |k, v|
           send "#{k}=", v
         end
       end
@@ -39,8 +39,8 @@ module ActionView
 
     initializer "action_view.per_request_digest_cache" do |app|
       ActiveSupport.on_load(:action_view) do
-        if app.config.consider_all_requests_local
-          app.executor.to_run { ActionView::LookupContext::DetailsKey.clear }
+        unless ActionView::Resolver.caching?
+          app.executor.to_run ActionView::Digestor::PerExecutionDigestCacheExpiry
         end
       end
     end

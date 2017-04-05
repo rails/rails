@@ -3,7 +3,7 @@ class String
   # position. The first character of the string is at position 0, the next at
   # position 1, and so on. If a range is supplied, a substring containing
   # characters at offsets given by the range is returned. In both cases, if an
-  # offset is negative, it is counted from the end of the string. Returns nil
+  # offset is negative, it is counted from the end of the string. Returns +nil+
   # if the initial offset falls outside the string. Returns an empty string if
   # the beginning of the range is greater than the end of the string.
   #
@@ -17,7 +17,7 @@ class String
   #
   # If a Regexp is given, the matching portion of the string is returned.
   # If a String is given, that given string is returned if it occurs in
-  # the string. In both cases, nil is returned if there is no match.
+  # the string. In both cases, +nil+ is returned if there is no match.
   #
   #   str = "hello"
   #   str.at(/lo/) # => "lo"

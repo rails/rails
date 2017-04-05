@@ -24,26 +24,24 @@ module ActiveRecord
     end
 
     def self.run
-      connection    = ActiveRecord::Base.connection
-      enabled       = connection.query_cache_enabled
-      connection.enable_query_cache!
+      caching_pool = ActiveRecord::Base.connection_pool
+      caching_was_enabled = caching_pool.query_cache_enabled
 
-      enabled
+      caching_pool.enable_query_cache!
+
+      [caching_pool, caching_was_enabled]
     end
 
-    def self.complete(enabled)
-      ActiveRecord::Base.connection.clear_query_cache
-      ActiveRecord::Base.connection.disable_query_cache! unless enabled
+    def self.complete((caching_pool, caching_was_enabled))
+      caching_pool.disable_query_cache! unless caching_was_enabled
+
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+      end
     end
 
     def self.install_executor_hooks(executor = ActiveSupport::Executor)
       executor.register_hook(self)
-
-      executor.to_complete do
-        unless ActiveRecord::Base.connected? && ActiveRecord::Base.connection.transaction_open?
-          ActiveRecord::Base.clear_active_connections!
-        end
-      end
     end
   end
 end

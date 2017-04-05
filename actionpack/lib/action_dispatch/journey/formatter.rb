@@ -1,10 +1,11 @@
 require "action_controller/metal/exceptions"
 
 module ActionDispatch
+  # :stopdoc:
   module Journey
     # The Formatter class is used for formatting URLs. For example, parameters
     # passed to +url_for+ in Rails will eventually call Formatter#generate.
-    class Formatter # :nodoc:
+    class Formatter
       attr_reader :routes
 
       def initialize(routes)
@@ -14,7 +15,7 @@ module ActionDispatch
 
       def generate(name, options, path_parameters, parameterize = nil)
         constraints = path_parameters.merge(options)
-        missing_keys = nil # need for variable scope
+        missing_keys = nil
 
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize)
@@ -35,7 +36,7 @@ module ActionDispatch
 
           route.parts.reverse_each do |key|
             break if defaults[key].nil? && parameterized_parts[key].present?
-            break if parameterized_parts[key].to_s != defaults[key].to_s
+            next if parameterized_parts[key].to_s != defaults[key].to_s
             break if required_parts.include?(key)
 
             parameterized_parts.delete(key)
@@ -44,8 +45,12 @@ module ActionDispatch
           return [route.format(parameterized_parts), params]
         end
 
-        message = "No route matches #{Hash[constraints.sort_by { |k,v| k.to_s }].inspect}"
-        message << " missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
+        unmatched_keys = (missing_keys || []) & constraints.keys
+        missing_keys = (missing_keys || []) - unmatched_keys
+
+        message = "No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}"
+        message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
+        message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
 
         raise ActionController::UrlGenerationError, message
       end
@@ -87,7 +92,11 @@ module ActionDispatch
           else
             routes = non_recursive(cache, options)
 
-            hash = routes.group_by { |_, r| r.score(options) }
+            supplied_keys = options.each_with_object({}) do |(k, v), h|
+              h[k.to_s] = true if v
+            end
+
+            hash = routes.group_by { |_, r| r.score(supplied_keys) }
 
             hash.keys.sort.reverse_each do |score|
               break if score < 0
@@ -174,4 +183,5 @@ module ActionDispatch
         end
     end
   end
+  # :startdoc:
 end

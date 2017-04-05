@@ -1,6 +1,4 @@
 require "abstract_controller/error"
-require "active_support/concern"
-require "active_support/core_ext/class/attribute"
 require "action_view"
 require "action_view/view_paths"
 require "set"
@@ -80,7 +78,7 @@ module AbstractController
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
-    def _normalize_args(action=nil, options={})
+    def _normalize_args(action = nil, options = {})
       if action.respond_to?(:permitted?)
         if action.permitted?
           action
@@ -111,6 +109,9 @@ module AbstractController
     def _process_format(format)
     end
 
+    def _process_variant(options)
+    end
+
     def _set_html_content_type # :nodoc:
     end
 
@@ -121,10 +122,7 @@ module AbstractController
     # :api: private
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
-      #TODO: remove defined? when we restore AP <=> AV dependency
-      if defined?(request) && !request.nil? && request.variant.present?
-        options[:variant] = request.variant
-      end
+      _process_variant(options)
       _normalize_options(options)
       options
     end

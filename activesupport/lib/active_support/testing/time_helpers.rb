@@ -10,7 +10,7 @@ module ActiveSupport
         @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
       end
 
-      def stub_object(object, method_name, return_value)
+      def stub_object(object, method_name, &block)
         if stub = stubbing(object, method_name)
           unstub_object(stub)
         end
@@ -20,7 +20,7 @@ module ActiveSupport
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
         object.singleton_class.send :alias_method, new_name, method_name
-        object.define_singleton_method(method_name) { return_value }
+        object.define_singleton_method(method_name, &block)
       end
 
       def unstub_all!
@@ -134,9 +134,9 @@ module ActiveSupport
           now = date_or_time.to_time.change(usec: 0)
         end
 
-        simple_stubs.stub_object(Time, :now, now)
-        simple_stubs.stub_object(Date, :today, now.to_date)
-        simple_stubs.stub_object(DateTime, :now, now.to_datetime)
+        simple_stubs.stub_object(Time, :now) { at(now.to_i) }
+        simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
+        simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 
         if block_given?
           begin

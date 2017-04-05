@@ -11,8 +11,8 @@ class AssertSelectEmailTest < ActionMailer::TestCase
   class AssertMultipartSelectMailer < ActionMailer::Base
     def test(options)
       mail subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>" do |format|
-        format.text { render text: options[:text] }
-        format.html { render text: options[:html] }
+        format.text { render plain: options[:text] }
+        format.html { render plain: options[:html] }
       end
     end
   end

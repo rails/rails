@@ -91,6 +91,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
+    @connection.execute "CREATE TABLE #{SCHEMA2_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
     @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
@@ -130,7 +131,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     ensure
       @connection.drop_schema "test_schema3"
     end
-    assert !@connection.schema_names.include?("test_schema3")
+    assert_not_includes @connection.schema_names, "test_schema3"
   end
 
   def test_drop_schema_if_exists
@@ -301,13 +302,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_index_name_exists
     with_schema_search_path(SCHEMA_NAME) do
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
-      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
-      assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index", true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
+      assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index")
     end
   end
 
@@ -361,16 +362,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_primary_key_assuming_schema_search_path
-    with_schema_search_path(SCHEMA_NAME) do
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
       assert_equal "id", @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
-    end
-  end
-
-  def test_primary_key_raises_error_if_table_not_found_on_schema_search_path
-    with_schema_search_path(SCHEMA2_NAME) do
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.primary_key(PK_TABLE_NAME)
-      end
     end
   end
 
@@ -383,7 +376,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       pk, seq = @connection.pk_and_sequence_for(given)
       assert_equal "id", pk, "primary key should be found when table referenced as #{given}"
       assert_equal pg_name.new(SCHEMA_NAME, "#{PK_TABLE_NAME}_id_seq"), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
-      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
+      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
     end
   end
 
@@ -393,7 +386,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       SCHEMA_NAME                              => SCHEMA_NAME,
       %(#{SCHEMA2_NAME},#{SCHEMA_NAME},public) => SCHEMA2_NAME,
       %(public,#{SCHEMA2_NAME},#{SCHEMA_NAME}) => "public"
-    }.each do |given,expect|
+    }.each do |given, expect|
       with_schema_search_path(given) { assert_equal expect, @connection.current_schema }
     end
   end
@@ -418,7 +411,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       SCHEMA_NAME  => true,
       SCHEMA2_NAME => true,
       "darkside"   => false
-    }.each do |given,expect|
+    }.each do |given, expect|
       assert_equal expect, @connection.schema_exists?(given)
     end
   end

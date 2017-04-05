@@ -4,26 +4,26 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        protected
+        private
 
-        # We want to generate the methods via module_eval rather than
-        # define_method, because define_method is slower on dispatch.
-        # Evaluating many similar methods may use more memory as the instruction
-        # sequences are duplicated and cached (in MRI).  define_method may
-        # be slower on dispatch, but if you're careful about the closure
-        # created, then define_method will consume much less memory.
-        #
-        # But sometimes the database might return columns with
-        # characters that are not allowed in normal method names (like
-        # 'my_column(omg)'. So to work around this we first define with
-        # the __temp__ identifier, and then use alias method to rename
-        # it to what we want.
-        #
-        # We are also defining a constant to hold the frozen string of
-        # the attribute name. Using a constant means that we do not have
-        # to allocate an object on each call to the attribute method.
-        # Making it frozen means that it doesn't get duped when used to
-        # key the @attributes in read_attribute.
+          # We want to generate the methods via module_eval rather than
+          # define_method, because define_method is slower on dispatch.
+          # Evaluating many similar methods may use more memory as the instruction
+          # sequences are duplicated and cached (in MRI).  define_method may
+          # be slower on dispatch, but if you're careful about the closure
+          # created, then define_method will consume much less memory.
+          #
+          # But sometimes the database might return columns with
+          # characters that are not allowed in normal method names (like
+          # 'my_column(omg)'. So to work around this we first define with
+          # the __temp__ identifier, and then use alias method to rename
+          # it to what we want.
+          #
+          # We are also defining a constant to hold the frozen string of
+          # the attribute name. Using a constant means that we do not have
+          # to allocate an object on each call to the attribute method.
+          # Making it frozen means that it doesn't get duped when used to
+          # key the @attributes in read_attribute.
           def define_method_attribute(name)
             safe_name = name.unpack("h*".freeze).first
             temp_method = "__temp__#{safe_name}"
@@ -48,8 +48,13 @@ module ActiveRecord
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
-        name = attr_name.to_s
-        name = self.class.primary_key if name == "id".freeze
+        name = if self.class.attribute_alias?(attr_name)
+          self.class.attribute_alias(attr_name).to_s
+        else
+          attr_name.to_s
+        end
+
+        name = self.class.primary_key if name == "id".freeze && self.class.primary_key
         _read_attribute(name, &block)
       end
 

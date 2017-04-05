@@ -15,9 +15,9 @@ module ActiveRecord
       self.cache_timestamp_format = :usec
     end
 
-    # Returns a String, which Action Pack uses for constructing a URL to this
-    # object. The default implementation returns this record's id as a String,
-    # or nil if this record's unsaved.
+    # Returns a +String+, which Action Pack uses for constructing a URL to this
+    # object. The default implementation returns this record's id as a +String+,
+    # or +nil+ if this record's unsaved.
     #
     # For example, suppose that you have a User model, and that you have a
     # <tt>resources :users</tt> route. Normally, +user_path+ will
@@ -53,18 +53,21 @@ module ActiveRecord
     #
     #   Person.find(5).cache_key(:updated_at, :last_reviewed_at)
     def cache_key(*timestamp_names)
-      case
-      when new_record?
+      if new_record?
         "#{model_name.cache_key}/new"
-      when timestamp_names.any?
-        timestamp = max_updated_column_timestamp(timestamp_names)
-        timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{model_name.cache_key}/#{id}-#{timestamp}"
-      when timestamp = max_updated_column_timestamp
-        timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{model_name.cache_key}/#{id}-#{timestamp}"
       else
-        "#{model_name.cache_key}/#{id}"
+        timestamp = if timestamp_names.any?
+          max_updated_column_timestamp(timestamp_names)
+        else
+          max_updated_column_timestamp
+        end
+
+        if timestamp
+          timestamp = timestamp.utc.to_s(cache_timestamp_format)
+          "#{model_name.cache_key}/#{id}-#{timestamp}"
+        else
+          "#{model_name.cache_key}/#{id}"
+        end
       end
     end
 

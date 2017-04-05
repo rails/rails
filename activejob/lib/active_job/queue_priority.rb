@@ -17,7 +17,7 @@ module ActiveJob
       #   end
       #
       # Specify either an argument or a block.
-      def queue_with_priority(priority=nil, &block)
+      def queue_with_priority(priority = nil, &block)
         if block_given?
           self.priority = block
         else

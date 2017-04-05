@@ -134,10 +134,10 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       Rails.application.load_generators
 
-      assert Rails::Generators.hidden_namespaces.include?("assets")
-      assert Rails::Generators.hidden_namespaces.include?("helper")
-      assert Rails::Generators.hidden_namespaces.include?("js")
-      assert Rails::Generators.hidden_namespaces.include?("css")
+      assert_includes Rails::Generators.hidden_namespaces, "assets"
+      assert_includes Rails::Generators.hidden_namespaces, "helper"
+      assert_includes Rails::Generators.hidden_namespaces, "js"
+      assert_includes Rails::Generators.hidden_namespaces, "css"
       assert Rails::Generators.options[:rails][:api]
       assert_equal false, Rails::Generators.options[:rails][:assets]
       assert_equal false, Rails::Generators.options[:rails][:helper]
@@ -168,6 +168,31 @@ module ApplicationTests
       FileUtils.cd(rails_root) { `bin/rails generate mailer notifier foo` }
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.text.erb"))
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
+    end
+
+    test "ARGV is mutated as expected" do
+      require "#{app_path}/config/environment"
+      Rails::Command.const_set("APP_PATH", "rails/all")
+
+      FileUtils.cd(rails_root) do
+        ARGV = ["mailer", "notifier", "foo"]
+        Rails::Command.const_set("ARGV", ARGV)
+        quietly { Rails::Command.invoke :generate, ARGV }
+
+        assert_equal ["notifier", "foo"], ARGV
+      end
+
+      Rails::Command.send(:remove_const, "APP_PATH")
+    end
+
+    test "help does not show hidden namespaces" do
+      FileUtils.cd(rails_root) do
+        output = `bin/rails generate --help`
+        assert_no_match "active_record:migration", output
+
+        output = `bin/rails destroy --help`
+        assert_no_match "active_record:migration", output
+      end
     end
   end
 end

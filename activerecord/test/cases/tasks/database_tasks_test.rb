@@ -24,13 +24,13 @@ module ActiveRecord
     sqlite3:    :sqlite_tasks
   }
 
-  class DatabaseTasksUtilsTask< ActiveRecord::TestCase
+  class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
       ActiveRecord::Migrator.stubs(:current_version).returns(1)
 
       protected_environments = ActiveRecord::Base.protected_environments.dup
       current_env            = ActiveRecord::Migrator.current_environment
-      assert !protected_environments.include?(current_env)
+      assert_not_includes protected_environments, current_env
       # Assert no error
       ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
@@ -61,7 +61,7 @@ module ActiveRecord
       instance = klazz.new
 
       klazz.stubs(:new).returns instance
-      instance.expects(:structure_dump).with("awesome-file.sql")
+      instance.expects(:structure_dump).with("awesome-file.sql", nil)
 
       ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
@@ -85,11 +85,23 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
+    def test_dump_schema_cache
+      path = "/tmp/my_schema_cache.yml"
+      ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
+      assert File.file?(path)
+    ensure
+      FileUtils.rm_rf(path)
+    end
+  end
+
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
       @configurations = { "development" => { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
+      ActiveRecord::Base.connection_handler.stubs(:establish_connection)
     end
 
     def test_ignores_configurations_without_databases
@@ -338,6 +350,14 @@ module ActiveRecord
       ENV["VERBOSE"], ENV["VERSION"] = verbose, version
     end
 
+    def test_migrate_raise_error_on_empty_version
+      version = ENV["VERSION"]
+      ENV["VERSION"] = ""
+      assert_raise(RuntimeError, "Empty VERSION provided") { ActiveRecord::Tasks::DatabaseTasks.migrate }
+    ensure
+      ENV["VERSION"] = version
+    end
+
     def test_migrate_clears_schema_cache_afterward
       ActiveRecord::Base.expects(:clear_cache!)
       ActiveRecord::Tasks::DatabaseTasks.migrate
@@ -411,7 +431,7 @@ module ActiveRecord
 
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_dump") do
-        eval("@#{v}").expects(:structure_dump).with("awesome-file.sql")
+        eval("@#{v}").expects(:structure_dump).with("awesome-file.sql", nil)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
       end
     end
@@ -422,7 +442,7 @@ module ActiveRecord
 
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_load") do
-        eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
+        eval("@#{v}").expects(:structure_load).with("awesome-file.sql", nil)
         ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
       end
     end

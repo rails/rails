@@ -104,7 +104,7 @@ module ActiveModel
 
     # Accepts options that will be made available through the +options+ reader.
     def initialize(options = {})
-      @options  = options.except(:class).freeze
+      @options = options.except(:class).freeze
     end
 
     # Returns the kind for this validator.
@@ -141,8 +141,8 @@ module ActiveModel
     end
 
     # Performs validation on the supplied record. By default this will call
-    # +validates_each+ to determine validity therefore subclasses should
-    # override +validates_each+ with validation logic.
+    # +validate_each+ to determine validity therefore subclasses should
+    # override +validate_each+ with validation logic.
     def validate(record)
       attributes.each do |attribute|
         value = record.read_attribute_for_validation(attribute)

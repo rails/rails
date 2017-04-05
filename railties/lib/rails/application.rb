@@ -4,6 +4,7 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "rails/engine"
+require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -72,7 +73,7 @@ module Rails
   # on one of the applications to create a copy of the application which shares
   # the configuration.
   #
-  # If you decide to define rake tasks, runners, or initializers in an
+  # If you decide to define Rake tasks, runners, or initializers in an
   # application other than +Rails.application+, then you must run them manually.
   class Application < Engine
     autoload :Bootstrap,              "rails/application/bootstrap"
@@ -265,8 +266,8 @@ module Rails
       end
     end
 
-    # If you try to define a set of rake tasks on the instance, these will get
-    # passed up to the rake tasks defined on the application's class.
+    # If you try to define a set of Rake tasks on the instance, these will get
+    # passed up to the Rake tasks defined on the application's class.
     def rake_tasks(&block)
       self.class.rake_tasks(&block)
     end
@@ -274,7 +275,7 @@ module Rails
     # Sends the initializers to the +initializer+ method defined in the
     # Rails::Initializable module. Each Rails::Application class has its own
     # set of initializers, as defined by the Initializable module.
-    def initializer(name, opts={}, &block)
+    def initializer(name, opts = {}, &block)
       self.class.initializer(name, opts, &block)
     end
 
@@ -347,7 +348,7 @@ module Rails
 
     # Initialize the application passing the given group. By default, the
     # group is :default
-    def initialize!(group=:default) #:nodoc:
+    def initialize!(group = :default) #:nodoc:
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
@@ -385,18 +386,7 @@ module Rails
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        yaml    = config.paths["config/secrets"].first
-
-        if File.exist?(yaml)
-          require "erb"
-
-          all_secrets    = YAML.load(ERB.new(IO.read(yaml)).result) || {}
-          shared_secrets = all_secrets["shared"]
-          env_secrets    = all_secrets[Rails.env]
-
-          secrets.merge!(shared_secrets.symbolize_keys) if shared_secrets
-          secrets.merge!(env_secrets.symbolize_keys) if env_secrets
-        end
+        secrets.merge! Rails::Secrets.parse(config.paths["config/secrets"].existent, env: Rails.env)
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
@@ -511,7 +501,7 @@ module Rails
 
     def validate_secret_key_config! #:nodoc:
       if secrets.secret_key_base.blank?
-        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
+        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " \
           "Read the upgrade documentation to learn more about this new config option."
 
         if secrets.secret_token.blank?

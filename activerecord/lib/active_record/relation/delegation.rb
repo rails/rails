@@ -1,6 +1,3 @@
-require "active_support/concern"
-require "active_support/core_ext/regexp"
-
 module ActiveRecord
   module Delegation # :nodoc:
     module DelegateCache # :nodoc:
@@ -18,7 +15,10 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          const_set klass.name.gsub("::".freeze, "_".freeze), delegate
+          mangled_name = klass.name.gsub("::".freeze, "_".freeze)
+          const_set mangled_name, delegate
+          private_constant mangled_name
+
           cache[klass] = delegate
         end
       end
@@ -36,8 +36,9 @@ module ActiveRecord
     # may vary depending on the klass of a relation, so we create a subclass of Relation
     # for each different klass, and the delegations are compiled into that subclass only.
 
-    delegate :to_xml, :encode_with, :length, :collect, :map, :each, :all?, :include?, :to_ary, :join,
+    delegate :to_xml, :encode_with, :length, :each, :uniq, :to_ary, :join,
              :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :to_sentence, :to_formatted_s, :as_json,
              :shuffle, :split, :index, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
@@ -81,7 +82,7 @@ module ActiveRecord
         end
       end
 
-      protected
+      private
 
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
@@ -113,7 +114,7 @@ module ActiveRecord
         arel.respond_to?(method, include_private)
     end
 
-    protected
+    private
 
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)

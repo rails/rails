@@ -11,6 +11,12 @@ end
 class EmptyController < ActionController::Base
 end
 
+class SimpleController < ActionController::Base
+  def hello
+    self.response_body = "hello"
+  end
+end
+
 class NonEmptyController < ActionController::Base
   def public_action
     head :ok
@@ -118,6 +124,27 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     controller = klass.new
     assert_equal "examples", controller.controller_path
   end
+
+  def test_response_has_default_headers
+    original_default_headers = ActionDispatch::Response.default_headers
+
+    ActionDispatch::Response.default_headers = {
+      "X-Frame-Options" => "DENY",
+      "X-Content-Type-Options" => "nosniff",
+      "X-XSS-Protection" => "1;"
+    }
+
+    response_headers = SimpleController.action("hello").call(
+      "REQUEST_METHOD" => "GET",
+      "rack.input" => -> {}
+    )[1]
+
+    assert response_headers.key?("X-Frame-Options")
+    assert response_headers.key?("X-Content-Type-Options")
+    assert response_headers.key?("X-XSS-Protection")
+  ensure
+    ActionDispatch::Response.default_headers = original_default_headers
+  end
 end
 
 class PerformActionTest < ActionController::TestCase
@@ -194,7 +221,7 @@ class UrlOptionsTest < ActionController::TestCase
         get "account/overview"
       end
 
-      assert !@controller.class.action_methods.include?("account_overview_path")
+      assert_not_includes @controller.class.action_methods, "account_overview_path"
     end
   end
 end

@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class Scroll < Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at)
+Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 

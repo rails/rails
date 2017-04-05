@@ -138,7 +138,7 @@ module ActionView
       #
       # ==== Options
       #
-      # Any passed options become attributes on the generated tag.
+      # Use symbol keyed options to add attributes to the generated tag.
       #
       #   tag.section class: %w( kitties puppies )
       #   # => <section class="kitties puppies"></section>

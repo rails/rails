@@ -55,7 +55,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_text_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-      @view.render(text: "TEXT")
+      @view.render(plain: "TEXT")
       wait
 
       assert_equal 2, @logger.logged(:info).size

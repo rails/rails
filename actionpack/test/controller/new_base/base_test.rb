@@ -25,7 +25,7 @@ module Dispatching
       render body: "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
-    protected
+    private
       def authenticate
       end
   end

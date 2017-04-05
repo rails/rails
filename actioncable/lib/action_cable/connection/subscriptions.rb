@@ -19,17 +19,21 @@ module ActionCable
           logger.error "Received unrecognized command in #{data.inspect}"
         end
       rescue Exception => e
-        logger.error "Could not execute command from #{data.inspect}) [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
+        logger.error "Could not execute command from (#{data.inspect}) [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 
       def add(data)
         id_key = data["identifier"]
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
+        return if subscriptions.key?(id_key)
+
         subscription_klass = id_options[:channel].safe_constantize
 
         if subscription_klass && ActionCable::Channel::Base >= subscription_klass
-          subscriptions[id_key] ||= subscription_klass.new(connection, id_key, id_options)
+          subscription = subscription_klass.new(connection, id_key, id_options)
+          subscriptions[id_key] = subscription
+          subscription.subscribe_to_channel
         else
           logger.error "Subscription class not found: #{id_options[:channel].inspect}"
         end
@@ -57,6 +61,8 @@ module ActionCable
         subscriptions.each { |id, channel| remove_subscription(channel) }
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
         attr_reader :connection, :subscriptions
 

@@ -84,7 +84,7 @@ module ActiveSupport
           scanner.eos?
         end
 
-      # Parses number which can be a float with either comma or period.
+        # Parses number which can be a float with either comma or period.
         def number
           PERIOD_OR_COMMA.match?(scanner[1]) ? scanner[1].tr(COMMA, PERIOD).to_f : scanner[1].to_i
         end
@@ -97,7 +97,7 @@ module ActiveSupport
           raise ParsingError, "Invalid ISO 8601 duration: #{scanner.string.inspect} #{reason}".strip
         end
 
-      # Checks for various semantic errors as stated in ISO 8601 standard.
+        # Checks for various semantic errors as stated in ISO 8601 standard.
         def validate!
           raise_parsing_error("is empty duration") if parts.empty?
 

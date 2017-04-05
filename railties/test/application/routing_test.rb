@@ -65,7 +65,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -156,7 +156,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: my_blog_path
+            render plain: my_blog_path
           end
         end
       RUBY
@@ -176,7 +176,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -184,7 +184,7 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ActionController::Base
           def index
-            render text: "bar"
+            render plain: "bar"
           end
         end
       RUBY
@@ -206,7 +206,7 @@ module ApplicationTests
       controller "foo", <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -215,7 +215,7 @@ module ApplicationTests
         module Admin
           class FooController < ApplicationController
             def index
-              render text: "admin::foo"
+              render plain: "admin::foo"
             end
           end
         end
@@ -263,16 +263,42 @@ module ApplicationTests
       assert_equal "WIN", last_response.body
     end
 
-    { "development" => "baz", "production" => "bar" }.each do |mode, expected|
+    {
+      "development" => ["baz", "http://www.apple.com", "/dashboard"],
+      "production"  => ["bar", "http://www.microsoft.com", "/profile"]
+    }.each do |mode, (expected_action, expected_url, expected_mapping)|
       test "reloads routes when configuration is changed in #{mode}" do
         controller :foo, <<-RUBY
           class FooController < ApplicationController
             def bar
-              render text: "bar"
+              render plain: "bar"
             end
 
             def baz
-              render text: "baz"
+              render plain: "baz"
+            end
+
+            def custom
+              render plain: custom_url
+            end
+
+            def mapping
+              render plain: url_for(User.new)
+            end
+          end
+        RUBY
+
+        app_file "app/models/user.rb", <<-RUBY
+          class User
+            extend ActiveModel::Naming
+            include ActiveModel::Conversion
+
+            def model_name
+              @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+            end
+
+            def persisted?
+              false
             end
           end
         RUBY
@@ -280,6 +306,11 @@ module ApplicationTests
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get 'foo', to: 'foo#bar'
+            get 'custom', to: 'foo#custom'
+            get 'mapping', to: 'foo#mapping'
+
+            direct(:custom) { "http://www.microsoft.com" }
+            resolve("User") { "/profile" }
           end
         RUBY
 
@@ -288,16 +319,33 @@ module ApplicationTests
         get "/foo"
         assert_equal "bar", last_response.body
 
+        get "/custom"
+        assert_equal "http://www.microsoft.com", last_response.body
+
+        get "/mapping"
+        assert_equal "/profile", last_response.body
+
         app_file "config/routes.rb", <<-RUBY
           Rails.application.routes.draw do
             get 'foo', to: 'foo#baz'
+            get 'custom', to: 'foo#custom'
+            get 'mapping', to: 'foo#mapping'
+
+            direct(:custom) { "http://www.apple.com" }
+            resolve("User") { "/dashboard" }
           end
         RUBY
 
         sleep 0.1
 
         get "/foo"
-        assert_equal expected, last_response.body
+        assert_equal expected_action, last_response.body
+
+        get "/custom"
+        assert_equal expected_url, last_response.body
+
+        get "/mapping"
+        assert_equal expected_mapping, last_response.body
       end
     end
 
@@ -332,7 +380,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -356,7 +404,15 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
+          end
+
+          def custom
+            render plain: custom_url
+          end
+
+          def mapping
+            render plain: url_for(User.new)
           end
         end
       RUBY
@@ -364,7 +420,22 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render plain: "bar"
+          end
+        end
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User
+          extend ActiveModel::Naming
+          include ActiveModel::Conversion
+
+          def model_name
+            @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+          end
+
+          def persisted?
+            false
           end
         end
       RUBY
@@ -389,6 +460,12 @@ module ApplicationTests
         Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
           get 'bar', to: 'bar#index'
+
+          get 'custom', to: 'foo#custom'
+          direct(:custom) { 'http://www.apple.com' }
+
+          get 'mapping', to: 'foo#mapping'
+          resolve('User') { '/profile' }
         end
       RUBY
 
@@ -401,6 +478,14 @@ module ApplicationTests
       get "/bar"
       assert_equal "bar", last_response.body
       assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
+
+      get "/custom"
+      assert_equal "http://www.apple.com", last_response.body
+      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+
+      get "/mapping"
+      assert_equal "/profile", last_response.body
+      assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -419,6 +504,18 @@ module ApplicationTests
       assert_raises NoMethodError do
         assert_equal "/bar", Rails.application.routes.url_helpers.bar_path
       end
+
+      get "/custom"
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.custom_url
+      end
+
+      get "/mapping"
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
+      end
     end
 
     test "named routes are cleared when reloading" do
@@ -427,7 +524,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY
@@ -435,7 +532,22 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render plain: "bar"
+          end
+        end
+      RUBY
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User
+          extend ActiveModel::Naming
+          include ActiveModel::Conversion
+
+          def model_name
+            @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
+          end
+
+          def persisted?
+            false
           end
         end
       RUBY
@@ -443,16 +555,23 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/foo', to: 'foo#index', as: 'foo'
+          get 'users', to: 'foo#users', as: 'users'
+          direct(:microsoft) { 'http://www.microsoft.com' }
+          resolve('User') { '/profile' }
         end
       RUBY
 
       get "/en/foo"
       assert_equal "foo", last_response.body
       assert_equal "/en/foo", Rails.application.routes.url_helpers.foo_path(locale: "en")
+      assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+      assert_equal "/profile", Rails.application.routes.url_helpers.polymorphic_path(User.new)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':locale/bar', to: 'bar#index', as: 'foo'
+          get 'users', to: 'foo#users', as: 'users'
+          direct(:apple) { 'http://www.apple.com' }
         end
       RUBY
 
@@ -464,6 +583,12 @@ module ApplicationTests
       get "/en/bar"
       assert_equal "bar", last_response.body
       assert_equal "/en/bar", Rails.application.routes.url_helpers.foo_path(locale: "en")
+      assert_equal "http://www.apple.com", Rails.application.routes.url_helpers.apple_url
+      assert_equal "/users", Rails.application.routes.url_helpers.polymorphic_path(User.new)
+
+      assert_raises NoMethodError do
+        assert_equal "http://www.microsoft.com", Rails.application.routes.url_helpers.microsoft_url
+      end
     end
 
     test "resource routing with irregular inflection" do
@@ -482,7 +607,7 @@ module ApplicationTests
       controller "yazilar", <<-RUBY
         class YazilarController < ApplicationController
           def index
-            render text: 'yazilar#index'
+            render plain: 'yazilar#index'
           end
         end
       RUBY
@@ -492,6 +617,64 @@ module ApplicationTests
 
       get "/yazilar"
       assert_equal 200, last_response.status
+    end
+
+    test "reloading routes removes methods and doesn't undefine them" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+        end
+      RUBY
+
+      app_file "app/models/url_helpers.rb", <<-RUBY
+        module UrlHelpers
+          def foo_path
+            "/foo"
+          end
+        end
+      RUBY
+
+      app_file "app/models/context.rb", <<-RUBY
+        class Context
+          include UrlHelpers
+          include Rails.application.routes.url_helpers
+        end
+      RUBY
+
+      controller "url", <<-RUBY
+        class UrlController < ApplicationController
+          def index
+            context = Context.new
+            render plain: context.foo_path
+          end
+        end
+      RUBY
+
+      get "/url"
+      assert_equal "/foo", last_response.body
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+          get '/bar', to: 'foo#index', as: 'foo'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get "/url"
+      assert_equal "/bar", last_response.body
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/url', to: 'url#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get "/url"
+      assert_equal "/foo", last_response.body
     end
   end
 end

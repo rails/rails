@@ -44,7 +44,7 @@ module ActiveRecord
     end
 
     def associated_table(table_name)
-      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.singularize)
+      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
       if !association && table_name == arel_table.name
         return self
@@ -64,6 +64,8 @@ module ActiveRecord
       association && association.polymorphic?
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :klass, :arel_table, :association

@@ -14,10 +14,10 @@ module ActiveSupport
   # where you don't want users to be able to determine the value of the payload.
   #
   #   salt  = SecureRandom.random_bytes(64)
-  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt) # => "\x89\xE0\x156\xAC..."
-  #   crypt = ActiveSupport::MessageEncryptor.new(key)                       # => #<ActiveSupport::MessageEncryptor ...>
-  #   encrypted_data = crypt.encrypt_and_sign('my secret data')              # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
-  #   crypt.decrypt_and_verify(encrypted_data)                               # => "my secret data"
+  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt, 32) # => "\x89\xE0\x156\xAC..."
+  #   crypt = ActiveSupport::MessageEncryptor.new(key)                           # => #<ActiveSupport::MessageEncryptor ...>
+  #   encrypted_data = crypt.encrypt_and_sign('my secret data')                  # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
+  #   crypt.decrypt_and_verify(encrypted_data)                                   # => "my secret data"
   class MessageEncryptor
     DEFAULT_CIPHER = "aes-256-cbc"
 
@@ -50,6 +50,11 @@ module ActiveSupport
     # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
     # derivation function.
     #
+    # First additional parameter is used as the signature key for +MessageVerifier+.
+    # This allows you to specify keys to encrypt and sign data.
+    #
+    #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
+    #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
@@ -61,7 +66,7 @@ module ActiveSupport
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || "aes-256-cbc"
+      @cipher = options[:cipher] || DEFAULT_CIPHER
       @digest = options[:digest] || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal

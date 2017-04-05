@@ -4,12 +4,14 @@ require "rails_guides/markdown/renderer"
 
 module RailsGuides
   class Markdown
-    def initialize(view, layout)
-      @view = view
-      @layout = layout
+    def initialize(view:, layout:, edge:, version:)
+      @view          = view
+      @layout        = layout
+      @edge          = edge
+      @version       = version
       @index_counter = Hash.new(0)
-      @raw_header = ""
-      @node_ids = {}
+      @raw_header    = ""
+      @node_ids      = {}
     end
 
     def render(body)
@@ -60,7 +62,8 @@ module RailsGuides
           autolink: true,
           strikethrough: true,
           superscript: true,
-          tables: true)
+          tables: true
+        )
       end
 
       def extract_raw_header_and_body
@@ -101,6 +104,10 @@ module RailsGuides
                 node[:id] = dom_id(hierarchy)
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
+            end
+
+            doc.css('h3, h4, h5, h6').each do |node|
+              node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
           end.to_html
         end
@@ -158,7 +165,7 @@ module RailsGuides
         @view.content_for(:header_section) { @header }
         @view.content_for(:page_title) { @title }
         @view.content_for(:index_section) { @index }
-        @view.render(layout: @layout, text: @body)
+        @view.render(layout: @layout, html: @body.html_safe)
       end
   end
 end

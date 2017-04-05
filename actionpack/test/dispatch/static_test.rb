@@ -44,16 +44,6 @@ module StaticTests
     assert_equal "Hello, World!", get("/doorkeeper%00").body
   end
 
-  def test_sets_cache_control
-    app = assert_deprecated do
-      ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
-    end
-    response = Rack::MockRequest.new(app).request("GET", "/index.html")
-
-    assert_html "/index.html", response
-    assert_equal "public, max-age=60", response.headers["Cache-Control"]
-  end
-
   def test_serves_static_index_at_root
     assert_html "/index.html", get("/index.html")
     assert_html "/index.html", get("/index")
@@ -153,16 +143,16 @@ module StaticTests
     assert_equal "Accept-Encoding",        response.headers["Vary"]
     assert_equal "gzip",                   response.headers["Content-Encoding"]
 
-    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "Gzip")
-    assert_gzip  file_name, response
+    response = get(file_name, "HTTP_ACCEPT_ENCODING" => "Gzip")
+    assert_gzip file_name, response
 
-    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "GZIP")
-    assert_gzip  file_name, response
+    response = get(file_name, "HTTP_ACCEPT_ENCODING" => "GZIP")
+    assert_gzip file_name, response
 
-    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "compress;q=0.5, gzip;q=1.0")
-    assert_gzip  file_name, response
+    response = get(file_name, "HTTP_ACCEPT_ENCODING" => "compress;q=0.5, gzip;q=1.0")
+    assert_gzip file_name, response
 
-    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "")
+    response = get(file_name, "HTTP_ACCEPT_ENCODING" => "")
     assert_not_equal "gzip", response.headers["Content-Encoding"]
   end
 
@@ -173,10 +163,10 @@ module StaticTests
     assert_equal file_name, env["PATH_INFO"]
   end
 
-  def test_serves_gzip_with_propper_content_type_fallback
+  def test_serves_gzip_with_proper_content_type_fallback
     file_name = "/gzip/foo.zoo"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
-    assert_gzip  file_name, response
+    assert_gzip file_name, response
 
     default_response = get(file_name) # no gzip
     assert_equal default_response.headers["Content-Type"], response.headers["Content-Type"]
@@ -187,9 +177,9 @@ module StaticTests
     last_modified = File.mtime(File.join(@root, "#{file_name}.gz"))
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "HTTP_IF_MODIFIED_SINCE" => last_modified.httpdate)
     assert_equal 304, response.status
-    assert_equal nil, response.headers["Content-Type"]
-    assert_equal nil, response.headers["Content-Encoding"]
-    assert_equal nil, response.headers["Vary"]
+    assert_nil response.headers["Content-Type"]
+    assert_nil response.headers["Content-Encoding"]
+    assert_nil response.headers["Vary"]
   end
 
   def test_serves_files_with_headers
@@ -214,7 +204,7 @@ module StaticTests
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
-  unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+  unless Gem.win_platform?
     def test_serves_static_file_with_colon
       with_static_file "/foo/foo:bar.html" do |file|
         assert_html file, get("/foo/foo%3Abar.html")
@@ -234,7 +224,7 @@ module StaticTests
 
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
-      actual   = Zlib::GzipReader.new(StringIO.new(response.body)).read
+      actual   = ActiveSupport::Gzip.decompress(response.body)
       assert_equal expected, actual
     end
 
@@ -279,14 +269,14 @@ class StaticTest < ActiveSupport::TestCase
     filename = "shared.html.erb"
     assert File.exist?(File.join(@root, "..", filename))
     env = {
-      "REQUEST_METHOD"=>"GET",
-      "REQUEST_PATH"=>"/..%2F#{filename}",
-      "PATH_INFO"=>"/..%2F#{filename}",
-      "REQUEST_URI"=>"/..%2F#{filename}",
-      "HTTP_VERSION"=>"HTTP/1.1",
-      "SERVER_NAME"=>"localhost",
-      "SERVER_PORT"=>"8080",
-      "QUERY_STRING"=>""
+      "REQUEST_METHOD" => "GET",
+      "REQUEST_PATH" => "/..%2F#{filename}",
+      "PATH_INFO" => "/..%2F#{filename}",
+      "REQUEST_URI" => "/..%2F#{filename}",
+      "HTTP_VERSION" => "HTTP/1.1",
+      "SERVER_NAME" => "localhost",
+      "SERVER_PORT" => "8080",
+      "QUERY_STRING" => ""
     }
     assert_equal(DummyApp.call(nil), @app.call(env))
   end

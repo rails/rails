@@ -111,7 +111,7 @@ profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
 
 Profile.where("settings->'color' = ?", "yellow")
-#=> #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
+# => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
 ### JSON
@@ -422,7 +422,7 @@ device = Device.create
 device.id # => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
 
-NOTE: `uuid_generate_v4()` (from `uuid-ossp`) is assumed if no `:default` option was
+NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
 passed to `create_table`.
 
 Full Text Search

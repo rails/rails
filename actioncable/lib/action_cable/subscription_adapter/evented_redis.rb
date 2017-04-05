@@ -11,6 +11,8 @@ EventMachine.kqueue if EventMachine.kqueue?
 module ActionCable
   module SubscriptionAdapter
     class EventedRedis < Base # :nodoc:
+      prepend ChannelPrefix
+
       @@mutex = Mutex.new
 
       # Overwrite this factory method for EventMachine Redis connections if you want to use a different Redis connection library than EM::Hiredis.
@@ -22,6 +24,12 @@ module ActionCable
       cattr_accessor(:redis_connector) { ->(config) { ::Redis.new(url: config[:url]) } }
 
       def initialize(*)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The "evented_redis" subscription adapter is deprecated and
+          will be removed in Rails 5.2. Please use the "redis" adapter
+          instead.
+        MSG
+
         super
         @redis_connection_for_broadcasts = @redis_connection_for_subscriptions = nil
       end
@@ -68,10 +76,10 @@ module ActionCable
         end
 
         def ensure_reactor_running
-          return if EventMachine.reactor_running?
+          return if EventMachine.reactor_running? && EventMachine.reactor_thread
           @@mutex.synchronize do
             Thread.new { EventMachine.run } unless EventMachine.reactor_running?
-            Thread.pass until EventMachine.reactor_running?
+            Thread.pass until EventMachine.reactor_running? && EventMachine.reactor_thread
           end
         end
     end

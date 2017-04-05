@@ -22,11 +22,11 @@ module ActiveSupport
         super
         @notifier     = TestNotifier.new
         @instrumenter = Instrumenter.new @notifier
-        @payload      =  { foo: Object.new }
+        @payload = { foo: Object.new }
       end
 
       def test_instrument
-        called  = false
+        called = false
         instrumenter.instrument("foo", payload) {
           called = true
         }

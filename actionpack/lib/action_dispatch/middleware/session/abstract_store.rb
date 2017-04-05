@@ -7,21 +7,11 @@ require "action_dispatch/request/session"
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-      def initialize(const_error = nil)
-        if const_error
-          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                          "Exceptions will automatically capture the original exception.", caller)
-        end
-
-        super("Session contains objects whose class definition isn't available.\n" +
-          "Remember to require the classes for all objects kept in the session.\n" +
+      def initialize
+        super("Session contains objects whose class definition isn't available.\n" \
+          "Remember to require the classes for all objects kept in the session.\n" \
           "(Original exception: #{$!.message} [#{$!.class}])\n")
         set_backtrace $!.backtrace
-      end
-
-      def original_exception
-        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-        cause
       end
     end
 
@@ -37,17 +27,16 @@ module ActionDispatch
         sid
       end
 
-    protected
+    private
 
-      def initialize_sid
+      def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
       end
 
-      private
-        def make_request(env)
-          ActionDispatch::Request.new env
-        end
+      def make_request(env)
+        ActionDispatch::Request.new env
+      end
     end
 
     module StaleSessionCheck
@@ -64,7 +53,7 @@ module ActionDispatch
       rescue ArgumentError => argument_error
         if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
           begin
-            # Note that the regexp does not allow $1 to end with a ':'
+            # Note that the regexp does not allow $1 to end with a ':'.
             $1.constantize
           rescue LoadError, NameError
             raise ActionDispatch::Session::SessionRestoreError

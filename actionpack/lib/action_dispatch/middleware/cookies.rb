@@ -160,7 +160,7 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
-    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed
+    # Include in a cookie jar to allow chaining, e.g. cookies.permanent.signed.
     module ChainedCookieJars
       # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
       #
@@ -179,7 +179,7 @@ module ActionDispatch
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
       # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
@@ -202,7 +202,7 @@ module ActionDispatch
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
+      # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
       # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
@@ -332,29 +332,29 @@ module ActionDispatch
 
       def update_cookies_from_jar
         request_jar = @request.cookie_jar.instance_variable_get(:@cookies)
-        set_cookies = request_jar.reject { |k,_| @delete_cookies.key?(k) }
+        set_cookies = request_jar.reject { |k, _| @delete_cookies.key?(k) }
 
         @cookies.update set_cookies if set_cookies
       end
 
       def to_header
-        @cookies.map { |k,v| "#{escape(k)}=#{escape(v)}" }.join "; "
+        @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
 
         if options[:domain] == :all || options[:domain] == "all"
-          # if there is a provided tld length then we use it otherwise default domain regexp
+          # If there is a provided tld length then we use it otherwise default domain regexp.
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
-          # if host is not ip and matches domain regexp
+          # If host is not ip and matches domain regexp.
           # (ip confirms to domain regexp so we explicitly check for ip)
           options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
             ".#{$&}"
           end
         elsif options[:domain].is_a? Array
-          # if host matches one of the supplied domains without a dot in front of it
+          # If host matches one of the supplied domains without a dot in front of it.
           options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
         end
       end
@@ -404,7 +404,7 @@ module ActionDispatch
         @delete_cookies[name.to_s] == options
       end
 
-      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
+      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie.
       def clear(options = {})
         @cookies.each_key { |k| delete(k, options) }
       end
@@ -572,7 +572,7 @@ module ActionDispatch
         super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
-          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
+          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " \
             "Read the upgrade documentation to learn more about this new config option."
         end
 

@@ -3,6 +3,7 @@
 
 ENGINE_ROOT = File.expand_path('../..', __FILE__)
 ENGINE_PATH = File.expand_path('../../lib/<%= namespaced_name -%>/engine', __FILE__)
+APP_PATH = File.expand_path('../../<%= dummy_path -%>/config/application', __FILE__)
 
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)

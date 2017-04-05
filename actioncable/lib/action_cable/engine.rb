@@ -31,10 +31,10 @@ module ActionCable
           self.cable = Rails.application.config_for(config_path).with_indifferent_access
         end
 
-        previous_connection_class = self.connection_class
+        previous_connection_class = connection_class
         self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
 
-        options.each { |k,v| send("#{k}=", v) }
+        options.each { |k, v| send("#{k}=", v) }
       end
     end
 

@@ -11,7 +11,7 @@ module ActionController #:nodoc:
     DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
     DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
 
-    protected
+    private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
       # via the Rack::Sendfile middleware. The header to use is set via
       # +config.action_dispatch.x_sendfile_header+.
@@ -70,7 +70,6 @@ module ActionController #:nodoc:
         send_file_headers! options
 
         self.status = options[:status] || 200
-        self.content_type = options[:type] if options.key?(:type)
         self.content_type = options[:content_type] if options.key?(:content_type)
         response.send_file path
       end
@@ -109,9 +108,11 @@ module ActionController #:nodoc:
         render options.slice(:status, :content_type).merge(body: data)
       end
 
-    private
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
+
+        self.content_type = DEFAULT_SEND_FILE_TYPE
+        response.sending_file = true
 
         content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
         raise ArgumentError, ":type option required" if content_type.nil?
@@ -136,8 +137,6 @@ module ActionController #:nodoc:
         end
 
         headers["Content-Transfer-Encoding"] = "binary"
-
-        response.sending_file = true
 
         # Fix a problem with IE 6.0 on opening downloaded files:
         # If Cache-Control: no-cache is set (which Rails does by default),

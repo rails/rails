@@ -54,8 +54,8 @@ ActiveRecord::Schema.define do
 
   create_table :authors, force: true do |t|
     t.string :name, null: false
-    t.integer :author_address_id
-    t.integer :author_address_extra_id
+    t.references :author_address
+    t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
   end
@@ -88,7 +88,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :books, force: true do |t|
-    t.integer :author_id
+    t.references :author
     t.string :format
     t.column :name, :string
     t.column :status, :integer, default: 0
@@ -98,6 +98,7 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
+    t.column :difficulty, :integer, default: 0
     t.column :cover, :string, default: "hard"
   end
 
@@ -123,6 +124,9 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
+  end
+
+  create_table :old_cars, id: :integer, force: true do |t|
   end
 
   create_table :carriers, force: true
@@ -196,8 +200,8 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
-    t.index [:firm_id, :type, :rating], name: "company_index"
-    t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
+    t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
+    t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index :name, name: "company_name_index", using: :btree
     t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
   end
@@ -302,7 +306,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :engines, force: true do |t|
-    t.integer :car_id
+    t.references :car, index: false
   end
 
   create_table :entrants, force: true do |t|
@@ -323,6 +327,15 @@ ActiveRecord::Schema.define do
   end
 
   create_table :eyes, force: true do |t|
+  end
+
+  create_table :families, force: true do |t|
+  end
+
+  create_table :family_trees, force: true do |t|
+    t.references :family
+    t.references :member
+    t.string :token
   end
 
   create_table :funny_jokes, force: true do |t|
@@ -435,10 +448,12 @@ ActiveRecord::Schema.define do
   end
 
   create_table :lock_without_defaults, force: true do |t|
+    t.column :title, :string
     t.column :lock_version, :integer
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
+    t.column :title, :string
     t.column :custom_lock_version, :integer
   end
 
@@ -568,6 +583,7 @@ ActiveRecord::Schema.define do
     t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
+    t.column :updated_count, :integer, default: 0
     if subsecond_precision_supported?
       t.column :created_at, :datetime, precision: 0
       t.column :created_on, :datetime, precision: 0
@@ -648,8 +664,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.integer :author_id
-    t.string  :title, null: false
+    t.references :author
+    t.string :title, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
@@ -902,7 +918,6 @@ ActiveRecord::Schema.define do
     create_table(t, force: true) {}
   end
 
-  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, force: true do |t|
     t.string  :name
   end
@@ -926,12 +941,12 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
-  create_table :wheels, force: true do |t|
-    t.references :wheelable, polymorphic: true
-  end
-
   create_table :zines, force: true do |t|
     t.string :title
+  end
+
+  create_table :wheels, force: true do |t|
+    t.references :wheelable, polymorphic: true
   end
 
   create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
@@ -999,16 +1014,14 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  if supports_foreign_keys?
-    # fk_test_has_fk should be before fk_test_has_pk
+  disable_referential_integrity do
+    create_table :fk_test_has_pk, primary_key: "pk_id", force: :cascade do |t|
+    end
+
     create_table :fk_test_has_fk, force: true do |t|
-      t.integer :fk_id, null: false
+      t.references :fk, null: false
+      t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
     end
-
-    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
-    end
-
-    add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
   end
 
   create_table :overloaded_types, force: true do |t|
@@ -1025,6 +1038,10 @@ ActiveRecord::Schema.define do
 
   create_table :test_with_keyword_column_name, force: true do |t|
     t.string :desc
+  end
+
+  create_table :non_primary_keys, force: true, id: false do |t|
+    t.integer :id
   end
 end
 
@@ -1045,3 +1062,5 @@ Professor.connection.create_table :courses_professors, id: false, force: true do
   t.references :course
   t.references :professor
 end
+
+OtherDog.connection.create_table :dogs, force: true

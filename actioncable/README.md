@@ -51,10 +51,10 @@ module ApplicationCable
       self.current_user = find_verified_user
     end
 
-    protected
+    private
       def find_verified_user
-        if current_user = User.find_by(id: cookies.signed[:user_id])
-          current_user
+        if verified_user = User.find_by(id: cookies.signed[:user_id])
+          verified_user
         else
           reject_unauthorized_connection
         end
@@ -167,7 +167,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
@@ -326,7 +326,10 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 
 ### Allowed Request Origins
 
-Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
+Action Cable will only accept requests from specific origins.
+
+By default, only an origin matching the cable server itself will be permitted.
+Additional origins can be specified using strings or regular expressions, provided in an array.
 
 ```ruby
 Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
@@ -334,10 +337,17 @@ Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonr
 
 When running in the development environment, this defaults to "http://localhost:3000".
 
-To disable and allow requests from any origin:
+To disable protection and allow requests from any origin:
 
 ```ruby
 Rails.application.config.action_cable.disable_request_forgery_protection = true
+```
+
+To disable automatic access for same-origin requests, and strictly allow
+only the configured origins:
+
+```ruby
+Rails.application.config.action_cable.allow_same_origin_as_host = false
 ```
 
 ### Consumer Configuration
@@ -525,6 +535,15 @@ cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
 cable.subscriptions.create 'AppearanceChannel',
     # normal channel code goes here...
 ```
+
+## Download and Installation
+
+The latest version of Action Cable can be installed with [RubyGems](#gem-usage),
+or with [npm](#npm-usage).
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actioncable
 
 ## License
 

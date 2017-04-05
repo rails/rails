@@ -15,16 +15,16 @@ module ActiveSupport
   #     end
   #   end
   #
-  # When the entirety of +activerecord/lib/active_record/base.rb+ has been
+  # When the entirety of +ActiveRecord::Base+ has been
   # evaluated then +run_load_hooks+ is invoked. The very last line of
-  # +activerecord/lib/active_record/base.rb+ is:
+  # +ActiveRecord::Base+ is:
   #
   #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
   module LazyLoadHooks
     def self.extended(base) # :nodoc:
       base.class_eval do
-        @load_hooks = Hash.new { |h,k| h[k] = [] }
-        @loaded     = Hash.new { |h,k| h[k] = [] }
+        @load_hooks = Hash.new { |h, k| h[k] = [] }
+        @loaded     = Hash.new { |h, k| h[k] = [] }
       end
     end
 

@@ -70,7 +70,7 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo].inspect
+            render plain: session[:foo].inspect
           end
         end
       RUBY
@@ -111,7 +111,7 @@ module ApplicationTests
           end
 
           def read_cookie
-            render text: cookies[:foo].inspect
+            render plain: cookies[:foo].inspect
           end
         end
       RUBY
@@ -149,15 +149,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -173,7 +173,7 @@ module ApplicationTests
 
       secret = app.key_generator.generate_key("encrypted cookie")
       sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
@@ -194,15 +194,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -222,7 +222,7 @@ module ApplicationTests
 
       secret = app.key_generator.generate_key("encrypted cookie")
       sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
@@ -249,15 +249,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_encrypted_cookie
-            render text: cookies.encrypted[:_myapp_session]['foo']
+            render plain: cookies.encrypted[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -281,7 +281,7 @@ module ApplicationTests
 
       secret = app.key_generator.generate_key("encrypted cookie")
       sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
 
       get "/foo/read_raw_cookie"
       assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
@@ -308,15 +308,15 @@ module ApplicationTests
           end
 
           def read_session
-            render text: session[:foo]
+            render plain: session[:foo]
           end
 
           def read_signed_cookie
-            render text: cookies.signed[:_myapp_session]['foo']
+            render plain: cookies.signed[:_myapp_session]['foo']
           end
 
           def read_raw_cookie
-            render text: cookies[:_myapp_session]
+            render plain: cookies[:_myapp_session]
           end
         end
       RUBY
@@ -370,7 +370,7 @@ module ApplicationTests
       assert_equal 200, last_response.status
       assert_equal "It worked!", last_response.body
 
-      refute Rails.application.middleware.include?(ActionDispatch::Flash)
+      assert_not_includes Rails.application.middleware, ActionDispatch::Flash
     end
 
     test "cookie_only is set to true even if user tries to overwrite it" do

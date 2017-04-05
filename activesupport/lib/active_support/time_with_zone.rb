@@ -80,7 +80,7 @@ module ActiveSupport
 
     # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
     def localtime(utc_offset = nil)
-      @localtime ||= utc.getlocal(utc_offset)
+      utc.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
@@ -133,7 +133,7 @@ module ActiveSupport
       period.zone_identifier.to_s
     end
 
-    # Returns a string of the object's date, time, zone and offset from UTC.
+    # Returns a string of the object's date, time, zone, and offset from UTC.
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
@@ -148,6 +148,7 @@ module ActiveSupport
       "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z'.freeze)}"
     end
     alias_method :iso8601, :xmlschema
+    alias_method :rfc3339, :xmlschema
 
     # Coerces time to a string for JSON encoding. The default format is ISO 8601.
     # You can get %Y/%m/%d %H:%M:%S +offset style by setting
@@ -279,6 +280,7 @@ module ActiveSupport
       end
     end
     alias_method :since, :+
+    alias_method :in, :+
 
     # Returns a new TimeWithZone object that represents the difference between
     # the current object's time and the +other+ time.
@@ -409,6 +411,17 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
+    # Returns an instance of +Time+, either with the same UTC offset
+    # as +self+ or in the local system timezone depending on the setting
+    # of +ActiveSupport.to_time_preserves_timezone+.
+    def to_time
+      if preserve_timezone
+        @to_time_with_instance_offset ||= getlocal(utc_offset)
+      else
+        @to_time_with_system_offset ||= getlocal
+      end
+    end
+
     # So that +self+ <tt>acts_like?(:time)</tt>.
     def acts_like_time?
       true
@@ -426,7 +439,8 @@ module ActiveSupport
     end
 
     def freeze
-      period; utc; time # preload instance variables before freezing
+      # preload instance variables before freezing
+      period; utc; time; to_datetime; to_time
       super
     end
 
@@ -476,6 +490,8 @@ module ActiveSupport
       end
 
       def transfer_time_values_to_utc_constructor(time)
+        # avoid creating another Time object if possible
+        return time if time.instance_of?(::Time) && time.utc?
         ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
       end
 

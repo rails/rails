@@ -1,6 +1,7 @@
 module ActionDispatch
-  module Journey # :nodoc:
-    class Route # :nodoc:
+  # :stopdoc:
+  module Journey
+    class Route
       attr_reader :app, :path, :defaults, :name, :precedence
 
       attr_reader :constraints, :internal
@@ -72,6 +73,14 @@ module ActionDispatch
         @internal          = internal
       end
 
+      def eager_load!
+        path.eager_load!
+        ast
+        parts
+        required_defaults
+        nil
+      end
+
       def ast
         @decorated_ast ||= begin
           decorated_ast = path.ast
@@ -80,9 +89,16 @@ module ActionDispatch
         end
       end
 
-      def requirements # :nodoc:
-        # needed for rails `rails routes`
-        @defaults.merge(path.requirements).delete_if { |_,v|
+      # Needed for `rails routes`. Picks up succinctly defined requirements
+      # for a route, for example route
+      #
+      #   get 'photo/:id', :controller => 'photos', :action => 'show',
+      #     :id => /[A-Z]\d{5}/
+      #
+      # will have {:controller=>"photos", :action=>"show", :id=>/[A-Z]\d{5}/}
+      # as requirements.
+      def requirements
+        @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/ == v
         }
       end
@@ -95,13 +111,18 @@ module ActionDispatch
         required_parts + required_defaults.keys
       end
 
-      def score(constraints)
+      def score(supplied_keys)
         required_keys = path.required_names
-        supplied_keys = constraints.map { |k,v| v && k.to_s }.compact
 
-        return -1 unless (required_keys - supplied_keys).empty?
+        required_keys.each do |k|
+          return -1 unless supplied_keys.include?(k)
+        end
 
-        score = (supplied_keys & path.names).length
+        score = 0
+        path.names.each do |k|
+          score += 1 if supplied_keys.include?(k)
+        end
+
         score + (required_defaults.length * 2)
       end
 
@@ -123,7 +144,7 @@ module ActionDispatch
       end
 
       def required_defaults
-        @required_defaults ||= @defaults.dup.delete_if do |k,_|
+        @required_defaults ||= @defaults.dup.delete_if do |k, _|
           parts.include?(k) || !required_default?(k)
         end
       end
@@ -176,4 +197,5 @@ module ActionDispatch
         end
     end
   end
+  # :startdoc:
 end

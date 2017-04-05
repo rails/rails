@@ -30,11 +30,11 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
     # we call execute directly here (and do similar below) because ActiveRecord::Base#create_table()
     # will fail with these table names if these test cases fail
 
-    create_tables_directly "group"=>"id int auto_increment primary key, `order` varchar(255), select_id int",
-      "select"=>"id int auto_increment primary key",
-      "values"=>"id int auto_increment primary key, group_id int",
-      "distinct"=>"id int auto_increment primary key",
-      "distinct_select"=>"distinct_id int, select_id int"
+    create_tables_directly "group" => "id int auto_increment primary key, `order` varchar(255), select_id int",
+      "select" => "id int auto_increment primary key",
+      "values" => "id int auto_increment primary key, group_id int",
+      "distinct" => "id int auto_increment primary key",
+      "distinct_select" => "distinct_id int, select_id int"
   end
 
   teardown do
@@ -130,20 +130,20 @@ class Mysql2ReservedWordTest < ActiveRecord::Mysql2TestCase
   #the following functions were added to DRY test cases
 
   private
-  # custom fixture loader, uses FixtureSet#create_fixtures and appends base_path to the current file's path
+    # custom fixture loader, uses FixtureSet#create_fixtures and appends base_path to the current file's path
     def create_test_fixtures(*fixture_names)
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/reserved_words", fixture_names)
     end
 
-  # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name
+    # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name
     def drop_tables_directly(table_names, connection = @connection)
       table_names.each do |name|
         connection.drop_table name, if_exists: true
       end
     end
 
-  # custom create table, uses execute on connection to create a table, note: escapes table_name, does NOT escape columns
-    def create_tables_directly (tables, connection = @connection)
+    # custom create table, uses execute on connection to create a table, note: escapes table_name, does NOT escape columns
+    def create_tables_directly(tables, connection = @connection)
       tables.each do |table_name, column_properties|
         connection.execute("CREATE TABLE `#{table_name}` ( #{column_properties} )")
       end

@@ -135,7 +135,7 @@ module RailtiesTest
       require "rdoc/task"
 
       Rails.application.load_tasks
-      assert $ran_block.include?("my_tie")
+      assert_includes $ran_block, "my_tie"
     end
 
     test "generators block is executed when MyApp.load_generators is called" do

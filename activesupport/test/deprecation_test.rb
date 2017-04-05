@@ -16,7 +16,7 @@ class Deprecatee
   def not() 2 end
   def none() 1 end
   def one(a) a end
-  def multi(a,b,c) [a,b,c] end
+  def multi(a, b, c) [a, b, c] end
   deprecate :none, :one, :multi
 
   def a; end
@@ -33,6 +33,18 @@ class Deprecatee
     C = 1
   end
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
+end
+
+class DeprecateeWithAccessor
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+  module B
+    C = 1
+  end
+  deprecate_constant "A", "DeprecateeWithAccessor::B::C"
+
+  class NewException < StandardError; end
+  deprecate_constant "OldException", "DeprecateeWithAccessor::NewException"
 end
 
 class DeprecationTest < ActiveSupport::TestCase
@@ -73,7 +85,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     assert_deprecated(/multi is deprecated/) do
-      assert_equal [1,2,3], @dtc.multi(1,2,3)
+      assert_equal [1, 2, 3], @dtc.multi(1, 2, 3)
     end
   end
 
@@ -160,6 +172,17 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+  end
+
+  def test_deprecated_constant_accessor
+    assert_not_deprecated { DeprecateeWithAccessor::B::C }
+    assert_deprecated("DeprecateeWithAccessor::A") { assert_equal DeprecateeWithAccessor::B::C, DeprecateeWithAccessor::A }
+  end
+
+  def test_deprecated_constant_accessor_exception
+    raise DeprecateeWithAccessor::NewException.new("Test")
+  rescue DeprecateeWithAccessor::OldException => e
+    assert_kind_of DeprecateeWithAccessor::NewException, e
   end
 
   def test_assert_deprecated_raises_when_method_not_deprecated
@@ -279,10 +302,20 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecated_constant_with_deprecator_given
     deprecator = deprecator_with_messages
     klass = Class.new
-    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator) )
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator))
     assert_difference("deprecator.messages.size") do
       klass::OLD.to_s
     end
+  end
+
+  def test_deprecated_constant_with_custom_message
+    deprecator = deprecator_with_messages
+
+    klass = Class.new
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator, message: "foo"))
+
+    klass::OLD.to_s
+    assert_match "foo", deprecator.messages.last
   end
 
   def test_deprecated_instance_variable_with_instance_deprecator

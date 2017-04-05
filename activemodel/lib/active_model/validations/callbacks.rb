@@ -23,7 +23,6 @@ module ActiveModel
       included do
         include ActiveSupport::Callbacks
         define_callbacks :validation,
-                         terminator: deprecated_false_terminator,
                          skip_after_callbacks_if_terminated: true,
                          scope: [:kind, :name]
       end
@@ -104,10 +103,10 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
       # Overwrite run validations to include callbacks.
-      def run_validations! #:nodoc:
+      def run_validations!
         _run_validation_callbacks { super }
       end
     end

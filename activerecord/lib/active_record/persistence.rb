@@ -107,7 +107,7 @@ module ActiveRecord
     #
     # By default, save always runs validations. If any of them fail the action
     # is cancelled and #save returns +false+, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save also sets the +updated_at+/+updated_on+ attributes to
@@ -134,7 +134,7 @@ module ActiveRecord
     #
     # By default, #save! always runs validations. If any of them fail
     # ActiveRecord::RecordInvalid gets raised, and the record won't be saved. However, if you supply
-    # validate: false, validations are bypassed altogether. See
+    # <tt>validate: false</tt>, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
@@ -148,6 +148,8 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
+    #
+    # Unless an error is raised, returns true.
     def save!(*args)
       create_or_update(*args) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
@@ -181,7 +183,11 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
       destroy_associations
       self.class.connection.add_transaction_record(self)
-      destroy_row if persisted?
+      @_trigger_destroy_callback = if persisted?
+        destroy_row > 0
+      else
+        true
+      end
       @destroyed = true
       freeze
     end
@@ -252,7 +258,12 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
-      save(validate: false) if changed?
+
+      if has_changes_to_save?
+        save(validate: false)
+      else
+        true
+      end
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -329,14 +340,16 @@ module ActiveRecord
       self
     end
 
-    # Wrapper around #increment that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def increment!(attribute, by = 1)
+    # Wrapper around #increment that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_was(attribute.to_s) || 0)
-      self.class.update_counters(id, attribute => change)
+      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
+      self.class.update_counters(id, attribute => change, touch: touch)
       clear_attribute_change(attribute) # eww
       self
     end
@@ -348,12 +361,14 @@ module ActiveRecord
       increment(attribute, -by)
     end
 
-    # Wrapper around #decrement that saves the record. This method differs from
-    # its non-bang version in the sense that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def decrement!(attribute, by = 1)
-      increment!(attribute, -by)
+    # Wrapper around #decrement that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def decrement!(attribute, by = 1, touch: nil)
+      increment!(attribute, -by, touch: touch)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -383,8 +398,8 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method finds record by its primary key (which could be assigned manually) and
-    # modifies the receiver in-place:
+    # This method finds the record by its primary key (which could be assigned
+    # manually) and modifies the receiver in-place:
     #
     #   account = Account.new
     #   # => #<Account id: nil, email: nil>
@@ -498,7 +513,6 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
         scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
@@ -508,12 +522,14 @@ module ActiveRecord
           changes[locking_column] = increment_lock
         end
 
+        clear_attribute_changes(changes.keys)
         result = scope.update_all(changes) == 1
 
         if !result && locking_enabled?
           raise ActiveRecord::StaleObjectError.new(self, "touch")
         end
 
+        @_trigger_update_callback = result
         result
       else
         true
@@ -545,10 +561,13 @@ module ActiveRecord
     def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        0
+        rows_affected = 0
+        @_trigger_update_callback = true
       else
-        self.class.unscoped._update_record attributes_values, id, id_was
+        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        @_trigger_update_callback = rows_affected > 0
       end
+      rows_affected
     end
 
     # Creates a record with values matching those of the instance attributes

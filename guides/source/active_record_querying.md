@@ -50,7 +50,7 @@ class Role < ApplicationRecord
 end
 ```
 
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -81,7 +81,6 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `where`
 
 Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
@@ -1382,8 +1381,9 @@ class Client < ApplicationRecord
 end
 ```
 
-NOTE: The `default_scope` is also applied while creating/building a record.
-It is not applied while updating a record. E.g.:
+NOTE: The `default_scope` is also applied while creating/building a record
+when the scope arguments are given as a `Hash`. It is not applied while 
+updating a record. E.g.:
 
 ```ruby
 class Client < ApplicationRecord
@@ -1392,6 +1392,17 @@ end
 
 Client.new          # => #<Client id: nil, active: true>
 Client.unscoped.new # => #<Client id: nil, active: nil>
+```
+
+Be aware that, when given in the `Array` format, `default_scope` query arguments
+cannot be converted to a `Hash` for default attribute assignment. E.g.:
+
+```ruby
+class Client < ApplicationRecord
+  default_scope { where("active = ?", true) }
+end
+
+Client.new # => #<Client id: nil, active: nil>
 ```
 
 ### Merging of scopes
@@ -1545,7 +1556,7 @@ SELECT people.id, people.name, comments.text
 FROM people
 INNER JOIN comments
   ON comments.person_id = people.id
-WHERE comments.created_at = '2015-01-01'
+WHERE comments.created_at > '2015-01-01'
 ```
 
 ### Retrieving specific data from multiple tables
@@ -1869,7 +1880,7 @@ Which will execute:
 
 ```sql
 SELECT count(DISTINCT clients.id) AS count_all FROM clients
-  LEFT OUTER JOIN orders ON orders.client_id = client.id WHERE
+  LEFT OUTER JOIN orders ON orders.client_id = clients.id WHERE
   (clients.first_name = 'Ryan' AND orders.status = 'received')
 ```
 

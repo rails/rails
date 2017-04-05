@@ -18,7 +18,7 @@ module ActiveSupport
 
         units = opts[:units]
         exponent = calculate_exponent(units)
-        @number = number / (10 ** exponent)
+        @number = number / (10**exponent)
 
         until (rounded_number = NumberToRoundedConverter.convert(number, options)) != NumberToRoundedConverter.convert(1000, options)
           @number = number / 1000.0

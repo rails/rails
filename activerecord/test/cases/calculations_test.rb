@@ -13,9 +13,9 @@ require "models/speedometer"
 require "models/ship_part"
 require "models/treasure"
 require "models/developer"
+require "models/post"
 require "models/comment"
 require "models/rating"
-require "models/post"
 
 class NumericData < ActiveRecord::Base
   self.table_name = "numeric_data"
@@ -92,21 +92,21 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_group_by_field
     c = Account.group(:firm_id).sum(:credit_limit)
-    [1,6,2].each do |firm_id|
-      assert c.keys.include?(firm_id), "Group #{c.inspect} does not contain firm_id #{firm_id}"
+    [1, 6, 2].each do |firm_id|
+      assert_includes c.keys, firm_id, "Group #{c.inspect} does not contain firm_id #{firm_id}"
     end
   end
 
   def test_should_group_by_arel_attribute
     c = Account.group(Account.arel_table[:firm_id]).sum(:credit_limit)
-    [1,6,2].each do |firm_id|
-      assert c.keys.include?(firm_id), "Group #{c.inspect} does not contain firm_id #{firm_id}"
+    [1, 6, 2].each do |firm_id|
+      assert_includes c.keys, firm_id, "Group #{c.inspect} does not contain firm_id #{firm_id}"
     end
   end
 
   def test_should_group_by_multiple_fields
     c = Account.group("firm_id", :credit_limit).count(:all)
-    [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert c.keys.include?(firm_and_limit) }
+    [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert_includes c.keys, firm_and_limit }
   end
 
   def test_should_group_by_multiple_fields_having_functions
@@ -166,14 +166,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
-    accounts = Account.limit(3).where("firm_id IS NOT NULL")
+    accounts = Account.limit(4)
 
     firm_id_attribute = Account.arel_table[:firm_id]
     assert_equal 3, accounts.count(firm_id_attribute)
@@ -227,6 +227,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match "credit_limit, firm_name", e.message
   end
 
+  def test_apply_distinct_in_count
+    queries = assert_sql do
+      Account.distinct.count
+      Account.group(:firm_id).distinct.count
+    end
+
+    queries.each do |query|
+      # `table_alias_length` in `column_alias_for` would execute
+      # "SHOW max_identifier_length" statement in PostgreSQL adapter.
+      next if query == "SHOW max_identifier_length"
+      assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
+    end
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
@@ -235,7 +249,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_having_condition_from_select
-    c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("MIN(credit_limit) > 50").sum(:credit_limit)
+    skip unless current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+    c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("min_credit_limit > 50").sum(:credit_limit)
     assert_nil       c[1]
     assert_equal 60, c[2]
     assert_equal 53, c[9]
@@ -421,10 +436,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
-
-    assert_deprecated do
-      assert_equal 4, Account.select(:credit_limit).uniq.count
-    end
   end
 
   def test_count_with_aliased_attribute
@@ -453,7 +464,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_count_field_in_joined_table_with_group_by
     c = Account.group("accounts.firm_id").joins(:firm).count("companies.id")
 
-    [1,6,2,9].each { |firm_id| assert c.keys.include?(firm_id) }
+    [1, 6, 2, 9].each { |firm_id| assert_includes c.keys, firm_id }
   end
 
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
@@ -572,7 +583,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck
-    assert_equal [1,2,3,4,5], Topic.order(:id).pluck(:id)
+    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
   end
 
   def test_pluck_without_column_names
@@ -608,7 +619,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_qualified_column_name
-    assert_equal [1,2,3,4,5], Topic.order(:id).pluck("topics.id")
+    assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck("topics.id")
   end
 
   def test_pluck_auto_table_name_prefix
@@ -688,7 +699,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_replaces_select_clause
     taks_relation = Topic.select(:approved, :id).order(:id)
-    assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
+    assert_equal [1, 2, 3, 4, 5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
   end
 

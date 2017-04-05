@@ -25,26 +25,12 @@ module ActiveRecord
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
-      def reader(force_reload = false)
-        if force_reload
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an argument to force an association to reload is now
-            deprecated and will be removed in Rails 5.1. Please call `reload`
-            on the result collection proxy instead.
-          MSG
-
-          klass.uncached { reload }
-        elsif stale_target?
+      def reader
+        if stale_target?
           reload
         end
 
-        if null_scope?
-          # Cache the proxy separately before the owner has an id
-          # or else a post-save proxy will still lack the id
-          @null_proxy ||= CollectionProxy.create(klass, self)
-        else
-          @proxy ||= CollectionProxy.create(klass, self)
-        end
+        CollectionProxy.create(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -55,9 +41,7 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= (
             column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
@@ -68,13 +52,17 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_type = reflection.primary_key_type
+        pk_type = reflection.association_primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
         records = klass.where(reflection.association_primary_key => ids).index_by do |r|
           r.send(reflection.association_primary_key)
-        end.values_at(*ids)
-        replace(records)
+        end.values_at(*ids).compact
+        if records.size != ids.size
+          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
+        else
+          replace(records)
+        end
       end
 
       def reset
@@ -192,11 +180,8 @@ module ActiveRecord
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
         return if records.empty?
-        _options = records.extract_options!
-        dependent = _options[:dependent] || options[:dependent]
-
         records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
-        delete_or_destroy(records, dependent)
+        delete_or_destroy(records, options[:dependent])
       end
 
       # Deletes the +records+ and removes them from this association calling
@@ -222,11 +207,7 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if association_scope.distinct_value
-            target.uniq.size
-          else
-            target.size
-          end
+          target.size
         elsif !association_scope.group_values.empty?
           load_target.size
         elsif !association_scope.distinct_value && target.is_a?(Array)
@@ -252,14 +233,6 @@ module ActiveRecord
           @target.blank? && !scope.exists?
         end
       end
-
-      def distinct
-        seen = {}
-        load_target.find_all do |record|
-          seen[record.id] = true unless seen.key?(record.id)
-        end
-      end
-      alias uniq distinct
 
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
@@ -310,26 +283,35 @@ module ActiveRecord
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
 
-        was_loaded = loaded?
-        yield(record) if block_given?
-
-        unless !was_loaded && loaded?
+        begin
           if index
-            @target[index] = record
+            record_was = target[index]
+            target[index] = record
           else
-            @target << record
+            target << record
           end
+
+          set_inverse_instance(record)
+
+          yield(record) if block_given?
+        rescue
+          if index
+            target[index] = record_was
+          else
+            target.delete(record)
+          end
+
+          raise
         end
 
         callback(:after_add, record) unless skip_callbacks
-        set_inverse_instance(record)
 
         record
       end
 
-      def scope(opts = {})
-        scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+      def scope
+        scope = super
+        scope.none! if null_scope?
         scope
       end
 
@@ -379,7 +361,7 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              ((record.attribute_names & mem_record.attribute_names) - mem_record.changes.keys).each do |name|
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
                 mem_record[name] = record[name]
               end
 
@@ -439,8 +421,9 @@ module ActiveRecord
           records.each { |record| callback(:after_remove, record) }
         end
 
-        # Delete the given records from the association, using one of the methods :destroy,
-        # :delete_all or :nullify (or nil, in which case a default is used).
+        # Delete the given records from the association,
+        # using one of the methods +:destroy+, +:delete_all+
+        # or +:nullify+ (or +nil+, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
         end

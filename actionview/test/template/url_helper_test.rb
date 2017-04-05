@@ -221,6 +221,33 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  class FakeParams
+    def initialize(permitted = true)
+      @permitted = permitted
+    end
+
+    def permitted?
+      @permitted
+    end
+
+    def to_h
+      { foo: :bar, baz: "quux" }
+    end
+  end
+
+  def test_button_to_with_permitted_strong_params
+    assert_dom_equal(
+      %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
+      button_to("Hello", "http://www.example.com", params: FakeParams.new)
+    )
+  end
+
+  def test_button_to_with_unpermitted_strong_params
+    assert_raises(ArgumentError) do
+      button_to("Hello", "http://www.example.com", params: FakeParams.new(false))
+    end
+  end
+
   def test_button_to_with_nested_hash_params
     assert_dom_equal(
       %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="foo[bar]" value="baz" /></form>},
@@ -467,6 +494,15 @@ class UrlHelperTest < ActiveSupport::TestCase
 
     assert current_page?(url_hash)
     assert current_page?("http://www.example.com/")
+  end
+
+  def test_current_page_considering_params
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(url_hash, check_parameters: true)
+    assert !current_page?(url_hash.merge(check_parameters: true))
+    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert !current_page?("http://www.example.com/", check_parameters: true)
   end
 
   def test_current_page_with_params_that_match
@@ -783,9 +819,9 @@ class TasksController < ActionController::Base
     render_default
   end
 
-  protected
+  private
     def render_default
-      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" +
+      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" \
         "<%= link_to_unless_current('tasks', tasks_url) %>"
     end
 end

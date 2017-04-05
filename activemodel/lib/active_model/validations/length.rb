@@ -1,12 +1,10 @@
-require "active_support/core_ext/string/strip"
-
 module ActiveModel
   module Validations
     class LengthValidator < EachValidator # :nodoc:
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
-      RESERVED_OPTIONS  = [:minimum, :maximum, :within, :is, :tokenizer, :too_short, :too_long]
+      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -16,27 +14,6 @@ module ActiveModel
 
         if options[:allow_blank] == false && options[:minimum].nil? && options[:is].nil?
           options[:minimum] = 1
-        end
-
-        if options[:tokenizer]
-          ActiveSupport::Deprecation.warn(<<-EOS.strip_heredoc)
-            The `:tokenizer` option is deprecated, and will be removed in Rails 5.1.
-            You can achieve the same functionality by defining an instance method
-            with the value that you want to validate the length of. For example,
-
-                validates_length_of :essay, minimum: 100,
-                  tokenizer: ->(str) { str.scan(/\w+/) }
-
-            should be written as
-
-                validates_length_of :words_in_essay, minimum: 100
-
-                private
-
-                def words_in_essay
-                  essay.scan(/\w+/)
-                end
-          EOS
         end
 
         super
@@ -59,7 +36,6 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = tokenize(record, value)
         value_length = value.respond_to?(:length) ? value.length : value.to_s.length
         errors_options = options.except(*RESERVED_OPTIONS)
 
@@ -80,17 +56,6 @@ module ActiveModel
       end
 
       private
-        def tokenize(record, value)
-          tokenizer = options[:tokenizer]
-          if tokenizer && value.kind_of?(String)
-            if tokenizer.kind_of?(Proc)
-              tokenizer.call(value)
-            elsif record.respond_to?(tokenizer)
-              record.send(tokenizer, value)
-            end
-          end || value
-        end
-
         def skip_nil_check?(key)
           key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
         end
@@ -145,7 +110,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # See <tt>ActiveModel::Validations#validates</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end

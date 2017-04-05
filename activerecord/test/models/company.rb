@@ -151,7 +151,7 @@ class Client < Company
   # is calling client.destroy, deleting from the database, or setting
   # foreign keys to NULL.
   def self.destroyed_client_ids
-    @destroyed_client_ids ||= Hash.new { |h,k| h[k] = [] }
+    @destroyed_client_ids ||= Hash.new { |h, k| h[k] = [] }
   end
 
   before_destroy do |client|
@@ -199,7 +199,7 @@ class Account < ActiveRecord::Base
   alias_attribute :available_credit, :credit_limit
 
   def self.destroyed_account_ids
-    @destroyed_account_ids ||= Hash.new { |h,k| h[k] = [] }
+    @destroyed_account_ids ||= Hash.new { |h, k| h[k] = [] }
   end
 
   # Test private kernel method through collection proxy using has_many.
@@ -216,13 +216,11 @@ class Account < ActiveRecord::Base
 
   validate :check_empty_credit_limit
 
-  protected
+  private
 
     def check_empty_credit_limit
       errors.add("credit_limit", :blank) if credit_limit.blank?
     end
-
-  private
 
     def private_method
       "Sir, yes sir!"

@@ -63,10 +63,10 @@ module ActionDispatch
       assert_equal({ "flashes" => { "foo" => "bar" }, "discard" => [] }, @hash.to_session_value)
 
       @hash.discard("foo")
-      assert_equal(nil, @hash.to_session_value)
+      assert_nil(@hash.to_session_value)
 
       @hash.sweep
-      assert_equal(nil, @hash.to_session_value)
+      assert_nil(@hash.to_session_value)
     end
 
     def test_from_session_value
@@ -75,7 +75,7 @@ module ActionDispatch
       session = Marshal.load(Base64.decode64(rails_3_2_cookie))
       hash = Flash::FlashHash.from_session_value(session["flash"])
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)
-      assert_equal(nil, hash.to_session_value)
+      assert_nil(hash.to_session_value)
     end
 
     def test_from_session_value_on_json_serializer
@@ -84,7 +84,7 @@ module ActionDispatch
       hash = Flash::FlashHash.from_session_value(session["flash"])
 
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)
-      assert_equal(nil, hash.to_session_value)
+      assert_nil(hash.to_session_value)
       assert_equal "Hello", hash[:greeting]
       assert_equal "Hello", hash["greeting"]
     end
@@ -102,8 +102,8 @@ module ActionDispatch
       @hash["foo"] = "bar"
 
       things = []
-      @hash.each do |k,v|
-        things << [k,v]
+      @hash.each do |k, v|
+        things << [k, v]
       end
 
       assert_equal([%w{ hello world }, %w{ foo bar }].sort, things.sort)

@@ -57,6 +57,8 @@ module ActiveSupport
     #   transliterate('Jürgen')
     #   # => "Juergen"
     def transliterate(string, replacement = "?".freeze)
+      raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
         ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
           replacement: replacement)
@@ -78,11 +80,7 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
     #
-    def parameterize(string, sep = :unused, separator: "-", preserve_case: false)
-      unless sep == :unused
-        ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
-        separator = sep
-      end
+    def parameterize(string, separator: "-", preserve_case: false)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string)
 

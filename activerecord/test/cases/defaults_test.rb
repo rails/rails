@@ -100,10 +100,20 @@ if current_adapter?(:Mysql2Adapter)
     include SchemaDumpingHelper
 
     if ActiveRecord::Base.connection.version >= "5.6.0"
-      test "schema dump includes default expression" do
+      test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       end
+    end
+
+    test "schema dump timestamp includes default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+    end
+
+    test "schema dump timestamp without default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
     end
   end
 
@@ -169,7 +179,7 @@ if current_adapter?(:Mysql2Adapter)
           assert_nil record.non_null_text
           assert_nil record.non_null_blob
 
-          assert_raises(ActiveRecord::StatementInvalid) { klass.create }
+          assert_raises(ActiveRecord::NotNullViolation) { klass.create }
         end
       end
     end

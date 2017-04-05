@@ -88,7 +88,7 @@ module ActiveRecord
   #     assert_equal "Ruby on Rails", @rubyonrails.name
   #   end
   #
-  # In order to use these methods to access fixtured data within your testcases, you must specify one of the
+  # In order to use these methods to access fixtured data within your test cases, you must specify one of the
   # following in your ActiveSupport::TestCase-derived class:
   #
   # - to fully enable instantiated fixtures (enable alternate methods #1 and #2 above)
@@ -103,7 +103,7 @@ module ActiveRecord
   #
   # = Dynamic fixtures with ERB
   #
-  # Some times you don't care about the content of the fixtures as much as you care about the volume.
+  # Sometimes you don't care about the content of the fixtures as much as you care about the volume.
   # In these cases, you can mix ERB in with your YAML fixtures to create a bunch of fixtures for load
   # testing, like:
   #
@@ -415,9 +415,9 @@ module ActiveRecord
     # possibly in a folder with the same name.
     #++
 
-    MAX_ID = 2 ** 30 - 1
+    MAX_ID = 2**30 - 1
 
-    @@all_cached_fixtures = Hash.new { |h,k| h[k] = {} }
+    @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
 
     def self.default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
       config.pluralize_table_names ?
@@ -536,16 +536,16 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(requires_new: true) do
-            deleted_tables = Set.new
+            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
               table_rows.each_key do |table|
-                unless deleted_tables.include? table
+                unless deleted_tables[conn].include? table
                   conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
                 end
-                deleted_tables << table
+                deleted_tables[conn] << table
               end
 
               table_rows.each do |fixture_set_name, rows|
@@ -597,18 +597,18 @@ module ActiveRecord
 
       @fixtures = read_fixture_files(path)
 
-      @connection  = connection
+      @connection = connection
 
-      @table_name = ( model_class.respond_to?(:table_name) ?
+      @table_name = (model_class.respond_to?(:table_name) ?
                       model_class.table_name :
-                      self.class.default_fixture_table_name(name, config) )
+                      self.class.default_fixture_table_name(name, config))
     end
 
     def [](x)
       fixtures[x]
     end
 
-    def []=(k,v)
+    def []=(k, v)
       fixtures[k] = v
     end
 
@@ -629,7 +629,7 @@ module ActiveRecord
       fixtures.delete("DEFAULTS")
 
       # track any join tables we need to insert later
-      rows = Hash.new { |h,table| h[table] = [] }
+      rows = Hash.new { |h, table| h[table] = [] }
 
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash
@@ -862,12 +862,9 @@ module ActiveRecord
       class_attribute :fixture_table_names
       class_attribute :fixture_class_names
       class_attribute :use_transactional_tests
-      class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
       class_attribute :config
-
-      singleton_class.deprecate "use_transactional_fixtures=" => "use use_transactional_tests= instead"
 
       self.fixture_table_names = []
       self.use_instantiated_fixtures = false
@@ -875,16 +872,7 @@ module ActiveRecord
       self.config = ActiveRecord::Base
 
       self.fixture_class_names = {}
-
-      silence_warnings do
-        define_singleton_method :use_transactional_tests do
-          if use_transactional_fixtures.nil?
-            true
-          else
-            use_transactional_fixtures
-          end
-        end
-      end
+      self.use_transactional_tests = true
     end
 
     module ClassMethods
@@ -897,12 +885,12 @@ module ActiveRecord
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
       def set_fixture_class(class_names = {})
-        self.fixture_class_names = self.fixture_class_names.merge(class_names.stringify_keys)
+        self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
+          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
@@ -982,6 +970,7 @@ module ActiveRecord
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
+          connection.pool.lock_thread = true
         end
 
         # When connections are established in the future, begin a transaction too
@@ -997,6 +986,7 @@ module ActiveRecord
 
             if connection && !@fixture_connections.include?(connection)
               connection.begin_transaction joinable: false
+              connection.pool.lock_thread = true
               @fixture_connections << connection
             end
           end
@@ -1019,6 +1009,7 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
+          connection.pool.lock_thread = false
         end
         @fixture_connections.clear
       else

@@ -199,7 +199,7 @@ module ActiveSupport
 
       private
 
-      # Must be called within synchronize
+        # Must be called within synchronize
         def busy_for_exclusive?(purpose)
           busy_for_sharing?(purpose) ||
             @sharing.size > (@sharing[Thread.current] > 0 ? 1 : 0)

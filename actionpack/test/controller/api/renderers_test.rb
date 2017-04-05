@@ -23,10 +23,6 @@ class RenderersApiController < ActionController::API
   def plain
     render plain: "Hi from plain", status: 500
   end
-
-  def text
-    render text: "Hi from text", status: 500
-  end
 end
 
 class RenderersApiTest < ActionController::TestCase
@@ -48,13 +44,5 @@ class RenderersApiTest < ActionController::TestCase
     get :plain
     assert_response :internal_server_error
     assert_equal("Hi from plain", @response.body)
-  end
-
-  def test_render_text
-    assert_deprecated do
-      get :text
-    end
-    assert_response :internal_server_error
-    assert_equal("Hi from text", @response.body)
   end
 end

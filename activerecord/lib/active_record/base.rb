@@ -14,6 +14,7 @@ require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/class/subclasses"
 require "active_record/attribute_decorators"
+require "active_record/define_callbacks"
 require "active_record/errors"
 require "active_record/log_subscriber"
 require "active_record/explain_subscriber"
@@ -303,6 +304,7 @@ module ActiveRecord #:nodoc:
     include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
+    include DefineCallbacks
     include AttributeMethods
     include Callbacks
     include Timestamp

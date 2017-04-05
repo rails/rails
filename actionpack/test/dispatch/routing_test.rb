@@ -364,18 +364,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_pagemarks
-    tc = self
     draw do
       scope "pagemark", controller: "pagemarks", as: :pagemark do
-        tc.assert_deprecated do
-          get  "new", path: "build"
-        end
+        get "build", action: "new", as: "new"
         post "create", as: ""
         put  "update"
         get  "remove", action: :destroy, as: :remove
-        tc.assert_deprecated do
-          get action: :show, as: :show
-        end
+        get "", action: :show, as: :show
       end
     end
 
@@ -1608,7 +1603,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "account/login", to: redirect("/login")
     end
 
-    previous_host, self.host = self.host, "www.example.com:3000"
+    previous_host, self.host = host, "www.example.com:3000"
 
     get "/account/login"
     verify_redirect "http://www.example.com:3000/login"
@@ -1938,7 +1933,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           post :preview, on: :new
         end
 
-        resource  :admin, path_names: { new: "novo" }, path: "administrador" do
+        resource :admin, path_names: { new: "novo" }, path: "administrador" do
           post :preview, on: :new
         end
 
@@ -3741,7 +3736,7 @@ private
     https!(old_https)
   end
 
-  def verify_redirect(url, status=301)
+  def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
     assert_equal expected_redirect_body(url), @response.body
@@ -4168,7 +4163,7 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
   end
 
 private
-  def verify_redirect(url, status=301)
+  def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
     assert_equal expected_redirect_body(url), @response.body
@@ -4194,7 +4189,7 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
 
   test "parameters are reset between constraint checks" do
     get "/bar"
-    assert_equal nil, @request.params[:foo]
+    assert_nil @request.params[:foo]
     assert_equal "bar", @request.params[:bar]
   end
 end
@@ -4684,29 +4679,32 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a helpful error message when generation fails" do
+  test "url helpers raise a 'missing keys' error for a nil param with optimized helpers" do
     url, missing = { action: "show", controller: "products", id: nil }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+    message = "No route matches #{url.inspect}, missing required keys: #{missing.inspect}"
 
-    # Optimized url helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
     assert_equal message, error.message
+  end
 
-    # Non-optimized url helper
+  test "url helpers raise a 'constraint failure' error for a nil param with non-optimized helpers" do
+    url, missing = { action: "show", controller: "products", id: nil }, [:id]
+    message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
+
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil) }
     assert_equal message, error.message
   end
 
-  test "url helpers raise message with mixed parameters when generation fails " do
-    url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested" }, [:id]
-    message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
+  test "url helpers raise message with mixed parameters when generation fails" do
+    url, missing = { action: "show", controller: "products", id: nil, "id" => "url-tested" }, [:id]
+    message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
     # Optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_equal message, error.message
 
     # Non-optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
     assert_equal message, error.message
   end
 end
@@ -4914,4 +4912,114 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
       request.path_parameters
     )
   end
+end
+
+class FlashRedirectTest < ActionDispatch::IntegrationTest
+  SessionKey = "_myapp_session"
+  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+
+  class KeyGeneratorMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.key_generator"] ||= Generator
+      @app.call(env)
+    end
+  end
+
+  class FooController < ActionController::Base
+    def bar
+      render plain: (flash[:foo] || "foo")
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get "/foo", to: redirect { |params, req| req.flash[:foo] = "bar"; "/bar" }
+    get "/bar", to: "flash_redirect_test/foo#bar"
+  end
+
+  APP = build_app Routes do |middleware|
+    middleware.use KeyGeneratorMiddleware
+    middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
+    middleware.use ActionDispatch::Flash
+    middleware.delete ActionDispatch::ShowExceptions
+  end
+
+  def app
+    APP
+  end
+
+  include Routes.url_helpers
+
+  def test_block_redirect_commits_flash
+    get "/foo", env: { "action_dispatch.key_generator" => Generator }
+    assert_response :redirect
+
+    follow_redirect!
+    assert_equal "bar", response.body
+  end
+end
+
+class TestRecognizePath < ActionDispatch::IntegrationTest
+  class PageConstraint
+    attr_reader :key, :pattern
+
+    def initialize(key, pattern)
+      @key = key
+      @pattern = pattern
+    end
+
+    def matches?(request)
+      request.path_parameters[key] =~ pattern
+    end
+  end
+
+  stub_controllers do |routes|
+    Routes = routes
+    routes.draw do
+      get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
+      get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
+
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+
+      get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
+      get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
+    end
+  end
+
+  APP = build_app Routes
+  def app
+    APP
+  end
+
+  def test_hash_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/hash/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_proc_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/proc/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_class_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/class/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  private
+
+    def recognize_path(*args)
+      Routes.recognize_path(*args)
+    end
 end

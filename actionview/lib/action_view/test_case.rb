@@ -18,7 +18,7 @@ module ActionView
       end
 
       def controller_path=(path)
-        self.class.controller_path=(path)
+        self.class.controller_path = (path)
       end
 
       def initialize
@@ -124,6 +124,10 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
+      def _routes
+        @controller._routes if @controller.respond_to?(:_routes)
+      end
+
       # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
@@ -206,8 +210,8 @@ module ActionView
           view = @controller.view_context
           view.singleton_class.include(_helpers)
           view.extend(Locals)
-          view.rendered_views = self.rendered_views
-          view.output_buffer = self.output_buffer
+          view.rendered_views = rendered_views
+          view.output_buffer = output_buffer
           view
         end
       end
@@ -258,10 +262,6 @@ module ActionView
         end]
       end
 
-      def _routes
-        @controller._routes if @controller.respond_to?(:_routes)
-      end
-
       def method_missing(selector, *args)
         begin
           routes = @controller.respond_to?(:_routes) && @controller._routes
@@ -270,8 +270,8 @@ module ActionView
         end
 
         if routes &&
-           ( routes.named_routes.route_defined?(selector) ||
-             routes.mounted_helpers.method_defined?(selector) )
+           (routes.named_routes.route_defined?(selector) ||
+             routes.mounted_helpers.method_defined?(selector))
           @controller.__send__(selector, *args)
         else
           super

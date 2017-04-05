@@ -22,6 +22,7 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
+require "rails/secrets"
 
 module TestHelpers
   module Paths
@@ -104,7 +105,7 @@ module TestHelpers
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"]       =   "development"
+      ENV["RAILS_ENV"] = "development"
       ENV["SECRET_KEY_BASE"] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
@@ -115,11 +116,6 @@ module TestHelpers
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
         end
-      end
-
-      gemfile_path = "#{app_path}/Gemfile"
-      if options[:gemfile].blank? && File.exist?(gemfile_path)
-        File.delete gemfile_path
       end
 
       routes = File.read("#{app_path}/config/routes.rb")
@@ -167,7 +163,6 @@ module TestHelpers
       require "rails"
       require "action_controller/railtie"
       require "action_view/railtie"
-      require "action_dispatch/middleware/flash"
 
       @app = Class.new(Rails::Application)
       @app.config.eager_load = false
@@ -192,7 +187,7 @@ module TestHelpers
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render plain: "foo"
           end
         end
       RUBY

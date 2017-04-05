@@ -32,7 +32,7 @@ module ActiveRecord
 
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
-        assert TestModel.column_names.include?("nick_name")
+        assert_includes TestModel.column_names, "nick_name"
         assert_equal ["foo"], TestModel.all.map(&:nick_name)
       end
 
@@ -45,7 +45,7 @@ module ActiveRecord
 
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
-        assert TestModel.column_names.include?("nick_name")
+        assert_includes TestModel.column_names, "nick_name"
         assert_equal ["foo"], TestModel.all.map(&:nick_name)
       end
 
@@ -57,7 +57,7 @@ module ActiveRecord
 
         rename_column "test_models", "salary", "annual_salary"
 
-        assert TestModel.column_names.include?("annual_salary")
+        assert_includes TestModel.column_names, "annual_salary"
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
         assert_equal "70000", default_after
       end
@@ -88,7 +88,7 @@ module ActiveRecord
         add_column "test_models", "first_name", :string
         rename_column "test_models", "first_name", "group"
 
-        assert TestModel.column_names.include?("group")
+        assert_includes TestModel.column_names, "group"
       end
 
       def test_rename_column_with_an_index
@@ -220,6 +220,16 @@ module ActiveRecord
         assert TestModel.new.contributor?
 
         change_column "test_models", "contributor", :boolean, default: nil
+        TestModel.reset_column_information
+        assert_not TestModel.new.contributor?
+        assert_nil TestModel.new.contributor
+      end
+
+      def test_change_column_to_drop_default_with_null_false
+        add_column "test_models", "contributor", :boolean, default: true, null: false
+        assert TestModel.new.contributor?
+
+        change_column "test_models", "contributor", :boolean, default: nil, null: false
         TestModel.reset_column_information
         assert_not TestModel.new.contributor?
         assert_nil TestModel.new.contributor

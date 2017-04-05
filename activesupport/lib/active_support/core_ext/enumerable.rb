@@ -12,7 +12,7 @@ module Enumerable
   #
   #  [5, 15, 10].sum # => 30
   #  ['foo', 'bar'].sum # => "foobar"
-  #  [[1, 2], [3, 1, 5]].sum => [1, 2, 3, 1, 5]
+  #  [[1, 2], [3, 1, 5]].sum # => [1, 2, 3, 1, 5]
   #
   # The default sum of an empty list is zero. You can override this default:
   #
@@ -29,9 +29,9 @@ module Enumerable
   # Convert an enumerable to a hash.
   #
   #   people.index_by(&:login)
-  #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
+  #   # => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
   #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
-  #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
+  #   # => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
   def index_by
     if block_given?
       result = {}
@@ -67,10 +67,10 @@ module Enumerable
   # Returns a copy of the enumerable without the specified elements.
   #
   #   ["David", "Rafael", "Aaron", "Todd"].without "Aaron", "Todd"
-  #     => ["David", "Rafael"]
+  #   # => ["David", "Rafael"]
   #
   #   {foo: 1, bar: 2, baz: 3}.without :bar
-  #     => {foo: 1, baz: 3}
+  #   # => {foo: 1, baz: 3}
   def without(*elements)
     reject { |element| elements.include?(element) }
   end
@@ -78,10 +78,10 @@ module Enumerable
   # Convert an enumerable to an array based on the given key.
   #
   #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
-  #     => ["David", "Rafael", "Aaron"]
+  #   # => ["David", "Rafael", "Aaron"]
   #
   #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
-  #     => [[1, "David"], [2, "Rafael"]]
+  #   # => [[1, "David"], [2, "Rafael"]]
   def pluck(*keys)
     if keys.many?
       map { |element| keys.map { |key| element[key] } }
@@ -115,9 +115,14 @@ end
 # and fall back to the compatible implementation, but that's much slower than
 # just calling the compat method in the first place.
 if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
-  class Array
-    alias :orig_sum :sum
+  # Using Refinements here in order not to expose our internal method
+  using Module.new {
+    refine Array do
+      alias :orig_sum :sum
+    end
+  }
 
+  class Array
     def sum(init = nil, &block) #:nodoc:
       if init.is_a?(Numeric) || first.is_a?(Numeric)
         init ||= 0

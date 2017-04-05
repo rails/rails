@@ -91,8 +91,8 @@ module Rails
       attr_reader :hidden_namespaces
 
       def initialize
-        @aliases = Hash.new { |h,k| h[k] = {} }
-        @options = Hash.new { |h,k| h[k] = {} }
+        @aliases = Hash.new { |h, k| h[k] = {} }
+        @options = Hash.new { |h, k| h[k] = {} }
         @fallbacks = {}
         @templates = []
         @colorize_logging = true

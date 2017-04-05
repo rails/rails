@@ -5,7 +5,7 @@ module ActionController
   # without requirement of being in controller actions.
   #
   # You get a concrete renderer class by invoking ActionController::Base#renderer.
-  # For example,
+  # For example:
   #
   #   ApplicationController.renderer
   #
@@ -18,7 +18,7 @@ module ActionController
   #   ApplicationController.render template: '...'
   #
   # #render allows you to use the same options that you can use when rendering in a controller.
-  # For example,
+  # For example:
   #
   #   FooController.render :action, locals: { ... }, assigns: { ... }
   #
@@ -56,11 +56,12 @@ module ActionController
 
     # Create a new renderer for the same controller but with new defaults.
     def with_defaults(defaults)
-      self.class.new controller, env, self.defaults.merge(defaults)
+      self.class.new controller, @env, self.defaults.merge(defaults)
     end
 
     # Accepts a custom Rack environment to render templates in.
-    # It will be merged with ActionController::Renderer.defaults
+    # It will be merged with the default Rack environment defined by
+    # +ActionController::Renderer::DEFAULTS+.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
@@ -83,7 +84,8 @@ module ActionController
     private
       def normalize_keys(env)
         new_env = {}
-        env.each_pair { |k,v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+        env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
       end
 
@@ -102,7 +104,9 @@ module ActionController
         method: ->(v) { v.upcase },
       }
 
-      def rack_key_for(key); RACK_KEY_TRANSLATION[key]; end
+      def rack_key_for(key)
+        RACK_KEY_TRANSLATION.fetch(key, key.to_s)
+      end
 
       def rack_value_for(key, value)
         RACK_VALUE_TRANSLATION.fetch(key, IDENTITY).call value

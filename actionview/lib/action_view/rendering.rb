@@ -91,7 +91,7 @@ module ActionView
 
       # Find and render a template based on the options given.
       # :api: private
-      def _render_template(options) #:nodoc:
+      def _render_template(options)
         variant = options.delete(:variant)
         assigns = options.delete(:assigns)
         context = view_context
@@ -104,7 +104,7 @@ module ActionView
       end
 
       # Assign the rendered format to look up context.
-      def _process_format(format) #:nodoc:
+      def _process_format(format)
         super
         lookup_context.formats = [format.to_sym]
         lookup_context.rendered_format = lookup_context.formats.first
@@ -113,7 +113,7 @@ module ActionView
       # Normalize args by converting render "foo" to render :action => "foo" and
       # render "foo/bar" to render :template => "foo/bar".
       # :api: private
-      def _normalize_args(action=nil, options={})
+      def _normalize_args(action = nil, options = {})
         options = super(action, options)
         case action
         when NilClass
@@ -124,7 +124,11 @@ module ActionView
           key = action.include?(?/) ? :template : :action
           options[key] = action
         else
-          options[:partial] = action
+          if action.respond_to?(:permitted?) && action.permitted?
+            options = action
+          else
+            options[:partial] = action
+          end
         end
 
         options

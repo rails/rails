@@ -141,13 +141,13 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_templates.
-    def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
+    def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
     end
 
-    def find_all_anywhere(name, prefix, partial=false, details={}, key=nil, locals=[])
+    def find_all_anywhere(name, prefix, partial = false, details = {}, key = nil, locals = [])
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details, true)
       end
@@ -164,8 +164,8 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
     end
 
     # Helpers that builds a path. Useful for building virtual paths.
@@ -177,7 +177,7 @@ module ActionView
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but if the key is present, check if the
     # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals) #:nodoc:
+    def cached(key, path_info, details, locals)
       name, prefix, partial = path_info
       locals = locals.map(&:to_s).sort!
 
@@ -191,7 +191,7 @@ module ActionView
     end
 
     # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals) #:nodoc:
+    def decorate(templates, path_info, details, locals)
       cached = nil
       templates.each do |t|
         t.locals         = locals
@@ -207,7 +207,7 @@ module ActionView
     EXTENSIONS = { locale: ".", formats: ".", variants: "+", handlers: "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize(pattern=nil)
+    def initialize(pattern = nil)
       @pattern = pattern || DEFAULT_PATTERN
       super()
     end
@@ -226,7 +226,7 @@ module ActionView
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template, formats)
+          handler, format, variant = extract_handler_and_format_and_variant(template)
           contents = File.binread(template)
 
           Template.new(contents, File.expand_path(template), handler,
@@ -256,7 +256,7 @@ module ActionView
         filename.start_with?(path)
       end
 
-    # Helper for building query glob string based on resolver's pattern.
+      # Helper for building query glob string based on resolver's pattern.
       def build_query(path, details)
         query = @pattern.dup
 
@@ -281,15 +281,15 @@ module ActionView
         entry.gsub(/[*?{}\[\]]/, '\\\\\\&'.freeze)
       end
 
-    # Returns the file mtime from the filesystem.
+      # Returns the file mtime from the filesystem.
       def mtime(p)
         File.mtime(p)
       end
 
-    # Extract handler, formats and variant from path. If a format cannot be found neither
-    # from the path, or the handler, we should return the array of formats given
-    # to the resolver.
-      def extract_handler_and_format_and_variant(path, default_formats)
+      # Extract handler, formats and variant from path. If a format cannot be found neither
+      # from the path, or the handler, we should return the array of formats given
+      # to the resolver.
+      def extract_handler_and_format_and_variant(path)
         pieces = File.basename(path).split(".".freeze)
         pieces.shift
 
@@ -297,7 +297,7 @@ module ActionView
 
         handler = Template.handler_for_extension(extension)
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-        format  &&= Template::Types[format]
+        format &&= Template::Types[format]
 
         [handler, format, variant]
       end
@@ -342,7 +342,7 @@ module ActionView
   # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
   #
   class FileSystemResolver < PathResolver
-    def initialize(path, pattern=nil)
+    def initialize(path, pattern = nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super(pattern)
       @path = File.expand_path(path)

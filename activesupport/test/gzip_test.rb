@@ -20,7 +20,7 @@ class GzipTest < ActiveSupport::TestCase
   end
 
   def test_compress_should_return_gzipped_string_by_compression_level
-    source_string = "Hello World"*100
+    source_string = "Hello World" * 100
 
     gzipped_by_speed = ActiveSupport::Gzip.compress(source_string, Zlib::BEST_SPEED)
     assert_equal 1, Zlib::GzipReader.new(StringIO.new(gzipped_by_speed)).level
@@ -29,5 +29,15 @@ class GzipTest < ActiveSupport::TestCase
     assert_equal 9, Zlib::GzipReader.new(StringIO.new(gzipped_by_best_compression)).level
 
     assert_equal true, (gzipped_by_best_compression.bytesize < gzipped_by_speed.bytesize)
+  end
+
+  def test_decompress_checks_crc
+    compressed = ActiveSupport::Gzip.compress("Hello World")
+    first_crc_byte_index = compressed.bytesize - 8
+    compressed.setbyte(first_crc_byte_index, compressed.getbyte(first_crc_byte_index) ^ 0xff)
+
+    assert_raises(Zlib::GzipFile::CRCError) do
+      ActiveSupport::Gzip.decompress(compressed)
+    end
   end
 end

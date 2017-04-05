@@ -90,22 +90,22 @@ module ActiveRecord
     end
 
     def test_tables_logs_name
-      ActiveSupport::Deprecation.silence { @connection.tables("hello") }
+      @connection.tables
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_indexes_logs_name
-      @connection.indexes("items", "hello")
+      assert_deprecated { @connection.indexes("items", "hello") }
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_exists_logs_name
-      ActiveSupport::Deprecation.silence { @connection.table_exists?("items") }
+      @connection.table_exists?("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_alias_length_logs_name
-      @connection.instance_variable_set("@table_alias_length", nil)
+      @connection.instance_variable_set("@max_identifier_length", nil)
       @connection.table_alias_length
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
@@ -156,7 +156,7 @@ module ActiveRecord
         secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
         ActiveRecord::Base.connection_pool.checkin(secondary_connection)
       elsif ARTest.config["with_manual_interventions"]
-        puts "Kill the connection now (e.g. by restarting the PostgreSQL " +
+        puts "Kill the connection now (e.g. by restarting the PostgreSQL " \
           'server with the "-m fast" option) and then press enter.'
         $stdin.gets
       else
@@ -175,9 +175,9 @@ module ActiveRecord
       new_connection_pid = @connection.query("select pg_backend_pid()")
 
       assert_not_equal original_connection_pid, new_connection_pid,
-        "umm -- looks like you didn't break the connection, because we're still " +
+        "umm -- looks like you didn't break the connection, because we're still " \
         "successfully querying with the same connection pid."
-
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end
@@ -245,7 +245,7 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       def with_warning_suppression
         log_level = @connection.client_min_messages

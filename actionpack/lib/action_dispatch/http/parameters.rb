@@ -12,8 +12,17 @@ module ActionDispatch
         }
       }
 
+      # Raised when raw data from the request cannot be parsed by the parser
+      # defined for request's content MIME type.
+      class ParseError < StandardError
+        def initialize
+          super($!.message)
+        end
+      end
+
       included do
         class << self
+          # Returns the parameter parsers.
           attr_reader :parameter_parsers
         end
 
@@ -21,7 +30,16 @@ module ActionDispatch
       end
 
       module ClassMethods
-        def parameter_parsers=(parsers) # :nodoc:
+        # Configure the parameter parser for a given MIME type.
+        #
+        # It accepts a hash where the key is the symbol of the MIME type
+        # and the value is a proc.
+        #
+        #     original_parsers = ActionDispatch::Request.parameter_parsers
+        #     xml_parser = -> (raw_post) { Hash.from_xml(raw_post) || {} }
+        #     new_parsers = original_parsers.merge(xml: xml_parser)
+        #     ActionDispatch::Request.parameter_parsers = new_parsers
+        def parameter_parsers=(parsers)
           @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
         end
       end
@@ -37,7 +55,7 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
-        params = set_custom_encoding(params)
+        params = set_binary_encoding(params)
         set_header("action_dispatch.request.parameters", params)
         params
       end
@@ -65,19 +83,14 @@ module ActionDispatch
 
       private
 
-        def set_custom_encoding(params)
+        def set_binary_encoding(params)
           action = params[:action]
-          params.each do |k, v|
-            if v.is_a?(String) && v.encoding != encoding_template(action, k)
-              params[k] = v.force_encoding(encoding_template(action, k))
+          if controller_class.binary_params_for?(action)
+            ActionDispatch::Request::Utils.each_param_value(params) do |param|
+              param.force_encoding ::Encoding::ASCII_8BIT
             end
           end
-
           params
-        end
-
-        def encoding_template(action, param)
-          controller_class.encoding_for_param(action, param)
         end
 
         def parse_formatted_parameters(parsers)
@@ -87,11 +100,11 @@ module ActionDispatch
 
           begin
             strategy.call(raw_post)
-          rescue # JSON or Ruby code block errors
+          rescue # JSON or Ruby code block errors.
             my_logger = logger || ActiveSupport::Logger.new($stderr)
             my_logger.debug "Error occurred while parsing request parameters.\nContents:\n\n#{raw_post}"
 
-            raise ParamsParser::ParseError
+            raise ParseError
           end
         end
 
@@ -99,5 +112,10 @@ module ActionDispatch
           ActionDispatch::Request.parameter_parsers
         end
     end
+  end
+
+  module ParamsParser
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+    deprecate_constant "ParseError", "ActionDispatch::Http::Parameters::ParseError"
   end
 end

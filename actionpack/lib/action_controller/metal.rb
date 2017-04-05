@@ -55,7 +55,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(get_class(klass), args, list, strategy, block)
+        Middleware.new(klass, args, list, strategy, block)
       end
   end
 
@@ -118,11 +118,6 @@ module ActionController
   class Metal < AbstractController::Base
     abstract!
 
-    def env
-      @_request.env
-    end
-    deprecate :env
-
     # Returns the last part of the controller's name, underscored, without the ending
     # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
     # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
@@ -134,16 +129,16 @@ module ActionController
     end
 
     def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
+      ActionDispatch::Response.new.tap do |res|
         res.request = request
       end
     end
 
-    def self.encoding_for_param(action, param) # :nodoc:
-      ::Encoding::UTF_8
+    def self.binary_params_for?(action) # :nodoc:
+      false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>
+    # Delegates to the class' <tt>controller_name</tt>.
     def controller_name
       self.class.controller_name
     end
@@ -232,14 +227,6 @@ module ActionController
       middleware_stack
     end
 
-    # Makes the controller a Rack endpoint that runs the action in the given
-    # +env+'s +action_dispatch.request.path_parameters+ key.
-    def self.call(env)
-      req = ActionDispatch::Request.new env
-      action(req.path_parameters[:action]).call(env)
-    end
-    class << self; deprecate :call; end
-
     # Returns a Rack endpoint for the given action name.
     def self.action(name)
       if middleware_stack.any?
@@ -257,7 +244,7 @@ module ActionController
       end
     end
 
-    # Direct dispatch to the controller.  Instantiates the controller, then
+    # Direct dispatch to the controller. Instantiates the controller, then
     # executes the action named +name+.
     def self.dispatch(name, req, res)
       if middleware_stack.any?

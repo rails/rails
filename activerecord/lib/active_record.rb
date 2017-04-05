@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2016 David Heinemeier Hansson
+# Copyright (c) 2004-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -44,7 +44,6 @@ module ActiveRecord
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
-  autoload :LegacyYamlAdapter
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
@@ -84,6 +83,8 @@ module ActiveRecord
     autoload :AttributeAssignment
     autoload :AttributeMethods
     autoload :AutosaveAssociation
+
+    autoload :LegacyYamlAdapter
 
     autoload :Relation
     autoload :AssociationRelation

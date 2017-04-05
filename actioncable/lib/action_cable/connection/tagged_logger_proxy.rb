@@ -31,8 +31,8 @@ module ActionCable
         end
       end
 
-      protected
-        def log(type, message)
+      private
+        def log(type, message) # :doc:
           tag(@logger) { @logger.send type, message }
         end
     end

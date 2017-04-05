@@ -36,11 +36,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
       private
 
-      def should_be_cool
-        unless self.first_name == "cool"
-          errors.add :first_name, "not cool"
+        def should_be_cool
+          unless first_name == "cool"
+            errors.add :first_name, "not cool"
+          end
         end
-      end
     }
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"
@@ -443,7 +443,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not invalid_electron.valid?
     assert valid_electron.valid?
     assert_not molecule.valid?
-    assert_equal [{ error: :blank }], molecule.errors.details["electrons.name"]
+    assert_equal [{ error: :blank }], molecule.errors.details[:"electrons.name"]
   end
 
   def test_errors_details_should_be_indexed_when_passed_as_array
@@ -457,8 +457,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not tuning_peg_invalid.valid?
     assert tuning_peg_valid.valid?
     assert_not guitar.valid?
-    assert_equal [{ error: :not_a_number, value: nil }] , guitar.errors.details["tuning_pegs[1].pitch"]
-    assert_equal [], guitar.errors.details["tuning_pegs.pitch"]
+    assert_equal [{ error: :not_a_number, value: nil }], guitar.errors.details[:"tuning_pegs[1].pitch"]
+    assert_equal [], guitar.errors.details[:"tuning_pegs.pitch"]
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
@@ -474,8 +474,8 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not invalid_electron.valid?
     assert valid_electron.valid?
     assert_not molecule.valid?
-    assert_equal [{ error: :blank }], molecule.errors.details["electrons[1].name"]
-    assert_equal [], molecule.errors.details["electrons.name"]
+    assert_equal [{ error: :blank }], molecule.errors.details[:"electrons[1].name"]
+    assert_equal [], molecule.errors.details[:"electrons.name"]
   ensure
     ActiveRecord::Base.index_nested_attribute_errors = old_attribute_config
   end
@@ -585,7 +585,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert firm.clients.include?(companies(:second_client))
+    assert_includes firm.clients, companies(:second_client)
   end
 
   def test_assign_ids_for_through_a_belongs_to
@@ -594,7 +594,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     post.save
     post.reload
     assert_equal 2, post.people.length
-    assert post.people.include?(people(:david))
+    assert_includes post.people, people(:david)
   end
 
   def test_build_before_save
@@ -647,7 +647,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert firm.clients.include?(Client.find_by_name("New Client"))
+    assert_includes firm.clients, Client.find_by_name("New Client")
   end
 end
 
@@ -792,6 +792,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     end
 
     @ship.pirate.catchphrase = "Changed Catchphrase"
+    @ship.name_will_change!
 
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
@@ -1130,7 +1131,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_queries(0) { @ship.save! }
 
     @parrot = @pirate.parrots.create(name: "some_name")
-    @parrot.name="changed_name"
+    @parrot.name = "changed_name"
     assert_queries(1) { @ship.save! }
     assert_queries(0) { @ship.save! }
   end
@@ -1388,6 +1389,14 @@ module AutosaveAssociationOnACollectionAssociationTests
     pirate.save!
 
     assert_equal "Squawky", parrot.reload.name
+  end
+
+  def test_should_not_update_children_when_parent_creation_with_no_reason
+    parrot = Parrot.create!(name: "Polly")
+    assert_equal 0, parrot.updated_count
+
+    Pirate.create!(parrot_ids: [parrot.id], catchphrase: "Arrrr")
+    assert_equal 0, parrot.reload.updated_count
   end
 
   def test_should_automatically_validate_the_associated_models
@@ -1696,5 +1705,29 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
   def test_autosave_with_touch_should_not_raise_system_stack_error
     invoice = Invoice.create
     assert_nothing_raised { invoice.line_items.create(amount: 10) }
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::TestCase
+  class Post < ActiveRecord::Base
+    has_many :comments, inverse_of: :post
+  end
+
+  class Comment < ActiveRecord::Base
+    belongs_to :post, inverse_of: :comments
+
+    attr_accessor :post_comments_count
+    after_save do
+      self.post_comments_count = post.comments.count
+    end
+  end
+
+  def test_after_save_callback_with_autosave
+    post = Post.new(title: "Test", body: "...")
+    comment = post.comments.build(body: "...")
+    post.save!
+
+    assert_equal 1, post.comments.count
+    assert_equal 1, comment.post_comments_count
   end
 end

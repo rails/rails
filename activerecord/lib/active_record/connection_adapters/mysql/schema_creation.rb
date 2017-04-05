@@ -1,19 +1,14 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      class SchemaCreation < AbstractAdapter::SchemaCreation
-        delegate :add_sql_comment!, to: :@conn
-        private :add_sql_comment!
+      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
+        delegate :add_sql_comment!, :mariadb?, to: :@conn
+        private :add_sql_comment!, :mariadb?
 
         private
 
           def visit_DropForeignKey(name)
             "DROP FOREIGN KEY #{name}"
-          end
-
-          def visit_ColumnDefinition(o)
-            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.unsigned)
-            super
           end
 
           def visit_AddColumnDefinition(o)
@@ -29,19 +24,28 @@ module ActiveRecord
             add_sql_comment!(super, options[:comment])
           end
 
-          def column_options(o)
-            column_options = super
-            column_options[:charset] = o.charset
-            column_options
-          end
-
           def add_column_options!(sql, options)
+            # By default, TIMESTAMP columns are NOT NULL, cannot contain NULL values,
+            # and assigning NULL assigns the current timestamp. To permit a TIMESTAMP
+            # column to contain NULL, explicitly declare it with the NULL attribute.
+            # See http://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
+            if /\Atimestamp\b/.match?(options[:column].sql_type) && !options[:primary_key]
+              sql << " NULL" unless options[:null] == false || options_include_default?(options)
+            end
+
             if charset = options[:charset]
               sql << " CHARACTER SET #{charset}"
             end
 
             if collation = options[:collation]
               sql << " COLLATE #{collation}"
+            end
+
+            if as = options[:as]
+              sql << " AS (#{as})"
+              if options[:stored]
+                sql << (mariadb? ? " PERSISTENT" : " STORED")
+              end
             end
 
             add_sql_comment!(super, options[:comment])

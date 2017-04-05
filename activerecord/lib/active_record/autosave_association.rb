@@ -154,10 +154,10 @@ module ActiveRecord
             # Loop prevention for validation of associations
             unless @_already_called[name]
               begin
-                @_already_called[name]=true
+                @_already_called[name] = true
                 result = instance_eval(&block)
               ensure
-                @_already_called[name]=false
+                @_already_called[name] = false
               end
             end
 
@@ -267,7 +267,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      new_record? || changed? || marked_for_destruction? || nested_records_changed_for_autosave?
+      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -325,30 +325,24 @@ module ActiveRecord
       # Returns whether or not the association is valid and applies any errors to
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
-      def association_valid?(reflection, record, index=nil)
+      def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
-        validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
-        unless valid = record.valid?(validation_context)
+        context = validation_context unless [:create, :update].include?(validation_context)
+
+        unless valid = record.valid?(context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
             record.errors.each do |attribute, message|
-              if indexed_attribute
-                attribute = "#{reflection.name}[#{index}].#{attribute}"
-              else
-                attribute = "#{reflection.name}.#{attribute}"
-              end
+              attribute = normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
               errors[attribute] << message
               errors[attribute].uniq!
             end
 
             record.errors.details.each_key do |attribute|
-              if indexed_attribute
-                reflection_attribute = "#{reflection.name}[#{index}].#{attribute}"
-              else
-                reflection_attribute = "#{reflection.name}.#{attribute}"
-              end
+              reflection_attribute =
+                normalize_reflection_attribute(indexed_attribute, reflection, index, attribute).to_sym
 
               record.errors.details[attribute].each do |error|
                 errors.details[reflection_attribute] << error
@@ -360,6 +354,14 @@ module ActiveRecord
           end
         end
         valid
+      end
+
+      def normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
+        if indexed_attribute
+          "#{reflection.name}[#{index}].#{attribute}"
+        else
+          "#{reflection.name}.#{attribute}"
+        end
       end
 
       # Is used as a before_save callback to check while saving a collection
@@ -380,6 +382,9 @@ module ActiveRecord
       def save_collection_association(reflection)
         if association = association_instance_get(reflection.name)
           autosave = reflection.options[:autosave]
+
+          # reconstruct the scope now that we know the owner's id
+          association.reset_scope if association.respond_to?(:reset_scope)
 
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
             if autosave
@@ -406,9 +411,6 @@ module ActiveRecord
               raise ActiveRecord::Rollback unless saved
             end
           end
-
-          # reconstruct the scope now that we know the owner's id
-          association.reset_scope if association.respond_to?(:reset_scope)
         end
       end
 
@@ -449,7 +451,7 @@ module ActiveRecord
       def record_changed?(reflection, record, key)
         record.new_record? ||
           (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
-          record.attribute_changed?(reflection.foreign_key)
+          record.will_save_change_to_attribute?(reflection.foreign_key)
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

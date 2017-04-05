@@ -51,7 +51,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
       assert_match %r{^\{"contact":\{}, json
       assert_match %r{"name":"Konata Izumi"}, json
       assert_match %r{"age":16}, json
-      assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+      assert_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
       assert_match %r{"awesome":true}, json
       assert_match %r{"preferences":\{"shows":"anime"\}}, json
     end
@@ -62,7 +62,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
-    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
     assert_match %r{"awesome":true}, json
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
@@ -73,7 +73,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
     assert_no_match %r{"awesome":true}, json
-    assert !json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_not_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
     assert_no_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
@@ -83,7 +83,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_no_match %r{"name":"Konata Izumi"}, json
     assert_no_match %r{"age":16}, json
     assert_match %r{"awesome":true}, json
-    assert json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    assert_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
     assert_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
@@ -101,8 +101,19 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
+  def test_uses_serializable_hash_with_frozen_hash
+    def @contact.serializable_hash(options = nil)
+      super({ only: %w(name) }.freeze)
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{awesome}, json
+    assert_no_match %r{age}, json
+  end
+
   def test_uses_serializable_hash_with_only_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(only: %w(name))
     end
 
@@ -113,7 +124,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_except_option
-    def @contact.serializable_hash(options=nil)
+    def @contact.serializable_hash(options = nil)
       super(except: %w(age))
     end
 
@@ -137,7 +148,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     @contact = ContactSti.new(@contact.attributes)
     assert_equal "ContactSti", @contact.type
 
-    def @contact.serializable_hash(options={})
+    def @contact.serializable_hash(options = {})
       super({ except: %w(age) }.merge!(options))
     end
 
@@ -157,7 +168,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 end
 
 class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments, :tags, :taggings
+  fixtures :authors, :author_addresses, :posts, :comments, :tags, :taggings
 
   include JsonSerializationHelpers
 
@@ -243,7 +254,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     assert !@david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
-    assert_equal %r{"favorite_quote":}.match(json).size, 1
+    assert_equal 1, %r{"favorite_quote":}.match(json).size
   end
 
   def test_should_allow_only_option_for_list_of_authors
@@ -275,7 +286,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     ['"name":"David"', '"posts":[', '{"id":1}', '{"id":2}', '{"id":4}',
      '{"id":5}', '{"id":6}', '"name":"Mary"', '"posts":[', '{"id":7}', '{"id":9}'].each do |fragment|
-       assert json.include?(fragment), json
+       assert_includes json, fragment, json
      end
   end
 

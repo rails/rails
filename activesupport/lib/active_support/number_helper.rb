@@ -45,7 +45,7 @@ module ActiveSupport
     #
     #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
     #   # => "(755) 6123-4567"
-    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
     #   # => "133-1234-5678"
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)
@@ -78,7 +78,7 @@ module ActiveSupport
     #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
     #   currency, and <tt>%n</tt> for the number.
     # * <tt>:negative_format</tt> - Sets the format for negative
-    #   numbers (defaults to prepending an hyphen to the formatted
+    #   numbers (defaults to prepending a hyphen to the formatted
     #   number given by <tt>:format</tt>).  Accepts the same fields
     #   than <tt>:format</tt>, except <tt>%n</tt> is here the
     #   absolute value of the number.
@@ -109,7 +109,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).
@@ -183,7 +183,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).

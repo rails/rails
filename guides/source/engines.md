@@ -59,7 +59,7 @@ only be enhancing it, rather than changing it drastically.
 To see demonstrations of other engines, check out
 [Devise](https://github.com/plataformatec/devise), an engine that provides
 authentication for its parent applications, or
-[Forem](https://github.com/radar/forem), an engine that provides forum
+[Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
 [RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
@@ -184,7 +184,7 @@ end
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
 there's an engine at the specified path, and will correctly mount the engine
 inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers and views.
+the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
 responsible for isolating the controllers, models, routes and other things into

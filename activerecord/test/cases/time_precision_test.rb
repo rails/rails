@@ -68,7 +68,7 @@ if subsecond_precision_supported?
       assert_match %r{t\.time\s+"finish",\s+precision: 6$}, output
     end
 
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
       def test_time_precision_with_zero_should_be_dumped
         @connection.create_table(:foos, force: true) do |t|
           t.time :start,  precision: 0

@@ -39,7 +39,7 @@ module ActionDispatch # :nodoc:
         super(header)
       end
 
-      def []=(k,v)
+      def []=(k, v)
         if @response.sending? || @response.sent?
           raise ActionDispatch::IllegalStateError, "header already sent"
         end
@@ -85,7 +85,7 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
-    # Aliasing these off because AD::Http::Cache::Response defines them
+    # Aliasing these off because AD::Http::Cache::Response defines them.
     alias :_cache_control :cache_control
     alias :_cache_control= :cache_control=
 
@@ -142,7 +142,7 @@ module ActionDispatch # :nodoc:
       private
 
         def each_chunk(&block)
-          @buf.each(&block) # extract into own method
+          @buf.each(&block)
         end
     end
 
@@ -227,7 +227,9 @@ module ActionDispatch # :nodoc:
       return unless content_type
       new_header_info = parse_content_type(content_type.to_s)
       prev_header_info = parsed_content_type_header
-      set_content_type new_header_info.mime_type, new_header_info.charset || prev_header_info.charset || self.class.default_charset
+      charset = new_header_info.charset || prev_header_info.charset
+      charset ||= self.class.default_charset unless prev_header_info.mime_type
+      set_content_type new_header_info.mime_type, charset
     end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
@@ -249,7 +251,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Sets the HTTP character set. In case of nil parameter
+    # Sets the HTTP character set. In case of +nil+ parameter
     # it sets the charset to utf-8.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
@@ -408,7 +410,7 @@ module ActionDispatch # :nodoc:
     def parse_content_type(content_type)
       if content_type
         type, charset = content_type.split(/;\s*charset=/)
-        type = nil if type.empty?
+        type = nil if type && type.empty?
         ContentTypeHeader.new(type, charset)
       else
         NullContentTypeHeader
@@ -423,7 +425,7 @@ module ActionDispatch # :nodoc:
 
     def set_content_type(content_type, charset)
       type = (content_type || "").dup
-      type << "; charset=#{charset}" if charset
+      type << "; charset=#{charset.to_s.downcase}" if charset
       set_header CONTENT_TYPE, type
     end
 

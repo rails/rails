@@ -1,14 +1,11 @@
-require "benchmark"
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/benchmark"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -73,8 +70,8 @@ module ActiveSupport
       # each of elements in the array will be turned into parameters/keys and
       # concatenated into a single key. For example:
       #
-      #   expand_cache_key([:foo, :bar])               # => "foo/bar"
-      #   expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar])               # => "foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
@@ -200,15 +197,15 @@ module ActiveSupport
       # You may also specify additional options via the +options+ argument.
       # Setting <tt>force: true</tt> forces a cache "miss," meaning we treat
       # the cache value as missing even if it's present. Passing a block is
-      # required when `force` is true so this always results in a cache write.
+      # required when +force+ is true so this always results in a cache write.
       #
       #   cache.write('today', 'Monday')
       #   cache.fetch('today', force: true) { 'Tuesday' } # => 'Tuesday'
       #   cache.fetch('today', force: true) # => ArgumentError
       #
-      # The `:force` option is useful when you're calling some other method to
+      # The +:force+ option is useful when you're calling some other method to
       # ask whether you should force a cache write. Otherwise, it's clearer to
-      # just call `Cache#write`.
+      # just call <tt>Cache#write</tt>.
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
@@ -361,6 +358,9 @@ module ActiveSupport
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
       # and the result will be written to the cache and returned.
+      # Therefore, you need to pass a block that returns the data to be written
+      # to the cache. If you do not want to write the cache when the cache is
+      # not found, use #read_multi.
       #
       # Options are passed to the underlying cache implementation.
       #
@@ -374,6 +374,8 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
+        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+
         options = names.extract_options!
         options = merged_options(options)
         results = read_multi(*names, options)
@@ -468,12 +470,12 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
-      protected
+      private
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
         # matches namespaced keys.
-        def key_matcher(pattern, options)
+        def key_matcher(pattern, options) # :doc:
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
@@ -490,25 +492,24 @@ module ActiveSupport
 
         # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           raise NotImplementedError.new
         end
 
         # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           raise NotImplementedError.new
         end
 
-      private
         # Merges the default options with ones specific to a method call.
-        def merged_options(call_options) # :nodoc:
+        def merged_options(call_options)
           if call_options
             options.merge(call_options)
           else
@@ -519,7 +520,7 @@ module ActiveSupport
         # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key) # :nodoc:
+        def expanded_key(key)
           return key.cache_key.to_s if key.respond_to?(:cache_key)
 
           case key
@@ -530,7 +531,7 @@ module ActiveSupport
               key = key.first
             end
           when Hash
-            key = key.sort_by { |k,_| k.to_s }.collect { |k,v| "#{k}=#{v}" }
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
           end
 
           key.to_param
@@ -544,14 +545,6 @@ module ActiveSupport
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
           key = "#{prefix}:#{key}" if prefix
           key
-        end
-
-        def namespaced_key(*args)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `namespaced_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key.
-          MESSAGE
-          normalize_key(*args)
         end
 
         def instrument(operation, key, options = nil)

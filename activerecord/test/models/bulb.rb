@@ -50,9 +50,3 @@ class FailedBulb < Bulb
     throw(:abort)
   end
 end
-
-class TrickyBulb < Bulb
-  after_create do |record|
-    record.car.bulbs.to_a
-  end
-end

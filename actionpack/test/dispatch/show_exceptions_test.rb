@@ -11,7 +11,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         begin
           raise StandardError.new
         rescue
-          raise ActionDispatch::ParamsParser::ParseError
+          raise ActionDispatch::Http::Parameters::ParseError
         end
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, "PUT"

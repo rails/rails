@@ -1,4 +1,6 @@
 require "cases/helper"
+require "active_support/core_ext/string/strip"
+require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
   class Person
@@ -30,14 +32,15 @@ class ErrorsTest < ActiveModel::TestCase
   def test_delete
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
-    errors.delete(:foo)
+    errors.delete("foo")
     assert_empty errors[:foo]
   end
 
   def test_include?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
-    assert errors.include?(:foo), "errors should include :foo"
+    assert_includes errors, :foo, "errors should include :foo"
+    assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
 
   def test_dup
@@ -52,6 +55,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
     assert_equal true, errors.has_key?(:foo), "errors should have key :foo"
+    assert_equal true, errors.has_key?("foo"), "errors should have key 'foo' as :foo"
   end
 
   def test_has_no_key
@@ -63,6 +67,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << "omg"
     assert_equal true, errors.key?(:foo), "errors should have key :foo"
+    assert_equal true, errors.key?("foo"), "errors should have key 'foo' as :foo"
   end
 
   def test_no_key
@@ -77,24 +82,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal 1, person.errors.count
     person.errors.clear
     assert person.errors.empty?
-  end
-
-  test "get returns the errors for the provided key" do
-    errors = ActiveModel::Errors.new(self)
-    errors[:foo] << "omg"
-
-    assert_deprecated do
-      assert_equal ["omg"], errors.get(:foo)
-    end
-  end
-
-  test "sets the error with the provided key" do
-    errors = ActiveModel::Errors.new(self)
-    assert_deprecated do
-      errors.set(:foo, "omg")
-    end
-
-    assert_equal({ foo: "omg" }, errors.messages)
   end
 
   test "error access is indifferent" do
@@ -112,6 +99,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg", "zomg"], errors.values
   end
 
+  test "values returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.values
+  end
+
   test "keys returns the error keys" do
     errors = ActiveModel::Errors.new(self)
     errors.messages[:foo] << "omg"
@@ -120,12 +115,20 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [:foo, :baz], errors.keys
   end
 
+  test "keys returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.keys
+  end
+
   test "detecting whether there are errors with empty?, blank?, include?" do
     person = Person.new
     person.errors[:foo]
     assert person.errors.empty?
     assert person.errors.blank?
-    assert !person.errors.include?(:foo)
+    assert_not_includes person.errors, :foo
   end
 
   test "include? does not add a key to messages hash" do
@@ -140,14 +143,6 @@ class ErrorsTest < ActiveModel::TestCase
     person.validate!
     assert_equal ["name cannot be nil"], person.errors.full_messages
     assert_equal ["cannot be nil"], person.errors[:name]
-  end
-
-  test "assign error" do
-    person = Person.new
-    assert_deprecated do
-      person.errors[:name] = "should not be nil"
-    end
-    assert_equal ["should not be nil"], person.errors[:name]
   end
 
   test "add an error message on a specific attribute" do
@@ -176,10 +171,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["cannot be blank"], person.errors[:name]
   end
 
-  test "added? detects if a specific error was added to the object" do
+  test "added? detects indifferent if a specific error was added to the object" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     assert person.errors.added?(:name, "cannot be blank")
+    assert person.errors.added?("name", "cannot be blank")
   end
 
   test "added? handles symbol message" do
@@ -250,6 +246,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: ["cannot be blank"] }, person.errors.to_hash)
   end
 
+  test "to_hash returns a hash without default proc" do
+    person = Person.new
+    assert_nil person.errors.to_hash.default_proc
+  end
+
+  test "as_json returns a hash without default proc" do
+    person = Person.new
+    assert_nil person.errors.as_json.default_proc
+  end
+
   test "full_messages creates a list of error messages with the attribute name included" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
@@ -257,7 +263,7 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.full_messages
   end
 
-  test "full_messages_for contains all the error messages for the given attribute" do
+  test "full_messages_for contains all the error messages for the given attribute indifferent" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     person.errors.add(:name, "cannot be nil")
@@ -269,6 +275,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "cannot be blank")
     person.errors.add(:email, "cannot be blank")
     assert_equal ["name cannot be blank"], person.errors.full_messages_for(:name)
+    assert_equal ["name cannot be blank"], person.errors.full_messages_for("name")
   end
 
   test "full_messages_for returns an empty list in case there are no errors for the given attribute" do
@@ -308,72 +315,6 @@ class ErrorsTest < ActiveModel::TestCase
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
     }
-  end
-
-  test "add_on_empty generates message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name
-      end
-    end
-  end
-
-  test "add_on_empty generates message for multiple attributes" do
-    person = Person.new
-    expected_calls = [ [:name, :empty, {}], [:age, :empty, {}] ]
-    assert_called_with(person.errors, :generate_message, expected_calls) do
-      assert_deprecated do
-        person.errors.add_on_empty [:name, :age]
-      end
-    end
-  end
-
-  test "add_on_empty generates message with custom default message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :empty, { message: "custom" }]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name, message: "custom"
-      end
-    end
-  end
-
-  test "add_on_empty generates message with empty string value" do
-    person = Person.new
-    person.name = ""
-    assert_called_with(person.errors, :generate_message, [:name, :empty, {}]) do
-      assert_deprecated do
-        person.errors.add_on_empty :name
-      end
-    end
-  end
-
-  test "add_on_blank generates message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :blank, {}]) do
-      assert_deprecated do
-        person.errors.add_on_blank :name
-      end
-    end
-  end
-
-  test "add_on_blank generates message for multiple attributes" do
-    person = Person.new
-    expected_calls = [ [:name, :blank, {}], [:age, :blank, {}] ]
-    assert_called_with(person.errors, :generate_message, expected_calls) do
-      assert_deprecated do
-        person.errors.add_on_blank [:name, :age]
-      end
-    end
-  end
-
-  test "add_on_blank generates message with custom default message" do
-    person = Person.new
-    assert_called_with(person.errors, :generate_message, [:name, :blank, { message: "custom" }]) do
-      assert_deprecated do
-        person.errors.add_on_blank :name, message: "custom"
-      end
-    end
   end
 
   test "details returns added error detail" do
@@ -441,5 +382,25 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal errors.messages, serialized.messages
     assert_equal errors.details, serialized.details
+  end
+
+  test "errors are backward compatible with the Rails 4.2 format" do
+    yaml = <<-CODE.strip_heredoc
+    --- !ruby/object:ActiveModel::Errors
+    base: &1 !ruby/object:ErrorsTest::Person
+      errors: !ruby/object:ActiveModel::Errors
+        base: *1
+        messages: {}
+    messages: {}
+    CODE
+
+    errors = YAML.load(yaml)
+    errors.add(:name, :invalid)
+    assert_equal({ name: ["is invalid"] }, errors.messages)
+    assert_equal({ name: [{ error: :invalid }] }, errors.details)
+
+    errors.clear
+    assert_equal({}, errors.messages)
+    assert_equal({}, errors.details)
   end
 end

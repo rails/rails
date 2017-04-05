@@ -18,6 +18,7 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.author_visibility_visible?
     assert @book.illustrator_visibility_visible?
     assert @book.with_medium_font_size?
+    assert @book.medium_to_read?
   end
 
   test "query state with strings" do
@@ -26,6 +27,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "english", @book.language
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
+    assert_equal "medium", @book.difficulty
   end
 
   test "find via scope" do
@@ -34,6 +36,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.in_english.first
     assert_equal @book, Book.author_visibility_visible.first
     assert_equal @book, Book.illustrator_visibility_visible.first
+    assert_equal @book, Book.medium_to_read.first
   end
 
   test "find via where with values" do
@@ -420,6 +423,43 @@ class EnumTest < ActiveRecord::TestCase
     assert @book.in_english?
     assert_not @book.in_spanish?
     assert_not @book.in_french?
+  end
+
+  test "query state by predicate with custom suffix" do
+    assert     @book.medium_to_read?
+    assert_not @book.easy_to_read?
+    assert_not @book.hard_to_read?
+  end
+
+  test "enum methods with custom suffix defined" do
+    assert @book.class.respond_to?(:easy_to_read)
+    assert @book.class.respond_to?(:medium_to_read)
+    assert @book.class.respond_to?(:hard_to_read)
+
+    assert @book.respond_to?(:easy_to_read?)
+    assert @book.respond_to?(:medium_to_read?)
+    assert @book.respond_to?(:hard_to_read?)
+
+    assert @book.respond_to?(:easy_to_read!)
+    assert @book.respond_to?(:medium_to_read!)
+    assert @book.respond_to?(:hard_to_read!)
+  end
+
+  test "update enum attributes with custom suffix" do
+    @book.medium_to_read!
+    assert_not @book.easy_to_read?
+    assert     @book.medium_to_read?
+    assert_not @book.hard_to_read?
+
+    @book.easy_to_read!
+    assert     @book.easy_to_read?
+    assert_not @book.medium_to_read?
+    assert_not @book.hard_to_read?
+
+    @book.hard_to_read!
+    assert_not @book.easy_to_read?
+    assert_not @book.medium_to_read?
+    assert     @book.hard_to_read?
   end
 
   test "uses default status when no status is provided in fixtures" do

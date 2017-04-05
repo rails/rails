@@ -30,7 +30,7 @@ class TestRequestTest < ActiveSupport::TestCase
     req = ActionDispatch::TestRequest.create({})
 
     assert_equal({}, req.cookies)
-    assert_equal nil, req.env["HTTP_COOKIE"]
+    assert_nil req.env["HTTP_COOKIE"]
 
     req.cookie_jar["user_name"] = "david"
     assert_cookies({ "user_name" => "david" }, req.cookie_jar)
@@ -86,6 +86,13 @@ class TestRequestTest < ActiveSupport::TestCase
   test "allows user agent to be overridden" do
     req = ActionDispatch::TestRequest.create("HTTP_USER_AGENT" => "GoogleBot")
     assert_equal "GoogleBot", req.user_agent
+  end
+
+  test "request_method getter and setter" do
+    req = ActionDispatch::TestRequest.create
+    req.request_method # to reproduce bug caused by memoization
+    req.request_method = "POST"
+    assert_equal "POST", req.request_method
   end
 
   test "setter methods" do

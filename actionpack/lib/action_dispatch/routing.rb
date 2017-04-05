@@ -1,3 +1,5 @@
+require "active_support/core_ext/string/filters"
+
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -118,7 +120,7 @@ module ActionDispatch
   #   controller :blog do
   #     get 'blog/show'     => :list
   #     get 'blog/delete'   => :delete
-  #     get 'blog/edit' => :edit
+  #     get 'blog/edit'     => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit

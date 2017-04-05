@@ -1,4 +1,5 @@
 require "abstract_unit"
+require "timeout"
 require "concurrent/atomic/count_down_latch"
 Thread.abort_on_exception = true
 
@@ -157,7 +158,9 @@ module ActionController
         response.headers["Content-Type"] = "text/event-stream"
         response.stream.write "before load"
         sleep 0.01
-        ::LoadMe
+        silence_warning do
+          ::LoadMe
+        end
         response.stream.close
         latch.count_down
 

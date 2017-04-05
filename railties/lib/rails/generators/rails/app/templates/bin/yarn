@@ -1,0 +1,9 @@
+VENDOR_PATH = File.expand_path('..', __dir__)
+Dir.chdir(VENDOR_PATH) do
+  begin
+    exec "yarnpkg #{ARGV.join(" ")}"
+  rescue Errno::ENOENT
+    puts "Yarn executable was not detected in the system."
+    puts "Download Yarn at https://yarnpkg.com/en/docs/install"
+  end
+end

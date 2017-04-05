@@ -17,7 +17,7 @@ module ActiveSupport
     # Returns a derived key suitable for use.  The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
-    def generate_key(salt, key_size=64)
+    def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
     end
   end
@@ -51,8 +51,8 @@ module ActiveSupport
 
     private
 
-    # To prevent users from using something insecure like "Password" we make sure that the
-    # secret they've provided is at least 30 characters in length.
+      # To prevent users from using something insecure like "Password" we make sure that the
+      # secret they've provided is at least 30 characters in length.
       def ensure_secret_secure(secret)
         if secret.blank?
           raise ArgumentError, "A secret is required to generate an integrity hash " \

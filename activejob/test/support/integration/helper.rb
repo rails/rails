@@ -5,6 +5,7 @@ ActiveJob::Base.queue_name_prefix = nil
 
 require "rails/generators/rails/app/app_generator"
 
+require "tmpdir"
 dummy_app_path     = Dir.mktmpdir + "/dummy"
 dummy_app_template = File.expand_path("../dummy_app_template.rb",  __FILE__)
 args = Rails::Generators::ARGVScrubber.new(["new", dummy_app_path, "--skip-gemfile", "--skip-bundle",

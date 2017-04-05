@@ -106,9 +106,9 @@ class NamedBaseTest < Rails::Generators::TestCase
   def test_hide_namespace
     g = generator ["Hidden"]
     g.class.stub(:namespace, "hidden") do
-      assert !Rails::Generators.hidden_namespaces.include?("hidden")
+      assert_not_includes Rails::Generators.hidden_namespaces, "hidden"
       g.class.hide!
-      assert Rails::Generators.hidden_namespaces.include?("hidden")
+      assert_includes Rails::Generators.hidden_namespaces, "hidden"
     end
   end
 
@@ -131,7 +131,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin.foos",  :controller_i18n_scope
   end
 
-  protected
+  private
 
     def assert_name(generator, value, method)
       assert_equal value, generator.send(method)

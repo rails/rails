@@ -1,11 +1,13 @@
 require "cases/helper"
 require "active_model/type"
+require "active_support/core_ext/numeric/time"
 
 module ActiveModel
   module Type
     class IntegerTest < ActiveModel::TestCase
       test "simple values" do
         type = Type::Integer.new
+        assert_nil type.cast("")
         assert_equal 1, type.cast(1)
         assert_equal 1, type.cast("1")
         assert_equal 1, type.cast("1ignore")
@@ -19,7 +21,7 @@ module ActiveModel
 
       test "random objects cast to nil" do
         type = Type::Integer.new
-        assert_nil type.cast([1,2])
+        assert_nil type.cast([1, 2])
         assert_nil type.cast(1 => 2)
         assert_nil type.cast(1..2)
       end
@@ -32,13 +34,19 @@ module ActiveModel
       test "casting nan and infinity" do
         type = Type::Integer.new
         assert_nil type.cast(::Float::NAN)
-        assert_nil type.cast(1.0/0.0)
+        assert_nil type.cast(1.0 / 0.0)
       end
 
       test "casting booleans for database" do
         type = Type::Integer.new
         assert_equal 1, type.serialize(true)
         assert_equal 0, type.serialize(false)
+      end
+
+      test "casting duration" do
+        type = Type::Integer.new
+        assert_equal 1800, type.cast(30.minutes)
+        assert_equal 7200, type.cast(2.hours)
       end
 
       test "changed?" do

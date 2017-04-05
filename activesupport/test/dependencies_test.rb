@@ -114,25 +114,25 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal 1, $check_warnings_load_count
       assert_equal true, $checked_verbose, "On first load warnings should be enabled."
 
-      assert ActiveSupport::Dependencies.loaded.include?(expanded)
+      assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.clear
       assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
-      assert ActiveSupport::Dependencies.history.include?(expanded)
+      assert_includes ActiveSupport::Dependencies.history, expanded
 
       silence_warnings { require_dependency filename }
       assert_equal 2, $check_warnings_load_count
-      assert_equal nil, $checked_verbose, "After first load warnings should be left alone."
+      assert_nil $checked_verbose, "After first load warnings should be left alone."
 
-      assert ActiveSupport::Dependencies.loaded.include?(expanded)
+      assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.clear
       assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
-      assert ActiveSupport::Dependencies.history.include?(expanded)
+      assert_includes ActiveSupport::Dependencies.history, expanded
 
       enable_warnings { require_dependency filename }
       assert_equal 3, $check_warnings_load_count
       assert_equal true, $checked_verbose, "After first load warnings should be left alone."
 
-      assert ActiveSupport::Dependencies.loaded.include?(expanded)
+      assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.warnings_on_first_load = old_warnings
     end
   end
@@ -271,7 +271,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_raising_discards_autoloaded_constants
     with_autoloading_fixtures do
-      assert_raises(Exception, "arbitray exception message") { RaisesArbitraryException }
+      e = assert_raises(Exception) { RaisesArbitraryException }
+      assert_equal("arbitrary exception message", e.message)
       assert_not defined?(A)
       assert_not defined?(RaisesArbitraryException)
     end
@@ -397,14 +398,17 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def failing_test_access_thru_and_upwards_fails
-    with_autoloading_fixtures do
-      assert_not defined?(ModuleFolder)
-      assert_raise(NameError) { ModuleFolder::Object }
-      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+  # This raises only on 2.5.. (warns on ..2.4)
+  if RUBY_VERSION > "2.5"
+    def test_access_thru_and_upwards_fails
+      with_autoloading_fixtures do
+        assert_not defined?(ModuleFolder)
+        assert_raise(NameError) { ModuleFolder::Object }
+        assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+      end
+    ensure
+      remove_constants(:ModuleFolder)
     end
-  ensure
-    remove_constants(:ModuleFolder)
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
@@ -526,8 +530,8 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_file_search
     with_loading "dependencies" do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three")
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three.rb")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three.rb")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one.rb")
     end
@@ -548,7 +552,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
       assert_equal autoload + "/conflict.rb", ActiveSupport::Dependencies.search_for_file("conflict")
     end
-
   end
 
   def test_custom_const_missing_should_work
@@ -757,14 +760,14 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
   def test_new_constants_in_with_a_single_constant
     assert_equal ["Hello"], ActiveSupport::Dependencies.new_constants_in(Object) {
                               Object.const_set :Hello, 10
                             }.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:Hello)
   end
@@ -781,7 +784,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
 
     assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:OuterBefore, :Inner, :OuterAfter)
   end
@@ -800,7 +803,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end
@@ -818,7 +821,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end
@@ -1059,13 +1062,13 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_load_and_require_stay_private
-    assert Object.private_methods.include?(:load)
-    assert Object.private_methods.include?(:require)
+    assert_includes Object.private_methods, :load
+    assert_includes Object.private_methods, :require
 
     ActiveSupport::Dependencies.unhook!
 
-    assert Object.private_methods.include?(:load)
-    assert Object.private_methods.include?(:require)
+    assert_includes Object.private_methods, :load
+    assert_includes Object.private_methods, :require
   ensure
     ActiveSupport::Dependencies.hook!
   end

@@ -11,10 +11,13 @@ module Rails
                                    fixture_replacement: nil
 
       c.integration_tool :test_unit
+      c.system_tests :test_unit
     end
 
     initializer "test_unit.line_filtering" do
-      ActiveSupport::TestCase.extend Rails::LineFiltering
+      ActiveSupport.on_load(:active_support_test_case) {
+        ActiveSupport::TestCase.extend Rails::LineFiltering
+      }
     end
 
     rake_tasks do

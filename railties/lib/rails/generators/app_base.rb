@@ -13,6 +13,7 @@ module Rails
       DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
+      WEBPACKS = %w( react vue angular )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -30,14 +31,14 @@ module Rails
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :javascript,         type: :string, aliases: "-j", default: "jquery",
-                                          desc: "Preconfigure for selected JavaScript library"
+        class_option :webpack,            type: :string, default: nil,
+                                          desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
+
+        class_option :skip_yarn,          type: :boolean, default: false,
+                                          desc: "Don't use Yarn for managing JavaScript dependencies"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
-
-        class_option :skip_bundle,        type: :boolean, aliases: "-B", default: false,
-                                          desc: "Don't run bundle install"
 
         class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
                                           desc: "Skip .gitignore file"
@@ -67,6 +68,9 @@ module Rails
         class_option :skip_listen,        type: :boolean, default: false,
                                           desc: "Don't generate configuration that depends on the listen gem"
 
+        class_option :skip_coffee,        type: :boolean, default: false,
+                                          desc: "Don't use CoffeeScript"
+
         class_option :skip_javascript,    type: :boolean, aliases: "-J", default: false,
                                           desc: "Skip JavaScript files"
 
@@ -75,6 +79,9 @@ module Rails
 
         class_option :skip_test,          type: :boolean, aliases: "-T", default: false,
                                           desc: "Skip test files"
+
+        class_option :skip_system_test,   type: :boolean, default: false,
+                                          desc: "Skip system test files"
 
         class_option :dev,                type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
@@ -99,9 +106,9 @@ module Rails
         convert_database_option_for_jruby
       end
 
-    protected
+    private
 
-      def gemfile_entry(name, *args)
+      def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
         github = options[:github]
@@ -117,11 +124,12 @@ module Rails
         self
       end
 
-      def gemfile_entries
+      def gemfile_entries # :doc:
         [rails_gemfile_entry,
          database_gemfile_entry,
          webserver_gemfile_entry,
          assets_gemfile_entry,
+         webpacker_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
@@ -129,13 +137,13 @@ module Rails
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
-      def add_gem_entry_filter
+      def add_gem_entry_filter # :doc:
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
       end
 
-      def builder
+      def builder # :doc:
         @builder ||= begin
           builder_class = get_builder_class
           builder_class.include(ActionMethods)
@@ -143,24 +151,24 @@ module Rails
         end
       end
 
-      def build(meth, *args)
+      def build(meth, *args) # :doc:
         builder.send(meth, *args) if builder.respond_to?(meth)
       end
 
-      def create_root
+      def create_root # :doc:
         valid_const?
 
         empty_directory "."
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      def apply_rails_template
+      def apply_rails_template # :doc:
         apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def set_default_accessors!
+      def set_default_accessors! # :doc:
         self.destination_root = File.expand_path(app_path, destination_root)
         self.rails_template = \
           case options[:template]
@@ -173,32 +181,32 @@ module Rails
           end
       end
 
-      def database_gemfile_entry
+      def database_gemfile_entry # :doc:
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
                             "Use #{options[:database]} as the database for Active Record"
       end
 
-      def webserver_gemfile_entry
+      def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.0", comment)
+        GemfileEntry.new("puma", "~> 3.7", comment)
       end
 
-      def include_all_railties?
+      def include_all_railties? # :doc:
         options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
       end
 
-      def comment_if(value)
+      def comment_if(value) # :doc:
         options[value] ? "# " : ""
       end
 
-      def keeps?
+      def keeps? # :doc:
         !options[:skip_keeps]
       end
 
-      def sqlite3?
+      def sqlite3? # :doc:
         !options[:skip_active_record] && options[:database] == "sqlite3"
       end
 
@@ -236,6 +244,7 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
+          GemfileEntry.github("arel", "rails/arel"),
         ]
         if options.dev?
           [
@@ -243,7 +252,7 @@ module Rails
           ] + dev_edge_common
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails", "5-0-stable")
+            GemfileEntry.github("rails", "rails/rails")
           ] + dev_edge_common
         else
           [GemfileEntry.version("rails",
@@ -253,14 +262,13 @@ module Rails
       end
 
       def rails_version_specifier(gem_version = Rails.gem_version)
-        if gem_version.prerelease?
-          next_series = gem_version
-          next_series = next_series.bump while next_series.segments.size > 2
-
-          [">= #{gem_version}", "< #{next_series}"]
-        elsif gem_version.segments.size == 3
+        if gem_version.segments.size == 3 || gem_version.release.segments.size == 3
+          # ~> 1.2.3
+          # ~> 1.2.3.pre4
           "~> #{gem_version}"
         else
+          # ~> 1.2.3, >= 1.2.3.4
+          # ~> 1.2.3, >= 1.2.3.4.pre5
           patch = gem_version.segments[0, 3].join(".")
           ["~> #{patch}", ">= #{gem_version}"]
         end
@@ -271,7 +279,7 @@ module Rails
         case options[:database]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
         when "postgresql"     then ["pg", ["~> 0.18"]]
-        when "oracle"         then ["ruby-oci8", nil]
+        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
@@ -287,7 +295,6 @@ module Rails
           case options[:database]
           when "postgresql" then options[:database].replace "jdbcpostgresql"
           when "mysql"      then options[:database].replace "jdbcmysql"
-          when "oracle"     then options[:database].replace "jdbc"
           when "sqlite3"    then options[:database].replace "jdbcsqlite3"
           end
         end
@@ -309,6 +316,13 @@ module Rails
         gems
       end
 
+      def webpacker_gemfile_entry
+        return [] unless options[:webpack]
+
+        comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+        GemfileEntry.new "webpacker", nil, comment
+      end
+
       def jbuilder_gemfile_entry
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
@@ -322,9 +336,8 @@ module Rails
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
-          gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                       "Use #{options[:javascript]} as the JavaScript library")
+          gems = [javascript_runtime_gemfile_entry]
+          gems << coffee_gemfile_entry unless options[:skip_coffee]
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",
@@ -392,6 +405,10 @@ module Rails
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
+      def depends_on_system_test?
+        !(options[:skip_system_test] || options[:skip_test] || options[:api])
+      end
+
       def depend_on_listen?
         !options[:skip_listen] && os_supports_listen_out_of_the_box?
       end
@@ -402,6 +419,13 @@ module Rails
 
       def run_bundle
         bundle_command("install") if bundle_install?
+      end
+
+      def run_webpack
+        if !(webpack = options[:webpack]).nil?
+          rails_command "webpacker:install"
+          rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
+        end
       end
 
       def generate_spring_binstubs

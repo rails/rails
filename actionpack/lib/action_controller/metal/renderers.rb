@@ -71,8 +71,6 @@ module ActionController
     #       format.csv { render csv: @csvable, filename: @csvable.name }
     #     end
     #   end
-    # To use renderers and their mime types in more concise ways, see
-    # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt>
     def self.add(key, &block)
       define_method(_render_with_renderer_method_name(key), &block)
       RENDERERS << key.to_sym
@@ -106,7 +104,7 @@ module ActionController
       #
       # Since <tt>ActionController::Metal</tt> controllers cannot render, the controller
       # must include <tt>AbstractController::Rendering</tt>, <tt>ActionController::Rendering</tt>,
-      # and <tt>ActionController::Renderers</tt>, and have at lest one renderer.
+      # and <tt>ActionController::Renderers</tt>, and have at least one renderer.
       #
       # Rather than including <tt>ActionController::Renderers::All</tt> and including all renderers,
       # you may specify which renderers to include by passing the renderer name or names to

@@ -1,5 +1,6 @@
 require "abstract_unit"
 require "active_support/number_helper"
+require "active_support/core_ext/hash/keys"
 
 module ActiveSupport
   class NumberHelperI18nTest < ActiveSupport::TestCase

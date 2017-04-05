@@ -48,8 +48,8 @@ module ActiveRecord
 
         # Converts the given URL to a full connection hash.
         def to_hash
-          config = raw_config.reject { |_,value| value.blank? }
-          config.map { |key,value| config[key] = uri_parser.unescape(value) if value.is_a? String }
+          config = raw_config.reject { |_, value| value.blank? }
+          config.map { |key, value| config[key] = uri_parser.unescape(value) if value.is_a? String }
           config
         end
 
@@ -63,15 +63,15 @@ module ActiveRecord
             @uri_parser ||= URI::Parser.new
           end
 
-        # Converts the query parameters of the URI into a hash.
-        #
-        #   "localhost?pool=5&reaping_frequency=2"
-        #   # => { "pool" => "5", "reaping_frequency" => "2" }
-        #
-        # returns empty hash if no query present.
-        #
-        #   "localhost"
-        #   # => {}
+          # Converts the query parameters of the URI into a hash.
+          #
+          #   "localhost?pool=5&reaping_frequency=2"
+          #   # => { "pool" => "5", "reaping_frequency" => "2" }
+          #
+          # returns empty hash if no query present.
+          #
+          #   "localhost"
+          #   # => {}
           def query_hash
             Hash[(@query || "").split("&").map { |pair| pair.split("=") }]
           end
@@ -92,7 +92,7 @@ module ActiveRecord
             end
           end
 
-        # Returns name of the database.
+          # Returns name of the database.
           def database_from_path
             if @adapter == "sqlite3"
               # 'sqlite3:/foo' is absolute, because that makes sense. The
@@ -149,9 +149,18 @@ module ActiveRecord
         # Expands each key in @configurations hash into fully resolved hash
         def resolve_all
           config = configurations.dup
+
+          if env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+            env_config = config[env] if config[env].is_a?(Hash) && !(config[env].key?("adapter") || config[env].key?("url"))
+          end
+
+          config.reject! { |k, v| v.is_a?(Hash) && !(v.key?("adapter") || v.key?("url")) }
+          config.merge! env_config if env_config
+
           config.each do |key, value|
             config[key] = resolve(value) if value
           end
+
           config
         end
 
@@ -192,26 +201,26 @@ module ActiveRecord
 
         private
 
-        # Returns fully resolved connection, accepts hash, string or symbol.
-        # Always returns a hash.
-        #
-        # == Examples
-        #
-        # Symbol representing current environment.
-        #
-        #   Resolver.new("production" => {}).resolve_connection(:production)
-        #   # => {}
-        #
-        # One layer deep hash of connection values.
-        #
-        #   Resolver.new({}).resolve_connection("adapter" => "sqlite3")
-        #   # => { "adapter" => "sqlite3" }
-        #
-        # Connection URL.
-        #
-        #   Resolver.new({}).resolve_connection("postgresql://localhost/foo")
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
-        #
+          # Returns fully resolved connection, accepts hash, string or symbol.
+          # Always returns a hash.
+          #
+          # == Examples
+          #
+          # Symbol representing current environment.
+          #
+          #   Resolver.new("production" => {}).resolve_connection(:production)
+          #   # => {}
+          #
+          # One layer deep hash of connection values.
+          #
+          #   Resolver.new({}).resolve_connection("adapter" => "sqlite3")
+          #   # => { "adapter" => "sqlite3" }
+          #
+          # Connection URL.
+          #
+          #   Resolver.new({}).resolve_connection("postgresql://localhost/foo")
+          #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+          #
           def resolve_connection(spec)
             case spec
             when Symbol
@@ -223,13 +232,13 @@ module ActiveRecord
             end
           end
 
-        # Takes the environment such as +:production+ or +:development+.
-        # This requires that the @configurations was initialized with a key that
-        # matches.
-        #
-        #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
-        #   # => {}
-        #
+          # Takes the environment such as +:production+ or +:development+.
+          # This requires that the @configurations was initialized with a key that
+          # matches.
+          #
+          #   Resolver.new("production" => {}).resolve_symbol_connection(:production)
+          #   # => {}
+          #
           def resolve_symbol_connection(spec)
             if config = configurations[spec.to_s]
               resolve_connection(config).merge("name" => spec.to_s)
@@ -238,10 +247,10 @@ module ActiveRecord
             end
           end
 
-        # Accepts a hash. Expands the "url" key that contains a
-        # URL database connection to a full connection
-        # hash and merges with the rest of the hash.
-        # Connection details inside of the "url" key win any merge conflicts
+          # Accepts a hash. Expands the "url" key that contains a
+          # URL database connection to a full connection
+          # hash and merges with the rest of the hash.
+          # Connection details inside of the "url" key win any merge conflicts
           def resolve_hash_connection(spec)
             if spec["url"] && spec["url"] !~ /^jdbc:/
               connection_hash = resolve_url_connection(spec.delete("url"))
@@ -250,11 +259,11 @@ module ActiveRecord
             spec
           end
 
-        # Takes a connection URL.
-        #
-        #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
-        #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
-        #
+          # Takes a connection URL.
+          #
+          #   Resolver.new({}).resolve_url_connection("postgresql://localhost/foo")
+          #   # => { "host" => "localhost", "database" => "foo", "adapter" => "postgresql" }
+          #
           def resolve_url_connection(url)
             ConnectionUrlResolver.new(url).to_hash
           end

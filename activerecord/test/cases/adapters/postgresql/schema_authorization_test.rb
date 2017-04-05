@@ -100,17 +100,17 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_tables_in_current_schemas
-    assert !@connection.tables.include?(TABLE_NAME)
+    assert_not_includes @connection.tables, TABLE_NAME
     USERS.each do |u|
       set_session_auth u
-      assert @connection.tables.include?(TABLE_NAME)
+      assert_includes @connection.tables, TABLE_NAME
       set_session_auth
     end
   end
 
   private
     def set_session_auth(auth = nil)
-      @connection.session_auth =  auth || "default"
+      @connection.session_auth = auth || "default"
     end
 
     def bind_param(value)

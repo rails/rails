@@ -8,7 +8,7 @@ require "models/project"
 require "models/rating"
 
 class RelationMergingTest < ActiveRecord::TestCase
-  fixtures :developers, :comments, :authors, :posts
+  fixtures :developers, :comments, :authors, :author_addresses, :posts
 
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
@@ -86,9 +86,9 @@ class RelationMergingTest < ActiveRecord::TestCase
     merged   = left.merge(right)
 
     assert_equal expected, merged.bound_attributes
-    assert !merged.to_sql.include?("omg")
-    assert merged.to_sql.include?("wtf")
-    assert merged.to_sql.include?("bbq")
+    assert_not_includes merged.to_sql, "omg"
+    assert_includes merged.to_sql, "wtf"
+    assert_includes merged.to_sql, "bbq"
   end
 
   def test_merging_reorders_bind_params
@@ -114,7 +114,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :developers
+  fixtures :posts, :authors, :author_addresses, :developers
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).

@@ -45,12 +45,12 @@ module ActionDispatch
       #   # Asserts that the redirection was to the named route login_url
       #   assert_redirected_to login_url
       #
-      #   # Asserts that the redirection was to the url for @customer
+      #   # Asserts that the redirection was to the URL for @customer
       #   assert_redirected_to @customer
       #
       #   # Asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      def assert_redirected_to(options = {}, message=nil)
+      def assert_redirected_to(options = {}, message = nil)
         assert_response(:redirect, message)
         return true if options === @response.location
 
@@ -79,7 +79,12 @@ module ActionDispatch
         def generate_response_message(expected, actual = @response.response_code)
           "Expected response to be a <#{code_with_name(expected)}>,"\
           " but was a <#{code_with_name(actual)}>"
-          .concat location_if_redirected
+            .concat(location_if_redirected).concat(response_body_if_short)
+        end
+
+        def response_body_if_short
+          return "" if @response.body.size > 500
+          "\nResponse body: #{@response.body}"
         end
 
         def location_if_redirected

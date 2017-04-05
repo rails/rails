@@ -108,33 +108,38 @@ module ActiveSupport
     # * Replaces underscores with spaces, if any.
     # * Downcases all words except acronyms.
     # * Capitalizes the first word.
-    #
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    #   humanize('employee_salary')              # => "Employee salary"
-    #   humanize('author_id')                    # => "Author"
-    #   humanize('author_id', capitalize: false) # => "author"
-    #   humanize('_id')                          # => "Id"
+    # The trailing '_id' can be kept and capitalized by setting the
+    # optional parameter +keep_id_suffix+ to true (default is false).
+    #
+    #   humanize('employee_salary')                  # => "Employee salary"
+    #   humanize('author_id')                        # => "Author"
+    #   humanize('author_id', capitalize: false)     # => "author"
+    #   humanize('_id')                              # => "Id"
+    #   humanize('author_id', keep_id_suffix: true)  # => "Author Id"
     #
     # If "SSL" was defined to be an acronym:
     #
     #   humanize('ssl_error') # => "SSL error"
     #
-    def humanize(lower_case_and_underscored_word, options = {})
+    def humanize(lower_case_and_underscored_word, capitalize: true, keep_id_suffix: false)
       result = lower_case_and_underscored_word.to_s.dup
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
       result.sub!(/\A_+/, "".freeze)
-      result.sub!(/_id\z/, "".freeze)
+      unless keep_id_suffix
+        result.sub!(/_id\z/, "".freeze)
+      end
       result.tr!("_".freeze, " ".freeze)
 
       result.gsub!(/([a-z\d]*)/i) do |match|
         "#{inflections.acronyms[match] || match.downcase}"
       end
 
-      if options.fetch(:capitalize, true)
+      if capitalize
         result.sub!(/\A\w/) { |match| match.upcase }
       end
 
@@ -154,14 +159,21 @@ module ActiveSupport
     # create a nicer looking title. +titleize+ is meant for creating pretty
     # output. It is not used in the Rails internals.
     #
+    # The trailing '_id','Id'.. can be kept and capitalized by setting the
+    # optional parameter +keep_id_suffix+ to true.
+    # By default, this parameter is false.
+    #
     # +titleize+ is also aliased as +titlecase+.
     #
-    #   titleize('man from the boondocks')   # => "Man From The Boondocks"
-    #   titleize('x-men: the last stand')    # => "X Men: The Last Stand"
-    #   titleize('TheManWithoutAPast')       # => "The Man Without A Past"
-    #   titleize('raiders_of_the_lost_ark')  # => "Raiders Of The Lost Ark"
-    def titleize(word)
-      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { |match| match.capitalize }
+    #   titleize('man from the boondocks')                       # => "Man From The Boondocks"
+    #   titleize('x-men: the last stand')                        # => "X Men: The Last Stand"
+    #   titleize('TheManWithoutAPast')                           # => "The Man Without A Past"
+    #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
+    #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
+    def titleize(word, keep_id_suffix: false)
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`])[a-z]/) do |match|
+        match.capitalize
+      end
     end
 
     # Creates the name of a table like Rails does for models to table names.
@@ -198,16 +210,16 @@ module ActiveSupport
 
     # Removes the module part from the expression in the string.
     #
-    #   demodulize('ActiveRecord::CoreExtensions::String::Inflections') # => "Inflections"
-    #   demodulize('Inflections')                                       # => "Inflections"
-    #   demodulize('::Inflections')                                     # => "Inflections"
-    #   demodulize('')                                                  # => ""
+    #   demodulize('ActiveSupport::Inflector::Inflections') # => "Inflections"
+    #   demodulize('Inflections')                           # => "Inflections"
+    #   demodulize('::Inflections')                         # => "Inflections"
+    #   demodulize('')                                      # => ""
     #
     # See also #deconstantize.
     def demodulize(path)
       path = path.to_s
       if i = path.rindex("::")
-        path[(i+2)..-1]
+        path[(i + 2)..-1]
       else
         path
       end
@@ -274,7 +286,7 @@ module ActiveSupport
 
           # Go down the ancestors to check if it is owned directly. The check
           # stops when we reach Object or the end of ancestors tree.
-          constant = constant.ancestors.inject do |const, ancestor|
+          constant = constant.ancestors.inject(constant) do |const, ancestor|
             break const    if ancestor == Object
             break ancestor if ancestor.const_defined?(name, false)
             const
@@ -356,27 +368,27 @@ module ActiveSupport
 
     private
 
-    # Mounts a regular expression, returned as a string to ease interpolation,
-    # that will match part by part the given constant.
-    #
-    #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
-    #   const_regexp("::")            # => "::"
-      def const_regexp(camel_cased_word) #:nodoc:
+      # Mounts a regular expression, returned as a string to ease interpolation,
+      # that will match part by part the given constant.
+      #
+      #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
+      #   const_regexp("::")            # => "::"
+      def const_regexp(camel_cased_word)
         parts = camel_cased_word.split("::".freeze)
 
         return Regexp.escape(camel_cased_word) if parts.blank?
 
-        last  = parts.pop
+        last = parts.pop
 
         parts.reverse.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"
         end
       end
 
-    # Applies inflection rules for +singularize+ and +pluralize+.
-    #
-    #  apply_inflections('post', inflections.plurals)    # => "posts"
-    #  apply_inflections('posts', inflections.singulars) # => "post"
+      # Applies inflection rules for +singularize+ and +pluralize+.
+      #
+      #  apply_inflections('post', inflections.plurals)    # => "posts"
+      #  apply_inflections('posts', inflections.singulars) # => "post"
       def apply_inflections(word, rules)
         result = word.to_s.dup
 

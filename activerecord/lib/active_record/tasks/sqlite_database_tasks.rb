@@ -21,7 +21,7 @@ module ActiveRecord
 
         FileUtils.rm(file)
       rescue Errno::ENOENT => error
-        raise NoDatabaseError.new(error.message, error)
+        raise NoDatabaseError.new(error.message)
       end
 
       def purge
@@ -35,14 +35,16 @@ module ActiveRecord
         connection.encoding
       end
 
-      def structure_dump(filename)
+      def structure_dump(filename, extra_flags)
         dbfile = configuration["database"]
-        `sqlite3 #{dbfile} .schema > #{filename}`
+        flags = extra_flags.join(" ") if extra_flags
+        `sqlite3 #{flags} #{dbfile} .schema > #{filename}`
       end
 
-      def structure_load(filename)
+      def structure_load(filename, extra_flags)
         dbfile = configuration["database"]
-        `sqlite3 #{dbfile} < "#{filename}"`
+        flags = extra_flags.join(" ") if extra_flags
+        `sqlite3 #{flags} #{dbfile} < "#{filename}"`
       end
 
       private

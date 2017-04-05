@@ -7,16 +7,15 @@ module ActiveRecord
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
       def column_spec(column)
-        spec = Hash[prepare_column_options(column).map { |k, v| [k, "#{k}: #{v}"] }]
-        spec[:name] = column.name.inspect
-        spec[:type] = schema_type(column).to_s
-        spec
+        [schema_type_with_virtual(column), prepare_column_options(column)]
       end
 
       def column_spec_for_primary_key(column)
         return {} if default_primary_key?(column)
         spec = { id: schema_type(column).inspect }
         spec.merge!(prepare_column_options(column).except!(:null))
+        spec[:default] ||= "nil" if explicit_primary_key_default?(column)
+        spec
       end
 
       # This can be overridden on an Adapter level basis to support other
@@ -38,7 +37,7 @@ module ActiveRecord
         end
 
         default = schema_default(column) if column.has_default?
-        spec[:default]   = default unless default.nil?
+        spec[:default] = default unless default.nil?
 
         spec[:null] = "false" unless column.null
 
@@ -52,14 +51,27 @@ module ActiveRecord
       end
 
       # Lists the valid migration options
-      def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null, :collation, :comment]
+      def migration_keys # :nodoc:
+        column_options_keys
       end
+      deprecate :migration_keys
 
       private
 
         def default_primary_key?(column)
-          schema_type(column) == :integer
+          schema_type(column) == :bigint
+        end
+
+        def explicit_primary_key_default?(column)
+          false
+        end
+
+        def schema_type_with_virtual(column)
+          if supports_virtual_columns? && column.virtual?
+            :virtual
+          else
+            schema_type(column)
+          end
         end
 
         def schema_type(column)

@@ -105,7 +105,11 @@ module ActionController
 
           unless super || exclude
             if m.respond_to?(:attribute_names) && m.attribute_names.any?
-              self.include = m.attribute_names
+              if m.respond_to?(:stored_attributes) && !m.stored_attributes.empty?
+                self.include = m.attribute_names + m.stored_attributes.values.flatten.map(&:to_s)
+              else
+                self.include = m.attribute_names
+              end
             end
           end
         end
@@ -128,14 +132,14 @@ module ActionController
       end
 
       private
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singular name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
-        def _default_wrap_model #:nodoc:
+        # Determine the wrapper model from the controller's name. By convention,
+        # this could be done by trying to find the defined model that has the
+        # same singular name as the controller. For example, +UsersController+
+        # will try to find if the +User+ model exists.
+        #
+        # This method also does namespace lookup. Foo::Bar::UsersController will
+        # try to find Foo::Bar::User, Foo::User and finally User.
+        def _default_wrap_model
           return nil if klass.anonymous?
           model_name = klass.name.sub(/Controller$/, "").classify
 
@@ -205,7 +209,7 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
         opts.model = model
         opts.klass = self
 
@@ -213,7 +217,7 @@ module ActionController
       end
 
       # Sets the default wrapper key or model which will be used to determine
-      # wrapper key and attribute names. Will be called automatically when the
+      # wrapper key and attribute names. Called automatically when the
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options.format.any?
@@ -225,7 +229,7 @@ module ActionController
       end
     end
 
-    # Performs parameters wrapping upon the request. Will be called automatically
+    # Performs parameters wrapping upon the request. Called automatically
     # by the metal call stack.
     def process_action(*args)
       if _wrapper_enabled?
@@ -238,11 +242,11 @@ module ActionController
         wrapped_keys = request.request_parameters.keys
         wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
-        # This will make the wrapped hash accessible from controller and view
+        # This will make the wrapped hash accessible from controller and view.
         request.parameters.merge! wrapped_hash
         request.request_parameters.merge! wrapped_hash
 
-        # This will display the wrapped hash in the log file
+        # This will display the wrapped hash in the log file.
         request.filtered_parameters.merge! wrapped_filtered_hash
       end
       super

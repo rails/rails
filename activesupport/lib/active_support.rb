@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2005-2016 David Heinemeier Hansson
+# Copyright (c) 2005-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -80,11 +80,15 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
 
   def self.halt_callback_chains_on_return_false
-    Callbacks.halt_and_display_warning_on_return_false
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveSupport.halt_callback_chains_on_return_false is deprecated and will be removed in Rails 5.2.
+    MSG
   end
 
   def self.halt_callback_chains_on_return_false=(value)
-    Callbacks.halt_and_display_warning_on_return_false = value
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveSupport.halt_callback_chains_on_return_false= is deprecated and will be removed in Rails 5.2.
+    MSG
   end
 
   def self.to_time_preserves_timezone

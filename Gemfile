@@ -1,6 +1,13 @@
 source "https://rubygems.org"
 
+git_source(:github) do |repo_name|
+  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
+  "https://github.com/#{repo_name}.git"
+end
+
 gemspec
+
+gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
@@ -8,6 +15,8 @@ gem "rake", ">= 11.1"
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
+
+gem "capybara", "~> 2.13.0"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
@@ -24,38 +33,44 @@ gem "bcrypt", "~> 3.1.11", require: false
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
 
-# Track stable branch of sass because it doesn't have circular require warnings.
-gem "sass", git: "https://github.com/sass/sass", branch: "stable", require: false
-
 # FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
-gem "rb-inotify", git: "https://github.com/matthewd/rb-inotify", branch: "close-handling", require: false
+gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
+
+# Explicitly avoid 1.x that doesn't support Ruby 2.4+
+gem "json", ">= 2.0.0"
+
+gem "rubocop", ">= 0.47", require: false
 
 group :doc do
-  gem "sdoc", "~> 0.4.0"
+  gem "sdoc", "1.0.0.rc1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
-  gem "kindlerb", "0.1.1"
+  gem "kindlerb", "~> 1.2.0"
 end
 
 # Active Support.
 gem "dalli", ">= 2.2.1"
-gem "listen", "~> 3.0.5", require: false
+gem "listen", ">= 3.0.5", "< 3.2", require: false
+gem "libxml-ruby", platforms: :ruby
+
+# Action View. For testing Erubis handler deprecation.
+gem "erubis", "~> 2.7.0", require: false
 
 # Active Job.
 group :job do
-  gem "resque", git: "https://github.com/resque/resque", require: false
+  gem "resque", require: false
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false, git: "https://github.com/collectiveidea/delayed_job"
-  gem "queue_classic", git: "https://github.com/QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
+  gem "delayed_job", require: false
+  gem "queue_classic", github: "QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
   #TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem "qu-redis", require: false
-  gem "delayed_job_active_record", require: false, git: "https://github.com/collectiveidea/delayed_job_active_record"
+  gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
 
@@ -67,13 +82,11 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", require: false
 
-  gem "faye-websocket", require: false
-
-  # Lock to 1.1.1 until the fix for https://github.com/faye/faye/issues/394 is released
-  gem "faye", "1.1.1", require: false
+  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
+  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.
@@ -109,10 +122,10 @@ end
 
 platforms :jruby do
   if ENV["AR_JDBC"]
-    gem "activerecord-jdbcsqlite3-adapter", git: "https://github.com/jruby/activerecord-jdbc-adapter", branch: "master"
+    gem "activerecord-jdbcsqlite3-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
     group :db do
-      gem "activerecord-jdbcmysql-adapter", git: "https://github.com/jruby/activerecord-jdbc-adapter", branch: "master"
-      gem "activerecord-jdbcpostgresql-adapter", git: "https://github.com/jruby/activerecord-jdbc-adapter", branch: "master"
+      gem "activerecord-jdbcmysql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
+      gem "activerecord-jdbcpostgresql-adapter", github: "jruby/activerecord-jdbc-adapter", branch: "master"
     end
   else
     gem "activerecord-jdbcsqlite3-adapter", ">= 1.3.0"
@@ -134,7 +147,7 @@ if ENV["ORACLE_ENHANCED"]
   platforms :ruby do
     gem "ruby-oci8", "~> 2.2"
   end
-  gem "activerecord-oracle_enhanced-adapter", git: "https://github.com/rsim/oracle-enhanced", branch: "master"
+  gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "master"
 end
 
 # A gem necessary for Active Record tests with IBM DB.

@@ -46,7 +46,7 @@ $ cd rails
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first SQLite3 and its development files for the `sqlite3` gem. Mac OS X
+Install first SQLite3 and its development files for the `sqlite3` gem. On macOS
 users are done with:
 
 ```bash
@@ -161,6 +161,10 @@ Or, you can run a single test in a particular file:
 $ cd actionpack
 $ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
+
+### Railties Setup
+
+Some Railties tests depend on a JavaScript runtime environment, such as having [Node.js](https://nodejs.org/) installed.
 
 ### Active Record Setup
 

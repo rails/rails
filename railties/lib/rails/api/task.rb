@@ -1,4 +1,5 @@
 require "rdoc/task"
+require_relative "generator"
 
 module Rails
   module API
@@ -8,8 +9,7 @@ module Rails
           include: %w(
             README.rdoc
             lib/active_support/**/*.rb
-          ),
-          exclude: "lib/active_support/vendor/*"
+          )
         },
 
         "activerecord" => {
@@ -69,7 +69,11 @@ module Rails
             README.rdoc
             lib/**/*.rb
           ),
-          exclude: "lib/rails/generators/rails/**/templates/**/*.rb"
+          exclude: %w(
+            lib/rails/generators/**/templates/**/*.rb
+            lib/rails/test_unit/*
+            lib/rails/api/generator.rb
+          )
         }
       }
 
@@ -80,7 +84,7 @@ module Rails
         # Be lazy computing stuff to have as light impact as possible to
         # the rest of tasks.
         before_running_rdoc do
-          load_and_configure_sdoc
+          configure_sdoc
           configure_rdoc_files
           setup_horo_variables
         end
@@ -91,20 +95,15 @@ module Rails
         # no-op
       end
 
-      def load_and_configure_sdoc
-        require "sdoc"
-
+      def configure_sdoc
         self.title    = "Ruby on Rails API"
         self.rdoc_dir = api_dir
 
         options << "-m"  << api_main
         options << "-e"  << "UTF-8"
 
-        options << "-f"  << "sdoc"
+        options << "-f"  << "api"
         options << "-T"  << "rails"
-      rescue LoadError
-        $stderr.puts %(Unable to load SDoc, please add\n\n    gem 'sdoc', require: false\n\nto the Gemfile.)
-        exit 1
       end
 
       def configure_rdoc_files
@@ -147,7 +146,7 @@ module Rails
     end
 
     class RepoTask < Task
-      def load_and_configure_sdoc
+      def configure_sdoc
         super
         options << "-g" # link to GitHub, SDoc flag
       end

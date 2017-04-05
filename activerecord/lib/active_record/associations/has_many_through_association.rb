@@ -38,10 +38,12 @@ module ActiveRecord
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
-        if raise
-          record.save!(validate: validate)
-        else
-          return unless record.save(validate: validate)
+        if record.new_record? || record.has_changes_to_save?
+          if raise
+            record.save!(validate: validate)
+          else
+            return unless record.save(validate: validate)
+          end
         end
 
         save_through_record(record)
@@ -86,7 +88,10 @@ module ActiveRecord
         end
 
         def save_through_record(record)
-          build_through_record(record).save!
+          association = build_through_record(record)
+          if association.changed?
+            association.save!
+          end
         ensure
           @through_records.delete(record.object_id)
         end

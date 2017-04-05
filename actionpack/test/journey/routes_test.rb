@@ -6,7 +6,7 @@ module ActionDispatch
       attr_reader :routes, :mapper
 
       def setup
-        @route_set  = ActionDispatch::Routing::RouteSet.new
+        @route_set = ActionDispatch::Routing::RouteSet.new
         @routes = @route_set.router.routes
         @router = @route_set.router
         @mapper = ActionDispatch::Routing::Mapper.new @route_set

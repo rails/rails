@@ -12,9 +12,9 @@ module ActiveSupport
           attr_reader :name, :local_cache_key
 
           def initialize(name, local_cache_key)
-            @name             = name
+            @name = name
             @local_cache_key = local_cache_key
-            @app              = nil
+            @app = nil
           end
 
           def new(app)
@@ -28,13 +28,13 @@ module ActiveSupport
             response[2] = ::Rack::BodyProxy.new(response[2]) do
               LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             end
+            cleanup_on_body_close = true
             response
           rescue Rack::Utils::InvalidParameterError
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             [400, {}, []]
-          rescue Exception
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
-            raise
+          ensure
+            LocalCacheRegistry.set_cache_for(local_cache_key, nil) unless
+              cleanup_on_body_close
           end
         end
       end
