@@ -78,10 +78,20 @@ class ClientTest < ActionCable::TestCase
 
       begin
         thread.join
+
+      rescue IOError
+        # Work around https://bugs.ruby-lang.org/issues/13405
+        #
+        # Puma's sometimes raising while shutting down, when it closes
+        # its internal pipe. We can safely ignore that, but we do need
+        # to do the step skipped by the exception:
+        server.binder.close
+
       rescue RuntimeError => ex
+        # Work around https://bugs.ruby-lang.org/issues/13239
         raise unless ex.message =~ /can't modify frozen IOError/
 
-        # Work around https://bugs.ruby-lang.org/issues/13239
+        # Handle this as if it were the IOError: do the same as above.
         server.binder.close
       end
     end
