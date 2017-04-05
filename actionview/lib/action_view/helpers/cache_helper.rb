@@ -227,6 +227,8 @@ module ActionView
       end
 
       def fragment_for(name = {}, options = nil, &block)
+        # Some tests might using this helper without initialize actionview object
+        @cache_hit ||= {}
         if content = read_fragment_for(name, options)
           @cache_hit[@virtual_path] = true
           content
