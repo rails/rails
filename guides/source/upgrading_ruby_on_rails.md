@@ -70,6 +70,66 @@ Upgrading from Rails 5.0 to Rails 5.1
 
 For more information on changes made to Rails 5.1 please see the [release notes](5_1_release_notes.html).
 
+### Moving from Erubis to Erubi
+
+If your application uses the `ActionView::Template::Handlers::Erubis` class,
+you should move your code to use `ActionView::Template::Handlers::Erubi` instead.
+
+Erubis is deprecated and will be removed from Rails 5.2.
+
+See [#27757](https://github.com/rails/rails/pull/27757) for more details.
+
+### Passing string to `:if` and `:unless` options when setting or skipping callbacks
+
+When setting or skipping callbacks, you can specify conditions with the `:if`
+and `:unless` options.
+
+If your application provides these options as strings, you should move your code
+to use symbols, arrays of symbols or Procs instead. For instance code like:
+
+```ruby
+class Post < ApplicationRecord
+  before_save :set_default_title, unless: 'title.present?'
+  skip_callback :save, :before, :set_default_title, if: 'persisted?'
+
+private
+
+  def set_default_title
+    self.title = 'No title'
+  end
+end
+```
+
+is deprecated in Rails 5.1. Instead, you can replace it with code like:
+
+```ruby
+class Post < ApplicationRecord
+  before_save :set_default_title, unless: -> { title.present? }
+  skip_callback :save, :before, :set_default_title, if: :persisted?
+
+private
+
+  def set_default_title
+    self.title = 'No title'
+  end
+end
+```
+
+See [commit 0952552](https://github.com/rails/rails/commit/0952552) for more details.
+
+### Using `:controller` and `:action` in the routes
+
+The special "wildcard routes" symbols `:controller` and `:action` are
+deprecated in Rails 5.1.
+
+If your application includes routes in a format like
+`get ':controller(/:action(/:id))'` then you should move your code to explicitly
+list all the controllers and actions that your routes should match, rather than
+relying on the fact that `:controller` matches the name of any controller, and
+`:action` matches the name of any action within that controller.
+
+See [#23980](https://github.com/rails/rails/pull/23980) for more details.
+
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
 If your application uses the the top-level `HashWithIndifferentAccess` class, you
