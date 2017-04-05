@@ -213,7 +213,13 @@ module ActionController #:nodoc:
 
         if !verified_request?
           if logger && log_warning_on_csrf_failure
-            logger.warn "Can't verify CSRF token authenticity."
+            if valid_request_origin?
+              logger.warn "Can't verify CSRF token authenticity."
+            else
+              logger.warn "Can't verify CSRF token authenticity as the " \
+                "request origin header (#{request.origin}) doesn't match " \
+                "the request base_url (#{request.base_url})."
+            end
           end
           handle_unverified_request
         end
