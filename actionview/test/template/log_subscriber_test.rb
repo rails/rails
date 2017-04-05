@@ -113,6 +113,46 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     end
   end
 
+  def test_render_nested_partial_while_outter_partial_not_cached
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_view_cache_dependencies
+      set_cache_controller
+
+      @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
+      wait
+      assert_match(/Rendered test\/_nested_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info)[-2])
+
+      @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
+      wait
+      # Outter partial's log should not be affected by inner partial's result.
+      assert_match(/Rendered test\/_nested_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info)[-2])
+    end
+  end
+
+  def test_render_nested_partial_while_outter_partial_cached
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_view_cache_dependencies
+      set_cache_controller
+
+      @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
+      wait
+      assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info)[-2])
+
+      @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
+      wait
+      assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info).last)
+      # Should not generate log about cached_customer partial
+      assert_equal 3, @logger.logged(:info).size
+
+      @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("Stan") })
+      wait
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info).last)
+    end
+  end
+
   def test_render_partial_with_cache_hitted_and_missed
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       set_view_cache_dependencies
