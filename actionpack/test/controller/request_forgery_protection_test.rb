@@ -347,6 +347,10 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_block_post_with_origin_checking_and_wrong_origin
+    old_logger = ActionController::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.logger = logger
+
     forgery_protection_origin_check do
       session[:_csrf_token] = @token
       @controller.stub :form_authenticity_token, @token do
@@ -356,6 +360,13 @@ module RequestForgeryProtectionTests
         end
       end
     end
+
+    assert_match(
+      "HTTP Origin header (http://bad.host) didn't match request.base_url (http://test.host)",
+      logger.logged(:warn).last
+    )
+  ensure
+    ActionController::Base.logger = old_logger
   end
 
   def test_should_warn_on_missing_csrf_token
