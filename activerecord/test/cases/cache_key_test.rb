@@ -15,7 +15,7 @@ module ActiveRecord
       @connection.drop_table :cache_mes, if_exists: true
     end
 
-    test "test_cache_key_format_is_not_too_precise" do
+    test "cache_key format is not too precise" do
       record = CacheMe.create
       key = record.cache_key
 
