@@ -21,6 +21,7 @@ module ActiveJob
           "class"   => JobWrapper,
           "wrapped" => job.class.to_s,
           "queue"   => job.queue_name,
+          "jid"     => job.job_id,
           "args"    => [ job.serialize ]
       end
 
@@ -30,6 +31,7 @@ module ActiveJob
           "wrapped" => job.class.to_s,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ],
+          "jid"     => job.job_id,
           "at"      => timestamp
       end
 
