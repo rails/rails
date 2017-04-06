@@ -323,7 +323,7 @@ module ApplicationTests
             assert true
           end
 
-          test "test line filter does not run this" do
+          test "line filter does not run this" do
             assert true
           end
         end
