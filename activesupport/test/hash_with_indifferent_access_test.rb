@@ -675,7 +675,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
       assert_includes yaml_output, "hash"
     end
   end
-  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
 
   def test_should_use_default_proc_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new { 1 + 2 }
