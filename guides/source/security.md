@@ -32,27 +32,17 @@ In order to develop secure web applications you have to keep up to date on all l
 Sessions
 --------
 
-A good place to start looking at security is with sessions, which can be vulnerable to particular attacks.
+This chapter describes some particular attacks related to sessions, and security measures to protect your session data.
 
 ### What are Sessions?
 
-NOTE: _HTTP is a stateless protocol. Sessions make it stateful._
+INFO: Sessions enable the application to maintain user-specific state, while users interact with the application. Once the user has been authenticated, an active session enables the user keep using the application, without authenticating on each request.
 
-Most applications need to keep track of certain state of a particular user. This could be the contents of a shopping basket or the user id of the currently logged in user. Without the idea of sessions, the user would have to identify, and probably authenticate, on every request.
-Rails will create a new session automatically if a new user accesses the application. It will load an existing session if the user has already used the application.
+Most applications need to keep track of state for users that interact with the application. This could be the contents of a shopping basket, or the user id of the currently logged in user. This kind of user-specific state can be stored in the session.
 
-A session usually consists of a hash of values and a session ID, usually a 32-character string, to identify the hash. Every cookie sent to the client's browser includes the session ID. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:
+Rails provides a session object for each user that accesses the application. If the user already has an active session, Rails uses the existing session. Otherwise a new session is created.
 
-```ruby
-session[:user_id] = @current_user.id
-User.find(session[:user_id])
-```
-
-### Session ID
-
-NOTE: _The session ID is a 32-character random hex string._
-
-The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
+NOTE: Read more about sessions and how to use them in [Action Controller Overview Guide](action_controller_overview.html#session).
 
 ### Session Hijacking
 
@@ -76,35 +66,30 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from $10-$1000 (depending on the available amount of funds), $0.40-$20 for credit card numbers, $1-$8 for online auction site accounts and $4-$30 for email passwords, according to the [Symantec Global Internet Security Threat Report](http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf).
 
-### Session Guidelines
-
-Here are some general guidelines on sessions.
-
-* _Do not store large objects in a session_. Instead you should store them in the database and save their id in the session. This will eliminate synchronization headaches and it won't fill up your session storage space (depending on what session storage you chose, see below).
-This will also be a good idea, if you modify the structure of an object and old versions of it are still in some user's cookies. With server-side session storages you can clear out the sessions, but with client-side storages, this is hard to mitigate.
-
-* _Critical data should not be stored in session_. If the user clears their cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
-
 ### Session Storage
 
-NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
+NOTE: Rails uses `ActionDispatch::Session::CookieStore` as the default session storage.
+TIP: Learn more about other session storages in [Action Controller Overview Guide](action_controller_overview.html#session).
 
-Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session ID. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
+`ActionDispatch::Session::CookieStore` saves the session hash in a cookie on the client-side. The information contained in the cookie is sent back and forth between the server and the browser, using Set-Cookie and Cookie HTTP headers.
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _Storing the current user's database id in a session is usually ok_.
+* Cookies have a size limit of 4kB. Use cookies only for data which is relevant for the session.
 
-* The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret (`secrets.secret_token`) and inserted into the end of the cookie.
+* Cookies are stored on the client-side. The client may preserve cookie contents even for expired cookies. The client may copy cookies to other machines. Avoid storing sensitive data in cookies.
 
-However, since Rails 4, the default store is EncryptedCookieStore. With
-EncryptedCookieStore the session is encrypted before being stored in a cookie.
-This prevents the user from accessing and tampering the content of the cookie.
-Thus the session becomes a more secure place to store data. The encryption is
-done using a server-side secret key `secrets.secret_key_base` stored in
-`config/secrets.yml`.
+* Cookies are temporary by nature. The server can set expiration time for the cookie, but the client may delete the cookie and its contents before that. Persist the data you want to persist on the server side.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters, use `rails secret` instead_.
+* Rails encrypts cookies by default. The client cannot read or edit the contents of the cookie, without breaking encryption. If you take appropriate care of your secrets, you can consider your cookies to be generally secured.
 
-`secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
+NOTE: In addition to the algorithm used, the strength of encryption depends on the randomness and length of the secrets used, and the secrets being kept secret.
+
+#### Security measures to protect your cookies
+
+NOTE: Setup secrets in `config/secrets.yml` for all your environments.
+
+TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
+
+Rails initializes `config/secrets.yml` with random secrets, e.g.:
 
     development:
       secret_key_base: a75d...
@@ -115,9 +100,11 @@ That means the security of this storage depends on this secret (and on the diges
     production:
       secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 
-Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
+Use different secrets for different environments. Keep the production secret outside of code repository, and depending on your security needs, other secrets as well.
 
-If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
+Remove secrets from your source code before sharing it. If you deploy somebody else's code, change the secrets before deployment.
+
+WARNING: If your application's secret may have been exposed, strongly consider changing the secret. Changing the secret will expire currently active sessions.
 
 ### Replay Attacks for CookieStore Sessions
 
