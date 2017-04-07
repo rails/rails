@@ -172,8 +172,8 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.reject do |key, value|
-        value.empty?
+      messages.select do |key, value|
+        !value.empty?
       end.values
     end
 
@@ -182,8 +182,8 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.reject do |key, value|
-        value.empty?
+      messages.select do |key, value|
+        !value.empty?
       end.keys
     end
 
