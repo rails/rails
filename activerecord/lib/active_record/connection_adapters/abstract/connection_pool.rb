@@ -825,7 +825,7 @@ module ActiveRecord
     #   end
     #
     #   class Book < ActiveRecord::Base
-    #     establish_connection "library_db"
+    #     establish_connection :library_db
     #   end
     #
     #   class ScaryBook < Book

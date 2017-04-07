@@ -261,6 +261,12 @@ module ActionController
       PROTECTED_IVARS
     end
 
+    def self.make_response!(request)
+      ActionDispatch::Response.create.tap do |res|
+        res.request = request
+      end
+    end
+
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

@@ -77,7 +77,7 @@ module ApplicationTests
         assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
-      test "test migration status" do
+      test "migration status" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;
@@ -117,7 +117,7 @@ module ApplicationTests
         end
       end
 
-      test "test migration status after rollback and redo" do
+      test "migration status after rollback and redo" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;
@@ -224,7 +224,7 @@ module ApplicationTests
         end
       end
 
-      test "test migration status migrated file is deleted" do
+      test "migration status migrated file is deleted" do
         Dir.chdir(app_path) do
           `bin/rails generate model user username:string password:string;
            bin/rails generate migration add_email_to_users email:string;

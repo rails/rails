@@ -166,5 +166,13 @@ end_warning
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
     end
+
+    initializer "active_record.clear_active_connections" do
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record) do
+          clear_active_connections!
+        end
+      end
+    end
   end
 end
