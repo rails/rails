@@ -95,6 +95,24 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nil(topics["second"]["author_email_address"])
   end
 
+  def test_no_args_returns_all
+    all_topics = topics
+    assert_equal 5, all_topics.length
+    assert_equal "The First Topic", all_topics.first["title"]
+    assert_equal 5, all_topics.last.id
+  end
+
+  def test_no_args_record_returns_all_without_array
+    all_binaries = binaries
+    assert_kind_of(Array, all_binaries)
+    assert_equal 1, binaries.length
+  end
+
+  def test_nil_raises
+    assert_raise(StandardError) { topics(nil) }
+    assert_raise(StandardError) { topics([nil]) }
+  end
+
   def test_inserts
     create_fixtures("topics")
     first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'David'")
