@@ -47,8 +47,16 @@ module ActiveRecord
         @options = options
       end
 
+      # turns 20170404131909 into "2017_04_04131909"
+      def formatted_version
+        return "" unless @version
+        stringified = @version.to_s
+        return stringified unless stringified.length == 14
+        stringified.insert(4, "_").insert(7, "_").insert(10, "_")
+      end
+
       def header(stream)
-        define_params = @version ? "version: #{@version}" : ""
+        define_params = @version ? "version: #{formatted_version}" : ""
 
         stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
