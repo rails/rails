@@ -204,8 +204,8 @@ class FinderTest < ActiveRecord::TestCase
 
   # ensures +exists?+ runs without an error by excluding distinct value
   # See https://github.com/rails/rails/pull/26981.
-  def test_exists_with_distinct
-    assert_equal true, Topic.distinct.exists?
+  def test_exists_with_order_and_distinct
+    assert_equal true, Topic.order(:id).distinct.exists?
   end
 
   # ensures +exists?+ runs without an error by excluding order value
