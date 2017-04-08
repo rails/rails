@@ -223,40 +223,88 @@ Railties
 
 Please refer to the [Changelog][railties] for detailed changes.
 
+### Removals
+
+### Deprecations
+
+### Notable changes
+
 Action Pack
 -----------
 
 Please refer to the [Changelog][action-pack] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
 
 Action View
 -------------
 
 Please refer to the [Changelog][action-view] for detailed changes.
 
+### Removals
+
+### Deprecations
+
+### Notable changes
+
 Action Mailer
 -------------
 
 Please refer to the [Changelog][action-mailer] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
 
 Active Record
 -------------
 
 Please refer to the [Changelog][active-record] for detailed changes.
 
+### Removals
+
+### Deprecations
+
+### Notable changes
+
 Active Model
 ------------
 
 Please refer to the [Changelog][active-model] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
 
 Active Job
 -----------
 
 Please refer to the [Changelog][active-job] for detailed changes.
 
+### Removals
+
+### Deprecations
+
+### Notable changes
+
 Active Support
 --------------
 
 Please refer to the [Changelog][active-support] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
 
 Credits
 -------
