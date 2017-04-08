@@ -333,10 +333,6 @@ As a contributor, it's important to think about whether this API is meant for en
 
 A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
 
-If you come across an existing `:nodoc:` you should tread lightly. Consider asking someone from the core team or author of the code before removing it. This should almost always happen through a pull request instead of the docrails project.
-
-A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
-
 To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
 
 Regarding the Rails Stack
