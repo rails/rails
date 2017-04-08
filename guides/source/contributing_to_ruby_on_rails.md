@@ -406,16 +406,6 @@ examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
 
 Some changes require the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
 
-### Sanity Check
-
-You should not be the only person who looks at the code before you submit it.
-If you know someone else who uses Rails, try asking them if they'll check out
-your work. If you don't know anyone else using Rails, try hopping into the IRC
-room or posting about your idea to the rails-core mailing list. Doing this in
-private before you push a patch out publicly is the "smoke test" for a patch:
-if you can't convince one other developer of the beauty of your code, you’re
-unlikely to convince the core team either.
-
 ### Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
