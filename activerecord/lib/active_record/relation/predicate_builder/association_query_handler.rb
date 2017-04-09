@@ -20,9 +20,7 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        table = value.associated_table
-        queries = { table.association_foreign_key.to_s => value.ids }
-        predicate_builder.build_from_hash(queries)
+        predicate_builder.build_from_hash(value.queries)
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
@@ -40,18 +38,21 @@ module ActiveRecord
         @value = value
       end
 
-      def ids
-        case value
-        when Relation
-          value.select(primary_key)
-        when Array
-          value.map { |v| convert_to_id(v) }
-        else
-          convert_to_id(value)
-        end
+      def queries
+        { associated_table.association_foreign_key.to_s => ids }
       end
 
       private
+        def ids
+          case value
+          when Relation
+            value.select_values.empty? ? value.select(primary_key) : value
+          when Array
+            value.map { |v| convert_to_id(v) }
+          else
+            convert_to_id(value)
+          end
+        end
 
         def primary_key
           associated_table.association_primary_key
