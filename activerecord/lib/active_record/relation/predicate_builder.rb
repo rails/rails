@@ -20,7 +20,6 @@ module ActiveRecord
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
-      register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
       register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
@@ -83,11 +82,10 @@ module ActiveRecord
       end
 
       def create_binds_for_hash(attributes)
-        result = attributes.dup
+        result = {}
         binds = []
 
         attributes.each do |column_name, value|
-          binds.concat(value.bound_attributes) if value.is_a?(Relation)
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
             attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
@@ -99,7 +97,24 @@ module ActiveRecord
             #
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
-            result[column_name] = AssociationQueryHandler.value_for(table, column_name, value)
+            associated_table = table.associated_table(column_name)
+            if associated_table.polymorphic_association?
+              case value.is_a?(Array) ? value.first : value
+              when Base, Relation
+                binds.concat(value.bound_attributes) if value.is_a?(Relation)
+                value = [value] unless value.is_a?(Array)
+                klass = PolymorphicArrayValue
+              end
+            end
+
+            if klass
+              result[column_name] = klass.new(associated_table, value)
+            else
+              queries = AssociationQueryValue.new(associated_table, value).queries
+              attrs, bvs = create_binds_for_hash(queries)
+              result.merge!(attrs)
+              binds.concat(bvs)
+            end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -115,9 +130,12 @@ module ActiveRecord
             result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
           else
             if can_be_bound?(column_name, value)
-              result[column_name] = Arel::Nodes::BindParam.new
               binds << build_bind_param(column_name, value)
+              value = Arel::Nodes::BindParam.new
+            elsif value.is_a?(Relation)
+              binds.concat(value.bound_attributes)
             end
+            result[column_name] = value
           end
         end
 
