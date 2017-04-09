@@ -356,6 +356,16 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
+  def test_delegate_to_missing_affects_respond_to
+    assert DecoratedTester.new(@david).respond_to?(:name)
+    assert_not DecoratedTester.new(@david).respond_to?(:private_name)
+    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method)
+
+    assert DecoratedTester.new(@david).respond_to?(:name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:private_name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method, true)
+  end
+
   def test_delegate_with_case
     event = Event.new(Tester.new)
     assert_equal 1, event.foo
