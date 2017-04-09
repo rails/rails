@@ -452,6 +452,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_does_not_generate_system_test_files_if_skip_system_test_is_given
+    run_generator [destination_root, "--skip_system_test"]
+
+    Dir.chdir(destination_root) do
+      quietly { `./bin/rails g scaffold User` }
+
+      assert_no_file("test/application_system_test_case.rb")
+      assert_no_file("test/system/users_test.rb")
+    end
+  end
+
   def test_generator_if_api_is_given
     run_generator [destination_root, "--api"]
     assert_file "Gemfile" do |content|
