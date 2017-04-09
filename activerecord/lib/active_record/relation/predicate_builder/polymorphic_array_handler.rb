@@ -29,7 +29,7 @@ module ActiveRecord
     end
 
     class PolymorphicArrayValue # :nodoc:
-      attr_reader :associated_table, :values
+      attr_reader :associated_table
 
       def initialize(associated_table, values)
         @associated_table = associated_table
@@ -38,7 +38,7 @@ module ActiveRecord
 
       def type_to_ids_mapping
         default_hash = Hash.new { |hsh, key| hsh[key] = [] }
-        values.each_with_object(default_hash) { |value, hash| hash[base_class(value).name] << convert_to_id(value) }
+        @values.each_with_object(default_hash) { |value, hash| hash[base_class(value).name] << convert_to_id(value) }
       end
 
       private

@@ -36,7 +36,7 @@ module ActiveRecord
     end
 
     class AssociationQueryValue # :nodoc:
-      attr_reader :associated_table, :value
+      attr_reader :associated_table
 
       def initialize(associated_table, value)
         @associated_table = associated_table
@@ -61,6 +61,7 @@ module ActiveRecord
       end
 
       private
+        attr_reader :value
 
         def primary_key
           associated_table.association_primary_key(base_class)
