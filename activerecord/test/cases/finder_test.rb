@@ -202,13 +202,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
-  # ensures +exists?+ runs without an error by excluding distinct value
+  # Ensure +exists?+ runs without an error by excluding distinct value.
   # See https://github.com/rails/rails/pull/26981.
   def test_exists_with_order_and_distinct
     assert_equal true, Topic.order(:id).distinct.exists?
   end
 
-  # ensures +exists?+ runs without an error by excluding order value
+  # Ensure +exists?+ runs without an error by excluding order value.
   def test_exists_with_order
     assert_equal true, Topic.order("invalid sql here").exists?
   end
