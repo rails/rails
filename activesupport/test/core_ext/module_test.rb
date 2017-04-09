@@ -70,7 +70,23 @@ Product = Struct.new(:name) do
   end
 end
 
+module ExtraMissing
+  def method_missing(sym, *args)
+    if sym == :extra_missing
+      42
+    else
+      super
+    end
+  end
+
+  def respond_to_missing?(sym, priv = false)
+    sym == :extra_missing || super
+  end
+end
+
 DecoratedTester = Struct.new(:client) do
+  include ExtraMissing
+
   delegate_missing_to :client
 end
 
@@ -364,6 +380,12 @@ class ModuleTest < ActiveSupport::TestCase
     assert DecoratedTester.new(@david).respond_to?(:name, true)
     assert_not DecoratedTester.new(@david).respond_to?(:private_name, true)
     assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method, true)
+  end
+
+  def test_delegate_to_missing_respects_superclass_missing
+    assert_equal 42, DecoratedTester.new(@david).extra_missing
+
+    assert_respond_to DecoratedTester.new(@david), :extra_missing
   end
 
   def test_delegate_with_case
