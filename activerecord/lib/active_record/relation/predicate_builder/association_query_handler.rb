@@ -3,12 +3,15 @@ module ActiveRecord
     class AssociationQueryHandler # :nodoc:
       def self.value_for(table, column, value)
         associated_table = table.associated_table(column)
-        klass = if associated_table.polymorphic_association? && ::Array === value && value.first.is_a?(Base)
-          PolymorphicArrayValue
-        else
-          AssociationQueryValue
+        if associated_table.polymorphic_association?
+          case value.is_a?(Array) ? value.first : value
+          when Base, Relation
+            value = [value] unless value.is_a?(Array)
+            klass = PolymorphicArrayValue
+          end
         end
 
+        klass ||= AssociationQueryValue
         klass.new(associated_table, value)
       end
 
@@ -17,15 +20,7 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        queries = {}
-
-        table = value.associated_table
-        if value.base_class
-          queries[table.association_foreign_type.to_s] = value.base_class.name
-        end
-
-        queries[table.association_foreign_key.to_s] = value.ids
-        predicate_builder.build_from_hash(queries)
+        predicate_builder.build_from_hash(value.queries)
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
@@ -43,36 +38,24 @@ module ActiveRecord
         @value = value
       end
 
-      def ids
-        case value
-        when Relation
-          value.select(primary_key)
-        when Array
-          value.map { |v| convert_to_id(v) }
-        else
-          convert_to_id(value)
-        end
-      end
-
-      def base_class
-        if associated_table.polymorphic_association?
-          @base_class ||= polymorphic_base_class_from_value
-        end
+      def queries
+        { associated_table.association_foreign_key.to_s => ids }
       end
 
       private
-
-        def primary_key
-          associated_table.association_primary_key(base_class)
-        end
-
-        def polymorphic_base_class_from_value
+        def ids
           case value
           when Relation
-            value.klass.base_class
-          when Base
-            value.class.base_class
+            value.select_values.empty? ? value.select(primary_key) : value
+          when Array
+            value.map { |v| convert_to_id(v) }
+          else
+            convert_to_id(value)
           end
+        end
+
+        def primary_key
+          associated_table.association_primary_key
         end
 
         def convert_to_id(value)
