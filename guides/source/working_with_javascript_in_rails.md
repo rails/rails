@@ -304,7 +304,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 <% end %>
 ```
 
-The `app/views/users/_user.html.erb` partial contains the following:
+The `app/views/users/_users.html.erb` partial contains the following:
 
 ```erb
 <li><%= user.name %></li>
