@@ -20,7 +20,6 @@ module ActiveRecord
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
-      register_handler(PolymorphicArrayValue, PolymorphicArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)
@@ -101,14 +100,17 @@ module ActiveRecord
             if associated_table.polymorphic_association?
               case value.is_a?(Array) ? value.first : value
               when Base, Relation
-                binds.concat(value.bound_attributes) if value.is_a?(Relation)
                 value = [value] unless value.is_a?(Array)
                 klass = PolymorphicArrayValue
               end
             end
 
             if klass
-              result[column_name] = klass.new(associated_table, value)
+              result[column_name] = klass.new(associated_table, value).queries.map do |query|
+                attrs, bvs = create_binds_for_hash(query)
+                binds.concat(bvs)
+                attrs
+              end
             else
               queries = AssociationQueryValue.new(associated_table, value).queries
               attrs, bvs = create_binds_for_hash(queries)
