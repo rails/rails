@@ -383,7 +383,7 @@ module ActiveRecord
       end
 
       def construct_relation_for_exists(relation, conditions)
-        relation = relation.except(:select, :distinct)._select!(ONE_AS_ONE).limit!(1)
+        relation = relation.except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
 
         case conditions
         when Array, Hash
