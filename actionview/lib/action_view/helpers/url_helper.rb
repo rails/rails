@@ -553,7 +553,10 @@ module ActionView
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         # if you set default_url_options[:trailing_slash], url_string becomes same as request_uri
-        request_uri.chomp!("/") if request_uri.start_with?("/") && request_uri != "/" && Rails.application.config.action_controller.default_url_options[:trailing_slash]
+        if Rails.application.config.action_controller.default_url_options.is_a?(Hash) &&
+          Rails.application.config.action_controller.default_url_options.key?(:trailing_slash)
+          request_uri.chomp!("/") if request_uri.start_with?("/") && request_uri != "/"
+        end
 
         url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
 
