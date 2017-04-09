@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def create_binds_for_hash(attributes)
-        result = {}
+        result = attributes.dup
         binds = []
 
         attributes.each do |column_name, value|
@@ -105,17 +105,11 @@ module ActiveRecord
               end
             end
 
-            if klass
-              result[column_name] = klass.new(associated_table, value).queries.map do |query|
-                attrs, bvs = create_binds_for_hash(query)
-                binds.concat(bvs)
-                attrs
-              end
-            else
-              queries = AssociationQueryValue.new(associated_table, value).queries
-              attrs, bvs = create_binds_for_hash(queries)
-              result.merge!(attrs)
+            klass ||= AssociationQueryValue
+            result[column_name] = klass.new(associated_table, value).queries.map do |query|
+              attrs, bvs = create_binds_for_hash(query)
               binds.concat(bvs)
+              attrs
             end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
@@ -132,12 +126,11 @@ module ActiveRecord
             result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
           else
             if can_be_bound?(column_name, value)
+              result[column_name] = Arel::Nodes::BindParam.new
               binds << build_bind_param(column_name, value)
-              value = Arel::Nodes::BindParam.new
             elsif value.is_a?(Relation)
               binds.concat(value.bound_attributes)
             end
-            result[column_name] = value
           end
         end
 
