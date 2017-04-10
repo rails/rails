@@ -29,6 +29,7 @@ Rails.ajax = (options) ->
     fire(document, 'ajaxStop') # to be compatible with jQuery.ajax
 
 prepareOptions = (options) ->
+  options.url = options.url or location.href
   options.type = options.type.toUpperCase()
   # append data to url if it's a GET request
   if options.type is 'GET' and options.data
