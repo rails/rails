@@ -117,6 +117,8 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
+NOTE: `before_destroy` callback should be placed before `dependent: :destroy` associations (or use the `prepend: true` option), to ensure they execute before the records are deleted by `dependent: :destroy`.
+
 ### `after_initialize` and `after_find`
 
 The `after_initialize` callback will be called whenever an Active Record object is instantiated, either by directly using `new` or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record `initialize` method.
