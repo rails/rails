@@ -150,7 +150,7 @@ module Rails
         end
 
         def field_id(attribute_name)
-          [singular_table_name, attribute_name].join('_')
+          [singular_table_name, attribute_name].join("_")
         end
 
         def singular_table_name # :doc:
