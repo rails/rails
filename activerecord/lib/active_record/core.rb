@@ -78,6 +78,16 @@ module ActiveRecord
       mattr_accessor :error_on_ignored_order, instance_writer: false
       self.error_on_ignored_order = false
 
+      ##
+      # :singleton-method:
+      # due to in Postgre multi-schema structure, there will be a lot of tables.
+      # PostgreSQL will create a lot of records in the pg_type table.
+      # ActiveRecord doesn't need to be mapped to all these records because
+      # we don't have the type's name is the same as the table's name.
+      # So add excluded_pg_type_names to let user could exclude useless types
+      mattr_accessor :excluded_pg_type_names, instance_writer: false
+      self.excluded_pg_type_names = []
+
       def self.error_on_ignored_order_or_limit
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           The flag error_on_ignored_order_or_limit is deprecated. Limits are

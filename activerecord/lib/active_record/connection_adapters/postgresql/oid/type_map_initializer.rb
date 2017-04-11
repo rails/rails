@@ -32,12 +32,14 @@ module ActiveRecord
           def query_conditions_for_initial_load(type_map)
             known_type_names = type_map.keys.map { |n| "'#{n}'" }
             known_type_types = %w('r' 'e' 'd')
-            <<-SQL % [known_type_names.join(", "), known_type_types.join(", ")]
-              WHERE
-                t.typname IN (%s)
-                OR t.typtype IN (%s)
-                OR t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
-                OR t.typelem != 0
+            excluded_pg_type_names = ActiveRecord::Base.excluded_pg_type_names.map { |n| "'#{n}'" } + ["''"]
+            <<-SQL % [known_type_names.join(", "), known_type_types.join(", "), excluded_pg_type_names.join(", ")]
+              WHERE (
+                  t.typname IN (%s)
+                  OR t.typtype IN (%s)
+                  OR t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
+                  OR t.typelem != 0
+                ) and t.typname not IN (%s)
             SQL
           end
 
