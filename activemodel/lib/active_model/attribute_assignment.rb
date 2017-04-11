@@ -43,9 +43,16 @@ module ActiveModel
 
       def _assign_attribute(k, v)
         if respond_to?("#{k}=")
-          public_send("#{k}=", v)
+          public_send("#{k}=", clone_value(v))
         else
           raise UnknownAttributeError.new(self, k)
+        end
+      end
+
+      def clone_value(value)
+        case value
+        when String then value.clone
+        else value
         end
       end
   end
