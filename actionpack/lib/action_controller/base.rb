@@ -267,6 +267,7 @@ module ActionController
       end
     end
 
+    ActiveSupport.run_load_hooks(:action_controller_base, self)
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end
