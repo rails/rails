@@ -64,14 +64,6 @@ module ActiveRecord
         end
       end
 
-      CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
-
-      def internal_string_options_for_primary_key # :nodoc:
-        super.tap { |options|
-          options[:collation] = collation.sub(/\A[^_]+/, "utf8") if CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
-        }
-      end
-
       def version #:nodoc:
         @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
       end
