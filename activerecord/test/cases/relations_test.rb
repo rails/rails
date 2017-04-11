@@ -1902,7 +1902,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations don't load all records in #inspect" do
-    assert_sql(/LIMIT/) do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       Post.all.inspect
     end
   end
