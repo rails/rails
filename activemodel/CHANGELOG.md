@@ -1,3 +1,10 @@
+*   The original string assigned to a model attribute is no longer incorrectly
+    frozen.
+
+    Fixes #24185, #28718.
+
+    *Matthew Draper*
+
 *   Avoid converting integer as a string into float.
 
     *namusyaka*
