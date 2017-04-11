@@ -142,10 +142,10 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
-Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action but you must also specify the `controller:` to use:
+Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
 
 ```ruby
-get 'profile', to: :show, controller: 'users'
+get 'profile', action: :show, controller: 'users'
 ```
 
 This resourceful route:
