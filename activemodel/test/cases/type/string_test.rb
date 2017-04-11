@@ -10,6 +10,18 @@ module ActiveModel
       assert_equal "123", type.cast(123)
     end
 
+    test "cast strings are mutable" do
+      type = Type::String.new
+
+      s = "foo"
+      assert_equal false, type.cast(s).frozen?
+      assert_equal false, s.frozen?
+
+      f = "foo".freeze
+      assert_equal false, type.cast(f).frozen?
+      assert_equal true, f.frozen?
+    end
+
     test "immutable strings are not duped coming out" do
       s = "foo"
       type = Type::ImmutableString.new
@@ -18,10 +30,13 @@ module ActiveModel
     end
 
     test "values are duped coming out" do
-      s = "foo"
       type = Type::String.new
+
+      s = "foo"
       assert_not_same s, type.cast(s)
+      assert_equal s, type.cast(s)
       assert_not_same s, type.deserialize(s)
+      assert_equal s, type.deserialize(s)
     end
   end
 end
