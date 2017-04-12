@@ -80,7 +80,7 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
+      # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.  But could be a generic Queue.
       #
       # The Queue in stdlib's 'thread' could replace this class except
@@ -111,7 +111,7 @@ module ActiveRecord
         # Add +element+ to the queue.  Never blocks.
         def add(element)
           synchronize do
-            @queue.push element
+            @queue.unshift element
             @cond.signal
           end
         end
