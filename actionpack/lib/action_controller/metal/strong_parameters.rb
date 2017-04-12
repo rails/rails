@@ -43,6 +43,18 @@ module ActionController
     end
   end
 
+  # Raised when a Parameters instance is not marked as permitted and
+  # an operation to transform it to hash is called.
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.to_h
+  #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
+  class UnfilteredParameters < StandardError
+    def initialize # :nodoc:
+      super("unable to convert unpermitted parameters to hash")
+    end
+  end
+
   # == Action Controller \Parameters
   #
   # Allows you to choose which attributes should be whitelisted for mass updating
@@ -234,7 +246,8 @@ module ActionController
     #     name: 'Senjougahara Hitagi',
     #     oddity: 'Heavy stone crab'
     #   })
-    #   params.to_h # => {}
+    #   params.to_h
+    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
@@ -242,7 +255,7 @@ module ActionController
       if permitted?
         convert_parameters_to_hashes(@parameters, :to_h)
       else
-        slice(*self.class.always_permitted_parameters).permit!.to_h
+        raise UnfilteredParameters
       end
     end
 

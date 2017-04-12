@@ -377,10 +377,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 
-  test "to_h returns empty hash on unpermitted params" do
-    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_h.is_a? ActionController::Parameters
-    assert @params.to_h.empty?
+  test "to_h raises UnfilteredParameters on unfiltered params" do
+    assert_raises(ActionController::UnfilteredParameters) do
+      @params.to_h
+    end
   end
 
   test "to_h returns converted hash on permitted params" do
@@ -403,17 +403,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  test "to_h returns always permitted parameter on unpermitted params" do
-    params = ActionController::Parameters.new(
-      controller: "users",
-      action: "create",
-      user: {
-        name: "Sengoku Nadeko"
-      }
-    )
-
-    assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
-  end
 
   test "to_unsafe_h returns unfiltered params" do
     assert @params.to_unsafe_h.is_a? ActiveSupport::HashWithIndifferentAccess
