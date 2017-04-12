@@ -275,6 +275,34 @@ module ActionController
       to_h.to_hash
     end
 
+    # Returns a string representation of the receiver suitable for use as a URL
+    # query string:
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'David',
+    #     nationality: 'Danish'
+    #   })
+    #   params.to_query
+    #   # => "name=David&nationality=Danish"
+    #
+    # An optional namespace can be passed to enclose key names:
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'David',
+    #     nationality: 'Danish'
+    #   })
+    #   params.to_query('user')
+    #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
+    #
+    # The string pairs "key=value" that conform the query string
+    # are sorted lexicographically in ascending order.
+    #
+    # This method is also aliased as +to_param+.
+    def to_query(*args)
+      to_h.to_query(*args)
+    end
+    alias_method :to_param, :to_query
+
     # Returns an unsafe, unfiltered
     # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
     # parameter.
@@ -743,8 +771,6 @@ module ActionController
         @parameters, @permitted = coder.map["parameters"], coder.map["permitted"]
       end
     end
-
-    undef_method :to_param
 
     # Returns duplicate of object including all parameters.
     def deep_dup
