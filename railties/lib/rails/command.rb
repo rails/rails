@@ -28,18 +28,13 @@ module Rails
 
       # Receives a namespace, arguments and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
-        namespace = full_namespace = full_namespace.to_s
+        full_namespace = String(full_namespace)
 
-        if char = namespace =~ /:(\w+)$/
-          command_name, namespace = $1, namespace.slice(0, char)
-        else
-          command_name = namespace
-        end
-
-        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+        namespace, command_name = full_namespace.split(/:(\w+)$/)
+        command_name = namespace if command_name.blank?
 
         command = find_by_namespace(namespace, command_name)
+
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
