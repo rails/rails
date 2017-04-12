@@ -93,9 +93,14 @@ matrix:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
-    - rvm: 2.4.1
+    - rvm: 2.3.4
       env:
         - "GEM=ar:sqlite3_mem"
+    - rvm: 2.3.4
+      env:
+        - "GEM=ar:postgresql POSTGRES=9.2"
+      addons:
+        postgresql: "9.2"
     - rvm: jruby-9.1.8.0
       jdk: oraclejdk8
       env:
@@ -104,12 +109,6 @@ matrix:
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
-    # Test with old (< 9.4.2) postgresql
-    - rvm: 2.4.1
-      env:
-        - "GEM=ar:postgresql"
-      addons:
-        postgresql: "9.4"
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-9.1.8.0

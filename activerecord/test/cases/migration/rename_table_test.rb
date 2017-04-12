@@ -80,7 +80,7 @@ module ActiveRecord
         end
 
         def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
-          connection.create_table :cats, id: :uuid
+          connection.create_table :cats, id: :uuid, default: "uuid_generate_v4()"
           assert_nothing_raised { rename_table :cats, :felines }
           assert connection.table_exists? :felines
         ensure
