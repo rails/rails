@@ -443,6 +443,16 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal expected, params.to_unsafe_h
   end
 
+  test "to_unsafe_h does not mutate the parameters" do
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    params[:f]
+
+    params.to_unsafe_h
+
+    assert_not_predicate params, :permitted?
+    assert_not_predicate params[:f], :permitted?
+  end
+
   test "to_h only deep dups Ruby collections" do
     company = Class.new do
       attr_reader :dupped
