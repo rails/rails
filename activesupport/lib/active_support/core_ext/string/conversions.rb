@@ -1,5 +1,6 @@
 require "date"
 require "active_support/core_ext/time/calculations"
+require "active_support/core_ext/big_decimal/conversions"
 
 class String
   # Converts a string to a Time value.
@@ -53,5 +54,24 @@ class String
   #   "12/13/2012".to_datetime          # => ArgumentError: invalid date
   def to_datetime
     ::DateTime.parse(self, false) unless blank?
+  end
+
+  # Converts a string to a bigdecimal value.
+  #     str.to_d  -> bigdecimal
+  #
+  # Returns the result of interpreting leading characters in +str+
+  # as a BigDecimal.
+  #
+  #     "0.5".to_d             # => 0.5e0
+  #     "123.45e1".to_d        # => 0.12345e4
+  #     "45.67 degrees".to_d   # => 0.4567e2
+  #     "".to_d   # => 0
+  #
+  def to_d
+    begin
+      BigDecimal(self)
+    rescue ArgumentError
+      BigDecimal(0)
+    end
   end
 end

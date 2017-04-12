@@ -919,4 +919,13 @@ ACTUAL
   test "indents blank lines if told so" do
     assert_equal " foo\n \n bar", "foo\n\nbar".indent(1, nil, true)
   end
+
+  class StringToBigDecimalTest < ActiveSupport::TestCase
+    test "#to_d" do
+      assert_equal 0, "".to_d
+      assert_equal 0.5e0, "0.5".to_d
+      assert_equal 0.12345e4, "123.45e1".to_d
+      assert_equal 0.4567e2, "45.67 degrees".to_d
+    end
+  end
 end
