@@ -239,7 +239,9 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.query "SELECT 1"
+        @lock.synchronize do
+          @connection.query "SELECT 1"
+        end
         true
       rescue PG::Error
         false
@@ -247,26 +249,32 @@ module ActiveRecord
 
       # Close then reopen the connection.
       def reconnect!
-        super
-        @connection.reset
-        configure_connection
+        @lock.synchronize do
+          super
+          @connection.reset
+          configure_connection
+        end
       end
 
       def reset!
-        clear_cache!
-        reset_transaction
-        unless @connection.transaction_status == ::PG::PQTRANS_IDLE
-          @connection.query "ROLLBACK"
+        @lock.synchronize do
+          clear_cache!
+          reset_transaction
+          unless @connection.transaction_status == ::PG::PQTRANS_IDLE
+            @connection.query "ROLLBACK"
+          end
+          @connection.query "DISCARD ALL"
+          configure_connection
         end
-        @connection.query "DISCARD ALL"
-        configure_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        super
-        @connection.close rescue nil
+        @lock.synchronize do
+          super
+          @connection.close rescue nil
+        end
       end
 
       def native_database_types #:nodoc:
