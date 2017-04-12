@@ -68,11 +68,9 @@ class Class
   #   object.setting = false  # => NoMethodError
   #
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
-  def class_attribute(*attrs)
-    options = attrs.extract_options!
-    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
-    instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
-    instance_predicate = options.fetch(:instance_predicate, true)
+  def class_attribute(*attrs, instance_accessor: true, instance_reader: true, instance_writer: true, instance_predicate: true)
+    instance_reader = instance_accessor && instance_reader
+    instance_writer = instance_accessor && instance_writer
 
     attrs.each do |name|
       remove_possible_singleton_method(name)
