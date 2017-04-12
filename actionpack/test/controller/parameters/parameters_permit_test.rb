@@ -396,7 +396,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
       assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-      assert_not @params.to_h.is_a? ActionController::Parameters
+      assert_not params.to_h.is_a? ActionController::Parameters
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
       ActionController::Parameters.permit_all_parameters = false
