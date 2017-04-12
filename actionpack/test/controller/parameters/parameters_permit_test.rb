@@ -386,8 +386,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_h returns converted hash on permitted params" do
     @params.permit!
 
-    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @params.to_h
+    assert_not_kind_of ActionController::Parameters, @params.to_h
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
@@ -395,8 +395,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-      assert_not params.to_h.is_a? ActionController::Parameters
+      assert_instance_of ActiveSupport::HashWithIndifferentAccess, params.to_h
+      assert_not_kind_of ActionController::Parameters, params.to_h
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
       ActionController::Parameters.permit_all_parameters = false
@@ -431,15 +431,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "to_unsafe_h returns unfiltered params" do
-    assert @params.to_unsafe_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_unsafe_h.is_a? ActionController::Parameters
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @params.to_unsafe_h
+    assert_not_kind_of ActionController::Parameters, @params.to_unsafe_h
   end
 
   test "to_unsafe_h returns unfiltered params even after accessing few keys" do
     params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
     expected = { "f" => { "language_facet" => ["Tibetan"] } }
 
-    assert params["f"].is_a? ActionController::Parameters
+    assert_instance_of ActionController::Parameters, params["f"]
     assert_equal expected, params.to_unsafe_h
   end
 
