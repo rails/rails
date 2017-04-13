@@ -240,7 +240,7 @@ module ActionController
     end
 
     # Returns a safe <tt>ActiveSupport::HashWithIndifferentAccess</tt>
-    # representation of this parameter with all unpermitted keys removed.
+    # representation of the parameters with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
     #     name: 'Senjougahara Hitagi',
@@ -259,7 +259,7 @@ module ActionController
       end
     end
 
-    # Returns a safe <tt>Hash</tt> representation of this parameter
+    # Returns a safe <tt>Hash</tt> representation of the parameters
     # with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
@@ -304,8 +304,8 @@ module ActionController
     alias_method :to_param, :to_query
 
     # Returns an unsafe, unfiltered
-    # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of this
-    # parameter.
+    # <tt>ActiveSupport::HashWithIndifferentAccess</tt> representation of the
+    # parameters.
     #
     #   params = ActionController::Parameters.new({
     #     name: 'Senjougahara Hitagi',
