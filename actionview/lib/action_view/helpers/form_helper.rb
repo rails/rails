@@ -416,13 +416,13 @@ module ActionView
       #
       # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
       #
-      #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
       #     ...
       #   <% end %>
       #
       # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
       #
-      #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f| %>
       #     ...
       #   <% end %>
       def form_for(record, options = {}, &block)
