@@ -64,10 +64,10 @@ processResponse = (response, type) ->
   if typeof response is 'string' and typeof type is 'string'
     if type.match(/\bjson\b/)
       try response = JSON.parse(response)
-    else if type.match(/\bjavascript\b/)
+    else if type.match(/\b(?:java|ecma)script\b/)
       script = document.createElement('script')
-      script.innerHTML = response
-      document.body.appendChild(script)
+      script.text = response
+      document.head.appendChild(script).parentNode.removeChild(script)
     else if type.match(/\b(xml|html|svg)\b/)
       parser = new DOMParser()
       type = type.replace(/;.+/, '') # remove something like ';charset=utf-8'
