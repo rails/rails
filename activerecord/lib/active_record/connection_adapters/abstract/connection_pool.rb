@@ -80,7 +80,7 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
+      # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.
       class Queue
         def initialize(lock = Monitor.new)

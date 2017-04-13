@@ -203,7 +203,7 @@ module ActiveRecord
         end.join
       end
 
-      def test_checkout_order_is_fifo
+      def test_checkout_order_is_lifo
         conn1 = @pool.checkout
         conn2 = @pool.checkout
         @pool.checkin conn1
