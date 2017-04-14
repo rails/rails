@@ -671,6 +671,28 @@ class DirtyTest < ActiveRecord::TestCase
     assert binary.changed?
   end
 
+  test "changes is correct for subclass" do
+    foo = Class.new(Pirate) do
+      def catchphrase
+        super.upcase
+      end
+    end
+
+    pirate = foo.create!(catchphrase: "arrrr")
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
+  end
+
   test "changes is correct if override attribute reader" do
     pirate = Pirate.create!(catchphrase: "arrrr")
     def pirate.catchphrase

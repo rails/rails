@@ -472,5 +472,9 @@ module ActiveModel
       def missing_attribute(attr_name, stack)
         raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
       end
+
+      def _read_attribute(attr)
+        __send__(attr)
+      end
   end
 end
