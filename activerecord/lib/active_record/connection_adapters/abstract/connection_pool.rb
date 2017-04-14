@@ -380,7 +380,7 @@ module ActiveRecord
       # #connection or #with_connection methods. Connections obtained through
       # #checkout will not be detected by #active_connection?
       def active_connection?
-        @thread_cached_conns[connection_cache_key(Thread.current)]
+        !!@thread_cached_conns[connection_cache_key(Thread.current)]
       end
 
       # Signal that the thread is finished with the current connection.

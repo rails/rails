@@ -1,3 +1,8 @@
+*   Fix predicate method `ActiveRecord::ConnectionPool#active_connection?` to actually return boolean values.
+    Starting from 5.0 it returns `nil` or actual active connection object.
+
+    *Andrey Novikov*
+
 *   When calling the dynamic fixture accessor method with no arguments it now returns all fixtures of this type.
     Previously this method always returned an empty array.
 

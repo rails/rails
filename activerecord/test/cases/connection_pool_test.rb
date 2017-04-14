@@ -81,11 +81,11 @@ module ActiveRecord
         assert !pool.active_connection?
         main_thread = pool.connection
 
-        assert pool.active_connection?
+        assert_equal true, pool.active_connection?
 
         main_thread.close
 
-        assert !pool.active_connection?
+        assert_equal false, pool.active_connection?
       end
 
       def test_full_pool_exception
