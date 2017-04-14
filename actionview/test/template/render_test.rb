@@ -83,6 +83,10 @@ module RenderTestCases
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
   end
 
+  def test_render_template_with_variants
+    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
+  end
+
   def test_render_file_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: [:builder])
     assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: :builder)
@@ -168,6 +172,10 @@ module RenderTestCases
 
   def test_render_partial_with_format
     assert_equal "partial html", @view.render(partial: "test/partial")
+  end
+
+  def test_render_partial_with_variants
+    assert_equal "<h1>Partial with variants</h1>\n", @view.render(partial: "test/partial_with_variants", variants: :grid)
   end
 
   def test_render_partial_with_selected_format
