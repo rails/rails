@@ -328,6 +328,10 @@ module ActiveRecord
         def clear_changed_attributes_cache
           remove_instance_variable(:@cached_changed_attributes) if defined?(@cached_changed_attributes)
         end
+
+        def _attributes(attr)
+          _read_attribute(attr)
+        end
     end
   end
 end
