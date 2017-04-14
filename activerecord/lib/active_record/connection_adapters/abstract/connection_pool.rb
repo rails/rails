@@ -506,14 +506,16 @@ module ActiveRecord
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling #checkout on this pool.
       def checkin(conn)
-        synchronize do
-          remove_connection_from_thread_cache conn
+        conn.lock.synchronize do
+          synchronize do
+            remove_connection_from_thread_cache conn
 
-          conn._run_checkin_callbacks do
-            conn.expire
+            conn._run_checkin_callbacks do
+              conn.expire
+            end
+
+            @available.add conn
           end
-
-          @available.add conn
         end
       end
 
