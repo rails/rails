@@ -198,9 +198,10 @@ which attributes to allow for mass update. This is a better security
 practice to help prevent accidentally allowing users to update sensitive
 model attributes.
 
-In addition, parameters can be marked as required and will flow through a
-predefined raise/rescue flow that will result in a 400 Bad Request being
-returned if not all required parameters are passed in.
+In addition, parameters can be marked as required and an `ActionController::ParameterMissing`
+exception will be raised if not all required parameters are passed. If this
+is the case the log will show the request completing as a 400 Bad Request
+even though the exception is not caught.
 
 ```ruby
 class PeopleController < ActionController::Base
@@ -211,11 +212,11 @@ class PeopleController < ActionController::Base
     Person.create(params[:person])
   end
 
-  # This will pass with flying colors as long as there's a person key
-  # in the parameters, otherwise it'll raise a
-  # ActionController::ParameterMissing exception, which will get
-  # caught by ActionController::Base and turned into a 400 Bad
-  # Request error.
+  # This will pass with flying colors as long as there's a person
+  # key in the parameters, otherwise it'll raise an
+  # ActionController::ParameterMissing exception. 
+  # In this case the log will show the request completing as a
+  # 400 Bad Request.
   def update
     person = current_account.people.find(params[:id])
     person.update!(person_params)
