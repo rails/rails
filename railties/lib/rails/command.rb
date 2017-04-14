@@ -66,15 +66,6 @@ module Rails
         namespaces[(lookups & namespaces.keys).first]
       end
 
-      # Returns the root of the Rails engine or app running the command.
-      def root
-        if defined?(ENGINE_ROOT)
-          Pathname.new(ENGINE_ROOT)
-        elsif defined?(APP_PATH)
-          Pathname.new(File.expand_path("../..", APP_PATH))
-        end
-      end
-
       def print_commands # :nodoc:
         sorted_groups.each { |b, n| print_list(b, n) }
       end

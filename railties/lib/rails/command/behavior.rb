@@ -11,12 +11,31 @@ module Rails
           Thor::Base.shell = Thor::Shell::Basic
         end
 
+        # Returns the root of the Rails engine or app running the command.
+        def root
+          if defined?(ENGINE_ROOT)
+            Pathname.new(ENGINE_ROOT)
+          elsif defined?(APP_PATH)
+            Pathname.new(File.expand_path("../..", APP_PATH))
+          end
+        end
+
         # Track all command subclasses.
         def subclasses
           @subclasses ||= []
         end
 
         private
+
+          # Adds App or Engine `/app` and `/lib` directories to the original
+          # load path to allow Apps and Engines to add their own Thor commands
+          def add_root_paths_to_load_path!
+            unless root.blank?
+              root_dir = String(root)
+              $LOAD_PATH.unshift("#{root_dir}/lib")
+              $LOAD_PATH.unshift("#{root_dir}/app")
+            end
+          end
 
           # This code is based directly on the Text gem implementation.
           # Copyright (c) 2006-2013 Paul Battley, Michael Neumann, Tim Fletcher.
@@ -72,6 +91,7 @@ module Rails
           # Receives namespaces in an array and tries to find matching generators
           # in the load path.
           def lookup(namespaces)
+            add_root_paths_to_load_path!
             paths = namespaces_to_paths(namespaces)
 
             paths.each do |raw_path|
@@ -92,6 +112,7 @@ module Rails
 
           # This will try to load any command in the load path to show in help.
           def lookup!
+            add_root_paths_to_load_path!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
                 begin
