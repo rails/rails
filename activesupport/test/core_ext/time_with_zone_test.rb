@@ -625,6 +625,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "Fri, 31 Dec 1999 06:00:00 EST -05:00", @twz.change(hour: 6).inspect
     assert_equal "Fri, 31 Dec 1999 19:15:00 EST -05:00", @twz.change(min: 15).inspect
     assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.change(sec: 30).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(offset: "-10:00").inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(offset: -36000).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(zone: "Hawaii").inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(zone: -10).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(zone: -36000).inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 HST -10:00", @twz.change(zone: "Pacific/Honolulu").inspect
   end
 
   def test_change_at_dst_boundary

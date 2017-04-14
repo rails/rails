@@ -166,6 +166,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005, 2, 22, 16, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16, min: 45)
     assert_equal DateTime.civil(2005, 2, 22, 15, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(min: 45)
 
+    # datetime with non-zero offset
+    assert_equal DateTime.civil(2005, 2, 22, 15, 15, 10, Rational(-5, 24)), DateTime.civil(2005, 2, 22, 15, 15, 10, 0).change(offset: Rational(-5, 24))
+
     # datetime with fractions of a second
     assert_equal DateTime.civil(2005, 2, 1, 15, 15, 10.7), DateTime.civil(2005, 2, 22, 15, 15, 10.7).change(day: 1)
     assert_equal DateTime.civil(2005, 1, 2, 11, 22, Rational(33000008, 1000000)), DateTime.civil(2005, 1, 2, 11, 22, 33).change(usec: 8)

@@ -1,3 +1,13 @@
+*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
+
+    *Andrew White*
+
+*   Add support for `:offset` to `Time#change`
+
+    Fixes #28723.
+
+    *Andrew White*
+
 *   Add `fetch_values` for `HashWithIndifferentAccess`
 
     The method was originally added to `Hash` in Ruby 2.3.0.
