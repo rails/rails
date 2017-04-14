@@ -2,18 +2,11 @@ require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
 class CodeStatistics #:nodoc:
-  TEST_TYPES = ["Controller tests",
-                "Helper tests",
-                "Model tests",
-                "Mailer tests",
-                "Job tests",
-                "Integration tests",
-                "System tests"]
-
   HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
-  def initialize(*pairs)
+  def initialize(*pairs, test_types)
     @pairs      = pairs
+    @test_types = test_types
     @statistics = calculate_statistics
     @total      = calculate_total if pairs.length > 1
   end
@@ -60,13 +53,13 @@ class CodeStatistics #:nodoc:
 
     def calculate_code
       code_loc = 0
-      @statistics.each { |k, v| code_loc += v.code_lines unless TEST_TYPES.include? k }
+      @statistics.each { |k, v| code_loc += v.code_lines unless @test_types.include? k }
       code_loc
     end
 
     def calculate_tests
       test_loc = 0
-      @statistics.each { |k, v| test_loc += v.code_lines if TEST_TYPES.include? k }
+      @statistics.each { |k, v| test_loc += v.code_lines if @test_types.include? k }
       test_loc
     end
 
