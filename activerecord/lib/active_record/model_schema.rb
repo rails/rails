@@ -166,6 +166,8 @@ module ActiveRecord
     end
 
     module ClassMethods
+      @@load_schema_mutex = Mutex.new
+
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
       # looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -442,9 +444,22 @@ module ActiveRecord
         end
 
         def load_schema
-          unless schema_loaded?
-            load_schema!
+          # This method is wrapped in a Mutex because some of multiple competing
+          # threads might find `@columns_hash` to be defined even before schema has
+          # finished loading, and that may produce unexpected results.
+          # For more information, see: https://github.com/rails/rails/issues/28589
+
+          # We can't use `@@load_schema_mutex.synchronize` because `load_schema` may
+          # call `load_schema` again in certain situations, and that will cause a deadlock error.
+          acquired_mutex_lock = false
+          unless @@load_schema_mutex.owned?
+            @@load_schema_mutex.lock
+            acquired_mutex_lock = true
           end
+
+          load_schema! unless schema_loaded?
+        ensure
+          @@load_schema_mutex.unlock if acquired_mutex_lock
         end
 
         def load_schema!
