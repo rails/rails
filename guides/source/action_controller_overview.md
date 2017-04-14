@@ -205,9 +205,9 @@ even though the exception is not caught.
 
 ```ruby
 class PeopleController < ActionController::Base
-  # This will raise an ActiveModel::ForbiddenAttributesError exception
-  # because it's using mass assignment without an explicit permit
-  # step.
+  # This will raise an ActiveModel::ForbiddenAttributesError 
+  # exception because it's using mass assignment without an 
+  # explicit permit step.
   def create
     Person.create(params[:person])
   end
@@ -224,10 +224,11 @@ class PeopleController < ActionController::Base
   end
 
   private
-    # Using a private method to encapsulate the permissible parameters
-    # is just a good pattern since you'll be able to reuse the same
-    # permit list between create and update. Also, you can specialize
-    # this method with per-user checking of permissible attributes.
+    # Using a private method to encapsulate the permissible 
+    # parameters is just a good pattern since you'll be able 
+    # to reuse the same permit list between create and
+    # update. Also, you can specialize this method with
+    # per-user checking of permissible attributes.
     def person_params
       params.require(:person).permit(:name, :age)
     end
