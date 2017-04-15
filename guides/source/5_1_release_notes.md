@@ -228,60 +228,62 @@ can generate form tags based on URLs, scopes or models.
 Railties
 --------
 
+Please refer to the [Changelog][railties] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
-
-Please refer to the [Changelog][railties] for detailed changes.
+### Notable changes
 
 Action Cable
 -----------
 
+Please refer to the [Changelog][action-cable] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
+### Notable changes
 
 *   Added support for `channel_prefix` to Redis and evented Redis adapters
     in `cable.yml` to avoid name collisions when using the same Redis server
     with multiple applications.
     ([Pull Request](https://github.com/rails/rails/pull/27425))
 
-Please refer to the [Changelog][action-cable] for detailed changes.
-
 Action Pack
 -----------
+
+Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
-
-Please refer to the [Changelog][action-pack] for detailed changes.
+### Notable changes
 
 Action View
 -------------
 
+Please refer to the [Changelog][action-view] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
-
-Please refer to the [Changelog][action-view] for detailed changes.
+### Notable changes
 
 Action Mailer
 -------------
 
+Please refer to the [Changelog][action-mailer] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
+### Notable changes
 
 *   Allowed setting custom content type when attachments are included
     and body is set inline.
@@ -298,16 +300,16 @@ Action Mailer
     an `args` key.
     ([Pull Request](https://github.com/rails/rails/pull/27900))
 
-Please refer to the [Changelog][action-mailer] for detailed changes.
-
 Active Record
 -------------
+
+Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
+### Notable changes
 
 *   Skipped comments in the output of `mysqldump` command by default.
     ([Pull Request](https://github.com/rails/rails/pull/23301))
@@ -320,38 +322,38 @@ Active Record
 *   Pass `"-v ON_ERROR_STOP=1"` flag with `psql` command to not suppress SQL errors.
     ([Pull Request](https://github.com/rails/rails/pull/24773))
 
-Please refer to the [Changelog][active-record] for detailed changes.
-
 Active Model
 ------------
+
+Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
-
-Please refer to the [Changelog][active-model] for detailed changes.
+### Notable changes
 
 Active Job
 -----------
 
+Please refer to the [Changelog][active-job] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
-
-Please refer to the [Changelog][active-job] for detailed changes.
+### Notable changes
 
 Active Support
 --------------
 
+Please refer to the [Changelog][active-support] for detailed changes.
+
 ### Removals
 
 ### Deprecations
 
-### Notable Changes
+### Notable changes
 
 *   Added `Module#delegate_missing_to` to delegate method calls not
     defined for the current object to a proxy object.
@@ -360,8 +362,6 @@ Active Support
 *   Added `Date#all_day` which returns a range representing the whole day
     of the current date & time.
     ([Pull Request](https://github.com/rails/rails/pull/24930))
-
-Please refer to the [Changelog][active-support] for detailed changes.
 
 Credits
 -------
