@@ -1,3 +1,10 @@
+*   Support Descending Indexes for MySQL.
+
+    MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.
+    See https://dev.mysql.com/doc/refman/8.0/en/descending-indexes.html.
+
+    *Ryuta Kamizono*
+
 *   Fix inconsistency with changed attributes when overriding AR attribute reader.
 
     *bogdanvlviv*

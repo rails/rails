@@ -182,7 +182,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
+      if ActiveRecord::Base.connection.supports_index_sort_order?
+        assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
+      else
+        assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
+      end
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end

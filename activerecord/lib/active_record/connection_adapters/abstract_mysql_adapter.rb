@@ -90,10 +90,8 @@ module ActiveRecord
         true
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax
-      # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
-        true
+        !mariadb? && version >= "8.0.1"
       end
 
       def supports_transaction_isolation?
