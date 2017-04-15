@@ -1,3 +1,7 @@
+*   Fix incorrect preload query when using `includes` with a through association and a custom scope block. Fixes #28703
+
+    *Chris Fung*
+
 *   Add type caster to `RuntimeReflection#alias_name`
 
     Fixes #28959.

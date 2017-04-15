@@ -82,7 +82,9 @@ module ActiveRecord
               scope.where! reflection.foreign_type => options[:source_type]
             else
               unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+                include_values = Array(reflection_scope.values[:includes] || options[:source])
+                scope.includes_values = include_values
+                scope.references! include_values
                 scope.where_clause = reflection_scope.where_clause
               end
 
