@@ -6,12 +6,11 @@ module ActiveRecord
       end
 
       def call(attribute, value)
+        return attribute.in([]) if value.empty?
+        return queries_predicates(value) if value.all? { |v| v.is_a?(Hash) }
+
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
-
-        return attribute.in([]) if values.empty? && nils.empty?
-        return queries_predicates(values) if nils.empty? && values.all? { |v| v.is_a?(Hash) }
-
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
         values_predicate =
