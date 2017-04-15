@@ -201,9 +201,9 @@ module ActionView
       #     <%= f.submit %>
       #   <% end %>
       #
-      # This also works for the methods in FormOptionHelper and DateHelper that
+      # This also works for the methods in FormOptionsHelper and DateHelper that
       # are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === #form_for with a model object
       #
@@ -632,9 +632,9 @@ module ActionView
       #     <%= form.submit %>
       #   <% end %>
       #
-      # Same goes for the methods in FormOptionHelper and DateHelper designed
+      # Same goes for the methods in FormOptionsHelper and DateHelper designed
       # to work with an object as a base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Setting the method
       #
@@ -791,9 +791,9 @@ module ActionView
       # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
       # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
       #
-      # Note: This also works for the methods in FormOptionHelper and
+      # Note: This also works for the methods in FormOptionsHelper and
       # DateHelper that are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Nested Attributes Examples
       #
@@ -1033,9 +1033,9 @@ module ActionView
       #     <%= check_box_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
       #   <% end %>
       #
-      # Same goes for the methods in FormOptionHelper and DateHelper designed
+      # Same goes for the methods in FormOptionsHelper and DateHelper designed
       # to work with an object as a base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = true
@@ -1724,9 +1724,9 @@ module ActionView
       # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
       # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
       #
-      # Note: This also works for the methods in FormOptionHelper and
+      # Note: This also works for the methods in FormOptionsHelper and
       # DateHelper that are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Nested Attributes Examples
       #
