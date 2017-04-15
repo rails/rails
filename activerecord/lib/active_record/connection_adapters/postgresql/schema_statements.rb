@@ -140,8 +140,17 @@ module ActiveRecord
               ]
             end
 
-            IndexDefinition.new(table_name, index_name, unique, columns, [], orders, where, nil, using.to_sym, comment.presence)
-          end.compact
+            IndexDefinition.new(
+              table_name,
+              index_name,
+              unique,
+              columns,
+              orders: orders,
+              where: where,
+              using: using.to_sym,
+              comment: comment.presence
+            )
+          end
         end
 
         def table_options(table_name) # :nodoc:

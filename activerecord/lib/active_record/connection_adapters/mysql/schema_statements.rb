@@ -2,6 +2,48 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module SchemaStatements # :nodoc:
+        # Returns an array of indexes for the given table.
+        def indexes(table_name, name = nil)
+          if name
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing name to #indexes is deprecated without replacement.
+            MSG
+          end
+
+          indexes = []
+          current_index = nil
+          execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
+            each_hash(result) do |row|
+              if current_index != row[:Key_name]
+                next if row[:Key_name] == "PRIMARY" # skip the primary key
+                current_index = row[:Key_name]
+
+                mysql_index_type = row[:Index_type].downcase.to_sym
+                case mysql_index_type
+                when :fulltext, :spatial
+                  index_type = mysql_index_type
+                when :btree, :hash
+                  index_using = mysql_index_type
+                end
+
+                indexes << IndexDefinition.new(
+                  row[:Table],
+                  row[:Key_name],
+                  row[:Non_unique].to_i == 0,
+                  type: index_type,
+                  using: index_using,
+                  comment: row[:Index_comment].presence
+                )
+              end
+
+              indexes.last.columns << row[:Column_name]
+              indexes.last.lengths.merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
+            end
+          end
+
+          indexes
+        end
+
         private
           def schema_creation
             MySQL::SchemaCreation.new(self)
