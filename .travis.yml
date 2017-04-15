@@ -12,6 +12,7 @@ cache:
 services:
   - memcached
   - redis
+  - rabbitmq
 
 addons:
   postgresql: "9.4"
@@ -53,6 +54,7 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=guides"
     - "GEM=ac:integration"
+    - "GEM=aj:integration"
 
 rvm:
   - 2.2.7
@@ -64,30 +66,6 @@ matrix:
   include:
     - rvm: 2.4.1
       env: "GEM=av:ujs"
-    - rvm: 2.2.7
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis
-        - rabbitmq
-    - rvm: 2.3.4
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis
-        - rabbitmq
-    - rvm: 2.4.1
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis
-        - rabbitmq
-    - rvm: ruby-head
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis
-        - rabbitmq
     - rvm: 2.3.4
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
