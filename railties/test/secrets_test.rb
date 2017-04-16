@@ -107,9 +107,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         config.dereferenced_secret = Rails.application.secrets.some_secret
       end_of_config
 
-      Dir.chdir(app_path) do
-        assert_equal "yeah yeah\n", `bin/rails runner -e production "puts Rails.application.config.dereferenced_secret"`
-      end
+      assert_equal "yeah yeah\n", `bin/rails runner -e production "puts Rails.application.config.dereferenced_secret"`
     end
   end
 
