@@ -386,7 +386,9 @@ module Rails
     def secrets
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
-        secrets.merge! Rails::Secrets.parse(config.paths["config/secrets"].existent, env: Rails.env)
+        files = config.paths["config/secrets"].existent
+        files = files.reject { |path| path.end_with?(".enc") } unless config.read_encrypted_secrets
+        secrets.merge! Rails::Secrets.parse(files, env: Rails.env)
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
