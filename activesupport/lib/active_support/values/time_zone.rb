@@ -59,6 +59,7 @@ module ActiveSupport
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
+      "Puerto Rico"                  => "America/Puerto_Rico",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
