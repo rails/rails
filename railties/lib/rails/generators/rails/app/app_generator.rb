@@ -403,9 +403,7 @@ module Rails
       end
 
       def delete_new_framework_defaults
-        # Sprockets owns the only new default for 5.1: if it's disabled,
-        # we don't want the file.
-        unless options[:update] && !options[:skip_sprockets]
+        unless options[:update]
           remove_file "config/initializers/new_framework_defaults_5_1.rb"
         end
       end
