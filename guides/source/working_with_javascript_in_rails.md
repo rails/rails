@@ -385,7 +385,7 @@ $(document).ready ->
 ```
 
 However, because Turbolinks overrides the normal page loading process, the
-event that this relies on will not be fired. If you have code that looks like
+event that this relies upon will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
 ```coffeescript
