@@ -474,6 +474,8 @@ module ActionView
       end
       private :apply_form_for_options!
 
+      mattr_accessor(:form_with_generates_remote_forms) { true }
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
@@ -1503,7 +1505,7 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: false, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
@@ -1517,12 +1519,14 @@ module ActionView
           html_options[:"accept-charset"] = "UTF-8"
           html_options[:"data-remote"] = true unless local
 
-          if !local && !embed_authenticity_token_in_remote_forms &&
-            html_options[:authenticity_token].blank?
-            # The authenticity token is taken from the meta tag in this case
-            html_options[:authenticity_token] = false
-          elsif html_options[:authenticity_token] == true
-            # Include the default authenticity_token, which is only generated when its set to nil,
+          html_options[:authenticity_token] = options.delete(:authenticity_token)
+
+          if !local && html_options[:authenticity_token].blank?
+            html_options[:authenticity_token] = embed_authenticity_token_in_remote_forms
+          end
+
+          if html_options[:authenticity_token] == true
+            # Include the default authenticity_token, which is only generated when it's set to nil,
             # but we needed the true value to override the default of no authenticity_token on data-remote.
             html_options[:authenticity_token] = nil
           end

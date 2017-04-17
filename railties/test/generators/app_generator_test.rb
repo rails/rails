@@ -410,7 +410,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
       assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
-    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
   end
 
   def test_generator_if_skip_yarn_is_given
