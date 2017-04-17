@@ -65,9 +65,9 @@ module ActionController
   #
   #   params = ActionController::Parameters.new({
   #     person: {
-  #       name: 'Francesco',
+  #       name: "Francesco",
   #       age:  22,
-  #       role: 'admin'
+  #       role: "admin"
   #     }
   #   })
   #
@@ -115,7 +115,7 @@ module ActionController
   # You can fetch values of <tt>ActionController::Parameters</tt> using either
   # <tt>:key</tt> or <tt>"key"</tt>.
   #
-  #   params = ActionController::Parameters.new(key: 'value')
+  #   params = ActionController::Parameters.new(key: "value")
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
@@ -215,13 +215,13 @@ module ActionController
     #   class Person < ActiveRecord::Base
     #   end
     #
-    #   params = ActionController::Parameters.new(name: 'Francesco')
+    #   params = ActionController::Parameters.new(name: "Francesco")
     #   params.permitted?  # => false
     #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
     #
     #   ActionController::Parameters.permit_all_parameters = true
     #
-    #   params = ActionController::Parameters.new(name: 'Francesco')
+    #   params = ActionController::Parameters.new(name: "Francesco")
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(parameters = {})
@@ -243,8 +243,8 @@ module ActionController
     # representation of the parameters with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
-    #     name: 'Senjougahara Hitagi',
-    #     oddity: 'Heavy stone crab'
+    #     name: "Senjougahara Hitagi",
+    #     oddity: "Heavy stone crab"
     #   })
     #   params.to_h
     #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
@@ -263,8 +263,8 @@ module ActionController
     # with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
-    #     name: 'Senjougahara Hitagi',
-    #     oddity: 'Heavy stone crab'
+    #     name: "Senjougahara Hitagi",
+    #     oddity: "Heavy stone crab"
     #   })
     #   params.to_hash
     #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
@@ -279,8 +279,8 @@ module ActionController
     # query string:
     #
     #   params = ActionController::Parameters.new({
-    #     name: 'David',
-    #     nationality: 'Danish'
+    #     name: "David",
+    #     nationality: "Danish"
     #   })
     #   params.to_query
     #   # => "name=David&nationality=Danish"
@@ -288,10 +288,10 @@ module ActionController
     # An optional namespace can be passed to enclose key names:
     #
     #   params = ActionController::Parameters.new({
-    #     name: 'David',
-    #     nationality: 'Danish'
+    #     name: "David",
+    #     nationality: "Danish"
     #   })
-    #   params.to_query('user')
+    #   params.to_query("user")
     #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
     #
     # The string pairs "key=value" that conform the query string
@@ -308,8 +308,8 @@ module ActionController
     # parameters.
     #
     #   params = ActionController::Parameters.new({
-    #     name: 'Senjougahara Hitagi',
-    #     oddity: 'Heavy stone crab'
+    #     name: "Senjougahara Hitagi",
+    #     oddity: "Heavy stone crab"
     #   })
     #   params.to_unsafe_h
     #   # => {"name"=>"Senjougahara Hitagi", "oddity" => "Heavy stone crab"}
@@ -354,7 +354,7 @@ module ActionController
     #   class Person < ActiveRecord::Base
     #   end
     #
-    #   params = ActionController::Parameters.new(name: 'Francesco')
+    #   params = ActionController::Parameters.new(name: "Francesco")
     #   params.permitted?  # => false
     #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
     #   params.permit!
@@ -376,7 +376,7 @@ module ActionController
     # When passed a single key, if it exists and its associated value is
     # either present or the singleton +false+, returns said value:
     #
-    #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
+    #   ActionController::Parameters.new(person: { name: "Francesco" }).require(:person)
     #   # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #
     # Otherwise raises <tt>ActionController::ParameterMissing</tt>:
@@ -409,7 +409,7 @@ module ActionController
     # Technically this method can be used to fetch terminal values:
     #
     #   # CAREFUL
-    #   params = ActionController::Parameters.new(person: { name: 'Finn' })
+    #   params = ActionController::Parameters.new(person: { name: "Finn" })
     #   name = params.require(:person).require(:name) # CAREFUL
     #
     # but take into account that at some point those ones have to be permitted:
@@ -439,7 +439,7 @@ module ActionController
     # for the object to +true+. This is useful for limiting which attributes
     # should be allowed for mass updating.
     #
-    #   params = ActionController::Parameters.new(user: { name: 'Francesco', age: 22, role: 'admin' })
+    #   params = ActionController::Parameters.new(user: { name: "Francesco", age: 22, role: "admin" })
     #   permitted = params.require(:user).permit(:name, :age)
     #   permitted.permitted?      # => true
     #   permitted.has_key?(:name) # => true
@@ -459,7 +459,7 @@ module ActionController
     # You may declare that the parameter should be an array of permitted scalars
     # by mapping it to an empty array:
     #
-    #   params = ActionController::Parameters.new(tags: ['rails', 'parameters'])
+    #   params = ActionController::Parameters.new(tags: ["rails", "parameters"])
     #   params.permit(tags: [])
     #
     # Sometimes it is not possible or convenient to declare the valid keys of
@@ -475,11 +475,11 @@ module ActionController
     #
     #   params = ActionController::Parameters.new({
     #     person: {
-    #       name: 'Francesco',
+    #       name: "Francesco",
     #       age:  22,
     #       pets: [{
-    #         name: 'Purplish',
-    #         category: 'dogs'
+    #         name: "Purplish",
+    #         category: "dogs"
     #       }]
     #     }
     #   })
@@ -498,8 +498,8 @@ module ActionController
     #   params = ActionController::Parameters.new({
     #     person: {
     #       contact: {
-    #         email: 'none@test.com',
-    #         phone: '555-1234'
+    #         email: "none@test.com",
+    #         phone: "555-1234"
     #       }
     #     }
     #   })
@@ -532,7 +532,7 @@ module ActionController
     # Returns a parameter for the given +key+. If not found,
     # returns +nil+.
     #
-    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
+    #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params[:person] # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params[:none]   # => nil
     def [](key)
@@ -551,11 +551,11 @@ module ActionController
     # if more arguments are given, then that will be returned; if a block
     # is given, then that will be run and its result returned.
     #
-    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
+    #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
-    #   params.fetch(:none, 'Francesco')    # => "Francesco"
-    #   params.fetch(:none) { 'Francesco' } # => "Francesco"
+    #   params.fetch(:none, "Francesco")    # => "Francesco"
+    #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
       convert_value_to_parameters(
         @parameters.fetch(key) {
