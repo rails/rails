@@ -171,17 +171,10 @@ module ActionDispatch
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
-        when Hash
+        when Hash, ActionController::Parameters
           route_name = options.delete :use_route
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
-                         route_name)
-        when ActionController::Parameters
-          unless options.permitted?
-            raise ArgumentError.new(ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE)
-          end
-          route_name = options.delete :use_route
-          _routes.url_for(options.to_h.symbolize_keys.
-                          reverse_merge!(url_options), route_name)
+          merged_url_options = options.to_h.symbolize_keys.reverse_merge!(url_options)
+          _routes.url_for(merged_url_options, route_name)
         when String
           options
         when Symbol

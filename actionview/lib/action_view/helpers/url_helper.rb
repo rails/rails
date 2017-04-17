@@ -621,11 +621,6 @@ module ActionView
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
-            unless attribute.permitted?
-              raise ArgumentError, "Attempting to generate a button from non-sanitized request parameters!" \
-                " Whitelist and sanitize passed parameters to be secure."
-            end
-
             attribute.to_h
           else
             attribute

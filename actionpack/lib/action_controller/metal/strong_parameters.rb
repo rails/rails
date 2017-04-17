@@ -49,7 +49,7 @@ module ActionController
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.to_h
   #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
-  class UnfilteredParameters < StandardError
+  class UnfilteredParameters < ArgumentError
     def initialize # :nodoc:
       super("unable to convert unpermitted parameters to hash")
     end
