@@ -354,14 +354,31 @@ module ActiveRecord
 
         @available = ConnectionLeasingQueue.new self
 
-        @lock_thread = false
+        @locked_thread = nil
+        @sharing_threads = Concurrent::Map.new
+        @sharing_thread_released = new_cond
       end
 
-      def lock_thread=(lock_thread)
-        if lock_thread
-          @lock_thread = Thread.current
-        else
-          @lock_thread = nil
+      # Lock the connection pool to the current thread: all other threads seeking a new
+      # connection will receive this thread's connection instead. When disabled, blocks
+      # until all the other threads have given the connection back.
+      #--
+      # Feels too coarse for public API.
+      def lock_thread=(enable) # :nodoc:
+        synchronize do
+          if @locked_thread
+            raise "Another thread is already sharing its connection" if @locked_thread != Thread.current
+
+            @locked_thread = nil
+
+            @sharing_thread_released.wait_while { connection_shared?(Thread.current) }
+            @sharing_threads.delete Thread.current
+          end
+
+          if enable
+            @locked_thread = Thread.current
+            @sharing_threads[Thread.current] ||= []
+          end
         end
       end
 
@@ -371,7 +388,15 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(@lock_thread || Thread.current)] ||= checkout
+        @thread_cached_conns[connection_cache_key(Thread.current)] ||=
+          if @locked_thread
+            synchronize do
+              if @locked_thread
+                @sharing_threads[@locked_thread] << Thread.current unless @locked_thread == Thread.current
+                @thread_cached_conns[connection_cache_key(@locked_thread)] ||= checkout
+              end
+            end
+          end || checkout
       end
 
       # Returns true if there is an open connection being used for the current thread.
@@ -391,8 +416,20 @@ module ActiveRecord
       # #connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
       def release_connection(owner_thread = Thread.current)
+        raise "Cannot release shared connection" if @locked_thread == owner_thread
         if conn = @thread_cached_conns.delete(connection_cache_key(owner_thread))
-          checkin conn
+          if conn.owner != owner_thread
+            # If the connection belongs to someone else, we can't check
+            # it in. We must be sharing it, so give up our share.
+            synchronize do
+              if @sharing_threads[conn.owner]
+                @sharing_threads[conn.owner].delete(owner_thread)
+                @sharing_thread_released.broadcast
+              end
+            end
+          else
+            checkin conn
+          end
         end
       end
 
@@ -525,6 +562,9 @@ module ActiveRecord
         needs_new_connection = false
 
         synchronize do
+          raise "Cannot remove shared connection" if @locked_thread == Thread.current
+          raise "Cannot remove borrowed connection" if conn.owner != Thread.current
+
           remove_connection_from_thread_cache conn
 
           @connections.delete conn
@@ -555,8 +595,10 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         stale_connections = synchronize do
+          @locked_thread = nil if @locked_thread && !@locked_thread.alive?
+
           @connections.select do |conn|
-            conn.in_use? && !conn.owner.alive?
+            conn.in_use? && !conn.owner.alive? && !connection_shared?(conn.owner)
           end.each do |conn|
             conn.steal!
           end
@@ -754,6 +796,17 @@ module ActiveRecord
           @thread_cached_conns.delete_pair(connection_cache_key(owner_thread), conn)
         end
         alias_method :release, :remove_connection_from_thread_cache
+
+        # Returns whether the given thread's connection is currently being used by any
+        # other threads.
+        #--
+        # Must be called in a synchronize block.
+        def connection_shared?(thread)
+          if list = @sharing_threads[thread]
+            list.select!(&:alive?)
+            !list.empty?
+          end
+        end
 
         def new_connection
           Base.send(spec.adapter_method, spec.config).tap do |conn|

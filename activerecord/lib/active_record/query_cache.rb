@@ -36,7 +36,7 @@ module ActiveRecord
       caching_pool.disable_query_cache! unless caching_was_enabled
 
       ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
-        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+        pool.release_connection if pool.active_connection? && (pool.connection.owner != Thread.current || !pool.connection.transaction_open?)
       end
     end
 

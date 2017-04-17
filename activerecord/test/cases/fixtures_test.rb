@@ -673,7 +673,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       end
     end.new
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); false; end
+      def lock_thread=(enable); false; end
     end.new
     fire_connection_notification(connection)
     teardown_fixtures
