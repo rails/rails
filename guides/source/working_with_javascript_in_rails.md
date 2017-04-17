@@ -338,7 +338,7 @@ this:
   end
 ```
 
-Notice the format.js in the `respond_to` block; that allows the controller to
+Notice the `format.js` in the `respond_to` block: that allows the controller to
 respond to your Ajax request. You then have a corresponding
 `app/views/users/create.js.erb` view file that generates the actual JavaScript
 code that will be sent and executed on the client side.
@@ -355,7 +355,7 @@ which uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks Works
 
-Turbolinks attaches a click handler to all `<a>` on the page. If your browser
+Turbolinks attaches a click handler to all `<a>` tags on the page. If your browser
 supports
 [PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState%28%29_method),
 Turbolinks will make an Ajax request for the page, parse the response, and
