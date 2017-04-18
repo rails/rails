@@ -8,6 +8,46 @@ class EnumTest < ActiveRecord::TestCase
     @book = books(:awdr)
   end
 
+  test "book respond_to status_translable" do
+    assert @book.respond_to? :status_translable
+  end
+
+  test "book respond_to read_status_translable" do
+    assert @book.respond_to? :read_status_translable
+  end
+
+  test "when not exists enum by name" do
+    assert_not_respond_to @book, :blank_translable
+  end
+
+  test "when I18n.locale in english status Published" do
+    I18n.locale = :en
+    assert_equal "Published", @book.status_translable
+  end
+
+  test "when I18n.locale in portuguese status Publicado" do
+    I18n.locale = :pt
+    assert_equal "Publicado", @book.status_translable
+  end
+
+  test "when I18n.locale in portuguese status Escrito" do
+    I18n.locale = :pt
+    @book.written!
+    assert_equal "Escrito", @book.status_translable
+  end
+
+  test "when I18n.locale in english read_status Reading" do
+    I18n.locale = :en
+    @book.reading!
+    assert_equal "Reading", @book.read_status_translable
+  end
+
+  test "when I18n.locale in portuguese read_status Lido" do
+    I18n.locale = :pt
+    @book.read!
+    assert_equal "Lido", @book.read_status_translable
+  end
+
   test "query state by predicate" do
     assert @book.published?
     assert_not @book.written?

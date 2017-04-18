@@ -46,3 +46,15 @@ en:
       #   user:
       #     login: "Handle"
       # will translate User attribute "login" as "Handle"
+
+    # use with translable enums
+    attributes:
+        books:
+          status:
+            proposed: 'Proposed'
+            written: 'Written'
+            published: 'Published'
+          read_status:
+            unread: 'Unread'
+            reading: 'Reading'
+            read: 'Read'

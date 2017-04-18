@@ -1,0 +1,14 @@
+pt:
+  # Active Record models configuration
+  activerecord:
+    # use with translable enums
+    attributes:
+        books:
+          status:
+            proposed: 'Sugerido'
+            written: 'Escrito'
+            published: 'Publicado'
+          read_status:
+            unread: 'Não lido'
+            reading: 'Lendo'
+            read: 'Lido'
