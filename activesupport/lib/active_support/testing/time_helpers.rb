@@ -1,3 +1,5 @@
+require "active_support/core_ext/time/calculations"
+
 module ActiveSupport
   module Testing
     class SimpleStubs # :nodoc:
