@@ -3706,6 +3706,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/bar", bar_root_path
   end
 
+  def test_nested_routes_under_format_resource
+    draw do
+      resources :formats do
+        resources :items
+      end
+    end
+
+    get "/formats/1/items.json"
+    assert_equal 200, @response.status
+    assert_equal "items#index", @response.body
+    assert_equal "/formats/1/items.json", format_items_path(1, :json)
+
+    get "/formats/1/items/2.json"
+    assert_equal 200, @response.status
+    assert_equal "items#show", @response.body
+    assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
+  end
+
 private
 
   def draw(&block)
