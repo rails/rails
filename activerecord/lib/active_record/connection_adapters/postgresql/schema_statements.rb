@@ -281,9 +281,10 @@ module ActiveRecord
 
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
+            max_pk = select_value("select MAX(#{quote_column_name pk}) from #{quote_table_name(table)}")
 
             select_value(<<-end_sql, "SCHEMA")
-              SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
+              SELECT setval('#{quoted_sequence}', #{max_pk ? max_pk : 1}, #{max_pk ? true : false})
             end_sql
           end
         end
