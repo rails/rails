@@ -290,9 +290,17 @@ module ActiveRecord
 
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
+            max_pk = select_value("select MAX(#{quote_column_name pk}) from #{quote_table_name(table)}")
+            if max_pk.nil?
+              if postgresql_version >= 100000
+                minvalue = select_value("SELECT seqmin from pg_sequence where seqrelid = '#{quoted_sequence}'::regclass")
+              else
+                minvalue = select_value("SELECT min_value FROM #{quoted_sequence}")
+              end
+            end
 
             select_value(<<-end_sql, "SCHEMA")
-              SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
+              SELECT setval('#{quoted_sequence}', #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})
             end_sql
           end
         end
