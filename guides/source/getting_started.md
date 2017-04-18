@@ -46,7 +46,7 @@ development with Rails.
 What is Rails?
 --------------
 
-Rails is a web application development framework written in the Ruby language.
+Rails is a web application development framework written in the Ruby programming language.
 It is designed to make programming web applications easier by making assumptions
 about what every developer needs to get started. It allows you to write less
 code while accomplishing more than many other languages and frameworks.
