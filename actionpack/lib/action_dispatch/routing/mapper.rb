@@ -60,6 +60,7 @@ module ActionDispatch
 
       class Mapping #:nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+        OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
@@ -144,7 +145,7 @@ module ActionDispatch
           end
 
           def optional_format?(path, format)
-            format != false && !path.include?(':format') && !path.end_with?('/')
+            format != false && path !~ OPTIONAL_FORMAT_REGEX
           end
 
           def normalize_options!(options, formatted, path_params, path_ast, modyoule)
