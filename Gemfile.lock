@@ -203,7 +203,7 @@ GEM
     pg (0.19.0-x86-mingw32)
     psych (2.2.2)
     public_suffix (2.0.4)
-    puma (3.6.2)
+    puma (3.8.2)
     qu (0.2.0)
       multi_json
     qu-redis (0.2.0)
