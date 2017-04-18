@@ -177,5 +177,7 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + "/active_record/locale/en.yml"
+  ["pt", "en"].each do |language|
+    I18n.load_path << File.dirname(__FILE__) + '/active_record' + '/locale' + "/#{language}.yml"
+  end
 end
