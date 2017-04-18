@@ -1,4 +1,30 @@
-*  Add `action_controller_api` and `action_controller_base` load hooks to be called in `ActiveSupport.on_load`
+*   Use more specific check for :format in route path
+
+    The current check for whether to add an optional format to the path is very lax
+    and will match things like `:format_id` where there are nested resources, e.g:
+
+    ``` ruby
+    resources :formats do
+      resources :items
+    end
+    ```
+
+    Fix this by using a more restrictive regex pattern that looks for the patterns
+    `(.:format)`, `.:format` or `/` at the end of the path. Note that we need to
+    allow for multiple closing parenthesis since the route may be of this form:
+
+    ``` ruby
+    get "/books(/:action(.:format))", controller: "books"
+    ```
+
+    This probably isn't what's intended since it means that the default index action
+    route doesn't support a format but we have a test for it so we need to allow it.
+
+    Fixes #28517.
+
+    *Andrew White*
+
+*   Add `action_controller_api` and `action_controller_base` load hooks to be called in `ActiveSupport.on_load`
 
     `ActionController::Base` and `ActionController::API` have differing implementations. This means that
     the one umbrella hook `action_controller` is not able to address certain situations where a method
