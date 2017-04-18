@@ -164,7 +164,7 @@ make it easier for users to click the inputs.
 
 Other form controls worth mentioning are textareas, password fields,
 hidden fields, search fields, telephone fields, date fields, time fields,
-color fields, datetime fields, datetime-local fields, month fields, week fields,
+color fields, datetime-local fields, month fields, week fields,
 URL fields, email fields, number fields and range fields:
 
 ```erb
