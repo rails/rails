@@ -79,9 +79,41 @@ class ParametersRequireTest < ActiveSupport::TestCase
     end
   end
 
-  test "to_query is not supported" do
-    assert_deprecated do
-      ActionController::Parameters.new(foo: "bar").to_param
+  test "to_param works like in a Hash" do
+    params = ActionController::Parameters.new(nested: { key: "value" }).permit!
+    assert_equal({ nested: { key: "value" } }.to_param, params.to_param)
+
+    params = { root: ActionController::Parameters.new(nested: { key: "value" }).permit! }
+    assert_equal({ root: { nested: { key: "value" } } }.to_param, params.to_param)
+
+    begin
+      old_value = ActionController::Parameters.raise_on_unfiltered_parameters
+      ActionController::Parameters.raise_on_unfiltered_parameters = true
+
+      assert_raise(ActionController::UnfilteredParameters) do
+        ActionController::Parameters.new(nested: { key: "value" }).to_param
+      end
+    ensure
+      ActionController::Parameters.raise_on_unfiltered_parameters = old_value
+    end
+  end
+
+  test "to_query works like in a Hash" do
+    params = ActionController::Parameters.new(nested: { key: "value" }).permit!
+    assert_equal({ nested: { key: "value" } }.to_query, params.to_query)
+
+    params = { root: ActionController::Parameters.new(nested: { key: "value" }).permit! }
+    assert_equal({ root: { nested: { key: "value" } } }.to_query, params.to_query)
+
+    begin
+      old_value = ActionController::Parameters.raise_on_unfiltered_parameters
+      ActionController::Parameters.raise_on_unfiltered_parameters = true
+
+      assert_raise(ActionController::UnfilteredParameters) do
+        ActionController::Parameters.new(nested: { key: "value" }).to_query
+      end
+    ensure
+      ActionController::Parameters.raise_on_unfiltered_parameters = old_value
     end
   end
 end

@@ -1,3 +1,41 @@
+*   Raise exception when calling `to_h` in an unfiltered Parameters.
+
+    This method will raise on unfiltered Parameters if
+    `config.action_controller.raise_on_unfiltered_parameters` is true.
+
+    Before we returned either an empty hash or only the always permitted parameters
+    (`:controller` and `:action` by default).
+
+    The previous behavior was dangerous because in order to get the attributes users
+    usually fallback to use `to_unsafe_h` that could potentially introduce security issues.
+
+    *Rafael Mendonça França*
+
+*   Add `ActionController::Parameters#to_hash` to implicit conversion.
+
+    Now methods that implicit convert objects to a hash will be able to work without
+    requiring the users to change their implementation.
+
+    This method will return a `Hash` instead of a `ActiveSupport::HashWithIndefirentAccess`
+    to mimic the same implementation of `ActiveSupport::HashWithIndefirentAccess#to_hash`.
+
+    This method will raise on unfiltered Parameters if
+    `config.action_controller.raise_on_unfiltered_parameters` is true.
+
+    *Rafael Mendonça França*
+
+*   Undeprecate `ActionController::Parameters#to_query` and `#to_param`.
+
+    Previously it was raising a deprecation because it may be unsafe to use those methods
+    in an unfiltered parameter. Now we delegate to `#to_h` that already raise an error when
+    the Parameters instance is not permitted.
+
+    This also fix a bug when using `#to_query` in a hash that contains a
+    `ActionController::Parameters` instance and was returning the name of the class in the
+    string.
+
+    *Rafael Mendonça França*
+
 *   Use more specific check for :format in route path
 
     The current check for whether to add an optional format to the path is very lax
