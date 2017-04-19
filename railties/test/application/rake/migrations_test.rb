@@ -142,6 +142,62 @@ module ApplicationTests
         end
       end
 
+      test "migration status after rollback and forward" do
+        Dir.chdir(app_path) do
+          `bin/rails generate model user username:string password:string;
+           bin/rails generate migration add_email_to_users email:string;
+           bin/rails db:migrate`
+
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+          `bin/rails db:rollback STEP=2`
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/down\s+\d{14}\s+Create users/, output)
+          assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+          `bin/rails db:forward STEP=2`
+          output = `bin/rails db:migrate:status`
+
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+        end
+      end
+
+      test "raise error on any move when current migration does not exist" do
+        Dir.chdir(app_path) do
+          `bin/rails generate model user username:string password:string;
+           bin/rails generate migration add_email_to_users email:string;
+           bin/rails db:migrate
+           rm db/migrate/*email*.rb`
+
+          output = `bin/rails db:migrate:status`
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
+
+          output = `bin/rails db:rollback 2>&1`
+          assert_match(/rails aborted!/, output)
+          assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
+          assert_match(/No migration with version number\s\d{14}\./, output)
+
+          output = `bin/rails db:migrate:status`
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
+
+          output = `bin/rails db:forward 2>&1`
+          assert_match(/rails aborted!/, output)
+          assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
+          assert_match(/No migration with version number\s\d{14}\./, output)
+
+          output = `bin/rails db:migrate:status`
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
+        end
+      end
+
       test "migration status after rollback and redo without timestamps" do
         add_to_config("config.active_record.timestamped_migrations = false")
 
@@ -232,7 +288,6 @@ module ApplicationTests
            rm db/migrate/*email*.rb`
 
           output = `bin/rails db:migrate:status`
-          File.write("test.txt", output)
 
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
