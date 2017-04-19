@@ -100,16 +100,18 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_several_behaviors
-    @a, @b = nil, nil
+    @a, @b, @c = nil, nil, nil
 
     ActiveSupport::Deprecation.behavior = [
-      Proc.new { |msg, callstack| @a = msg },
-      Proc.new { |msg, callstack| @b = msg }
+      lambda { |msg, callstack, horizon, gem| @a = msg },
+      lambda { |msg, callstack| @b = msg },
+      lambda { |*args| @c = args },
     ]
 
     @dtc.partially
     assert_match(/foo=nil/, @a)
     assert_match(/foo=nil/, @b)
+    assert_equal 4, @c.size
   end
 
   def test_raise_behaviour
@@ -119,7 +121,7 @@ class DeprecationTest < ActiveSupport::TestCase
     callstack = caller_locations
 
     e = assert_raise ActiveSupport::DeprecationException do
-      ActiveSupport::Deprecation.behavior.first.call(message, callstack)
+      ActiveSupport::Deprecation.behavior.first.call(message, callstack, "horizon", "gem")
     end
     assert_equal message, e.message
     assert_equal callstack.map(&:to_s), e.backtrace.map(&:to_s)
@@ -130,7 +132,7 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     content = capture(:stderr) {
-      assert_nil behavior.call("Some error!", ["call stack!"])
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
     assert_match(/Some error!/, content)
     assert_match(/call stack!/, content)
@@ -152,9 +154,30 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     stderr_output = capture(:stderr) {
-      assert_nil behavior.call("Some error!", ["call stack!"])
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
     assert stderr_output.empty?
+  end
+
+  def test_default_notify_behavior
+    ActiveSupport::Deprecation.behavior = :notify
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |_, **args|
+        events << args
+      }
+
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "MyGem::Custom")
+      assert_equal 1, events.size
+      assert_equal "Some error!", events.first[:message]
+      assert_equal ["call stack!"], events.first[:callstack]
+      assert_equal "horizon", events.first[:deprecation_horizon]
+      assert_equal "MyGem::Custom", events.first[:gem_name]
+    ensure
+      ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
+    end
   end
 
   def test_deprecated_instance_variable_proxy
