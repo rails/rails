@@ -18,7 +18,7 @@ module ActiveSupport
 
         callstack ||= caller_locations(2)
         deprecation_message(callstack, message).tap do |m|
-          behavior.each { |b| b.call(m, callstack) }
+          behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
         end
       end
 

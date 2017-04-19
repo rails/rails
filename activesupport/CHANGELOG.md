@@ -1,3 +1,7 @@
+*   Pass gem name and deprecation horizon to deprecation notifications.
+
+    *Willem van Bergen*
+
 *   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
 
     *Andrew White*
