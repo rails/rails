@@ -231,7 +231,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
 
     def to_h
-      { foo: :bar, baz: "quux" }
+      if permitted?
+        { foo: :bar, baz: "quux" }
+      else
+        raise ArgumentError
+      end
     end
   end
 

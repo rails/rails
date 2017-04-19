@@ -285,10 +285,10 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_params
-    error = assert_raise(ArgumentError) do
+    error = assert_raise(ActionController::UnfilteredParameters) do
       get :redirect_to_params
     end
-    assert_equal ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE, error.message
+    assert_equal "unable to convert unpermitted parameters to hash", error.message
   end
 
   def test_redirect_to_with_block
