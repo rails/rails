@@ -3633,7 +3633,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
     params = ActionController::Parameters.new(id: "1")
 
-    assert_raises ArgumentError do
+    assert_raises ActionController::UnfilteredParameters do
       root_path(params)
     end
   end

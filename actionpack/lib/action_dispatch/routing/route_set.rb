@@ -318,11 +318,7 @@ module ActionDispatch
                   when Hash
                     args.pop
                   when ActionController::Parameters
-                    if last.permitted?
-                      args.pop.to_h
-                    else
-                      raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
-                    end
+                    args.pop.to_h
                   end
                 helper.call self, args, options
               end
