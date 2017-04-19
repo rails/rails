@@ -303,7 +303,7 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        gems << GemfileEntry.github("sass-rails", "rails/sass-rails", nil,
+        gems << GemfileEntry.version("sass-rails", "~> 5.0",
                                      "Use SCSS for stylesheets")
 
         if !options[:skip_javascript]
