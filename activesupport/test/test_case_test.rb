@@ -56,6 +56,12 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_difference_array_of_expressions
+    assert_difference ["@object.num", "@object.num + 1"] do
+      @object.increment
+    end
+  end
+
   def test_assert_difference_fail
     error = assert_raises(Minitest::Assertion) do
       assert_difference "@object.num" do
