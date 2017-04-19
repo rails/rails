@@ -55,7 +55,7 @@ module ActiveRecord
           def extract_expression_for_virtual_column(column)
             if mariadb?
               create_table_info = create_table_info(column.table_name)
-              if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)} AS \((?<expression>.+?)\) #{column.extra}/m =~ create_table_info
+              if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
                 $~[:expression].inspect
               end
             else
