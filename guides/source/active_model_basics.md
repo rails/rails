@@ -469,7 +469,7 @@ In order to make this work, the model must have an accessor named `password_dige
 The `has_secure_password` will add the following validations on the `password` accessor:
 
 1. Password should be present.
-2. Password should be equal to its confirmation (provided +password_confirmation+ is passed along).
+2. Password should be equal to its confirmation (provided `password_confirmation` is passed along).
 3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
