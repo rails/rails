@@ -59,9 +59,10 @@ module ActiveRecord
                 $~[:expression].inspect
               end
             else
+              scope = quoted_scope(column.table_name)
               sql = "SELECT generation_expression FROM information_schema.columns" \
-                    " WHERE table_schema = #{quote(@config[:database])}" \
-                    "   AND table_name = #{quote(column.table_name)}" \
+                    " WHERE table_schema = #{scope[:schema]}" \
+                    "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{quote(column.name)}"
               select_value(sql, "SCHEMA").inspect
             end
