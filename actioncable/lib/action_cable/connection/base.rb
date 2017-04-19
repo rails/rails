@@ -126,7 +126,8 @@ module ActionCable
       end
 
       def on_error(message) # :nodoc:
-        # ignore
+        # log errors to make diagnosing socket errors easier
+        logger.error "WebSocket error occurred: #{message}"
       end
 
       def on_close(reason, code) # :nodoc:
