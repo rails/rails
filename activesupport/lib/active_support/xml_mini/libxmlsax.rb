@@ -66,12 +66,9 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
-
         LibXML::XML::Error.set_handler(&LibXML::XML::Error::QUIET_HANDLER)
         parser = LibXML::XML::SaxParser.io(data)
         document = self.document_class.new
