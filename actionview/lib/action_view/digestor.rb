@@ -62,7 +62,7 @@ module ActionView
             node
           end
         else
-          unless name.include?('#') # Dynamic template partial names can never be tracked
+          unless name.include?("#") # Dynamic template partial names can never be tracked
             logger.error "  Couldn't find template for digesting: #{name}"
           end
 

@@ -1,1 +1,1 @@
-xml.test 'failed'
+xml.test "failed"

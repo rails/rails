@@ -1649,7 +1649,7 @@ module ActiveRecord
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
-        #   be initialized with a particular record before validation. 
+        #   be initialized with a particular record before validation.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
