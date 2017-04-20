@@ -104,7 +104,7 @@ module ActiveRecord
 
         def grant_statement
           <<-SQL
-GRANT ALL PRIVILEGES ON #{configuration['database']}.*
+GRANT ALL PRIVILEGES ON `#{configuration['database']}`.*
   TO '#{configuration['username']}'@'localhost'
 IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
           SQL

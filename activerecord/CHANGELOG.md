@@ -1,3 +1,7 @@
+*   Quote database name in db:create grant statement (when database_user does not have access to create the database).
+
+    *Rune Philosof*
+
 *   When multiple threads are sharing a database connection inside a test using
     transactional fixtures, a nested transaction will temporarily lock the
     connection to the current thread, forcing others to wait.
