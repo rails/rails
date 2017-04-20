@@ -14,11 +14,9 @@ module ActiveSupport
         data = StringIO.new(data || '')
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
         LibXML::XML::Parser.io(data).parse.to_hash
       end
     end

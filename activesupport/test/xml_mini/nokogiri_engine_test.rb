@@ -205,6 +205,11 @@ class NokogiriEngineTest < ActiveSupport::TestCase
     eoxml
   end
 
+  def test_parse_from_frozen_string
+    xml_string = "<root/>".freeze
+    assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
+  end
+
   private
     def assert_equal_rexml(xml)
       parsed_xml = XmlMini.parse(xml)
