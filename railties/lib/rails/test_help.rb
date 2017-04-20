@@ -44,3 +44,7 @@ class ActionDispatch::IntegrationTest
     super
   end
 end
+
+if !Minitest.run_via.rake? && defined?(Rails.application) && Rails.application
+  Rails.application.load_tasks
+end
