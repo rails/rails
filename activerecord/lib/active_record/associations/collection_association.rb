@@ -283,25 +283,14 @@ module ActiveRecord
       def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
 
-        begin
-          if index
-            record_was = target[index]
-            target[index] = record
-          else
-            target << record
-          end
+        set_inverse_instance(record)
 
-          set_inverse_instance(record)
+        yield(record) if block_given?
 
-          yield(record) if block_given?
-        rescue
-          if index
-            target[index] = record_was
-          else
-            target.delete(record)
-          end
-
-          raise
+        if index
+          target[index] = record
+        else
+          append_record(record)
         end
 
         callback(:after_add, record) unless skip_callbacks
@@ -497,6 +486,10 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
+        end
+
+        def append_record(record)
+          target << record unless target.include?(record)
         end
     end
   end
