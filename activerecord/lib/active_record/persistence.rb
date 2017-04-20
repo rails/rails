@@ -100,6 +100,10 @@ module ActiveRecord
       !(@new_record || @destroyed)
     end
 
+    ##
+    # :call-seq:
+    #   save(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -121,12 +125,16 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*args)
-      create_or_update(*args)
+    def save(*args, &block)
+      create_or_update(*args, &block)
     rescue ActiveRecord::RecordInvalid
       false
     end
 
+    ##
+    # :call-seq:
+    #   save!(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -150,8 +158,8 @@ module ActiveRecord
     # being updated.
     #
     # Unless an error is raised, returns true.
-    def save!(*args)
-      create_or_update(*args) || raise(RecordNotSaved.new("Failed to save the record", self))
+    def save!(*args, &block)
+      create_or_update(*args, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -550,9 +558,9 @@ module ActiveRecord
       self.class.unscoped.where(self.class.primary_key => id)
     end
 
-    def create_or_update(*args)
+    def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
-      result = new_record? ? _create_record : _update_record(*args)
+      result = new_record? ? _create_record(&block) : _update_record(*args, &block)
       result != false
     end
 
@@ -567,6 +575,9 @@ module ActiveRecord
         rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
         @_trigger_update_callback = rows_affected > 0
       end
+
+      yield(self) if block_given?
+
       rows_affected
     end
 
@@ -579,6 +590,9 @@ module ActiveRecord
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false
+
+      yield(self) if block_given?
+
       id
     end
 
