@@ -1,3 +1,8 @@
+*   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
+    when using Turbolinks.
+
+    *Jan Krutisch*
+
 *   Raise a error when using a bad symlink
 
     Previously bad symlinks (where the link destination doesn't exist)
