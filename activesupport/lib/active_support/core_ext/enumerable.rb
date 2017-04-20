@@ -1,5 +1,5 @@
 module Enumerable
-  # Enumerable#sum was added in Ruby 2.4 but it only works with Numeric elements
+  # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
   # when we omit an identity.
   #
   # We tried shimming it to attempt the fast native method, rescue TypeError,
