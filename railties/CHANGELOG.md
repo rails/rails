@@ -1,3 +1,9 @@
+*   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
+    when using Turbolinks.
+
+    *Jan Krutisch*
+
+
 ## Rails 5.0.2 (March 01, 2017) ##
 
 *   Fix running multiple tests in one `rake` command
