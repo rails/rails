@@ -877,7 +877,7 @@ Active Record provides model level support via the `accepts_nested_attributes_fo
 
 ```ruby
 class Person < ApplicationRecord
-  has_many :addresses
+  has_many :addresses, inverse_of: :person
   accepts_nested_attributes_for :addresses
 end
 
