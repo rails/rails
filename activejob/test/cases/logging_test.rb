@@ -124,4 +124,11 @@ class LoggingTest < ActiveSupport::TestCase
     set_logger ::Logger.new(nil)
     OverriddenLoggingJob.perform_later "Dummy"
   end
+
+  def test_job_error_logging
+    RescueJob.perform_later "other"
+  rescue RescueJob::OtherError
+    assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
+    assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+  end
 end

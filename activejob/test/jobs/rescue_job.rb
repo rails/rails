@@ -19,7 +19,7 @@ class RescueJob < ActiveJob::Base
     when "david"
       raise ArgumentError, "Hair too good"
     when "other"
-      raise OtherError
+      raise OtherError, "Bad hair"
     else
       JobBuffer.add("performed beautifully")
     end
