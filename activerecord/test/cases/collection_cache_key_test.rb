@@ -75,9 +75,9 @@ module ActiveRecord
       assert_match(/\Acomments\/query-(\h+)-0\Z/, empty_loaded_collection.cache_key)
     end
 
-    test "cache_key for queries with offset which return 0 rows" do
+    test "cache_key for queries with offset" do
       developers = Developer.offset(20)
-      assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
     end
 
     test "cache_key with a relation having selected columns" do
