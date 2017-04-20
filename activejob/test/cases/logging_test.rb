@@ -5,6 +5,7 @@ require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
+require "jobs/rescue_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
