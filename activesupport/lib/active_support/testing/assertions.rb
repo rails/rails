@@ -56,7 +56,7 @@ module ActiveSupport
       #     post :create, params: { article: {...} }
       #   end
       #
-      # A lambda or a list of lambdas can be passed in and evaluated:
+      # A lambda or a list of lambdas can be passed in and evaluated.
       #
       #   assert_differences [->{ Article.count }, 2] do
       #     post :create, params: { article: {...} }
