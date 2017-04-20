@@ -2,7 +2,17 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module SchemaStatements # :nodoc:
+        def internal_string_options_for_primary_key
+          super.tap do |options|
+            if CHARSETS_OF_4BYTES_MAXLEN.include?(charset) && (mariadb? || version < "8.0.0")
+              options[:collation] = collation.sub(/\A[^_]+/, "utf8")
+            end
+          end
+        end
+
         private
+          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
