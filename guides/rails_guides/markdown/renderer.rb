@@ -90,6 +90,7 @@ HTML
           end
         end
 
+        # rubocop:disable Lint/EndAlignment
         def github_file_url(file_path)
           tree = version || edge
 
@@ -102,7 +103,6 @@ HTML
                  else
                    file_path
                  end
-
 
           "https://github.com/rails/rails/tree/#{tree}/#{path}"
         end
