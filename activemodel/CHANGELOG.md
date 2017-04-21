@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc2 (April 20, 2017) ##
+
 *   The original string assigned to a model attribute is no longer incorrectly
     frozen.
 

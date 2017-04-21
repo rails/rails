@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc2 (April 20, 2017) ##
+
 *   Quote database name in db:create grant statement (when database_user does not have access to create the database).
 
     *Rune Philosof*

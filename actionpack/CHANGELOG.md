@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc2 (April 20, 2017) ##
+
 *   Raise exception when calling `to_h` and `to_hash` in an unpermitted Parameters.
 
     Before we returned either an empty hash or only the always permitted parameters

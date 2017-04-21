@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc2 (April 20, 2017) ##
+
 *   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
     when using Turbolinks.
 

@@ -1,3 +1,5 @@
+## Rails 5.1.0.rc2 (April 20, 2017) ##
+
 *   Change logging instrumentation to log errors when a job raises an exception.
 
     Fixes #26848.
