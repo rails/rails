@@ -45,4 +45,21 @@ class Hash
   def extract!(*keys)
     keys.each_with_object(self.class.new) { |key, result| result[key] = delete(key) if has_key?(key) }
   end
+  # Extracts the given set of keys from a Hash.
+  # Similar in use as `slice` but works with any kind of keys i.e.
+  # as if the Hash is a HashWithIndifferentAccess.
+  # Returns a hash containing the removed key/value pairs.
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.extract(:a, :b)
+  #   # => {:a=>1, :b=>2}
+  #
+  #   { a: 1, b: 2, c: 3, d: 4 }.extract('a', 'b')
+  #   # => {:a=>1, :b=>2}
+  def extract(*keys)
+    keys.flatten!
+    keys.each_with_object({}) { |key, result|
+      key = self.has_key?(key.to_sym) ? key.to_sym : (self.has_key?(key.to_s) ? key.to_s : nil)
+      result[key] = self[key.to_sym] if key.present?
+    }
+  end
 end
