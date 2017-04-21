@@ -36,6 +36,11 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal comments(:greetings), posts(:welcome).comments.not_again.find_most_recent
   end
 
+  def test_extension_with_dirty_target
+    comment = posts(:welcome).comments.build(body: "New comment")
+    assert_equal comment, posts(:welcome).comments.with_content("New comment")
+  end
+
   def test_marshalling_extensions
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
