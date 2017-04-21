@@ -10,7 +10,7 @@ After reading this guide, you will know:
 * How to follow the flow of a request through a controller.
 * How to restrict parameters passed to your controller.
 * How and why to store data in the session or cookies.
-* How to work with callbacks to execute code during request processing.
+* How to work with action callbacks to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
 * How to stream data directly to the user's browser.
 * How to filter sensitive parameters so they do not appear in the application's log.
@@ -63,7 +63,7 @@ The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in mor
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](http://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or callbacks.
+Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or action callbacks.
 
 Parameters
 ----------
@@ -679,14 +679,14 @@ end
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
-Callbacks
+Action Callbacks
 -------
 
-Callbacks are methods that are run "before", "after" or "around" a controller action.
+Action callbacks are methods that are run "before", "after" or "around" a controller action.
 
-Callbacks are inherited, so if you set a callback on `ApplicationController`, it will be run on every controller in your application.
+Action callbacks are inherited, so if you set an action callback on `ApplicationController`, it will be run on every controller in your application.
 
-"before" callbacks may halt the request cycle. A common "before" callback is one which requires that a user is logged in for an action to be run. You can define the callback method this way:
+"before" action callbacks may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the action callback method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -703,9 +703,9 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" callback renders or redirects, the action will not run. If there are additional callbacks scheduled to run after that callback, they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" action callback renders or redirects, the action will not run. If there are additional action callbacks scheduled to run after that action callback, they are also cancelled.
 
-In this example the callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this callback from running before particular actions with `skip_before_action`:
+In this example the action callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this action callback from running before particular actions with `skip_before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
@@ -713,15 +713,15 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding callbacks too, so you can add a callback which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this action callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding action callbacks too, so you can add a action callback which only runs for selected actions in the first place.
 
-### After Callbacks and Around Callbacks
+### After Action Callbacks and Around Action Callbacks
 
-In addition to "before" callbacks, you can also run callbacks after an action has been executed, or both before and after.
+In addition to "before" action callbacks, you can also run action callbacks after an action has been executed, or both before and after.
 
-"after" callbacks are similar to "before" callbacks, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" callbacks cannot stop the action from running. Please note that "after" callbacks are executed only after a successful action, but not when an exception is raised in the request cycle.
+"after" action callbacks are similar to "before" action callbacks, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" action callbacks cannot stop the action from running. Please note that "after" action callbacks are executed only after a successful action, but not when an exception is raised in the request cycle.
 
-"around" callbacks are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"around" action callbacks are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
@@ -743,15 +743,15 @@ class ChangesController < ApplicationController
 end
 ```
 
-Note that an "around" callback also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" action callback also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
-### Other Ways to Use Callbacks
+### Other Ways to Use Action Callbacks
 
-While the most common way to use callbacks is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
+While the most common way to use action callbacks is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *\_action methods. The block receives the controller as an argument. The `require_login` callback from above could be rewritten to use a block:
+The first is to use a block directly with the *\_action methods. The block receives the controller as an argument. The `require_login` action callback from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -764,16 +764,16 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the callback in this case uses `send` because the `logged_in?` method is private and the callback does not run in the scope of the controller. This is not the recommended way to implement this particular callback, but in more simple cases it might be useful.
+Note that the action callback in this case uses `send` because the `logged_in?` method is private and the action callback does not run in the scope of the controller. This is not the recommended way to implement this particular action callback, but in more simple cases it might be useful.
 
-The second way is to use a class (actually, any object that responds to the right methods will do) to handle the action callback. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login callback again to use a class:
+The second way is to use a class (actually, any object that responds to the right methods will do) to handle the action callback. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login action callback again to use a class:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_action LoginCallback
+  before_action LoginActionCallback
 end
 
-class LoginCallback
+class LoginActionCallback
   def self.before(controller)
     unless controller.send(:logged_in?)
       controller.flash[:error] = "You must be logged in to access this section"
@@ -783,7 +783,7 @@ class LoginCallback
 end
 ```
 
-Again, this is not an ideal example for this callback, because it's not run in the scope of the controller but gets the controller passed as an argument. The callback class must implement a method with the same name as the callback, so for the `before_action` callback the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
+Again, this is not an ideal example for this action callback, because it's not run in the scope of the controller but gets the controller passed as an argument. The action callback class must implement a method with the same name as the action callback, so for the `before_action` callback the class must implement a `before` method, and so on. The `around` method must `yield` to execute the action.
 
 Request Forgery Protection
 --------------------------
@@ -849,7 +849,7 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 ### The `response` Object
 
-The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after callback - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
+The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after action callback - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values. To get a full list of the available methods, refer to the [Rails API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Response.html) and [Rack Documentation](http://www.rubydoc.info/github/rack/rack/Rack/Response).
 
 | Property of `response` | Purpose                                                                                             |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
@@ -888,7 +888,7 @@ class AdminsController < ApplicationController
 end
 ```
 
-With this in place, you can create namespaced controllers that inherit from `AdminsController`. The callback will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
+With this in place, you can create namespaced controllers that inherit from `AdminsController`. The action callback will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
 ### HTTP Digest Authentication
 
