@@ -155,6 +155,14 @@ module ActiveRecord
         binds.map(&:value_for_database)
       end
 
+      def type_casted_binds(binds) # :nodoc:
+        if binds.first.is_a?(Array)
+          binds.map { |column, value| type_cast(value, column) }
+        else
+          binds.map { |attr| type_cast(attr.value_for_database) }
+        end
+      end
+
       private
 
       def types_which_need_no_typecasting

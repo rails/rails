@@ -73,9 +73,9 @@ module ActiveRecord
           # made since we established the connection
           @connection.query_options[:database_timezone] = ActiveRecord::Base.default_timezone
 
-          type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
+          type_casted_binds = type_casted_binds(binds)
 
-          log(sql, name, binds) do
+          log(sql, name, binds, type_casted_binds) do
             if cache_stmt
               cache = @statements[sql] ||= {
                 stmt: @connection.prepare(sql)

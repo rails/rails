@@ -20,20 +20,6 @@ module ActiveRecord
       @odd = false
     end
 
-    def render_bind(attribute)
-      value = if attribute.type.binary? && attribute.value
-        if attribute.value.is_a?(Hash)
-          "<#{attribute.value_for_database.to_s.bytesize} bytes of binary data>"
-        else
-          "<#{attribute.value.bytesize} bytes of binary data>"
-        end
-      else
-        attribute.value_for_database
-      end
-
-      [attribute.name, value]
-    end
-
     def sql(event)
       self.class.runtime += event.duration
       return unless logger.debug?
@@ -47,7 +33,10 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
+        casted_params = type_casted_binds(payload[:binds], payload[:type_casted_binds])
+        binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
+          render_bind(attr, value)
+        }.inspect
       end
 
       name = colorize_payload_name(name, payload[:name])
@@ -57,6 +46,20 @@ module ActiveRecord
     end
 
     private
+
+    def type_casted_binds(binds, casted_binds)
+      casted_binds || ActiveRecord::Base.connection.type_casted_binds(binds)
+    end
+
+    def render_bind(attr, value)
+      if attr.is_a?(Array)
+        attr = attr.first
+      elsif attr.type.binary? && attr.value
+        value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
+      end
+
+      [attr && attr.name, value]
+    end
 
     def colorize_payload_name(name, payload_name)
       if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
