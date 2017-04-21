@@ -27,6 +27,7 @@ module ActionController
         ActionController::Parameters.always_permitted_parameters =
           app.config.action_controller.delete(:always_permitted_parameters)
       end
+      ActionController::Parameters.raise_on_unfiltered_parameters = options.delete(:raise_on_unfiltered_parameters) { false }
       ActionController::Parameters.action_on_unpermitted_parameters = options.delete(:action_on_unpermitted_parameters) do
         (Rails.env.test? || Rails.env.development?) ? :log : false
       end
