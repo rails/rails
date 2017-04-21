@@ -84,6 +84,23 @@ Also, if you have pretty old YAML documents containing dumps of such objects,
 you may need to load and dump them again to make sure that they reference
 the right constant and that loading them won't break in the future.
 
+### `config.secrets` now load with all keys as symbols
+
+If you application stores nested configuration in `secrets.yml` now all keys are being
+laded as symbols so access using strings should be changed.
+
+From:
+
+```ruby
+Rails.appplication.config.secrets[:smtp_settings]["address"]
+```
+
+To:
+
+```ruby
+Rails.application.config.secrets[:smtp_settings][:address]
+```
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
