@@ -1,4 +1,4 @@
-*   Raise exception when calling `to_h` in an unpermitted Parameters.
+*   Raise exception when calling `to_h` and `to_hash` in an unpermitted Parameters.
 
     Before we returned either an empty hash or only the always permitted parameters
     (`:controller` and `:action` by default).
@@ -8,13 +8,9 @@
 
     *Rafael Mendonça França*
 
-*   Add `ActionController::Parameters#to_hash` to implicit conversion.
+*   Deprecate `config.action_controller.raise_on_unfiltered_parameters`.
 
-    Now methods that implicit convert objects to a hash will be able to work without
-    requiring the users to change their implementation.
-
-    This method will return a `Hash` instead of a `HashWithIndefirentAccess` to mimic the
-    same implementation of `HashWithIndefirentAccess#to_hash`.
+    This option has no effect in Rails 5.1.
 
     *Rafael Mendonça França*
 
