@@ -790,11 +790,7 @@ module ActionController
     end
 
     def respond_to?(name, include_all = false) # :nodoc:
-      if name == :to_hash
-        self.class.raise_on_unfiltered_parameters ? true : false
-      else
-        super || @parameters.respond_to?(name, include_all)
-      end
+      super || @parameters.respond_to?(name, include_all)
     end
 
     # Returns duplicate of object including all parameters.

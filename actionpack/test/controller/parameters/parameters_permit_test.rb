@@ -334,9 +334,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
-  test "to_hash returns unfiltered params" do
-    assert_not_respond_to @params, :to_hash
+  test "parameters can be implicit converted to Hash" do
+    assert_deprecated do
+      assert_equal({ a: 1 }, { a: 1 }.merge!(ActionController::Parameters.new))
+    end
+  end
 
+  test "to_hash returns unfiltered params" do
     assert_deprecated do
       assert_instance_of Hash, @params.to_hash
     end
@@ -366,8 +370,6 @@ class ParametersPermitTest < ActiveSupport::TestCase
     begin
       old_value = ActionController::Parameters.raise_on_unfiltered_parameters
       ActionController::Parameters.raise_on_unfiltered_parameters = true
-
-      assert_respond_to @params, :to_hash
 
       assert_raises(ActionController::UnfilteredParameters) do
         @params.to_hash
