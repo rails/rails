@@ -27,40 +27,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
                              "Please choose a different association name."
       end
 
-      extension = define_extensions model, name, &block
-      reflection = create_reflection model, name, scope, options, extension
+      reflection = create_reflection(model, name, scope, options, &block)
       define_accessors model, reflection
       define_callbacks model, reflection
       define_validations model, reflection
       reflection
     end
 
-    def self.create_reflection(model, name, scope, options, extension = nil)
+    def self.create_reflection(model, name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
       validate_options(options)
 
-      scope = build_scope(scope, extension)
+      extension = define_extensions(model, name, &block)
+      options[:extend] = [*options[:extend], extension] if extension
+
+      scope = build_scope(scope)
 
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def self.build_scope(scope, extension)
-      new_scope = scope
-
+    def self.build_scope(scope)
       if scope && scope.arity == 0
-        new_scope = proc { instance_exec(&scope) }
+        proc { instance_exec(&scope) }
+      else
+        scope
       end
-
-      if extension
-        new_scope = wrap_scope new_scope, extension
-      end
-
-      new_scope
-    end
-
-    def self.wrap_scope(scope, extension)
-      scope
     end
 
     def self.macro

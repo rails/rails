@@ -8,6 +8,7 @@ require "models/zine"
 require "models/club"
 require "models/sponsor"
 require "models/rating"
+require "models/post"
 require "models/comment"
 require "models/car"
 require "models/bulb"
@@ -60,6 +61,14 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
     assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically_for_extension_block
+    comment_reflection = Comment.reflect_on_association(:post)
+    post_reflection = Post.reflect_on_association(:comments)
+
+    assert_predicate post_reflection, :has_inverse?
+    assert_equal comment_reflection, post_reflection.inverse_of
   end
 
   def test_has_many_and_belongs_to_should_find_inverse_automatically_for_sti

@@ -11,6 +11,10 @@ class Post < ActiveRecord::Base
     def author
       "lifo"
     end
+
+    def greeting
+      super + " :)"
+    end
   end
 
   module NamedExtension2

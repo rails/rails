@@ -110,10 +110,10 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @davey_mcdave.destroy
-    @first_post.destroy
     @first_comment.destroy
     @first_categorization.destroy
+    @davey_mcdave.destroy
+    @first_post.destroy
   end
 
   def test_missing_data_in_a_nested_include_should_not_cause_errors_when_constructing_objects
