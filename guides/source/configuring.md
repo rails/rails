@@ -373,6 +373,8 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.excluded_pg_type_names` lets you add exclusion for useless type. There are a lot of redundant types for active_record in Postgre multiple schemas. Default is: `[]`, the setting could be like: `['useless type1', 'useless type2']`
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
