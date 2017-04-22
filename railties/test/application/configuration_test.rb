@@ -725,6 +725,34 @@ module ApplicationTests
       assert_no_match(/data-remote/, last_response.body)
     end
 
+    test "form_with generates remote forms by default" do
+      app_file "app/models/post.rb", <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_match(/data-remote/, last_response.body)
+    end
+
     test "default method for update can be changed" do
       app_file "app/models/post.rb", <<-RUBY
       class Post
