@@ -162,10 +162,6 @@ module Rails
         @instance ||= new
       end
 
-      def respond_to_missing?(*args)
-        instance.respond_to?(*args) || super
-      end
-
       # Allows you to configure the railtie. This is the same method seen in
       # Railtie::Configurable, but this module is no longer required for all
       # subclasses of Railtie so we provide the class method here.
@@ -176,6 +172,10 @@ module Rails
       private
         def generate_railtie_name(string)
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
+        end
+
+        def respond_to_missing?(name, _)
+          instance.respond_to?(name) || super
         end
 
         # If the class method does not have a method, then send the method call

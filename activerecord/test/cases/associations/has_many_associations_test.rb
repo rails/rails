@@ -2040,7 +2040,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_respond_to_private_class_methods
     client_association = companies(:first_firm).clients
     assert !client_association.respond_to?(:private_method)
-    assert client_association.respond_to?(:private_method, true)
   end
 
   def test_creating_using_primary_key
