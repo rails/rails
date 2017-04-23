@@ -241,10 +241,6 @@ Action Cable
 
 Please refer to the [Changelog][action-cable] for detailed changes.
 
-### Removals
-
-### Deprecations
-
 ### Notable changes
 
 *   Added support for `channel_prefix` to Redis and evented Redis adapters
