@@ -340,9 +340,20 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated support to passing the adapter class to `.queue_adapter`.
+    ([commit](https://github.com/rails/rails/commit/d1fc0a5eb286600abf8505516897b96c2f1ef3f6))
+
+*   Removed deprecated `#original_exception` in `ActiveJob::DeserializationError`.
+    ([commit](https://github.com/rails/rails/commit/d861a1fcf8401a173876489d8cee1ede1cecde3b))
 
 ### Notable changes
+
+*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`.
+    ([Pull Request](https://github.com/rails/rails/pull/25991))
+
+*   Yield the job instance so you have access to things like `job.arguments` on
+    the custom logic after retries fail.
+    ([commit](https://github.com/rails/rails/commit/a1e4c197cb12fef66530a2edfaeda75566088d1f))
 
 Active Support
 --------------
