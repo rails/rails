@@ -331,9 +331,20 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated methods in `ActiveModel::Errors`.
+    ([commit](https://github.com/rails/rails/commit/9de6457ab0767ebab7f2c8bc583420fda072e2bd))
+
+*   Removed deprecated `:tokenizer` option in the length validator.
+    ([commit](https://github.com/rails/rails/commit/6a78e0ecd6122a6b1be9a95e6c4e21e10e429513))
+
+*   Remove deprecated behavior that halts callbacks when the return value is false.
+    ([commit](https://github.com/rails/rails/commit/3a25cdca3e0d29ee2040931d0cb6c275d612dffe))
 
 ### Notable changes
+
+*   The original string assigned to a model attribute is no longer incorrectly
+    frozen.
+    ([Pull Request](https://github.com/rails/rails/pull/28729))
 
 Active Job
 -----------
