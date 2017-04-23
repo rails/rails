@@ -232,9 +232,45 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `config.static_cache_control`.
+    ([commit](https://github.com/rails/rails/commit/c861decd44198f8d7d774ee6a74194d1ac1a5a13)
+
+*   Remove deprecated `config.serve_static_files`.
+    ([commit](https://github.com/rails/rails/commit/0129ca2eeb6d5b2ea8c6e6be38eeb770fe45f1fa))
+
+*   Remove deprecated file `rails/rack/debugger`.
+    ([commit](https://github.com/rails/rails/commit/7563bf7b46e6f04e160d664e284a33052f9804b8))
+
+*   Remove deprecated tasks: `rails:update`, `rails:template`, `rails:template:copy`,
+    `rails:update:configs` and `rails:update:bin`.
+    ([commit](https://github.com/rails/rails/commit/f7782812f7e727178e4a743aa2874c078b722eef))
+
+*   Remove deprecated `CONTROLLER` environment variable for `routes` task.
+    ([commit](https://github.com/rails/rails/commit/f9ed83321ac1d1902578a0aacdfe55d3db754219))
+
+*   Remove -j (--javascript) option from `rails new` command.
+    ([Pull Request](https://github.com/rails/rails/pull/28546))
+
 ### Deprecations
 
 ### Notable changes
+
+*   The config file `secrets.yml` is now loaded in with all keys as symbols.
+    ([Pull Request](https://github.com/rails/rails/pull/26929))
+
+*   Removed jquery-rails from default stack. rails-ujs, which is shipped
+    with Action View, is included as default UJS adapter.
+    ([Pull Request](https://github.com/rails/rails/pull/27113))
+
+*   Add Yarn support in new apps with a yarn binstub and package.json.
+    ([Pull Request](https://github.com/rails/rails/pull/26836))
+
+*   Add Webpack support in new apps via the --webpack option, which will delegate
+    to the rails/webpacker gem.
+    ([Pull Request](https://github.com/rails/rails/pull/27288))
+
+*   Add encrypted secrets in `config/secrets.yml.enc`.
+    ([Pull Request](https://github.com/rails/rails/pull/28038))
 
 Action Cable
 -----------
