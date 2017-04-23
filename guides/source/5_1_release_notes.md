@@ -101,8 +101,8 @@ Secrets will be decrypted in production, using a key stored either in the
 
 [Pull Request](https://github.com/rails/rails/pull/27825)
 
-Allows specifying common params used for all methods in a mailer class
-to share instance variables, headers and other common setup.
+Allows specifying common parameters used for all methods in a mailer class in
+order to share instance variables, headers and other common setup.
 
 ``` ruby
 class InvitationsMailer < ApplicationMailer
