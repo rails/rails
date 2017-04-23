@@ -279,11 +279,11 @@ Action Mailer
 
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
-### Removals
-
-### Deprecations
-
 ### Notable changes
+
+*   Exception handling: use `rescue_from` to handle exceptions raised by
+    mailer actions, by message delivery, and by deferred delivery jobs.
+    ([commit](https://github.com/rails/rails/commit/e35b98e6f5c54330245645f2ed40d56c74538902))
 
 *   Allowed setting custom content type when attachments are included
     and body is set inline.
