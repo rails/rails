@@ -251,8 +251,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Remove -j (--javascript) option from `rails new` command.
     ([Pull Request](https://github.com/rails/rails/pull/28546))
 
-### Deprecations
-
 ### Notable changes
 
 *   Added a shared section to `config/secrets.yml` that will be loaded for all
