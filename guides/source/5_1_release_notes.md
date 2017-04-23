@@ -255,6 +255,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
+*   Added a shared section to `config/secrets.yml` that will be loaded for all
+    environments.
+    ([commit](https://github.com/rails/rails/commit/e530534265d2c32b5c5f772e81cb9002dcf5e9cf))
+
 *   The config file `secrets.yml` is now loaded in with all keys as symbols.
     ([Pull Request](https://github.com/rails/rails/pull/26929))
 
@@ -268,6 +272,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add Webpack support in new apps via the --webpack option, which will delegate
     to the rails/webpacker gem.
     ([Pull Request](https://github.com/rails/rails/pull/27288))
+
+*   Initialize Git repo when generating new app, if option `--skip-git` is not
+    provided.
+    ([Pull Request](https://github.com/rails/rails/pull/27632))
 
 *   Add encrypted secrets in `config/secrets.yml.enc`.
     ([Pull Request](https://github.com/rails/rails/pull/28038))
