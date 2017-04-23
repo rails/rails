@@ -729,6 +729,28 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_is_not_remote_by_default_if_form_with_generates_remote_forms_is_false
+    old_value = ActionView::Helpers::FormHelper.form_with_generates_remote_forms
+    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = false
+
+    form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+    end
+
+    expected = whole_form("/", "create-post", method: "patch", local: true) do
+      "<input name='post[title]' type='text' value='Hello World' />" \
+      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
+      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' checked='checked' type='checkbox' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+  end
+
   def test_form_with_skip_enforcing_utf8_true
     form_with(scope: :post, skip_enforcing_utf8: true) do |f|
       concat f.text_field(:title)

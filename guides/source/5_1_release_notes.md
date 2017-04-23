@@ -241,16 +241,18 @@ Action Cable
 
 Please refer to the [Changelog][action-cable] for detailed changes.
 
-### Removals
-
-### Deprecations
-
 ### Notable changes
 
 *   Added support for `channel_prefix` to Redis and evented Redis adapters
     in `cable.yml` to avoid name collisions when using the same Redis server
     with multiple applications.
     ([Pull Request](https://github.com/rails/rails/pull/27425))
+
+*   Permit same-origin connections by default.
+    ([commit](https://github.com/rails/rails/commit/dae404473409fcab0e07976aec626df670e52282))
+
+*   Add `ActiveSupport::Notifications` hook for broadcasing data.
+    ([Pull Request](https://github.com/rails/rails/pull/24988))
 
 Action Pack
 -----------
@@ -279,11 +281,11 @@ Action Mailer
 
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
-### Removals
-
-### Deprecations
-
 ### Notable changes
+
+*   Exception handling: use `rescue_from` to handle exceptions raised by
+    mailer actions, by message delivery, and by deferred delivery jobs.
+    ([commit](https://github.com/rails/rails/commit/e35b98e6f5c54330245645f2ed40d56c74538902))
 
 *   Allowed setting custom content type when attachments are included
     and body is set inline.
@@ -329,9 +331,20 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated methods in `ActiveModel::Errors`.
+    ([commit](https://github.com/rails/rails/commit/9de6457ab0767ebab7f2c8bc583420fda072e2bd))
+
+*   Removed deprecated `:tokenizer` option in the length validator.
+    ([commit](https://github.com/rails/rails/commit/6a78e0ecd6122a6b1be9a95e6c4e21e10e429513))
+
+*   Remove deprecated behavior that halts callbacks when the return value is false.
+    ([commit](https://github.com/rails/rails/commit/3a25cdca3e0d29ee2040931d0cb6c275d612dffe))
 
 ### Notable changes
+
+*   The original string assigned to a model attribute is no longer incorrectly
+    frozen.
+    ([Pull Request](https://github.com/rails/rails/pull/28729))
 
 Active Job
 -----------
@@ -340,9 +353,20 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
-### Deprecations
+*   Removed deprecated support to passing the adapter class to `.queue_adapter`.
+    ([commit](https://github.com/rails/rails/commit/d1fc0a5eb286600abf8505516897b96c2f1ef3f6))
+
+*   Removed deprecated `#original_exception` in `ActiveJob::DeserializationError`.
+    ([commit](https://github.com/rails/rails/commit/d861a1fcf8401a173876489d8cee1ede1cecde3b))
 
 ### Notable changes
+
+*   Added declarative exception handling via `ActiveJob::Base.retry_on` and `ActiveJob::Base.discard_on`.
+    ([Pull Request](https://github.com/rails/rails/pull/25991))
+
+*   Yield the job instance so you have access to things like `job.arguments` on
+    the custom logic after retries fail.
+    ([commit](https://github.com/rails/rails/commit/a1e4c197cb12fef66530a2edfaeda75566088d1f))
 
 Active Support
 --------------

@@ -39,11 +39,7 @@ module ActiveRecord
         ensure_not_nested
 
         if record.new_record? || record.has_changes_to_save?
-          if raise
-            record.save!(validate: validate)
-          else
-            return unless record.save(validate: validate)
-          end
+          return unless super
         end
 
         save_through_record(record)

@@ -167,7 +167,7 @@ if current_adapter?(:Mysql2Adapter)
         def assert_permissions_granted_for(db_user)
           db_name = @configuration["database"]
           db_password = @configuration["password"]
-          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
+          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON `#{db_name}`.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
         end
     end
 

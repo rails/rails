@@ -64,6 +64,8 @@ module ActiveSupport
   # If an exception happens during that particular instrumentation the payload will
   # have a key <tt>:exception</tt> with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
+  # The <tt>:exception_object</tt> key of the payload will have the exception
+  # itself as the value.
   #
   # As the previous example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
   # is able to take the arguments as they come and provide an object-oriented

@@ -416,6 +416,13 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_not_kind_of ActionController::Parameters, @params.to_hash
   end
 
+  test "parameters can be implicit converted to Hash" do
+    params = ActionController::Parameters.new
+    params.permit!
+
+    assert_equal({ a: 1 }, { a: 1 }.merge!(params))
+  end
+
   test "to_hash returns converted hash when .permit_all_parameters is set" do
     begin
       ActionController::Parameters.permit_all_parameters = true

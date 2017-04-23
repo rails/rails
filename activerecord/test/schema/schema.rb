@@ -413,6 +413,9 @@ ActiveRecord::Schema.define do
     t.string      :name
   end
 
+  create_table :kitchens, force: true do |t|
+  end
+
   create_table :legacy_things, force: true do |t|
     t.integer :tps_report_number
     t.integer :version, null: false, default: 0
@@ -781,6 +784,10 @@ ActiveRecord::Schema.define do
 
   create_table :prisoners, force: true do |t|
     t.belongs_to :ship
+  end
+
+  create_table :sinks, force: true do |t|
+    t.references :kitchen
   end
 
   create_table :shop_accounts, force: true do |t|
