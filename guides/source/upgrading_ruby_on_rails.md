@@ -87,7 +87,7 @@ the right constant and that loading them won't break in the future.
 ### `config.secrets` now load with all keys as symbols
 
 If you application stores nested configuration in `secrets.yml` now all keys are being
-laded as symbols so access using strings should be changed.
+loaded as symbols so access using strings should be changed.
 
 From:
 
