@@ -257,7 +257,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     environments.
     ([commit](https://github.com/rails/rails/commit/e530534265d2c32b5c5f772e81cb9002dcf5e9cf))
 
-*   The config file `secrets.yml` is now loaded in with all keys as symbols.
+*   The config file `config/secrets.yml` is now loaded in with all keys as symbols.
     ([Pull Request](https://github.com/rails/rails/pull/26929))
 
 *   Removed jquery-rails from default stack. rails-ujs, which is shipped
