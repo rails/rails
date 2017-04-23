@@ -314,9 +314,32 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Removed deprecated `#original_exception` in `ActionView::Template::Error`.
+    ([commit](https://github.com/rails/rails/commit/b9ba263e5aaa151808df058f5babfed016a1879f))
+
+*   Remove the option `encode_special_chars` misnomer from `strip_tags`.
+    ([Pull Request](https://github.com/rails/rails/pull/28061))
+
 ### Deprecations
 
+*   Deprecated Erubis ERB handler in favor of Erubi.
+    ([Pull Request](https://github.com/rails/rails/pull/27757))
+
 ### Notable changes
+
+*   Raw template handler (the default template handler in Rails 5) now outputs
+    HTML-safe strings.
+    ([commit](https://github.com/rails/rails/commit/1de0df86695f8fa2eeae6b8b46f9b53decfa6ec8))
+
+*   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local`
+    fields.
+    ([Pull Request](https://github.com/rails/rails/pull/28061))
+
+*   New Builder-style syntax for HTML tags (`tag.div`, `tag.br`, etc.)
+    ([Pull Request](https://github.com/rails/rails/pull/25543))
+
+*   Add `form_with` to unify `form_tag` and `form_for` usage.
+    ([Pull Request](https://github.com/rails/rails/pull/26976))
 
 Action Mailer
 -------------
