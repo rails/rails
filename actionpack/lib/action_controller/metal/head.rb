@@ -24,7 +24,7 @@ module ActionController
       status ||= :ok
 
       location = options.delete(:location)
-      content_type = options.delete(:content_type)
+      content_type = options.delete(:content_type) || options.delete("Content-Type")
 
       options.each do |key, value|
         headers[key.to_s.dasherize.split("-").each { |v| v[0] = v[0].chr.upcase }.join("-")] = value.to_s

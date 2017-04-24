@@ -177,6 +177,10 @@ class TestController < ActionController::Base
     head :created, content_type: "application/json"
   end
 
+  def head_created_with_application_json_string_content_type
+    head :created, "Content-Type" => "application/json"
+  end
+
   def head_ok_with_image_png_content_type
     head :ok, content_type: "image/png"
   end
@@ -653,6 +657,13 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
+    assert @response.body.blank?
+    assert_equal "application/json", @response.header["Content-Type"]
+    assert_response :created
+  end
+
+  def test_head_created_with_application_json_string_content_type
+    post :head_created_with_application_json_string_content_type
     assert @response.body.blank?
     assert_equal "application/json", @response.header["Content-Type"]
     assert_response :created
