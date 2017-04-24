@@ -676,13 +676,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def request_forgery_protection_token
     "form_token"
   end
-
-  private
-    def sort_query_string_params(uri)
-      path, qs = uri.split("?")
-      qs = qs.split("&amp;").sort.join("&amp;") if qs
-      qs ? "#{path}?#{qs}" : path
-    end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
