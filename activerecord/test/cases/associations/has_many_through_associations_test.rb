@@ -60,8 +60,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     CurrentMembership.create! club: club, member: member2
 
     club1 = Club.includes(:members).find_by_id club.id
-    assert_equal [member1, member2].sort_by(&:id),
-                 club1.members.sort_by(&:id)
+    assert_equal(
+      [member1.id, member2.id].sort,
+      club1.members.map(&:id).sort
+    )
   end
 
   def make_model(name)
@@ -232,6 +234,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_concat
     person = people(:david)
     post   = posts(:thinking)
+
+    assert_equal 0, post.people.size
     post.people.concat [person]
     assert_equal 1, post.people.size
     assert_equal 1, post.people.reload.size
@@ -856,7 +860,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author   = authors(:mary)
     category = author.named_categories.create(name: "Primary")
     author.named_categories.delete(category)
-    assert !Categorization.exists?(author_id: author.id, named_category_name: category.name)
+    refute Categorization.exists?(author_id: author.id, named_category_name: category.name)
     assert author.named_categories.reload.empty?
   end
 
@@ -943,8 +947,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_association_readonly_should_be_false
-    assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.to_a.first.readonly?
+    refute people(:michael).posts.first.readonly?
+    refute people(:michael).posts.to_a.first.readonly?
   end
 
   def test_can_update_through_association
@@ -956,13 +960,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_polymorphic_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories
 
-    authors = Author.joins(:essay_categories).where("categories.id" => categories(:general).id)
-    assert_equal authors(:david), authors.first
+    authors_collection = Author.joins(:essay_categories).where("categories.id" => categories(:general).id)
+    assert_includes authors_collection, authors(:david)
 
     assert_equal [owners(:blackbeard)], authors(:david).essay_owners
 
-    authors = Author.joins(:essay_owners).where("owners.name = 'blackbeard'")
-    assert_equal authors(:david), authors.first
+    authors_collection = Author.joins(:essay_owners).where("owners.name = 'blackbeard'")
+    assert_includes authors_collection, authors(:david)
   end
 
   def test_has_many_through_with_primary_key_option
@@ -1026,7 +1030,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.author_categorizations
     proxy = post.send(:association_instance_get, :author_categorizations)
 
-    assert !proxy.stale_target?
+    refute proxy.stale_target?
     assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
 
     post.author_id = authors(:david).id
@@ -1096,7 +1100,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     repair_validations(Categorization) do
       Categorization.validate { |r| r.errors[:base] << "Invalid Categorization" }
       c = Category.new(name: "Fishing", authors: [Author.first])
-      assert_not c.save
+      refute c.save
     end
   end
 
@@ -1216,8 +1220,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     TenantMembership.current_member = member
 
-    tenant_clubs = member.tenant_clubs
-    assert_equal [club], tenant_clubs
+    assert_equal [club], member.tenant_clubs
 
     TenantMembership.current_member = nil
 
@@ -1228,8 +1231,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       club: other_club
     )
 
-    tenant_clubs = other_member.tenant_clubs
-    assert_equal [other_club], tenant_clubs
+    assert_equal [other_club], other_member.tenant_clubs
   ensure
     TenantMembership.current_member = nil
   end
