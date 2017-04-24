@@ -98,7 +98,7 @@ module ActiveRecord
               still causes `String`s to be parsed as if they were in `Time.zone`,
               and `Time`s to be converted to `Time.zone`.
 
-              To keep the old behavior, you must add the following to your initializer:
+              To keep the old behavior, you must add the following to `config/application.rb`:
 
                   config.active_record.time_zone_aware_types = [:datetime]
 
