@@ -3,6 +3,7 @@ require "active_record/relation/predicate_builder/base_handler"
 require "active_record/relation/predicate_builder/basic_object_handler"
 require "active_record/relation/predicate_builder/range_handler"
 require "active_record/relation/predicate_builder/relation_handler"
+require "active_record/relation/predicate_builder/set_handler"
 
 require "active_record/relation/predicate_builder/association_query_value"
 require "active_record/relation/predicate_builder/polymorphic_array_value"
@@ -21,6 +22,7 @@ module ActiveRecord
       register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
+      register_handler(Set, SetHandler.new(self))
     end
 
     def build_from_hash(attributes)
