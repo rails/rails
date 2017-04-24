@@ -679,7 +679,7 @@ end
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
-Action Callbacks
+Action callbacks
 -------
 
 Action callbacks are methods that are run "before", "after" or "around" a controller action.
@@ -715,7 +715,7 @@ end
 
 Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this action callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding action callbacks too, so you can add a action callback which only runs for selected actions in the first place.
 
-### After Action Callbacks and Around Action Callbacks
+### After action callbacks and Around action callbacks
 
 In addition to "before" action callbacks, you can also run action callbacks after an action has been executed, or both before and after.
 
@@ -747,7 +747,7 @@ Note that an "around" action callback also wraps rendering. In particular, if in
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
-### Other Ways to Use Action Callbacks
+### Other Ways to Use action callbacks
 
 While the most common way to use action callbacks is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
