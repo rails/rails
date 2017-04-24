@@ -104,7 +104,7 @@ module ActiveModel
     module HelperMethods
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with Kernel.Float (if <tt>only_integer</tt>
-      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\Z/</tt>
+      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\z/</tt>
       # (if <tt>only_integer</tt> is set to +true+).
       #
       #   class Person < ActiveRecord::Base
