@@ -1232,6 +1232,34 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
   end
 
+  test "#skip_query_cache! for #exists?" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.exists?
+        Topic.exists?
+      end
+
+      assert_queries(2) do
+        Topic.all.skip_query_cache!.exists?
+        Topic.all.skip_query_cache!.exists?
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #exists? with a limited eager load" do
+    Topic.cache do
+      assert_queries(2) do
+        Topic.eager_load(:replies).limit(1).exists?
+        Topic.eager_load(:replies).limit(1).exists?
+      end
+
+      assert_queries(4) do
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+      end
+    end
+  end
+
   private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
