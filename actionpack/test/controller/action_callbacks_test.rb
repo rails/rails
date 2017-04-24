@@ -10,7 +10,9 @@ class ActionController::Base
 
     def before_actions
       action_callbacks = _process_action_callbacks.select { |c| c.kind == :before }
-      action_callbacks.map!(&:raw_action_callback)
+      # NOTE: Even though we no longer refer to controller callbacks
+      # as 'filters', they are still called filters in ActiveSupport::Callbacks
+      action_callbacks.map!(&:raw_filter)
     end
   end
 end
