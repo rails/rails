@@ -1,4 +1,3 @@
-
 module ActiveModel
   module Validations
     class PresenceValidator < EachValidator # :nodoc:

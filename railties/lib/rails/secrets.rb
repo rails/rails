@@ -14,12 +14,10 @@ module Rails
     end
 
     @cipher = "aes-128-gcm"
-    @read_encrypted_secrets = false
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
-      attr_writer   :root
-      attr_accessor :read_encrypted_secrets
+      attr_writer :root
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
@@ -88,11 +86,7 @@ module Rails
 
         def preprocess(path)
           if path.end_with?(".enc")
-            if @read_encrypted_secrets
-              decrypt(IO.binread(path))
-            else
-              ""
-            end
+            decrypt(IO.binread(path))
           else
             IO.read(path)
           end

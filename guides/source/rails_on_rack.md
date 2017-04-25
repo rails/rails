@@ -20,9 +20,9 @@ Introduction to Rack
 
 Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
-* [Rack API Documentation](http://rack.github.io/)
-
-Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the [Resources](#resources) section below.
+Explaining how Rack works is not really in the scope of this guide. In case you
+are not familiar with Rack's basics, you should check out the [Resources](#resources)
+section below.
 
 Rails on Rack
 -------------
@@ -74,7 +74,7 @@ And start the server:
 $ rackup config.ru
 ```
 
-To find out more about different `rackup` options:
+To find out more about different `rackup` options, you can run:
 
 ```bash
 $ rackup --help
@@ -89,7 +89,8 @@ Action Dispatcher Middleware Stack
 
 Many of Action Dispatcher's internal components are implemented as Rack middlewares. `Rails::Application` uses `ActionDispatch::MiddlewareStack` to combine various internal and external middlewares to form a complete Rails Rack application.
 
-NOTE: `ActionDispatch::MiddlewareStack` is Rails equivalent of `Rack::Builder`, but built for better flexibility and more features to meet Rails' requirements.
+NOTE: `ActionDispatch::MiddlewareStack` is Rails' equivalent of `Rack::Builder`,
+but is built for better flexibility and more features to meet Rails' requirements.
 
 ### Inspecting Middleware Stack
 

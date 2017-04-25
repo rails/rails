@@ -142,16 +142,17 @@ Sometimes, you have a resource that clients always look up without referencing a
 get 'profile', to: 'users#show'
 ```
 
-Passing a `String` to `get` will expect a `controller#action` format, while passing a `Symbol` will map directly to an action but you must also specify the `controller:` to use:
+Passing a `String` to `to:` will expect a `controller#action` format. When using a `Symbol`, the `to:` option should be replaced with `action:`. When using a `String` without a `#`, the `to:` option should be replaced with `controller:`:
 
 ```ruby
-get 'profile', to: :show, controller: 'users'
+get 'profile', action: :show, controller: 'users'
 ```
 
 This resourceful route:
 
 ```ruby
 resource :geocoder
+resolve('Geocoder') { [:geocoder] }
 ```
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
@@ -174,14 +175,6 @@ A singular resourceful route generates these helpers:
 * `geocoder_path` returns `/geocoder`
 
 As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
-
-WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) prevents `form_for` from working automatically with singular resources. As a workaround, specify the URL for the form directly, like so:
-
-```ruby
-form_for @geocoder, url: geocoder_path do |f|
-
-# snippet for brevity
-```
 
 ### Controller Namespaces and Routing
 

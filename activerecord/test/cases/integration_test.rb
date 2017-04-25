@@ -1,4 +1,3 @@
-
 require "cases/helper"
 require "models/company"
 require "models/developer"

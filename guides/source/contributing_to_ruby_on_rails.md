@@ -132,23 +132,11 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-You can either open a pull request to [Rails](https://github.com/rails/rails) or
-ask the [Rails core team](http://rubyonrails.org/community/#core) for commit access on
-docrails if you contribute regularly.
-Please do not open pull requests in docrails, if you'd like to get feedback on your
-change, ask for it in [Rails](https://github.com/rails/rails) instead.
-
-Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
-
-If you are unsure of the documentation changes, you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
+To do so, open a pull request to [Rails](https://github.com/rails/rails) on GitHub.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
-NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. Docrails is only used for isolated documentation improvements.
-
 NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
-
-WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
 Translating Rails Guides
 ------------------------
@@ -418,16 +406,6 @@ examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
 
 Some changes require the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
 
-### Sanity Check
-
-You should not be the only person who looks at the code before you submit it.
-If you know someone else who uses Rails, try asking them if they'll check out
-your work. If you don't know anyone else using Rails, try hopping into the IRC
-room or posting about your idea to the rails-core mailing list. Doing this in
-private before you push a patch out publicly is the "smoke test" for a patch:
-if you can't convince one other developer of the beauty of your code, you’re
-unlikely to convince the core team either.
-
 ### Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
@@ -685,4 +663,4 @@ And then... think about your next contribution!
 Rails Contributors
 ------------------
 
-All contributions, either via master or docrails, get credit in [Rails Contributors](http://contributors.rubyonrails.org).
+All contributions get credit in [Rails Contributors](http://contributors.rubyonrails.org).

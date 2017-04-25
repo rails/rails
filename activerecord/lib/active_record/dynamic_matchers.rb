@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module DynamicMatchers #:nodoc:
     def respond_to_missing?(name, include_private = false)

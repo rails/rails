@@ -201,9 +201,9 @@ module ActionView
       #     <%= f.submit %>
       #   <% end %>
       #
-      # This also works for the methods in FormOptionHelper and DateHelper that
+      # This also works for the methods in FormOptionsHelper and DateHelper that
       # are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === #form_for with a model object
       #
@@ -416,13 +416,13 @@ module ActionView
       #
       # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
       #
-      #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
       #     ...
       #   <% end %>
       #
       # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
       #
-      #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f| %>
       #     ...
       #   <% end %>
       def form_for(record, options = {}, &block)
@@ -473,6 +473,8 @@ module ActionView
         end
       end
       private :apply_form_for_options!
+
+      mattr_accessor(:form_with_generates_remote_forms) { true }
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
@@ -632,9 +634,9 @@ module ActionView
       #     <%= form.submit %>
       #   <% end %>
       #
-      # Same goes for the methods in FormOptionHelper and DateHelper designed
+      # Same goes for the methods in FormOptionsHelper and DateHelper designed
       # to work with an object as a base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Setting the method
       #
@@ -791,9 +793,9 @@ module ActionView
       # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
       # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
       #
-      # Note: This also works for the methods in FormOptionHelper and
+      # Note: This also works for the methods in FormOptionsHelper and
       # DateHelper that are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Nested Attributes Examples
       #
@@ -1033,9 +1035,9 @@ module ActionView
       #     <%= check_box_tag "comment[all_caps]", "1", @comment.commenter.hulk_mode? %>
       #   <% end %>
       #
-      # Same goes for the methods in FormOptionHelper and DateHelper designed
+      # Same goes for the methods in FormOptionsHelper and DateHelper designed
       # to work with an object as a base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = true
@@ -1503,7 +1505,7 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: false,
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: false, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
@@ -1517,12 +1519,14 @@ module ActionView
           html_options[:"accept-charset"] = "UTF-8"
           html_options[:"data-remote"] = true unless local
 
-          if !local && !embed_authenticity_token_in_remote_forms &&
-            html_options[:authenticity_token].blank?
-            # The authenticity token is taken from the meta tag in this case
-            html_options[:authenticity_token] = false
-          elsif html_options[:authenticity_token] == true
-            # Include the default authenticity_token, which is only generated when its set to nil,
+          html_options[:authenticity_token] = options.delete(:authenticity_token)
+
+          if !local && html_options[:authenticity_token].blank?
+            html_options[:authenticity_token] = embed_authenticity_token_in_remote_forms
+          end
+
+          if html_options[:authenticity_token] == true
+            # Include the default authenticity_token, which is only generated when it's set to nil,
             # but we needed the true value to override the default of no authenticity_token on data-remote.
             html_options[:authenticity_token] = nil
           end
@@ -1724,9 +1728,9 @@ module ActionView
       # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
       # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
       #
-      # Note: This also works for the methods in FormOptionHelper and
+      # Note: This also works for the methods in FormOptionsHelper and
       # DateHelper that are designed to work with an object as base, like
-      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
       # === Nested Attributes Examples
       #

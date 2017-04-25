@@ -140,7 +140,7 @@ module Rails
       class_option :mode, enum: %w( html list line column ), type: :string,
         desc: "Automatically put the sqlite3 database in the specified mode (html, list, line, column)."
 
-      class_option :header, type: :string
+      class_option :header, type: :boolean
 
       class_option :environment, aliases: "-e", type: :string,
         desc: "Specifies the environment to run this console under (test/development/production)."

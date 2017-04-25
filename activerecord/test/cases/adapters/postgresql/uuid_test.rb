@@ -13,6 +13,10 @@ module PostgresqlUUIDHelper
   def uuid_function
     connection.supports_pgcrypto_uuid? ? "gen_random_uuid()" : "uuid_generate_v4()"
   end
+
+  def uuid_default
+    connection.supports_pgcrypto_uuid? ? {} : { default: uuid_function }
+  end
 end
 
 class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
@@ -178,7 +182,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.uuid "other_uuid_2", default: "my_uuid_generator()"
     end
 
-    connection.create_table("pg_uuids_3", id: :uuid) do |t|
+    connection.create_table("pg_uuids_3", id: :uuid, **uuid_default) do |t|
       t.string "name"
     end
   end
@@ -320,10 +324,10 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
   setup do
     connection.transaction do
-      connection.create_table("pg_uuid_posts", id: :uuid) do |t|
+      connection.create_table("pg_uuid_posts", id: :uuid, **uuid_default) do |t|
         t.string "title"
       end
-      connection.create_table("pg_uuid_comments", id: :uuid) do |t|
+      connection.create_table("pg_uuid_comments", id: :uuid, **uuid_default) do |t|
         t.references :uuid_post, type: :uuid
         t.string "content"
       end

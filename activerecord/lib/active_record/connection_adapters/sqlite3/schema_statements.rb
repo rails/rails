@@ -2,6 +2,41 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module SchemaStatements # :nodoc:
+        # Returns an array of indexes for the given table.
+        def indexes(table_name, name = nil)
+          if name
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing name to #indexes is deprecated without replacement.
+            MSG
+          end
+
+          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
+            index_sql = select_value(<<-SQL, "SCHEMA")
+              SELECT sql
+              FROM sqlite_master
+              WHERE name = #{quote(row['name'])} AND type = 'index'
+              UNION ALL
+              SELECT sql
+              FROM sqlite_temp_master
+              WHERE name = #{quote(row['name'])} AND type = 'index'
+            SQL
+
+            /\sWHERE\s+(?<where>.+)$/i =~ index_sql
+
+            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
+              col["name"]
+            end
+
+            IndexDefinition.new(
+              table_name,
+              row["name"],
+              row["unique"] != 0,
+              columns,
+              where: where
+            )
+          end
+        end
+
         private
           def schema_creation
             SQLite3::SchemaCreation.new(self)

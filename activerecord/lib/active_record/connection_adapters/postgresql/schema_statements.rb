@@ -140,8 +140,17 @@ module ActiveRecord
               ]
             end
 
-            IndexDefinition.new(table_name, index_name, unique, columns, [], orders, where, nil, using.to_sym, comment.presence)
-          end.compact
+            IndexDefinition.new(
+              table_name,
+              index_name,
+              unique,
+              columns,
+              orders: orders,
+              where: where,
+              using: using.to_sym,
+              comment: comment.presence
+            )
+          end
         end
 
         def table_options(table_name) # :nodoc:
@@ -344,13 +353,17 @@ module ActiveRecord
 
         def primary_keys(table_name) # :nodoc:
           select_values(<<-SQL.strip_heredoc, "SCHEMA")
-            SELECT a.attname FROM pg_index i
-            CROSS JOIN generate_subscripts(i.indkey, 1) k
-             JOIN pg_attribute a
-               ON a.attrelid = i.indrelid
-              AND a.attnum = i.indkey[k]
-            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
-              AND i.indisprimary
+            SELECT a.attname
+              FROM (
+                     SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
+                       FROM pg_index
+                      WHERE indrelid = #{quote(quote_table_name(table_name))}::regclass
+                        AND indisprimary
+                   ) i
+              JOIN pg_attribute a
+                ON a.attrelid = i.indrelid
+               AND a.attnum = i.indkey[i.idx]
+             ORDER BY i.idx
           SQL
         end
 

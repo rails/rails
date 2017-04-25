@@ -35,6 +35,22 @@ module RequestForgeryProtectionActions
     render inline: "<%= form_for(:some_resource, :remote => true, :authenticity_token => 'external_token') {} %>"
   end
 
+  def form_with_remote
+    render inline: "<%= form_with(scope: :some_resource) {} %>"
+  end
+
+  def form_with_remote_with_token
+    render inline: "<%= form_with(scope: :some_resource, authenticity_token: true) {} %>"
+  end
+
+  def form_with_local_with_token
+    render inline: "<%= form_with(scope: :some_resource, local: true, authenticity_token: true) {} %>"
+  end
+
+  def form_with_remote_with_external_token
+    render inline: "<%= form_with(scope: :some_resource, authenticity_token: 'external_token') {} %>"
+  end
+
   def same_origin_js
     render js: "foo();"
   end
@@ -235,6 +251,80 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_render_form_with_with_token_tag_if_remote
+    assert_not_blocked do
+      get :form_with_remote
+    end
+    assert_match(/authenticity_token/, response.body)
+  end
+
+  def test_should_render_form_with_without_token_tag_if_remote_and_embedding_token_is_off
+    original = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+    begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = false
+      assert_not_blocked do
+        get :form_with_remote
+      end
+      assert_no_match(/authenticity_token/, response.body)
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
+    end
+  end
+
+  def test_should_render_form_with_with_token_tag_if_remote_and_external_authenticity_token_requested_and_embedding_is_on
+    original = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+    begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+      assert_not_blocked do
+        get :form_with_remote_with_external_token
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
+    end
+  end
+
+  def test_should_render_form_with_with_token_tag_if_remote_and_external_authenticity_token_requested
+    assert_not_blocked do
+      get :form_with_remote_with_external_token
+    end
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+  end
+
+  def test_should_render_form_with_with_token_tag_if_remote_and_authenticity_token_requested
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :form_with_remote_with_token
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+    end
+  end
+
+  def test_should_render_form_with_with_token_tag_with_authenticity_token_requested
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :form_with_local_with_token
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+    end
+  end
+
+  def test_should_render_form_with_with_token_tag_if_remote_and_embedding_token_is_on
+    original = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+    begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+
+      @controller.stub :form_authenticity_token, @token do
+        assert_not_blocked do
+          get :form_with_remote
+        end
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
+    end
+  end
+
   def test_should_allow_get
     assert_not_blocked { get :index }
   end
@@ -347,6 +437,10 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_block_post_with_origin_checking_and_wrong_origin
+    old_logger = ActionController::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.logger = logger
+
     forgery_protection_origin_check do
       session[:_csrf_token] = @token
       @controller.stub :form_authenticity_token, @token do
@@ -356,6 +450,13 @@ module RequestForgeryProtectionTests
         end
       end
     end
+
+    assert_match(
+      "HTTP Origin header (http://bad.host) didn't match request.base_url (http://test.host)",
+      logger.logged(:warn).last
+    )
+  ensure
+    ActionController::Base.logger = old_logger
   end
 
   def test_should_warn_on_missing_csrf_token

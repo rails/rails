@@ -512,7 +512,6 @@ module ActiveSupport
         end
       end
 
-      # An Array with a compile method.
       class CallbackChain #:nodoc:#
         include Enumerable
 

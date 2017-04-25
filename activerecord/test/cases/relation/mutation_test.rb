@@ -143,7 +143,7 @@ module ActiveRecord
       assert_equal({ foo: "bar" }, relation.create_with_value)
     end
 
-    test "test_merge!" do
+    test "merge!" do
       assert relation.merge!(select: :foo).equal?(relation)
       assert_equal [:foo], relation.select_values
     end

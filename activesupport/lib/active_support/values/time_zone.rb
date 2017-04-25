@@ -6,7 +6,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 146
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
@@ -59,6 +59,7 @@ module ActiveSupport
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
+      "Puerto Rico"                  => "America/Puerto_Rico",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",

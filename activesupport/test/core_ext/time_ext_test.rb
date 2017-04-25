@@ -433,6 +433,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(nsec: 1000000000) }
   end
 
+  def test_change_offset
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, "-08:00"), Time.new(2006, 2, 22, 15, 15, 10, "+01:00").change(offset: "-08:00")
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, -28800), Time.new(2006, 2, 22, 15, 15, 10, 3600).change(offset: -28800)
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(usec: 1000000, offset: "-08:00") }
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(nsec: 1000000000, offset: -28800) }
+  end
+
   def test_advance
     assert_equal Time.local(2006, 2, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 1)
     assert_equal Time.local(2005, 6, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(months: 4)

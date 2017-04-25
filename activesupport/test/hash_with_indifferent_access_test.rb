@@ -166,6 +166,18 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal [1, 2], @mixed.values_at(:a, :b)
   end
 
+  def test_indifferent_fetch_values
+    skip unless Hash.method_defined?(:fetch_values)
+
+    @mixed = @mixed.with_indifferent_access
+
+    assert_equal [1, 2], @mixed.fetch_values("a", "b")
+    assert_equal [1, 2], @mixed.fetch_values(:a, :b)
+    assert_equal [1, 2], @mixed.fetch_values(:a, "b")
+    assert_equal [1, "c"], @mixed.fetch_values(:a, :c) { |key| key }
+    assert_raise(KeyError) { @mixed.fetch_values(:a, :c) }
+  end
+
   def test_indifferent_reading
     hash = HashWithIndifferentAccess.new
     hash["a"] = 1
@@ -675,7 +687,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
       assert_includes yaml_output, "hash"
     end
   end
-  HashWithIndifferentAccess = ActiveSupport::HashWithIndifferentAccess
 
   def test_should_use_default_proc_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new { 1 + 2 }

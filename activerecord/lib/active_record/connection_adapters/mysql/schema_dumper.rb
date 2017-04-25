@@ -55,13 +55,14 @@ module ActiveRecord
           def extract_expression_for_virtual_column(column)
             if mariadb?
               create_table_info = create_table_info(column.table_name)
-              if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)} AS \((?<expression>.+?)\) #{column.extra}/m =~ create_table_info
+              if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
                 $~[:expression].inspect
               end
             else
+              scope = quoted_scope(column.table_name)
               sql = "SELECT generation_expression FROM information_schema.columns" \
-                    " WHERE table_schema = #{quote(@config[:database])}" \
-                    "   AND table_name = #{quote(column.table_name)}" \
+                    " WHERE table_schema = #{scope[:schema]}" \
+                    "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{quote(column.name)}"
               select_value(sql, "SCHEMA").inspect
             end

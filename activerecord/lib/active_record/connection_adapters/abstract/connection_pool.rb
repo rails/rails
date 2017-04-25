@@ -857,9 +857,9 @@ module ActiveRecord
     # All Active Record models use this handler to determine the connection pool that they
     # should use.
     #
-    # The ConnectionHandler class is not coupled with the Active models, as it has no knowlodge
+    # The ConnectionHandler class is not coupled with the Active models, as it has no knowledge
     # about the model. The model needs to pass a specification name to the handler,
-    # in order to lookup the correct connection pool.
+    # in order to look up the correct connection pool.
     class ConnectionHandler
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).

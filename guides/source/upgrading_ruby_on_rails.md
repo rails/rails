@@ -73,16 +73,32 @@ For more information on changes made to Rails 5.1 please see the [release notes]
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
 If your application uses the the top-level `HashWithIndifferentAccess` class, you
-should slowly move your code to use the `ActiveSupport::HashWithIndifferentAccess`
-one.
+should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
 
 It is only soft-deprecated, which means that your code will not break at the
-moment and no deprecation warning will be displayed but this constant will be
+moment and no deprecation warning will be displayed, but this constant will be
 removed in the future.
 
 Also, if you have pretty old YAML documents containing dumps of such objects,
 you may need to load and dump them again to make sure that they reference
-the right constant and that loading them won't break in the future.
+the right constant, and that loading them won't break in the future.
+
+### `config.secrets` now loaded with all keys as symbols
+
+If your application stores nested configuration in `config/secrets.yml`, all keys
+are now loaded as symbols, so access using strings should be changed.
+
+From:
+
+```ruby
+Rails.appplication.config.secrets[:smtp_settings]["address"]
+```
+
+To:
+
+```ruby
+Rails.application.config.secrets[:smtp_settings][:address]
+```
 
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------

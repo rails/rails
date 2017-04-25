@@ -202,9 +202,27 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
-  # ensures +exists?+ runs valid SQL by excluding order value
-  def test_exists_with_order
+  # Ensure +exists?+ runs without an error by excluding distinct value.
+  # See https://github.com/rails/rails/pull/26981.
+  def test_exists_with_order_and_distinct
     assert_equal true, Topic.order(:id).distinct.exists?
+  end
+
+  # Ensure +exists?+ runs without an error by excluding order value.
+  def test_exists_with_order
+    assert_equal true, Topic.order("invalid sql here").exists?
+  end
+
+  def test_exists_with_joins
+    assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_left_joins
+    assert_equal true, Topic.left_joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_eager_load
+    assert_equal true, Topic.eager_load(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
@@ -236,9 +254,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
   def test_exists_does_not_instantiate_records
