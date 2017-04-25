@@ -97,20 +97,49 @@ module ActiveRecord
         return unless super
 
         if ActiveRecord::Base.log_query_source || self.class.log_query_source
-          log_query_source(caller)
+          log_query_source
         end
       end
 
-      def log_query_source(caller, root = nil)
-        source_line = caller.first
+      def log_query_source
+        source_line, line_number = extract_callstack(caller_locations)
 
         if source_line
-          root = "#{::Rails.root}/".freeze if defined?(::Rails)
-          source_line = source_line.sub(root, "") if root
+          if defined?(::Rails)
+            app_root = "#{::Rails.root.to_s}/".freeze
+            source_line = source_line.sub(app_root, "")
+          end
 
-          logger.debug("  ↳ #{ source_line }")
+          logger.debug("  ↳ #{ source_line }:#{ line_number }")
         end
       end
+
+      def extract_callstack(callstack)
+        offending_line = callstack.find { |frame|
+          frame.absolute_path && !ignored_callstack(frame.absolute_path)
+        } || callstack.first
+
+        [offending_line.path, offending_line.lineno, offending_line.label]
+      end
+
+      def _extract_callstack(callstack)
+        offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
+
+        if offending_line
+          if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
+            md.captures
+          else
+            offending_line
+          end
+        end
+      end
+
+      RAILS_GEM_ROOT = File.expand_path("../../../..", __FILE__) + "/"
+
+      def ignored_callstack(path)
+        path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
+      end
+
   end
 end
 
