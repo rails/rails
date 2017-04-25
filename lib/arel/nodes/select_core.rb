@@ -10,7 +10,7 @@ module Arel
         @source         = JoinSource.new nil
         @top            = nil
 
-        # http://savage.net.au/SQL/sql-92.bnf.html#set%20quantifier
+        # https://ronsavage.github.io/SQL/sql-92.bnf.html#set%20quantifier
         @set_quantifier = nil
         @projections    = []
         @wheres         = []
