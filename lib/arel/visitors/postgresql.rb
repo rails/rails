@@ -5,6 +5,7 @@ module Arel
       CUBE = 'CUBE'
       ROLLUP = 'ROLLUP'
       GROUPING_SET = 'GROUPING SET'
+      LATERAL = 'LATERAL'
 
       private
 
@@ -67,6 +68,23 @@ module Arel
       def visit_Arel_Nodes_GroupingSet o, collector
         collector << GROUPING_SET
         grouping_array_or_grouping_element o, collector
+      end
+
+      def visit_Arel_Nodes_Lateral o, collector
+        collector << LATERAL
+        collector << SPACE
+        grouping_parentheses o, collector
+      end
+
+      # Used by Lateral visitor to enclose select queries in parentheses
+      def grouping_parentheses o, collector
+        if o.expr.is_a? Nodes::SelectStatement
+          collector << "("
+          visit o.expr, collector
+          collector << ")"
+        else
+          visit o.expr, collector
+        end
       end
 
       # Utilized by GroupingSet, Cube & RollUp visitors to

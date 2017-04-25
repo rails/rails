@@ -28,6 +28,7 @@ module Arel
       Group
       GroupingElement
       GroupingSet
+      Lateral
       Limit
       Lock
       Not
