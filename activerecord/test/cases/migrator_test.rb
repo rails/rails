@@ -298,6 +298,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_verbosity
     _, migrations = sensors(3)
 
+    ActiveRecord::Migration.verbose = true
     ActiveRecord::Migrator.new(:up, migrations, 1).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
 
@@ -310,7 +311,6 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_verbosity_off
     _, migrations = sensors(3)
 
-    ActiveRecord::Migration.message_count = 0
     ActiveRecord::Migration.verbose = false
     ActiveRecord::Migrator.new(:up, migrations, 1).migrate
     assert_equal 0, ActiveRecord::Migration.message_count
