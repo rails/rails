@@ -15,8 +15,34 @@ module ActiveRecord
     end
 
     test "cache_key for relation" do
-      developers = Developer.where(name: "David")
-      last_developer_timestamp = developers.order(updated_at: :desc).first.updated_at
+      developers = Developer.where(salary: 100000).order(updated_at: :desc)
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/ =~ developers.cache_key
+
+      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with limit" do
+      developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5)
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/ =~ developers.cache_key
+
+      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for loaded relation" do
+      developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5).load
+      last_developer_timestamp = developers.first.updated_at
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
 
