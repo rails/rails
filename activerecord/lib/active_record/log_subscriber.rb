@@ -2,6 +2,8 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
+    cattr_accessor :log_query_source
+
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
     def self.runtime=(value)
@@ -92,11 +94,21 @@ module ActiveRecord
       end
 
       def debug(progname = nil, &block)
-        backtrace = Rails.backtrace_cleaner.clean caller
-        relevant_caller_line = backtrace.first
+        return unless super
 
-        if relevant_caller_line
-          logger.debug("  ↳ #{ relevant_caller_line.sub("#{ Rails.root }/", '') }")
+        if ActiveRecord::Base.log_query_source || self.class.log_query_source
+          log_query_source(caller)
+        end
+      end
+
+      def log_query_source(caller, root = nil)
+        source_line = caller.first
+
+        if source_line
+          root = "#{::Rails.root}/".freeze if defined?(::Rails)
+          source_line = source_line.sub(root, "") if root
+
+          logger.debug("  ↳ #{ source_line }")
         end
       end
   end

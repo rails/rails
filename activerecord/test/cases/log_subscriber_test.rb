@@ -33,8 +33,9 @@ class LogSubscriberTest < ActiveRecord::TestCase
       super
     end
 
-    def debug(message)
-      @debugs << message
+    def debug(progname = nil, &block)
+      @debugs << progname
+      super
     end
   end
 
@@ -169,6 +170,30 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Exists/, @logger.logged(:debug).last)
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
+  end
+
+  def test_log_query_source_with_log_subscriber_config
+    TestDebugLogSubscriber.log_query_source = true
+
+    event = Struct.new(:duration, :payload)
+
+    logger = TestDebugLogSubscriber.new
+    logger.sql(event.new(0, sql: "hi mom!"))
+    assert_match(/↳/, @logger.logged(:debug).last)
+
+    TestDebugLogSubscriber.log_query_source = false
+  end
+
+  def test_log_query_source_with_active_record_config
+    ActiveRecord::Base.log_query_source = true
+
+    event = Struct.new(:duration, :payload)
+
+    logger = TestDebugLogSubscriber.new
+    logger.sql(event.new(0, sql: "hi mom!"))
+    assert_match(/↳/, @logger.logged(:debug).last)
+
+    ActiveRecord::Base.log_query_source = false
   end
 
   def test_cached_queries

@@ -1488,6 +1488,12 @@ module ApplicationTests
       assert ActiveRecord::Base.dump_schema_after_migration
     end
 
+    test "config.active_record.log_query_source is false by default on development" do
+      app "development"
+
+      assert_not ActiveRecord::Base.log_query_source
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
