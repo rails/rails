@@ -35,12 +35,10 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  if Enumerator.method_defined? :size
-    def test_each_should_return_a_sized_enumerator
-      assert_equal 11, Post.find_each(batch_size: 1).size
-      assert_equal 5, Post.find_each(batch_size:  2, start: 7).size
-      assert_equal 11, Post.find_each(batch_size: 10_000).size
-    end
+  def test_each_should_return_a_sized_enumerator
+    assert_equal 11, Post.find_each(batch_size: 1).size
+    assert_equal 5, Post.find_each(batch_size:  2, start: 7).size
+    assert_equal 11, Post.find_each(batch_size: 10_000).size
   end
 
   def test_each_enumerator_should_execute_one_query_per_batch
@@ -515,14 +513,12 @@ class EachTest < ActiveRecord::TestCase
     assert_equal 2, person.reload.author_id # incremented only once
   end
 
-  if Enumerator.method_defined? :size
-    def test_find_in_batches_should_return_a_sized_enumerator
-      assert_equal 11, Post.find_in_batches(batch_size: 1).size
-      assert_equal 6, Post.find_in_batches(batch_size: 2).size
-      assert_equal 4, Post.find_in_batches(batch_size: 2, start: 4).size
-      assert_equal 4, Post.find_in_batches(batch_size: 3).size
-      assert_equal 1, Post.find_in_batches(batch_size: 10_000).size
-    end
+  def test_find_in_batches_should_return_a_sized_enumerator
+    assert_equal 11, Post.find_in_batches(batch_size: 1).size
+    assert_equal 6, Post.find_in_batches(batch_size: 2).size
+    assert_equal 4, Post.find_in_batches(batch_size: 2, start: 4).size
+    assert_equal 4, Post.find_in_batches(batch_size: 3).size
+    assert_equal 1, Post.find_in_batches(batch_size: 10_000).size
   end
 
   [true, false].each do |load|
