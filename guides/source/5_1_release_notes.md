@@ -324,7 +324,7 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 *   Permit same-origin connections by default.
     ([commit](https://github.com/rails/rails/commit/dae404473409fcab0e07976aec626df670e52282))
 
-*   Add `ActiveSupport::Notifications` hook for broadcasing data.
+*   Add `ActiveSupport::Notifications` hook for broadcasting data.
     ([Pull Request](https://github.com/rails/rails/pull/24988))
 
 Action Pack
