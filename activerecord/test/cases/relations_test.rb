@@ -594,7 +594,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_respond_to_delegates_to_relation
+  def test_respond_to_delegates_to_arel
     relation = Topic.all
     fake_arel = Struct.new(:responds) {
       def respond_to?(method, access = false)
@@ -607,10 +607,6 @@ class RelationTest < ActiveRecord::TestCase
 
     relation.respond_to?(:matching_attributes)
     assert_equal [:matching_attributes, false], fake_arel.responds.first
-
-    fake_arel.responds = []
-    relation.respond_to?(:matching_attributes, true)
-    assert_equal [:matching_attributes, true], fake_arel.responds.first
   end
 
   def test_respond_to_dynamic_finders

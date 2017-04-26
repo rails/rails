@@ -385,14 +385,15 @@ module ActionDispatch
         integration_session.default_url_options = options
       end
 
-      def respond_to_missing?(method, include_private = false)
-        integration_session.respond_to?(method, include_private) || super
+    private
+      def respond_to_missing?(method, _)
+        integration_session.respond_to?(method) || super
       end
 
       # Delegate unhandled messages to the current session instance.
-      def method_missing(sym, *args, &block)
-        if integration_session.respond_to?(sym)
-          integration_session.__send__(sym, *args, &block).tap do
+      def method_missing(method, *args, &block)
+        if integration_session.respond_to?(method)
+          integration_session.public_send(method, *args, &block).tap do
             copy_session_variables!
           end
         else
