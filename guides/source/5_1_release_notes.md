@@ -225,6 +225,37 @@ can generate form tags based on URLs, scopes or models.
 </form>
 ```
 
+Incompatibilities
+-----------------
+
+The following changes may require immediate action upon upgrade.
+
+### Transactional tests with multiple connections
+
+Transactional tests now wrap all Active Record connections in database
+transactions.
+
+When a test spawns additional threads, and those threads obtain database
+connections, those connections are now handled specially:
+
+The threads will share a single connection, which is inside the managed
+transaction. This ensures all threads see the database in the same
+state, ignoring the outermost transaction. Previously, such additional
+connections were unable to see the fixture rows, for example.
+
+When a thread enters a nested transaction, it will temporarily obtain
+exclusive use of the connection, to maintain isolation.
+
+If your tests currently rely on obtaining a separate,
+outside-of-transaction, connection in a spawned thread, you'll need to
+switch to more explicit connection management.
+
+If your tests spawn threads and those threads interact while also using
+explicit database transactions, this change may introduce a deadlock.
+
+The easy way to opt out of this new behavior is to disable transactional
+tests on any test cases it affects.
+
 Railties
 --------
 
