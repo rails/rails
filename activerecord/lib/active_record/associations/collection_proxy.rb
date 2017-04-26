@@ -1071,10 +1071,27 @@ module ActiveRecord
 
       delegate(*delegate_methods, to: :scope)
 
+      module DelegateExtending # :nodoc:
+        private
+          def method_missing(method, *args, &block)
+            extending_values = association_scope.extending_values
+            if extending_values.any? && (extending_values - self.class.included_modules).any?
+              self.class.include(*extending_values)
+              public_send(method, *args, &block)
+            else
+              super
+            end
+          end
+      end
+
       private
 
         def null_scope?
           @association.null_scope?
+        end
+
+        def association_scope
+          @association.association_scope
         end
 
         def exec_queries
@@ -1082,15 +1099,7 @@ module ActiveRecord
         end
 
         def respond_to_missing?(method, _)
-          scope.respond_to?(method) || super
-        end
-
-        def method_missing(method, *args, &block)
-          if scope.respond_to?(method)
-            scope.public_send(method, *args, &block)
-          else
-            super
-          end
+          association_scope.respond_to?(method) || super
         end
     end
   end
