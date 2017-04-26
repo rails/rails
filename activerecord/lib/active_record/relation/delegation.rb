@@ -25,6 +25,8 @@ module ActiveRecord
 
       def inherited(child_class)
         child_class.initialize_relation_delegate_cache
+        delegate = child_class.relation_delegate_class(ActiveRecord::Associations::CollectionProxy)
+        delegate.include ActiveRecord::Associations::CollectionProxy::DelegateExtending
         super
       end
     end
