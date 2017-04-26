@@ -40,7 +40,7 @@ Major Features
 
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
-Rails 5.1 will allow managing JavaScript dependencies
+Rails 5.1 allows managing JavaScript dependencies
 from NPM via Yarn. This will make it easy to use libraries like React, VueJS
 or any other library from NPM world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
@@ -70,14 +70,14 @@ offerings. It is no longer required, as the UJS has been rewritten to use plain,
 vanilla JavaScript. This code now ships inside of Action View as
 `rails-ujs`.
 
-You can still use the jQuery version if needed, but it is no longer required by default.
+You can still use jQuery if needed, but it is no longer required by default.
 
 ### System tests
 
 [Pull Request](https://github.com/rails/rails/pull/26703)
 
 Rails 5.1 has baked-in support for writing Capybara tests, in the form of
-System tests. You need no longer worry about configuring Capybara and
+System tests. You no longer need to worry about configuring Capybara and
 database cleaning strategies for such tests. Rails 5.1 provides a wrapper
 for running tests in Chrome with additional features such as failure
 screenshots.
@@ -86,7 +86,7 @@ screenshots.
 
 [Pull Request](https://github.com/rails/rails/pull/28038)
 
-Rails will now allow management of application secrets in a secure way,
+Rails now allows management of application secrets in a secure way,
 building on top of the [sekrets](https://github.com/ahoward/sekrets) gem.
 
 Run `bin/rails secrets:setup` to setup a new encrypted secrets file. This will
@@ -106,33 +106,24 @@ order to share instance variables, headers and other common setup.
 
 ``` ruby
 class InvitationsMailer < ApplicationMailer
-
   before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
   before_action { @account = params[:inviter].account }
 
   def account_invitation
     mail subject: "#{@inviter.name} invited you to their Basecamp (#{@account.name})"
   end
-
-  def project_invitation
-    @project    = params[:project]
-    @summarizer = ProjectInvitationSummarizer.new(@project.bucket)
-
-    mail subject: "#{@inviter.name.familiar} added you to a project in Basecamp (#{@account.name})"
-  end
 end
 
-InvitationsMailer.with(inviter: person_a, invitee: person_b).account_invitation.deliver_later
+InvitationsMailer.with(inviter: person_a, invitee: person_b)
+                 .account_invitation.deliver_later
 ```
 
 ### Direct & resolved routes
 
 [Pull Request](https://github.com/rails/rails/pull/23138)
 
-Rails 5.1 has added two new methods, `resolve` and `direct`, to the routing
-DSL.
-
-The `resolve` method allows customizing polymorphic mapping of models.
+Rails 5.1 adds two new methods, `resolve` and `direct`, to the routing
+DSL. The `resolve` method allows customizing polymorphic mapping of models.
 
 ``` ruby
 resource :basket
@@ -181,44 +172,57 @@ Before Rails 5.1, there were two interfaces for handling HTML forms:
 Rails 5.1 combines both of these interfaces with `form_with`, and
 can generate form tags based on URLs, scopes or models.
 
-``` erb
-# Using just a URL:
+Using just a URL:
 
+``` erb
 <%= form_with url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
 
-# =>
+<%# Will generate %>
+
 <form action="/posts" method="post" data-remote="true">
   <input type="text" name="title">
 </form>
+```
 
-# Adding a scope prefixes the input field names:
+Adding a scope prefixes the input field names:
 
+``` erb
 <%= form_with scope: :post, url: posts_path do |form| %>
   <%= form.text_field :title %>
 <% end %>
-# =>
+
+<%# Will generate %>
+
 <form action="/posts" method="post" data-remote="true">
   <input type="text" name="post[title]">
 </form>
+```
 
-# Using a model infers both the URL and scope:
+Using a model infers both the URL and scope:
 
+``` erb
 <%= form_with model: Post.new do |form| %>
   <%= form.text_field :title %>
 <% end %>
-# =>
+
+<%# Will generate %>
+
 <form action="/posts" method="post" data-remote="true">
   <input type="text" name="post[title]">
 </form>
+```
 
-# An existing model makes an update form and fills out field values:
+An existing model makes an update form and fills out field values:
 
+``` erb
 <%= form_with model: Post.first do |form| %>
   <%= form.text_field :title %>
 <% end %>
-# =>
+
+<%# Will generate %>
+
 <form action="/posts/1" method="post" data-remote="true">
   <input type="hidden" name="_method" value="patch">
   <input type="text" name="post[title]" value="<the title of the post>">
@@ -264,7 +268,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 ### Removals
 
 *   Remove deprecated `config.static_cache_control`.
-    ([commit](https://github.com/rails/rails/commit/c861decd44198f8d7d774ee6a74194d1ac1a5a13)
+    ([commit](https://github.com/rails/rails/commit/c861decd44198f8d7d774ee6a74194d1ac1a5a13))
 
 *   Remove deprecated `config.serve_static_files`.
     ([commit](https://github.com/rails/rails/commit/0129ca2eeb6d5b2ea8c6e6be38eeb770fe45f1fa))
@@ -298,7 +302,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add Yarn support in new apps with a yarn binstub and package.json.
     ([Pull Request](https://github.com/rails/rails/pull/26836))
 
-*   Add Webpack support in new apps via the --webpack option, which will delegate
+*   Add Webpack support in new apps via the `--webpack` option, which will delegate
     to the rails/webpacker gem.
     ([Pull Request](https://github.com/rails/rails/pull/27288))
 
@@ -334,9 +338,33 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Removed support to non-keyword arguments in `#process`, `#get`, `#post`,
+    `#patch`, `#put`, `#delete`, and `#head` for the `ActionDispatch::IntegrationTest`
+    and `ActionController::TestCase` classes.
+    ([Commit](https://github.com/rails/rails/commit/98b8309569a326910a723f521911e54994b112fb),
+    [Commit](https://github.com/rails/rails/commit/de9542acd56f60d281465a59eac11e15ca8b3323))
+
+*   Removed deprecated `ActionDispatch::Callbacks.to_prepare` and
+    `ActionDispatch::Callbacks.to_cleanup`.
+    ([Commit](https://github.com/rails/rails/commit/3f2b7d60a52ffb2ad2d4fcf889c06b631db1946b))
+
+*   Removed deprecated methods related to controller filters.
+    ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
+
 ### Deprecations
 
+*   Deprecated `config.action_controller.raise_on_unfiltered_parameters`.
+    It doesn't have any effect in Rails 5.1.
+    ([Commit](https://github.com/rails/rails/commit/c6640fb62b10db26004a998d2ece98baede509e5))
+
 ### Notable changes
+
+*   Added the `direct` and `resolve` methods to the routing DSL.
+    ([Pull Request](https://github.com/rails/rails/pull/23138))
+
+*   Added a new `ActionDispatch::SystemTestCase` class to write system tests in
+    your applications.
+    ([Pull Request](https://github.com/rails/rails/pull/26703))
 
 Action View
 -------------
@@ -409,6 +437,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   Transactional tests now wrap all Active Record connections in database
+    transactions.
+    ([Pull Request](https://github.com/rails/rails/pull/28726))
+
 *   Skipped comments in the output of `mysqldump` command by default.
     ([Pull Request](https://github.com/rails/rails/pull/23301))
 
@@ -471,9 +503,29 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Removed the `ActiveSupport::Concurrency::Latch` class.
+    ([Commit](https://github.com/rails/rails/commit/0d7bd2031b4054fbdeab0a00dd58b1b08fb7fea6))
+
+*   Removed `halt_callback_chains_on_return_false`.
+    ([Commit](https://github.com/rails/rails/commit/4e63ce53fc25c3bc15c5ebf54bab54fa847ee02a))
+
+*   Removed deprecated behavior that halts callbacks when the return is false.
+    ([Commit](https://github.com/rails/rails/commit/3a25cdca3e0d29ee2040931d0cb6c275d612dffe))
+
 ### Deprecations
 
+*   The top level `HashWithIndifferentAccess` class has been softly deprecated
+    in favor of the `ActiveSupport::HashWithIndifferentAccess` one.
+    ([Pull request](https://github.com/rails/rails/pull/28157))
+
 ### Notable changes
+
+*   Fixed duration parsing and traveling to make it consistent across DST changes.
+    ([Commit](https://github.com/rails/rails/commit/8931916f4a1c1d8e70c06063ba63928c5c7eab1e),
+    [Pull Request](https://github.com/rails/rails/pull/26597))
+
+*   Updated Unicode to version 9.0.0.
+    ([Pull Request](https://github.com/rails/rails/pull/27822))
 
 *   Added `Module#delegate_missing_to` to delegate method calls not
     defined for the current object to a proxy object.
@@ -482,6 +534,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Added `Date#all_day` which returns a range representing the whole day
     of the current date & time.
     ([Pull Request](https://github.com/rails/rails/pull/24930))
+
+*   Introduced the `assert_changes` and `assert_no_changes` method for tests.
+    ([Pull Request](https://github.com/rails/rails/pull/25393))
+
+*   The `travel` and `travel_to` methods now raise on nested calls.
+    ([Pull Request](https://github.com/rails/rails/pull/24890))
 
 Credits
 -------
