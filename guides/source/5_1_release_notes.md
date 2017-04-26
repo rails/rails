@@ -338,9 +338,33 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Removed support to non-keyword arguments in `#process`, `#get`, `#post`,
+    `#patch`, `#put`, `#delete`, and `#head` for the `ActionDispatch::IntegrationTest`
+    and `ActionController::TestCase` classes.
+    ([Commit](https://github.com/rails/rails/commit/98b8309569a326910a723f521911e54994b112fb),
+    [Commit](https://github.com/rails/rails/commit/de9542acd56f60d281465a59eac11e15ca8b3323))
+
+*   Removed deprecated `ActionDispatch::Callbacks.to_prepare` and
+    `ActionDispatch::Callbacks.to_cleanup`.
+    ([Commit](https://github.com/rails/rails/commit/3f2b7d60a52ffb2ad2d4fcf889c06b631db1946b))
+
+*   Removed deprecated methods related to controller filters.
+    ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
+
 ### Deprecations
 
+*   Deprecated `config.action_controller.raise_on_unfiltered_parameters`.
+    It doesn't have any effect in Rails 5.1.
+    ([Commit](https://github.com/rails/rails/commit/c6640fb62b10db26004a998d2ece98baede509e5))
+
 ### Notable changes
+
+*   Added the `direct` and `resolve` methods to the routing DSL.
+    ([Pull Request](https://github.com/rails/rails/pull/23138))
+
+*   Added a new `ActionDispatch::SystemTestCase` class to write system tests in
+    your applications.
+    ([Pull Request](https://github.com/rails/rails/pull/26703))
 
 Action View
 -------------
@@ -413,6 +437,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   Transactional tests now wrap all Active Record connections in database
+    transactions.
+    ([Pull Request](https://github.com/rails/rails/pull/28726))
+
 *   Skipped comments in the output of `mysqldump` command by default.
     ([Pull Request](https://github.com/rails/rails/pull/23301))
 
@@ -475,9 +503,29 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Removed the `ActiveSupport::Concurrency::Latch` class.
+    ([Commit](https://github.com/rails/rails/commit/0d7bd2031b4054fbdeab0a00dd58b1b08fb7fea6))
+
+*   Removed `halt_callback_chains_on_return_false`.
+    ([Commit](https://github.com/rails/rails/commit/4e63ce53fc25c3bc15c5ebf54bab54fa847ee02a))
+
+*   Removed deprecated behavior that halts callbacks when the return is false.
+    ([Commit](https://github.com/rails/rails/commit/3a25cdca3e0d29ee2040931d0cb6c275d612dffe))
+
 ### Deprecations
 
+*   The top level `HashWithIndifferentAccess` class has been softly deprecated
+    in favor of the `ActiveSupport::HashWithIndifferentAccess` one.
+    ([Pull request](https://github.com/rails/rails/pull/28157))
+
 ### Notable changes
+
+*   Fixed duration parsing and traveling to make it consistent across DST changes.
+    ([Commit](https://github.com/rails/rails/commit/8931916f4a1c1d8e70c06063ba63928c5c7eab1e),
+    [Pull Request](https://github.com/rails/rails/pull/26597))
+
+*   Updated Unicode to version 9.0.0.
+    ([Pull Request](https://github.com/rails/rails/pull/27822))
 
 *   Added `Module#delegate_missing_to` to delegate method calls not
     defined for the current object to a proxy object.
@@ -486,6 +534,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Added `Date#all_day` which returns a range representing the whole day
     of the current date & time.
     ([Pull Request](https://github.com/rails/rails/pull/24930))
+
+*   Introduced the `assert_changes` and `assert_no_changes` method for tests.
+    ([Pull Request](https://github.com/rails/rails/pull/25393))
+
+*   The `travel` and `travel_to` methods now raise on nested calls.
+    ([Pull Request](https://github.com/rails/rails/pull/24890))
 
 Credits
 -------
