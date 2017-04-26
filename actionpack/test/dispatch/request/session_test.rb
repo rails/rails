@@ -52,11 +52,21 @@ module ActionDispatch
         assert_equal %w[rails adequate], s.keys
       end
 
+      def test_keys_with_deferred_loading
+        s = Session.create(store_with_data, {}, {})
+        assert_equal %w[sample_key], s.keys
+      end
+
       def test_values
         s = Session.create(store, {}, {})
         s['rails'] = 'ftw'
         s['adequate'] = 'awesome'
         assert_equal %w[ftw awesome], s.values
+      end
+
+      def test_values_with_deferred_loading
+        s = Session.create(store_with_data, {}, {})
+        assert_equal %w[sample_value], s.values
       end
 
       def test_clear
@@ -107,6 +117,14 @@ module ActionDispatch
       def store
         Class.new {
           def load_session(env); [1, {}]; end
+          def session_exists?(env); true; end
+          def destroy_session(env, id, options); 123; end
+        }.new
+      end
+
+      def store_with_data
+        Class.new {
+          def load_session(env); [1, { "sample_key" => "sample_value" }]; end
           def session_exists?(env); true; end
           def destroy_session(env, id, options); 123; end
         }.new
