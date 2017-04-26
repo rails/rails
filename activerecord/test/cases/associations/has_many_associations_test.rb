@@ -587,13 +587,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_update_all_on_association_accessed_before_save_with_explicit_foreign_key
-    # We can use the same cached proxy object because the id is available for the scope
-    firm = Firm.new(name: 'Firm', id: 100)
-    clients_proxy_id = firm.clients.object_id
+    firm = Firm.new(name: "Firm", id: 100)
     firm.clients << Client.first
     firm.save!
-    assert_equal firm.clients.count, firm.clients.update_all(description: 'Great!')
-    assert_equal clients_proxy_id, firm.clients.object_id
+    assert_equal firm.clients.count, firm.clients.update_all(description: "Great!")
   end
 
   def test_belongs_to_sanity
