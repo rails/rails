@@ -313,6 +313,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add encrypted secrets in `config/secrets.yml.enc`.
     ([Pull Request](https://github.com/rails/rails/pull/28038))
 
+*   Display railtie class name in `rails initializers`.
+    ([Pull Request](https://github.com/rails/rails/pull/25257))
+
 Action Cable
 -----------
 
@@ -352,6 +355,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
 
 ### Deprecations
+
+*   Deprecated `:controller` and `:action` path parameters.
+    ([Pull Request](https://github.com/rails/rails/pull/23980))
 
 *   Deprecated `config.action_controller.raise_on_unfiltered_parameters`.
     It doesn't have any effect in Rails 5.1.
@@ -400,6 +406,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Add `form_with` to unify `form_tag` and `form_for` usage.
     ([Pull Request](https://github.com/rails/rails/pull/26976))
 
+*   Add `check_parameters` option to `current_page?`.
+    ([Pull Request](https://github.com/rails/rails/pull/27549))
+
 Action Mailer
 -------------
 
@@ -437,6 +446,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   Change Default Primary Keys to BIGINT.
+    ([Pull Request](https://github.com/rails/rails/pull/26266))
+
+*   Virtual/generated column support for MySQL 5.7.5+ and MariaDB 5.2.0+.
+    ([Commit](https://github.com/rails/rails/commit/65bf1c60053e727835e06392d27a2fb49665484c))
+
+*   Added support for limits in batch processing.
+    ([Commit](https://github.com/rails/rails/commit/451437c6f57e66cc7586ec966e530493927098c7))
+
 *   Transactional tests now wrap all Active Record connections in database
     transactions.
     ([Pull Request](https://github.com/rails/rails/pull/28726))
@@ -451,6 +469,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Pass `"-v ON_ERROR_STOP=1"` flag with `psql` command to not suppress SQL errors.
     ([Pull Request](https://github.com/rails/rails/pull/24773))
+
+*   Add `ActiveRecord::Base.connection_pool.stat`.
+    ([Pull Request](https://github.com/rails/rails/pull/26988))
 
 Active Model
 ------------
@@ -518,6 +539,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
     in favor of the `ActiveSupport::HashWithIndifferentAccess` one.
     ([Pull request](https://github.com/rails/rails/pull/28157))
 
+*   Deprecate passing string to `:if` and `:unless` conditional options on `set_callback` and `skip_callback`.
+    ([Commit](https://github.com/rails/rails/commit/0952552)
+
 ### Notable changes
 
 *   Fixed duration parsing and traveling to make it consistent across DST changes.
@@ -526,6 +550,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Updated Unicode to version 9.0.0.
     ([Pull Request](https://github.com/rails/rails/pull/27822))
+
+*   Add Duration#before and #after as aliases for #ago and #since.
+    ([Pull Request](https://github.com/rails/rails/pull/27721))
 
 *   Added `Module#delegate_missing_to` to delegate method calls not
     defined for the current object to a proxy object.
@@ -540,6 +567,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   The `travel` and `travel_to` methods now raise on nested calls.
     ([Pull Request](https://github.com/rails/rails/pull/24890))
+
+*   Update `DateTime#change` to support usec and nsec.
+    ([Pull Request](https://github.com/rails/rails/pull/28242))
 
 Credits
 -------
