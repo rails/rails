@@ -277,6 +277,8 @@ module ActionView
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
       #   the <tt>:poster</tt> option instead using an asset in the public folder.
+      # * <tt>:fallback</tt> - Set the markup that appears if the video source is not
+      #   supported by the browser.
       #
       # ==== Examples
       #
@@ -302,6 +304,8 @@ module ActionView
       #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag("trailer", fallback: "Video not supported")
+      #   # => <video src="/videos/trailer">Video not supported</video>
       def video_tag(*sources)
         options = sources.extract_options!.symbolize_keys
         public_poster_folder = options.delete(:poster_skip_pipeline)
@@ -331,6 +335,7 @@ module ActionView
       private
         def multiple_sources_tag_builder(type, sources)
           options       = sources.extract_options!.symbolize_keys
+          fallback      = options.delete(:fallback)
           skip_pipeline = options.delete(:skip_pipeline)
           sources.flatten!
 
@@ -338,11 +343,13 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }, fallback
             end
           else
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
-            content_tag(type, nil, options)
+            content_tag(type, nil, options) do
+              fallback
+            end
           end
         end
 
