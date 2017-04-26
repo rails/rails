@@ -168,7 +168,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 end
 
 class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :posts, :comments, :tags, :taggings
+  fixtures :authors, :posts, :comments, :tags, :taggings
 
   include JsonSerializationHelpers
 

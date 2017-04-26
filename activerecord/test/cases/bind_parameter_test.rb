@@ -7,7 +7,7 @@ if ActiveRecord::Base.connection.supports_statement_cache? &&
    ActiveRecord::Base.connection.prepared_statements
   module ActiveRecord
     class BindParameterTest < ActiveRecord::TestCase
-      fixtures :topics, :authors, :author_addresses, :posts
+      fixtures :topics, :authors, :posts
 
       class LogListener
         attr_accessor :calls

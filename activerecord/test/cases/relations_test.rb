@@ -22,7 +22,7 @@ require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
+  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base

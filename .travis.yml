@@ -15,9 +15,6 @@ services:
 
 addons:
   postgresql: "9.4"
-  apt:
-    packages:
-      - postgresql-9.4
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
