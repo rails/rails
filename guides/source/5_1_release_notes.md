@@ -442,7 +442,72 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*  Removed support for passing arguments and block at the same time to
+   `ActiveRecord::QueryMethods#select`.
+   ([Commit](https://github.com/rails/rails/commit/4fc3366d9d99a0eb19e45ad2bf38534efbf8c8ce))
+
+*  Removed deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+    `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
+   ([Commit](https://github.com/rails/rails/commit/00e3973a311))
+
+*  Removed deprecated force reload argument in singular and collection association readers.
+   ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
+
+*  Removed deprecated support to passing a column to `#quote`.
+   ([Commit](https://github.com/rails/rails/commit/e646bad5b7c))
+
+*  Removed deprecated `name` arguments from `#tables`.
+   ([Commit](https://github.com/rails/rails/commit/d5be101dd02214468a27b6839ffe338cfe8ef5f3))
+
+*  Removed deprecated behavior of `#tables` and `#table_exists?` to return tables and views
+   to return only tables and not views.
+   ([Commit](https://github.com/rails/rails/commit/5973a984c369a63720c2ac18b71012b8347479a8))
+
+*  Removed deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+   and `ActiveRecord::StatementInvalid#original_exception`.
+   ([Commit](https://github.com/rails/rails/commit/bc6c5df4699d3f6b4a61dd12328f9e0f1bd6cf46))
+
+*   Removed deprecated support of passing a class as a value in a query.
+    ([Commit](https://github.com/rails/rails/commit/b4664864c972463c7437ad983832d2582186e886))
+
+*   Removed deprecated support to query using commas on LIMIT.
+    ([Commit](https://github.com/rails/rails/commit/fc3e67964753fb5166ccbd2030d7382e1976f393))
+
+*   Removed deprecated `conditions` parameter from `#destroy_all`.
+    ([Commit](https://github.com/rails/rails/commit/d31a6d1384cd740c8518d0bf695b550d2a3a4e9b))
+
+*   Removed deprecated `conditions` parameter from `#delete_all`.
+    ([Commit](https://github.com/rails/rails/pull/27503/commits/e7381d289e4f8751dcec9553dcb4d32153bd922b))
+
+*   Removed deprecated method `#load_schema_for` in favor of `#load_schema`.
+    ([Commit](https://github.com/rails/rails/commit/419e06b56c3b0229f0c72d3e4cdf59d34d8e5545))
+
+*   Removed deprecated `#raise_in_transactional_callbacks` configuration.
+    ([Commit](https://github.com/rails/rails/commit/8029f779b8a1dd9848fee0b7967c2e0849bf6e07))
+
+*   Removed deprecated `#use_transactional_fixtures` configuration.
+    ([Commit](https://github.com/rails/rails/commit/3955218dc163f61c932ee80af525e7cd440514b3))
+
 ### Deprecations
+
+*  Deprecated `error_on_ignored_order_or_limit` flag in favor of
+   `error_on_ignored_order`.
+   ([Commit](https://github.com/rails/rails/commit/451437c6f57e66cc7586ec966e530493927098c7))
+
+*  Deprecated `sanitize_conditions` in favor of `sanitize_sql`.
+   ([Pull Request](https://github.com/rails/rails/pull/25999))
+
+*   Deprecated `supports_migrations?` on connection adapters.
+    ([Pull Request](https://github.com/rails/rails/pull/28172))
+
+*   Deprecated `Migrator.schema_migrations_table_name`, use `SchemaMigration.table_name` instead.
+    ([Pull Request](https://github.com/rails/rails/pull/28351))
+
+*   Deprecated using `#quoted_id` in quoting and type casting.
+    ([Pull Request](https://github.com/rails/rails/pull/27962))
+
+*   Deprecated passing `default` argument to `#index_name_exists?`.
+    ([Pull Request](https://github.com/rails/rails/pull/26930))
 
 ### Notable changes
 
@@ -472,6 +537,13 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add `ActiveRecord::Base.connection_pool.stat`.
     ([Pull Request](https://github.com/rails/rails/pull/26988))
+
+*   Inheriting directly from `ActiveRecord::Migration` raises an error.
+    Specify the Rails version for which the migration was written for.
+    ([Commit](https://github.com/rails/rails/commit/249f71a22ab21c03915da5606a063d321f04d4d3))
+
+*   An error is raised when `through` association has ambiguous reflection name.
+    ([Commit](https://github.com/rails/rails/commit/0944182ad7ed70d99b078b22426cbf844edd3f61))
 
 Active Model
 ------------
@@ -537,9 +609,9 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   The top level `HashWithIndifferentAccess` class has been softly deprecated
     in favor of the `ActiveSupport::HashWithIndifferentAccess` one.
-    ([Pull request](https://github.com/rails/rails/pull/28157))
+    ([Pull Request](https://github.com/rails/rails/pull/28157))
 
-*   Deprecate passing string to `:if` and `:unless` conditional options on `set_callback` and `skip_callback`.
+*   Deprecated passing string to `:if` and `:unless` conditional options on `set_callback` and `skip_callback`.
     ([Commit](https://github.com/rails/rails/commit/0952552)
 
 ### Notable changes
