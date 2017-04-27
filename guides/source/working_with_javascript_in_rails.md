@@ -153,6 +153,9 @@ Unless you have disabled the Asset Pipeline,
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
+You can read below about the different events that are fired dealing with
+remote elements inside your application.
+
 ### form_with
 
 [`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
@@ -241,6 +244,39 @@ this generates
 ```
 
 Since it's just a `<form>`, all of the information on `form_for` also applies.
+
+Dealing with Ajax events
+------------------------
+
+Here are the different events that are fired when you deal with elements
+that have a `data-remote` attribute:
+
+NOTE: All handlers bound to these events are always passed the event object as the
+first argument. The table below describes the extra parameters passed after the
+event argument. For exemple, if the extra parameters are listed as `xhr, settings`,
+then to access them, you would define your handler with `function(event, xhr, settings)`.
+
+| Event name          | Extra parameters | Fired                                                       |
+|---------------------|------------------|-------------------------------------------------------------|
+| `ajax:before`       |                  | Before the whole ajax business, aborts if stopped.          |
+| `ajax:beforeSend`   | xhr, options     | Before the request is sent, aborts if stopped.              |
+| `ajax:send`         | xhr              | When the request is sent.                                   |
+| `ajax:success`      | xhr, status, err | After completion, if the response was a success.            |
+| `ajax:error`        | xhr, status, err | After completion, if the response was an error.             |
+| `ajax:complete`     | xhr, status      | After the request has been completed, no matter the outcome.|
+| `ajax:aborted:file` | elements         | If there are non-blank file inputs, aborts if stopped.      |
+
+### Stoppable events
+
+If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
+handler method, the Ajax request will never take place. The `ajax:before` event
+is also useful for manipulating form data before serialization. The
+`ajax:beforeSend` event is also useful for adding custom request headers.
+
+If you stop the `ajax:aborted:file` event, the default behavior of allowing the
+browser to submit the form via normal means (i.e. non-AJAX submission) will be
+canceled and the form will not be submitted at all. This is useful for
+implementing your own AJAX file upload workaround.
 
 Server-Side Concerns
 --------------------
