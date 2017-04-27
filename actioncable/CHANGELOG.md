@@ -1,18 +1,10 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   ActionCable socket errors are now logged to the console
 
     Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
 
     *Edward Poot*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Redis subscription adapters now support `channel_prefix` option in `cable.yml`
 

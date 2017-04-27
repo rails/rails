@@ -1,18 +1,10 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   Change logging instrumentation to log errors when a job raises an exception.
 
     Fixes #26848.
 
     *Steven Bull*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Correctly set test adapter when configure the queue adapter on a per job.
 

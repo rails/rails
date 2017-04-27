@@ -1,4 +1,4 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
     when using Turbolinks.
@@ -24,9 +24,6 @@
     `form_with`.
 
     *Yves Senn*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   Add `app:update` task to engines.
 
@@ -54,8 +51,6 @@
     https://gist.github.com/kaspth/bc37989c2f39a5642112f28b1d93f343
 
     *Stephen Touset*
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Add encrypted secrets in `config/secrets.yml.enc`.
 

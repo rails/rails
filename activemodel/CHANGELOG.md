@@ -1,4 +1,4 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   The original string assigned to a model attribute is no longer incorrectly
     frozen.
@@ -10,14 +10,6 @@
 *   Avoid converting integer as a string into float.
 
     *namusyaka*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Remove deprecated behavior that halts callbacks when the return is false.
 

@@ -1,4 +1,4 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   Raise exception when calling `to_h` and `to_hash` in an unpermitted Parameters.
 
@@ -64,9 +64,6 @@
 
     *Jon Moss*
 
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
-
 *   Fix `NameError` raised in `ActionController::Renderer#with_defaults`
 
     *Hiroyuki Ishii*
@@ -90,9 +87,6 @@
     Fixes #27992.
 
     *Andrew White*
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Prefer `remove_method` over `undef_method` when reloading routes
 

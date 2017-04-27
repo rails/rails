@@ -1,4 +1,4 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   `ActiveSupport::EventedFileUpdateChecker` no longer listens to
     directories outside of the application directory.
@@ -25,9 +25,6 @@
         end
 
     *Dominic Cleal*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
     raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
@@ -242,9 +239,6 @@
 *   `ActiveSupport::Gzip.decompress` now checks checksum and length in footer.
 
     *Dylan Thacker-Smith*
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Cache `ActiveSupport::TimeWithZone#to_datetime` before freezing.
 

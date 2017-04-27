@@ -1,4 +1,4 @@
-## Rails 5.1.0.rc2 (April 20, 2017) ##
+## Rails 5.1.0 (April 27, 2017) ##
 
 *   Quote database name in db:create grant statement (when database_user does not have access to create the database).
 
@@ -20,9 +20,6 @@
     Fixes #25537.
 
     *Hendy Tanata*
-
-
-## Rails 5.1.0.rc1 (March 20, 2017) ##
 
 *   Remove comments from structure.sql when using postgresql adapter to avoid
     version-specific parts of the file.
@@ -112,9 +109,6 @@
     Fixes #26556.
 
     *Ryuta Kamizono*
-
-
-## Rails 5.1.0.beta1 (February 23, 2017) ##
 
 *   Correctly dump native timestamp types for MySQL.
 
