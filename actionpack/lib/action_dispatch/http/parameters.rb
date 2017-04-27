@@ -85,12 +85,18 @@ module ActionDispatch
 
         def set_binary_encoding(params)
           action = params[:action]
-          if controller_class.binary_params_for?(action)
+          if binary_params_for?(action)
             ActionDispatch::Request::Utils.each_param_value(params) do |param|
               param.force_encoding ::Encoding::ASCII_8BIT
             end
           end
           params
+        end
+
+        def binary_params_for?(action)
+          controller_class.binary_params_for?(action)
+        rescue NameError
+          false
         end
 
         def parse_formatted_parameters(parsers)
