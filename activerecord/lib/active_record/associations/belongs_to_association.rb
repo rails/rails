@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def default(&block)
-        writer(instance_exec(&block)) if reader.nil?
+        writer(owner.instance_exec(&block)) if reader.nil?
       end
 
       def reset
