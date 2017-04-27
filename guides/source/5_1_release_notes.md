@@ -562,7 +562,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     of the current date & time.
     ([Pull Request](https://github.com/rails/rails/pull/24930))
 
-*   Introduced the `assert_changes` and `assert_no_changes` method for tests.
+*   Introduced the `assert_changes` and `assert_no_changes` methods for tests.
     ([Pull Request](https://github.com/rails/rails/pull/25393))
 
 *   The `travel` and `travel_to` methods now raise on nested calls.
