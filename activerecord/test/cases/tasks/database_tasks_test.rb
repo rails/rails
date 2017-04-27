@@ -368,7 +368,8 @@ module ActiveRecord
     def test_migrate_raise_error_on_empty_version
       version = ENV["VERSION"]
       ENV["VERSION"] = ""
-      assert_raise(RuntimeError, "Empty VERSION provided") { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_equal "Empty VERSION provided", e.message
     ensure
       ENV["VERSION"] = version
     end
