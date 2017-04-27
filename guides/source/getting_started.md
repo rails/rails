@@ -509,23 +509,23 @@ harmoniously! It's time to create the form for a new article.
 
 To create a form within this template, you will use a *form
 builder*. The primary form builder for Rails is provided by a helper
-method called `form_for`. To use this method, add this code into
+method called `form_with`. To use this method, add this code into
 `app/views/articles/new.html.erb`:
 
 ```html+erb
-<%= form_for :article do |f| %>
+<%= form_with scope: :article, local: true do |form| %>
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 ```
@@ -533,12 +533,12 @@ method called `form_for`. To use this method, add this code into
 If you refresh the page now, you'll see the exact same form from our example above.
 Building forms in Rails is really just that easy!
 
-When you call `form_for`, you pass it an identifying object for this
-form. In this case, it's the symbol `:article`. This tells the `form_for`
+When you call `form_with`, you pass it an identifying scope for this
+form. In this case, it's the symbol `:article`. This tells the `form_with`
 helper what this form is for. Inside the block for this method, the
-`FormBuilder` object - represented by `f` - is used to build two labels and two
+`FormBuilder` object - represented by `form` - is used to build two labels and two
 text fields, one each for the title and text of an article. Finally, a call to
-`submit` on the `f` object will create a submit button for the form.
+`submit` on the `form` object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is
 generated, by viewing the source of the page, you will see that the `action`
@@ -547,15 +547,15 @@ this route goes to the very page that you're on right at the moment, and that
 route should only be used to display the form for a new article.
 
 The form needs to use a different URL in order to go somewhere else.
-This can be done quite simply with the `:url` option of `form_for`.
+This can be done quite simply with the `:url` option of `form_with`.
 Typically in Rails, the action that is used for new form submissions
 like this is called "create", and so the form should be pointed to that action.
 
-Edit the `form_for` line inside `app/views/articles/new.html.erb` to look like
+Edit the `form_with` line inside `app/views/articles/new.html.erb` to look like
 this:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
 ```
 
 In this example, the `articles_path` helper is passed to the `:url` option.
@@ -591,6 +591,10 @@ familiar error:
 
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
+
+NOTE: by default `form_with` submits forms using Ajax thereby skipping full page
+redirects. To make this guide easier to get into we've disabled that with
+`local: true` for now.
 
 ### Creating articles
 
@@ -956,7 +960,7 @@ Now, add another link in `app/views/articles/new.html.erb`, underneath the
 form, to go back to the `index` action:
 
 ```erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
   ...
 <% end %>
 
@@ -1067,7 +1071,7 @@ something went wrong. To do that, you'll modify
 `app/views/articles/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1084,17 +1088,17 @@ something went wrong. To do that, you'll modify
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
@@ -1159,7 +1163,7 @@ it look as follows:
 ```html+erb
 <h1>Edit article</h1>
 
-<%= form_for(@article) do |f| %>
+<%= form_with(model: @article) do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1176,17 +1180,17 @@ it look as follows:
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
@@ -1202,12 +1206,11 @@ This option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-The first parameter of `form_for` can be an object, say, `@article` which would
+The arguments to `form_with` could be model objects, say, `model: @article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
-symbol (`:article`) with the same name as the instance variable (`@article`)
-also automagically leads to the same behavior.
-More details can be found in [form_for documentation]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
+symbol scope (`scope: :article`) just creates the fields but without anything filled into them.
+More details can be found in [form_with documentation]
+(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
 Next, we need to create the `update` action in
 `app/controllers/articles_controller.rb`.
@@ -1304,7 +1307,7 @@ Create a new file `app/views/articles/_form.html.erb` with the following
 content:
 
 ```html+erb
-<%= form_for @article do |f| %>
+<%= form_with model: @article, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1321,29 +1324,29 @@ content:
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
 ```
 
-Everything except for the `form_for` declaration remained the same.
-The reason we can use this shorter, simpler `form_for` declaration
+Everything except for the `form_with` declaration remained the same.
+The reason we can use this shorter, simpler `form_with` declaration
 to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
-For more information about this use of `form_for`, see [Resource-oriented style]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for-label-Resource-oriented+style).
+For more information about this use of `form_with`, see [Resource-oriented style]
+(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
 
 Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
@@ -1682,17 +1685,17 @@ So first, we'll wire up the Article show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1701,7 +1704,7 @@ So first, we'll wire up the Article show template
 ```
 
 This adds a form on the `Article` show page that creates a new comment by
-calling the `CommentsController` `create` action. The `form_for` call here uses
+calling the `CommentsController` `create` action. The `form_with` call here uses
 an array, which will build a nested route, such as `/articles/1/comments`.
 
 Let's wire up the `create` in `app/controllers/comments_controller.rb`:
@@ -1763,17 +1766,17 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1829,17 +1832,17 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1859,17 +1862,17 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 ```

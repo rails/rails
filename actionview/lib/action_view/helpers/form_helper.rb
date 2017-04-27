@@ -543,6 +543,36 @@ module ActionView
       # and adds an authenticity token needed for cross site request forgery
       # protection.
       #
+      # === Resource-oriented style
+      #
+      # In many of the examples just shown, the +:model+ passed to +form_with+
+      # is a _resource_. It corresponds to a set of RESTful routes, most likely
+      # defined via +resources+ in <tt>config/routes.rb</tt>.
+      #
+      # So when passing such a model record, Rails infers the URL and method.
+      #
+      #   <%= form_with model: @post do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # is then equivalent to something like:
+      #
+      #   <%= form_with scope: :post, url: post_path(@post), method: :patch do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # And for a new record
+      #
+      #   <%= form_with model: Post.new do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # is equivalent to something like:
+      #
+      #   <%= form_with scope: :post, url: posts_path do |form| %>
+      #     ...
+      #   <% end %>
+      #
       # ==== +form_with+ options
       #
       # * <tt>:url</tt> - The URL the form submits to. Akin to values passed to
