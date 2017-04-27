@@ -10,8 +10,6 @@ module ActiveRecord
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
-
-      config[:username] = "root" if config[:username].nil?
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
