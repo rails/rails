@@ -86,41 +86,41 @@ module ActiveRecord
     end
 
     test "cast_values! returns rows after type casting" do
-       values = [["1.1", "2.2"], ["3.3", "4.4"]]
-       columns = ["col1", "col2"]
-       types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
-       result = Result.new(columns, values, types)
+      values = [["1.1", "2.2"], ["3.3", "4.4"]]
+      columns = ["col1", "col2"]
+      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      result = Result.new(columns, values, types)
 
-       assert_equal [[1, 2.2], [3, 4.4]], result.cast_values!
-     end
+      assert_equal [[1, 2.2], [3, 4.4]], result.cast_values!
+    end
 
-     test "cast_values! can receive types to use instead" do
-       values = [["1.1", "2.2"], ["3.3", "4.4"]]
-       columns = ["col1", "col2"]
-       types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
-       result = Result.new(columns, values, types)
+    test "cast_values! can receive types to use instead" do
+      values = [["1.1", "2.2"], ["3.3", "4.4"]]
+      columns = ["col1", "col2"]
+      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      result = Result.new(columns, values, types)
 
-       assert_equal [[1.1, 2.2], [3.3, 4.4]], result.cast_values!("col1" => Type::Float.new)
-     end
+      assert_equal [[1.1, 2.2], [3.3, 4.4]], result.cast_values!("col1" => Type::Float.new)
+    end
 
-     test "cast_values! overwrites rows attribute" do
-       values = [["1.1", "2.2"], ["3.3", "4.4"]]
-       columns = ["col1", "col2"]
-       types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
-       result = Result.new(columns, values, types)
-       result.cast_values!
+    test "cast_values! overwrites rows attribute" do
+      values = [["1.1", "2.2"], ["3.3", "4.4"]]
+      columns = ["col1", "col2"]
+      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      result = Result.new(columns, values, types)
+      result.cast_values!
 
-       assert_equal [[1, 2.2], [3, 4.4]], result.rows
-     end
+      assert_equal [[1, 2.2], [3, 4.4]], result.rows
+    end
 
-     test "cast_values! clears hash_rows memoziation cache" do
-       columns = ["col1"]
-       values = [["row_1 col_1"]]
-       result = Result.new(columns, values)
-       result.to_hash
-       result.cast_values!
+    test "cast_values! clears hash_rows memoziation cache" do
+      columns = ["col1"]
+      values = [["row_1 col_1"]]
+      result = Result.new(columns, values)
+      result.to_hash
+      result.cast_values!
 
-       assert_nil result.instance_variable_get("@hash_rows")
-     end
+      assert_nil result.instance_variable_get("@hash_rows")
+    end
   end
 end
