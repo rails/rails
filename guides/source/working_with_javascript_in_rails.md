@@ -141,6 +141,8 @@ follow this pattern.
 Built-in Helpers
 ----------------------
 
+### Remote elements
+
 Rails provides a bunch of view helper methods written in Ruby to assist you
 in generating HTML. Sometimes, you want to add a little Ajax to those elements,
 and Rails has got your back in those cases.
@@ -153,14 +155,18 @@ Unless you have disabled the Asset Pipeline,
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
-### form_for
+You can read below about the different events that are fired dealing with
+remote elements inside your application.
 
-[`form_for`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for)
-is a helper that assists with writing forms. `form_for` takes a `:remote`
-option. It works like this:
+#### form_with
+
+[`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
+is a helper that assists with writing forms. By default, `form_with` considers
+that your form will be using Ajax ; you can opt-out by specifying the `:local`
+option.
 
 ```erb
-<%= form_for(@article, remote: true) do |f| %>
+<%= form_with(model: @article) do |f| %>
   ...
 <% end %>
 ```
@@ -168,7 +174,7 @@ option. It works like this:
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/articles" class="new_article" data-remote="true" id="new_article" method="post">
+<form action="/articles" method="post" data-remote="true">
   ...
 </form>
 ```
@@ -189,32 +195,9 @@ $(document).ready ->
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
-start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
+start.
 
-### form_tag
-
-[`form_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag)
-is very similar to `form_for`. It has a `:remote` option that you can use like
-this:
-
-```erb
-<%= form_tag('/articles', remote: true) do %>
-  ...
-<% end %>
-```
-
-This will generate the following HTML:
-
-```html
-<form accept-charset="UTF-8" action="/articles" data-remote="true" method="post">
-  ...
-</form>
-```
-
-Everything else is the same as `form_for`. See its documentation for full
-details.
-
-### link_to
+#### link_to
 
 [`link_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 is a helper that assists with generating links. It has a `:remote` option you
@@ -230,7 +213,7 @@ which generates
 <a href="/articles/1" data-remote="true">an article</a>
 ```
 
-You can bind to the same Ajax events as `form_for`. Here's an example. Let's
+You can bind to the same Ajax events as `form_with`. Here's an example. Let's
 assume that we have a list of articles that can be deleted with just one
 click. We would generate some HTML like this:
 
@@ -246,7 +229,7 @@ $ ->
     alert "The article was deleted."
 ```
 
-### button_to
+#### button_to
 
 [`button_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
 
@@ -262,7 +245,136 @@ this generates
 </form>
 ```
 
-Since it's just a `<form>`, all of the information on `form_for` also applies.
+Since it's just a `<form>`, all of the information on `form_with` also applies.
+
+### Customize remote elements
+
+It is possible to customize the behavior of elements with a `data-remote`
+attribute without writing a line of JavaScript. Your can specify extra `data-`
+attributes to accomplish this.
+
+#### `data-method`
+
+Activating hyperlinks always results in an HTTP GET request. However, if your
+application is [RESTful](http://en.wikipedia.org/wiki/Representational_State_Transfer),
+some links are in fact actions that change data on the server and must be
+performed with non-GET requests. This attribute allows marking up such links
+with an explicit method such as "post", "put" or "delete".
+
+The way it works is that, when the link is activated, it constructs a hidden form
+in the document with the "action" attribute corresponding to "href" value of the
+link and the method corresponding to `data-method` value, and submits that form.
+
+NOTE: Because submitting forms with HTTP methods other than GET and POST isn't
+widely supported across browsers, all other HTTP methods are actually sent over
+POST with the intended method indicated in the `_method` parameter. Rails
+automatically detects and compensates for this.
+
+#### `data-url` and `data-params`
+
+Certain elements of your page aren't actually referring to any URL but you would
+like them to trigger Ajax calls. Specifying the `data-url` attribute along with
+the `data-remote` one will trigger an Ajax call to the given URL. You can also
+specify extra parameters through the `data-params` attribute.
+
+This can be useful to trigger an action on check-boxes for instance:
+
+```html
+<input type="checkbox" data-remote="true"
+    data-url="/update" data-params="id=10" data-method="put">
+```
+
+#### `data-type`
+
+It is also possible to defines the Ajax `dataType` explicitly when performing
+requests for `data-remote` elements through the `data-type` attribute.
+
+### Confirmations
+
+You can ask for an extra confirmation of the user by adding a `data-confirm`
+attribute on links and forms. The user will be presented a JavaScript `confirm()`
+dialog containing the attribute's text. If the user chooses to cancel, the action
+doesn't take place.
+
+Adding this attribute on links will trigger the dialog on click and adding it
+on forms will trigger it on submit. For example:
+
+```erb
+<%= link_to "Dangerous zone", dangerous_zone_path,
+  data: { confirm: 'Are you sure?' } %>
+```
+
+This generates:
+
+```html
+<a href="..." data-confirm="Are you sure?">Dangerous zone</a>
+```
+
+The attribute is also allowed on form submit buttons. This allows you to customize
+the warning message depending on the button which was activated. In this case,
+you should **not** have `data-confirm` on the form itself.
+
+The default confirmation uses a JavaScript confirm dialog, but you can customize
+it by listening to the `confirm` event, that is fired just before the confirmation
+window appears to the user. To cancel this default confirmation, make the confirm
+handler to return `false`.
+
+### Automatic disabling
+
+It is also possible to automatically disable an input while the form is submitting
+by using the `data-disable-with` attribute. This is to prevent accidental
+double-clicks from the user, which could result in duplicate HTTP requests that
+the backend may not detect as such. The value of the attribute is text that will
+become the new value of the button in its disabled state.
+
+This also works for links with `data-method` attribute.
+
+For example:
+
+```erb
+<%= form_with(model: @article.new) do |f| %>
+  <%= f.submit data: { "disable-with": "Saving..." } %>
+<%= end %>
+```
+
+This generates a form with:
+
+```html
+<input data-disable-with="Saving..." type="submit">
+```
+
+Dealing with Ajax events
+------------------------
+
+Here are the different events that are fired when you deal with elements
+that have a `data-remote` attribute:
+
+NOTE: All handlers bound to these events are always passed the event object as the
+first argument. The table below describes the extra parameters passed after the
+event argument. For exemple, if the extra parameters are listed as `xhr, settings`,
+then to access them, you would define your handler with `function(event, xhr, settings)`.
+
+| Event name          | Extra parameters | Fired                                                       |
+|---------------------|------------------|-------------------------------------------------------------|
+| `ajax:before`       |                  | Before the whole ajax business, aborts if stopped.          |
+| `ajax:beforeSend`   | xhr, options     | Before the request is sent, aborts if stopped.              |
+| `ajax:send`         | xhr              | When the request is sent.                                   |
+| `ajax:success`      | xhr, status, err | After completion, if the response was a success.            |
+| `ajax:error`        | xhr, status, err | After completion, if the response was an error.             |
+| `ajax:complete`     | xhr, status      | After the request has been completed, no matter the outcome.|
+| `ajax:aborted:file` | elements         | If there are non-blank file inputs, aborts if stopped.      |
+
+### Stoppable events
+
+If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
+handler method, the Ajax request will never take place. The `ajax:before` event
+is also useful for manipulating form data before serialization. The
+`ajax:beforeSend` event is also useful for adding custom request headers.
+
+If you stop the `ajax:aborted:file` event, the default behavior of allowing the
+browser to submit the form via normal means (i.e. non-AJAX submission) will be
+canceled and the form will not be submitted at all. This is useful for
+implementing your own AJAX file upload workaround.
 
 Server-Side Concerns
 --------------------
@@ -297,7 +409,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_for(@user, remote: true) do |f| %>
+<%= form_with(model: @user) do |f| %>
   <%= f.label :name %><br>
   <%= f.text_field :name %>
   <%= f.submit %>
