@@ -531,9 +531,14 @@ class AssetTagHelperTest < ActionView::TestCase
     FontPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_video_tag_with_block
+  def test_video_tag_with_fallback
     options = { fallback: "Video not supported" }
     assert_equal '<video src="/videos/video">Video not supported</video>', video_tag("video", options)
+  end
+
+  def test_video_tag_with_multiple_sources_and_fallback
+    options = { fallback: "Video not supported" }
+    assert_equal '<video><source src="/videos/video1" /><source src="/videos/video2" />Video not supported</video>', video_tag(["video1", "video2"], options)
   end
 
   def test_video_audio_tag_does_not_modify_options

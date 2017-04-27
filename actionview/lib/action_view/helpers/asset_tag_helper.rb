@@ -343,7 +343,7 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }, fallback
+              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) } << fallback
             end
           else
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
