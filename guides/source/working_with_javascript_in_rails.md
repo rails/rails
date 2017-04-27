@@ -195,7 +195,7 @@ $(document).ready ->
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
-start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
+start.
 
 #### link_to
 
@@ -246,6 +246,102 @@ this generates
 ```
 
 Since it's just a `<form>`, all of the information on `form_for` also applies.
+
+### Customize remote elements
+
+It is possible to customize the behavior of elements with a `data-remote`
+attribute without writing a line of JavaScript. Your can specify extra `data-`
+attributes to accomplish this.
+
+#### `data-method`
+
+Activating hyperlinks always results in an HTTP GET request. However, if your
+application is [RESTful](http://en.wikipedia.org/wiki/Representational_State_Transfer),
+some links are in fact actions that change data on the server and must be
+performed with non-GET requests. This attribute allows marking up such links
+with an explicit method such as "post", "put" or "delete".
+
+The way it works is that, when the link is activated, it constructs a hidden form
+in the document with the "action" attribute corresponding to "href" value of the
+link and the method corresponding to `data-method` value, and submits that form.
+
+NOTE: Because submitting forms with HTTP methods other than GET and POST isn't
+widely supported across browsers, all other HTTP methods are actually sent over
+POST with the intended method indicated in the `_method` parameter. Rails
+automatically detects and compensates for this.
+
+#### `data-url` and `data-params`
+
+Certain elements of your page aren't actually referring to any URL but you would
+like them to trigger Ajax calls. Specifying the `data-url` attribute along with
+the `data-remote` one will trigger an Ajax call to the given URL. You can also
+specify extra parameters through the `data-params` attribute.
+
+This can be useful to trigger an action on check-boxes for instance:
+
+```html
+<input type="checkbox" data-remote="true"
+    data-url="/update" data-params="id=10" data-method="put">
+```
+
+#### `data-type`
+
+It is also possible to defines the Ajax `dataType` explicitly when performing
+requests for `data-remote` elements through the `data-type` attribute.
+
+### Confirmations
+
+You can ask for an extra confirmation of the user by adding a `data-confirm`
+attribute on links and forms. The user will be presented a JavaScript `confirm()`
+dialog containing the attribute's text. If the user chooses to cancel, the action
+doesn't take place.
+
+Adding this attribute on links will trigger the dialog on click and adding it
+on forms will trigger it on submit. For example:
+
+```erb
+<%= link_to "Dangerous zone", dangerous_zone_path,
+  data: { confirm: 'Are you sure?'} %>
+```
+
+This generates:
+
+```html
+<a href="..." data-confirm="Are you sure?">Dangerous zone</a>
+```
+
+The attribute is also allowed on form submit buttons. This allows you to customize
+the warning message depending on the button which was activated. In this case,
+you should **not** have `data-confirm` on the form itself.
+
+The default confirmation uses a JavaScript confirm dialog, but you can customize
+it by listening to the `confirm` event, that is fired just before the confirmation
+window appears to the user. To cancel this default confirmation, make the confirm
+handler to return `false`.
+
+### Automatic disabling
+
+It is also possible to automatically disable an input while the form is submitting
+by using the `data-disable-with` attribute. This is to prevent accidental
+double-clicks from the user, which could result in duplicate HTTP requests that
+the backend may not detect as such. The value of the attribute is text that will
+become the new value of the button in its disabled state.
+
+This also works for links with `data-method` attribute.
+
+For example:
+
+```erb
+<%= form_with(model: @article.new) do |f| %>
+  <%= f.submit data: { "disable-with": "Saving..."} %>
+<%= end %>
+```
+
+This generates a form with:
+
+```html
+<input data-disable-with="Saving..." type="submit">
+```
 
 Dealing with Ajax events
 ------------------------
