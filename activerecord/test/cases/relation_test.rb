@@ -6,7 +6,7 @@ require "models/rating"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors
+    fixtures :posts, :comments, :authors, :author_addresses
 
     FakeKlass = Struct.new(:table_name, :name) do
       extend ActiveRecord::Delegation::DelegateCache
