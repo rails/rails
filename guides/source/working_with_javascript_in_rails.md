@@ -141,6 +141,8 @@ follow this pattern.
 Built-in Helpers
 ----------------------
 
+### Remote elements
+
 Rails provides a bunch of view helper methods written in Ruby to assist you
 in generating HTML. Sometimes, you want to add a little Ajax to those elements,
 and Rails has got your back in those cases.
@@ -156,7 +158,7 @@ tags to your DOM.
 You can read below about the different events that are fired dealing with
 remote elements inside your application.
 
-### form_with
+#### form_with
 
 [`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
 is a helper that assists with writing forms. By default, `form_with` considers
@@ -195,7 +197,7 @@ $(document).ready ->
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
-### link_to
+#### link_to
 
 [`link_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 is a helper that assists with generating links. It has a `:remote` option you
@@ -227,7 +229,7 @@ $ ->
     alert "The article was deleted."
 ```
 
-### button_to
+#### button_to
 
 [`button_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
 
