@@ -453,7 +453,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Removed deprecated force reload argument in singular and collection association readers.
     ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
 
-*   Removed deprecated support to passing a column to `#quote`.
+*   Removed deprecated support for passing a column to `#quote`.
     ([Commit](https://github.com/rails/rails/commit/e646bad5b7c))
 
 *   Removed deprecated `name` arguments from `#tables`.
