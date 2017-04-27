@@ -302,6 +302,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
+      concat f.select(:category, %w( animal economy sports ))
       concat f.submit("Create post")
       concat f.button("Create post")
       concat f.button {
@@ -315,6 +316,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
       "<input name='post[secret]' checked='checked' type='checkbox' value='1' />" \
+      "<select name='post[category]'><option value='animal'>animal</option>\n<option value='economy'>economy</option>\n<option value='sports'>sports</option></select>" \
       "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
       "<button name='button' type='submit'>Create post</button>" \
       "<button name='button' type='submit'><span>Create post</span></button>"
