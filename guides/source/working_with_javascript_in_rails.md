@@ -153,14 +153,15 @@ Unless you have disabled the Asset Pipeline,
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM.
 
-### form_for
+### form_with
 
-[`form_for`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for)
-is a helper that assists with writing forms. `form_for` takes a `:remote`
-option. It works like this:
+[`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
+is a helper that assists with writing forms. By default, `form_with` considers
+that your form will be using Ajax ; you can opt-out by specifying the `:local`
+option.
 
 ```erb
-<%= form_for(@article, remote: true) do |f| %>
+<%= form_with(model: @article) do |f| %>
   ...
 <% end %>
 ```
@@ -168,7 +169,7 @@ option. It works like this:
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/articles" class="new_article" data-remote="true" id="new_article" method="post">
+<form action="/articles" method="post" data-remote="true">
   ...
 </form>
 ```
@@ -190,29 +191,6 @@ $(document).ready ->
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
-
-### form_tag
-
-[`form_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag)
-is very similar to `form_for`. It has a `:remote` option that you can use like
-this:
-
-```erb
-<%= form_tag('/articles', remote: true) do %>
-  ...
-<% end %>
-```
-
-This will generate the following HTML:
-
-```html
-<form accept-charset="UTF-8" action="/articles" data-remote="true" method="post">
-  ...
-</form>
-```
-
-Everything else is the same as `form_for`. See its documentation for full
-details.
 
 ### link_to
 
