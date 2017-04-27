@@ -149,7 +149,7 @@ module ActionView
             end
 
             value = options.fetch(:selected) { value(object) }
-            select = content_tag("select", add_options(option_tags, options, value), html_options.except!("skip_default_ids", "allow_method_names_outside_object"))
+            select = content_tag("select", add_options(option_tags, options, value), html_options)
 
             if html_options["multiple"] && options.fetch(:include_hidden, true)
               tag("input", disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "") + select
