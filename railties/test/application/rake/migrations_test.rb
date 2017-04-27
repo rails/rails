@@ -48,7 +48,13 @@ module ApplicationTests
           output = `bin/rails db:migrate:up VERSION= 2>&1`
           assert_match(/VERSION is required/, output)
 
+          output = `bin/rails db:migrate:up 2>&1`
+          assert_match(/VERSION is required/, output)
+
           output = `bin/rails db:migrate:down VERSION= 2>&1`
+          assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
+
+          output = `bin/rails db:migrate:down 2>&1`
           assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
         end
       end
