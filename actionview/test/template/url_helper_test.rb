@@ -509,6 +509,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert !current_page?("http://www.example.com/", check_parameters: true)
   end
 
+  def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(:back, check_parameters: false)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
@@ -880,6 +886,11 @@ class WorkshopsController < ActionController::Base
     @workshop = Workshop.new(params[:id])
     render inline: "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:id])
+    render inline: "<%= current_page?(@workshop) %>"
+  end
 end
 
 class SessionsController < ActionController::Base
@@ -943,5 +954,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
   end
 end
