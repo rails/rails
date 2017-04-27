@@ -442,30 +442,30 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
-*  Removed support for passing arguments and block at the same time to
-   `ActiveRecord::QueryMethods#select`.
-   ([Commit](https://github.com/rails/rails/commit/4fc3366d9d99a0eb19e45ad2bf38534efbf8c8ce))
+*   Removed support for passing arguments and block at the same time to
+    `ActiveRecord::QueryMethods#select`.
+    ([Commit](https://github.com/rails/rails/commit/4fc3366d9d99a0eb19e45ad2bf38534efbf8c8ce))
 
-*  Removed deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
+*   Removed deprecated `activerecord.errors.messages.restrict_dependent_destroy.one` and
     `activerecord.errors.messages.restrict_dependent_destroy.many` i18n scopes.
-   ([Commit](https://github.com/rails/rails/commit/00e3973a311))
+    ([Commit](https://github.com/rails/rails/commit/00e3973a311))
 
-*  Removed deprecated force reload argument in singular and collection association readers.
-   ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
+*   Removed deprecated force reload argument in singular and collection association readers.
+    ([Commit](https://github.com/rails/rails/commit/09cac8c67af))
 
-*  Removed deprecated support to passing a column to `#quote`.
-   ([Commit](https://github.com/rails/rails/commit/e646bad5b7c))
+*   Removed deprecated support to passing a column to `#quote`.
+    ([Commit](https://github.com/rails/rails/commit/e646bad5b7c))
 
-*  Removed deprecated `name` arguments from `#tables`.
-   ([Commit](https://github.com/rails/rails/commit/d5be101dd02214468a27b6839ffe338cfe8ef5f3))
+*   Removed deprecated `name` arguments from `#tables`.
+    ([Commit](https://github.com/rails/rails/commit/d5be101dd02214468a27b6839ffe338cfe8ef5f3))
 
-*  Removed deprecated behavior of `#tables` and `#table_exists?` to return tables and views
-   to return only tables and not views.
-   ([Commit](https://github.com/rails/rails/commit/5973a984c369a63720c2ac18b71012b8347479a8))
+*   Removed deprecated behavior of `#tables` and `#table_exists?` to return tables and views
+    to return only tables and not views.
+    ([Commit](https://github.com/rails/rails/commit/5973a984c369a63720c2ac18b71012b8347479a8))
 
-*  Removed deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
-   and `ActiveRecord::StatementInvalid#original_exception`.
-   ([Commit](https://github.com/rails/rails/commit/bc6c5df4699d3f6b4a61dd12328f9e0f1bd6cf46))
+*   Removed deprecated `original_exception` argument in `ActiveRecord::StatementInvalid#initialize`
+    and `ActiveRecord::StatementInvalid#original_exception`.
+    ([Commit](https://github.com/rails/rails/commit/bc6c5df4699d3f6b4a61dd12328f9e0f1bd6cf46))
 
 *   Removed deprecated support of passing a class as a value in a query.
     ([Commit](https://github.com/rails/rails/commit/b4664864c972463c7437ad983832d2582186e886))
@@ -490,12 +490,12 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
-*  Deprecated `error_on_ignored_order_or_limit` flag in favor of
-   `error_on_ignored_order`.
-   ([Commit](https://github.com/rails/rails/commit/451437c6f57e66cc7586ec966e530493927098c7))
+*   Deprecated `error_on_ignored_order_or_limit` flag in favor of
+    `error_on_ignored_order`.
+    ([Commit](https://github.com/rails/rails/commit/451437c6f57e66cc7586ec966e530493927098c7))
 
-*  Deprecated `sanitize_conditions` in favor of `sanitize_sql`.
-   ([Pull Request](https://github.com/rails/rails/pull/25999))
+*   Deprecated `sanitize_conditions` in favor of `sanitize_sql`.
+    ([Pull Request](https://github.com/rails/rails/pull/25999))
 
 *   Deprecated `supports_migrations?` on connection adapters.
     ([Pull Request](https://github.com/rails/rails/pull/28172))
