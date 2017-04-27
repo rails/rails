@@ -2,8 +2,6 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
-    cattr_accessor :log_query_source
-
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
     def self.runtime=(value)
@@ -96,7 +94,7 @@ module ActiveRecord
       def debug(progname = nil, &block)
         return unless super
 
-        if ActiveRecord::Base.log_query_source || self.class.log_query_source
+        if ActiveRecord::Base.verbose_query_logs
           log_query_source
         end
       end
