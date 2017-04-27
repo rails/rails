@@ -2037,11 +2037,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal client_association.new.attributes, client_association.send(:new).attributes
   end
 
-  def test_respond_to_private_class_methods
-    client_association = companies(:first_firm).clients
-    assert !client_association.respond_to?(:private_method)
-  end
-
   def test_creating_using_primary_key
     firm = Firm.all.merge!(order: "id").first
     client = firm.clients_using_primary_key.create!(name: "test")
