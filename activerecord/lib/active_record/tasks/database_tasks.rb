@@ -164,7 +164,7 @@ module ActiveRecord
       def migrate
         raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
 
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
+        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose

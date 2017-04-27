@@ -343,8 +343,23 @@ module ActiveRecord
 
       ENV["VERBOSE"] = "false"
       ENV["VERSION"] = "4"
-
       ActiveRecord::Migrator.expects(:migrate).with("custom/path", 4)
+      ActiveRecord::Migration.expects(:verbose=).with(false)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      ENV.delete("VERBOSE")
+      ENV.delete("VERSION")
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", nil)
+      ActiveRecord::Migration.expects(:verbose=).with(true)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      ENV["VERBOSE"] = "yes"
+      ENV["VERSION"] = "unknown"
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", 0)
+      ActiveRecord::Migration.expects(:verbose=).with(true)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
       ENV["VERBOSE"], ENV["VERSION"] = verbose, version
