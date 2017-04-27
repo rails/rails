@@ -1,3 +1,8 @@
+*   Added a shared section to config/database.yml that will be loaded for all environments.
+
+    *Pierre Schambacher*
+
+
 ## Rails 5.1.0.rc2 (April 20, 2017) ##
 
 *   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
