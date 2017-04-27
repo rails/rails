@@ -56,7 +56,7 @@ module ActionView
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
       end
 
       # Cache the templates returned by the block
