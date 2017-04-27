@@ -15,7 +15,7 @@ require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :binaries, :essays, :cars, :treasures, :price_estimates
+    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates
 
     def test_where_copies_bind_params
       author = authors(:david)

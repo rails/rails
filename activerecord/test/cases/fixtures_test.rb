@@ -784,7 +784,7 @@ end
 
 class FasterFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
-  fixtures :categories, :authors
+  fixtures :categories, :authors, :author_addresses
 
   def load_extra_fixture(name)
     fixture = create_fixtures(name).first
