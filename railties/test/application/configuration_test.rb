@@ -1407,6 +1407,40 @@ module ApplicationTests
       assert_match "config/database", err.message
     end
 
+    test "loads database.yml using shared keys" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          username: bobby
+          adapter: sqlite3
+
+        development:
+          database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["adapter"]
+      assert_equal "bobby",   ar_config["development"]["username"]
+      assert_equal "dev_db",  ar_config["development"]["database"]
+    end
+
+    test "loads database.yml using shared keys for undefined environments" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          username: bobby
+          adapter: sqlite3
+          database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["adapter"]
+      assert_equal "bobby",   ar_config["development"]["username"]
+      assert_equal "dev_db",  ar_config["development"]["database"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 

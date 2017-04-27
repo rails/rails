@@ -133,7 +133,14 @@ module Rails
         config = if yaml && yaml.exist?
           require "yaml"
           require "erb"
-          YAML.load(ERB.new(yaml.read).result) || {}
+          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
+          shared = loaded_yaml.delete("shared")
+          if shared
+            loaded_yaml.each do |_k, values|
+              values.reverse_merge!(shared)
+            end
+          end
+          Hash.new(shared).merge(loaded_yaml)
         elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
