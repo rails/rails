@@ -136,6 +136,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal david, ship.developer
   end
 
+  def test_default_with_lambda
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, default: -> { default_developer }
+
+      def default_developer
+        Developer.first
+      end
+    end
+
+    ship = model.create!
+    assert_equal developers(:david), ship.developer
+
+    ship = model.create!(developer: developers(:jamis))
+    assert_equal developers(:jamis), ship.developer
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
