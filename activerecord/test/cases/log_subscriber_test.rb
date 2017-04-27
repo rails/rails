@@ -172,8 +172,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_log_query_source_with_log_subscriber_config
-    TestDebugLogSubscriber.log_query_source = true
+  def test_vebose_query_logs
+    ActiveRecord::Base.verbose_query_logs = true
 
     event = Struct.new(:duration, :payload)
 
@@ -181,19 +181,16 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger.sql(event.new(0, sql: "hi mom!"))
     assert_match(/↳/, @logger.logged(:debug).last)
 
-    TestDebugLogSubscriber.log_query_source = false
+  ensure
+    ActiveRecord::Base.verbose_query_logs = false
   end
 
-  def test_log_query_source_with_active_record_config
-    ActiveRecord::Base.log_query_source = true
-
+  def test_verbose_query_logs_disabled_by_default
     event = Struct.new(:duration, :payload)
 
     logger = TestDebugLogSubscriber.new
     logger.sql(event.new(0, sql: "hi mom!"))
-    assert_match(/↳/, @logger.logged(:debug).last)
-
-    ActiveRecord::Base.log_query_source = false
+    assert_no_match(/↳/, @logger.logged(:debug).last)
   end
 
   def test_cached_queries

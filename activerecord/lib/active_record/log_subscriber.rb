@@ -137,7 +137,6 @@ module ActiveRecord
       def ignored_callstack(path)
         path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
       end
-
   end
 end
 
