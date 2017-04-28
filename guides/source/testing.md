@@ -610,9 +610,9 @@ For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
-$ bin/rails generate system_test users_create
+$ bin/rails generate system_test users
       invoke test_unit
-      create test/system/users_creates_test.rb
+      create test/system/users_test.rb
 ```
 
 Here's what a freshly-generated system test looks like:
@@ -620,11 +620,11 @@ Here's what a freshly-generated system test looks like:
 ```ruby
 require "application_system_test_case"
 
-class UsersCreatesTest < ApplicationSystemTestCase
+class UsersTest < ApplicationSystemTestCase
   # test "visiting the index" do
-  #   visit users_creates_url
+  #   visit users_url
   #
-  #   assert_selector "h1", text: "UsersCreate"
+  #   assert_selector "h1", text: "Users"
   # end
 end
 ```
