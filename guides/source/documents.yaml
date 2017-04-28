@@ -197,7 +197,6 @@
       name: Ruby on Rails 5.1 Release Notes
       url: 5_1_release_notes.html
       description: Release notes for Rails 5.1.
-      work_in_progress: true
     -
       name: Ruby on Rails 5.0 Release Notes
       url: 5_0_release_notes.html
