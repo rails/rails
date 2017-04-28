@@ -1488,10 +1488,10 @@ module ApplicationTests
       assert ActiveRecord::Base.dump_schema_after_migration
     end
 
-    test "config.active_record.log_query_source is false by default on development" do
+    test "config.active_record.verbose_query_logs is false by default on development" do
       app "development"
 
-      assert_not ActiveRecord::Base.log_query_source
+      assert_not ActiveRecord::Base.verbose_query_logs
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
