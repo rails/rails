@@ -341,7 +341,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
-*   Removed support to non-keyword arguments in `#process`, `#get`, `#post`,
+*   Removed support for non-keyword arguments in `#process`, `#get`, `#post`,
     `#patch`, `#put`, `#delete`, and `#head` for the `ActionDispatch::IntegrationTest`
     and `ActionController::TestCase` classes.
     ([Commit](https://github.com/rails/rails/commit/98b8309569a326910a723f521911e54994b112fb),
