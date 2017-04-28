@@ -1,4 +1,5 @@
 require 'active_support/core_ext/date_and_time/compatibility'
+require 'active_support/core_ext/module/remove_method'
 
 class DateTime
   include DateAndTime::Compatibility
