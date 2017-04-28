@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
+class TestCustomUrlHelpers < ActionDispatch::IntegrationTestCase
   class Linkable
     attr_reader :id
 

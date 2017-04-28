@@ -71,7 +71,7 @@ module ApplicationTests
       app_file "test/integration/posts_test.rb", <<-RUBY
         require 'test_helper'
 
-        class PostsTest < ActionDispatch::IntegrationTest
+        class PostsTest < ActionDispatch::IntegrationTestCase
           def test_index
             get '/posts'
             assert_response :success

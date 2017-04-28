@@ -476,7 +476,7 @@ module ActionController
   end
 end
 
-class LiveStreamRouterTest < ActionDispatch::IntegrationTest
+class LiveStreamRouterTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     include ActionController::Live
 

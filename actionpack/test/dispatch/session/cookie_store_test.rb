@@ -2,7 +2,7 @@ require "abstract_unit"
 require "stringio"
 require "active_support/key_generator"
 
-class CookieStoreTest < ActionDispatch::IntegrationTest
+class CookieStoreTest < ActionDispatch::IntegrationTestCase
   SessionKey = "_myapp_session"
   SessionSecret = "b3c631c314c0bbca50c1b2843150fe33"
   Generator = ActiveSupport::LegacyKeyGenerator.new(SessionSecret)

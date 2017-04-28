@@ -1,7 +1,7 @@
 require 'test_helper'
 
 <% module_namespacing do -%>
-class <%= class_name %>Test < ActionDispatch::IntegrationTest
+class <%= class_name %>Test < ActionDispatch::IntegrationTestCase
   # test "the truth" do
   #   assert true
   # end

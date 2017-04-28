@@ -365,7 +365,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * [`ActiveSupport::TestCase`](http://api.rubyonrails.org/classes/ActiveSupport/TestCase.html)
 * [`ActionMailer::TestCase`](http://api.rubyonrails.org/classes/ActionMailer/TestCase.html)
 * [`ActionView::TestCase`](http://api.rubyonrails.org/classes/ActionView/TestCase.html)
-* [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
+* [`ActionDispatch::IntegrationTestCase`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTestCase.html)
 * [`ActiveJob::TestCase`](http://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
 * [`ActionDispatch::SystemTestCase`](http://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
 
@@ -792,18 +792,18 @@ Here's what a freshly-generated integration test looks like:
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::IntegrationTestCase
   # test "the truth" do
   #   assert true
   # end
 end
 ```
 
-Here the test is inheriting from `ActionDispatch::IntegrationTest`. This makes some additional helpers available for us to use in our integration tests.
+Here the test is inheriting from `ActionDispatch::IntegrationTestCase`. This makes some additional helpers available for us to use in our integration tests.
 
 ### Helpers Available for Integration Tests
 
-In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
+In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTestCase` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
 
 For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
 
@@ -834,7 +834,7 @@ Now let's open that file and write our first assertion:
 ```ruby
 require 'test_helper'
 
-class BlogFlowTest < ActionDispatch::IntegrationTest
+class BlogFlowTest < ActionDispatch::IntegrationTestCase
   test "can see the welcome page" do
     get "/"
     assert_select "h1", "Welcome#index"
@@ -933,7 +933,7 @@ Let's take a look at one such test, `test_should_get_index` from the file `artic
 
 ```ruby
 # articles_controller_test.rb
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
+class ArticlesControllerTest < ActionDispatch::IntegrationTestCase
   test "should get index" do
     get articles_url
     assert_response :success
@@ -1048,7 +1048,7 @@ You also have access to three instance variables in your functional tests, after
 
 
 ```ruby
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
+class ArticlesControllerTest < ActionDispatch::IntegrationTestCase
   test "should get index" do
     get articles_url
 
@@ -1198,7 +1198,7 @@ Our test should now look something as what follows. Disregard the other tests fo
 ```ruby
 require 'test_helper'
 
-class ArticlesControllerTest < ActionDispatch::IntegrationTest
+class ArticlesControllerTest < ActionDispatch::IntegrationTestCase
   # called before every single test
   setup do
     @article = articles(:one)
@@ -1251,7 +1251,7 @@ module SignInHelper
   end
 end
 
-class ActionDispatch::IntegrationTest
+class ActionDispatch::IntegrationTestCase
   include SignInHelper
 end
 ```
@@ -1259,7 +1259,7 @@ end
 ```ruby
 require 'test_helper'
 
-class ProfileControllerTest < ActionDispatch::IntegrationTest
+class ProfileControllerTest < ActionDispatch::IntegrationTestCase
 
   test "should show profile" do
     # helper is now reusable from any controller test case
@@ -1462,7 +1462,7 @@ testing) but instead it will be appended to an array
 (`ActionMailer::Base.deliveries`).
 
 NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
-`ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests.
+`ActionMailer::TestCase` and `ActionDispatch::IntegrationTestCase` tests.
 If you want to have a clean slate outside these test cases, you can reset it
 manually with: `ActionMailer::Base.deliveries.clear`
 
@@ -1473,7 +1473,7 @@ Functional testing for mailers involves more than just checking that the email b
 ```ruby
 require 'test_helper'
 
-class UserControllerTest < ActionDispatch::IntegrationTest
+class UserControllerTest < ActionDispatch::IntegrationTestCase
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
       post invite_friend_url, params: { email: 'friend@example.com' }

@@ -2,7 +2,7 @@ require "abstract_unit"
 require "securerandom"
 
 # You need to start a memcached server inorder to run these tests
-class MemCacheStoreTest < ActionDispatch::IntegrationTest
+class MemCacheStoreTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     def no_session_access
       head :ok

@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class SSLTest < ActionDispatch::IntegrationTest
+class SSLTest < ActionDispatch::IntegrationTestCase
   HEADERS = Rack::Utils::HeaderHash.new "Content-Type" => "text/html"
 
   attr_accessor :app

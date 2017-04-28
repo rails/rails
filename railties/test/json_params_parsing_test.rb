@@ -2,7 +2,7 @@ require "abstract_unit"
 require "action_dispatch"
 require "active_record"
 
-class JsonParamsParsingTest < ActionDispatch::IntegrationTest
+class JsonParamsParsingTest < ActionDispatch::IntegrationTestCase
   def test_prevent_null_query
     # Make sure we have data to find
     klass = Class.new(ActiveRecord::Base) do

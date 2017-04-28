@@ -91,7 +91,7 @@ module ActionDispatch
   autoload_under "testing" do
     autoload :Assertions
     autoload :Integration
-    autoload :IntegrationTest, "action_dispatch/testing/integration"
+    autoload :IntegrationTestCase, "action_dispatch/testing/integration"
     autoload :TestProcess
     autoload :TestRequest
     autoload :TestResponse

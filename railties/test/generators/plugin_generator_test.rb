@@ -77,7 +77,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
     assert_directory "test/integration/"
 
-    assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
+    assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTestCase/
   end
 
   def test_inclusion_of_a_debugger
@@ -339,7 +339,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
-      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
+      assert_match(/ActionDispatch::IntegrationTestCase\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
       assert_no_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
     end
     assert_no_file "bin/test"

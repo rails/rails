@@ -98,7 +98,7 @@ module ActionDispatch
           get ":controller(/:action)"
         end
 
-        ActionDispatch::IntegrationTest.app.routes.draw do
+        ActionDispatch::IntegrationTestCase.app.routes.draw do
           get ":controller(/:action)"
         end
       end
@@ -143,7 +143,7 @@ class BasicController
   end
 end
 
-class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+class ActionDispatch::IntegrationTestCase < ActiveSupport::TestCase
   include ActionDispatch::SharedRoutes
 
   def self.build_app(routes = nil)

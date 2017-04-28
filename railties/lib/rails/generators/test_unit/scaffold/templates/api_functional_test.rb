@@ -1,7 +1,7 @@
 require 'test_helper'
 
 <% module_namespacing do -%>
-class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTest
+class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTestCase
   <%- if mountable_engine? -%>
   include Engine.routes.url_helpers
 

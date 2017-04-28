@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class DebugExceptionsTest < ActionDispatch::IntegrationTest
+class DebugExceptionsTest < ActionDispatch::IntegrationTestCase
   class Boomer
     attr_accessor :closed
 
@@ -269,7 +269,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     begin
       Mime::Type.register "text/wibble", :wibble
 
-      ActionDispatch::IntegrationTest.register_encoder(:wibble,
+      ActionDispatch::IntegrationTestCase.register_encoder(:wibble,
         param_encoder: -> params { params })
 
       @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)

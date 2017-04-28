@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class ShowExceptionsTest < ActionDispatch::IntegrationTest
+class ShowExceptionsTest < ActionDispatch::IntegrationTestCase
   class Boomer
     def call(env)
       req = ActionDispatch::Request.new(env)

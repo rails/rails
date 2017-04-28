@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class IntegrationTestGenerator < NamedBase # :nodoc:
+    class IntegrationTestCaseGenerator < NamedBase # :nodoc:
       hook_for :integration_tool, as: :integration
     end
   end

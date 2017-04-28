@@ -1,6 +1,6 @@
 require "abstract_unit"
 
-class IPv6IntegrationTest < ActionDispatch::IntegrationTest
+class IPv6IntegrationTest < ActionDispatch::IntegrationTestCase
   Routes = ActionDispatch::Routing::RouteSet.new
   include Routes.url_helpers
 

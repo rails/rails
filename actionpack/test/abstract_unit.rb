@@ -96,7 +96,7 @@ class RoutedRackApp
   end
 end
 
-class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+class ActionDispatch::IntegrationTestCase < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
@@ -172,7 +172,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 end
 
 # Temporary base class
-class Rack::TestCase < ActionDispatch::IntegrationTest
+class Rack::TestCase < ActionDispatch::IntegrationTestCase
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, "")

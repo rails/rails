@@ -22,7 +22,7 @@ class TestController < ActionController::Base
   end
 end
 
-class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
+class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTestCase
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     ActiveSupport::Deprecation.silence do

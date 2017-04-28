@@ -1,7 +1,7 @@
 require "abstract_unit"
 
 module ActionDispatch
-  class ExceptionWrapperTest < ActionDispatch::IntegrationTest
+  class ExceptionWrapperTest < ActionDispatch::IntegrationTestCase
     class TestError < StandardError
       attr_reader :backtrace
 

@@ -1,7 +1,7 @@
 require "abstract_unit"
 require "rails/engine"
 
-class TestRoutingMount < ActionDispatch::IntegrationTest
+class TestRoutingMount < ActionDispatch::IntegrationTestCase
   Router = ActionDispatch::Routing::RouteSet.new
 
   class AppWithRoutes < Rails::Engine

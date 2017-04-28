@@ -24,7 +24,7 @@ module ActionController
   end
 
   # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
-  # Please use ActionDispatch::IntegrationTest going forward.
+  # Please use ActionDispatch::IntegrationTestCase going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
     DEFAULT_ENV.delete "PATH_INFO"
@@ -217,7 +217,7 @@ module ActionController
   # == Use integration style controller tests over functional style controller tests.
   #
   # Rails discourages the use of functional tests in favor of integration tests
-  # (use ActionDispatch::IntegrationTest).
+  # (use ActionDispatch::IntegrationTestCase).
   #
   # New Rails applications no longer generate functional style controller tests and they should
   # only be used for backward compatibility. Integration style controller tests perform actual

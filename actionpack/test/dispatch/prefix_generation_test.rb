@@ -21,7 +21,7 @@ module TestGenerationPrefix
     def persisted?; true; end
   end
 
-  class WithMountedEngine < ActionDispatch::IntegrationTest
+  class WithMountedEngine < ActionDispatch::IntegrationTestCase
     class BlogEngine < Rails::Engine
       routes.draw do
         get "/posts/:id", to: "inside_engine_generating#show", as: :post
@@ -330,7 +330,7 @@ module TestGenerationPrefix
       end
   end
 
-  class EngineMountedAtRoot < ActionDispatch::IntegrationTest
+  class EngineMountedAtRoot < ActionDispatch::IntegrationTestCase
     class BlogEngine
       def self.routes
         @routes ||= begin

@@ -1,7 +1,7 @@
 require "abstract_unit"
 require "active_support/json/decoding"
 
-class WebServiceTest < ActionDispatch::IntegrationTest
+class WebServiceTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]

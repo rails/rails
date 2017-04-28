@@ -2,7 +2,7 @@ require "abstract_unit"
 
 class ReviewsController < ResourcesController; end
 
-class RoutingConcernsTest < ActionDispatch::IntegrationTest
+class RoutingConcernsTest < ActionDispatch::IntegrationTestCase
   class Reviewable
     def self.call(mapper, options = {})
       mapper.resources :reviews, options

@@ -18,7 +18,7 @@ module ApplicationTests
       app_file "test/integration/mailer_integration_test.rb", <<-RUBY
         require 'test_helper'
 
-        class MailerIntegrationTest < ActionDispatch::IntegrationTest
+        class MailerIntegrationTest < ActionDispatch::IntegrationTestCase
           setup do
             @old_delivery_method = ActionMailer::Base.delivery_method
             ActionMailer::Base.delivery_method = :test
@@ -58,7 +58,7 @@ module ApplicationTests
       app_file "test/integration/default_app_test.rb", <<-RUBY
         require 'test_helper'
 
-        class DefaultAppIntegrationTest < ActionDispatch::IntegrationTest
+        class DefaultAppIntegrationTest < ActionDispatch::IntegrationTestCase
           def test_app_returns_action_dispatch_test_app_by_default
             assert_equal ActionDispatch.test_app, app
           end

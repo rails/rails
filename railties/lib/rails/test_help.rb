@@ -27,7 +27,7 @@ if defined?(ActiveRecord::Base)
     end
   end
 
-  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  ActionDispatch::IntegrationTestCase.fixture_path = ActiveSupport::TestCase.fixture_path
 
   def create_fixtures(*fixture_set_names, &block)
     FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
@@ -43,7 +43,7 @@ class ActionController::TestCase
   end
 end
 
-class ActionDispatch::IntegrationTest
+class ActionDispatch::IntegrationTestCase
   def before_setup # :nodoc:
     @routes = Rails.application.routes
     super

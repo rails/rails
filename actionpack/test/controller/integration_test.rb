@@ -124,9 +124,9 @@ class SessionTest < ActiveSupport::TestCase
   end
 end
 
-class IntegrationTestTest < ActiveSupport::TestCase
+class IntegrationTestCaseTest < ActiveSupport::TestCase
   def setup
-    @test = ::ActionDispatch::IntegrationTest.new(:app)
+    @test = ::ActionDispatch::IntegrationTestCase.new(:app)
   end
 
   def test_opens_new_session
@@ -137,7 +137,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
-  # IntegrationTest's superclass.  Make sure IntegrationTest does not
+  # IntegrationTestCase's superclass.  Make sure IntegrationTestCase does not
   # try to delegate these methods to the session object.
   def test_does_not_prevent_method_missing_passing_up_to_ancestors
     mixin = Module.new do
@@ -157,7 +157,7 @@ end
 
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
-class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
+class IntegrationTestCaseUsesCorrectClass < ActionDispatch::IntegrationTestCase
   def test_integration_methods_called
     reset!
 
@@ -167,7 +167,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   end
 end
 
-class IntegrationProcessTest < ActionDispatch::IntegrationTest
+class IntegrationProcessTest < ActionDispatch::IntegrationTestCase
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
@@ -538,7 +538,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 end
 
-class MetalIntegrationTest < ActionDispatch::IntegrationTest
+class MetalIntegrationTest < ActionDispatch::IntegrationTestCase
   include SharedTestRoutes.url_helpers
 
   class Poller
@@ -616,7 +616,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+class ApplicationIntegrationTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     def index
       render plain: "index"
@@ -703,7 +703,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
+class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     def post
       render plain: "Created", status: 201
@@ -736,7 +736,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
+class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTestCase
   class FooController < ActionController::Base
     def index
       render plain: "foo#index"
@@ -820,7 +820,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
+class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTestCase
   class FooController < ActionController::Base
     def status
       head :ok
@@ -851,7 +851,7 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
+class IntegrationWithRoutingTest < ActionDispatch::IntegrationTestCase
   class FooController < ActionController::Base
     def index
       render plain: "ok"
@@ -888,7 +888,7 @@ class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
 end
 
 # to work in contexts like rspec before(:all)
-class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
+class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTestCase
   self._setup_callbacks = []
   self._teardown_callbacks = []
 
@@ -917,7 +917,7 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
 end
 
 # to ensure that session requirements in setup are persisted in the tests
-class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
+class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTestCase
   setup do
     cookies["user_name"] = "david"
   end
@@ -928,7 +928,7 @@ class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
   end
 end
 
-class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
+class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTestCase
   class FooController < ActionController::Base
     def foos
       render plain: "ok"
@@ -988,14 +988,14 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
   def test_encoding_as_without_mime_registration
     assert_raise ArgumentError do
-      ActionDispatch::IntegrationTest.register_encoder :wibble
+      ActionDispatch::IntegrationTestCase.register_encoder :wibble
     end
   end
 
   def test_registering_custom_encoder
     Mime::Type.register "text/wibble", :wibble
 
-    ActionDispatch::IntegrationTest.register_encoder(:wibble,
+    ActionDispatch::IntegrationTestCase.register_encoder(:wibble,
       param_encoder: -> params { params })
 
     post_to_foos as: :wibble do
@@ -1071,7 +1071,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
 end
 
-class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
+class IntegrationFileUploadTest < ActionDispatch::IntegrationTestCase
   class IntegrationController < ActionController::Base
     def test_file_upload
       render plain: params[:file].size

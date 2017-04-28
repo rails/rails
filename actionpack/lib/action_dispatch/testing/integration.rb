@@ -62,7 +62,7 @@ module ActionDispatch
     # limited extent) multiple simultaneous users interacting with your system.
     #
     # Typically, you will instantiate a new session using
-    # IntegrationTest#open_session, rather than instantiating
+    # IntegrationTestCase#open_session, rather than instantiating
     # Integration::Session directly.
     class Session
       DEFAULT_HOST = "www.example.com"
@@ -193,7 +193,7 @@ module ActionDispatch
       # request method that doesn't have a method defined in the integration tests.
       #
       # This method returns the response status, after performing the request.
-      # Furthermore, if this method was called from an ActionDispatch::IntegrationTest object,
+      # Furthermore, if this method was called from an ActionDispatch::IntegrationTestCase object,
       # then that object's <tt>@response</tt> instance variable will point to a Response object
       # which one can use to inspect the details of the response.
       #
@@ -408,12 +408,12 @@ module ActionDispatch
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
   #
-  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your tests
+  # At its simplest, you simply extend <tt>IntegrationTestCase</tt> and write your tests
   # using the get/post methods:
   #
   #   require "test_helper"
   #
-  #   class ExampleTest < ActionDispatch::IntegrationTest
+  #   class ExampleTest < ActionDispatch::IntegrationTestCase
   #     fixtures :people
   #
   #     def test_login
@@ -437,7 +437,7 @@ module ActionDispatch
   #
   #   require "test_helper"
   #
-  #   class AdvancedTest < ActionDispatch::IntegrationTest
+  #   class AdvancedTest < ActionDispatch::IntegrationTestCase
   #     fixtures :people, :rooms
   #
   #     def test_login_and_speak
@@ -485,7 +485,7 @@ module ActionDispatch
   #
   #   require 'test_helper'
   #
-  #   class UserFlowsTest < ActionDispatch::IntegrationTest
+  #   class UserFlowsTest < ActionDispatch::IntegrationTestCase
   #     test "login and browse site" do
   #       # login via https
   #       https!
@@ -514,7 +514,7 @@ module ActionDispatch
   #
   #   require 'test_helper'
   #
-  #   class UserFlowsTest < ActionDispatch::IntegrationTest
+  #   class UserFlowsTest < ActionDispatch::IntegrationTestCase
   #     test "login and browse site" do
   #       # User david logs in
   #       david = login(:david)
@@ -565,7 +565,7 @@ module ActionDispatch
   #
   #   require "test_helper"
   #
-  #   class ApiTest < ActionDispatch::IntegrationTest
+  #   class ApiTest < ActionDispatch::IntegrationTestCase
   #     test "creates articles" do
   #       assert_difference -> { Article.count } do
   #         post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
@@ -586,7 +586,7 @@ module ActionDispatch
   # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
   # types you've registered, you can add your own encoders with:
   #
-  #   ActionDispatch::IntegrationTest.register_encoder :wibble,
+  #   ActionDispatch::IntegrationTestCase.register_encoder :wibble,
   #     param_encoder: -> params { params.to_wibble },
   #     response_parser: -> body { body }
   #
@@ -596,7 +596,7 @@ module ActionDispatch
   #
   # Consult the Rails Testing Guide for more.
 
-  class IntegrationTest < ActiveSupport::TestCase
+  class IntegrationTestCase < ActiveSupport::TestCase
     include TestProcess::FixtureFile
 
     module UrlOptions
@@ -647,5 +647,17 @@ module ActionDispatch
     end
 
     include Behavior
+  end
+
+  class IntegrationTest < IntegrationTestCase
+    def initialize(*)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActionDispatch::IntegrationTest has been renamed ActionDispatch::IntegrationTestCase.
+        ActionDispatch::IntegrationTest will be removed in Rails 6.0.
+        Please use ActionDispatch::IntegrationTestCase adapter instead.
+      MSG
+
+      super
+    end
   end
 end

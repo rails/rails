@@ -1034,7 +1034,7 @@ typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
+  class FooControllerTest < ActionDispatch::IntegrationTestCase
     include Engine.routes.url_helpers
 
     def test_index
@@ -1052,7 +1052,7 @@ in your setup code:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
+  class FooControllerTest < ActionDispatch::IntegrationTestCase
     include Engine.routes.url_helpers
 
     setup do
@@ -1489,24 +1489,24 @@ These are the hooks you can use in your own code.
 
 To hook into the initialization process of one of the following classes use the available hook.
 
-| Class                             | Available Hooks                      |
-| --------------------------------- | ------------------------------------ |
-| `ActionCable`                     | `action_cable`                       |
-| `ActionController::API`           | `action_controller_api`              |
-| `ActionController::API`           | `action_controller`                  |
-| `ActionController::Base`          | `action_controller_base`             |
-| `ActionController::Base`          | `action_controller`                  |
-| `ActionController::TestCase`      | `action_controller_test_case`        |
-| `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
-| `ActionMailer::Base`              | `action_mailer`                      |
-| `ActionMailer::TestCase`          | `action_mailer_test_case`            |
-| `ActionView::Base`                | `action_view`                        |
-| `ActionView::TestCase`            | `action_view_test_case`              |
-| `ActiveJob::Base`                 | `active_job`                         |
-| `ActiveJob::TestCase`             | `active_job_test_case`               |
-| `ActiveRecord::Base`              | `active_record`                      |
-| `ActiveSupport::TestCase`         | `active_support_test_case`           |
-| `i18n`                            | `i18n`                               |
+| Class                                 | Available Hooks                      |
+| ------------------------------------- | ------------------------------------ |
+| `ActionCable`                         | `action_cable`                       |
+| `ActionController::API`               | `action_controller_api`              |
+| `ActionController::API`               | `action_controller`                  |
+| `ActionController::Base`              | `action_controller_base`             |
+| `ActionController::Base`              | `action_controller`                  |
+| `ActionController::TestCase`          | `action_controller_test_case`        |
+| `ActionDispatch::IntegrationTestCase` | `action_dispatch_integration_test`   |
+| `ActionMailer::Base`                  | `action_mailer`                      |
+| `ActionMailer::TestCase`              | `action_mailer_test_case`            |
+| `ActionView::Base`                    | `action_view`                        |
+| `ActionView::TestCase`                | `action_view_test_case`              |
+| `ActiveJob::Base`                     | `active_job`                         |
+| `ActiveJob::TestCase`                 | `active_job_test_case`               |
+| `ActiveRecord::Base`                  | `active_record`                      |
+| `ActiveSupport::TestCase`             | `active_support_test_case`           |
+| `i18n`                                | `i18n`                               |
 
 ## Configuration hooks
 

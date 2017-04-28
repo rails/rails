@@ -1311,7 +1311,7 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 * In Rails 4.0, `SCRIPT_NAME` is properly nested when engines are mounted on an app that's served from a URL prefix. You no longer have to set `default_url_options[:script_name]` to work around overwritten URL prefixes.
 
 * Rails 4.0 deprecated `ActionController::Integration` in favor of `ActionDispatch::Integration`.
-* Rails 4.0 deprecated `ActionController::IntegrationTest` in favor of `ActionDispatch::IntegrationTest`.
+* Rails 4.0 deprecated `ActionController::IntegrationTestCase` in favor of `ActionDispatch::IntegrationTestCase`.
 * Rails 4.0 deprecated `ActionController::PerformanceTest` in favor of `ActionDispatch::PerformanceTest`.
 * Rails 4.0 deprecated `ActionController::AbstractRequest` in favor of `ActionDispatch::Request`.
 * Rails 4.0 deprecated `ActionController::Request` in favor of `ActionDispatch::Request`.

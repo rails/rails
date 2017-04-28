@@ -115,7 +115,7 @@ module ActionDispatch
         end
     end
 
-    class SessionIntegrationTest < ActionDispatch::IntegrationTest
+    class SessionIntegrationTest < ActionDispatch::IntegrationTestCase
       class MySessionApp
         def call(env)
           request = Rack::Request.new(env)

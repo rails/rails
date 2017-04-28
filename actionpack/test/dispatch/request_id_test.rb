@@ -29,7 +29,7 @@ class RequestIdTest < ActiveSupport::TestCase
     end
 end
 
-class RequestIdResponseTest < ActionDispatch::IntegrationTest
+class RequestIdResponseTest < ActionDispatch::IntegrationTestCase
   class TestController < ActionController::Base
     def index
       head :ok
