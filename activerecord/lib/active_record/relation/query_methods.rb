@@ -248,7 +248,7 @@ module ActiveRecord
         return super()
       end
 
-      raise ArgumentError, "Call this with at least one field" if fields.empty?
+      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
 
