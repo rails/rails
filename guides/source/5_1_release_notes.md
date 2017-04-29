@@ -328,9 +328,6 @@ Please refer to the [Changelog][action-cable] for detailed changes.
     with multiple applications.
     ([Pull Request](https://github.com/rails/rails/pull/27425))
 
-*   Permit same-origin connections by default.
-    ([commit](https://github.com/rails/rails/commit/dae404473409fcab0e07976aec626df670e52282))
-
 *   Add `ActiveSupport::Notifications` hook for broadcasting data.
     ([Pull Request](https://github.com/rails/rails/pull/24988))
 
@@ -355,9 +352,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
 
 ### Deprecations
-
-*   Deprecated `:controller` and `:action` path parameters.
-    ([Pull Request](https://github.com/rails/rails/pull/23980))
 
 *   Deprecated `config.action_controller.raise_on_unfiltered_parameters`.
     It doesn't have any effect in Rails 5.1.
@@ -415,10 +409,6 @@ Action Mailer
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Notable changes
-
-*   Exception handling: use `rescue_from` to handle exceptions raised by
-    mailer actions, by message delivery, and by deferred delivery jobs.
-    ([commit](https://github.com/rails/rails/commit/e35b98e6f5c54330245645f2ed40d56c74538902))
 
 *   Allowed setting custom content type when attachments are included
     and body is set inline.
