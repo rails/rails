@@ -31,19 +31,9 @@ module ActiveRecord
           scope.where(association_key_name => ids)
         end
 
-        def table
-          klass.arel_table
-        end
-
         # The name of the key on the associated records
         def association_key_name
           raise NotImplementedError
-        end
-
-        # This is overridden by HABTM as the condition should be on the foreign_key column in
-        # the join table
-        def association_key
-          klass.arel_attribute(association_key_name, table)
         end
 
         # The name of the key on the model which declares the association
