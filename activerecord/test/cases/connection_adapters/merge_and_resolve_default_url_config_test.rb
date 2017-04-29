@@ -250,6 +250,24 @@ module ActiveRecord
                     }
         assert_equal expected, actual
       end
+
+      def test_database_url_updates_development_and_test
+        ENV["DATABASE_URL"] = "postgres://localhost"
+        ENV["RAILS_ENV"]    = "development"
+
+        config = {
+          "development" => { "adapter" => "postgresql", "database" => "foo", "host" => "NOT-LOCALHOST" },
+          "test" => { "adapter" => "postgresql", "database" => "foo2", "host" => "NOT-LOCALHOST" }
+        }
+
+        actual   = resolve_config(config)
+        expected = {
+          "development" => config["development"].merge("host" => "localhost"),
+          "test" => config["test"].merge("host" => "localhost")
+        }
+
+        assert_equal expected, actual
+      end
     end
   end
 end

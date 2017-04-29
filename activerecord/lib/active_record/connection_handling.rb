@@ -61,7 +61,13 @@ module ActiveRecord
     class MergeAndResolveDefaultUrlConfig # :nodoc:
       def initialize(raw_configurations)
         @raw_config = raw_configurations.dup
-        @env = DEFAULT_ENV.call.to_s
+
+        env = DEFAULT_ENV.call.to_s
+        if env == "development"
+          @env = [env, "test"]
+        else
+          @env = [env]
+        end
       end
 
       # Returns fully resolved connection hashes.
@@ -74,8 +80,10 @@ module ActiveRecord
         def config
           @raw_config.dup.tap do |cfg|
             if url = ENV["DATABASE_URL"]
-              cfg[@env] ||= {}
-              cfg[@env]["url"] ||= url
+              @env.each do |env|
+                cfg[env] ||= {}
+                cfg[env]["url"] ||= url
+              end
             end
           end
         end
