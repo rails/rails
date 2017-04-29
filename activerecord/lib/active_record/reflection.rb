@@ -212,7 +212,7 @@ module ActiveRecord
       end
 
       def constraints
-        chain.map(&:scopes).flatten
+        chain.flat_map(&:scopes)
       end
 
       def counter_cache_column
