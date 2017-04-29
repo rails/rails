@@ -1,4 +1,4 @@
-*   Quote database name in db:create grant statement (when database_user does not have access to create the database).
+*   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
 
     *Rune Philosof*
 
