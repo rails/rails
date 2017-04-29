@@ -745,10 +745,6 @@ module ActiveRecord
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super
-      end
-
       def macro; :has_and_belongs_to_many; end
 
       def collection?
