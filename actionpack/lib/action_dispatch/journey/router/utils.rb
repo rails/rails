@@ -59,11 +59,11 @@ module ActionDispatch
           end
 
           private
-            def escape(component, pattern) # :doc:
+            def escape(component, pattern)
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
-            def percent_encode(unsafe) # :doc:
+            def percent_encode(unsafe)
               safe = EMPTY.dup
               unsafe.each_byte { |b| safe << DEC2HEX[b] }
               safe
