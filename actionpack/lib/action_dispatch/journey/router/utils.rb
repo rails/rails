@@ -84,6 +84,10 @@ module ActionDispatch
           ENCODER.escape_fragment(fragment.to_s)
         end
 
+        # Replaces any escaped sequences with their unescaped representations
+        #
+        #   uri = "/topics?title=Ruby%20on%20Rails"
+        #   unescape_uri(uri)  #=> "/topics?title=Ruby on Rails"
         def self.unescape_uri(uri)
           ENCODER.unescape_uri(uri)
         end
