@@ -4,8 +4,6 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      attr_reader :aliases
-
       def self.create(connection, initial_table, type_caster)
         aliases = Hash.new(0)
         aliases[initial_table] = 1
@@ -79,6 +77,11 @@ module ActiveRecord
           Arel::Table.new(table_name, type_caster: @type_caster).alias(table_alias)
         end
       end
+
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
+      protected
+        attr_reader :aliases
 
       private
 
