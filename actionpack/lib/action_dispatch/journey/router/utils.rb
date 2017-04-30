@@ -59,11 +59,11 @@ module ActionDispatch
           end
 
           private
-            def escape(component, pattern) # :doc:
+            def escape(component, pattern)
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
-            def percent_encode(unsafe) # :doc:
+            def percent_encode(unsafe)
               safe = EMPTY.dup
               unsafe.each_byte { |b| safe << DEC2HEX[b] }
               safe
@@ -84,6 +84,10 @@ module ActionDispatch
           ENCODER.escape_fragment(fragment.to_s)
         end
 
+        # Replaces any escaped sequences with their unescaped representations.
+        #
+        #   uri = "/topics?title=Ruby%20on%20Rails"
+        #   unescape_uri(uri)  #=> "/topics?title=Ruby on Rails"
         def self.unescape_uri(uri)
           ENCODER.unescape_uri(uri)
         end
