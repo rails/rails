@@ -120,18 +120,6 @@ module ActiveRecord
         [offending_line.path, offending_line.lineno, offending_line.label]
       end
 
-      def _extract_callstack(callstack)
-        offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
-
-        if offending_line
-          if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
-            md.captures
-          else
-            offending_line
-          end
-        end
-      end
-
       RAILS_GEM_ROOT = File.expand_path("../../../..", __FILE__) + "/"
 
       def ignored_callstack(path)
