@@ -317,10 +317,6 @@ module Rails
 
       def create_vendor_files
         build(:vendor)
-
-        if options[:skip_yarn]
-          remove_file "package.json"
-        end
       end
 
       def delete_app_assets_if_api_option
