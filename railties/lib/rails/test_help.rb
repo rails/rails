@@ -6,7 +6,7 @@ require "rails/test_unit/minitest_plugin"
 require "active_support/test_case"
 require "action_controller"
 require "action_controller/test_case"
-require "action_dispatch/testing/integration"
+require "action_dispatch/integration_test_case"
 require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
