@@ -37,8 +37,12 @@ module Arel
       self
     end
 
-    def create_values values, columns
+    def create_values values, columns = nil
       Nodes::Values.new values, columns
+    end
+
+    def create_tuple values
+      Nodes::Tuple.new values
     end
   end
 end

@@ -42,10 +42,10 @@ module Arel
     end
 
     it 'should return an insert manager' do
-      im = @relation.compile_insert 'VALUES(NULL)'
+      im = @relation.compile_insert '(NULL)'
       assert_kind_of Arel::InsertManager, im
       im.into Table.new(:users)
-      assert_equal "INSERT INTO \"users\" VALUES(NULL)", im.to_sql
+      assert_equal "INSERT INTO \"users\" VALUES (NULL)", im.to_sql
     end
 
     describe 'skip' do
