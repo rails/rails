@@ -2,7 +2,7 @@
 
     Add `verbose_query_logs` configuration option to display the caller of database queries in the log to facilitate N+1 query resolution and other debugging.
 
-    False by default in all environment for existing apps but enabled by default in development for new projects in `new_framework_defaults.rb`.
+    False by default in all environments for existing apps but enabled by default in development for new projects in `new_framework_defaults.rb`.
 
     *Olivier Lacan*
 
