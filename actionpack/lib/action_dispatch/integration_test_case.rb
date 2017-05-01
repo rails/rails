@@ -1,4 +1,5 @@
 require "action_dispatch/testing/request_encoder"
+require "action_dispatch/integration_testing/runner"
 
 module ActionDispatch
   # An integration test spans multiple controllers and actions,
@@ -153,7 +154,7 @@ module ActionDispatch
   #       end
   #   end
   #
-  # See the {request helpers documentation}[rdoc-ref:ActionDispatch::Integration::RequestHelpers] for help on how to
+  # See the {request helpers documentation}[rdoc-ref:ActionDispatch::IntegrationTesting::RequestHelpers] for help on how to
   # use +get+, etc.
   #
   # === Changing the request encoding
@@ -206,7 +207,7 @@ module ActionDispatch
     module Behavior
       extend ActiveSupport::Concern
 
-      include Integration::Runner
+      include IntegrationTesting::Runner
       include ActionController::TemplateAssertions
 
       included do

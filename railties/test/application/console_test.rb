@@ -25,7 +25,7 @@ class ConsoleTest < ActiveSupport::TestCase
     TestHelpers::Rack.send :remove_method, :app
     load_environment
     console_session = irb_context.app
-    assert_instance_of ActionDispatch::Integration::Session, console_session
+    assert_instance_of ActionDispatch::IntegrationTesting::Session, console_session
   end
 
   def test_app_can_access_path_helper_method
@@ -43,7 +43,7 @@ class ConsoleTest < ActiveSupport::TestCase
   def test_new_session_should_return_integration_session
     load_environment
     session = irb_context.new_session
-    assert_instance_of ActionDispatch::Integration::Session, session
+    assert_instance_of ActionDispatch::IntegrationTesting::Session, session
   end
 
   def test_reload_should_fire_preparation_and_cleanup_callbacks

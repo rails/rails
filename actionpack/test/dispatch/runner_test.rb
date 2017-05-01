@@ -7,7 +7,7 @@ class RunnerTest < ActiveSupport::TestCase
       end
     end.new
 
-    runner.extend(ActionDispatch::Integration::Runner)
+    runner.extend(ActionDispatch::IntegrationTesting::Runner)
     runner.integration_session.host! "lvh.me"
 
     runner.before_setup

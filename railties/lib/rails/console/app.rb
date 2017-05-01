@@ -1,5 +1,6 @@
 require "active_support/all"
 require "action_controller"
+require "action_dispatch/integration_testing/session"
 
 module Rails
   module ConsoleMethods
@@ -16,7 +17,7 @@ module Rails
     # to the block before being returned.
     def new_session
       app = Rails.application
-      session = ActionDispatch::Integration::Session.new(app)
+      session = ActionDispatch::IntegrationTesting::Session.new(app)
       yield session if block_given?
 
       # This makes app.url_for and app.foo_path available in the console

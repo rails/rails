@@ -805,11 +805,11 @@ Here the test is inheriting from `ActionDispatch::IntegrationTestCase`. This mak
 
 In addition to the standard testing helpers, inheriting from `ActionDispatch::IntegrationTestCase` comes with some additional helpers available when writing integration tests. Let's get briefly introduced to the three categories of helpers we get to choose from.
 
-For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
+For dealing with the integration test runner, see [`ActionDispatch::IntegrationTesting::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTesting/Runner.html).
 
-When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
+When performing requests, we will have [`ActionDispatch::IntegrationTesting::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTesting/RequestHelpers.html) available for our use.
 
-If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
+If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::IntegrationTesting::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
 ### Implementing an integration test
 
