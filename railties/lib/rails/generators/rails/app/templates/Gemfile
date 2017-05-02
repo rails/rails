@@ -43,7 +43,7 @@ group :development do
 <%- unless options.api? -%>
   # Access an IRB console on exception pages or by using <%%= console %> anywhere in the code.
   <%- if options.dev? || options.edge? -%>
-  gem 'web-console', github: 'rails/web-console'
+  gem 'web-console', git: 'https://github.com/rails/web-console'
   <%- else -%>
   gem 'web-console', '>= 3.3.0'
   <%- end -%>
