@@ -51,6 +51,8 @@ class Hash
   #
   #   hash.symbolize_keys
   #   # => {:name=>"Rob", :age=>"28"}
+  #
+  # +symbolize_keys+ is also aliased as +to_options+.
   def symbolize_keys
     transform_keys { |key| key.to_sym rescue key }
   end

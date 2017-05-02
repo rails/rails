@@ -205,6 +205,7 @@ module DateAndTime
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 0:00 unless +same_time+ is true.
+    # +prev_week+ is also aliased as +last_week+.
     def prev_week(start_day = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
       same_time ? copy_time_to(result) : result
@@ -212,6 +213,7 @@ module DateAndTime
     alias_method :last_week, :prev_week
 
     # Returns a new date/time representing the previous weekday.
+    # +prev_weekday+ is also aliased as +last_weekday+.
     def prev_weekday
       if prev_day.on_weekend?
         copy_time_to(beginning_of_week(:friday))
@@ -222,18 +224,21 @@ module DateAndTime
     alias_method :last_weekday, :prev_weekday
 
     # Short-hand for months_ago(1).
+    # +prev_month+ is also aliased as +last_month+.
     def prev_month
       months_ago(1)
     end
     alias_method :last_month, :prev_month
 
     # Short-hand for months_ago(3).
+    # +prev_quarter+ is also aliased as +last_quarter+.
     def prev_quarter
       months_ago(3)
     end
     alias_method :last_quarter, :prev_quarter
 
     # Short-hand for years_ago(1).
+    # +prev_year+ is also aliased as +last_year+.
     def prev_year
       years_ago(1)
     end

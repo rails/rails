@@ -161,6 +161,7 @@ class DateTime
   alias :at_end_of_minute :end_of_minute
 
   # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
+  # +localtime+ is also aliased as +getlocal+.
   def localtime(utc_offset = nil)
     utc = new_offset(0)
 
