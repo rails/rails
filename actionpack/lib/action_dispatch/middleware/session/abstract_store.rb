@@ -59,6 +59,9 @@ module ActionDispatch
             raise ActionDispatch::Session::SessionRestoreError
           end
           retry
+        elsif argument_error.message =~ %r{dump format error \(user class\)}
+          # Error unmarshalling object from session.
+          {}
         else
           raise
         end
