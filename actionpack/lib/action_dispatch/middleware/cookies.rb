@@ -352,7 +352,7 @@ module ActionDispatch
           # (ip confirms to domain regexp so we explicitly check for ip)
           options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
             ".#{$&}"
-          end
+        end
         elsif options[:domain].is_a? Array
           # If host matches one of the supplied domains without a dot in front of it.
           options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
