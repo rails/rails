@@ -55,7 +55,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_unsuccessful_run "unit/foo_test.rb", "Expected false to be truthy"
+      assert_unsuccessful_run "unit/foo_test.rb", "Failure:\nFooTest#test_truth"
     end
 
     test "integration test" do
