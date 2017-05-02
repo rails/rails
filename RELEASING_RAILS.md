@@ -215,9 +215,10 @@ so we need to give them the security fixes in patch form.
 
 ### Fixing the CI
 
-There are two simple steps for fixing the CI:
+There are three simple steps for fixing the CI:
 
 1. Identify the problem
 2. Fix it
+3. Don't fuck it up
 
 Repeat these steps until the CI is green.
