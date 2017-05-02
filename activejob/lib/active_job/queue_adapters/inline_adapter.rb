@@ -5,7 +5,9 @@ module ActiveJob
     # When enqueuing jobs with the Inline adapter the job will be executed
     # immediately.
     #
-    # To use the Inline set the queue_adapter config to +:inline+.
+    # To use the Inline set the queue_adapter config to +:inline+ or just use
+    # Inline adapter without any explicit configuration since it is default queue
+    # adapter.
     #
     #   Rails.application.config.active_job.queue_adapter = :inline
     class InlineAdapter
