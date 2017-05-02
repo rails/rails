@@ -153,7 +153,7 @@ class Module
   #   end
   #
   #   class Person
-  #     include HairColors
+  #     extend HairColors
   #   end
   #
   #   HairColors.hair_colors = [:brown, :black, :blonde, :red]
@@ -178,7 +178,7 @@ class Module
   #   end
   #
   #   class Person
-  #     include HairColors
+  #     extend HairColors
   #   end
   #
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
@@ -191,7 +191,7 @@ class Module
   #   end
   #
   #   class Person
-  #     include HairColors
+  #     extend HairColors
   #   end
   #
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
@@ -206,7 +206,7 @@ class Module
   #   end
   #
   #   class Person
-  #     include HairColors
+  #     extend HairColors
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
