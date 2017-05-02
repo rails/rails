@@ -64,6 +64,14 @@ module Rails
           ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
         end
       end
+
+      private
+
+      def id_kind
+        kind = Rails.application.config.active_record.primary_key rescue nil
+        ", id: :#{kind}" if kind
+      end
+
     end
   end
 end
