@@ -17,7 +17,7 @@ require "models/developer"
 require "models/company"
 require "models/project"
 
-class AutomaticInverseFindingTests < ActiveRecord::TestCase
+class InverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
 
   def test_has_one_and_belongs_to_should_find_inverse_automatically_on_multiple_word_name
