@@ -88,6 +88,8 @@ module ActiveRecord
       def self.type_cast_config_to_boolean(config)
         if config == "false"
           false
+        elsif config == "true"
+          true
         else
           config
         end
