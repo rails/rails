@@ -413,7 +413,7 @@ module ActiveRecord
       #        t.integer :id
       #        t.string :name
       #
-      #        t.timestamps
+      #        t.timestamps null: false
       #      end
       #
       #      JobLevel.reset_column_information
