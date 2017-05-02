@@ -57,6 +57,7 @@ module ActiveRecord
     def minimum(column_name)
       calculate(:minimum, column_name)
     end
+    alias min :minimum
 
     # Calculates the maximum value on a given column. The value is returned
     # with the same data type of the column, or +nil+ if there's no row. See
@@ -66,6 +67,7 @@ module ActiveRecord
     def maximum(column_name)
       calculate(:maximum, column_name)
     end
+    alias max :maximum
 
     # Calculates the sum of values on a given column. The value is returned
     # with the same data type of the column, +0+ if there's no row. See
