@@ -34,7 +34,6 @@ module ActiveRecord
       autoload :DatabaseStatements
       autoload :DatabaseLimits
       autoload :Quoting
-      autoload :ConnectionPool
       autoload :QueryCache
       autoload :Savepoints
     end
