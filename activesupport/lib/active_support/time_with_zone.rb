@@ -430,6 +430,7 @@ module ActiveSupport
       utc.to_i
     end
     alias_method :tv_sec, :to_i
+    alias_method :to_int, :to_i
 
     # Returns the object's date and time as a rational number of seconds
     # since the Epoch (January 1, 1970 00:00 UTC).
