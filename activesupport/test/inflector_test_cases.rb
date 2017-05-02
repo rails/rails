@@ -105,6 +105,8 @@ module InflectorTestCases
     "edge"        => "edges",
 
     "database"    => "databases",
+    
+    "five"        => "fives",
 
     # regression tests against improper inflection regexes
     "|ice"        => "|ices",
