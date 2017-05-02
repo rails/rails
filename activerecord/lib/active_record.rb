@@ -29,6 +29,7 @@ require "arel"
 require "active_record/version"
 require "active_record/attribute_set"
 
+# :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 

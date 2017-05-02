@@ -28,6 +28,7 @@ require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
 
+# :include: ../README.rdoc
 module ActiveSupport
   extend ActiveSupport::Autoload
 

@@ -21,6 +21,7 @@ silence_warnings do
   Encoding.default_internal = Encoding::UTF_8
 end
 
+# :include: ../RDOC_MAIN.rdoc
 module Rails
   extend ActiveSupport::Autoload
 
