@@ -594,9 +594,10 @@ def create
 end
 
 private
-  def comment_params
-    params.require(:comment).permit(:text)
-  end
+
+def comment_params
+  params.require(:comment).permit(:text)
+end
 ```
 
 This is the final step required to get the new comment form working. Displaying
@@ -811,9 +812,10 @@ belongs_to :author, class_name: "User"
 before_validation :set_author
 
 private
-  def set_author
-    self.author = User.find_or_create_by(name: author_name)
-  end
+  
+def set_author
+  self.author = User.find_or_create_by(name: author_name)
+end
 ```
 
 By representing the `author` association's object with the `User` class, a link
