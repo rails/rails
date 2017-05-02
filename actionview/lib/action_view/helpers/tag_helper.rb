@@ -41,7 +41,11 @@ module ActionView
           @view_context = view_context
         end
 
-        def tag_string(name, content = nil, escape_attributes: true, **options, &block)
+        def tag_string(*args, escape_attributes: true, **options, &block)
+          content_options = args.extract_options!
+          name, content = args
+          options = content_options.merge options
+
           content = @view_context.capture(self, &block) if block_given?
           if VOID_ELEMENTS.include?(name) && content.nil?
             "<#{name.to_s.dasherize}#{tag_options(options, escape_attributes)}>".html_safe

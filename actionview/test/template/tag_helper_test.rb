@@ -35,6 +35,12 @@ class TagHelperTest < ActionView::TestCase
     assert_match(/class="elsewhere"/, str)
   end
 
+  def test_tag_builder_options
+    str = tag.p("class" => "show", :class => "elsewhere")
+    assert_match(/class="show"/, str)
+    assert_match(/class="elsewhere"/, str)
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", ignored: nil)
   end
