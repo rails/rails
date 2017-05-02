@@ -289,7 +289,7 @@ module ActiveRecord
     def group!(*args) # :nodoc:
       args.flatten!
 
-      self.group_values += args
+      self.group_values += args.select(&:present?)
       self
     end
 
