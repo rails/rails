@@ -221,7 +221,7 @@ module ActiveRecord
     # provides methods for manipulating the schema representation.
     #
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
-    # is actually of this type:
+    # is actually of <tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt> type:
     #
     #   class SomeMigration < ActiveRecord::Migration[5.0]
     #     def up
