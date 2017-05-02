@@ -1,3 +1,9 @@
+*   Add type caster to `RuntimeReflection#alias_name`
+
+    Fixes #28959.
+
+    *Jon Moss*
+
 *   Deprecate `supports_statement_cache?`.
 
     *Ryuta Kamizono*

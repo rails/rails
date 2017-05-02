@@ -1,10 +1,12 @@
 require "cases/helper"
+require "models/author"
 require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
-  fixtures :books
+  fixtures :books, :authors
 
   setup do
+    @author = authors(:david)
     @book = books(:awdr)
   end
 
@@ -55,6 +57,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: :written).first
     assert_equal @book, Book.where(status: [:published]).first
     assert_not_equal @book, Book.where(status: [:written]).first
+    assert_not @author.unpublished_books.include?(@book)
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
   end
