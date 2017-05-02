@@ -1105,7 +1105,7 @@ module ActiveRecord
       end
 
       def alias_name
-        Arel::Table.new(table_name)
+        Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
 
       def all_includes; yield; end
