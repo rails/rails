@@ -46,7 +46,7 @@ module ActionDispatch
     end
 
     def each
-      @middlewares.each { |x| yield x }
+      middlewares.each { |x| yield x }
     end
 
     def size
