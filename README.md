@@ -76,7 +76,7 @@ and may also be used independently outside Rails.
 ## Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the
-[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org) and start contributing.
 
 Trying to report a possible security vulnerability in Rails? Please
 check out our [security policy](http://rubyonrails.org/security/) for
