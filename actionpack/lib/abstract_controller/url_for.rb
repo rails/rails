@@ -10,7 +10,7 @@ module AbstractController
     include ActionDispatch::Routing::UrlFor
 
     def _routes
-      raise "In order to use #url_for, you must include routing helpers explicitly. " \
+      raise "In order to use #url_for, you must include routing helpers explicitly.\n" \
             "For instance, `include Rails.application.routes.url_helpers`."
     end
 
