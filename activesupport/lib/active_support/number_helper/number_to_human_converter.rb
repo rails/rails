@@ -61,7 +61,7 @@ module ActiveSupport
             translate_in_locale("human.decimal_units.units", raise: true)
           else
             raise ArgumentError, ":units must be a Hash or String translation scope."
-          end.keys.map { |e_name| INVERTED_DECIMAL_UNITS[e_name] }.sort_by(&:-@)
+          end.keys.map { |e_name| INVERTED_DECIMAL_UNITS[e_name.to_s[/[^\.]+/].to_sym] }.sort_by(&:-@)
         end
     end
   end
