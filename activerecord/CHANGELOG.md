@@ -1,4 +1,9 @@
+*   Add `ActiveRecord::Result#cast_values!` method to overwrite result rows with their cast values.
+
+    *Brad Nauta*
+    
 *   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
+
 
     *Rune Philosof*
 

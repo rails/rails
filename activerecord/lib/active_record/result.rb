@@ -95,12 +95,14 @@ module ActiveRecord
     end
 
     def cast_values(type_overrides = {}) # :nodoc:
-      types = columns.map { |name| column_type(name, type_overrides) }
-      result = rows.map do |values|
-        types.zip(values).map { |type, value| type.deserialize(value) }
-      end
-
+      result = cast_rows(type_overrides)
       columns.one? ? result.map!(&:first) : result
+    end
+
+    def cast_values!(type_overrides = {}) # :nodoc:
+      @hash_rows = nil
+      @rows = cast_rows(type_overrides)
+      columns.one? ? @rows.map!(&:first) : @rows
     end
 
     def initialize_copy(other)
@@ -115,6 +117,13 @@ module ActiveRecord
       def column_type(name, type_overrides = {})
         type_overrides.fetch(name) do
           column_types.fetch(name, Type.default_value)
+        end
+      end
+
+      def cast_rows(type_overrides)
+        types = columns.map { |name| column_type(name, type_overrides) }
+        rows.map do |values|
+          types.zip(values).map { |type, value| type.deserialize(value) }
         end
       end
 
