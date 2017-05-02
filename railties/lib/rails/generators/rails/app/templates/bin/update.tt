@@ -1,5 +1,4 @@
 require 'pathname'
-require 'fileutils'
 include FileUtils
 
 # path to your application root.
