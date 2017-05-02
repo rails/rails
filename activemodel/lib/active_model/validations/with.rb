@@ -83,7 +83,7 @@ module ActiveModel
         args.each do |klass|
           validator = klass.new(options, &block)
 
-          if validator.respond_to?(:attributes) && !validator.attributes.empty?
+          if validator.respond_to?(:attributes) && validator.attributes.any?
             validator.attributes.each do |attribute|
               _validators[attribute.to_sym] << validator
             end
