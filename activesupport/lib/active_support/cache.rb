@@ -586,7 +586,7 @@ module ActiveSupport
             yield(name)
           end
 
-          write(name, result, options)
+          write(name, result, options) unless result.nil? && options[:unless_nil]
           result
         end
     end
