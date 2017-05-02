@@ -40,9 +40,11 @@ class String
   #   "1-1-2012".to_date   # => Sun, 01 Jan 2012
   #   "01/01/2012".to_date # => Sun, 01 Jan 2012
   #   "2012-12-13".to_date # => Thu, 13 Dec 2012
+  #   "2012/12".to_date    # => Sat, 01 Dec 2012
+  #   "2012-12".to_date    # => Sat, 01 Dec 2012
   #   "12/13/2012".to_date # => ArgumentError: invalid date
   def to_date
-    ::Date.parse(self, false) unless blank?
+    ::Date.parse(complement_date_string(self), false) unless blank?
   end
 
   # Converts a string to a DateTime value.
@@ -54,4 +56,11 @@ class String
   def to_datetime
     ::DateTime.parse(self, false) unless blank?
   end
+
+  private
+
+    def complement_date_string(str)
+      return str unless str.count("-") == 1
+      str + "-01"
+    end
 end

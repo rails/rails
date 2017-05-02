@@ -626,6 +626,11 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
+
+  def test_incomplete_string_to_date
+    assert_equal Date.new(2016, 11, 1), "2016/11".to_date
+    assert_equal Date.new(2016, 11, 1), "2016-11".to_date
+  end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase
