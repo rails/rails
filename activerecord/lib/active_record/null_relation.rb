@@ -53,7 +53,7 @@ module ActiveRecord
       false
     end
 
-    def or(other)
+    def or!(other)
       other.spawn
     end
 
