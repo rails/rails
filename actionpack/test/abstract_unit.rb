@@ -4,7 +4,7 @@ $:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
 
 require "active_support/core_ext/kernel/reporting"
 
-# These are the normal settings that will be set up by Railties
+# These are the normal settings that will be set up by Railtie
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
   Encoding.default_internal = Encoding::UTF_8
