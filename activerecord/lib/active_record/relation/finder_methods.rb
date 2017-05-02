@@ -318,6 +318,7 @@ module ActiveRecord
     rescue ::RangeError
       false
     end
+    alias :any? :exists?
 
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises an ActiveRecord::RecordNotFound exception.
