@@ -392,6 +392,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil sponsor.sponsorable_with_conditions
   end
 
+  def test_with_polymorphic_model_inheritance
+    inheritance_member = InheritanceMember.create :name => "Nick"
+    sponsor = inheritance_member.sponsor.create
+
+    assert_equal "InheritanceMember", sponsor.sponsorable_type
+  end
+
   def test_with_select
     assert_equal 1, Company.find(2).firm_with_select.attributes.size
     assert_equal 1, Company.all.merge!(includes: :firm_with_select).find(2).firm_with_select.attributes.size
