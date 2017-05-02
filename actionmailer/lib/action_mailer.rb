@@ -25,6 +25,7 @@ require "abstract_controller"
 require "action_mailer/version"
 
 # Common Active Support usage in Action Mailer
+require "active_support"
 require "active_support/rails"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attr_internal"
