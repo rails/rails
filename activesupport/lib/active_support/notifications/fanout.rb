@@ -6,7 +6,7 @@ module ActiveSupport
     # This is a default queue implementation that ships with Notifications.
     # It just pushes events to all registered log subscribers.
     #
-    # This class is thread safe. All methods are reentrant.
+    # This class is thread safe. All methods are re-entrant.
     class Fanout
       include Mutex_m
 
