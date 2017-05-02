@@ -175,21 +175,16 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_vebose_query_logs
     ActiveRecord::Base.verbose_query_logs = true
 
-    event = Struct.new(:duration, :payload)
-
     logger = TestDebugLogSubscriber.new
-    logger.sql(event.new(0, sql: "hi mom!"))
+    logger.sql(Event.new(0, sql: "hi mom!"))
     assert_match(/↳/, @logger.logged(:debug).last)
-
   ensure
     ActiveRecord::Base.verbose_query_logs = false
   end
 
   def test_verbose_query_logs_disabled_by_default
-    event = Struct.new(:duration, :payload)
-
     logger = TestDebugLogSubscriber.new
-    logger.sql(event.new(0, sql: "hi mom!"))
+    logger.sql(Event.new(0, sql: "hi mom!"))
     assert_no_match(/↳/, @logger.logged(:debug).last)
   end
 
