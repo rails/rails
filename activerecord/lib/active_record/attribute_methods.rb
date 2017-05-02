@@ -342,6 +342,9 @@ module ActiveRecord
     #   person[:name]            # => ActiveModel::MissingAttributeError: missing attribute: name
     #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute: organization_id
     def [](attr_name)
+      if alias_attr_name = attribute_aliases[attr_name.to_s]
+        attr_name = alias_attr_name
+      end
       read_attribute(attr_name) { |n| missing_attribute(n, caller) }
     end
 
@@ -356,6 +359,9 @@ module ActiveRecord
     #   person[:age] # => 22
     #   person[:age].class # => Integer
     def []=(attr_name, value)
+      if alias_attr_name = attribute_aliases[attr_name.to_s]
+        attr_name = alias_attr_name
+      end
       write_attribute(attr_name, value)
     end
 
