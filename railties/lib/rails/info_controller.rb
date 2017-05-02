@@ -11,6 +11,9 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
     redirect_to action: :routes
   end
 
+  # Renders runtime properties in the response
+  # including active rails version, ruby version,
+  # Rack version and so on.
   def properties
     @info = Rails::Info.to_html
     @page_title = "Properties"
