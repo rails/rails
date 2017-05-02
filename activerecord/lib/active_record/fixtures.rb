@@ -980,11 +980,11 @@ module ActiveRecord
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
-        if @@already_loaded_fixtures[self.class]
-          @loaded_fixtures = @@already_loaded_fixtures[self.class]
+        if (fixture_table_names - @@already_loaded_fixtures.keys).empty?
+          @loaded_fixtures = @@already_loaded_fixtures.slice(*fixture_table_names)
         else
           @loaded_fixtures = load_fixtures(config)
-          @@already_loaded_fixtures[self.class] = @loaded_fixtures
+          @@already_loaded_fixtures.merge!(@loaded_fixtures)
         end
 
         # Begin transactions for connections already established
@@ -1016,7 +1016,7 @@ module ActiveRecord
       # Load fixtures for every test.
       else
         ActiveRecord::FixtureSet.reset_cache
-        @@already_loaded_fixtures[self.class] = nil
+        @@already_loaded_fixtures = {}
         @loaded_fixtures = load_fixtures(config)
       end
 
