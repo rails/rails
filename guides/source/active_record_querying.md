@@ -400,6 +400,13 @@ appropriate `:start` and `:finish` options on each worker.
 Overrides the application config to specify if an error should be raised when an
 order is present in the relation.
 
+```ruby
+# Worker of 10000 records with the primary key starting from 1 up to 10000
+User.find_each(begin_at: 1, end_at: 10000) do |user|
+  NewsMailer.weekly(user).deliver_now
+end
+```
+
 #### `find_in_batches`
 
 The `find_in_batches` method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
