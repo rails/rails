@@ -40,7 +40,7 @@ class BaseMailer < ActionMailer::Base
   def attachment_with_hash
     attachments["invoice.jpg"] = { data: ::Base64.encode64("\312\213\254\232)b"),
                                    mime_type: "image/x-jpg",
-                                   transfer_encoding: "base64" }
+                                   transfer_encoding: "binary" }
     mail
   end
 
