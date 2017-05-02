@@ -21,7 +21,7 @@ module Rails
         end
 
         # inserts the primary resource
-        write("resources :#{file_name.pluralize}", route_length + 1)
+        write("resources :#{file_name.pluralize}", route_length + 2)
 
         # ends blocks
         regular_class_path.each_index do |index|
