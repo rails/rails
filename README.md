@@ -87,6 +87,7 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 ## Code Status
 
 [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+[![git.legal](https://git.legal/projects/1346/badge.svg?key=e187481e8d940aeb55a4 "Number of libraries approved")](https://git.legal/projects/1346)
 
 ## License
 
