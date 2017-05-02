@@ -399,6 +399,14 @@ append_view_path "app/views/direct"
 
 This will add `app/views/direct` to the end of the lookup paths.
 
+### Checking app view path
+
+Running below code via `rails c` will see current rails app view path.
+
+```ruby
+ActionController::Base.view_paths.each{|a| puts a.to_path}; nil
+```
+
 Overview of helpers provided by Action View
 -------------------------------------------
 
