@@ -14,7 +14,7 @@ module ActiveSupport
   #       attach_to :active_record
   #
   #       def sql(event)
-  #         Statsd.timing("sql.#{event.payload[:name]}", event.duration)
+  #         Stats.timing("sql.#{event.payload[:name]}", event.duration)
   #       end
   #     end
   #   end
