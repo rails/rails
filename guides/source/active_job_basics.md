@@ -237,7 +237,7 @@ and you must return the queue name:
 ```ruby
 class ProcessVideoJob < ApplicationJob
   queue_as do
-    video = self.arguments.first
+    video, _ = self.arguments
     if video.owner.premium?
       :premium_videojobs
     else
