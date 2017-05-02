@@ -125,12 +125,7 @@ module ActiveRecord
           end
         end
 
-        result = value.to_s(:db)
-        if value.respond_to?(:usec) && value.usec > 0
-          "#{result}.#{sprintf("%06d", value.usec)}"
-        else
-          result
-        end
+        value.to_s(:db)
       end
 
       def quoted_time(value) # :nodoc:
