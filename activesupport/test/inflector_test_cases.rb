@@ -70,8 +70,11 @@ module InflectorTestCases
 
     "ox"          => "oxen",
     "photo"       => "photos",
+    "hero"        => "heroes",
     "buffalo"     => "buffaloes",
     "tomato"      => "tomatoes",
+    "torpedo"     => "torpedoes",
+    "potato"      => "potatoes",
     "dwarf"       => "dwarves",
     "elf"         => "elves",
     "information" => "information",
