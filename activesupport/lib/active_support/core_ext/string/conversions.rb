@@ -42,7 +42,7 @@ class String
   #   "2012-12-13".to_date # => Thu, 13 Dec 2012
   #   "12/13/2012".to_date # => ArgumentError: invalid date
   def to_date
-    ::Date.parse(self, false) unless blank?
+    ::Date.parse(self.gsub("-", "/"), false) unless blank?
   end
 
   # Converts a string to a DateTime value.
