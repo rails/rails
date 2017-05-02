@@ -25,7 +25,7 @@ coverage before going in. You should also first upgrade to Rails 4.0 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 4.1. A list of things to watch out for when upgrading is
 available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
+[Upgrading Ruby on Rails](upgrading_ruby_on_rails.md)
 guide.
 
 
@@ -69,7 +69,7 @@ Have a look at the
 [Spring README](https://github.com/rails/spring/blob/master/README.md) to
 see all available features.
 
-See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.md#spring)
 guide on how to migrate existing applications to use this feature.
 
 ### `config/secrets.yml`
@@ -90,7 +90,7 @@ development:
 `Rails.application.secrets.some_api_key` returns `SOMEKEY` in the development
 environment.
 
-See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#config-secrets-yml)
+See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.md#configsecretsyml)
 guide on how to migrate existing applications to use this feature.
 
 ### Action Pack Variants
