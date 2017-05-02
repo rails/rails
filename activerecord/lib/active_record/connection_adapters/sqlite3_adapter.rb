@@ -105,12 +105,6 @@ module ActiveRecord
         sqlite_version >= "3.8.0"
       end
 
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
       def requires_reloading?
         true
       end

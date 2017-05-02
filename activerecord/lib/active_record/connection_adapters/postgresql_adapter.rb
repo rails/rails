@@ -121,12 +121,6 @@ module ActiveRecord
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
 
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
