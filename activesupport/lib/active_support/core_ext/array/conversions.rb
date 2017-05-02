@@ -68,7 +68,9 @@ class Array
       i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
       default_connectors.merge!(i18n_connectors)
     end
-    options = default_connectors.merge!(options)
+
+    options = options.dup
+    options.reverse_merge!(default_connectors)
 
     case length
     when 0
