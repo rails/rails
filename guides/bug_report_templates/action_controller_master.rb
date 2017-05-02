@@ -49,4 +49,8 @@ class BugTest < Minitest::Test
     def app
       Rails.application
     end
+
+    def helper
+      TestController.helpers
+    end
 end
