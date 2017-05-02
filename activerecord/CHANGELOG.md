@@ -1,3 +1,10 @@
+*   Add type caster to `RuntimeReflection#alias_name`
+
+    Fixes #28959.
+
+    *Jon Moss*
+
+
 ## Rails 5.1.0 (April 27, 2017) ##
 
 *   Quote database name in db:create grant statement (when database_user does not have access to create the database).
