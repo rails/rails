@@ -55,7 +55,8 @@ module ActiveModel
     #   person = Person.new(1)
     #   person.to_key # => [1]
     def to_key
-      key = respond_to?(:id) && id
+      defined_key = (self.class.try(:primary_key) || 'id')
+      key = respond_to?(defined_key) && public_send(defined_key)
       key ? [key] : nil
     end
 
