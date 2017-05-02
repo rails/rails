@@ -14,7 +14,7 @@ class Object
   #
   # @return [true, false]
   def blank?
-    respond_to?(:empty?) ? !!empty? : !self
+    !!(respond_to?(:empty?) ? empty? : !self)
   end
 
   # An object is present if it's not blank.
