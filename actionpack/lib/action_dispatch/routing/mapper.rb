@@ -1456,10 +1456,8 @@ module ActionDispatch
         # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
         # route helpers.
         def collection
-          unless resource_scope?
-            raise ArgumentError, "can't use collection outside resource(s) scope"
-          end
-
+          raise ArgumentError, "can't use collection outside resource(s) scope" unless resource_scope?
+          
           with_scope_level(:collection) do
             path_scope(parent_resource.collection_scope) do
               yield
@@ -1479,10 +1477,8 @@ module ActionDispatch
         # preview action of +PhotosController+. It will also create the
         # <tt>preview_photo_url</tt> and <tt>preview_photo_path</tt> helpers.
         def member
-          unless resource_scope?
-            raise ArgumentError, "can't use member outside resource(s) scope"
-          end
-
+          raise ArgumentError, "can't use member outside resource(s) scope" unless resource_scope?
+          
           with_scope_level(:member) do
             if shallow?
               shallow_scope {
@@ -1495,10 +1491,8 @@ module ActionDispatch
         end
 
         def new
-          unless resource_scope?
-            raise ArgumentError, "can't use new outside resource(s) scope"
-          end
-
+          raise ArgumentError, "can't use new outside resource(s) scope" unless resource_scope?
+          
           with_scope_level(:new) do
             path_scope(parent_resource.new_scope(action_path(:new))) do
               yield
@@ -1507,10 +1501,8 @@ module ActionDispatch
         end
 
         def nested
-          unless resource_scope?
-            raise ArgumentError, "can't use nested outside resource(s) scope"
-          end
-
+          raise ArgumentError, "can't use nested outside resource(s) scope" unless resource_scope?
+          
           with_scope_level(:nested) do
             if shallow? && shallow_nesting_depth >= 1
               shallow_scope do
