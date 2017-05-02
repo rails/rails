@@ -55,7 +55,7 @@ module ActiveSupport
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
-        @payload        = payload.dup
+        @payload        = payload
         @time           = start
         @transaction_id = transaction_id
         @end            = ending
