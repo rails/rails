@@ -3,88 +3,90 @@ require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 
 module ActionView
-  # = Action View Template
+
+  # == Action View Template
+  #
+  # === Encodings in ActionView::Template
+  #
+  # ActionView::Template is one of a few sources of potential
+  # encoding issues in Rails. This is because the source for
+  # templates are usually read from disk, and Ruby (like most
+  # encoding-aware programming languages) assumes that the
+  # String retrieved through File IO is encoded in the
+  # <tt>default_external</tt> encoding. In Rails, the default
+  # <tt>default_external</tt> encoding is UTF-8.
+  #
+  # As a result, if a user saves their template as ISO-8859-1
+  # (for instance, using a non-Unicode-aware text editor),
+  # and uses characters outside of the ASCII range, their
+  # users will see diamonds with question marks in them in
+  # the browser.
+  #
+  # For the rest of this documentation, when we say "UTF-8",
+  # we mean "UTF-8 or whatever the default_internal encoding
+  # is set to". By default, it will be UTF-8.
+  #
+  # To mitigate this problem, we use a few strategies:
+  # 1. If the source is not valid UTF-8, we raise an exception
+  #    when the template is compiled to alert the user
+  #    to the problem.
+  # 2. The user can specify the encoding using Ruby-style
+  #    encoding comments in any template engine. If such
+  #    a comment is supplied, Rails will apply that encoding
+  #    to the resulting compiled source returned by the
+  #    template handler.
+  # 3. In all cases, we transcode the resulting String to
+  #    the UTF-8.
+  #
+  # This means that other parts of Rails can always assume
+  # that templates are encoded in UTF-8, even if the original
+  # source of the template was not UTF-8.
+  #
+  # From a user's perspective, the easiest thing to do is
+  # to save your templates as UTF-8. If you do this, you
+  # do not need to do anything else for things to "just work".
+  #
+  # === Instructions for template handlers
+  #
+  # The easiest thing for you to do is to simply ignore
+  # encodings. Rails will hand you the template source
+  # as the default_internal (generally UTF-8), raising
+  # an exception for the user before sending the template
+  # to you if it could not determine the original encoding.
+  #
+  # For the greatest simplicity, you can support only
+  # UTF-8 as the <tt>default_internal</tt>. This means
+  # that from the perspective of your handler, the
+  # entire pipeline is just UTF-8.
+  #
+  # === Advanced: Handlers with alternate metadata sources
+  #
+  # If you want to provide an alternate mechanism for
+  # specifying encodings (like ERB does via <%# encoding: ... %>),
+  # you may indicate that you will handle encodings yourself
+  # by implementing <tt>handles_encoding?</tt> on your handler.
+  #
+  # If you do, Rails will not try to encode the String
+  # into the default_internal, passing you the unaltered
+  # bytes tagged with the assumed encoding (from
+  # default_external).
+  #
+  # In this case, make sure you return a String from
+  # your handler encoded in the default_internal. Since
+  # you are handling out-of-band metadata, you are
+  # also responsible for alerting the user to any
+  # problems with converting the user's data to
+  # the <tt>default_internal</tt>.
+  #
+  # To do so, simply raise +WrongEncodingError+ as follows:
+  #
+  #     raise WrongEncodingError.new(
+  #       problematic_string,
+  #       expected_encoding
+  #     )
+
   class Template
     extend ActiveSupport::Autoload
-
-    # === Encodings in ActionView::Template
-    #
-    # ActionView::Template is one of a few sources of potential
-    # encoding issues in Rails. This is because the source for
-    # templates are usually read from disk, and Ruby (like most
-    # encoding-aware programming languages) assumes that the
-    # String retrieved through File IO is encoded in the
-    # <tt>default_external</tt> encoding. In Rails, the default
-    # <tt>default_external</tt> encoding is UTF-8.
-    #
-    # As a result, if a user saves their template as ISO-8859-1
-    # (for instance, using a non-Unicode-aware text editor),
-    # and uses characters outside of the ASCII range, their
-    # users will see diamonds with question marks in them in
-    # the browser.
-    #
-    # For the rest of this documentation, when we say "UTF-8",
-    # we mean "UTF-8 or whatever the default_internal encoding
-    # is set to". By default, it will be UTF-8.
-    #
-    # To mitigate this problem, we use a few strategies:
-    # 1. If the source is not valid UTF-8, we raise an exception
-    #    when the template is compiled to alert the user
-    #    to the problem.
-    # 2. The user can specify the encoding using Ruby-style
-    #    encoding comments in any template engine. If such
-    #    a comment is supplied, Rails will apply that encoding
-    #    to the resulting compiled source returned by the
-    #    template handler.
-    # 3. In all cases, we transcode the resulting String to
-    #    the UTF-8.
-    #
-    # This means that other parts of Rails can always assume
-    # that templates are encoded in UTF-8, even if the original
-    # source of the template was not UTF-8.
-    #
-    # From a user's perspective, the easiest thing to do is
-    # to save your templates as UTF-8. If you do this, you
-    # do not need to do anything else for things to "just work".
-    #
-    # === Instructions for template handlers
-    #
-    # The easiest thing for you to do is to simply ignore
-    # encodings. Rails will hand you the template source
-    # as the default_internal (generally UTF-8), raising
-    # an exception for the user before sending the template
-    # to you if it could not determine the original encoding.
-    #
-    # For the greatest simplicity, you can support only
-    # UTF-8 as the <tt>default_internal</tt>. This means
-    # that from the perspective of your handler, the
-    # entire pipeline is just UTF-8.
-    #
-    # === Advanced: Handlers with alternate metadata sources
-    #
-    # If you want to provide an alternate mechanism for
-    # specifying encodings (like ERB does via <%# encoding: ... %>),
-    # you may indicate that you will handle encodings yourself
-    # by implementing <tt>handles_encoding?</tt> on your handler.
-    #
-    # If you do, Rails will not try to encode the String
-    # into the default_internal, passing you the unaltered
-    # bytes tagged with the assumed encoding (from
-    # default_external).
-    #
-    # In this case, make sure you return a String from
-    # your handler encoded in the default_internal. Since
-    # you are handling out-of-band metadata, you are
-    # also responsible for alerting the user to any
-    # problems with converting the user's data to
-    # the <tt>default_internal</tt>.
-    #
-    # To do so, simply raise +WrongEncodingError+ as follows:
-    #
-    #     raise WrongEncodingError.new(
-    #       problematic_string,
-    #       expected_encoding
-    #     )
 
     ##
     # :method: local_assigns
