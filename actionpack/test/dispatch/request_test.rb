@@ -96,7 +96,7 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,192.168.0.1"
     assert_nil request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 172.31.4.4, 10.0.0.1"
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "10.0.0.1, 3.4.5.6, 9.9.9.9, 172.31.4.4"
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
@@ -118,7 +118,7 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "1.1.1.1",
                            "HTTP_CLIENT_IP"       => "2.2.2.2",
                            :ip_spoofing_check => false
-    assert_equal "1.1.1.1", request.remote_ip
+    assert_equal "2.2.2.2", request.remote_ip
   end
 
   test "remote ip spoof protection ignores private addresses" do
@@ -156,7 +156,7 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,::1"
     assert_nil request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::, fc01::, fdff"
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "fc01::, fdff, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, 2001:0db8:85a3:0000:0000:8a2e:0370:7334, ::1, fc00::"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "FE00::, FDFF::"
@@ -181,7 +181,7 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329",
                            "HTTP_CLIENT_IP"       => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
                            :ip_spoofing_check     => false
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies String" do
@@ -202,7 +202,7 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "67.205.106.73,unknown"
     assert_nil request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73"
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "67.205.106.73, 3.4.5.6, 9.9.9.9, 10.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
   end
 
@@ -235,7 +235,7 @@ class RequestIP < BaseRequestTest
                            "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
     assert_equal "3.4.5.6", request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "10.0.0.1, 9.9.9.9, 3.4.5.6, 67.205.106.73"
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "67.205.106.73, 3.4.5.6, 10.0.0.1, 9.9.9.9"
     assert_equal "3.4.5.6", request.remote_ip
   end
 
