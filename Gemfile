@@ -5,6 +5,10 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
+if Gem::Version.new(Bundler::VERSION) < Gem::Version.new('1.7.11')
+  abort "Rails requires Bundler 1.7.11 or higher (you're using #{Bundler::VERSION}).\nPlease update with 'gem update bundler'." 
+end
+
 gemspec
 
 gem "arel", github: "rails/arel"
