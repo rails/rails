@@ -12,7 +12,7 @@ of the request-response cycle, so the user doesn't have to wait on it.
 
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place, even if it's in the form of an "immediate runner". We can then have
-framework features and other gems build on top of that, without having to worry
+framework features and other gems built on top of that, without having to worry
 about API differences between Delayed Job and Resque. Picking your queuing
 backend becomes more of an operational concern, then. And you'll be able to
 switch between them without having to rewrite your jobs.
