@@ -5,7 +5,7 @@ of queueing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up into
 small units of work and run in parallel, really.
 
-It also serves as the backend for Action Mailer's #deliver_later functionality
+It also serves as the backend for Action Mailer's `deliver_later` functionality
 that makes it easy to turn any mailing into a job for running later. That's
 one of the most common jobs in a modern web application: sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
