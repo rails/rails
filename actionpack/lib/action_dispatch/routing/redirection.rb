@@ -50,7 +50,7 @@ module ActionDispatch
       end
 
       def path(params, request)
-        block.call params, request
+        URI.escape(block.call params, request)
       end
 
       def inspect
