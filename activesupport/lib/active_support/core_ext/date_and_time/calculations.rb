@@ -55,7 +55,7 @@ module DateAndTime
 
     # Returns true if the date/time does not fall on a Saturday or Sunday.
     def on_weekday?
-      !WEEKEND_DAYS.include?(wday)
+      !on_weekend?
     end
 
     # Returns a new date/time the specified number of days ago.
