@@ -16,7 +16,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <%- end -%>
   end
 <%- elsif migration_action == 'join' -%>
-  def change
+  def up
     create_join_table :<%= join_tables.first %>, :<%= join_tables.second %> do |t|
     <%- attributes.each do |attribute| -%>
       <%- if attribute.reference? -%>
@@ -26,6 +26,9 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
       <%- end -%>
     <%- end -%>
     end
+  end
+  def down
+    drop_table :<%= join_tables.second %>_<%= join_tables.first %>
   end
 <%- else -%>
   def change
