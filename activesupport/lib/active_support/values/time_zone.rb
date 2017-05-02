@@ -544,6 +544,7 @@ module ActiveSupport
         end
       end
 
+      # Returns the current time in the system's time.
       def time_now
         Time.now
       end
