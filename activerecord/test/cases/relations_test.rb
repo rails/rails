@@ -1981,24 +1981,28 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_removes_binds
-    left = Post.where(id: Arel::Nodes::BindParam.new)
-    column = Post.columns_hash["id"]
-    left.bind_values += [[column, 20]]
+    left = Post.where(id: 20)
+
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
 
     relation = left.unscope(where: :id)
-    assert_equal [], relation.bind_values
+    assert_equal [], relation.bound_attributes
   end
 
-  def test_merging_removes_rhs_bind_parameters
+  def test_merging_removes_rhs_binds
     left = Post.where(id: 20)
     right = Post.where(id: [1, 2, 3, 4])
 
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
+
     merged = left.merge(right)
-    assert_equal [], merged.bind_values
+    assert_equal [], merged.bound_attributes
   end
 
-  def test_merging_keeps_lhs_bind_parameters
-    binds = [ActiveRecord::Relation::QueryAttribute.new("id", 20, Post.type_for_attribute("id"))]
+  def test_merging_keeps_lhs_binds
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
 
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)
