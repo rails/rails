@@ -97,7 +97,7 @@ module ActiveModel
     # Returns the kind of the validator.
     #
     #   PresenceValidator.kind   # => :presence
-    #   UniquenessValidator.kind # => :uniqueness
+    #   AcceptanceValidator.kind # => :acceptance
     def self.kind
       @kind ||= name.split("::").last.underscore.chomp("_validator").to_sym unless anonymous?
     end
@@ -110,7 +110,7 @@ module ActiveModel
     # Returns the kind for this validator.
     #
     #   PresenceValidator.new.kind   # => :presence
-    #   UniquenessValidator.new.kind # => :uniqueness
+    #   AcceptanceValidator.new.kind # => :acceptance
     def kind
       self.class.kind
     end
