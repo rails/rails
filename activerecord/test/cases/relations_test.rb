@@ -2007,15 +2007,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal binds, merged.bound_attributes
   end
 
-  def test_merging_reorders_bind_params
-    post  = Post.first
-    right = Post.where(id: post.id)
-    left  = Post.where(title: post.title)
-
-    merged = left.merge(right)
-    assert_equal post, merged.first
-  end
-
   def test_relation_join_method
     assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
   end
