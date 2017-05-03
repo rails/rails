@@ -109,8 +109,8 @@ module ActiveModel
 
     # Returns the kind for this validator.
     #
-    #   PresenceValidator.new.kind   # => :presence
-    #   AcceptanceValidator.new.kind # => :acceptance
+    #   PresenceValidator.new(attributes: [:username]).kind # => :presence
+    #   AcceptanceValidator.new(attributes: [:terms]).kind  # => :acceptance
     def kind
       self.class.kind
     end
