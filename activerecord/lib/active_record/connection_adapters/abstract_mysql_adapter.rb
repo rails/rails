@@ -714,16 +714,14 @@ module ActiveRecord
         # MySQL is too stupid to create a temporary table for use subquery, so we have
         # to give it some prompting in the form of a subsubquery. Ugh!
         def subquery_for(key, select)
-          subsubselect = select.clone
-          subsubselect.projections = [key]
+          subselect = select.clone
+          subselect.projections = [key]
 
           # Materialize subquery by adding distinct
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          subsubselect.distinct unless select.limit || select.offset || select.orders.any?
+          subselect.distinct unless select.limit || select.offset || select.orders.any?
 
-          subselect = Arel::SelectManager.new(select.engine)
-          subselect.project Arel.sql(key.name)
-          subselect.from subsubselect.as("__active_record_temp")
+          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key.name))
         end
 
         def supports_rename_index?
