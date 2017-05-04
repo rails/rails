@@ -219,48 +219,43 @@ class Module
   # When building decorators, a common pattern may emerge:
   #
   #   class Partition
-  #     def initialize(first_event)
-  #       @events = [ first_event ]
+  #     def initialize(event)
+  #       @event = event
   #     end
   #
-  #     def people
-  #       if @events.first.detail.people.any?
-  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-  #       else
-  #         @events.collect(&:creator).uniq
-  #       end
+  #     def person
+  #       @event.detail.person || @event.creator
   #     end
   #
   #     private
   #       def respond_to_missing?(name, include_private = false)
-  #         @events.respond_to?(name, include_private)
+  #         @event.respond_to?(name, include_private)
   #       end
   #
   #       def method_missing(method, *args, &block)
-  #         @events.send(method, *args, &block)
+  #         @event.send(method, *args, &block)
   #       end
   #   end
   #
-  # With `Module#delegate_missing_to`, the above is condensed to:
+  # With <tt>Module#delegate_missing_to</tt>, the above is condensed to:
   #
   #   class Partition
-  #     delegate_missing_to :@events
+  #     delegate_missing_to :@event
   #
-  #     def initialize(first_event)
-  #       @events = [ first_event ]
+  #     def initialize(event)
+  #       @event = event
   #     end
   #
-  #     def people
-  #       if @events.first.detail.people.any?
-  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-  #       else
-  #         @events.collect(&:creator).uniq
-  #       end
+  #     def person
+  #       @event.detail.person || @event.creator
   #     end
   #   end
   #
-  # The target can be anything callable within the object. E.g. instance
-  # variables, methods, constants and the likes.
+  # The target can be anything callable within the object, e.g. instance
+  # variables, methods, constants, etc.
+  #
+  # The delegated method must be public on the target, otherwise it will
+  # raise +NoMethodError+.
   def delegate_missing_to(target)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
