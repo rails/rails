@@ -215,7 +215,7 @@ module ActiveSupport
       end
 
       # Rubinius' String#scrub, however, doesn't support ASCII-incompatible chars.
-      if !defined?(Rubinius)
+      unless defined?(Rubinius)
         # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
         # resulting in a valid UTF-8 string.
         #

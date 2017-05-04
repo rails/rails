@@ -211,7 +211,7 @@ module ActionController #:nodoc:
       def verify_authenticity_token # :doc:
         mark_for_same_origin_verification!
 
-        if !verified_request?
+        unless !verified_request?
           if logger && log_warning_on_csrf_failure
             if valid_request_origin?
               logger.warn "Can't verify CSRF token authenticity."

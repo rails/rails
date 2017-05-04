@@ -39,7 +39,7 @@ module Rails
 
           files.each do |name|
             path = File.join("app/channels/", name)
-            template(name, path) if !File.exist?(path)
+            template(name, path) unless File.exist?(path)
           end
         end
     end

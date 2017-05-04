@@ -170,7 +170,7 @@ module Rails::Command
       namespace = namespace.to_s
       namespace = "help" if namespace.blank? || HELP_MAPPINGS.include?(namespace)
       namespace = "version" if %w( -v --version ).include? namespace
-    
+
       if command = find_by_namespace(namespace)
         command.perform(namespace, args, config)
       else
@@ -189,7 +189,7 @@ module Rails
     class ServerCommand < Base # :nodoc:
       def perform
         set_application_directory!
-  
+
         Rails::Server.new.tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -311,7 +311,7 @@ def parse!(args)
   args, options = args.dup, {}
 
   option_parser(options).parse! args
-  
+
   options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
   options[:server]     = args.shift
   options
@@ -366,11 +366,11 @@ private
 
   def log_to_stdout
     wrapped_app # touch the app so the logger is set up
-  
+
     console = ActiveSupport::Logger.new(STDOUT)
     console.formatter = Rails.logger.formatter
     console.level = Rails.logger.level
-  
+
     unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
       Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
     end
@@ -448,7 +448,7 @@ end
 ...
 private
   def build_app_and_options_from_config
-    if !::File.exist? options[:config]
+    unless ::File.exist? options[:config]
       abort "configuration #{options[:config]} not found"
     end
 
@@ -616,7 +616,7 @@ end
 ...
 private
   def build_app_and_options_from_config
-    if !::File.exist? options[:config]
+    unless ::File.exist? options[:config]
       abort "configuration #{options[:config]} not found"
     end
 

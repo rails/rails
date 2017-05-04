@@ -158,7 +158,7 @@ module ActiveSupport
         end
 
         def search_dir(dir, &callback)
-          return if !File.exist?(dir)
+          return unless File.exist?(dir)
           Dir.foreach(dir) do |d|
             next if EXCLUDED_DIRS.include?(d)
             name = File.join(dir, d)

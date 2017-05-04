@@ -773,7 +773,7 @@ module ActiveRecord
           variable_assignments = variables.map do |k, v|
             if defaults.include?(v)
               "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
-            elsif !v.nil?
+            elsif v.present?
               "@@SESSION.#{k} = #{quote(v)}"
             end
             # or else nil; compact to clear nils out

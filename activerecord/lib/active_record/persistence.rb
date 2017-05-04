@@ -243,7 +243,7 @@ module ActiveRecord
     def becomes!(klass)
       became = becomes(klass)
       sti_type = nil
-      if !klass.descends_from_active_record?
+      unless klass.descends_from_active_record?
         sti_type = klass.sti_name
       end
       became.public_send("#{klass.inheritance_column}=", sti_type)
