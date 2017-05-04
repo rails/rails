@@ -26,7 +26,7 @@ module Arel
         bp = Nodes::BindParam.new
         values = Nodes::Values.new([bp])
         sql = compile values
-        sql.must_be_like '(?)'
+        sql.must_be_like 'VALUES (?)'
       end
 
       it 'can define a dispatch method' do

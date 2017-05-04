@@ -131,7 +131,6 @@ module Arel
         end
 
         if o.values
-          collector << " VALUES"
           maybe_visit o.values, collector
         elsif o.select
           maybe_visit o.select, collector
@@ -167,19 +166,8 @@ module Arel
         collector << "FALSE"
       end
 
-      def visit_Arel_Nodes_Tuple o, collector
-        len = o.values.length - 1
-        o.values.each_with_index { |value, i|
-          collector = visit value, collector
-          unless i == len
-            collector << COMMA
-          end
-        }
-        collector
-      end
-
       def visit_Arel_Nodes_Values o, collector
-        collector << "("
+        collector << "VALUES ("
 
         len = o.expressions.length - 1
         o.expressions.each_with_index { |value, i|
