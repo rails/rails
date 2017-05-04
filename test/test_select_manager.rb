@@ -226,7 +226,7 @@ module Arel
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
         manager.project Nodes::SqlLiteral.new '*'
-        m2 = Arel::SelectManager.new(manager.engine)
+        m2 = Arel::SelectManager.new
         m2.project manager.exists
         m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) }
       end
@@ -235,7 +235,7 @@ module Arel
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
         manager.project Nodes::SqlLiteral.new '*'
-        m2 = Arel::SelectManager.new(manager.engine)
+        m2 = Arel::SelectManager.new
         m2.project manager.exists.as('foo')
         m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) AS foo }
       end
