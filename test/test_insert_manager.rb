@@ -136,6 +136,17 @@ module Arel
           INSERT INTO "users" VALUES (1)
         }
       end
+
+      it "accepts sql literals" do
+        table   = Table.new :users
+        manager = Arel::InsertManager.new
+        manager.into table
+
+        manager.values = Arel.sql("DEFAULT VALUES")
+        manager.to_sql.must_be_like %{
+          INSERT INTO "users" DEFAULT VALUES
+        }
+      end
     end
 
     describe "combo" do
