@@ -28,6 +28,25 @@ module Arel
         }
       end
 
+      it 'inserts multiple values' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new
+        manager.into table
+
+        manager.columns << table[:id]
+        manager.columns << table[:name]
+
+        manager.values = manager.create_tuple([
+          manager.create_values(%w{ 1 david }),
+          manager.create_values(%w{ 2 kirs }),
+          manager.create_values(["3", Arel.sql('DEFAULT')], []),
+        ])
+
+        manager.to_sql.must_be_like %{
+          INSERT INTO \"users\" (\"id\", \"name\") VALUES ('1', 'david'), ('2', 'kirs'), ('3', DEFAULT)
+        }
+      end
+
       it "inserts false" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
