@@ -21,6 +21,7 @@ require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
 require "active_record/attributes"
 require "active_record/type_caster"
+require "active_record/conversion"
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -296,7 +297,7 @@ module ActiveRecord #:nodoc:
     include Scoping
     include Sanitization
     include AttributeAssignment
-    include ActiveModel::Conversion
+    include Conversion
     include Integration
     include Validations
     include CounterCache

@@ -1,3 +1,13 @@
+*   Active Record models that are converted to Active Model compliant objects
+    (by calling `to_model` on an instance) now return association errors when
+    querying for the association's foreign key. This is particularly useful in the
+    context of Action View where validation errors on the association itself can
+    now be assigned to a foreign key field in a form.
+
+     Solves #28772. 
+ 
+    *Edward Poot*
+
 *   Quote database name in db:create grant statement (when database_user does not have access to create the database).
 
     *Rune Philosof*

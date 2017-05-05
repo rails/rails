@@ -356,6 +356,10 @@ ActiveRecord::Schema.define do
     t.string :info
   end
 
+  create_table :hamsters, force: true do |t|
+    t.integer :breeder_id
+  end
+
   create_table :having, force: true do |t|
     t.string :where
   end

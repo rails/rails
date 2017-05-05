@@ -1,6 +1,32 @@
 module ActiveRecord
-  # = Active Record Errors
+  # = Active \Record \Errors
   #
+  # Subclass of <tt>ActiveModel::Errors</tt> that properly includes association errors on
+  # the foreign key.
+  class Errors < ActiveModel::Errors
+    def [](attribute) # :nodoc:
+      attribute = attribute.to_s if attribute.is_a? Symbol
+
+      # check if the @method_name encompasses an association
+      if attribute.end_with?("_ids")
+        # Check for a has_(and_belongs_to_)many association (these always use the _ids postfix field).
+        association = @base.class.reflect_on_association(attribute.chomp("_ids").pluralize.to_sym)
+      else
+        # Check for a belongs_to association with method_name matching the foreign key column
+        association = @base.class.reflect_on_all_associations.find do |a|
+          a.macro == :belongs_to && a.foreign_key == attribute
+        end
+      end
+
+      # skip adding assoc errors if there are explicit validators defined on the foreign key to prevent error duplication
+      if association.present? && !@base.class.validators_on(attribute.to_sym).any?
+        super + messages[association.name.to_sym]
+      else
+        super
+      end
+    end
+  end
+
   # Generic Active Record exception class.
   class ActiveRecordError < StandardError
   end

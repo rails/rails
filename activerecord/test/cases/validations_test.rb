@@ -6,6 +6,7 @@ require "models/developer"
 require "models/computer"
 require "models/parrot"
 require "models/company"
+require "models/hamster"
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -176,5 +177,20 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_no_queries do
       klass.validates_acceptance_of(:foo)
     end
+  end
+
+  def test_association_errors_copied_to_foreign_key
+    h = Hamster.new
+
+    assert_not h.valid?
+
+    assert h.errors[:breeder].any?
+    assert_not h.errors[:breeder_id].any?, "Without to_model called on the model association errors should not be copied to foreign key"
+
+    # call to_model so that ActiveRecord::Errors is used instead of ActiveModel::Errors
+    h.to_model
+
+    assert h.errors[:breeder].any?
+    assert h.errors[:breeder_id].any?, "The association error should have been copied to the foreign key"
   end
 end
