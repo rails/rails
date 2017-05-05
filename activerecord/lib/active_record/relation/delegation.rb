@@ -89,6 +89,8 @@ module ActiveRecord
             self.class.delegate_to_scoped_klass(method)
             scoping { @klass.public_send(method, *args, &block) }
           elsif arel.respond_to?(method)
+            ActiveSupport::Deprecation.warn \
+              "Delegating #{method} to arel is deprecated and will be removed in Rails 6.0."
             self.class.delegate method, to: :arel
             arel.public_send(method, *args, &block)
           else

@@ -1,3 +1,7 @@
+*   Deprecate delegating to `arel` in `Relation`.
+
+    *Ryuta Kamizono*
+
 *   Fix eager loading to respect `store_full_sti_class` setting.
 
     *Ryuta Kamizono*
