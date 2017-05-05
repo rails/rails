@@ -128,13 +128,13 @@ module ActionController
       # Append rescue at the bottom to wrap as much as possible.
       Rescue,
 
-      # Add instrumentations hooks at the bottom, to ensure they instrument
-      # all the methods properly.
-      Instrumentation,
-
       # Params wrapper should come before instrumentation so they are
       # properly showed in logs
-      ParamsWrapper
+      ParamsWrapper,
+
+      # Add instrumentations hooks at the bottom, to ensure they instrument
+      # all the methods properly.
+      Instrumentation
     ]
 
     MODULES.each do |mod|
