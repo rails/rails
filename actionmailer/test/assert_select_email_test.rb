@@ -16,11 +16,8 @@ class AssertSelectEmailTest < ActionMailer::TestCase
       end
     end
   end
-
-  #
-  # Test assert_select_email
-  #
-
+  
+  # It allows to make assertions on the body of an e-mail
   def test_assert_select_email
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_select_email {}
