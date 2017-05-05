@@ -5,7 +5,7 @@ module Arel
   class TreeManager
     include Arel::FactoryMethods
 
-    attr_reader :ast, :engine
+    attr_reader :ast
 
     attr_accessor :bind_values
 
