@@ -10,8 +10,15 @@ module ActiveRecord
         value = id_value_for_database(value) if value.is_a?(Base)
 
         if value.respond_to?(:quoted_id)
+          at = value.method(:quoted_id).source_location
+          at &&= " at %s:%d" % at
+
+          owner = value.method(:quoted_id).owner.to_s
+          klass = value.class.to_s
+          klass += "(#{owner})" unless owner == klass
+
           ActiveSupport::Deprecation.warn \
-            "Using #quoted_id is deprecated and will be removed in Rails 5.2."
+            "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
           return value.quoted_id
         end
 
