@@ -56,7 +56,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked.present?
+    assert devs.locked?
   end
 
   def test_relation_merging_with_preload
