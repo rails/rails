@@ -89,11 +89,11 @@ module ActiveRecord
       class SubQuotedOne < QuotedOne
       end
       def test_quote_with_quoted_id
-        assert_deprecated /defined on \S+::QuotedOne at .*quoting_test\.rb:[0-9]/ do
+        assert_deprecated(/defined on \S+::QuotedOne at .*quoting_test\.rb:[0-9]/) do
           assert_equal 1, @quoter.quote(QuotedOne.new)
         end
 
-        assert_deprecated /defined on \S+::SubQuotedOne\(\S+::QuotedOne\) at .*quoting_test\.rb:[0-9]/ do
+        assert_deprecated(/defined on \S+::SubQuotedOne\(\S+::QuotedOne\) at .*quoting_test\.rb:[0-9]/) do
           assert_equal 1, @quoter.quote(SubQuotedOne.new)
         end
       end
