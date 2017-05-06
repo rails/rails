@@ -35,6 +35,7 @@ module Rails
           str = "gem #{parts.join(", ")}"
           str = "  " + str if @in_group
           str = "\n" + str
+          str.gsub!('"', "'")
           append_file "Gemfile", str, verbose: false
         end
       end
