@@ -709,13 +709,13 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_wildcard_asset_host
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com), compute_asset_host("foo"))
+    assert_match(%r(http://a[0123]\.example\.com), compute_asset_host("foo"))
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_path("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_url("xml.png"))
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative
