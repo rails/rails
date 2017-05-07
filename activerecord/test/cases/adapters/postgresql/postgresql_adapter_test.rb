@@ -346,7 +346,7 @@ module ActiveRecord
           @connection.select_all "SELECT NULL::anyelement"
           @connection.select_all "SELECT NULL::anyelement"
         }
-        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'\. It will be treated as String\.\n\z/, warning)
       ensure
         reset_connection
       end

@@ -301,8 +301,8 @@ class AtomFeedTest < ActionController::TestCase
     with_restful_routing(:scrolls) do
       get :index, params: { id: "feed_with_atomPub_namespace" }
       assert_match %r{xml:lang="en-US"}, @response.body
-      assert_match %r{xmlns="http://www.w3.org/2005/Atom"}, @response.body
-      assert_match %r{xmlns:app="http://www.w3.org/2007/app"}, @response.body
+      assert_match %r{xmlns="http://www\.w3\.org/2005/Atom"}, @response.body
+      assert_match %r{xmlns:app="http://www\.w3\.org/2007/app"}, @response.body
     end
   end
 
@@ -319,7 +319,7 @@ class AtomFeedTest < ActionController::TestCase
     with_restful_routing(:scrolls) do
       get :index, params: { id: "feed_with_xml_processing_instructions" }
       assert_match %r{<\?xml-stylesheet [^\?]*type="text/css"}, @response.body
-      assert_match %r{<\?xml-stylesheet [^\?]*href="t.css"}, @response.body
+      assert_match %r{<\?xml-stylesheet [^\?]*href="t\.css"}, @response.body
     end
   end
 
@@ -334,7 +334,7 @@ class AtomFeedTest < ActionController::TestCase
   def test_feed_xhtml
     with_restful_routing(:scrolls) do
       get :index, params: { id:  "feed_with_xhtml_content" }
-      assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
+      assert_match %r{xmlns="http://www\.w3\.org/1999/xhtml"}, @response.body
       assert_select "summary", text: /Something Boring/
       assert_select "summary", text: /after 2/
     end
