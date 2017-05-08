@@ -17,7 +17,7 @@ module ActiveRecord
     end
 
     def changes
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object({}) do |attr_name, result|
         change = change_to_attribute(attr_name)
         if change
           result[attr_name] = change
