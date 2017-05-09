@@ -231,6 +231,10 @@ module ActiveRecord
           false
         end
 
+        def forgetting_assignment
+          dup
+        end
+
         def with_type(type)
           self.class.new(name, type)
         end
