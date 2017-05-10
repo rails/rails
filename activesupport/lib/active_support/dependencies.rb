@@ -304,6 +304,8 @@ module ActiveSupport #:nodoc:
         @blamed_files ||= []
       end
 
+      # Returns a string message with all files that raised an error while
+      # being loaded.
       def describe_blame
         return nil if blamed_files.empty?
         "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
