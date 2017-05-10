@@ -212,6 +212,11 @@ module ActiveSupport #:nodoc:
       defined?(@html_safe) && @html_safe
     end
 
+    def html_safe
+      @html_safe = true
+      self
+    end
+
     def to_s
       self
     end
