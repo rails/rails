@@ -1,0 +1,11 @@
+Description:
+    Generates concern for the class.
+
+Example:
+    `rails generate concern User::Authentication`
+
+        create  app/models/user/authentication.rb
+
+    `rails generate concern admin_controller/localized`
+
+        create  app/controllers/admin_controller/localized.rb
