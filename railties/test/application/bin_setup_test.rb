@@ -51,6 +51,7 @@ Created database 'db/development.sqlite3'
 Created database 'db/test.sqlite3'
 
 == Removing old logs and tempfiles ==
+Truncating log/development.log
 
 == Restarting application server ==
         OUTPUT
