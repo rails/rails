@@ -31,6 +31,7 @@ namespace :log do
 
   def clear_log_file(file)
     f = File.open(file, "w")
+    puts "Truncating #{file}"
     f.close
   end
 
