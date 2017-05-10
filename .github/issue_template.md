@@ -10,6 +10,6 @@ Tell us what should happen
 Tell us what happens instead
 
 ### System configuration
-**Rails version**:
+**Rails version**: (rails -v)
 
-**Ruby version**:
+**Ruby version**: (ruby -v)
