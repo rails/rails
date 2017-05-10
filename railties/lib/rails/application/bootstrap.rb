@@ -33,9 +33,6 @@ INFO
       initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
-          unless File.exist? File.dirname path
-            FileUtils.mkdir_p File.dirname path
-          end
 
           f = File.open path, "a"
           f.binmode
