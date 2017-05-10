@@ -98,12 +98,7 @@ module ActiveSupport
           value
         end
 
-        def decrement(name, amount = 1, options = nil) # :nodoc:
-          return super unless local_cache
-          value = bypass_local_cache { super }
-          write_cache_value(name, value, options)
-          value
-        end
+        alias_method :decrement, :increment
 
         private
           def read_entry(key, options)
