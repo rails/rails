@@ -467,6 +467,9 @@ module Rails
         end
       end
 
+      # Generates a long randomized string inside 'secret_token.rb' file which
+      # is used to verify the integrity of signed cookies.
+      # Find usage at templates/config/secrets.yml
       def app_secret
         SecureRandom.hex(64)
       end
