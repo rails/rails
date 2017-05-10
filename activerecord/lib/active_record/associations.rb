@@ -1618,8 +1618,9 @@ module ActiveRecord
         #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
         #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
         # [:validate]
-        #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
-        #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
+        #   If set to +false+ (default), the associated object is not validated when this object is validated.
+        #   If <tt>:validate</tt> is set to +true+, then the associated object is validated when this object is
+        #   validated. If the associated object is invalid, this object also becomes invalid.
         # [:autosave]
         #   If true, always save the associated object or destroy it if marked for destruction, when
         #   saving the parent object.

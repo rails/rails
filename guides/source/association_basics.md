@@ -1051,7 +1051,36 @@ end
 
 ##### `:validate`
 
-If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+If you set the `:validate` option to `false` (default), the associated object is not validated when this object is validated.
+
+```ruby
+class Author < ApplicationRecord
+  validates :name, presence: true
+end
+
+invalid_author = Author.new
+invalid_author.valid? # => false
+```
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author
+end
+
+book = Book.new(author: invalid_author)
+book.valid? # => true
+```
+
+If `:validate` is set to `true`, then the associated object is validated when this object is validated. If the associated object is invalid, this object also becomes invalid.
+
+```ruby
+class Book < ApplicationRecord
+  belongs_to :author, validate: true
+end
+
+book = Book.new(author: invalid_author)
+book.valid? # => false
+```
 
 ##### `:optional`
 
