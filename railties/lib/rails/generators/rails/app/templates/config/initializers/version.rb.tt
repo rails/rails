@@ -1,0 +1,6 @@
+module <%= app_const_base %>
+  class Application
+    # Use this constant to specify your app's version
+    # VERSION = "0.1.0"
+  end
+end
