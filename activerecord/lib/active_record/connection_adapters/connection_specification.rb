@@ -38,6 +38,7 @@ module ActiveRecord
           @uri     = uri_parser.parse(url)
           @adapter = @uri.scheme && @uri.scheme.tr("-", "_")
           @adapter = "postgresql" if @adapter == "postgres"
+          @adapter = "mysql2" if @adapter == "mysql"
 
           if @uri.opaque
             @uri.opaque, @query = @uri.opaque.split("?", 2)
