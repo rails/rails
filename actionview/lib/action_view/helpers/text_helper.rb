@@ -306,7 +306,7 @@ module ActionView
         if paragraphs.empty?
           content_tag(wrapper_tag, nil, html_options)
         else
-          paragraphs.map! { |paragraph|
+          paragraphs.map { |paragraph|
             content_tag(wrapper_tag, raw(paragraph), html_options)
           }.join("\n\n").html_safe
         end
@@ -455,8 +455,8 @@ module ActionView
         def split_paragraphs(text)
           return [] if text.blank?
 
-          text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
-            t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
+          text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map do |t|
+            t.gsub(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
           end
         end
 
