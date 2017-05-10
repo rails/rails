@@ -24,6 +24,8 @@ class Comment < ActiveRecord::Base
     raise
   end
 
+  scope :by_post_ids, -> (post_ids = []) { where(post_id: post_ids) }
+
   def self.what_are_you
     "a comment..."
   end

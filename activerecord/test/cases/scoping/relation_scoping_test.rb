@@ -356,6 +356,11 @@ class HasManyScopingTest < ActiveRecord::TestCase
     magician = BadReference.find(1)
     assert_equal [magician], michael.bad_references
   end
+
+  def test_array_as_argument_to_scope
+    assert Comment.by_post_ids([1, 2, 3])
+  end
+
 end
 
 class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
