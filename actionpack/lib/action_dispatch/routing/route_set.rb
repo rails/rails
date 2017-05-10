@@ -66,8 +66,7 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection
         include Enumerable
-        attr_reader :routes, :url_helpers_module, :path_helpers_module
-        private :routes
+        attr_reader :url_helpers_module, :path_helpers_module
 
         def initialize
           @routes = {}
@@ -120,11 +119,11 @@ module ActionDispatch
           path_name = :"#{name}_path"
           url_name  = :"#{name}_url"
 
-          if routes.key? key
+          if @routes.key? key
             @path_helpers_module.send :undef_method, path_name
             @url_helpers_module.send  :undef_method, url_name
           end
-          routes[key] = route
+          @routes[key] = route
           define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
           define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
 
@@ -133,12 +132,12 @@ module ActionDispatch
         end
 
         def get(name)
-          routes[name.to_sym]
+          @routes[name.to_sym]
         end
 
         def key?(name)
           return unless name
-          routes.key? name.to_sym
+          @routes.key? name.to_sym
         end
 
         alias []=   add
@@ -146,16 +145,16 @@ module ActionDispatch
         alias clear clear!
 
         def each
-          routes.each { |name, route| yield name, route }
+          @routes.each { |name, route| yield name, route }
           self
         end
 
         def names
-          routes.keys
+          @routes.keys
         end
 
         def length
-          routes.length
+          @routes.length
         end
 
         def add_url_helper(name, defaults, &block)
