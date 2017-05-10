@@ -1,7 +1,15 @@
 require_relative 'boot'
 
 <% if include_all_railties? -%>
+# Load all built-in Rails frameworks.
 require 'rails/all'
+
+# Or pick the frameworks you want:
+# require "active_record/railtie"
+# require "action_controller/railtie"
+# require "action_mailer/railtie"
+# require "sprockets/rails/railtie"
+# require "rails/test_unit/railtie"
 <% else -%>
 require "rails"
 # Pick the frameworks you want:
