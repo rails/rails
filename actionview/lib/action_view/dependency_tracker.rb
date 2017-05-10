@@ -3,10 +3,10 @@ require "action_view/path_set"
 
 module ActionView
   class DependencyTracker # :nodoc:
-    @trackers = Concurrent::Map.new
+    @@trackers = Concurrent::Map.new
 
     def self.find_dependencies(name, template, view_paths = nil)
-      tracker = @trackers[template.handler]
+      tracker = @@trackers[template.handler]
       return [] unless tracker
 
       tracker.call(name, template, view_paths)
@@ -15,16 +15,16 @@ module ActionView
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
       if tracker.respond_to?(:supports_view_paths?)
-        @trackers[handler] = tracker
+        @@trackers[handler] = tracker
       else
-        @trackers[handler] = lambda { |name, template, _|
+        @@trackers[handler] = lambda { |name, template, _|
           tracker.call(name, template)
         }
       end
     end
 
     def self.remove_tracker(handler)
-      @trackers.delete(handler)
+      @@trackers.delete(handler)
     end
 
     class ERBTracker # :nodoc:
