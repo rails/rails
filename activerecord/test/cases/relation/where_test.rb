@@ -15,7 +15,7 @@ require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates
+    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -46,6 +46,10 @@ module ActiveRecord
       chefs = Chef.where(employable: cake_designers)
 
       assert_equal [chef], chefs.to_a
+    end
+
+    def test_where_with_casted_value_is_nil
+      assert_equal 4, Topic.where(last_read: "").count
     end
 
     def test_rewhere_on_root
