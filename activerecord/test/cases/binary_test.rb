@@ -40,5 +40,17 @@ unless current_adapter?(:DB2Adapter)
         assert_equal data, bin.reload.data, "Reloaded data differs from original"
       end
     end
+
+    def test_update_all_binary
+      Binary.create!
+
+      data = File.read(ASSETS_ROOT + "/#{FIXTURES.first}")
+      data.force_encoding('ASCII-8BIT')
+      data.freeze
+
+      Binary.update_all(:data => data)
+
+      assert_equal data, Binary.first.data, 'Data differs from original after update all'
+    end
   end
 end
