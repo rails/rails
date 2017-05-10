@@ -605,6 +605,12 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver_now
   end
 
+  test "renders raises an ArgumentError when called with invalid option" do
+    assert_raises(ArgumentError) do
+      BaseMailer.invalid_rendering_options.deliver_now
+    end
+  end
+
   # Before and After hooks
 
   class MyObserver

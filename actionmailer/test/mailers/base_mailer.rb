@@ -133,4 +133,11 @@ class BaseMailer < ActionMailer::Base
   def with_subject_interpolations
     mail(subject: default_i18n_subject(rapper_or_impersonator: "Slim Shady"), body: "")
   end
+
+  def invalid_rendering_options
+    mail do |format|
+      format.text { render text: "TEXT Explicit Multipart" }
+      format.html { render text: "HTML Explicit Multipart" }
+    end
+  end
 end

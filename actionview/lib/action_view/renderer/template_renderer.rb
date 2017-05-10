@@ -2,6 +2,8 @@ require "active_support/core_ext/object/try"
 
 module ActionView
   class TemplateRenderer < AbstractRenderer #:nodoc:
+    VALID_RENDERING_OPTIONS = [:body, :plain, :html, :file, :inline]
+
     def render(context, options)
       @view    = context
       @details = extract_details(options)
@@ -19,6 +21,9 @@ module ActionView
       # Determine the template to be rendered using the given options.
       def determine_template(options)
         keys = options.has_key?(:locals) ? options[:locals].keys : []
+        template = options.delete(:template)
+
+        validate_rendering_options!(options)
 
         if options.key?(:body)
           Template::Text.new(options[:body])
@@ -31,14 +36,12 @@ module ActionView
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")
           Template.new(options[:inline], "inline template", handler, locals: keys)
-        elsif options.key?(:template)
-          if options[:template].respond_to?(:render)
-            options[:template]
+        else
+          if template.respond_to?(:render)
+            template
           else
             find_template(options[:template], options[:prefixes], false, keys, @details)
           end
-        else
-          raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file, :plain, :html or :body option."
         end
       end
 
@@ -94,6 +97,12 @@ module ActionView
           resolve_layout(layout.call(formats), keys, formats)
         else
           layout
+        end
+      end
+
+      def validate_rendering_options!(options)
+        if (options.keys & VALID_RENDERING_OPTIONS).empty?
+          raise ArgumentError, "You invoked render but didn't give any of #{VALID_RENDERING_OPTIONS.join(', ')} option"
         end
       end
   end
