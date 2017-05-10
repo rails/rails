@@ -7,7 +7,7 @@ module ActiveRecord
   # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).
   # This means that an inheritance looking like this:
   #
-  #   class Company < ActiveRecord::Base; end
+  #   class Company < ApplicationRecord; end
   #   class Firm < Company; end
   #   class Client < Company; end
   #   class PriorityClient < Client; end
