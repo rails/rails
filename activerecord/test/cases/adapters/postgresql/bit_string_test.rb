@@ -43,6 +43,13 @@ class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
     assert_not type.binary?
   end
 
+  def test_bit_to_string_after_save
+    record = PostgresqlBitString.create!
+    record.save
+
+    assert_equal "00000011", record.a_bit.to_s
+  end
+
   def test_default
     assert_equal "00000011", PostgresqlBitString.column_defaults["a_bit"]
     assert_equal "00000011", PostgresqlBitString.new.a_bit

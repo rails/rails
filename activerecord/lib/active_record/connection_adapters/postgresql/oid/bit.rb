@@ -30,7 +30,7 @@ module ActiveRecord
             end
 
             def to_s
-              value
+              value.to_s
             end
 
             def binary?
