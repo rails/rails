@@ -914,6 +914,8 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
+    #
+    # :api: private
     def arel # :nodoc:
       @arel ||= build_arel
     end
