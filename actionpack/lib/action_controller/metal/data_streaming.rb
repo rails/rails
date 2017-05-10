@@ -66,6 +66,7 @@ module ActionController #:nodoc:
       def send_file(path, options = {}) #:doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
 
+        options = options.dup
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
 

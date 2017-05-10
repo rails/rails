@@ -224,6 +224,12 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
+
+    define_method "test_send_#{method}_options_not_corrupted" do
+      @controller.options = { :stream => false }
+      assert_nothing_raised { assert_not_nil process(method) }
+      assert_equal({ :stream => false }, @controller.options)
+    end
   end
 
   def test_send_file_with_action_controller_live
