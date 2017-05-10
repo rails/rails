@@ -640,6 +640,10 @@ end
 ```
 Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
+Again, you must create a unique index on both columns to enforce the uniqueness
+constraint across two different database connections
+([read more](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)).
+
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
 true.
