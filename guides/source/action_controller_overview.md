@@ -735,7 +735,7 @@ class ChangesController < ApplicationController
     ActiveRecord::Base.transaction do
       begin
         yield
-      ensure
+      rescue
         raise ActiveRecord::Rollback
       end
     end
