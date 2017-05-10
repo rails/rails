@@ -24,7 +24,10 @@ module ActiveRecord
         when Arel::Nodes::Node
           parts = [opts]
         else
-          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+          unless opts.respond_to?(:to_h)
+            raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+          end
+          parts = [opts]
         end
 
         WhereClause.new(parts, binds || [])
