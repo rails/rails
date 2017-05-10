@@ -6,9 +6,17 @@ module ActionDispatch
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
+      SECOND_LVL_DOMAINS = ["asn.au", "com.au", "net.au", "id.au", "org.au", "edu.au", "gov.au",
+        "csiro.au", "act.au", "nsw.au", "nt.au", "qld.au", "sa.au", "tas.au", "vic.au", "wa.au",
+        "co.at", "or.at", "priv.at", "ac.at", "avocat.fr", "aeroport.fr", "veterinaire.fr", "co.hu",
+        "film.hu", "lakas.hu", "ingatlan.hu", "sport.hu", "hotel.hu", "ac.nz", "co.nz", "geek.nz",
+        "gen.nz", "kiwi.nz", "maori.nz", "net.nz", "org.nz", "school.nz", "cri.nz", "govt.nz",
+        "health.nz", "iwi.nz", "mil.nz", "parliament.nz", "ac.il", "co.il", "org.il", "net.il",
+        "k12.il", "gov.il", "muni.il", "idf.il", "ac.za", "gov.za", "law.za", "mil.za", "nom.za",
+        "school.za", "net.za", "co.uk", "org.uk", "me.uk", "ltd.uk", "plc.uk", "net.uk", "sch.uk",
+        "ac.uk", "gov.uk", "mod.uk", "mil.uk", "nhs.uk", "police.uk"]
 
       mattr_accessor :tld_length
-      self.tld_length = 1
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -183,6 +191,9 @@ module ActionDispatch
       end
 
       def initialize
+        # Set tld length to 2 if TLD is a known second-level domain
+        self.tld_length = SECOND_LVL_DOMAINS.include?(host.split(".").last(2).join(".")) ? 2 : 1
+
         super
         @protocol = nil
         @port     = nil
