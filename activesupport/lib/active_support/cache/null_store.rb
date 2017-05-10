@@ -22,6 +22,9 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil)
       end
 
+      # Delete all entries with keys matching the pattern.
+      # Options are passed to the underlying cache implementation.
+      # All implementations may not support this method.
       def delete_matched(matcher, options = nil)
       end
 
