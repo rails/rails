@@ -19,15 +19,15 @@ installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
-It describes how to properly setup Active Record for PostgreSQL.
+It describes how to properly setup Active Record for use with PostgreSQL.
 
 Datatypes
 ---------
 
-PostgreSQL offers a number of specific datatypes. Following is a list of types,
+PostgreSQL offers a number of specific datatypes. Following is a list of types
 that are supported by the PostgreSQL adapter.
 
-### Bytea
+### Binary
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-binary.html)
 * [functions and operators](http://www.postgresql.org/docs/current/static/functions-binarystring.html)
@@ -59,6 +59,7 @@ create_table :books do |t|
   t.string 'tags', array: true
   t.integer 'ratings', array: true
 end
+
 add_index :books, :tags, using: 'gin'
 add_index :books, :ratings, using: 'gin'
 
@@ -92,6 +93,7 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 # db/migrate/20131009135255_create_profiles.rb
 ActiveRecord::Schema.define do
   enable_extension 'hstore' unless extension_enabled?('hstore')
+
   create_table :profiles do |t|
     t.hstore 'settings'
   end
@@ -163,10 +165,10 @@ Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
 event = Event.first
 event.duration # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
 
-## All Events on a given date
+# All Events on a given date
 Event.where("duration @> ?::date", Date.new(2014, 2, 12))
 
-## Working with range bounds
+# Working with range bounds
 event = Event.
   select("lower(duration) AS starts_at").
   select("upper(duration) AS ends_at").first
@@ -199,6 +201,7 @@ execute <<-SQL
    street VARCHAR(90)
  );
 SQL
+
 create_table :contacts do |t|
   t.column :address, :full_address
 end
@@ -228,6 +231,7 @@ def up
   execute <<-SQL
     CREATE TYPE article_status AS ENUM ('draft', 'published');
   SQL
+
   create_table :articles do |t|
     t.column :status, :article_status
   end
@@ -308,11 +312,12 @@ revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 ```
 
-You can use `uuid` type to define references in migrations:
+You can also use the `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+
 create_table :posts, id: :uuid, default: 'gen_random_uuid()'
 
 create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
@@ -361,7 +366,7 @@ user.save!
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
-The types `inet` and `cidr` are mapped to Ruby
+The `inet` and `cidr` types are mapped to Ruby
 [`IPAddr`](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
@@ -409,6 +414,7 @@ extension to generate random UUIDs.
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+
 create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
   t.string :kind
 end
@@ -470,7 +476,7 @@ Indexes:
     "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
 ```
 
-This table does not follow the Rails conventions at all.
+This table does not follow Rails conventions at all.
 Because simple PostgreSQL views are updateable by default,
 we can wrap it as follows:
 
@@ -490,6 +496,7 @@ CREATE VIEW articles AS
 # app/models/article.rb
 class Article < ApplicationRecord
   self.primary_key = "id"
+
   def archive!
     update_attribute :archived, true
   end
@@ -499,6 +506,7 @@ end
 first = Article.create! title: "Winter is coming",
                         status: "published",
                         published_at: 1.year.ago
+
 second = Article.create! title: "Brace yourself",
                          status: "draft",
                          published_at: 1.month.ago
@@ -509,4 +517,4 @@ Article.count # => 1
 ```
 
 NOTE: This application only cares about non-archived `Articles`. A view also
-allows for conditions so we can exclude the archived `Articles` directly.
+allows for conditions, so we can exclude the archived `Articles` directly.
