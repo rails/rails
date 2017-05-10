@@ -47,7 +47,7 @@ module ActionController
   #     location = request.env["REMOTE_ADDR"]
   #     render plain: "This server hosted at #{location}"
   #   end
-  #
+  # 
   # == Parameters
   #
   # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
