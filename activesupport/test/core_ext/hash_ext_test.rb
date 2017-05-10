@@ -49,6 +49,12 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :except!
   end
 
+  def test_private_methods
+    h = {}
+    assert_equal true, h.private_methods.include?(:_deep_transform_keys_in_object)
+    assert_equal true, h.private_methods.include?(:_deep_transform_keys_in_object!)
+  end
+
   def test_transform_keys
     assert_equal @upcase_strings, @strings.transform_keys { |key| key.to_s.upcase }
     assert_equal @upcase_strings, @symbols.transform_keys { |key| key.to_s.upcase }
@@ -1121,6 +1127,24 @@ class HashToXmlTest < ActiveSupport::TestCase
       </member>
       EOT
       Hash.from_xml(attack_xml)
+    end
+  end
+
+  test '_deep_transform_keys_in_object returns the same object unless first arg is array or hash' do
+    ['string', -> {}, 123, Object.new].each do |object|
+      assert_same object, {}.send(:_deep_transform_keys_in_object, object)
+    end
+  end
+
+  test '_deep_transform_keys_in_object returns different object if first arg is array or hash' do
+    [{}, []].each do |object|
+      assert_not_same object, {}.send(:_deep_transform_keys_in_object, object)
+    end
+  end
+
+  test '_deep_transform_keys_in_object! always returns the same object' do
+    [{}, [], 'string', -> {}, 123, Object.new].each do |object|
+      assert_same object, {}.send(:_deep_transform_keys_in_object!, object)
     end
   end
 end
