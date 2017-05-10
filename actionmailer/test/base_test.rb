@@ -605,6 +605,11 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver_now
   end
 
+  test 'body parameter is given preference over template for rendering' do
+    mail = BaseMailer.with_body_and_template('implicit_multipart').deliver
+    assert_equal('I am rendered', mail.body.to_s.strip)
+  end
+
   # Before and After hooks
 
   class MyObserver
