@@ -133,7 +133,7 @@ module ActiveSupport
       "Kathmandu"                    => "Asia/Kathmandu",
       "Astana"                       => "Asia/Dhaka",
       "Dhaka"                        => "Asia/Dhaka",
-      "Sri Jayawardenepura"          => "Asia/Colombo",
+      "Sri Jayawardenapura"          => "Asia/Colombo",
       "Almaty"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
       "Rangoon"                      => "Asia/Rangoon",
