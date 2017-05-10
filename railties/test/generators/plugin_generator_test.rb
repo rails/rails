@@ -67,6 +67,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
       assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
       assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
+      assert_match(/ActiveSupport::TestCase\.fixture_path = .+\/test\/dummy\/test\/fixtures.+/, content)
     end
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
     assert_file "bin/test"
@@ -339,6 +340,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
+      assert_match(/ActiveSupport::TestCase\.fixture_path = .+\/test\/dummy\/test\/fixtures.+/, content)
       assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
       assert_no_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
     end
@@ -440,6 +442,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require.+spec\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+spec\/dummy\/db\/migrate/, content)
+      assert_match(/ActiveSupport::TestCase\.fixture_path = .+\/spec\/dummy\/test\/fixtures.+/, content)
     end
   end
 
@@ -451,6 +454,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require.+spec\/fake\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+spec\/fake\/db\/migrate/, content)
+      assert_match(/ActiveSupport::TestCase\.fixture_path = .+\/spec\/fake\/test\/fixtures.+/, content)
     end
   end
 
