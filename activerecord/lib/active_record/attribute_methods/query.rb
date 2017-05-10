@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        value = self[attr_name]
+        value = public_send(attr_name)
 
         case value
         when true        then true
