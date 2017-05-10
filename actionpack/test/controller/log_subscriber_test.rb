@@ -62,6 +62,11 @@ module Another
       render inline: "<%= cache_unless(true, 'foo') { 'bar' } %>"
     end
 
+    def with_fresh_when
+      fresh_when(etag: :test)
+      render text: 'Testing'
+    end
+
     def with_exception
       raise Exception
     end
@@ -362,6 +367,21 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 2, logs.size
     assert_match(/Completed 404/, logs.last)
   end
+
+  def test_multiple_process_with_parameters
+    get :with_fresh_when, {}
+    first_etag = response.headers['ETag']
+    get :with_fresh_when, {}, { 'If-None-Match' => first_etag }
+    second_etag = response.headers['ETag']
+
+    wait
+
+    assert_equal 4, logs.size
+    assert_equal first_etag, second_etag
+    assert_match(/Completed 200/, logs[1])
+    assert_match(/Completed 304/, logs[3])
+  end
+
 
   def logs
     @logs ||= @logger.logged(:info)
