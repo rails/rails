@@ -30,6 +30,9 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 # http://www.json.org/JSONRequest.html
 Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
 
+# https://w3c.github.io/manifest/#media-type-registration
+Mime::Type.register "application/manifest+json", :webmanifest
+
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
 Mime::Type.register "application/gzip", :gzip, %w(application/x-gzip), %w(gz)
