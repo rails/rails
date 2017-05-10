@@ -113,7 +113,7 @@ module ActionDispatch
 
         # Could be a CSV list and/or repeated headers that were concatenated.
         client_ips    = ips_from(@req.client_ip).reverse
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        forwarded_ips = ips_from(@req.x_forwarded_for)
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that either:
