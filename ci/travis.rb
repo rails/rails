@@ -149,25 +149,22 @@ end
 
 results = {}
 
-ENV["GEM"].split(",").each do |gem|
-  [false, true].each do |isolated|
-    next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
-    next if RUBY_VERSION < "2.4" && isolated
-    next if gem == "railties" && isolated
-    next if gem == "ac" && isolated
-    next if gem == "ac:integration" && isolated
-    next if gem == "aj:integration" && isolated
-    next if gem == "guides" && isolated
-    next if gem == "av:ujs" && isolated
+isolated = ENV["ISOLATED"]
 
-    build = Build.new(gem, isolated: isolated)
-    results[build.key] = build.run!
-  end
+ENV["GEM"].split(",").each do |gem|
+  next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
+
+  build = Build.new(gem, isolated: isolated)
+  results[build.key] = build.run!
 end
 
 failures = results.select { |key, value| !value  }
 
-if failures.empty?
+if results.empty?
+  puts
+  puts "Nothing to do"
+  exit(true)
+elsif failures.empty?
   puts
   puts "Rails build finished successfully"
   exit(true)

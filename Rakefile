@@ -2,6 +2,7 @@ require "net/http"
 
 $:.unshift File.expand_path("..", __FILE__)
 require "tasks/release"
+require "tasks/travis"
 require "railties/lib/rails/api/task"
 
 desc "Build gem files for all projects"
