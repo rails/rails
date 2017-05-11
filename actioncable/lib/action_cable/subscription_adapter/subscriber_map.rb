@@ -33,7 +33,7 @@ module ActionCable
 
       def broadcast(channel, message)
         list = @sync.synchronize do
-          return if !@subscribers.key?(channel)
+          return unless @subscribers.key?(channel)
           @subscribers[channel].dup
         end
 

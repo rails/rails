@@ -307,7 +307,7 @@ module Rails
         gems << GemfileEntry.version("sass-rails", "~> 5.0",
                                      "Use SCSS for stylesheets")
 
-        if !options[:skip_javascript]
+        unless options[:skip_javascript]
           gems << GemfileEntry.version("uglifier",
                                      ">= 1.3.0",
                                      "Use Uglifier as compressor for JavaScript assets")
@@ -422,7 +422,7 @@ module Rails
       end
 
       def run_webpack
-        if !(webpack = options[:webpack]).nil?
+        if (webpack = options[:webpack]).present?
           rails_command "webpacker:install"
           rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
         end

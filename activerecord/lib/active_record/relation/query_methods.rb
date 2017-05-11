@@ -395,7 +395,7 @@ module ActiveRecord
       args.each do |scope|
         case scope
         when Symbol
-          if !VALID_UNSCOPING_VALUES.include?(scope)
+          unless VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
           set_value(scope, nil)

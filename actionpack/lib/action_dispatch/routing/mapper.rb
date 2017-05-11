@@ -1895,7 +1895,7 @@ module ActionDispatch
               action = nil
             end
 
-            as = if !options.fetch(:as, true) # if it's set to nil or false
+            as = unless options.fetch(:as, true) # if it's set to nil or false
               options.delete(:as)
             else
               name_for_action(options.delete(:as), action)
