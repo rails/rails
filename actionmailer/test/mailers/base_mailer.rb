@@ -133,4 +133,11 @@ class BaseMailer < ActionMailer::Base
   def with_subject_interpolations
     mail(subject: default_i18n_subject(rapper_or_impersonator: 'Slim Shady'), body: '')
   end
+
+  def rendering_text_output_deprecation_warning
+    mail(to: 'john@example.com') do |format|
+      format.html { render text: 'Example' }
+      format.text { render text: 'Example' }
+    end
+  end
 end
