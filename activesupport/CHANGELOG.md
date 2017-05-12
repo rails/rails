@@ -1,3 +1,5 @@
+## Rails 5.0.3 (May 12, 2017) ##
+
 *   `ActiveSupport::EventedFileUpdateChecker` no longer listens to
     directories outside of the application directory.
 

@@ -1,3 +1,5 @@
+## Rails 5.0.3 (May 12, 2017) ##
+
 *   Raise exception when calling `to_h` in an unfiltered Parameters.
 
     This method will raise on unfiltered Parameters if

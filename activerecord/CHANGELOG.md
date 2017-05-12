@@ -1,3 +1,5 @@
+## Rails 5.0.3 (May 12, 2017) ##
+
 *   Check whether `Rails.application` defined before calling it
 
     In #27674 we changed the migration generator to generate migrations at the
