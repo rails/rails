@@ -119,7 +119,7 @@ namespace :assets do
       class Element {}
       require('#{dir}')
     JS
-    stdout, stderr, status = Open3.capture3("node", "--print", js)
+    _, stderr, status = Open3.capture3("node", "--print", js)
     if status.success?
       puts "[OK]"
     else
