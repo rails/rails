@@ -8,6 +8,15 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
+        ActiveSupport::Deprecation.warn(<<-EOW.squish)
+          Query attribute methods(like `attribute?`) will not behave like
+          using `ActiveModel::Type::Boolean` and will be shortcuts
+          for `attribute.present?` in the next version of Rails.
+          If you'd like #{attr_name}? to return false for values defined
+          in `ActiveModel::Type::Boolean::FALSE_VALUES`, use
+          `ActiveModel::Type::Boolean` instead.
+        EOW
+
         value = self[attr_name]
 
         case value
