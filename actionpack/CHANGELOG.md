@@ -1,3 +1,8 @@
+## Rails 5.1.1 (May 12, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.1.0 (April 27, 2017) ##
 
 *   Raise exception when calling `to_h` and `to_hash` in an unpermitted Parameters.
