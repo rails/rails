@@ -209,6 +209,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.order(:id).distinct.exists?
   end
 
+  # Ensure +exists?+ runs without an error by excluding order value.
+  def test_exists_with_order
+    assert_equal true, Topic.order("invalid sql here").exists?
+  end
+
   def test_exists_with_includes_limit_and_empty_result
     assert_equal false, Topic.includes(:replies).limit(0).exists?
     assert_equal false, Topic.includes(:replies).limit(1).where('0 = 1').exists?

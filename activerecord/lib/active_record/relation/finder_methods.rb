@@ -321,16 +321,7 @@ module ActiveRecord
       relation = apply_join_dependency(self, construct_join_dependency)
       return false if ActiveRecord::NullRelation === relation
 
-      relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
-
-      case conditions
-      when Array, Hash
-        relation = relation.where(conditions)
-      else
-        unless conditions == :none
-          relation = relation.where(primary_key => conditions)
-        end
-      end
+      relation = construct_relation_for_exists(relation, conditions)
 
       connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
     end
@@ -394,6 +385,19 @@ module ActiveRecord
       end
     end
 
+    def construct_relation_for_exists(relation, conditions)
+      relation = relation.except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+
+      case conditions
+      when Array, Hash
+        relation.where!(conditions)
+      else
+        relation.where!(primary_key => conditions) unless conditions == :none
+      end
+
+      relation
+    end
+
     def construct_join_dependency(joins = [])
       including = eager_load_values + includes_values
       ActiveRecord::Associations::JoinDependency.new(@klass, including, joins)
@@ -412,8 +416,7 @@ module ActiveRecord
     end
 
     def apply_join_dependency(relation, join_dependency)
-      relation = relation.except(:includes, :eager_load, :preload)
-      relation = relation.joins join_dependency
+      relation = relation.except(:includes, :eager_load, :preload).joins!(join_dependency)
 
       if using_limitable_reflections?(join_dependency.reflections)
         relation
