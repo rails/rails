@@ -359,7 +359,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Allowed passing lambdas as values to the `default` method.
     ([Commit](https://github.com/rails/rails/commit/1cec84ad2ddd843484ed40b1eb7492063ce71baf))
 
-*   Added support for parameterized invocation of mailers to share before action callbacks and defaults
+*   Added support for parameterized invocation of mailers to share action callbacks and defaults
     between different mailer actions.
     ([Commit](https://github.com/rails/rails/commit/1cec84ad2ddd843484ed40b1eb7492063ce71baf))
 

@@ -63,7 +63,7 @@ The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in mor
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the [API documentation](http://api.rubyonrails.org/classes/ActionController.html) or in the source itself.
 
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or action callbacks.
+Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or callback handlers.
 
 Parameters
 ----------
@@ -679,14 +679,14 @@ end
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
-Action callbacks
--------
+Action Callbacks
+----------------
 
 Action callbacks are methods that are run "before", "after" or "around" a controller action.
 
 Action callbacks are inherited, so if you set an action callback on `ApplicationController`, it will be run on every controller in your application.
 
-"before" action callbacks may halt the request cycle. A common "before" action callback is one which requires that a user is logged in for an action to be run. You can define the action callback method this way:
+"before_action" callbacks may halt the request cycle. A common "before_action" is one which requires that a user is logged in for an action to be run. You can define the callback method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -703,9 +703,9 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" action callback renders or redirects, the action will not run. If there are additional action callbacks scheduled to run after that action callback, they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before_action"  renders or redirects, the action will not run. If there are additional callbacks scheduled to run after that one, they are also cancelled.
 
-In this example the action callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this action callback from running before particular actions with `skip_before_action`:
+In this example the callback is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this callback from running before particular actions with `skip_before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
@@ -713,15 +713,15 @@ class LoginsController < ApplicationController
 end
 ```
 
-Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this action callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding action callbacks too, so you can add a action callback which only runs for selected actions in the first place.
+Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this callback only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding callbacks too, so you can add a callback which only runs for selected actions in the first place.
 
-### After action callbacks and Around action callbacks
+### after_action Callbacks And around_action Callbacks
 
-In addition to "before" action callbacks, you can also run action callbacks after an action has been executed, or both before and after.
+In addition to "before_action" callbacks, you can also run action callbacks after an action has been executed, or both before and after.
 
-"after" action callbacks are similar to "before" action callbacks, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" action callbacks cannot stop the action from running. Please note that "after" action callbacks are executed only after a successful action, but not when an exception is raised in the request cycle.
+"after_action" callbacks are similar to "before_action" callbacks, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after_action" callbacks cannot stop the action from running. Please note that "after_action" callbacks are executed only after a successful action, but not when an exception is raised in the request cycle.
 
-"around" action callbacks are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"around_action" callbacks are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
@@ -743,7 +743,7 @@ class ChangesController < ApplicationController
 end
 ```
 
-Note that an "around" action callback also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around_action" callback also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
