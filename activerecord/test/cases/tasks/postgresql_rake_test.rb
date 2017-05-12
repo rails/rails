@@ -1,4 +1,4 @@
-require "cases/helper"
+any "cases/helper"
 require "active_record/tasks/database_tasks"
 
 if current_adapter?(:PostgreSQLAdapter)
@@ -257,6 +257,14 @@ if current_adapter?(:PostgreSQLAdapter)
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
           end
         end
+      end
+
+      def test_structure_dump_with_ignore_tables
+        ActiveRecord::SchemaDump.expects(:ignore_tables).returns([:foo, "bar"])
+
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
 
       def test_structure_dump_with_schema_search_path
