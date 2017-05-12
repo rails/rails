@@ -69,7 +69,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
-          args += ignore_tables.flat_map { |table| ['-T', table] }
+          args += ignore_tables.flat_map { |table| ["-T", table] }
         end
 
         args << configuration["database"]
