@@ -715,6 +715,9 @@ end
 
 Now, the `LoginsController`'s `new` and `create` actions will work as before without requiring the user to be logged in. The `:only` option is used to skip this filter only for these actions, and there is also an `:except` option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
+NOTE: Calling the same filter multiple times with different options will not work,
+since the last filter definition will overwrite the previous ones.
+
 ### After Filters and Around Filters
 
 In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
