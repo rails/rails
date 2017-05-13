@@ -308,7 +308,7 @@ module ActiveRecord
           if respond_to?(method, true)
             send(method, table, *arguments)
           else
-            raise "Unknown method called : #{method}(#{arguments.inspect})"
+            raise NoMethodError, "Unknown method called : #{method}(#{arguments.inspect})"
           end
         end.join(", ")
 
@@ -814,7 +814,7 @@ module ActiveRecord
           when 3; "mediumint"
           when nil, 4; "int"
           when 5..8; "bigint"
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
+          else raise(AdapterTypeInconsistentWithByteLength, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
           end
         end
 
@@ -824,7 +824,7 @@ module ActiveRecord
           when nil, 0x100..0xffff;    "text"
           when 0x10000..0xffffff;     "mediumtext"
           when 0x1000000..0xffffffff; "longtext"
-          else raise(ActiveRecordError, "No text type has byte length #{limit}")
+          else raise(AdapterTypeInconsistentWithByteLength, "No text type has byte length #{limit}")
           end
         end
 
@@ -834,7 +834,7 @@ module ActiveRecord
           when nil, 0x100..0xffff;    "blob"
           when 0x10000..0xffffff;     "mediumblob"
           when 0x1000000..0xffffffff; "longblob"
-          else raise(ActiveRecordError, "No binary type has byte length #{limit}")
+          else raise(AdapterTypeInconsistentWithByteLength, "No binary type has byte length #{limit}")
           end
         end
 

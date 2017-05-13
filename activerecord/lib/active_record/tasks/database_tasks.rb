@@ -1,8 +1,5 @@
 module ActiveRecord
   module Tasks # :nodoc:
-    class DatabaseAlreadyExists < StandardError; end # :nodoc:
-    class DatabaseNotSupported < StandardError; end # :nodoc:
-
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
@@ -269,9 +266,7 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
-                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
-                "Seed loader should respond to load_seed method"
+          raise SeedLoaderNotSpecified
         end
       end
 
@@ -290,7 +285,7 @@ module ActiveRecord
         def class_for_adapter(adapter)
           _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
           unless task
-            raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
+            raise DatabaseNotSupported, adapter
           end
           task.is_a?(String) ? task.constantize : task
         end

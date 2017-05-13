@@ -4,9 +4,6 @@ require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   module NestedAttributes #:nodoc:
-    class TooManyRecords < ActiveRecordError
-    end
-
     extend ActiveSupport::Concern
 
     included do
@@ -291,7 +288,7 @@ module ActiveRecord
       #   can be processed with the nested attributes. Limit also can be specified
       #   as a Proc or a Symbol pointing to a method that should return a number.
       #   If the size of the nested attributes array exceeds the specified limit,
-      #   NestedAttributes::TooManyRecords exception is raised. If omitted, any
+      #   TooManyNestedRecords exception is raised. If omitted, any
       #   number of associations can be processed.
       #   Note that the +:limit+ option is only applicable to one-to-many
       #   associations.
@@ -515,7 +512,7 @@ module ActiveRecord
       # records. It accepts limit in the form of symbol, proc, or
       # number-like object (anything that can be compared with an integer).
       #
-      # Raises TooManyRecords error if the attributes_collection is
+      # Raises TooManyNestedRecords error if the attributes_collection is
       # larger than the limit.
       def check_record_limit!(limit, attributes_collection)
         if limit
@@ -530,7 +527,7 @@ module ActiveRecord
             end
 
           if limit && attributes_collection.size > limit
-            raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
+            raise TooManyNestedRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
           end
         end
       end

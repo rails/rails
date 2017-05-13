@@ -24,7 +24,7 @@ module ActiveRecord
 
       def test_lease_twice
         assert @adapter.lease, "should lease adapter"
-        assert_raises(ActiveRecordError) do
+        assert_raises(ActiveRecord::CannotLeaseConnection) do
           @adapter.lease
         end
       end

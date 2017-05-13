@@ -160,10 +160,14 @@ module ActiveRecord
 
       if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
         def test_out_of_range_limit_should_raise
-          assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
+          assert_raise(ActiveRecord::AdapterTypeInconsistentWithByteLength) do
+            add_column :test_models, :integer_too_big, :integer, limit: 10
+          end
 
           unless current_adapter?(:PostgreSQLAdapter)
-            assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }
+            assert_raise(ActiveRecord::AdapterTypeInconsistentWithByteLength) do
+              add_column :test_models, :text_too_big, :text, limit: 0xfffffffff
+            end
           end
         end
       end

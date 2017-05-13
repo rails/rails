@@ -984,6 +984,13 @@ module ActiveRecord
         build_join_query(manager, buckets, Arel::Nodes::OuterJoin)
       end
 
+      VALID_JOIN_CLASSES = [
+        String,
+        Hash, Symbol, Array,
+        ActiveRecord::Associations::JoinDependency,
+        Arel::Nodes::Join
+      ]
+
       def build_joins(manager, joins)
         buckets = joins.group_by do |join|
           case join

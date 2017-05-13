@@ -34,7 +34,7 @@ module ActiveRecord
         #     "timeout"  => "3000"
         #   }
         def initialize(url)
-          raise "Database URL cannot be empty" if url.blank?
+          raise ArgumentError, "Database URL cannot be empty" if url.blank?
           @uri     = uri_parser.parse(url)
           @adapter = @uri.scheme && @uri.scheme.tr("-", "_")
           @adapter = "postgresql" if @adapter == "postgres"

@@ -3,7 +3,7 @@ require "active_record/connection_adapters/mysql/database_statements"
 
 gem "mysql2", ">= 0.3.18", "< 0.5"
 require "mysql2"
-raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
+raise ActiveRecord::DatabaseVersionNotSupported, "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:

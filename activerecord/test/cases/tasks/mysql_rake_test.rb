@@ -64,7 +64,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_create_when_database_exists_outputs_info_to_stderr
         ActiveRecord::Base.connection.stubs(:create_database).raises(
-          ActiveRecord::Tasks::DatabaseAlreadyExists
+          ActiveRecord::DatabaseAlreadyExists
         )
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration

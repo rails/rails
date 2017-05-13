@@ -908,7 +908,7 @@ module NestedAttributesLimitTests
   end
 
   def test_limit_with_exceeding_records
-    assert_raises(ActiveRecord::NestedAttributes::TooManyRecords) do
+    assert_raises(ActiveRecord::TooManyNestedRecords) do
       @pirate.attributes = { parrots_attributes: { "foo" => { name: "Lovely Day" },
                                                       "bar" => { name: "Blown Away" },
                                                       "car" => { name: "The Happening" } } }

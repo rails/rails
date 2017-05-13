@@ -1,31 +1,4 @@
 module ActiveRecord
-  # = Active Record \RecordInvalid
-  #
-  # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base#create!}[rdoc-ref:Persistence::ClassMethods#create!] when the record is invalid.
-  # Use the #record method to retrieve the record which did not validate.
-  #
-  #   begin
-  #     complex_operation_that_internally_calls_save!
-  #   rescue ActiveRecord::RecordInvalid => invalid
-  #     puts invalid.record.errors
-  #   end
-  class RecordInvalid < ActiveRecordError
-    attr_reader :record
-
-    def initialize(record = nil)
-      if record
-        @record = record
-        errors = @record.errors.full_messages.join(", ")
-        message = I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", errors: errors, default: :"errors.messages.record_invalid")
-      else
-        message = "Record invalid"
-      end
-
-      super(message)
-    end
-  end
-
   # = Active Record \Validations
   #
   # Active Record includes the majority of its validations from ActiveModel::Validations

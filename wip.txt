@@ -1,0 +1,508 @@
+
+# THIS FILE HAS ANNOTATIONS FOR THIS PULL REQUEST
+# AND WILL NOT BE INCLUDED IN THE FINAL GIT HISTORY
+
+mysql --user root
+CREATE USER 'rails'@'%';
+GRANT ALL PRIVILEGES TO 'rails'@'%' WITH GRANT OPTION;
+
+
+
+--- to talk about
+
+Rename ActiveRecord::NestedAttributes::TooManyRecords to ActiveRecord::TooManyNestedRecords
+
+
+raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
+
+Talk about how some ActiveRecordError instances were renamed to ArgumentError,
+and how maybe we should have an ActiveRecord::InvalidArgument class under Common, or maybe with subclasses
+
+
+--- to talk about
+
+
+
+
+
+
+##### for later
+- raise ArgumentError, "No name or columns specified" if checks.none?
++ raise ArgumentError, "No name or columns specified for table #{table_name}" if checks.none?
+
+- raise ArgumentError, "Invalid transaction state: #{state}"
++ raise ArgumentError, "Invalid transaction state: #{state}. Valid states are :committed, :rolledback and nil"
+
+- raise "unknown class: %s" % join.class.name
+# VALID_JOIN_CLASSES = [
+#   String,
+#   Hash, Symbol, Array,
+#   ActiveRecord::Associations::JoinDependency,
+#   Arel::Nodes::Join
+# ]
++ raise ArgumentError, "Invalid join class '#{join.class}'. Valid classes are :#{VALID_JOIN_CLASSES.inspect}."
+
+
+create tests for DuplicateMigrationError
+
+
+
+
+
+todo: uncomment lines at active_record.rb, base.rb
+
+20 errors
+activerecord/lib/active_record/associations.rb
+11 errors
+activerecord/lib/active_record/migration.rb
+1 error
+activerecord/lib/active_record/nested_attributes.rb
+1 error
+activerecord/lib/active_record/validations.rb
+
+
+watch out for ConfigurationError
+
+- class AssociationTypeMismatch < ActiveRecordError
++ class AssociationTypeMismatch < AssociationError
+
+- class ConfigurationError < ActiveRecordError
++ class ConfigurationError < AssociationError
+
+- class ActiveRecord::NestedAttributes::TooManyRecords
++ class ActiveRecord::NestedAttributesError < ActiveRecordError
++ class ActiveRecord::TooManyNestedRecords < NestedAttributesError
+
+# odd UnknownAttributeError = ActiveModel::UnknownAttributeError
+
+- raise "You cannot include Dirty after Timestamp"
++ raise DirtyAttributeError, "You cannot include Dirty after Timestamp"
++ class DirtyAttributeError < AttributeError
+
+- raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
++ raise DuplicateMigrationError
++ class DuplicateMigrationError < CommonMigrationError
+
+- raise(ActiveRecordError, "No #{native[:name]} type has precision of #{precision}. The allowed range of precision is from 0 to 6")
++ raise ArgumentError, "No #{native[:name]} type has precision of #{precision}. The allowed range of precision is from 0 to 6"
+
+
+- raise ArgumentError "No name or columns specified" if checks.none?
++ raise ArgumentError "No name or columns specified for table #{table_name}" if checks.none?
+
+- raise ArgumentError, "Invalid transaction state: #{state}."
++ raise ArgumentError, "Invalid transaction state: #{state}. Valid states are :committed, :rolledback and nil"
+
+
+- raise ActiveRecordError, msg
++ raise CannotLeaseConnection, msg
++ class CannotLeaseConnection < ActiveRecordError
+
+- raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
++ raise CannotExpireConnection, "Cannot expire connection, it is not currently leased."
++ class CannotExpireConnection < ConnectionError  # :nodoc:
+
+- raise "Unknown method called : #{method}(#{arguments.inspect})"
++ raise NoMethodError, "Unknown method called : #{method}(#{arguments.inspect})"
+
+
+- else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+- else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+- else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
++ else raise(AdapterTypeInconsistentWithByteLength, "No binary type has byte size #{limit}.")
++ else raise(AdapterTypeInconsistentWithByteLength, "The limit on text can be at most 1GB - 1byte.")
++ else raise(AdapterTypeInconsistentWithByteLength, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead.")
+- else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
+- else raise(ActiveRecordError, "No text type has byte length #{limit}")
+- else raise(ActiveRecordError, "No binary type has byte length #{limit}")
++ else raise(AdapterTypeInconsistentWithByteLength, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead.")
++ else raise(AdapterTypeInconsistentWithByteLength, "No text type has byte length #{limit}")
++ else raise(AdapterTypeInconsistentWithByteLength, "No binary type has byte length #{limit}")
++ class AdapterTypeInconsistentWithByteLength < AdapterError # :nodoc:
+
+
+- raise "Database URL cannot be empty" if url.blank?
++ raise ArgumentError, "Database URL cannot be empty" if url.blank?
+
+- raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
++ raise ActiveRecord::DatabaseVersionNotSupported, "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
+
+- raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
++ raise DatabaseVersionNotSupported, "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
+
+- raise "unknown class: %s" % join.class.name
++ raise ArgumentError, "Invalid join class '#{join.class}'. Valid classes are :#{VALID_JOIN_CLASSES.inspect}."
+
+
+- class DatabaseAlreadyExists < StandardError; end # :nodoc:
+- class DatabaseNotSupported < StandardError; end # :nodoc:
++ class DatabaseAlreadyExists < TaskMigrationError # :nodoc:
++ class DatabaseNotSupported < TaskMigrationError # :nodoc:
+
+- raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
++ raise SeedLoaderNotSpecified
++ class SeedLoaderNotSpecified
+
+- raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
++ raise DatabaseNotSupported, adapter
+
+
+
+
+----- 2017
+
+
+
+FIND 'ActiveRecordError'
+
+
+# watching for later
+# raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
+# raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+# raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
+# raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
+# raise "Anonymous class is not allowed." unless name
+# raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
+# raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
+# raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
+# raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+# raise StandardError, msg, e.backtrace
+# raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
+# raise ::ArgumentError unless value || block
+# raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
+
+
+
+
+
+
+# many ArgumentError inside Scoping
+
+# many errors inside QueryMethods could be inside ActiveRecord::QueryMethodArgumentError
+#     raise ArgumentError, 'Call this with at least one field' if fields.empty?
+#     ImmutableRelation is here
+
+# many errors inside nested_attributes.rb
+#     raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
+#     raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
+
+      # NestedRecordNotFound
+      # raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
+      #                                model, 'id', record_id)
+
+
+
+# a possible case for already-existing AssociationNotFoundError
+#     raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
+
+# shouldn't the first one get the backtrace as well?
+#       rescue Gem::LoadError => e
+#         raise Gem::LoadError, "..."
+#       rescue LoadError => e
+#         raise LoadError, "...", e.backtrace
+
+
+# shouldn't we add the backtrace too?
+#     rescue Mysql2::Error => error
+#       if error.message.include?("Unknown database")
+#         raise ActiveRecord::NoDatabaseError
+
+
+
+# this should be a new CounterCacheError, it's too hard for a new dev to udnerstand
+# raise ArgumentError, "'#{name}' has no association called '#{counter_association}'" unless has_many_association
+
+# shouldn't this also be a SubclassNotFound ?
+# raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
+
+
+# StaleObjectError could fall under a Locking category for it's only used in one file
+
+
+
+# investigate that :commited Set and apply this pattern
+# raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
+
+
+
+puts %w[
+].sort
+
+
+# food for thought: what if in Ruby, all raise inside an initializer implied ArgumentError instead of RuntimeError
+class ActiveRecordError < StandardError
+  # (rescue 2)
+  # connection_adapters/postgresql/referential_integrity.rb (rescue 2)
+
+
+  class CommonActiveRecordError
+    class SerializationTypeMismatch
+      # coders/yaml_column.rb (1)
+    class FixtureClassNotFound
+      # fixtures.rb (2)
+    class RecordNotFound
+      # associations/association.rb (rescue 1)
+      # associations/collection_association.rb (raise 1)
+      # active_record/core.rb (raise 3)
+      # active_record/nested_attributes.rb (raise 1)
+      # relation/finder_methods.rb (raise 9)
+      # railtie.rb (1)
+    class ImmutableRelation
+      # query_methods.rb (1)
+    class IrreversibleOrderError
+      # relation/finder_methods.rb (rescue 1)
+      # relation/query_methods.rb (raise 2)
+    class DeleteAllError
+      # relation.rb (1)
+
+
+
+
+
+
+
+
+
+  class InheritanceError
+    # abstract :)
+    class SubclassNotFound
+      # inheritance.rb (2)
+    class NotAnActiveRecord
+      # inheritance.rb (1)
+
+
+
+
+
+
+
+  class PersistenceError
+    # abstract :)
+    class RecordInvalid
+      # associations/singular_association.rb (raise 1)
+      # persistence.rb (rescue 1)
+    class RecordNotSaved
+      # associations/collection_association.rb (4)
+      # persistence.rb (1)
+      # railtie.rb (1)
+      # touch_later.rb (1)
+    class RecordNotDestroyed
+      # callbacks.rb (1)
+      # persistence.rb (1)
+    class StaleObjectError
+      # locking/optimistic.rb (2)
+      # persistence.rb (1)
+      # railtie.rb (1)
+    class ReadOnlyRecord
+      # persistence.rb (2)
+    class CannotUpdateNewRecord
+      # persistence.rb (2)
+    class CannotUpdateDestroyedRecord
+      # persistence.rb (1)
+
+
+
+
+  class DatabaseError
+    # abstract :)
+    class AdapterError
+      # abstract :)
+      class AdapterNotSpecified
+        # connection_adapters/connection_specification.rb (1)
+      class AdapterNotFound
+        # connection_adapters/connection_specification.rb (1)
+      class AdapterTypeInconsistentWithByteLength
+        # connection_adapters/abstract_mysql_adapter.rb (3)
+        # connection_adapters/postgresql/schema_statements.rb (3)
+      class DatabaseVersionNotSupported
+        # connection_adapters/mysql2_adapter.rb (1)
+        # connection_adapters/postgresql_adapter.rb (1)
+      class NoSuchColumn
+        # connection_adapters/abstract_adapter.rb (1)
+    class ConnectionError
+      # abstract :)
+      class ConnectionAlreadyInUse
+        # connection_adapters/abstract_adapter.rb (1)
+      class ConnectionNotEstablished
+        # connection_adapters/abstract/connection_pool.rb (3)
+        # connection_handling.rb (1)
+        class ConnectionTimeoutError < ConnectionNotEstablished
+          # connection_adapters/abstract/connection_pool.rb (raise 1, rescue 1)
+          class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
+            # connection_adapters/abstract/connection_pool.rb (raise 1, rescue 1)
+    class TransactionError
+      # abstract :)
+      class Rollback
+        # autosave_association.rb (raise 2)
+        # connection_adapters/abstract/database_statements.rb (rescue 1)
+        # transactions.rb (raise 1)
+      class TransactionIsolationError
+        # connection_adapters/abstract/database_statements.rb (2)
+        # connection_adapters/abstract/transaction.rb (1)
+      class TransactionSerializationError
+        # connection_adapters/abstract_mysql_adapter.rb (1)
+        # connection_adapters/postgresql_adapter.rb (1)
+
+
+
+
+
+
+  class StatementInvalid
+    # connection_adapters/abstract_adapter.rb (init 1)
+    # connection_adapters/abstract_mysql_adapter.rb (rescue 1)
+    # connection_adapters/postgresql/schema_statements.rb (rescue 1)
+    # connection_adapters/postgresql_adapter.rb (rescue 1)
+    # connection_adapters/sqlite3_adapter.rb (raise 1)
+    # core.rb (re-raise 1)
+
+    class WrappedDatabaseException < StatementInvalid
+      # abstract :)
+      class RecordNotUnique < WrappedDatabaseException
+        # connection_adapters/abstract_mysql_adapter.rb (init 1)
+        # connection_adapters/postgresql_adapter.rb (init 1)
+        # connection_adapters/sqlite3_adapter.rb (init 1)
+      class InvalidForeignKey < WrappedDatabaseException
+        # connection_adapters/abstract_mysql_adapter.rb (init 1)
+        # connection_adapters/postgresql_adapter.rb (init 1)
+        # connection_adapters/postgresql/referential_integrity.rb (rescue 1)
+
+    class ValueTooLong < StatementInvalid
+        # connection_adapters/abstract_mysql_adapter.rb (init 1)
+        # connection_adapters/postgresql_adapter.rb (init 1)
+    class PreparedStatementInvalid < StatementInvalid
+      # sanitization.rb (2)
+    class NoDatabaseError < StatementInvalid
+      # connection_adapters/mysql2_adapter.rb (re-raise 1)
+      # connection_adapters/postgresql_adapter.rb (re-raise 1)
+      # connection_adapters/sqlite3_adapter.rb (re-raise 1)
+      # railtie.rb rescue (1)
+      # tasks/database_tasks.rb (raise 1, rescue 1)
+      # tasks/sqlite_database_tasks.rb (raise 1, rescue 1)
+    class PreparedStatementCacheExpired < StatementInvalid
+      # connection_adapters/abstract/transaction.rb (rescue-ish 1)
+      # connection_adapters/postgresql_adapter.rb (raise 1)
+
+
+
+
+
+  class AttributeError
+    # abstract :)
+    class DangerousAttributeError < AttributeError
+      # attribute_methods.rb (1)
+    class AttributeAssignmentError < AttributeError
+      # attribute_assignment.rb (init 1)
+    class MultiparameterAssignmentErrors < AttributeError
+      # attribute_assignment.rb (1)
+    class UnknownPrimaryKey < AttributeError
+      # reflection.rb (1)
+      # relation/finder_methods.rb (1)
+    class DirtyAttributeError < AttributeError
+      # attribute_methods/dirty.rb (1)
+    class TooManyNestedRecords < AttributeError
+      # nested_attributes.rb (1)
+    class ReadOnlyAttribute
+      # persistence.rb (1)
+
+
+
+
+
+  class AssociationError
+    # abstract :)
+    class CommonAssociationError < AssociationError
+      # abstract :)
+      class AssociationTypeMismatch < CommonAssociationError
+        # associations/association.rb
+      class ConfigurationError < CommonAssociationError
+        # associations/join_dependency.rb (2)
+      class AssociationNotFoundError < CommonAssociationError
+        # associations.rb (1)
+      class EagerLoadPolymorphicError < CommonAssociationError
+        # associations/join_dependency.rb (1)
+      class DeleteRestrictionError < CommonAssociationError
+        # associations/has_many_association.rb (1)
+        # associations/has_one_association.rb (1)
+    class ReflectionAssociationError < AssociationError
+      # abstract :)
+      class InverseOfAssociationNotFoundError < ReflectionAssociationError
+        # reflection.rb (2)
+      class HasManyThroughAssociationNotFoundError < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasManyThroughAssociationPolymorphicSourceError < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasManyThroughAssociationPolymorphicThroughError < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasManyThroughAssociationPointlessSourceTypeError < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasOneThroughCantAssociateThroughCollection < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasOneAssociationPolymorphicThroughError < ReflectionAssociationError
+        # reflection.rb (1)
+      class HasManyThroughSourceAssociationNotFoundError < ReflectionAssociationError
+        # reflection.rb (1)
+    class ThroughAssociationError < AssociationError
+      # abstract :)
+      class ThroughCantAssociateThroughHasOneOrManyReflection < ThroughAssociationError
+        # abstract :)
+        class HasManyThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection
+          # associations/through_association.rb (1)
+        class HasOneThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection
+          # associations/through_association.rb (1)
+      class ThroughNestedAssociationsAreReadonly < ThroughAssociationError
+        # abstract :)
+        class HasManyThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly
+          # associations/through_association.rb (1)
+        class HasOneThroughNestedAssociationsAreReadonly < ThroughNestedAssociationsAreReadonly
+          # associations/through_association.rb (1)
+
+
+
+
+
+
+  class MigrationError
+    # abstract :)
+    class CommonMigrationError < MigrationError
+      # abstract :)
+      class IrreversibleMigration < CommonMigrationError
+        # migration/command_recorder.rb (6)
+      class DuplicateMigrationVersionError < CommonMigrationError
+        # connection_adapters/abstract/schema_statements.rb (1)
+      class DuplicateMigrationNameError < CommonMigrationError
+        # migration.rb (1)
+      class UnknownMigrationVersionError < CommonMigrationError
+        # migration.rb (2) - one of them seems strange
+      class IllegalMigrationNameError < CommonMigrationError
+        # migration.rb (1)
+        # migration/migration_generator.rb (1)
+      class PendingMigrationError < CommonMigrationError
+        # migration.rb (1)
+      class ConcurrentMigrationError < CommonMigrationError
+        # migration.rb (1)
+      class NoEnvironmentInSchemaError < CommonMigrationError
+        # migration.rb (2)
+      class MigrationsNotSupported < CommonMigrationError
+        # migration.rb (1)
+    class TaskMigrationError < MigrationError
+      # abstract :)
+      class ProtectedEnvironmentError < TaskMigrationError
+        # database_tasks.rb (1)
+      class EnvironmentMismatchError < TaskMigrationError
+        # database_tasks.rb (1)
+      class DatabaseAlreadyExists < TaskMigrationError
+        # database_tasks.rb (rescue 1)
+        # tasks/mysql_database_tasks.rb (raise 1)
+        # tasks/postgresql_database_tasks.rb (raise 1)
+        # tasks/sqlite_database_tasks.rb (raise 1)
+      class DatabaseNotSupported < TaskMigrationError
+        # database_tasks.rb (1)
+      class SeedLoaderNotSpecified < TaskMigrationError
+        # database_tasks.rb (1)
+
+
+
+
+
+

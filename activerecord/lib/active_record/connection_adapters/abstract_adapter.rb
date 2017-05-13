@@ -154,7 +154,7 @@ module ActiveRecord
             msg << "it is already in use by a different thread: #{@owner}. " \
                    "Current thread: #{Thread.current}."
           end
-          raise ActiveRecordError, msg
+          raise CannotLeaseConnection, msg
         end
 
         @owner = Thread.current
@@ -169,14 +169,14 @@ module ActiveRecord
       def expire
         if in_use?
           if @owner != Thread.current
-            raise ActiveRecordError, "Cannot expire connection, " \
+            raise CannotExpireConnection, "Cannot expire connection, " \
               "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{Thread.current}."
           end
 
           @owner = nil
         else
-          raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
+          raise CannotExpireConnection, "Cannot expire connection, it is not currently leased."
         end
       end
 

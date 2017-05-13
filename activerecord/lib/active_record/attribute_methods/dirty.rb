@@ -11,7 +11,7 @@ module ActiveRecord
 
       included do
         if self < ::ActiveRecord::Timestamp
-          raise "You cannot include Dirty after Timestamp"
+          raise DirtyAttributeError, "You cannot include Dirty after Timestamp"
         end
 
         class_attribute :partial_writes, instance_writer: false

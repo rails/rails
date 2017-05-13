@@ -28,6 +28,7 @@ require "arel"
 
 require "active_record/version"
 require "active_record/attribute_set"
+require "active_record/errors"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -55,7 +56,6 @@ module ActiveRecord
   autoload :Querying
   autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
-  autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
@@ -74,8 +74,6 @@ module ActiveRecord
   autoload :SecureToken
 
   eager_autoload do
-    autoload :ActiveRecordError, "active_record/errors"
-    autoload :ConnectionNotEstablished, "active_record/errors"
     autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
 
     autoload :Aggregations

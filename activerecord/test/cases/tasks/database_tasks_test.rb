@@ -68,7 +68,7 @@ module ActiveRecord
     end
 
     def test_unregistered_task
-      assert_raise(ActiveRecord::Tasks::DatabaseNotSupported) do
+      assert_raise(ActiveRecord::DatabaseNotSupported) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :bar }, "awesome-file.sql")
       end
     end
