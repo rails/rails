@@ -44,10 +44,8 @@ module ActiveRecord
             scope_chain_items = reflection.join_scopes(table, predicate_builder)
             klass_scope       = reflection.klass_join_scope(table, predicate_builder)
 
-            scope_chain_items.concat [klass_scope].compact
-
-            rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
-              left.merge right
+            rel = scope_chain_items.inject(klass_scope) do |left, right|
+              left.merge!(right)
             end
 
             if rel && !rel.arel.constraints.empty?

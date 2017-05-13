@@ -202,12 +202,8 @@ module ActiveRecord
             scope.joins_values = []
           }
         else
-          relation = ActiveRecord::Relation.create(
-            klass,
-            table,
-            predicate_builder,
-          )
-          klass.send(:build_default_scope, relation)
+          relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
+          klass.default_scoped(relation)
         end
       end
 
