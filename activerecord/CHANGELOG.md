@@ -1,3 +1,11 @@
+*   Add support for PostgreSQL operator classes to `add_index`.
+
+    Example:
+
+        add_index :users, :name, using: :gist, opclass: name: :gist_trgm_ops
+
+    *Greg Navis*
+
 *   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
 
     Fixes #31120.

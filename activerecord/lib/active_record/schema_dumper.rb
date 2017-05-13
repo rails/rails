@@ -189,6 +189,7 @@ HEADER
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
+        index_parts << "opclass: #{index.opclass.inspect}" if index.opclass.present?
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
       end
