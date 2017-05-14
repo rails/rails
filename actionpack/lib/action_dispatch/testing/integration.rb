@@ -377,6 +377,15 @@ module ActionDispatch
         @request    = @integration_session.request
       end
 
+      def with_rails_error_handling
+        env_config = Rails.application.env_config
+        original_show_exception = env_config["action_dispatch.show_exceptions"]
+        env_config["action_dispatch.show_exceptions"] = true
+        yield
+      ensure
+        env_config["action_dispatch.show_exceptions"] = original_show_exception
+      end
+
       def default_url_options
         integration_session.default_url_options
       end
