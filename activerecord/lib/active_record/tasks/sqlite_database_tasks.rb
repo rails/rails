@@ -38,7 +38,16 @@ module ActiveRecord
       def structure_dump(filename, extra_flags)
         dbfile = configuration["database"]
         flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{dbfile} .schema > #{filename}`
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          tables = `sqlite3 #{dbfile} .tables`.split - ignore_tables
+          condition = tables.map { |table| "tbl_name = '#{table}'" }.join(" OR ")
+          statement = "SELECT sql FROM sqlite_master WHERE #{condition} ORDER BY tbl_name, type DESC, name"
+          `sqlite3 #{flags} #{dbfile} "#{statement}" > #{filename}`
+        else
+          `sqlite3 #{flags} #{dbfile} .schema > #{filename}`
+        end
       end
 
       def structure_load(filename, extra_flags)
