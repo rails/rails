@@ -87,7 +87,7 @@ module ActiveSupport
 
         def cleanup(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear(options)
+          cache.clear
           super
         end
 
