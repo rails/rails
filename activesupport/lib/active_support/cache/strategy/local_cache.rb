@@ -115,7 +115,12 @@ module ActiveSupport
           end
 
           def write_entry(key, entry, options)
-            local_cache.write_entry(key, entry, options) if local_cache
+            if options[:unless_exist]
+              local_cache.delete_entry(key, options) if local_cache
+            else
+              local_cache.write_entry(key, entry, options) if local_cache
+            end
+
             super
           end
 
