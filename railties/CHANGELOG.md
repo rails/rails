@@ -1,3 +1,9 @@
+*   Allow irb options to be passed from `rails console` command.
+
+    Fixes #28988.
+
+    *Yuji Yaginuma*
+
 *   Added a shared section to config/database.yml that will be loaded for all environments.
 
     *Pierre Schambacher*
