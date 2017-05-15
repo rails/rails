@@ -579,6 +579,38 @@ module CacheStoreBehavior
   end
 end
 
+module CacheStoreVersionBehavior
+  def test_fetch_with_right_version_should_hit
+    @cache.fetch("foo", version: 1) { "bar" }
+    assert_equal "bar", @cache.read("foo", version: 1)
+  end
+
+  def test_fetch_with_wrong_version_should_miss
+    @cache.fetch("foo", version: 1) { "bar" }
+    assert_nil @cache.read("foo", version: 2)
+  end
+
+  def test_read_with_right_version_should_hit
+    @cache.write("foo", "bar", version: 1)
+    assert_equal "bar", @cache.read("foo", version: 1)
+  end
+
+  def test_read_with_wrong_version_should_miss
+    @cache.write("foo", "bar", version: 1)
+    assert_nil @cache.read("foo", version: 2)
+  end
+
+  def test_exist_with_right_version_should_be_true
+    @cache.write("foo", "bar", version: 1)
+    assert @cache.exist?("foo", version: 1)
+  end
+
+  def test_exist_with_wrong_version_should_be_false
+    @cache.write("foo", "bar", version: 1)
+    assert !@cache.exist?("foo", version: 2)
+  end
+end
+
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
 # The error is caused by character encodings that can't be compared with ASCII-8BIT regular expressions and by special
 # characters like the umlaut in UTF-8.
@@ -822,6 +854,7 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
@@ -931,6 +964,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
 
@@ -1052,6 +1086,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior

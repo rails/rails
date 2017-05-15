@@ -232,6 +232,11 @@ module ActiveSupport
       # new value. After that all the processes will start getting the new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
+      # Setting <tt>:version</tt> will verify that the cache stored in the <tt>name</tt>
+      # is of the same version required. If not, nil will be returned, even if
+      # there is content on the cache key stored at <tt>name</tt>. This feature
+      # is used to support recyclable cache keys.
+      #
       # If the process regenerating the entry errors out, the entry will be
       # regenerated after the specified number of seconds. Also note that the
       # life of stale cache is extended only if it expired recently. Otherwise
@@ -287,6 +292,7 @@ module ActiveSupport
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
+            entry = nil if entry && entry.mismatched?(options[:version])
             payload[:super_operation] = :fetch if payload
             payload[:hit] = !!entry if payload
           end
@@ -307,16 +313,29 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
+      # As with fetch, the data is only returned if it has not expired per the
+      # <tt>:expires_in<tt> option, and, if a <tt>:version</tt> parameter is passed
+      # to <tt>read</tt>, if it matches the <tt>:version</tt> it was written with.
+      #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
-        key = normalize_key(name, options)
+        key     = normalize_key(name, options)
+
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
+
           if entry
             if entry.expired?
               delete_entry(key, options)
               payload[:hit] = false if payload
+              nil
+            elsif entry.mismatched?(options[:version])
+              if payload
+                payload[:hit]      = false
+                payload[:mismatch] = "#{entry.version} != #{options[:version]}"
+              end
+
               nil
             else
               payload[:hit] = true if payload
@@ -420,7 +439,7 @@ module ActiveSupport
 
         instrument(:exist?, name) do
           entry = read_entry(normalize_key(name, options), options)
-          (entry && !entry.expired?) || false
+          (entry && !entry.expired? && !entry.mismatched?(options[:version])) || false
         end
       end
 
@@ -591,13 +610,16 @@ module ActiveSupport
         end
     end
 
-    # This class is used to represent cache entries. Cache entries have a value and an optional
-    # expiration time. The expiration time is used to support the :race_condition_ttl option
-    # on the cache.
+    # This class is used to represent cache entries. Cache entries have a value, an optional
+    # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
+    # on the cache. The version is used to support the :version option on the cache for rejecting
+    # mismatches.
     #
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
+      attr_reader :version
+
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
       # Creates a new cache entry for the specified value. Options supported are
@@ -610,6 +632,7 @@ module ActiveSupport
           @value = value
         end
 
+        @version    = options[:version]
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
@@ -617,6 +640,10 @@ module ActiveSupport
 
       def value
         compressed? ? uncompress(@value) : @value
+      end
+
+      def mismatched?(version)
+        @version && version && @version != version
       end
 
       # Checks if the entry is expired. The +expires_in+ parameter can override
