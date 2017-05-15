@@ -97,10 +97,10 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
       logger.sql(Event.new(0, sql: verb.to_s))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0(?:\.0)?ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
       logger.sql(Event.new(0, sql: verb.to_s, name: "SQL"))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0(?:\.0)?ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
@@ -109,13 +109,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
       logger.sql(Event.new(0, sql: verb.to_s, name: "Model Load"))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0\.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0(?:\.0)?ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
       logger.sql(Event.new(0, sql: verb.to_s, name: "Model Exists"))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Exists \(0\.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Exists \(0(?:\.0)?ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
       logger.sql(Event.new(0, sql: verb.to_s, name: "ANY SPECIFIC NAME"))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}ANY SPECIFIC NAME \(0\.0ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}ANY SPECIFIC NAME \(0(?:\.0)?ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
@@ -124,7 +124,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger.colorize_logging = true
     SQL_COLORINGS.slice(:SELECT, :INSERT, :UPDATE, :DELETE).each do |verb, color_regex|
       logger.sql(Event.new(0, sql: "#{verb} WHERE ID IN SELECT"))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.0ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}#{verb} WHERE ID IN SELECT#{REGEXP_CLEAR}/i, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0(?:\.0)?ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}#{verb} WHERE ID IN SELECT#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
@@ -139,7 +139,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
         )
       EOS
       logger.sql(Event.new(0, sql: sql))
-      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.0ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}.*#{verb}.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
+      assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0(?:\.0)?ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}.*#{verb}.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
     end
   end
 
@@ -152,13 +152,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
       WHERE col1 = 5;
     EOS
     logger.sql(Event.new(0, sql: sql))
-    assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.0ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*FOR UPDATE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
+    assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0(?:\.0)?ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*FOR UPDATE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
 
     sql = <<-EOS
       LOCK TABLE films IN SHARE MODE;
     EOS
     logger.sql(Event.new(0, sql: sql))
-    assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.0ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*LOCK TABLE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
+    assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0(?:\.0)?ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*LOCK TABLE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
   end
 
   def test_exists_query_logging
