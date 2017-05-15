@@ -1,4 +1,5 @@
 require "fileutils"
+require "active_support/testing/declarative"
 
 module FileUpdateCheckerSharedTests
   extend ActiveSupport::Testing::Declarative
