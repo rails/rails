@@ -1,3 +1,8 @@
+*   Compare deserialized values for all JSON types when
+    calling `ActiveRecord::Dirty#changed_in_place?`.
+
+    *Bradley Priest*
+
 *   Add type caster to `RuntimeReflection#alias_name`
 
     Fixes #28959.
