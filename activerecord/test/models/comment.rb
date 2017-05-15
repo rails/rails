@@ -19,11 +19,6 @@ class Comment < ActiveRecord::Base
   has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
   belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
 
-  # Should not be called if extending modules that having the method exists on an association.
-  def self.greeting
-    raise
-  end
-
   def self.what_are_you
     'a comment...'
   end

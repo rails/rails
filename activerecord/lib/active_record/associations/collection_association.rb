@@ -39,7 +39,13 @@ module ActiveRecord
           reload
         end
 
-        CollectionProxy.create(klass, self)
+        if null_scope?
+          # Cache the proxy separately before the owner has an id
+          # or else a post-save proxy will still lack the id
+          @null_proxy ||= CollectionProxy.create(klass, self)
+        else
+          @proxy ||= CollectionProxy.create(klass, self)
+        end
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -421,9 +427,9 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
-      def scope
-        scope = super
-        scope.none! if null_scope?
+      def scope(opts = {})
+        scope = super()
+        scope.none! if opts.fetch(:nullify, true) && null_scope?
         scope
       end
 
