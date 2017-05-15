@@ -1252,4 +1252,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       )
     end
   end
+
+  def test_through_association_includes
+    member = Member.create!
+    fancy_club = Club.create!(fancy: true)
+    member.memberships << Membership.create!(club: fancy_club)
+    member.save!
+
+    assert_equal Member.includes(:fancy_clubs).flat_map(&:fancy_clubs), [fancy_club]
+  end
 end
