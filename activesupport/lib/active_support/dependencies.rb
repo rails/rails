@@ -495,23 +495,27 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
+      # first check this module
       qualified_name = qualified_name_for from_mod, const_name
-      path_suffix = qualified_name.underscore
+      visited_modules = Set.new
+      if mod = load_missing_constant_from_file(from_mod, qualified_name, const_name)
+        return mod
+      # next check our parents
+      elsif mod = load_missing_constant_from_parents(from_mod.parent, visited_modules, const_name)
+        return mod
+      # and then check other modules we have included
+      elsif mod = load_missing_constant_from_ancestors(from_mod, visited_modules, const_name)
+        return mod
+      end
 
-      file_path = search_for_file(path_suffix)
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      name_error.set_backtrace(caller.reject { |l| l.starts_with? __FILE__ })
+      raise name_error
+    end
 
-      if file_path
-        expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "".freeze)
-
-        if loading.include?(expanded)
-          raise "Circular dependency detected while autoloading constant #{qualified_name}"
-        else
-          require_or_load(expanded, qualified_name)
-          raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it" unless from_mod.const_defined?(const_name, false)
-          return from_mod.const_get(const_name)
-        end
-      elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
+    def load_missing_constant_from_parents(from_mod, visited_modules, const_name)
+      qualified_name = qualified_name_for from_mod, const_name
+      if mod = load_missing_constant_from_file(from_mod, qualified_name, const_name)
         return mod
       elsif (parent = from_mod.parent) && parent != from_mod &&
             ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
@@ -539,15 +543,55 @@ module ActiveSupport #:nodoc:
           #   end
           #
           # for example.
-          return parent.const_missing(const_name)
+          visited_modules << parent
+          return load_missing_constant_from_parents(parent, visited_modules, const_name)
         rescue NameError => e
           raise unless e.missing_name? qualified_name_for(parent, const_name)
         end
       end
+    end
 
-      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
-      name_error.set_backtrace(caller.reject { |l| l.starts_with? __FILE__ })
-      raise name_error
+    def load_missing_constant_from_ancestors(from_mod, visited_modules, const_name)
+      begin
+        qualified_name = qualified_name_for from_mod, const_name
+      rescue ArgumentError
+        return nil
+      end
+      if mod = load_missing_constant_from_file(from_mod, qualified_name, const_name)
+        return mod
+      else
+        visited_modules << from_mod
+        not_yet_visited = from_mod.ancestors.reject do |x|
+          visited_modules.include?(x)
+        end
+        mapped_search = not_yet_visited.lazy.map do |x|
+          load_missing_constant_from_ancestors(x, visited_modules, const_name)
+        end
+        mapped_search.drop_while do |x|
+          !x
+        end.first
+      end
+    end
+
+    def load_missing_constant_from_file(from_mod, qualified_name, const_name)
+      path_suffix = qualified_name.underscore
+
+      file_path = search_for_file(path_suffix)
+
+      if file_path
+        expanded = File.expand_path(file_path)
+        expanded.sub!(/\.rb\z/, "".freeze)
+
+        if loading.include?(expanded)
+          raise "Circular dependency detected while autoloading constant #{qualified_name}"
+        else
+          require_or_load(expanded, qualified_name)
+          raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it" unless from_mod.const_defined?(const_name, false)
+          return from_mod.const_get(const_name)
+        end
+      elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
+        return mod
+      end
     end
 
     # Remove the constants that have been autoloaded, and those that have been
