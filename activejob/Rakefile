@@ -44,9 +44,8 @@ namespace :test do
 
     namespace :isolated do
       task adapter => "test:env:#{adapter}" do
-        dir = File.dirname(__FILE__)
-        Dir.glob("#{dir}/test/cases/**/*_test.rb").all? do |file|
-          sh(Gem.ruby, "-w", "-I#{dir}/lib", "-I#{dir}/test", file)
+        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").all? do |file|
+          sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
         end || raise("Failures")
       end
     end

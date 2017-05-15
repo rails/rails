@@ -435,4 +435,4 @@ module ActiveModel
   end
 end
 
-Dir[File.dirname(__FILE__) + "/validations/*.rb"].each { |file| require file }
+Dir[File.expand_path("validations/*.rb", __dir__)].each { |file| require file }

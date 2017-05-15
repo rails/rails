@@ -12,7 +12,7 @@ require "rails/all"
 
 module TestApp
   class Application < Rails::Application
-    config.root = File.dirname(__FILE__)
+    config.root = __dir__
     secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
   end
 end

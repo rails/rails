@@ -215,7 +215,7 @@ module Rails
       # Returns the base root for a common set of generators. This is used to dynamically
       # guess the default source root.
       def self.base_root
-        File.dirname(__FILE__)
+        __dir__
       end
 
       # Cache source root and add lib/generators/base/generator/templates to
