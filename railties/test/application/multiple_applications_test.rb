@@ -53,13 +53,13 @@ module ApplicationTests
 
     def test_initialize_new_application_with_all_previous_initialization_variables
       application1 = AppTemplate::Application.create(
-        config:           Rails.application.config,
-        railties:         Rails.application.railties,
-        routes_reloader:  Rails.application.routes_reloader,
-        reloaders:        Rails.application.reloaders,
-        routes:           Rails.application.routes,
-        helpers:          Rails.application.helpers,
-        app_env_config:   Rails.application.env_config
+        config:                Rails.application.config,
+        railties:              Rails.application.railties,
+        routes_reloader:       Rails.application.routes_reloader,
+        reloaders:             Rails.application.reloaders,
+        routes:                Rails.application.routes,
+        helpers:               Rails.application.helpers,
+        caching_key_generator: Rails.application.key_generator
       )
 
       assert_equal Rails.application.config, application1.config
@@ -68,7 +68,6 @@ module ApplicationTests
       assert_equal Rails.application.reloaders, application1.reloaders
       assert_equal Rails.application.routes, application1.routes
       assert_equal Rails.application.helpers, application1.helpers
-      assert_equal Rails.application.env_config, application1.env_config
     end
 
     def test_rake_tasks_defined_on_different_applications_go_to_the_same_class
