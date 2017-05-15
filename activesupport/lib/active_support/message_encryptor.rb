@@ -19,6 +19,7 @@ module ActiveSupport
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                  # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                   # => "my secret data"
   class MessageEncryptor
+    AUTH_TAG_LENGTH = 16
     DEFAULT_CIPHER = "aes-256-cbc"
 
     module NullSerializer #:nodoc:
@@ -94,6 +95,7 @@ module ActiveSupport
       def _encrypt(value)
         cipher = new_cipher
         cipher.encrypt
+        cipher.auth_tag_len = AUTH_TAG_LENGTH if set_auth_tag_len?
         cipher.key = @secret
 
         # Rely on OpenSSL for the initialization vector
@@ -110,14 +112,15 @@ module ActiveSupport
 
       def _decrypt(encrypted_message)
         cipher = new_cipher
+        cipher.decrypt
         encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
 
-        # Currently the OpenSSL bindings do not raise an error if auth_tag is
-        # truncated, which would allow an attacker to easily forge it. See
-        # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
+        # Not all OpenSSL ciphers support using auth_tag_len= and throw an error if you do. If we don't check it
+        # ourselves the bindings do not raise an error if auth_tag is truncated, which would allow an attacker to
+        # easily forge it. See https://github.com/ruby/openssl/issues/63
+        cipher.auth_tag_len = AUTH_TAG_LENGTH if set_auth_tag_len?
+        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != AUTH_TAG_LENGTH
 
-        cipher.decrypt
         cipher.key = @secret
         cipher.iv  = iv
         if aead_mode?
@@ -151,6 +154,10 @@ module ActiveSupport
         else
           MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
         end
+      end
+
+      def set_auth_tag_len?
+        aead_mode? && @cipher.downcase.end_with?("ocb")
       end
   end
 end
