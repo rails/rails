@@ -1,3 +1,7 @@
+*   Respect 'SchemaDumper.ignore_tables' in rake tasks for databases structure dump
+
+    *Rusty Geldmacher*, *Guillermo Iguaran*
+
 *   Add type caster to `RuntimeReflection#alias_name`
 
     Fixes #28959.
