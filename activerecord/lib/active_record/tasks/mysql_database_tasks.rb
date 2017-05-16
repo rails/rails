@@ -60,6 +60,12 @@ module ActiveRecord
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
         args.concat(Array(extra_flags)) if extra_flags
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          args += ignore_tables.map { |table| "--ignore-table=#{configuration['database']}.#{table}" }
+        end
+
         args.concat(["#{configuration['database']}"])
 
         run_cmd("mysqldump", args, "dumping")
