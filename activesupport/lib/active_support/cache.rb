@@ -85,6 +85,14 @@ module ActiveSupport
         expanded_cache_key
       end
 
+      def expand_cache_version(key)
+        case
+        when key.respond_to?(:cache_version) then key.cache_version
+        when key.is_a?(Array)                then key.map { |element| expand_cache_version(element) }.to_param
+        when key.respond_to?(:to_a)          then expand_cache_version(key.to_a)
+        end.to_s
+      end
+
       private
         def retrieve_cache_key(key)
           case
@@ -292,7 +300,7 @@ module ActiveSupport
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
-            entry = nil if entry && entry.mismatched?(options[:version])
+            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = :fetch if payload
             payload[:hit] = !!entry if payload
           end
@@ -321,6 +329,7 @@ module ActiveSupport
       def read(name, options = nil)
         options = merged_options(options)
         key     = normalize_key(name, options)
+        version = normalize_version(name, options)
 
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
@@ -330,10 +339,10 @@ module ActiveSupport
               delete_entry(key, options)
               payload[:hit] = false if payload
               nil
-            elsif entry.mismatched?(options[:version])
+            elsif entry.mismatched?(version)
               if payload
                 payload[:hit]      = false
-                payload[:mismatch] = "#{entry.version} != #{options[:version]}"
+                payload[:mismatch] = "#{entry.version} != #{version}"
               end
 
               nil
@@ -360,11 +369,15 @@ module ActiveSupport
 
         results = {}
         names.each do |name|
-          key = normalize_key(name, options)
-          entry = read_entry(key, options)
+          key     = normalize_key(name, options)
+          version = normalize_version(name, options)
+          entry   = read_entry(key, options)
+
           if entry
             if entry.expired?
               delete_entry(key, options)
+            elsif entry.mismatched?(version)
+              # Skip mismatched versions
             else
               results[name] = entry.value
             end
@@ -415,7 +428,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:write, name, options) do
-          entry = Entry.new(value, options)
+          entry = Entry.new(value, options.merge(version: normalize_version(name, options)))
           write_entry(normalize_key(name, options), entry, options)
         end
       end
@@ -439,7 +452,7 @@ module ActiveSupport
 
         instrument(:exist?, name) do
           entry = read_entry(normalize_key(name, options), options)
-          (entry && !entry.expired? && !entry.mismatched?(options[:version])) || false
+          (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end
 
@@ -564,6 +577,10 @@ module ActiveSupport
           prefix = namespace.is_a?(Proc) ? namespace.call : namespace
           key = "#{prefix}:#{key}" if prefix
           key
+        end
+
+        def normalize_version(key, options)
+          options[:version] || key.try(:cache_version)
         end
 
         def instrument(operation, key, options = nil)
