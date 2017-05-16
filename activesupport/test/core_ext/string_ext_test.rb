@@ -469,6 +469,10 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
+  test "#first with negative Integer returns a blank string" do
+    assert_equal "", "hello".last(-1)
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal "x", "x".last
@@ -485,6 +489,10 @@ class StringAccessTest < ActiveSupport::TestCase
     string = "hello"
     different_string = string.last(5)
     assert_not_same different_string, string
+  end
+
+  test "#last with negative Integer returns a blank string" do
+    assert_equal "", "hello".last(-1)
   end
 
   test "access returns a real string" do
