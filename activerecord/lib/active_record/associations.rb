@@ -1276,7 +1276,7 @@ module ActiveRecord
         # Scope examples:
         #   has_many :comments, -> { where(author_id: 1) }
         #   has_many :employees, -> { joins(:address) }
-        #   has_many :posts, ->(post) { where("max_post_length > ?", post.length) }
+        #   has_many :posts, ->(blog) { where("max_post_length > ?", blog.max_post_length) }
         #
         # === Extensions
         #
@@ -1443,7 +1443,7 @@ module ActiveRecord
         # Scope examples:
         #   has_one :author, -> { where(comment_id: 1) }
         #   has_one :employer, -> { joins(:company) }
-        #   has_one :dob, ->(dob) { where("Date.new(2000, 01, 01) > ?", dob) }
+        #   has_one :latest_post, ->(blog) { where("created_at > ?", blog.enabled_at) }
         #
         # === Options
         #
@@ -1573,7 +1573,7 @@ module ActiveRecord
         # Scope examples:
         #   belongs_to :firm, -> { where(id: 2) }
         #   belongs_to :user, -> { joins(:friends) }
-        #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
+        #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
         # === Options
         #
@@ -1769,9 +1769,8 @@ module ActiveRecord
         #
         # Scope examples:
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
-        #   has_and_belongs_to_many :categories, ->(category) {
-        #     where("default_category = ?", category.name)
-        #   }
+        #   has_and_belongs_to_many :categories, ->(post) {
+        #     where("default_category = ?", post.default_category)
         #
         # === Extensions
         #
