@@ -621,6 +621,15 @@ module CacheStoreVersionBehavior
     assert_nil @cache.read(m1v2)
   end
 
+  def test_reading_and_writing_with_model_supporting_cache_version_using_nested_key
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
+
+    @cache.write([ "something", m1v1 ], "bar")
+    assert_equal "bar", @cache.read([ "something", m1v1 ])
+    assert_nil @cache.read([ "something", m1v2 ])
+  end
+
   def test_fetching_with_model_supporting_cache_version
     m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
     m1v2 = ModelWithKeyAndVersion.new("model/1", 2)

@@ -90,7 +90,7 @@ module ActiveSupport
         when key.respond_to?(:cache_version) then key.cache_version
         when key.is_a?(Array)                then key.map { |element| expand_cache_version(element) }.to_param
         when key.respond_to?(:to_a)          then expand_cache_version(key.to_a)
-        end.to_s
+        end
       end
 
       private
@@ -580,7 +580,7 @@ module ActiveSupport
         end
 
         def normalize_version(key, options)
-          options[:version] || key.try(:cache_version)
+          options[:version] || ActiveSupport::Cache.expand_cache_version(key)
         end
 
         def instrument(operation, key, options = nil)
