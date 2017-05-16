@@ -220,6 +220,11 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_equal david.projects, david.projects.scope
   end
 
+  test "proxy object is cached" do
+    david = developers(:david)
+    assert_same david.projects, david.projects
+  end
+
   test "inverses get set of subsets of the association" do
     man = Man.create
     man.interests.create
