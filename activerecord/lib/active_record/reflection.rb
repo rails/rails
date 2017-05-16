@@ -581,6 +581,10 @@ module ActiveRecord
         seed + [self]
       end
 
+      def extensions
+        Array(options[:extend])
+      end
+
       protected
 
         def actual_source_reflection # FIXME: this is a horrible name

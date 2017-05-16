@@ -31,6 +31,9 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
+
+        extensions = association.extensions
+        extend(*extensions) if extensions.any?
       end
 
       def target
@@ -1121,19 +1124,6 @@ module ActiveRecord
 
       delegate(*delegate_methods, to: :scope)
 
-      module DelegateExtending # :nodoc:
-        private
-          def method_missing(method, *args, &block)
-            extending_values = association_scope.extending_values
-            if extending_values.any? && (extending_values - self.class.included_modules).any?
-              self.class.include(*extending_values)
-              public_send(method, *args, &block)
-            else
-              super
-            end
-          end
-      end
-
       private
 
         def find_nth_with_limit(index, limit)
@@ -1154,16 +1144,8 @@ module ActiveRecord
           @association.find_from_target?
         end
 
-        def association_scope
-          @association.association_scope
-        end
-
         def exec_queries
           load_target
-        end
-
-        def respond_to_missing?(method, _)
-          association_scope.respond_to?(method) || super
         end
     end
   end
