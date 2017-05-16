@@ -58,9 +58,9 @@ module ActiveRecord
       else
         timestamp = if timestamp_names.any?
           max_updated_column_timestamp(timestamp_names)
-        else
-          max_updated_column_timestamp
-        end
+                    elsif !respond_to?(:cache_version)
+                      max_updated_column_timestamp
+                    end
 
         if timestamp
           timestamp = timestamp.utc.to_s(cache_timestamp_format)

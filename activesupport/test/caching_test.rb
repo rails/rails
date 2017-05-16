@@ -609,6 +609,38 @@ module CacheStoreVersionBehavior
     @cache.write("foo", "bar", version: 1)
     assert !@cache.exist?("foo", version: 2)
   end
+
+  VersionedModel = Struct.new(:cache_key, :cache_version)
+
+  def test_read_same_model_version_should_hit
+    model = VersionedModel.new("k", 1)
+    @cache.fetch(model) { "bar" }
+    assert_equal "bar", @cache.read(model)
+  end
+
+  def test_read_different_model_version_should_miss
+    model = VersionedModel.new("k", 1)
+    @cache.fetch(model) { "bar" }
+    model.cache_version = 2
+    assert_nil @cache.read(model)
+  end
+
+  def test_complex_key_version_extraction
+    model1 = VersionedModel.new("k1", "v1")
+    model2 = VersionedModel.new("k2", "v2")
+    key = ["ns1", model1, "ns2", model2]
+    assert_equal ["v1", "v2"], ActiveSupport::Cache.expand_cache_version(key)
+  end
+
+  def test_double_model_version_hit
+    model1 = VersionedModel.new("k1", 1)
+    model2 = VersionedModel.new("k2", 1)
+    key = [model1, model2]
+    @cache.fetch(key) { "foo" }
+    model2.cache_version = 2
+    assert_nil @cache.read(key)
+  end
+
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters

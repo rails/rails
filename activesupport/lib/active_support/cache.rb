@@ -85,6 +85,16 @@ module ActiveSupport
         expanded_cache_key
       end
 
+      #TODO doc
+      def expand_cache_version(key)
+        case
+        when key.respond_to?(:cache_version) then key.cache_version
+        when key.is_a?(Array)            then key.map { |element| expand_cache_version(element) }.flatten.compact
+        when key.respond_to?(:to_a)      then expand_cache_version(key.to_a)
+        else                                  nil
+        end
+      end
+
       private
         def retrieve_cache_key(key)
           case
@@ -104,6 +114,14 @@ module ActiveSupport
         else
           ActiveSupport::Cache.const_get(store.to_s.camelize)
         end
+
+        def call_cache_key(object)
+          return object unless object.respond_to?(:cache_key)
+          if object.respond_to?(:cache_version)
+            object.cache_key
+          end
+        end
+
     end
 
     # An abstract cache store class. There are multiple cache store
@@ -292,7 +310,7 @@ module ActiveSupport
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
-            entry = nil if entry && entry.mismatched?(options[:version])
+            entry = nil if entry && entry.mismatched?(fetch_version(name, options))
             payload[:super_operation] = :fetch if payload
             payload[:hit] = !!entry if payload
           end
@@ -309,6 +327,11 @@ module ActiveSupport
         end
       end
 
+        def fetch_version(key, options)
+          options.fetch(:version) do
+            ActiveSupport::Cache.expand_cache_version(key)
+          end
+        end
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
@@ -330,10 +353,10 @@ module ActiveSupport
               delete_entry(key, options)
               payload[:hit] = false if payload
               nil
-            elsif entry.mismatched?(options[:version])
+            elsif entry.mismatched?(version = fetch_version(name, options))
               if payload
                 payload[:hit]      = false
-                payload[:mismatch] = "#{entry.version} != #{options[:version]}"
+                payload[:mismatch] = "#{entry.version} != #{version}"
               end
 
               nil
@@ -413,6 +436,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
+        options[:version] = ActiveSupport::Cache.expand_cache_version(name) unless options.key?(:version)
 
         instrument(:write, name, options) do
           entry = Entry.new(value, options)
@@ -439,7 +463,7 @@ module ActiveSupport
 
         instrument(:exist?, name) do
           entry = read_entry(normalize_key(name, options), options)
-          (entry && !entry.expired? && !entry.mismatched?(options[:version])) || false
+          (entry && !entry.expired? && !entry.mismatched?(fetch_version(name, options))) || false
         end
       end
 
