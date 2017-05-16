@@ -167,6 +167,11 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal key, dev.reload.cache_key
   end
 
+  def test_cache_key_when_cache_version_defined
+    dev = VersionedCacheDeveloper.first
+    assert_equal "versioned_cache_developers/#{dev.id}", dev.cache_key
+  end
+
   def test_named_timestamps_for_cache_key
     owner = owners(:blackbeard)
     assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)

@@ -266,3 +266,10 @@ class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
   has_many :companies, through: :contracts
   has_many :contracts, foreign_key: :developer_id
 end
+
+class VersionedCacheDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  def cache_version
+    updated_at
+  end
+end
