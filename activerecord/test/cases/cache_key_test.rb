@@ -4,11 +4,18 @@ module ActiveRecord
   class CacheKeyTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
-    class CacheMe < ActiveRecord::Base; end
+    class CacheMe < ActiveRecord::Base
+      self.cache_versioning = false
+    end
+
+    class CacheMeWithVersion < ActiveRecord::Base
+      self.cache_versioning = true
+    end
 
     setup do
       @connection = ActiveRecord::Base.connection
-      @connection.create_table(:cache_mes) { |t| t.timestamps }
+      @connection.create_table(:cache_mes)              { |t| t.timestamps }
+      @connection.create_table(:cache_me_with_versions) { |t| t.timestamps }
     end
 
     teardown do
@@ -20,6 +27,16 @@ module ActiveRecord
       key = record.cache_key
 
       assert_equal key, record.reload.cache_key
+    end
+
+    test "cache_key has no version when versioning is on" do
+      record = CacheMeWithVersion.create
+      assert_equal "cache_me_with_versions/#{record.id}", record.cache_key
+    end
+
+    test "cache_version is only there when versioning is on" do
+      assert CacheMeWithVersion.create.cache_version.present?
+      assert_not CacheMe.create.cache_version.present?
     end
   end
 end

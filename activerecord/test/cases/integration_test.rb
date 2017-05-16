@@ -95,6 +95,7 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal "Firm", Firm.to_param
   end
 
+
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
@@ -176,5 +177,35 @@ class IntegrationTest < ActiveRecord::TestCase
     owner = owners(:blackbeard)
     owner.happy_at = nil
     assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
+  end
+
+  def test_cache_key_is_stable_with_versioning_on
+    Developer.cache_versioning = true
+    
+    developer = Developer.first
+    first_key = developer.cache_key
+
+    developer.touch
+    second_key = developer.cache_key
+    
+    assert_equal first_key, second_key
+  ensure
+    Developer.cache_versioning = false
+  end
+
+  def test_cache_version_changes_with_versioning_on
+    Developer.cache_versioning = true
+    
+    developer     = Developer.first
+    first_version = developer.cache_version
+
+    travel 10.seconds
+
+    developer.touch
+    second_version = developer.cache_version
+    
+    assert_not_equal first_version, second_version
+  ensure
+    Developer.cache_versioning = false
   end
 end
