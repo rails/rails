@@ -331,6 +331,15 @@ if current_adapter?(:PostgreSQLAdapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
       end
 
+      def test_structure_load_ignoring_pg_errors
+        filename = "awesome-file.sql"
+        with_overridden_ignore_pg_load_errors_value_of(1) do
+          Kernel.expects(:system).with("psql", "-v", "-q", "-f", filename, @configuration["database"]).returns(true)
+
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+      end
+
       def test_structure_load_with_extra_flags
         filename = "awesome-file.sql"
         expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, "--noop", @configuration["database"]]
@@ -350,6 +359,14 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
+        def with_overridden_ignore_pg_load_errors_value_of(value)
+          old_value = ENV["IGNORE_PG_LOAD_ERRORS"]
+          ENV["IGNORE_PG_LOAD_ERRORS"] = value.to_s
+          yield
+        ensure
+          ENV["IGNORE_PG_LOAD_ERRORS"] = old_value
+        end
+
         def with_structure_load_flags(flags)
           old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
           ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags

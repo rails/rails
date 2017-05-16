@@ -1,3 +1,9 @@
+*   Allow PostgreSQL errors to be ignored during the loading of `db/structure.sql`, via the `IGNORE_PG_LOAD_ERRORS` ENV.
+
+    Fixes #29049
+
+    *Dan Collis-Puro*
+
 *   Prevent making bind param if casted value is nil.
 
     *Ryuta Kamizono*

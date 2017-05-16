@@ -80,7 +80,11 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         set_psql_env
-        args = ["-v", ON_ERROR_STOP_1, "-q", "-f", filename]
+        args = if ENV["IGNORE_PG_LOAD_ERRORS"]
+                 ["-v", "-q", "-f", filename]
+               else
+                 ["-v", ON_ERROR_STOP_1, "-q", "-f", filename]
+               end
         args.concat(Array(extra_flags)) if extra_flags
         args << configuration["database"]
         run_cmd("psql", args, "loading")
