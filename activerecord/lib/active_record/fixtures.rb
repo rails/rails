@@ -567,6 +567,7 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
+            next if value.nil?
             row[key] = label if value == "$LABEL"
           end
 
