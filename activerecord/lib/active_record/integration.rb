@@ -16,7 +16,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Indicates whether to use a stable #cache_key method that is accompaigned
+      # Indicates whether to use a stable #cache_key method that is accompanied
       # by a changing version in the #cache_version method.
       #
       # This is +false+, by default until Rails 6.0.
