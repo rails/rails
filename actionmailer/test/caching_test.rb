@@ -21,10 +21,6 @@ class BaseCachingTest < ActiveSupport::TestCase
     @mailer.perform_caching = true
     @mailer.cache_store = @store
   end
-
-  def test_fragment_cache_key
-    assert_equal "views/what a key", @mailer.fragment_cache_key("what a key")
-  end
 end
 
 class FragmentCachingTest < BaseCachingTest

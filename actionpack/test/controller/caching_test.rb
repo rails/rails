@@ -26,10 +26,6 @@ class FragmentCachingMetalTest < ActionController::TestCase
     @controller.request = @request
     @controller.response = @response
   end
-
-  def test_fragment_cache_key
-    assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-  end
 end
 
 class CachingController < ActionController::Base
@@ -43,6 +39,8 @@ class FragmentCachingTestController < CachingController
 end
 
 class FragmentCachingTest < ActionController::TestCase
+  ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
+
   def setup
     super
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -53,12 +51,17 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
+
+    @m1v1 = ModelWithKeyAndVersion.new('model/1', '1')
+    @m1v2 = ModelWithKeyAndVersion.new('model/1', '2')
+    @m2v1 = ModelWithKeyAndVersion.new('model/2', '1')
+    @m2v2 = ModelWithKeyAndVersion.new('model/2', '2')
   end
 
   def test_fragment_cache_key
-    assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-    assert_equal "views/test.host/fragment_caching_test/some_action",
-                  @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
+    assert_equal [ :views, "what a key" ], @controller.combined_fragment_cache_key("what a key")
+    assert_equal [ :views, "test.host/fragment_caching_test/some_action" ],
+      @controller.combined_fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
   end
 
   def test_read_fragment_with_caching_enabled
@@ -70,6 +73,12 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.perform_caching = false
     @store.write("views/name", "value")
     assert_nil @controller.read_fragment("name")
+  end
+
+  def test_read_fragment_with_versioned_model
+    @controller.write_fragment([ "stuff", @m1v1 ], "hello")
+    assert_equal "hello", @controller.read_fragment([ "stuff", @m1v1 ])
+    assert_nil @controller.read_fragment([ "stuff", @m1v2 ])
   end
 
   def test_fragment_exist_with_caching_enabled
@@ -472,9 +481,9 @@ class FragmentCacheKeyTest < ActionController::TestCase
 
   def test_fragment_cache_key
     @controller.account_id = "123"
-    assert_equal "views/v1/123/what a key", @controller.fragment_cache_key("what a key")
+    assert_equal [ :views, "v1", "123", "what a key" ], @controller.combined_fragment_cache_key("what a key")
 
     @controller.account_id = nil
-    assert_equal "views/v1//what a key", @controller.fragment_cache_key("what a key")
+    assert_equal [ :views, "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
   end
 end
