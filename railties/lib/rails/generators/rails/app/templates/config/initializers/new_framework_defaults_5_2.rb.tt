@@ -8,4 +8,4 @@
 
 # Make Active Record use stable #cache_key alongside new #cache_version method.
 # This is needed for recyclable cache keys.
-Rails.application.config.active_record.cache_versioning = true
+# Rails.application.config.active_record.cache_versioning = true
