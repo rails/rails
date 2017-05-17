@@ -12,10 +12,11 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
-    autoload :FileStore,     "active_support/cache/file_store"
-    autoload :MemoryStore,   "active_support/cache/memory_store"
-    autoload :MemCacheStore, "active_support/cache/mem_cache_store"
-    autoload :NullStore,     "active_support/cache/null_store"
+    autoload :FileStore,        "active_support/cache/file_store"
+    autoload :MemoryStore,      "active_support/cache/memory_store"
+    autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
+    autoload :NullStore,        "active_support/cache/null_store"
+    autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -567,14 +568,34 @@ module ActiveSupport
           end
         end
 
-        # Prefixes a key with the namespace. Namespace and key will be delimited
-        # with a colon.
-        def normalize_key(key, options)
-          key = Cache.expand_cache_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
-          key
+        # Expands and namespaces the cache key. May be overridden by
+        # cache stores to do additional normalization.
+        def normalize_key(key, options = nil)
+          namespace_key Cache.expand_cache_key(key), options
+        end
+
+        # Prefix the key with a namespace string:
+        #
+        #   namespace_key 'foo', namespace: 'cache'
+        #   # => 'cache:foo'
+        #
+        # With a namespace block:
+        #
+        #   namespace_key 'foo', namespace: -> { 'cache' }
+        #   # => 'cache:foo'
+        def namespace_key(key, options = nil)
+          options = merged_options(options)
+          namespace = options[:namespace]
+
+          if namespace.respond_to?(:call)
+            namespace = namespace.call
+          end
+
+          if namespace
+            "#{namespace}:#{key}"
+          else
+            key
+          end
         end
 
         def normalize_version(key, options = nil)
