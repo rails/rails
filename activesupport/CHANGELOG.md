@@ -1,3 +1,9 @@
+*   Add `assert_differences` to `ActiveSupport::Testing::Assertions`
+
+    The method allows allows testing of multiple changing values.
+
+    *Kieran Eglin*
+    
 *   Pass gem name and deprecation horizon to deprecation notifications.
 
     *Willem van Bergen*

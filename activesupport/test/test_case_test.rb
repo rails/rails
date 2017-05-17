@@ -50,35 +50,65 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
   end
 
-  def test_assert_difference
-    assert_difference "@object.num", +1 do
+  def test_assert_difference_pass
+    assert_difference "@object.num" do
       @object.increment
     end
   end
 
-  def test_assert_difference_retval
-    incremented = assert_difference "@object.num", +1 do
+  def test_assert_difference_array_of_expressions
+    assert_difference ["@object.num", "@object.num + 1"] do
+      @object.increment
+    end
+  end
+
+  def test_assert_difference_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_difference "@object.num" do
+        # ...
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 1.\nExpected: 1\n  Actual: 0", error.message
+  end
+
+  def test_assert_difference_with_message_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_difference "@object.num", 1, "Object Changed" do
+        # ...
+      end
+    end
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 1.\nExpected: 1\n  Actual: 0", error.message
+  end
+
+  def test_assert_differences
+    assert_differences ["@object.num", +1] do
+      @object.increment
+    end
+  end
+
+  def test_assert_differences_retval
+    incremented = assert_differences ["@object.num", +1] do
       @object.increment
     end
 
     assert_equal incremented, 1
   end
 
-  def test_assert_difference_with_implicit_difference
-    assert_difference "@object.num" do
+  def test_assert_differences_with_implicit_difference
+    assert_differences ["@object.num"] do
       @object.increment
     end
   end
 
   def test_arbitrary_expression
-    assert_difference "@object.num + 1", +2 do
+    assert_differences ["@object.num + 1", +2] do
       @object.increment
       @object.increment
     end
   end
 
   def test_negative_differences
-    assert_difference "@object.num", -1 do
+    assert_differences ["@object.num", -1] do
       @object.decrement
     end
   end
@@ -86,19 +116,21 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_expression_is_evaluated_in_the_appropriate_scope
     silence_warnings do
       local_scope = local_scope = "foo"
-      assert_difference("local_scope; @object.num") { @object.increment }
+      assert_differences(["local_scope; @object.num"]) { @object.increment }
     end
   end
 
   def test_array_of_expressions
-    assert_difference [ "@object.num", "@object.num + 1" ], +1 do
+    @object2 = @object.dup
+    assert_differences [ ["@object.num", +1], ["@object2.num", -1] ] do
       @object.increment
+      @object2.decrement
     end
   end
 
   def test_array_of_expressions_identify_failure
     assert_raises(Minitest::Assertion) do
-      assert_difference ["@object.num", "1 + 1"] do
+      assert_differences [ ["@object.num"], ["1 + 1"] ] do
         @object.increment
       end
     end
@@ -106,10 +138,18 @@ class AssertDifferenceTest < ActiveSupport::TestCase
 
   def test_array_of_expressions_identify_failure_when_message_provided
     assert_raises(Minitest::Assertion) do
-      assert_difference ["@object.num", "1 + 1"], 1, "something went wrong" do
+      assert_differences [ ["@object.num", 1], ["1 + 1", 1] ], "something went wrong" do
         @object.increment
       end
     end
+  end
+
+  def test_assert_differences_with_message_fail
+    error = assert_raises(Minitest::Assertion) do
+      assert_differences ["@object.num"], "Object Didn't Change" do
+      end
+    end
+    assert_equal "Object Didn't Change.\n\"@object.num\" didn't change by 1.\nExpected: 1\n  Actual: 0", error.message
   end
 
   def test_assert_changes_pass

@@ -30,6 +30,71 @@ module ActiveSupport
         yield
       end
 
+      # Test varying numeric difference between the return value of an expression as a
+      # result of what is evaluated in the yielded block.
+      #
+      #   assert_differences ['Article.count'] do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
+      # An arbitrary expression is passed in and evaluated.
+      #
+      #   assert_differences ['Article.last.comments(:reload).size'] do
+      #     post :create, params: { comment: {...} }
+      #   end
+      #
+      # An arbitrary positive or negative difference can be specified.
+      # The default is <tt>1</tt>.
+      #
+      #   assert_differences ['Article.count', -1] do
+      #     post :delete, params: { id: ... }
+      #   end
+      #
+      # An array of expressions and the predicted change can also be passed in and evaluated.
+      #
+      #   assert_differences [ ['Article.count', 2], ['Post.count', 1] ] do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
+      # A lambda or a list of lambdas can be passed in and evaluated.
+      #
+      #   assert_differences [->{ Article.count }, 2] do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
+      #   assert_differences [ [->{ Article.count }, 2], [->{ Post.count }, 1] ] do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
+      # An error message can be specified.
+      #
+      #   assert_differences ['Article.count', -1], 'An Article should be destroyed' do
+      #     post :delete, params: { id: ... }
+      #   end
+      def assert_differences(expression_array, message = nil, &block)
+        expressions = Array(expression_array)
+        expressions = [expressions] unless expressions.all? { |e| e.kind_of? Array }
+
+        exps = expressions.map do |e|
+          callable = e.first.respond_to?(:call) ? e.first : lambda { eval(e.first, block.binding) }
+          {
+            callable: callable,
+            before: callable.call
+          }
+        end
+
+        retval = yield
+
+        expressions.zip(exps).each do |code, e|
+          difference = code[1] || 1
+          error      = "#{code.first.inspect} didn't change by #{difference}"
+          error      = "#{message}.\n#{error}" if message
+          assert_equal(e[:before] + difference, e[:callable].call, error)
+        end
+
+        retval
+      end
+
       # Test numeric difference between the return value of an expression as a
       # result of what is evaluated in the yielded block.
       #
@@ -72,22 +137,8 @@ module ActiveSupport
       #     post :delete, params: { id: ... }
       #   end
       def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array(expression)
-
-        exps = expressions.map { |e|
-          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
-        }
-        before = exps.map(&:call)
-
-        retval = yield
-
-        expressions.zip(exps).each_with_index do |(code, e), i|
-          error  = "#{code.inspect} didn't change by #{difference}"
-          error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, e.call, error)
-        end
-
-        retval
+        expressions = Array(expression).map { |e| [e, difference] }
+        assert_differences expressions, message, &block
       end
 
       # Assertion that the numeric result of evaluating an expression is not
