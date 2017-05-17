@@ -220,8 +220,12 @@ module ActionView
 
         if virtual_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
-          digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
-          [ "#{virtual_path}:#{digest}", name ]
+
+          if digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies).presence
+            [ "#{virtual_path}:#{digest}", name ]
+          else
+            [ virtual_path, name ]
+          end
         else
           name
         end
