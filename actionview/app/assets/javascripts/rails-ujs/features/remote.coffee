@@ -62,7 +62,7 @@ Rails.handleRemote = (e) ->
         fire(element, 'ajax:send', [xhr])
       else
         fire(element, 'ajax:stopped')
-        xhr.abort()
+        return false
     success: (args...) -> fire(element, 'ajax:success', args)
     error: (args...) -> fire(element, 'ajax:error', args)
     complete: (args...) -> fire(element, 'ajax:complete', args)
