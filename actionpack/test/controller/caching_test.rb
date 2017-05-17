@@ -59,6 +59,14 @@ class FragmentCachingTest < ActionController::TestCase
   end
 
   def test_fragment_cache_key
+    assert_deprecated do
+      assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
+      assert_equal "views/test.host/fragment_caching_test/some_action",
+        @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
+    end
+  end
+
+  def test_combined_fragment_cache_key
     assert_equal [ :views, "what a key" ], @controller.combined_fragment_cache_key("what a key")
     assert_equal [ :views, "test.host/fragment_caching_test/some_action" ],
       @controller.combined_fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
@@ -207,7 +215,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "This bit's fragment cached",
-      @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached")}")
+      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached")}/fragment")
   end
 
   def test_fragment_caching_in_partials
@@ -216,7 +224,7 @@ CACHED
     assert_match(/Old fragment caching in a partial/, @response.body)
 
     assert_match("Old fragment caching in a partial",
-      @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial")}"))
+      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial")}/test.host/functional_caching/html_fragment_cached_with_partial"))
   end
 
   def test_skipping_fragment_cache_digesting
@@ -246,7 +254,7 @@ CACHED
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
     assert_match("Some cached content",
-      @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
+      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached")}/test.host/functional_caching/inline_fragment_cached"))
   end
 
   def test_fragment_cache_instrumentation
@@ -273,7 +281,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "<p>ERB</p>",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
   end
 
   def test_xml_formatted_fragment_caching
@@ -284,7 +292,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "  <p>Builder</p>\n",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
   end
 
   def test_fragment_caching_with_variant
@@ -295,7 +303,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "<p>PHONE</p>",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}")
+      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
   end
 
   private
@@ -421,7 +429,7 @@ class CollectionCacheTest < ActionController::TestCase
   def test_collection_fetches_cached_views
     get :index
     assert_equal 1, @controller.partial_rendered_times
-    assert_customer_cached "david/1", "david, 1"
+    assert_match "david, 1", ActionView::PartialRenderer.collection_cache.read("views/customers/_customer:7c228ab609f0baf0b1f2367469210937/david/1")
 
     get :index
     assert_equal 1, @controller.partial_rendered_times
@@ -453,14 +461,8 @@ class CollectionCacheTest < ActionController::TestCase
 
   def test_caching_with_callable_cache_key
     get :index_with_callable_cache_key
-    assert_customer_cached "cached_david", "david, 1"
+    assert_match "david, 1", ActionView::PartialRenderer.collection_cache.read("views/customers/_customer:7c228ab609f0baf0b1f2367469210937/cached_david")
   end
-
-  private
-    def assert_customer_cached(key, content)
-      assert_match content,
-        ActionView::PartialRenderer.collection_cache.read("views/#{key}/7c228ab609f0baf0b1f2367469210937")
-    end
 end
 
 class FragmentCacheKeyTestController < CachingController
