@@ -158,8 +158,7 @@ module AbstractController
       end
 
       def instrument_fragment_cache(name, key) # :nodoc:
-        payload = instrument_payload(key)
-        ActiveSupport::Notifications.instrument("#{name}.#{instrument_name}", payload) { yield }
+        ActiveSupport::Notifications.instrument("#{name}.#{instrument_name}", instrument_payload(key)) { yield }
       end
     end
   end
