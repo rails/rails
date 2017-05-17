@@ -84,6 +84,9 @@ module Rails
         when "5.2"
           load_defaults "5.1"
 
+          if respond_to?(:active_record)
+            active_record.cache_versioning = true
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
