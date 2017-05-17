@@ -708,6 +708,14 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_write_with_unless_exist
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write("foo", "baz", unless_exist: true)
+      assert_equal @peek.read("foo"), @cache.read("foo")
+    end
+  end
+
   def test_local_cache_of_delete
     @cache.with_local_cache do
       @cache.write("foo", "bar")

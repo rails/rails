@@ -27,7 +27,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
+    assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
   end
 
   def test_render_file
@@ -81,6 +81,10 @@ module RenderTestCases
 
   def test_render_template_with_locale
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
+  end
+
+  def test_render_template_with_variants
+    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
   end
 
   def test_render_file_with_handlers
@@ -170,6 +174,10 @@ module RenderTestCases
     assert_equal "partial html", @view.render(partial: "test/partial")
   end
 
+  def test_render_partial_with_variants
+    assert_equal "<h1>Partial with variants</h1>\n", @view.render(partial: "test/partial_with_variants", variants: :grid)
+  end
+
   def test_render_partial_with_selected_format
     assert_equal "partial html", @view.render(partial: "test/partial", formats: :html)
     assert_equal "partial js", @view.render(partial: "test/partial", formats: [:js])
@@ -253,7 +261,7 @@ module RenderTestCases
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
-    assert_match %r{Trace of template inclusion: .*test/sub_template_raise.html.erb}, e.sub_template_message
+    assert_match %r{Trace of template inclusion: .*test/sub_template_raise\.html\.erb}, e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end

@@ -42,7 +42,7 @@ module I18n
         case setting
         when :railties_load_path
           reloadable_paths = value
-          app.config.i18n.load_path.unshift(*value.map(&:existent).flatten)
+          app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
         when :load_path
           I18n.load_path += value
         else
@@ -58,7 +58,7 @@ module I18n
       directories = watched_dirs_with_extensions(reloadable_paths)
       reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
         I18n.load_path.keep_if { |p| File.exist?(p) }
-        I18n.load_path |= reloadable_paths.map(&:existent).flatten
+        I18n.load_path |= reloadable_paths.flat_map(&:existent)
 
         I18n.reload!
       end

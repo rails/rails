@@ -269,8 +269,7 @@ module ActiveRecord
     # Returns true if there are no records.
     def empty?
       return @records.empty? if loaded?
-
-      limit_value == 0 || !exists?
+      !exists?
     end
 
     # Returns true if there are no records.

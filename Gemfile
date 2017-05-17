@@ -16,7 +16,7 @@ gem "rake", ">= 11.1"
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
 
-gem "capybara", "~> 2.13.0"
+gem "capybara", "~> 2.13"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
@@ -42,7 +42,7 @@ gem "json", ">= 2.0.0"
 gem "rubocop", ">= 0.47", require: false
 
 group :doc do
-  gem "sdoc", "1.0.0.rc1"
+  gem "sdoc", "> 1.0.0.rc1", "< 2.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"

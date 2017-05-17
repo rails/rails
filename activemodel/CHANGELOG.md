@@ -4,27 +4,27 @@
 
     Change `#values` to only return the not empty values.
 
-     Example:
+    Example:
 
-         # Before
-         person = Person.new
-         person.errors.keys     # => []
-         person.errors.values   # => []
-         person.errors.messages # => {}
-         person.errors[:name]   # => []
-         person.errors.messages # => {:name => []}
-         person.errors.keys     # => [:name]
-         person.errors.values   # => [[]]
+        # Before
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => [:name]
+        person.errors.values   # => [[]]
 
-         # After
-         person = Person.new
-         person.errors.keys     # => []
-         person.errors.values   # => []
-         person.errors.messages # => {}
-         person.errors[:name]   # => []
-         person.errors.messages # => {:name => []}
-         person.errors.keys     # => []
-         person.errors.values   # => []
+        # After
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => []
+        person.errors.values   # => []
 
     *bogdanvlviv*
 

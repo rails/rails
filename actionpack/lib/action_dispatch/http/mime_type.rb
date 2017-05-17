@@ -326,11 +326,11 @@ module Mime
 
     def ref; end
 
-    def respond_to_missing?(method, include_private = false)
-      method.to_s.ends_with? "?"
-    end
-
     private
+      def respond_to_missing?(method, _)
+        method.to_s.ends_with? "?"
+      end
+
       def method_missing(method, *args)
         false if method.to_s.ends_with? "?"
       end

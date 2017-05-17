@@ -128,6 +128,16 @@ class DateHelperTest < ActionView::TestCase
     assert_distance_of_time_in_words(from)
   end
 
+  def test_distance_in_words_with_nil_input
+    assert_raises(ArgumentError) { distance_of_time_in_words(nil) }
+    assert_raises(ArgumentError) { distance_of_time_in_words(0, nil) }
+  end
+
+  def test_distance_in_words_with_mixed_argument_types
+    assert_equal "1 minute", distance_of_time_in_words(0, Time.at(60))
+    assert_equal "10 minutes", distance_of_time_in_words(Time.at(600), 0)
+  end
+
   def test_distance_in_words_with_mathn_required
     # test we avoid Integer#/ (redefined by mathn)
     silence_warnings { require "mathn" }

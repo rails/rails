@@ -1,4 +1,18 @@
-*   Quote database name in db:create grant statement (when database_user does not have access to create the database).
+*   Respect 'SchemaDumper.ignore_tables' in rake tasks for databases structure dump
+
+    *Rusty Geldmacher*, *Guillermo Iguaran*
+
+*   Add type caster to `RuntimeReflection#alias_name`
+
+    Fixes #28959.
+
+    *Jon Moss*
+
+*   Deprecate `supports_statement_cache?`.
+
+    *Ryuta Kamizono*
+
+*   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
 
     *Rune Philosof*
 

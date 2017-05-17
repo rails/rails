@@ -10,7 +10,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "app/models/application_record.rb" do |record|
       assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-      assert_match(/self.abstract_class = true/, record)
+      assert_match(/self\.abstract_class = true/, record)
     end
   end
 
@@ -253,7 +253,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+    assert_migration "db/migrate/create_accounts.rb", /t\.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -261,7 +261,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/t.timestamps/, up)
+        assert_no_match(/t\.timestamps/, up)
       end
     end
   end
@@ -269,19 +269,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_is_skipped_with_skip_option
     run_generator
     output = run_generator ["Account", "--skip"]
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_ignored_as_identical_with_skip_option
     run_generator ["Account"]
     output = run_generator ["Account", "--skip"]
-    assert_match %r{identical\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{identical\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
     output = run_generator ["Account"], behavior: :skip
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke

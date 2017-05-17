@@ -1121,6 +1121,19 @@ module ActiveRecord
 
       delegate(*delegate_methods, to: :scope)
 
+      module DelegateExtending # :nodoc:
+        private
+          def method_missing(method, *args, &block)
+            extending_values = association_scope.extending_values
+            if extending_values.any? && (extending_values - self.class.included_modules).any?
+              self.class.include(*extending_values)
+              public_send(method, *args, &block)
+            else
+              super
+            end
+          end
+      end
+
       private
 
         def find_nth_with_limit(index, limit)
@@ -1141,21 +1154,16 @@ module ActiveRecord
           @association.find_from_target?
         end
 
+        def association_scope
+          @association.association_scope
+        end
+
         def exec_queries
           load_target
         end
 
         def respond_to_missing?(method, _)
-          scope.respond_to?(method) || super
-        end
-
-        def method_missing(method, *args, &block)
-          if scope.respond_to?(method) && scope.extending_values.any?
-            extend(*scope.extending_values)
-            public_send(method, *args, &block)
-          else
-            super
-          end
+          association_scope.respond_to?(method) || super
         end
     end
   end

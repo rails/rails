@@ -212,7 +212,7 @@ module ActiveRecord
       end
 
       def constraints
-        chain.map(&:scopes).flatten
+        chain.flat_map(&:scopes)
       end
 
       def counter_cache_column
@@ -1105,7 +1105,7 @@ module ActiveRecord
       end
 
       def alias_name
-        Arel::Table.new(table_name)
+        Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
 
       def all_includes; yield; end

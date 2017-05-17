@@ -67,6 +67,10 @@ module Rails
       end
     end
 
+    def package_json
+      template "package.json"
+    end
+
     def app
       directory "app"
 
@@ -198,10 +202,6 @@ module Rails
 
     def vendor
       empty_directory_with_keep_file "vendor"
-
-      unless options[:skip_yarn]
-        template "package.json"
-      end
     end
   end
 
@@ -248,6 +248,7 @@ module Rails
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
+        build(:package_json) unless options[:skip_yarn]
       end
 
       def create_app_files
@@ -317,10 +318,6 @@ module Rails
 
       def create_vendor_files
         build(:vendor)
-
-        if options[:skip_yarn]
-          remove_file "package.json"
-        end
       end
 
       def delete_app_assets_if_api_option

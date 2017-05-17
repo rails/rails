@@ -305,10 +305,6 @@ module ActiveSupport
       to_i
     end
 
-    def respond_to_missing?(method, include_private = false) #:nodoc:
-      @value.respond_to?(method, include_private)
-    end
-
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
@@ -335,8 +331,12 @@ module ActiveSupport
         end
       end
 
+      def respond_to_missing?(method, _)
+        value.respond_to?(method)
+      end
+
       def method_missing(method, *args, &block)
-        value.send(method, *args, &block)
+        value.public_send(method, *args, &block)
       end
 
       def raise_type_error(other)

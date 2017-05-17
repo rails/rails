@@ -83,7 +83,7 @@ Also, if you have pretty old YAML documents containing dumps of such objects,
 you may need to load and dump them again to make sure that they reference
 the right constant, and that loading them won't break in the future.
 
-### `config.secrets` now loaded with all keys as symbols
+### `application.secrets` now loaded with all keys as symbols
 
 If your application stores nested configuration in `config/secrets.yml`, all keys
 are now loaded as symbols, so access using strings should be changed.
@@ -91,13 +91,13 @@ are now loaded as symbols, so access using strings should be changed.
 From:
 
 ```ruby
-Rails.appplication.config.secrets[:smtp_settings]["address"]
+Rails.application.secrets[:smtp_settings]["address"]
 ```
 
 To:
 
 ```ruby
-Rails.application.config.secrets[:smtp_settings][:address]
+Rails.application.secrets[:smtp_settings][:address]
 ```
 
 Upgrading from Rails 4.2 to Rails 5.0

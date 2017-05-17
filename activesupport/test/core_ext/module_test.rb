@@ -348,15 +348,15 @@ class ModuleTest < ActiveSupport::TestCase
     assert has_block.hello?
   end
 
-  def test_delegate_to_missing_with_method
+  def test_delegate_missing_to_with_method
     assert_equal "David", DecoratedTester.new(@david).name
   end
 
-  def test_delegate_to_missing_with_reserved_methods
+  def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_private_methods
+  def test_delegate_missing_to_does_not_delegate_to_private_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).private_name
     end
@@ -364,7 +364,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `private_name' for/, e.message)
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_fake_methods
+  def test_delegate_missing_to_does_not_delegate_to_fake_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).my_fake_method
     end
@@ -372,7 +372,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
-  def test_delegate_to_missing_affects_respond_to
+  def test_delegate_missing_to_affects_respond_to
     assert DecoratedTester.new(@david).respond_to?(:name)
     assert_not DecoratedTester.new(@david).respond_to?(:private_name)
     assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method)
@@ -382,7 +382,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method, true)
   end
 
-  def test_delegate_to_missing_respects_superclass_missing
+  def test_delegate_missing_to_respects_superclass_missing
     assert_equal 42, DecoratedTester.new(@david).extra_missing
 
     assert_respond_to DecoratedTester.new(@david), :extra_missing

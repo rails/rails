@@ -25,6 +25,8 @@ module ActiveRecord
 
       def inherited(child_class)
         child_class.initialize_relation_delegate_cache
+        delegate = child_class.relation_delegate_class(ActiveRecord::Associations::CollectionProxy)
+        delegate.include ActiveRecord::Associations::CollectionProxy::DelegateExtending
         super
       end
     end
@@ -109,12 +111,10 @@ module ActiveRecord
         end
     end
 
-    def respond_to_missing?(method, include_private = false)
-      super || @klass.respond_to?(method, include_private) ||
-        arel.respond_to?(method, include_private)
-    end
-
     private
+      def respond_to_missing?(method, _)
+        super || @klass.respond_to?(method) || arel.respond_to?(method)
+      end
 
       def method_missing(method, *args, &block)
         if @klass.respond_to?(method)
