@@ -85,14 +85,6 @@ module ActiveSupport
         expanded_cache_key
       end
 
-      def expand_cache_version(key)
-        case
-        when key.respond_to?(:cache_version) then key.cache_version
-        when key.is_a?(Array)                then key.map { |element| expand_cache_version(element) }.to_param
-        when key.respond_to?(:to_a)          then expand_cache_version(key.to_a)
-        end
-      end
-
       private
         def retrieve_cache_key(key)
           case
@@ -579,8 +571,13 @@ module ActiveSupport
           key
         end
 
-        def normalize_version(key, options)
-          options[:version] || ActiveSupport::Cache.expand_cache_version(key)
+        def normalize_version(key, options = nil)
+          (options && options[:version].try(:to_param)) || 
+            case
+            when key.respond_to?(:cache_version) then key.cache_version.to_param
+            when key.is_a?(Array)                then key.map { |element| normalize_version(element) }.to_param
+            when key.respond_to?(:to_a)          then normalize_version(key.to_a)
+            end
         end
 
         def instrument(operation, key, options = nil)

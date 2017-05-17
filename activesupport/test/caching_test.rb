@@ -661,6 +661,11 @@ module CacheStoreVersionBehavior
     assert_equal({ m1v1 => "model/1", m2v1 => "model/2" }, first_fetch_values)
     assert_equal({ m1v1 => "model/1", m2v2 => "model/2 2nd" }, second_fetch_values)
   end
+
+  def test_version_is_normalized
+    @cache.write("foo", "bar", version: 1)
+    assert_equal "bar", @cache.read("foo", version: "1")
+  end
 end
 
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
