@@ -198,9 +198,10 @@ class IntegrationTest < ActiveRecord::TestCase
     developer     = Developer.first
     first_version = developer.cache_version
 
-    travel 10.seconds
+    travel 10.seconds do
+      developer.touch
+    end
 
-    developer.touch
     second_version = developer.cache_version
 
     assert_not_equal first_version, second_version
@@ -214,9 +215,10 @@ class IntegrationTest < ActiveRecord::TestCase
     developer = Developer.first
     first_key = developer.cache_key(:updated_at)
 
-    travel 10.seconds
-
-    developer.touch
+    travel 10.seconds do
+      developer.touch
+    end
+  
     second_key = developer.cache_key(:updated_at)
 
     assert_not_equal first_key, second_key
