@@ -208,4 +208,20 @@ class IntegrationTest < ActiveRecord::TestCase
   ensure
     Developer.cache_versioning = false
   end
+
+  def test_cache_key_retains_version_when_custom_timestamp_is_used
+    Developer.cache_versioning = true
+    
+    developer = Developer.first
+    first_key = developer.cache_key(:updated_at)
+
+    travel 10.seconds
+
+    developer.touch
+    second_key = developer.cache_key(:updated_at)
+    
+    assert_not_equal first_key, second_key
+  ensure
+    Developer.cache_versioning = false
+  end
 end

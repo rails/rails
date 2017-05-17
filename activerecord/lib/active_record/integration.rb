@@ -73,7 +73,7 @@ module ActiveRecord
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        if cache_version
+        if cache_version && timestamp_names.none?
           "#{model_name.cache_key}/#{id}"
         else
           timestamp = if timestamp_names.any?
