@@ -650,7 +650,6 @@ module CacheStoreVersionBehavior
 
   def test_fetch_multi_with_model_supporting_cache_version
     m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
-    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
     m2v1 = ModelWithKeyAndVersion.new("model/2", 1)
     m2v2 = ModelWithKeyAndVersion.new("model/2", 2)
 
