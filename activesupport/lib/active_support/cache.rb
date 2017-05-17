@@ -232,10 +232,9 @@ module ActiveSupport
       # new value. After that all the processes will start getting the new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
-      # Setting <tt>:version</tt> will verify that the cache stored in the <tt>name</tt>
-      # is of the same version required. If not, nil will be returned, even if
-      # there is content on the cache key stored at <tt>name</tt>. This feature
-      # is used to support recyclable cache keys.
+      # Passing a <tt>:version</tt> verifies the cache stored under <tt>name</tt>
+      # is of the same version. nil is returned on mismatches despite contents.
+      # This feature is used to support recyclable cache keys.
       #
       # If the process regenerating the entry errors out, the entry will be
       # regenerated after the specified number of seconds. Also note that the
@@ -309,13 +308,12 @@ module ActiveSupport
         end
       end
 
-      # Fetches data from the cache, using the given key. If there is data in
+      # Reads data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # As with fetch, the data is only returned if it has not expired per the
-      # <tt>:expires_in<tt> option, and, if a <tt>:version</tt> parameter is passed
-      # to <tt>read</tt>, if it matches the <tt>:version</tt> it was written with.
+      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
+      # both of these conditions are applied before the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)

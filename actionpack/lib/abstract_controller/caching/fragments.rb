@@ -63,11 +63,11 @@ module AbstractController
       # cached fragment. All keys begin with <tt>views/</tt>,
       # followed by any controller-wide key prefix values, ending
       # with the specified +key+ value. The key is expanded using
-      # ActiveSupport::Cache.expand_cache_key.      
+      # ActiveSupport::Cache.expand_cache_key.
       def fragment_cache_key(key)
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           Calling fragment_cache_key directly is deprecated and will be removed in Rails 6.0.
-          All fragment accessors now use a private method that retains the key as an array,
+          All fragment accessors now the combined_fragment_cache_key method that retains the key as an array,
           such that the caching stores can interrogate the parts for cache versions used in
           recyclable cache keys.
         MSG
