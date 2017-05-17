@@ -541,6 +541,17 @@ module ActiveSupport
           end
         end
 
+
+        # Prefixes a key with the namespace. Namespace and key will be delimited
+        # with a colon.
+        def normalize_key(key, options)
+          key = expanded_key(key)
+          namespace = options[:namespace] if options
+          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+          key = "#{prefix}:#{key}" if prefix
+          key
+        end
+
         # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
@@ -561,23 +572,17 @@ module ActiveSupport
           key.to_param
         end
 
-        # Prefixes a key with the namespace. Namespace and key will be delimited
-        # with a colon.
-        def normalize_key(key, options)
-          key = expanded_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
-          key
-        end
 
         def normalize_version(key, options = nil)
-          (options && options[:version].try(:to_param)) || 
-            case
-            when key.respond_to?(:cache_version) then key.cache_version.to_param
-            when key.is_a?(Array)                then key.map { |element| normalize_version(element) }.to_param
-            when key.respond_to?(:to_a)          then normalize_version(key.to_a)
-            end
+          (options && options[:version].try(:to_param)) || expanded_version(key)
+        end
+
+        def expanded_version(key)
+          case
+          when key.respond_to?(:cache_version) then key.cache_version.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.to_param
+          when key.respond_to?(:to_a)          then expanded_version(key.to_a)
+          end
         end
 
         def instrument(operation, key, options = nil)
