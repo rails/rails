@@ -219,6 +219,10 @@ module ActiveSupport
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
       #
+      # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
+      # is of the same version. nil is returned on mismatches despite contents.
+      # This feature is used to support recyclable cache keys.
+      #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
       # cache expires and due to heavy load several different processes will try
@@ -231,10 +235,6 @@ module ActiveSupport
       # meantime that first process will go ahead and will write into cache the
       # new value. After that all the processes will start getting the new value.
       # The key is to keep <tt>:race_condition_ttl</tt> small.
-      #
-      # Passing a <tt>:version</tt> verifies the cache stored under <tt>name</tt>
-      # is of the same version. nil is returned on mismatches despite contents.
-      # This feature is used to support recyclable cache keys.
       #
       # If the process regenerating the entry errors out, the entry will be
       # regenerated after the specified number of seconds. Also note that the
