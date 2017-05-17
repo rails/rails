@@ -1,3 +1,41 @@
+*   Redis cache store.
+
+      # Defaults to `redis://localhost:6379/0`. Only use for dev/test.
+      config.cache_store = :redis_cache_store
+
+      # Supports all common cache store options (:namespace, :compress,
+      # :compress_threshold, :expires_in, :race_condition_tool) and all
+      # Redis options.
+      cache_password = Rails.application.secrets.redis_cache_password
+      config.cache_store = :redis_cache_store, driver: :hiredis,
+        namespace: 'myapp-cache', compress: true, timeout: 1,
+        url: "redis://:#{cache_password}@myapp-cache-1:6379/0"
+
+      # Supports Redis::Distributed with multiple hosts
+      config.cache_store = :redis_cache_store, driver: :hiredis
+        namespace: 'myapp-cache', compress: true,
+        url: %w[
+          redis://myapp-cache-1:6379/0
+          redis://myapp-cache-1:6380/0
+          redis://myapp-cache-2:6379/0
+          redis://myapp-cache-2:6380/0
+          redis://myapp-cache-3:6379/0
+          redis://myapp-cache-3:6380/0
+        ]
+
+      # Or pass a builder block
+      config.cache_store = :redis_cache_store,
+        namespace: 'myapp-cache', compress: true,
+        redis: -> { Redis.new … }
+
+    Deployment note: Take care to use a *dedicated Redis cache* rather
+    than pointing this at your existing Redis server. It won't cope well
+    with mixed usage patterns and it won't expire cache entries by default.
+
+    Redis cache server setup guide: https://redis.io/topics/lru-cache
+
+    *Jeremy Daer*
+
 *   Allow `Range#include?` on TWZ ranges
 
     In #11474 we prevented TWZ ranges being iterated over which matched
