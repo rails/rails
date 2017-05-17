@@ -77,6 +77,10 @@ module Rails
             assets.unknown_asset_fallback = false
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = false
+          end
+
         when "5.2"
           load_defaults "5.1"
 
