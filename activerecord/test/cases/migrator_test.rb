@@ -304,7 +304,6 @@ class MigratorTest < ActiveRecord::TestCase
     assert_not_equal 0, ActiveRecord::Migration.message_count
 
     ActiveRecord::Migration.message_count = 0
-
     ActiveRecord::Migrator.new(:down, migrations, 0).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
   end
