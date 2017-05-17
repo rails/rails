@@ -95,7 +95,6 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal "Firm", Firm.to_param
   end
 
-
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
@@ -181,13 +180,13 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_cache_key_is_stable_with_versioning_on
     Developer.cache_versioning = true
-    
+
     developer = Developer.first
     first_key = developer.cache_key
 
     developer.touch
     second_key = developer.cache_key
-    
+
     assert_equal first_key, second_key
   ensure
     Developer.cache_versioning = false
@@ -195,7 +194,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_cache_version_changes_with_versioning_on
     Developer.cache_versioning = true
-    
+
     developer     = Developer.first
     first_version = developer.cache_version
 
@@ -203,7 +202,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
     developer.touch
     second_version = developer.cache_version
-    
+
     assert_not_equal first_version, second_version
   ensure
     Developer.cache_versioning = false
@@ -211,7 +210,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
   def test_cache_key_retains_version_when_custom_timestamp_is_used
     Developer.cache_versioning = true
-    
+
     developer = Developer.first
     first_key = developer.cache_key(:updated_at)
 
@@ -219,7 +218,7 @@ class IntegrationTest < ActiveRecord::TestCase
 
     developer.touch
     second_key = developer.cache_key(:updated_at)
-    
+
     assert_not_equal first_key, second_key
   ensure
     Developer.cache_versioning = false

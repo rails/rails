@@ -52,10 +52,10 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.request = @request
     @controller.response = @response
 
-    @m1v1 = ModelWithKeyAndVersion.new('model/1', '1')
-    @m1v2 = ModelWithKeyAndVersion.new('model/1', '2')
-    @m2v1 = ModelWithKeyAndVersion.new('model/2', '1')
-    @m2v2 = ModelWithKeyAndVersion.new('model/2', '2')
+    @m1v1 = ModelWithKeyAndVersion.new("model/1", "1")
+    @m1v2 = ModelWithKeyAndVersion.new("model/1", "2")
+    @m2v1 = ModelWithKeyAndVersion.new("model/2", "1")
+    @m2v2 = ModelWithKeyAndVersion.new("model/2", "2")
   end
 
   def test_fragment_cache_key

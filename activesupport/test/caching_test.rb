@@ -653,7 +653,6 @@ module CacheStoreVersionBehavior
     m2v1 = ModelWithKeyAndVersion.new("model/2", 1)
     m2v2 = ModelWithKeyAndVersion.new("model/2", 2)
 
-
     first_fetch_values  = @cache.fetch_multi(m1v1, m2v1) { |m| m.cache_key }
     second_fetch_values = @cache.fetch_multi(m1v1, m2v2) { |m| m.cache_key + " 2nd" }
 

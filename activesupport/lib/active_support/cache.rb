@@ -570,7 +570,6 @@ module ActiveSupport
           key.to_param
         end
 
-
         def normalize_version(key, options = nil)
           (options && options[:version].try(:to_param)) || expanded_version(key)
         end
@@ -590,6 +589,7 @@ module ActiveSupport
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
+
 
         def log
           return unless logger && logger.debug? && !silence?
