@@ -481,11 +481,21 @@ class FragmentCacheKeyTest < ActionController::TestCase
     @controller.cache_store = @store
   end
 
-  def test_fragment_cache_key
+  def test_combined_fragment_cache_key
     @controller.account_id = "123"
     assert_equal [ :views, "v1", "123", "what a key" ], @controller.combined_fragment_cache_key("what a key")
 
     @controller.account_id = nil
     assert_equal [ :views, "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+  end
+
+  def test_combined_fragment_cache_key_with_envs
+    ENV['RAILS_APP_VERSION'] = "55"
+    assert_equal [ :views, "55", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+
+    ENV['RAILS_CACHE_ID'] = "66"
+    assert_equal [ :views, "66", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+  ensure
+    ENV['RAILS_CACHE_ID'] = ENV['RAILS_APP_VERSION'] = nil
   end
 end
