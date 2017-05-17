@@ -99,7 +99,7 @@ module ActiveRecord
     # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
     # +false+ (which it is by default until Rails 6.0).
     def cache_version
-      updated_at if cache_versioning
+      try(:updated_at) if cache_versioning
     end
 
     module ClassMethods
