@@ -86,6 +86,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
+          end
 
         else
           raise "Unknown version #{target_version.to_s.inspect}"
