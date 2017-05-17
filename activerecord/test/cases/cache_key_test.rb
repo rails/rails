@@ -20,6 +20,7 @@ module ActiveRecord
 
     teardown do
       @connection.drop_table :cache_mes, if_exists: true
+      @connection.drop_table :cache_me_with_versions, if_exists: true
     end
 
     test "cache_key format is not too precise" do
