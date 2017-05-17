@@ -10,8 +10,8 @@ module RenderTestCases
     @view = Class.new(ActionView::Base) do
       def view_cache_dependencies; end
 
-      def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key, :views)
+      def combined_fragment_cache_key(key)
+        [ :views, key ]
       end
     end.new(paths, @assigns)
 
@@ -718,6 +718,6 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   private
     def cache_key(*names, virtual_path)
       digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
-      @view.fragment_cache_key([ *names, digest ])
+      @view.combined_fragment_cache_key([ "#{virtual_path}:#{digest}", *names ])
     end
 end
