@@ -206,7 +206,7 @@ module ActiveModel
       #   person.name_short?     # => true
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
-        self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
+        attribute_aliases.merge!(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
           matcher_old = matcher.method_name(old_name).to_s
