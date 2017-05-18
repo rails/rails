@@ -54,8 +54,6 @@ module ActiveRecord
         autoload :BelongsTo,           "active_record/associations/preloader/belongs_to"
       end
 
-      NULL_RELATION = Struct.new(:values, :where_clause, :joins_values).new({}, Relation::WhereClause.empty, [])
-
       # Eager loads the named associations for the given Active Record record(s).
       #
       # In this description, 'association name' shall refer to the name passed
@@ -93,7 +91,6 @@ module ActiveRecord
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
         associations  = Array.wrap(associations)
-        preload_scope = preload_scope || NULL_RELATION
 
         if records.empty?
           []
