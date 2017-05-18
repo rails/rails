@@ -177,4 +177,52 @@ class IntegrationTest < ActiveRecord::TestCase
     owner.happy_at = nil
     assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
   end
+
+  def test_cache_key_is_stable_with_versioning_on
+    Developer.cache_versioning = true
+
+    developer = Developer.first
+    first_key = developer.cache_key
+
+    developer.touch
+    second_key = developer.cache_key
+
+    assert_equal first_key, second_key
+  ensure
+    Developer.cache_versioning = false
+  end
+
+  def test_cache_version_changes_with_versioning_on
+    Developer.cache_versioning = true
+
+    developer     = Developer.first
+    first_version = developer.cache_version
+
+    travel 10.seconds do
+      developer.touch
+    end
+
+    second_version = developer.cache_version
+
+    assert_not_equal first_version, second_version
+  ensure
+    Developer.cache_versioning = false
+  end
+
+  def test_cache_key_retains_version_when_custom_timestamp_is_used
+    Developer.cache_versioning = true
+
+    developer = Developer.first
+    first_key = developer.cache_key(:updated_at)
+
+    travel 10.seconds do
+      developer.touch
+    end
+
+    second_key = developer.cache_key(:updated_at)
+
+    assert_not_equal first_key, second_key
+  ensure
+    Developer.cache_versioning = false
+  end
 end

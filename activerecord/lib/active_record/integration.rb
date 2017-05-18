@@ -13,6 +13,15 @@ module ActiveRecord
       # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, instance_writer: false
       self.cache_timestamp_format = :usec
+
+      ##
+      # :singleton-method:
+      # Indicates whether to use a stable #cache_key method that is accompanied
+      # by a changing version in the #cache_version method.
+      #
+      # This is +false+, by default until Rails 6.0.
+      class_attribute :cache_versioning, instance_writer: false
+      self.cache_versioning = false
     end
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
@@ -52,23 +61,45 @@ module ActiveRecord
     # used to generate the key:
     #
     #   Person.find(5).cache_key(:updated_at, :last_reviewed_at)
+    #
+    # If ActiveRecord::Base.cache_versioning is turned on, no version will be included
+    # in the cache key. The version will instead be supplied by #cache_version. This
+    # separation enables recycling of cache keys.
+    #
+    #   Product.cache_versioning = true
+    #   Product.new.cache_key     # => "products/new"
+    #   Person.find(5).cache_key  # => "people/5" (even if updated_at available)
     def cache_key(*timestamp_names)
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        timestamp = if timestamp_names.any?
-          max_updated_column_timestamp(timestamp_names)
-        else
-          max_updated_column_timestamp
-        end
-
-        if timestamp
-          timestamp = timestamp.utc.to_s(cache_timestamp_format)
-          "#{model_name.cache_key}/#{id}-#{timestamp}"
-        else
+        if cache_version && timestamp_names.none?
           "#{model_name.cache_key}/#{id}"
+        else
+          timestamp = if timestamp_names.any?
+            max_updated_column_timestamp(timestamp_names)
+          else
+            max_updated_column_timestamp
+          end
+
+          if timestamp
+            timestamp = timestamp.utc.to_s(cache_timestamp_format)
+            "#{model_name.cache_key}/#{id}-#{timestamp}"
+          else
+            "#{model_name.cache_key}/#{id}"
+          end
         end
       end
+    end
+
+    # Returns a cache version that can be used together with the cache key to form
+    # a recyclable caching scheme. By default, the #updated_at column is used for the
+    # cache_version, but this method can be overwritten to return something else.
+    #
+    # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
+    # +false+ (which it is by default until Rails 6.0).
+    def cache_version
+      try(:updated_at).try(:to_i) if cache_versioning
     end
 
     module ClassMethods

@@ -77,8 +77,16 @@ module Rails
             assets.unknown_asset_fallback = false
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = true
+          end
+
         when "5.2"
           load_defaults "5.1"
+
+          if respond_to?(:active_record)
+            active_record.cache_versioning = true
+          end
 
         else
           raise "Unknown version #{target_version.to_s.inspect}"
