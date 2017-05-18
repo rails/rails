@@ -217,7 +217,7 @@ module ActiveRecord
         def subclass_from_attributes(attrs)
           attrs = attrs.to_h if attrs.respond_to?(:permitted?)
           if attrs.is_a?(Hash)
-            subclass_name = attrs.with_indifferent_access[inheritance_column]
+            subclass_name = attrs[inheritance_column] || attrs[inheritance_column.to_sym]
 
             if subclass_name.present?
               find_sti_class(subclass_name)
