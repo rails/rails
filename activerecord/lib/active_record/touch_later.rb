@@ -20,7 +20,7 @@ module ActiveRecord
       @_touch_time = current_time_from_proper_timezone
 
       surreptitiously_touch @_defer_touch_attrs
-      
+
       records = self.class.connection.current_transaction.records.select { |r| r.eql?(self) }
       if records && records.present?
         records.each do |r|
@@ -30,7 +30,7 @@ module ActiveRecord
       else
         self.class.connection.add_transaction_record self
       end
-      
+
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|
         if touch = r.options[:touch]
