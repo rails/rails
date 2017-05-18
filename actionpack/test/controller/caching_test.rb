@@ -490,12 +490,12 @@ class FragmentCacheKeyTest < ActionController::TestCase
   end
 
   def test_combined_fragment_cache_key_with_envs
-    ENV['RAILS_APP_VERSION'] = "55"
+    ENV["RAILS_APP_VERSION"] = "55"
     assert_equal [ :views, "55", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
 
-    ENV['RAILS_CACHE_ID'] = "66"
+    ENV["RAILS_CACHE_ID"] = "66"
     assert_equal [ :views, "66", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
   ensure
-    ENV['RAILS_CACHE_ID'] = ENV['RAILS_APP_VERSION'] = nil
+    ENV["RAILS_CACHE_ID"] = ENV["RAILS_APP_VERSION"] = nil
   end
 end

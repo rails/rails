@@ -218,7 +218,7 @@ class IntegrationTest < ActiveRecord::TestCase
     travel 10.seconds do
       developer.touch
     end
-  
+
     second_key = developer.cache_key(:updated_at)
 
     assert_not_equal first_key, second_key
