@@ -129,10 +129,10 @@ class TouchLaterTest < ActiveRecord::TestCase
 
     owner.touch(time: time)
 
-    assert_equal time, owner.reload.updated_at
+    assert_equal time.to_i, owner.reload.updated_at.to_i
 
     owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
 
-    assert_not_equal time, owner.reload.updated_at
+    assert_not_equal time.to_i, owner.reload.updated_at.to_i
   end
 end
