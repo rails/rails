@@ -81,7 +81,7 @@ module ActiveSupport
 
     def finish(name, id, payload)
       super if logger
-    rescue Exception => e
+    rescue => e
       logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
     end
 
