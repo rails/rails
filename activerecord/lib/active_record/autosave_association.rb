@@ -389,7 +389,7 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           # reconstruct the scope now that we know the owner's id
-          association.reset_scope if association.respond_to?(:reset_scope)
+          association.reset_scope
 
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
             if autosave
