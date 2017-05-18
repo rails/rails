@@ -15,15 +15,15 @@ module AbstractController
   # different things depending on the context.
   class Base
     ##
-    # Returns the body of the HTTP response sent by the controller
+    # Returns the body of the HTTP response sent by the controller.
     attr_internal :response_body
 
     ##
-    # Returns the name of the action this controller is processing
+    # Returns the name of the action this controller is processing.
     attr_internal :action_name
 
     ##
-    # Returns the formats processed by the controller
+    # Returns the formats processed by the controller.
     attr_internal :formats
 
     include ActiveSupport::Configurable
