@@ -22,8 +22,8 @@ module ActiveRecord
       surreptitiously_touch @_defer_touch_attrs
       
       records = self.class.connection.current_transaction.records.select { |r| r.eql?(self) }
-      if records && records.present?        
-        records.each do |r| 
+      if records && records.present?
+        records.each do |r|
           r.instance_variable_set("@_defer_touch_attrs", @_defer_touch_attrs)
           r.instance_variable_set("@_touch_time", @_touch_time)
         end
