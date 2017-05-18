@@ -1,3 +1,7 @@
+*   Remove any attributes from `javascript_include_tag` and `stylesheet_link_tag` that have `nil` values.
+
+    *Jacob Bednarz*
+
 *   Update `distance_of_time_in_words` helper to display better error messages
     for bad input.
 

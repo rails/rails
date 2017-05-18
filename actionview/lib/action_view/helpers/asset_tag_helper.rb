@@ -1,5 +1,6 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/hash/compact"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
@@ -73,7 +74,7 @@ module ActionView
       #   javascript_include_tag "http://www.example.com/xmlhr.js"
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       def javascript_include_tag(*sources)
-        options = sources.extract_options!.stringify_keys
+        options = sources.extract_options!.stringify_keys.compact
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
@@ -109,7 +110,7 @@ module ActionView
       #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
       #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       def stylesheet_link_tag(*sources)
-        options = sources.extract_options!.stringify_keys
+        options = sources.extract_options!.stringify_keys.compact
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         sources.uniq.map { |source|
           tag_options = {
