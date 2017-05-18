@@ -2,13 +2,6 @@ require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
 
 module Minitest
-  class SuppressedSummaryReporter < SummaryReporter
-    # Disable extra failure output after a run if output is inline.
-    def aggregated_results(*)
-      super unless options[:output_inline]
-    end
-  end
-
   def self.plugin_rails_options(opts, options)
     opts.on("-b", "--backtrace", "Show the complete backtrace") do
       options[:full_backtrace] = true
@@ -40,7 +33,7 @@ module Minitest
 
     # Replace progress reporter for colors.
     reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
-    reporter << SuppressedSummaryReporter.new(options[:io], options)
+    reporter << ::Rails::SuppressedSummaryReporter.new(options[:io], options)
     reporter << ::Rails::TestUnitReporter.new(options[:io], options)
   end
 

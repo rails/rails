@@ -94,4 +94,64 @@ module Rails
         end
       end
   end
+
+  # This class is heavily based on Minitest::SummaryReporter
+  class SuppressedSummaryReporter < Minitest::StatisticsReporter # :nodoc:
+    attr_accessor :sync, :old_sync
+
+    def start
+      super
+
+      io.puts "Run options: #{options[:args]}"
+      io.puts
+      io.puts "# Running:"
+      io.puts
+
+      self.sync = io.respond_to? :"sync="
+      self.old_sync, io.sync = io.sync, true if self.sync
+    end
+
+    def report
+      super
+
+      io.sync = self.old_sync
+
+      io.puts unless options[:verbose]
+      io.puts
+      io.puts statistics
+      if options[:output_inline]
+        # Disable extra failure output after a run if output is inline.
+        io.puts
+      else
+        aggregated_results io
+      end
+      io.puts summary
+    end
+
+    def statistics
+      "Finished in %.6fs, %.4f runs/s, %.4f assertions/s." %
+        [total_time, count / total_time, assertions / total_time]
+    end
+
+    def aggregated_results(io)
+      filtered_results = results.dup
+      filtered_results.reject!(&:skipped?) unless options[:verbose]
+
+      filtered_results.each_with_index do |result, i|
+        io.puts "\n%3d) %s" % [i + 1, result]
+      end
+      io.puts
+      io
+    end
+
+    def summary
+      extra = ""
+
+      extra = "\n\nYou have skipped tests. Run with --verbose for details." if
+        results.any?(&:skipped?) unless options[:verbose] || ENV["MT_NO_SKIP_MSG"]
+
+      "%d runs, %d assertions, %d failures, %d errors, %d skips%s" %
+        [count, assertions, failures, errors, skips, extra]
+    end
+  end
 end
