@@ -497,4 +497,62 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  test "debug exception app logs internal errors during self crashes" do
+    @app = DevelopmentApp
+
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+    old_logger, ActionView::Base.logger = ActionView::Base.logger, logger
+
+    begin
+      @app.stub :render_exception, -> (_, _) { raise NotImplementedError } do
+        get "/", headers: { "action_dispatch.logger" => logger }
+      end
+    rescue NotImplementedError => exception
+      assert_equal "NotImplementedError", exception.message
+
+      output = io.rewind && io.read
+      lines = output.lines
+
+      # Other than the first three...
+      assert_equal(["  \n", "NotImplementedError (NotImplementedError):\n", "  \n"], lines.slice!(0, 3))
+      lines.each do |line|
+        # .. all the remaining lines should be from the backtrace
+        assert_match(/:\d+:in /, line)
+      end
+    ensure
+      ActionView::Base.logger = old_logger
+    end
+  end
+
+  test "debug exception app logs internal errors for bad render_exception monkey patches" do
+    @app = DevelopmentApp
+
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+    old_logger, ActionView::Base.logger = ActionView::Base.logger, logger
+
+    begin
+      @app.stub :render_exception, -> { nil } do
+        get "/", headers: { "action_dispatch.logger" => logger }
+      end
+    rescue ArgumentError => exception
+      # This may be a flaky test if the message changes. There is some
+      # difference between Ruby 2.2.7 and other rubies at least. See
+      # https://travis-ci.org/rails/rails/jobs/233587360.
+      assert_match(/wrong number of arguments/, exception.message)
+
+      output = io.rewind && io.read
+      lines = output.lines
+
+      assert_match(/wrong number of arguments/, lines.slice!(0, 3).join.squish)
+      lines.each do |line|
+        # .. all the remaining lines should be from the backtrace
+        assert_match(/:\d+:in /, line)
+      end
+    ensure
+      ActionView::Base.logger = old_logger
+    end
+  end
 end

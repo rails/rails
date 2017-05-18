@@ -66,7 +66,10 @@ module ActionDispatch
       response
     rescue Exception => exception
       raise exception unless request.show_exceptions?
-      render_exception(request, exception)
+
+      logging_internal_errors(request) do
+        render_exception(request, exception)
+      end
     end
 
     private
@@ -154,6 +157,16 @@ module ActionDispatch
 
       def render(status, body, format)
         [status, { "Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s }, [body]]
+      end
+
+      def logging_internal_errors(request)
+        yield
+      rescue Exception => exception
+        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+        log_error(request, wrapper)
+
+        raise exception
       end
 
       def log_error(request, wrapper)
