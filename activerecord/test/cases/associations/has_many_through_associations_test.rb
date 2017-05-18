@@ -935,6 +935,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_polymorphic_with_scope_should_work_properly
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    tag = post.tags.create!(name: "Tag")
+    assert_equal [tag], TaggedPost.preload(:tags).last.tags
+    assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
+  end
+
   def test_has_many_through_polymorphic_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories
 
