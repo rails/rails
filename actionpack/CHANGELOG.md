@@ -1,17 +1,17 @@
-*  Change the cache key format for fragments to make it easier to debug key churn. The new format is:
+*   Change the cache key format for fragments to make it easier to debug key churn. The new format is:
 
-      views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
-            ^template path           ^template tree digest            ^class   ^id
+        views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
+              ^template path           ^template tree digest            ^class   ^id
 
-   *DHH*
+    *DHH*
 
-*  Add support for recyclable cache keys with fragment caching. This uses the new versioned entries in the
-   ActiveSupport::Cache stores and relies on the fact that Active Record has split #cache_key and #cache_version
-   to support it.
-   
-   *DHH*
+*   Add support for recyclable cache keys with fragment caching. This uses the new versioned entries in the
+    `ActiveSupport::Cache` stores and relies on the fact that Active Record has split `#cache_key` and `#cache_version`
+    to support it.
 
-*  Add `action_controller_api` and `action_controller_base` load hooks to be called in `ActiveSupport.on_load`
+    *DHH*
+
+*   Add `action_controller_api` and `action_controller_base` load hooks to be called in `ActiveSupport.on_load`
 
     `ActionController::Base` and `ActionController::API` have differing implementations. This means that
     the one umbrella hook `action_controller` is not able to address certain situations where a method
