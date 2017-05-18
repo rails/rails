@@ -188,6 +188,8 @@ module ActiveRecord
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       #
+      #   If an array is passed, a composite primary key will created.
+      #
       #   Note that Active Record models will automatically detect their
       #   primary key. This can be avoided by using
       #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
@@ -240,6 +242,23 @@ module ActiveRecord
       #     id varchar PRIMARY KEY,
       #     label varchar
       #   )
+      #
+      # ====== Create a composite primary key
+      #
+      #   create_table(:orders, primary_key: [:product_id, :client_id]) do |t|
+      #     t.belongs_to :product
+      #     t.belongs_to :client
+      #   end
+      #
+      # generates:
+      #
+      #   CREATE TABLE order (
+      #       product_id integer NOT NULL,
+      #       client_id integer NOT NULL
+      #   );
+      #
+      #   ALTER TABLE ONLY "orders"
+      #     ADD CONSTRAINT orders_pkey PRIMARY KEY (product_id, client_id);
       #
       # ====== Do not add a primary key column
       #
