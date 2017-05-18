@@ -20,8 +20,17 @@ module ActiveRecord
       @_touch_time = current_time_from_proper_timezone
 
       surreptitiously_touch @_defer_touch_attrs
-      self.class.connection.add_transaction_record self
-
+      
+      records = self.class.connection.current_transaction.records.select { |r| r.eql?(self) }
+      if records && records.present?        
+        records.each do |r| 
+          r.instance_variable_set("@_defer_touch_attrs", @_defer_touch_attrs)
+          r.instance_variable_set("@_touch_time", @_touch_time)
+        end
+      else
+        self.class.connection.add_transaction_record self
+      end
+      
       # touch the parents as we are not calling the after_save callbacks
       self.class.reflect_on_all_associations(:belongs_to).each do |r|
         if touch = r.options[:touch]

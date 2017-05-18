@@ -4,9 +4,11 @@ require "models/line_item"
 require "models/topic"
 require "models/node"
 require "models/tree"
+require "models/owner"
+require "models/pet"
 
 class TouchLaterTest < ActiveRecord::TestCase
-  fixtures :nodes, :trees
+  fixtures :nodes, :trees, :owners, :pets
 
   def test_touch_laster_raise_if_non_persisted
     invoice = Invoice.new
@@ -117,5 +119,20 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at
     assert_not_equal nodes(:grandparent).reload.updated_at, previous_grandparent_updated_at
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
+  end
+
+  def test_touching_through_nested_attributes
+    time = Time.now.utc - 25.days
+
+    owner = owners(:blackbeard)
+    pet = pets(:parrot)
+
+    owner.touch(time: time)
+
+    assert_equal time, owner.reload.updated_at
+
+    owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
+
+    assert_not_equal time, owner.reload.updated_at
   end
 end
