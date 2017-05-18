@@ -15,7 +15,7 @@ module AbstractController
   # different things depending on the context.
   class Base
     ##
-    # Returns the HTTP response sent by the controller
+    # Returns the body of the HTTP response sent by the controller
     attr_internal :response_body
 
     ##
