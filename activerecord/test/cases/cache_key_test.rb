@@ -14,8 +14,8 @@ module ActiveRecord
 
     setup do
       @connection = ActiveRecord::Base.connection
-      @connection.create_table(:cache_mes)              { |t| t.timestamps }
-      @connection.create_table(:cache_me_with_versions) { |t| t.timestamps }
+      @connection.create_table(:cache_mes, force: true) { |t| t.timestamps }
+      @connection.create_table(:cache_me_with_versions, force: true) { |t| t.timestamps }
     end
 
     teardown do
@@ -32,7 +32,7 @@ module ActiveRecord
 
     test "cache_key has no version when versioning is on" do
       record = CacheMeWithVersion.create
-      assert_equal "cache_me_with_versions/#{record.id}", record.cache_key
+      assert_equal "active_record/cache_key_test/cache_me_with_versions/#{record.id}", record.cache_key
     end
 
     test "cache_version is only there when versioning is on" do
