@@ -284,6 +284,10 @@ The `protected_attributes` gem is no longer supported in Rails 5.
 
 The `activerecord-deprecated_finders` gem is no longer supported in Rails 5.
 
+### Removed support for `rails-deprecated_sanitizer` gem
+
+The `rails-deprecated_sanitizer` gem is no longer supported in Rails 5, the [rails-html-sanitizer](https://github.com/rails/rails-html-sanitizer) gem should be used instead.
+
 ### `ActiveSupport::TestCase` Default Test Order is Now Random
 
 When tests are run in your application, the default order is now `:random`
