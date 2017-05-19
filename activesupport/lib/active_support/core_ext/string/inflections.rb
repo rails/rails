@@ -77,6 +77,19 @@ class String
     ActiveSupport::Inflector.safe_constantize(self)
   end
 
+  # +constantize_only+ tries to find a declared constant with the name specified
+  # in the string. Additionally it will check the constant against the provided
+  # whitelist and raise an +ArgumentError+ for a non-whitelisted constant.
+  # See ActiveSupport::Inflector.constantize_only
+  #
+  #   'Module'.constantize_only('Module')         #=> Module
+  #   'Module'.constantize_only(Module)           #=> Module
+  #   'Class'.constantize_only(['Module', Class]) #=> Class
+  #   'Class'.constantize_only('Fixnum')          #=> NameError: Can't constantize 'Class'
+  def constantize_only(*whitelist)
+    ActiveSupport::Inflector.constantize_only(self, whitelist)
+  end
+
   # By default, +camelize+ converts strings to UpperCamelCase. If the argument to camelize
   # is set to <tt>:lower</tt> then camelize produces lowerCamelCase.
   #

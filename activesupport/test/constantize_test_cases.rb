@@ -122,4 +122,13 @@ module ConstantizeTestCases
       end
     end
   end
+
+  def run_constantize_only_tests_on
+    assert_equal Ace, yield("Ace", "Ace")
+    assert_equal Ace, yield("Ace", Ace)
+    assert_equal Ace, yield("Ace", ["Ace", Ace::Base])
+    assert_equal Ace::Base, yield("Ace::Base", [Ace, Ace::Base])
+    assert_nil yield("ConstantizeOnly", "ConstantizeOnly")
+    assert_raises(NameError) { yield("ace", "Base") }
+  end
 end
