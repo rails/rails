@@ -97,7 +97,7 @@ module ActiveRecord
     # +false+ (which it is by default until Rails 6.0).
     def cache_version
       if cache_versioning && timestamp = try(:updated_at)
-        updated_at.utc.to_s(:usec)
+        timestamp.utc.to_s(:usec)
       end
     end
 
