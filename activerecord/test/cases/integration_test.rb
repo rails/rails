@@ -168,14 +168,18 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_named_timestamps_for_cache_key
-    owner = owners(:blackbeard)
-    assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)
+    assert_deprecated do
+      owner = owners(:blackbeard)
+      assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)
+    end
   end
 
   def test_cache_key_when_named_timestamp_is_nil
-    owner = owners(:blackbeard)
-    owner.happy_at = nil
-    assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
+    assert_deprecated do
+      owner = owners(:blackbeard)
+      owner.happy_at = nil
+      assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
+    end
   end
 
   def test_cache_key_is_stable_with_versioning_on
@@ -213,13 +217,13 @@ class IntegrationTest < ActiveRecord::TestCase
     Developer.cache_versioning = true
 
     developer = Developer.first
-    first_key = developer.cache_key(:updated_at)
+    first_key = developer.cache_key_with_version
 
     travel 10.seconds do
       developer.touch
     end
 
-    second_key = developer.cache_key(:updated_at)
+    second_key = developer.cache_key_with_version
 
     assert_not_equal first_key, second_key
   ensure

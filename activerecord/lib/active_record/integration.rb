@@ -7,8 +7,8 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
-      # Indicates the format used to generate the timestamp in the cache key.
-      # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
+      # Indicates the format used to generate the timestamp in the cache key, if
+      # versioning is off. Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, instance_writer: false
@@ -51,24 +51,16 @@ module ActiveRecord
       id && id.to_s # Be sure to stringify the id for routes
     end
 
-    # Returns a cache key that can be used to identify this record.
+    # Returns a stable cache key that can be used to identify this record.
     #
     #   Product.new.cache_key     # => "products/new"
-    #   Product.find(5).cache_key # => "products/5" (updated_at not available)
+    #   Product.find(5).cache_key # => "products/5"
+    #
+    # If ActiveRecord::Base.cache_versioning is turned off, as it was in Rails 5.1 and earlier,
+    # the cache key will also include a version.
+    #
+    #   Product.cache_versioning = false
     #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
-    #
-    # You can also pass a list of named timestamps, and the newest in the list will be
-    # used to generate the key:
-    #
-    #   Person.find(5).cache_key(:updated_at, :last_reviewed_at)
-    #
-    # If ActiveRecord::Base.cache_versioning is turned on, no version will be included
-    # in the cache key. The version will instead be supplied by #cache_version. This
-    # separation enables recycling of cache keys.
-    #
-    #   Product.cache_versioning = true
-    #   Product.new.cache_key     # => "products/new"
-    #   Person.find(5).cache_key  # => "people/5" (even if updated_at available)
     def cache_key(*timestamp_names)
       if new_record?
         "#{model_name.cache_key}/new"
@@ -77,6 +69,11 @@ module ActiveRecord
           "#{model_name.cache_key}/#{id}"
         else
           timestamp = if timestamp_names.any?
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Specifying a timestamp name for #cache_key has been deprecated in favor of
+              the explicit #cache_version method that can be overwritten.
+            MSG
+
             max_updated_column_timestamp(timestamp_names)
           else
             max_updated_column_timestamp
@@ -99,8 +96,20 @@ module ActiveRecord
     # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
     # +false+ (which it is by default until Rails 6.0).
     def cache_version
-      try(:updated_at).try(:to_i) if cache_versioning
+      if cache_versioning && timestamp = try(:updated_at)
+        updated_at.utc.to_s(:usec)
+      end
     end
+
+    # Returns a cache key along with the version.
+    def cache_key_with_version
+      if version = cache_version
+        "#{cache_key}-#{version}"
+      else
+        cache_key
+      end
+    end
+
 
     module ClassMethods
       # Defines your model's +to_param+ method to generate "pretty" URLs
