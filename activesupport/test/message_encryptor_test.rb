@@ -86,19 +86,31 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal @data, encryptor.decrypt_and_verify(message)
   end
 
+  def test_aead_mode_with_hmac_cbc_cipher_text
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+
+    assert_aead_not_decrypted(encryptor, "eHdGeExnZEwvMSt3U3dKaFl1WFo0TjVvYzA0eGpjbm5WSkt5MXlsNzhpZ0ZnbWhBWFlQZTRwaXE1bVJCS2oxMDZhYVp2dVN3V0lNZUlWQ3c2eVhQbnhnVjFmeVVubmhRKzF3WnZyWHVNMDg9LS1HSisyakJVSFlPb05ISzRMaXRzcFdBPT0=--831a1d54a3cda8a0658dc668a03dedcbce13b5ca")
+  end
+
   def test_messing_with_aead_values_causes_failures
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
     text, iv, auth_tag = encryptor.encrypt_and_sign(@data).split("--")
-    assert_not_decrypted([iv, text, auth_tag] * "--")
-    assert_not_decrypted([munge(text), iv, auth_tag] * "--")
-    assert_not_decrypted([text, munge(iv), auth_tag] * "--")
-    assert_not_decrypted([text, iv, munge(auth_tag)] * "--")
-    assert_not_decrypted([munge(text), munge(iv), munge(auth_tag)] * "--")
-    assert_not_decrypted([text, iv] * "--")
-    assert_not_decrypted([text, iv, auth_tag[0..-2]] * "--")
+    assert_aead_not_decrypted(encryptor, [iv, text, auth_tag] * "--")
+    assert_aead_not_decrypted(encryptor, [munge(text), iv, auth_tag] * "--")
+    assert_aead_not_decrypted(encryptor, [text, munge(iv), auth_tag] * "--")
+    assert_aead_not_decrypted(encryptor, [text, iv, munge(auth_tag)] * "--")
+    assert_aead_not_decrypted(encryptor, [munge(text), munge(iv), munge(auth_tag)] * "--")
+    assert_aead_not_decrypted(encryptor, [text, iv] * "--")
+    assert_aead_not_decrypted(encryptor, [text, iv, auth_tag[0..-2]] * "--")
   end
 
   private
+
+    def assert_aead_not_decrypted(encryptor, value)
+      assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
+        encryptor.decrypt_and_verify(value)
+      end
+    end
 
     def assert_not_decrypted(value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do

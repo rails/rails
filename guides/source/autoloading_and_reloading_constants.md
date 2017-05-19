@@ -983,20 +983,19 @@ WHERE "polygons"."type" IN ("Rectangle")
 That is not a bug, the query includes all *known* descendants of `Rectangle`.
 
 A way to ensure this works correctly regardless of the order of execution is to
-load the leaves of the tree by hand at the bottom of the file that defines the
-root class:
+manually load the direct subclasses at the bottom of the file that defines each
+intermediate class:
 
 ```ruby
-# app/models/polygon.rb
-class Polygon < ApplicationRecord
+# app/models/rectangle.rb
+class Rectangle < Polygon
 end
-require_dependency ‘square’
+require_dependency 'square'
 ```
 
-Only the leaves that are **at least grandchildren** need to be loaded this
-way. Direct subclasses do not need to be preloaded. If the hierarchy is
-deeper, intermediate classes will be autoloaded recursively from the bottom
-because their constant will appear in the class definitions as superclass.
+This needs to happen for every intermediate (non-root and non-leaf) class. The
+root class does not scope the query by type, and therefore does not necessarily
+have to know all its descendants.
 
 ### Autoloading and `require`
 

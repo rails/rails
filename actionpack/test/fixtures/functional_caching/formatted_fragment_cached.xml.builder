@@ -1,5 +1,5 @@
 xml.body do
-  cache do
+  cache("fragment") do
     xml.p "Builder"
   end
 end

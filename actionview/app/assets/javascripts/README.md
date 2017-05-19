@@ -36,11 +36,13 @@ Require `rails-ujs` into your application.js manifest.
 //= require rails-ujs
 ```
 
-Usage with yarn
+Usage with yarn/webpacker
+------------
+
+Add the following to your main js file.
 
 ```javascript
 import Rails from 'rails-ujs';
-
 Rails.start()
 ```
 

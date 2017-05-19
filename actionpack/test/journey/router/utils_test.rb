@@ -31,6 +31,11 @@ module ActionDispatch
         def test_normalize_path_uppercase
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
+
+        def test_normalize_path_maintains_string_encoding
+          path = "/foo%AAbar%AAbaz".b
+          assert_equal Encoding::ASCII_8BIT, Utils.normalize_path(path).encoding
+        end
       end
     end
   end

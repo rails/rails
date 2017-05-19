@@ -16,7 +16,7 @@ gem "rake", ">= 11.1"
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
 
-gem "capybara", "~> 2.13.0"
+gem "capybara", "~> 2.13"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
@@ -154,3 +154,7 @@ end
 gem "ibm_db" if ENV["IBM_DB"]
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+platforms :ruby_25 do
+  gem "mathn"
+end

@@ -66,6 +66,12 @@ module ActiveRecord
             "--schema=#{part.strip}"
           end
         end
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          args += ignore_tables.flat_map { |table| ["-T", table] }
+        end
+
         args << configuration["database"]
         run_cmd("pg_dump", args, "dumping")
         remove_sql_header_comments(filename)

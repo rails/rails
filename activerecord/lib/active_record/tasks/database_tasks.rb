@@ -71,9 +71,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
-      register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
-      register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+      register_task(/mysql/,        'ActiveRecord::Tasks::MySQLDatabaseTasks')
+      register_task(/postgresql/,   'ActiveRecord::Tasks::PostgreSQLDatabaseTasks')
+      register_task(/sqlite/,       'ActiveRecord::Tasks::SQLiteDatabaseTasks')
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first
@@ -288,11 +288,11 @@ module ActiveRecord
       private
 
         def class_for_adapter(adapter)
-          key = @tasks.keys.detect { |pattern| adapter[pattern] }
-          unless key
+          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
-          @tasks[key]
+          task.is_a?(String) ? task.constantize : task
         end
 
         def each_current_configuration(environment)

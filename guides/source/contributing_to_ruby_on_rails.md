@@ -141,13 +141,14 @@ NOTE: To help our CI servers you should add [ci skip] to your documentation comm
 Translating Rails Guides
 ------------------------
 
-We are happy to have people volunteer to translate the Rails guides into their own language.
-If you want to translate the Rails guides in your own language, follows these steps:
+We are happy to have people volunteer to translate the Rails guides. Just follow these steps:
 
-* Fork the project (rails/rails).
+* Fork https://github.com/rails/rails.
 * Add a source folder for your own language, for example: *guides/source/it-IT* for Italian.
 * Copy the contents of *guides/source* into your own language directory and translate them.
 * Do NOT translate the HTML files, as they are automatically generated.
+
+Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
 To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
 
