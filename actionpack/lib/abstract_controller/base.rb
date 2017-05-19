@@ -23,7 +23,7 @@ module AbstractController
     attr_internal :action_name
 
     ##
-    # Returns the formats processed by the controller.
+    # Returns the formats that can be processed by the controller.
     attr_internal :formats
 
     include ActiveSupport::Configurable
