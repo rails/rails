@@ -76,7 +76,7 @@ pluralize your class names to find the respective database table. So, for
 a class `Book`, you should have a database table called **books**. The Rails
 pluralization mechanisms are very powerful, being capable of pluralizing (and
 singularizing) both regular and irregular words. When using class names composed
-of two or more words, the model class name should follow the Ruby conventions,
+of two or more words, the model class name should follow the [Ruby conventions](https://github.com/bbatsov/ruby-style-guide#classes--modules),
 using the CamelCase form, while the table name must contain the words separated
 by underscores. Examples:
 
