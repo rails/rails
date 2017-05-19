@@ -432,6 +432,10 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("los", "el".pluralize(:es))
     assert_equal("els", "el".pluralize)
 
+    I18n.locale = :es
+    assert_equal("los", "el".pluralize)
+    I18n.locale = :en
+
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
