@@ -36,6 +36,14 @@ Require `rails-ujs` into your application.js manifest.
 //= require rails-ujs
 ```
 
+Usage with yarn
+
+```javascript
+import Rails from 'rails-ujs';
+
+Rails.start()
+```
+
 How to run tests
 ------------
 
