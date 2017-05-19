@@ -123,6 +123,7 @@ class String
   def underscore
     ActiveSupport::Inflector.underscore(self)
   end
+  alias_method :snakecase, :underscore
 
   # Replaces underscores with dashes in the string.
   #
