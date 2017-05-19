@@ -615,8 +615,8 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_mail_to_with_special_characters
     assert_dom_equal(
-      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
-      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C@example.org">#!$%&amp;&#39;*+-/=?^_`{}|@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|@example.org")
     )
   end
 
