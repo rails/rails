@@ -2,8 +2,7 @@ require "abstract_unit"
 
 module ShowExceptions
   class ShowExceptionsController < ActionController::Base
-    use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
-    use ActionDispatch::DebugExceptions
+    use ActionDispatch::ShowExceptions, ActionDispatch::DevelopmentExceptions.new("#{FIXTURE_LOAD_PATH}/public")
 
     before_action only: :another_boom do
       request.env["action_dispatch.show_detailed_exceptions"] = true

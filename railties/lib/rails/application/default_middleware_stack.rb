@@ -43,8 +43,8 @@ module Rails
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           middleware.use ::Rails::Rack::Logger, config.log_tags
+
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
-          middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
 
           unless config.cache_classes
             middleware.use ::ActionDispatch::Reloader, app.reloader
@@ -92,7 +92,11 @@ module Rails
         end
 
         def show_exceptions_app
-          config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+          config.exceptions_app || default_exceptions_app
+        end
+
+        def default_exceptions_app
+          ActionDispatch::DevelopmentExceptions.new(Rails.public_path, app, config.debug_exception_response_format)
         end
     end
   end

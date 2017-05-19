@@ -1,6 +1,9 @@
 require "abstract_unit"
+require "active_support/testing/stream"
 
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
+  include ActiveSupport::Testing::Stream
+
   class Boomer
     attr_accessor :closed
 
@@ -74,35 +77,46 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
-  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
-  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
+  def self.build_app(app, routes_app = nil, response_format = :default)
+    debug_exceptions = ActionDispatch::DebugExceptions.new(routes_app, response_format)
+    ActionDispatch::ShowExceptions.new(app, debug_exceptions)
+  end
+
+  RoutesApp      = Struct.new(:routes).new(SharedTestRoutes)
+  ProductionApp  = build_app(Boomer.new(false), RoutesApp)
+  DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
-    assert_raise RuntimeError do
+    quietly do
       get "/", headers: { "action_dispatch.show_exceptions" => true }
     end
+
+    assert_equal ActionDispatch::ShowExceptions::FAILSAFE_RESPONSE.last.join, body
   end
 
   test "skip diagnosis if not showing exceptions" do
     @app = DevelopmentApp
-    assert_raise RuntimeError do
-      get "/", headers: { "action_dispatch.show_exceptions" => false }
+    quietly do
+      assert_raise RuntimeError do
+        get "/", headers: { "action_dispatch.show_exceptions" => false }
+      end
     end
   end
 
   test "raise an exception on cascade pass" do
     @app = ProductionApp
-    assert_raise ActionController::RoutingError do
+    quietly do
       get "/pass", headers: { "action_dispatch.show_exceptions" => true }
     end
+
+    assert_equal ActionDispatch::ShowExceptions::FAILSAFE_RESPONSE.last.join, body
   end
 
   test "closes the response body on cascade pass" do
     boomer = Boomer.new(false)
-    @app = ActionDispatch::DebugExceptions.new(boomer)
-    assert_raise ActionController::RoutingError do
+    @app = self.class.build_app(boomer)
+    quietly do
       get "/pass", headers: { "action_dispatch.show_exceptions" => true }
     end
     assert boomer.closed, "Expected to close the response body"
@@ -205,7 +219,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with JSON error for JSON API request" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = self.class.build_app(Boomer.new(true), RoutesApp, :api)
 
     get "/", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 500
@@ -246,7 +260,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with HTML format for HTML API request" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = self.class.build_app(Boomer.new(true), RoutesApp, :api)
 
     get "/index.html", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
@@ -257,7 +271,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with XML format for XML API requests" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = self.class.build_app(Boomer.new(true), RoutesApp, :api)
 
     get "/index.xml", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
@@ -272,7 +286,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       ActionDispatch::IntegrationTest.register_encoder(:wibble,
         param_encoder: -> params { params })
 
-      @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+      @app = self.class.build_app(Boomer.new(true), RoutesApp, :api)
 
       get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
       assert_response 500

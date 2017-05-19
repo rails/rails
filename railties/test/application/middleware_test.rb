@@ -33,7 +33,6 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
-        "ActionDispatch::DebugExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::Migration::CheckPending",
@@ -61,7 +60,6 @@ module ApplicationTests
         "ActionDispatch::RemoteIp",
         "Rails::Rack::Logger",
         "ActionDispatch::ShowExceptions",
-        "ActionDispatch::DebugExceptions",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "Rack::Head",
@@ -87,7 +85,7 @@ module ApplicationTests
         %w(ActionDispatch::Executor ActionDispatch::Static),
 
         # Errors during reload must be reported
-        %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
+        %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions),
 
         # Outright dependencies
         %w(ActionDispatch::Static Rack::Sendfile),
@@ -199,7 +197,6 @@ module ApplicationTests
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
       assert_includes middleware, "ActionDispatch::ShowExceptions"
-      assert_includes middleware, "ActionDispatch::DebugExceptions"
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do

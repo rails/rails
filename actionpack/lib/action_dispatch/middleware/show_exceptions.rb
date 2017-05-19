@@ -1,5 +1,6 @@
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
+require "action_dispatch/routing/inspector"
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application
@@ -28,7 +29,14 @@ module ActionDispatch
 
     def call(env)
       request = ActionDispatch::Request.new env
-      @app.call(env)
+      _, headers, body = response = @app.call(env)
+
+      if headers["X-Cascade"] == "pass"
+        body.close if body.respond_to?(:close)
+        raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
+      end
+
+      response
     rescue Exception => exception
       if request.show_exceptions?
         render_exception(request, exception)
@@ -43,6 +51,7 @@ module ActionDispatch
         backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
         status  = wrapper.status_code
+        request.set_header "action_dispatch.unwrapped_exception", exception
         request.set_header "action_dispatch.exception", wrapper.exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.path_info = "/#{status}"

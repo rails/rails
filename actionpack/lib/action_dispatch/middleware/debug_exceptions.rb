@@ -48,23 +48,17 @@ module ActionDispatch
       end
     end
 
-    def initialize(app, routes_app = nil, response_format = :default)
-      @app             = app
+    def initialize(routes_app = nil, response_format = :default)
       @routes_app      = routes_app
       @response_format = response_format
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
-      _, headers, body = response = @app.call(env)
+      request = ActionDispatch::Request.new(env)
+      request.path_info = request.get_header("action_dispatch.original_path")
 
-      if headers["X-Cascade"] == "pass"
-        body.close if body.respond_to?(:close)
-        raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
-      end
+      exception = request.get_header("action_dispatch.unwrapped_exception")
 
-      response
-    rescue Exception => exception
       raise exception unless request.show_exceptions?
       render_exception(request, exception)
     end
