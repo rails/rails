@@ -331,11 +331,7 @@ module ActiveSupport
               payload[:hit] = false if payload
               nil
             elsif entry.mismatched?(version)
-              if payload
-                payload[:hit]      = false
-                payload[:mismatch] = "#{entry.version} != #{version}"
-              end
-
+              payload[:hit] = false if payload
               nil
             else
               payload[:hit] = true if payload
