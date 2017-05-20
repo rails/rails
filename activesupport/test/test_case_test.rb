@@ -175,6 +175,42 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_by_option
+    assert_changes -> { @object.num }, by: 1 do
+      @object.increment
+    end
+  end
+
+  def test_assert_changes_with_wrong_by_option
+    assert_raises Minitest::Assertion do
+      assert_changes "@object.num", by: 2 do
+        @object.increment
+      end
+    end
+  end
+
+  def test_assert_changes_with_from_option_and_by_option
+    assert_changes "@object.num", from: 0, by: 1 do
+      @object.increment
+    end
+  end
+
+  def test_assert_changes_with_from_and_to_options_and_wrong_by_value
+    assert_raises Minitest::Assertion do
+      assert_changes "@object.num", from: 0, by: 2 do
+        @object.increment
+      end
+    end
+  end
+
+  def test_assert_changes_with_by_and_to_options
+    assert_raises ArgumentError do
+      assert_changes "@object.num", from: 0, by: 1, to: 1 do
+        @object.increment
+      end
+    end
+  end
+
   def test_assert_changes_works_with_any_object
     retval = silence_warnings do
       assert_changes :@new_object, from: nil, to: 42 do

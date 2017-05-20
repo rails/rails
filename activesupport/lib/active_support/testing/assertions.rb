@@ -127,12 +127,20 @@ module ActiveSupport
       #     @object = 42
       #   end
       #
-      # The keyword arguments :from and :to can be given to specify the
-      # expected initial value and the expected value after the block was
+      # The keyword arguments :from, :to or :by can be given to specify the
+      # expected initial value and the expected value/value difference after the block was
       # executed.
       #
       #   assert_changes :@object, from: nil, to: :foo do
       #     @object = :foo
+      #   end
+      #
+      #   assert_changes :@object, from: 2, by: 1 do
+      #     @object.increment
+      #   end
+      #
+      #   assert_changes :@object, by: 1 do
+      #     @object.increment
       #   end
       #
       # An error message can be specified.
@@ -140,7 +148,7 @@ module ActiveSupport
       #   assert_changes -> { Status.all_good? }, 'Expected the status to be bad' do
       #     post :create, params: { status: { incident: true } }
       #   end
-      def assert_changes(expression, message = nil, from: UNTRACKED, to: UNTRACKED, &block)
+      def assert_changes(expression, message = nil, from: UNTRACKED, to: UNTRACKED, by: UNTRACKED, &block)
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
@@ -154,14 +162,21 @@ module ActiveSupport
 
         after = exp.call
 
-        if to == UNTRACKED
-          error = "#{expression.inspect} didn't changed"
+        if to != UNTRACKED && by != UNTRACKED
+          raise ArgumentError, "Only one of the `by:` and `to:` parameters may be passed to `assert_changes`"
+        elsif to == UNTRACKED && by == UNTRACKED
+          error = "#{expression.inspect} didn't change"
           error = "#{message}.\n#{error}" if message
           assert_not_equal before, after, error
-        else
+        elsif to != UNTRACKED
           error = "#{expression.inspect} didn't change to #{to}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
+        else
+          actual_difference = after - before
+          error = "#{expression.inspect} changed by #{actual_difference}, not #{by}"
+          error = "#{message}.\n#{error}" if message
+          assert by == actual_difference, error
         end
 
         retval
