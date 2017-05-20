@@ -109,11 +109,12 @@ use ActiveSupport::Cache::Strategy::LocalCache::Middleware
 use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
+use ActionDispatch::RemoteIp
+use Sprockets::Rails::QuietAssets
 use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
 use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
-use ActionDispatch::RemoteIp
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
@@ -123,7 +124,7 @@ use ActionDispatch::Flash
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run Rails.application.routes
+run MyApp.application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
@@ -237,6 +238,14 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#request_id` method.
 
+**`ActionDispatch::RemoteIp`**
+
+* Checks for IP spoofing attacks.
+
+**`Sprockets::Rails::QuietAssets`**
+
+* Suppresses logger output for asset requests.
+
 **`Rails::Rack::Logger`**
 
 * Notifies the logs that the request has began. After request is complete, flushes all the logs.
@@ -248,10 +257,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::DebugExceptions`**
 
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
-
-**`ActionDispatch::RemoteIp`**
-
-* Checks for IP spoofing attacks.
 
 **`ActionDispatch::Reloader`**
 
