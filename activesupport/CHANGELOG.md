@@ -1,7 +1,7 @@
 *   Add `by:` parameter to `assert_changes`:
 
         assert_changes :@object, by: 1 do
-            @object.increment
+          @object.increment
         end
 
     *Alain Ravet*
