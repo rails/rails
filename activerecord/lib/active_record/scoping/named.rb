@@ -29,8 +29,8 @@ module ActiveRecord
           end
         end
 
-        def default_scoped(relation = relation()) # :nodoc:
-          relation.scoping { build_default_scope(relation) || relation }
+        def default_scoped(scope = relation) # :nodoc:
+          scope.scoping { build_default_scope(scope) || scope }
         end
 
         # Adds a class method for retrieving and querying objects.

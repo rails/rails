@@ -40,13 +40,10 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-            scope_chain_items = reflection.join_scopes(table, predicate_builder)
-            klass_scope       = reflection.klass_join_scope(table, predicate_builder)
+            scope_chain_items = reflection.join_scopes(table)
+            klass_scope       = reflection.klass_join_scope(table)
 
-            rel = scope_chain_items.inject(klass_scope) do |left, right|
-              left.merge!(right)
-            end
+            rel = scope_chain_items.inject(klass_scope, &:merge!)
 
             if rel && !rel.arel.constraints.empty?
               binds += rel.bound_attributes

@@ -187,23 +187,21 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
-      def join_scopes(table, predicate_builder) # :nodoc:
+      def join_scopes(table) # :nodoc:
         if scope
-          [ActiveRecord::Relation.create(klass, table, predicate_builder)
-            .instance_exec(&scope)]
+          [build_scope(table).instance_exec(&scope)]
         else
           []
         end
       end
 
-      def klass_join_scope(table, predicate_builder) # :nodoc:
+      def klass_join_scope(table) # :nodoc:
         if klass.current_scope
-          klass.current_scope.clone.tap { |scope|
-            scope.joins_values = []
-          }
+          klass.current_scope.clone
         else
-          relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
-          klass.default_scoped(relation)
+          klass.default_scoped(build_scope(table))
+        end.tap do |scope|
+          scope.joins_values = []
         end
       end
 
@@ -286,6 +284,14 @@ module ActiveRecord
       end
 
       private
+        def build_scope(table)
+          ActiveRecord::Relation.create(klass, table, predicate_builder(table))
+        end
+
+        def predicate_builder(table)
+          @predicate_builder ||= {}
+          @predicate_builder[table] ||= PredicateBuilder.new(TableMetadata.new(klass, table))
+        end
 
         def join_pk(_)
           foreign_key
@@ -843,8 +849,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder) + super
+      def join_scopes(table) # :nodoc:
+        source_reflection.join_scopes(table) + super
       end
 
       def source_type_scope
@@ -1028,8 +1034,8 @@ module ActiveRecord
         end
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
+      def join_scopes(table) # :nodoc:
+        scopes = @previous_reflection.join_scopes(table) + super
         if @previous_reflection.options[:source_type]
           scopes + [@previous_reflection.source_type_scope]
         else
