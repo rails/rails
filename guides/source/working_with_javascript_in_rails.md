@@ -250,7 +250,7 @@ Since it's just a `<form>`, all of the information on `form_with` also applies.
 ### Customize remote elements
 
 It is possible to customize the behavior of elements with a `data-remote`
-attribute without writing a line of JavaScript. Your can specify extra `data-`
+attribute without writing a line of JavaScript. You can specify extra `data-`
 attributes to accomplish this.
 
 #### `data-method`
