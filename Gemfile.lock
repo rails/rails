@@ -267,7 +267,7 @@ GEM
     rb-fsevent (0.9.8)
     rdoc (5.1.0)
     redcarpet (3.2.3)
-    redis (3.3.2)
+    redis (3.3.3)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
     resque (1.27.0)
@@ -435,4 +435,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.14.6
+   1.15.0
