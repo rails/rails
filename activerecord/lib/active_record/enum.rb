@@ -92,6 +92,28 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
+  #
+  # You can create keys in active_record.attributes in .yml locale current.
+  # config/locale/en.yml
+  # en:
+  #  activerecord:
+  #    attributes:
+  #        books:
+  #          status:
+  #            inactive: 'Inactive'
+  #            active: 'Active'
+  #
+  # Now use enum with sufix _translable
+  # ex:
+  # user = User.new(status: :inactive)
+  # user.active?
+  # => false
+  # user.status_translable
+  # => Inactive
+  #
+  # user.active!
+  # user.status_translable
+  # => Active
 
   module Enum
     def self.extended(base) # :nodoc:
@@ -198,7 +220,33 @@ module ActiveRecord
             klass.scope value_method_name, -> { where(attr => value) }
           end
         end
+
         defined_enums[name.to_s] = enum_values
+
+        # create method for translable with I18n dynamically
+        add_enum_translable
+      end
+    end
+
+    # create runtime methods with sufix _translable
+    # @return [Method] based in the enums, return #{enum_key}_translable
+    def add_enum_translable
+      klass = self
+      # based in translations for active record models
+      # http://guides.rubyonrails.org/i18n.html#translations-for-active-record-models
+      # @return [String] activerecord.attributes.model_name.attribute_name.field_name
+      klass.singleton_class.send(:define_method, "i18n_activerecord") do |klass, enum_key, key|
+        "activerecord.attributes.#{klass.name.underscore.pluralize}.#{enum_key}.#{key}"
+      end
+
+      if klass.defined_enums?
+        klass.defined_enums.keys.each do |enum_key|
+          # def status_translable() I18n.t(key, locale: I18n.locale) end
+          define_method("#{enum_key}_translable") do
+            trans_key = klass.i18n_activerecord(klass, enum_key, send(enum_key))
+            I18n.t(trans_key, locale: I18n.locale) if I18n.exists?(trans_key)
+          end
+        end
       end
     end
 
