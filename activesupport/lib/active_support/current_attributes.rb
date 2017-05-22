@@ -99,16 +99,19 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
+        generated_attribute_methods.module_eval do
+          names.each do |name|
+            define_method(name) do
+              attributes[name.to_sym]
+            end
+
+            define_method("#{name}=") do |attribute|
+              attributes[name.to_sym] = attribute
+            end
+          end
+        end
+
         names.each do |name|
-          define_method(name) do
-            attributes[name.to_sym]
-          end
-
-          define_method("#{name}=") do |attribute|
-            attributes[name.to_sym] = attribute
-          end
-
-
           define_singleton_method(name) do
             instance.public_send(name)
           end
@@ -125,6 +128,11 @@ module ActiveSupport
       def resets(&block)
         set_callback :reset, :after, &block
       end
+
+      private
+        def generated_attribute_methods
+          @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        end
     end
 
     attr_accessor :attributes

@@ -10,17 +10,17 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     resets { Time.zone = "UTC" }
 
     def account=(account)
-      attributes[:account] = account
+      super
       self.person = "#{account}'s person"
     end
 
     def person=(person)
-      attributes[:person] = person
+      super
       Time.zone = person.try(:time_zone)
     end
 
     def person
-      "#{attributes[:person]} something"
+      "#{super} something"
     end
   end
 
