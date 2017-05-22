@@ -67,6 +67,8 @@ module ControllerLayouts
   end
 
   class MismatchFormatController < ::ApplicationController
+    self.allow_forgery_protection = false
+
     self.view_paths = [ActionView::FixtureResolver.new(
       "layouts/application.html.erb" => "<html><%= yield %></html>",
       "controller_layouts/mismatch_format/index.xml.builder" => "xml.instruct!",
@@ -101,6 +103,8 @@ module ControllerLayouts
   end
 
   class FalseLayoutMethodController < ::ApplicationController
+    self.allow_forgery_protection = false
+
     self.view_paths = [ActionView::FixtureResolver.new(
       "controller_layouts/false_layout_method/index.js.erb" => "alert('foo');"
     )]
