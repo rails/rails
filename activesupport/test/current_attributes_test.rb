@@ -1,29 +1,29 @@
 require "abstract_unit"
 require "active_support/current_attributes"
 
-Person = Struct.new(:name, :time_zone)
-
-class Current < ActiveSupport::CurrentAttributes
-  attribute :world, :account, :person
-
-  resets { Time.zone = "UTC" }
-
-  def account=(account)
-    attributes[:account] = account
-    self.person = "#{account}'s person"
-  end
-
-  def person=(person)
-    attributes[:person] = person
-    Time.zone = person.try(:time_zone)
-  end
-
-  def person
-    "#{attributes[:person]} something"
-  end
-end
-
 class CurrentAttributesTest < ActiveSupport::TestCase
+  Person = Struct.new(:name, :time_zone)
+
+  class Current < ActiveSupport::CurrentAttributes
+    attribute :world, :account, :person
+
+    resets { Time.zone = "UTC" }
+
+    def account=(account)
+      attributes[:account] = account
+      self.person = "#{account}'s person"
+    end
+
+    def person=(person)
+      attributes[:person] = person
+      Time.zone = person.try(:time_zone)
+    end
+
+    def person
+      "#{attributes[:person]} something"
+    end
+  end
+
   setup { Current.reset }
 
   test "read and write attribute" do
