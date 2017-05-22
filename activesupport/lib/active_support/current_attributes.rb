@@ -1,5 +1,5 @@
 module ActiveSupport
-  # Abstract super class that provides a thread-isolated attributes singleton. 
+  # Abstract super class that provides a thread-isolated attributes singleton.
   # Primary use case is keeping all the per-request attributes easily available to the whole system.
   #
   # The following full app-like example demonstrates how to use a Current class to
@@ -11,10 +11,10 @@ module ActiveSupport
   #
   #   class Current < ActiveSupport::CurrentAttributes
   #     attribute :account, :user
-  #     attribute :request_id, :user_agent, :ip_address 
-  #     
+  #     attribute :request_id, :user_agent, :ip_address
+  #
   #     resets { Time.zone = nil }
-  #     
+  #
   #     def user=(user)
   #       attributes[:user] = user
   #       self.account = user.try(:account)
@@ -24,7 +24,7 @@ module ActiveSupport
   #
   #   module Current::Reset
   #     extend ActiveSupport::Concern
-  #     
+  #
   #     included do
   #       before_action { Current.reset }
   #       after_action  { Current.reset }
@@ -48,7 +48,7 @@ module ActiveSupport
   #   # app/controllers/concerns/set_current_request_details.rb
   #   module SetCurrentRequestDetails
   #     extend ActiveSupport::Concern
-  #   
+  #
   #     included do
   #       before_action do
   #         Current.request_id = request.uuid
@@ -56,7 +56,7 @@ module ActiveSupport
   #         Current.ip_address = request.ip
   #       end
   #     end
-  #   end  
+  #   end
   #
   #   class ApplicationController < ActionController::Base
   #     include Current::Reset
@@ -112,7 +112,7 @@ module ActiveSupport
           define_singleton_method(name) do
             instance.public_send(name)
           end
-        
+
           define_singleton_method("#{name}=") do |attribute|
             instance.public_send("#{name}=", attribute)
           end
@@ -135,7 +135,7 @@ module ActiveSupport
 
     # Expose one or more attributes within a block. Old values are returned after the block concludes.
     # Example demonstrating the common use of needing to set Current attributes outside the request-cycle:
-    # 
+    #
     #   class Chat::PublicationJob < ApplicationJob
     #     def perform(attributes, room_number, creator)
     #       Current.expose(person: creator) do
