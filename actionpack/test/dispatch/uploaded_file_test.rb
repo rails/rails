@@ -107,5 +107,20 @@ module ActionDispatch
       assert uf.respond_to?(:headers), "responds to headers"
       assert uf.respond_to?(:read), "responds to read"
     end
+
+    def test_to_hash_excludes_tempfile
+      uf = Http::UploadedFile.new(tempfile: Object.new)
+      assert_equal false, uf.to_hash.key?('tempfile')
+    end
+
+    def test_to_json_with_non_ascii_data
+      t = Tempfile.new 'foo'
+      t.binmode
+      t.puts "\x80".force_encoding('ASCII-8BIT')
+      t.rewind
+
+      uf = ActionDispatch::Http::UploadedFile.new(tempfile: t)
+      assert_nothing_raised { uf.to_json }
+    end
   end
 end
