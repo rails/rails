@@ -7,8 +7,6 @@ module ActiveSupport
   # around everywhere:
   #
   #   # app/services/current.rb
-  #   require 'active_support/current_attributes'
-  #
   #   class Current < ActiveSupport::CurrentAttributes
   #     attribute :account, :user
   #     attribute :request_id, :user_agent, :ip_address

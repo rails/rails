@@ -1,5 +1,4 @@
 require "abstract_unit"
-require "active_support/current_attributes"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
   Person = Struct.new(:name, :time_zone)
