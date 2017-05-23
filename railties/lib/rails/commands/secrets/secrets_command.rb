@@ -13,10 +13,7 @@ module Rails
       end
 
       def setup
-        require "rails/generators"
-        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
-
-        Rails::Generators::EncryptedSecretsGenerator.start
+        generator.start
       end
 
       def edit
@@ -42,7 +39,22 @@ module Rails
         say "Aborted changing encrypted secrets: nothing saved."
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
+      rescue Errno::ENOENT => error
+        raise unless error.message =~ /secrets\.yml\.enc/
+
+        Rails::Secrets.read_template_for_editing do |tmp_path|
+          system("\$EDITOR #{tmp_path}")
+          generator.skip_secrets_file { setup }
+        end
       end
+
+      private
+        def generator
+          require "rails/generators"
+          require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
+
+          Rails::Generators::EncryptedSecretsGenerator
+        end
     end
   end
 end
