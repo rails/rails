@@ -35,25 +35,25 @@ module ActionDispatch
 
         def test_simulate_gt
           sim = simulator_for ["/foo", "/bar"]
-          assert_match sim, "/foo"
+          assert_match_route sim, "/foo"
         end
 
         def test_simulate_gt_regexp
           sim = simulator_for [":foo"]
-          assert_match sim, "foo"
+          assert_match_route sim, "foo"
         end
 
         def test_simulate_gt_regexp_mix
           sim = simulator_for ["/get", "/:method/foo"]
-          assert_match sim, "/get"
-          assert_match sim, "/get/foo"
+          assert_match_route sim, "/get"
+          assert_match_route sim, "/get/foo"
         end
 
         def test_simulate_optional
           sim = simulator_for ["/foo(/bar)"]
-          assert_match sim, "/foo"
-          assert_match sim, "/foo/bar"
-          assert_no_match sim, "/foo/"
+          assert_match_route sim, "/foo"
+          assert_match_route sim, "/foo/bar"
+          assert_no_match_route sim, "/foo/"
         end
 
         def test_match_data
@@ -65,11 +65,11 @@ module ActionDispatch
 
           sim = GTG::Simulator.new tt
 
-          match = sim.match "/get"
-          assert_equal [paths.first], match.memos
+          memos = sim.memos "/get"
+          assert_equal [paths.first], memos
 
-          match = sim.match "/get/foo"
-          assert_equal [paths.last], match.memos
+          memos = sim.memos "/get/foo"
+          assert_equal [paths.last], memos
         end
 
         def test_match_data_ambiguous
@@ -86,8 +86,8 @@ module ActionDispatch
           builder = GTG::Builder.new ast
           sim     = GTG::Simulator.new builder.transition_table
 
-          match = sim.match "/articles/new"
-          assert_equal [paths[1], paths[3]], match.memos
+          memos = sim.memos "/articles/new"
+          assert_equal [paths[1], paths[3]], memos
         end
 
         private
@@ -108,6 +108,14 @@ module ActionDispatch
 
           def simulator_for(paths)
             GTG::Simulator.new tt(paths)
+          end
+
+          def assert_match_route(simulator, path)
+            assert simulator.memos(path), "Simulator should match #{path}."
+          end
+
+          def assert_no_match_route(simulator, path)
+            assert_not simulator.memos(path) { nil }, "Simulator should not match #{path}."
           end
       end
     end

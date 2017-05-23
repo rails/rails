@@ -39,7 +39,7 @@ Require `rails-ujs` into your application.js manifest.
 How to run tests
 ------------
 
-Run `bundle exec rake ujs:server` first, and then run the web tests by visiting [[http://localhost:4567]] in your browser.
+Run `bundle exec rake ujs:server` first, and then run the web tests by visiting http://localhost:4567 in your browser.
 
 ## License
 rails-ujs is released under the [MIT License](MIT-LICENSE).

@@ -154,3 +154,7 @@ end
 gem "ibm_db" if ENV["IBM_DB"]
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+platforms :ruby_25 do
+  gem "mathn"
+end

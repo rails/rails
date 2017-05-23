@@ -45,7 +45,7 @@ module ActionCable
         end
 
         # Returns all the identifiers that were applied to this connection.
-        def identifiers
+        redefine_method :identifiers do
           server.connection_identifiers
         end
 

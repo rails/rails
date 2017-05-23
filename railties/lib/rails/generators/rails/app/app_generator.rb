@@ -121,7 +121,6 @@ module Rails
       action_cable_config_exist = File.exist?("config/cable.yml")
       rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
       assets_config_exist = File.exist?("config/initializers/assets.rb")
-      new_framework_defaults_5_2_exist = File.exist?("config/initializers/new_framework_defaults_5_2.rb")
 
       config
 
