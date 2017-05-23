@@ -140,7 +140,7 @@ module ActiveSupport
         set_callback :reset, :after, &block
       end
 
-      delegate :expose, :reset, to: :instance
+      delegate :set, :reset, to: :instance
 
       private
         def generated_attribute_methods
@@ -159,14 +159,14 @@ module ActiveSupport
     #
     #   class Chat::PublicationJob < ApplicationJob
     #     def perform(attributes, room_number, creator)
-    #       Current.expose(person: creator) do
+    #       Current.set(person: creator) do
     #         Chat::Publisher.publish(attributes: attributes, room_number: room_number)
     #       end
     #     end
     #   end
-    def expose(exposed_attributes)
-      old_attributes = compute_attributes(exposed_attributes.keys)
-      assign_attributes(exposed_attributes)
+    def set(set_attributes)
+      old_attributes = compute_attributes(set_attributes.keys)
+      assign_attributes(set_attributes)
       yield
     ensure
       assign_attributes(old_attributes)

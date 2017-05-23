@@ -55,21 +55,21 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "UTC", Time.zone.name
   end
 
-  test "expose attribute only via scope" do
+  test "set attribute only via scope" do
     Current.world = "world/1"
 
-    Current.expose(world: "world/2") do
+    Current.set(world: "world/2") do
       assert_equal "world/2", Current.world
     end
 
     assert_equal "world/1", Current.world
   end
 
-  test "expose multiple attributes" do
+  test "set multiple attributes" do
     Current.world = "world/1"
     Current.account = "account/1"
 
-    Current.expose(world: "world/2", account: "account/2") do
+    Current.set(world: "world/2", account: "account/2") do
       assert_equal "world/2", Current.world
       assert_equal "account/2", Current.account
     end
