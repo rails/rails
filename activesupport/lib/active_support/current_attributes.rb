@@ -120,12 +120,27 @@ module ActiveSupport
         end
       end
 
-      delegate :expose, :reset, to: :instance
+      # Delegate methods on both the class and instance level. Example:
+      #
+      #   class Current < ActiveSupport::CurrentAttributes
+      #     attribute :user
+      #     bidelegate :identity, to: :user
+      #   end
+      #
+      #   Current.instance.identity == Current.identity
+      def bidelegate(*methods, to:)
+        methods.each do |method|
+          define_method(method)           { |*args| public_send(to).public_send(method, *args) }
+          define_singleton_method(method) { |*args| public_send(to).public_send(method, *args) }
+        end
+      end
 
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
       end
+
+      delegate :expose, :reset, to: :instance
 
       private
         def generated_attribute_methods

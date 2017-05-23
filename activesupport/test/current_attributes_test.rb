@@ -4,7 +4,8 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   Person = Struct.new(:name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
-    attribute :world, :account, :person
+    attribute :world, :account, :person, :request
+    bidelegate :time_zone, to: :person
 
     resets { Time.zone = "UTC" }
 
@@ -18,7 +19,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       Time.zone = person.try(:time_zone)
     end
 
-    def person
+    def request
       "#{super} something"
     end
   end
@@ -31,14 +32,14 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   end
 
   test "read overwritten attribute method" do
-    Current.person = "person/1"
-    assert_equal "person/1 something", Current.person
+    Current.request = "request/1"
+    assert_equal "request/1 something", Current.request
   end
 
   test "set attribute via overwritten method" do
     Current.account = "account/1"
     assert_equal "account/1", Current.account
-    assert_equal "account/1's person something", Current.person
+    assert_equal "account/1's person", Current.person
   end
 
   test "set auxiliary class via overwritten method" do
@@ -75,5 +76,11 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+  end
+
+  test "bidelegation" do
+    Current.person = Person.new("David", "Central Time (US & Canada)")
+    assert_equal "Central Time (US & Canada)", Current.time_zone
+    assert_equal "Central Time (US & Canada)", Current.instance.time_zone
   end
 end
