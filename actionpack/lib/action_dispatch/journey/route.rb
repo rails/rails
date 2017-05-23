@@ -159,8 +159,8 @@ module ActionDispatch
 
       def matches?(request)
         match_verb(request) &&
-        constraints.all? { |method, value|
-          case value
+        !constraints.any? { |method, value|
+          !case value
           when Regexp, String
             value === request.send(method).to_s
           when Array
