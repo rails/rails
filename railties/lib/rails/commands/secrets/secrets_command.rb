@@ -34,7 +34,6 @@ module Rails
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          say "Waiting for secrets file to be saved. Abort with Ctrl-C."
           system("\$EDITOR #{tmp_path}")
         end
 
