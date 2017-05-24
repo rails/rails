@@ -1,3 +1,8 @@
+*   Loading model schema from database is now thread-safe. GH#28589
+
+    *David Abdemoulaie*
+    *Vikrant Chaudhary*
+
 *   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
     in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
     that does not include a timestamp any more.

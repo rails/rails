@@ -435,6 +435,15 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
+      def inherited(child_class)
+        child_class.initialize_load_schema_monitor
+        super
+      end
+
+      def initialize_load_schema_monitor
+        @load_schema_monitor = Monitor.new
+      end
+
       private
 
         def schema_loaded?
@@ -442,8 +451,8 @@ module ActiveRecord
         end
 
         def load_schema
-          unless schema_loaded?
-            load_schema!
+          @load_schema_monitor.synchronize do
+            load_schema! unless schema_loaded?
           end
         end
 
