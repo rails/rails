@@ -413,13 +413,11 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[5.0]
-  #     def up
-  #       add_column :people, :salary, :integer
-  #       Person.reset_column_information
-  #       Person.all.each do |p|
-  #         p.update_attribute :salary, SalaryCalculator.compute(p)
-  #       end
+  #   def up
+  #     add_column :people, :salary, :integer
+  #     Person.reset_column_information
+  #     Person.all.each do |p|
+  #       p.update_attribute :salary, SalaryCalculator.compute(p)
   #     end
   #   end
   #
