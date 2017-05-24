@@ -217,14 +217,18 @@ module ActiveRecord
     #  end
     #
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      create(attributes, &block)
+    rescue RecordNotUnique
+      find_by(attributes)
     end
 
     # Like #find_or_create_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      create!(attributes, &block)
+    rescue RecordNotUnique
+      find_by(attributes)
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]

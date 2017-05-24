@@ -86,6 +86,7 @@ ActiveRecord::Schema.define do
     t.string :color
     t.integer :pirate_id
   end
+  add_index :birds, :name, :unique => true
 
   create_table :books, force: true do |t|
     t.references :author
