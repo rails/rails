@@ -377,6 +377,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     threads.map(&:join)
 
     assert_instance_of(ActiveRecord::Type::Serialized, Topic.attribute_types["content"])
-    assert_instance_of(ActiveModel::Type::Text, Topic.attribute_types["content"].subtype)
+    assert_instance_of(ActiveRecord::Type::Text, Topic.attribute_types["content"].subtype)
   end
 end
