@@ -599,7 +599,7 @@ class CreateBooks < ActiveRecord::Migration[5.0]
       t.string   :book_number
       t.integer  :author_id
     end
-    
+
     add_index :books, :author_id
     add_foreign_key :books, :authors
   end
@@ -1417,7 +1417,7 @@ If either of these saves fails due to validation errors, then the assignment sta
 
 If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
 
-If you want to assign an object to a `has_one` association without saving the object, use the `association.build` method.
+If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
 
 ### `has_many` Association Reference
 
