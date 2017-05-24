@@ -1,3 +1,9 @@
+*   Edge and Dev generated apps should use the edge version of coffee-rails.
+
+    Fixes #29202.
+
+    *Rasesh Patel*
+
 *   Allow irb options to be passed from `rails console` command.
 
     Fixes #28988.
