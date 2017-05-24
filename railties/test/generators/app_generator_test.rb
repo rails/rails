@@ -157,7 +157,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_new_application_doesnt_need_defaults
-    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
+    assert_no_file "config/initializers/new_framework_defaults_5_2.rb"
   end
 
   def test_new_application_load_defaults
@@ -203,14 +203,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_1.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
     end
   end
 
@@ -569,9 +569,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "config/environments/development.rb" do |content|
       if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
-        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       else
-        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
   end
@@ -639,7 +639,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 3.3.0'\z/, content)
+      assert_no_match(/\Agem 'web-console', '>= 3\.3\.0'\z/, content)
     end
   end
 
@@ -648,7 +648,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
-      assert_no_match(/\Agem 'web-console', '>= 3.3.0'\z/, content)
+      assert_no_match(/\Agem 'web-console', '>= 3\.3\.0'\z/, content)
     end
   end
 
@@ -787,7 +787,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_psych_gem
     run_generator
-    gem_regex = /gem 'psych',\s+'~> 2.0',\s+platforms: :rbx/
+    gem_regex = /gem 'psych',\s+'~> 2\.0',\s+platforms: :rbx/
 
     assert_file "Gemfile" do |content|
       if defined?(Rubinius)
@@ -870,7 +870,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_gem "spring-watcher-listen"
 
       assert_file "config/environments/development.rb" do |content|
-        assert_match(/^\s*config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
 
@@ -880,7 +880,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_file "config/environments/development.rb" do |content|
-        assert_match(/^\s*# config.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
+        assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
     end
 

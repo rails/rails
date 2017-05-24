@@ -21,10 +21,6 @@ class BaseCachingTest < ActiveSupport::TestCase
     @mailer.perform_caching = true
     @mailer.cache_store = @store
   end
-
-  def test_fragment_cache_key
-    assert_equal "views/what a key", @mailer.fragment_cache_key("what a key")
-  end
 end
 
 class FragmentCachingTest < BaseCachingTest
@@ -126,7 +122,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body,
-      @store.read("views/caching/#{template_digest("caching_mailer/fragment_cache")}")
+      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}/caching")
   end
 
   def test_fragment_caching_in_partials
@@ -135,7 +131,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match(expected_body, email.body.encoded)
 
     assert_match(expected_body,
-      @store.read("views/caching/#{template_digest("caching_mailer/_partial")}"))
+      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial")}/caching"))
   end
 
   def test_skip_fragment_cache_digesting
@@ -185,7 +181,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     end
 
     assert_equal "caching_mailer", payload[:mailer]
-    assert_equal "views/caching/#{template_digest("caching_mailer/fragment_cache")}", payload[:key]
+    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}", :caching ], payload[:key]
   ensure
     @mailer.enable_fragment_cache_logging = true
   end

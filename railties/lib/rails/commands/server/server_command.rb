@@ -95,10 +95,11 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
+      DEFAULT_PORT = 3000
       DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
 
       class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port.", banner: :port, default: 3000
+        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
         desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
@@ -184,7 +185,7 @@ module Rails
         end
 
         def port
-          ENV.fetch("PORT", options[:port]).to_i
+          options[:port] || ENV.fetch("PORT", DEFAULT_PORT).to_i
         end
 
         def host

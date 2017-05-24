@@ -4419,7 +4419,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 
-  test "invalid UTF-8 encoding returns a 400 Bad Request" do
+  test "invalid UTF-8 encoding is treated as ASCII 8BIT encode" do
     with_routing do |set|
       set.draw do
         get "/bar/:id", to: redirect("/foo/show/%{id}")
@@ -4435,19 +4435,19 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       end
 
       get "/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/show/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
 
       get "/bar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :redirect
 
       get "/foobar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
     end
   end
 end

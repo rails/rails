@@ -542,7 +542,7 @@ module ActionView
 
         return false unless request.get? || request.head?
 
-        check_parameters ||= !options.is_a?(String) && options.try(:delete, :check_parameters)
+        check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
         url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the

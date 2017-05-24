@@ -121,12 +121,6 @@ module ActiveRecord
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
 
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -312,12 +306,6 @@ module ActiveRecord
 
       def supports_pgcrypto_uuid?
         postgresql_version >= 90400
-      end
-
-      def supports_alter_constraint?
-        # PostgreSQL 9.4 introduces ALTER TABLE ... ALTER CONSTRAINT but it has a bug and fixed in 9.4.2
-        # https://www.postgresql.org/docs/9.4/static/release-9-4-2.html
-        postgresql_version >= 90402
       end
 
       def get_advisory_lock(lock_id) # :nodoc:
@@ -561,7 +549,7 @@ module ActiveRecord
         end
 
         def has_default_function?(default_value, default)
-          !default_value && (%r{\w+\(.*\)|\(.*\)::\w+} === default)
+          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
         end
 
         def load_additional_types(type_map, oids = nil)

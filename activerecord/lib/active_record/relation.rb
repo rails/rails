@@ -2,7 +2,7 @@ module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
@@ -269,8 +269,7 @@ module ActiveRecord
     # Returns true if there are no records.
     def empty?
       return @records.empty? if loaded?
-
-      limit_value == 0 || !exists?
+      !exists?
     end
 
     # Returns true if there are no records.

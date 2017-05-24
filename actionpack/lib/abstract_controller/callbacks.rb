@@ -1,4 +1,24 @@
 module AbstractController
+  # = Abstract Controller Callbacks
+  #
+  # Abstract Controller provides hooks during the life cycle of a controller action.
+  # Callbacks allow you to trigger logic during this cycle. Available callbacks are:
+  #
+  # * <tt>after_action</tt>
+  # * <tt>append_after_action</tt>
+  # * <tt>append_around_action</tt>
+  # * <tt>append_before_action</tt>
+  # * <tt>around_action</tt>
+  # * <tt>before_action</tt>
+  # * <tt>prepend_after_action</tt>
+  # * <tt>prepend_around_action</tt>
+  # * <tt>prepend_before_action</tt>
+  # * <tt>skip_after_action</tt>
+  # * <tt>skip_around_action</tt>
+  # * <tt>skip_before_action</tt>
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  #
   module Callbacks
     extend ActiveSupport::Concern
 

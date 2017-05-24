@@ -202,8 +202,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+            binds = [bind_attribute("id", 1)]
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
@@ -217,8 +217,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
+            binds = [bind_attribute("id", "1-fuu", Type::Integer.new)]
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
@@ -346,7 +346,7 @@ module ActiveRecord
           @connection.select_all "SELECT NULL::anyelement"
           @connection.select_all "SELECT NULL::anyelement"
         }
-        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'\. It will be treated as String\.\n\z/, warning)
       ensure
         reset_connection
       end

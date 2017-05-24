@@ -16,15 +16,13 @@ module ActiveRecord
                             through_scope)
 
           through_records = owners.map do |owner|
-            association = owner.association through_reflection.name
-
-            center = target_records_from_association(association)
+            center = owner.association(through_reflection.name).target
             [owner, Array(center)]
           end
 
           reset_association owners, through_reflection.name
 
-          middle_records = through_records.flat_map { |(_, rec)| rec }
+          middle_records = through_records.flat_map(&:last)
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -43,9 +41,7 @@ module ActiveRecord
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
               rhs_records = middles.flat_map { |r|
-                association = r.association source_reflection.name
-
-                target_records_from_association(association)
+                r.association(source_reflection.name).target
               }.compact
 
               # Respect the order on `reflection_scope` if it exists, else use the natural order.
@@ -97,10 +93,6 @@ module ActiveRecord
             end
 
             scope
-          end
-
-          def target_records_from_association(association)
-            association.loaded? ? association.target : association.reader
           end
       end
     end

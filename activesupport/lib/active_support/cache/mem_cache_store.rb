@@ -97,12 +97,18 @@ module ActiveSupport
         options = merged_options(options)
 
         keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+
         raw_values = @data.get_multi(keys_to_names.keys)
         values = {}
+
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
+
+          unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+            values[keys_to_names[key]] = entry.value
+          end
         end
+
         values
       end
 

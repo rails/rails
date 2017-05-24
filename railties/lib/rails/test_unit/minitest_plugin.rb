@@ -6,7 +6,7 @@ require "shellwords"
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
     # Disable extra failure output after a run if output is inline.
-    def aggregated_results
+    def aggregated_results(*)
       super unless options[:output_inline]
     end
   end

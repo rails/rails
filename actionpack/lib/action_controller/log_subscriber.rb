@@ -60,9 +60,9 @@ module ActionController
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{method}(event)
           return unless logger.info? && ActionController::Base.enable_fragment_cache_logging
-          key_or_path = event.payload[:key] || event.payload[:path]
+          key         = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
           human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key_or_path} (\#{event.duration.round(1)}ms)")
+          info("\#{human_name} \#{key} (\#{event.duration.round(1)}ms)")
         end
       METHOD
     end

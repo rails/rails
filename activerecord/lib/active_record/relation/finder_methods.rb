@@ -307,9 +307,11 @@ module ActiveRecord
         MSG
       end
 
-      return false if !conditions
+      return false if !conditions || limit_value == 0
 
-      relation = apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+      relation = self unless eager_loading?
+      relation ||= apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+
       return false if ActiveRecord::NullRelation === relation
 
       relation = construct_relation_for_exists(relation, conditions)

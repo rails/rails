@@ -170,14 +170,6 @@ class Client < Company
 
   def overwrite_to_raise
   end
-
-  class << self
-    private
-
-    def private_method
-      "darkness"
-    end
-  end
 end
 
 class ExclusivelyDependentFirm < Company

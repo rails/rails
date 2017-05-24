@@ -752,7 +752,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ArgumentError do
       @pirate.send(association_setter, "foo")
     end
-    assert_equal 'Hash or Array expected, got String ("foo")', exception.message
+    assert_equal %{Hash or Array expected for attribute `#{@association_name}`, got String ("foo")}, exception.message
   end
 
   def test_should_work_with_update_as_well
