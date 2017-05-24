@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-git_source(:github) { |repo| "https://github.com/#{repo.include?("/") ? repo : "#{repo}/#{repo}"}.git" }
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 <% gemfile_entries.each do |gem| -%>
 <% if gem.comment -%>
