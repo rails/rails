@@ -417,7 +417,7 @@ DEPENDENCIES
   redis
   resque
   resque-scheduler
-  rubocop (>= 0.47)
+  rubocop (>= 0.48)
   sass-rails
   sdoc (> 1.0.0.rc1, < 2.0)
   sequel
