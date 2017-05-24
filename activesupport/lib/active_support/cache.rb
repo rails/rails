@@ -536,7 +536,6 @@ module ActiveSupport
           end
         end
 
-
         # Prefixes a key with the namespace. Namespace and key will be delimited
         # with a colon.
         def normalize_key(key, options)
@@ -586,7 +585,6 @@ module ActiveSupport
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
         end
-
 
         def log
           return unless logger && logger.debug? && !silence?
