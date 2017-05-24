@@ -29,6 +29,14 @@ GIT
   specs:
     arel (8.0.0)
 
+GIT
+  remote: https://github.com/rails/coffee-rails.git
+  revision: db1ed754360faddf9d29895466b6acef78aa0563
+  specs:
+    coffee-rails (4.2.1)
+      coffee-script (>= 2.2.0)
+      railties (>= 4.0.0, < 6.0.x)
+
 PATH
   remote: .
   specs:
@@ -134,9 +142,6 @@ GEM
       xpath (~> 2.0)
     childprocess (0.5.9)
       ffi (~> 1.0, >= 1.0.11)
-    coffee-rails (4.2.1)
-      coffee-script (>= 2.2.0)
-      railties (>= 4.0.0, < 5.2.x)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -385,7 +390,7 @@ DEPENDENCIES
   blade-sauce_labs_plugin
   byebug
   capybara (~> 2.13)
-  coffee-rails
+  coffee-rails!
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
