@@ -128,7 +128,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert ar.developers_log.empty?
     alice = Developer.new(name: "alice")
     ar.developers_with_callbacks << alice
-    assert_equal"after_adding#{alice.id}", ar.developers_log.last
+    assert_equal "after_adding#{alice.id}", ar.developers_log.last
 
     bob = ar.developers_with_callbacks.create(name: "bob")
     assert_equal "after_adding#{bob.id}", ar.developers_log.last

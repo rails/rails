@@ -71,9 +71,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        'ActiveRecord::Tasks::MySQLDatabaseTasks')
-      register_task(/postgresql/,   'ActiveRecord::Tasks::PostgreSQLDatabaseTasks')
-      register_task(/sqlite/,       'ActiveRecord::Tasks::SQLiteDatabaseTasks')
+      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
+      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first

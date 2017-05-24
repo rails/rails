@@ -110,7 +110,6 @@ module ActiveRecord
       end
     end
 
-
     module ClassMethods
       # Defines your model's +to_param+ method to generate "pretty" URLs
       # using +method_name+, which can be any attribute or method that
