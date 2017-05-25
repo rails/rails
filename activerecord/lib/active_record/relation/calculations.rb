@@ -118,6 +118,31 @@ module ActiveRecord
         perform_calculation(operation, column_name)
       end
     end
+    
+    # ## Problem:
+    #- We have complicated includes
+    # includes = [:a, :b, :c, :d, {:e => {:f => [:g, :g]}}]
+    # We can use it like this:
+    # model = model_1.submodels.includes(includes)
+    # The data is now in rails and we have to convert the data to json but we cannot do `render :json => submodels, :include => includes`
+    # this is because the ":include =>" attribute expects a different format:
+    # [:a, :b, :c, :d, {:e => {:include => {:f => {:include => [:g, :h]}}}}]
+    # which we have to manually write.
+
+    # ## Solution: 
+    # This function takes active_record_includes of the form:
+    # [:a, :b, :c, :d, {:e => {:f => [:g, :h]}}]
+    # and returns:
+    # [:a, :b, :c, :d, {:e => {:include => {:f => {:include => [:g, :h]}}}}]
+    # to keep as_json_includes DRY
+    def as_json_with_includes(options)
+      active_record_includes = options[:includes]
+      return as_json(options) if active_record_includes.nil?
+      json_inclusions = convert_activerecord_includes_to_json_includes(active_record_includes)
+      options[:include] = json_inclusions
+      options[:includes] = nil
+      includes(active_record_includes).as_json(options)
+    end
 
     # Use #pluck as a shortcut to select one or more attributes without
     # loading a bunch of records just to grab the attributes you want.
@@ -372,4 +397,22 @@ module ActiveRecord
         Arel::SelectManager.new(subquery).project(select_value)
       end
   end
+  
+  def convert_activerecord_includes_to_json_includes(active_record_includes)
+      return active_record_includes if active_record_includes.is_a? Symbol
+      temp_arr = []
+      temp_hash = {}
+      if active_record_includes.is_a? Array
+        active_record_includes.each do |item|
+          temp_arr << convert_activerecord_includes_to_json_includes(item)
+        end
+        return temp_arr
+      end
+      if active_record_includes.is_a? Hash
+        active_record_includes.each do |key, value|
+          temp_hash[key] = {include: convert_activerecord_includes_to_json_includes(value)}
+        end
+        temp_hash
+      end
+    end
 end
