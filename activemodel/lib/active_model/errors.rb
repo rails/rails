@@ -400,7 +400,8 @@ module ActiveModel
       defaults.flatten!
 
       key = defaults.shift
-      defaults = options.delete(:message) if options[:message]
+      defaults = Array(options.delete(:message)) if options[:message]
+      defaults << options.delete(:default) if options[:default]
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {

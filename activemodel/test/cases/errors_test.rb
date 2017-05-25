@@ -157,6 +157,20 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["cannot be blank"], person.errors[:name]
   end
 
+  test "add an error code with an untranslated message fallbacks to default" do
+    person = Person.new
+    person.errors.add(:name, :untranslated_error, default: "Name contains special character")
+
+    assert_equal ["Name contains special character"], person.errors[:name]
+  end
+
+  test "add an error code which is translatable doesn't fallbacks to default" do
+    person = Person.new
+    person.errors.add(:name, :blank, default: "Name contains special character")
+
+    assert_equal ["can't be blank"], person.errors[:name]
+  end
+
   test "add an error with a symbol" do
     person = Person.new
     person.errors.add(:name, :blank)
