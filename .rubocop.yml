@@ -18,27 +18,27 @@ Style/BracesAroundHashParameters:
   Enabled: true
 
 # Align `when` with `case`.
-Style/CaseIndentation:
+Layout/CaseIndentation:
   Enabled: true
 
 # Align comments with method definitions.
-Style/CommentIndentation:
+Layout/CommentIndentation:
   Enabled: true
 
 # No extra empty lines.
-Style/EmptyLines:
+Layout/EmptyLines:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
-Style/EmptyLinesAroundClassBody:
+Layout/EmptyLinesAroundClassBody:
   Enabled: true
 
 # In a regular method definition, no empty lines around the body.
-Style/EmptyLinesAroundMethodBody:
+Layout/EmptyLinesAroundMethodBody:
   Enabled: true
 
 # In a regular module definition, no empty lines around the body.
-Style/EmptyLinesAroundModuleBody:
+Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
@@ -47,30 +47,30 @@ Style/HashSyntax:
 
 # Method definitions after `private` or `protected` isolated calls need one
 # extra level of indentation.
-Style/IndentationConsistency:
+Layout/IndentationConsistency:
   Enabled: true
   EnforcedStyle: rails
 
 # Two spaces, no tabs (for indentation).
-Style/IndentationWidth:
+Layout/IndentationWidth:
   Enabled: true
 
-Style/SpaceAfterColon:
+Layout/SpaceAfterColon:
   Enabled: true
 
-Style/SpaceAfterComma:
+Layout/SpaceAfterComma:
   Enabled: true
 
-Style/SpaceAroundEqualsInParameterDefault:
+Layout/SpaceAroundEqualsInParameterDefault:
   Enabled: true
 
-Style/SpaceAroundKeyword:
+Layout/SpaceAroundKeyword:
   Enabled: true
 
-Style/SpaceAroundOperators:
+Layout/SpaceAroundOperators:
   Enabled: true
 
-Style/SpaceBeforeFirstArg:
+Layout/SpaceBeforeFirstArg:
     Enabled: true
 
 # Defining a method with parameters needs parentheses.
@@ -78,18 +78,18 @@ Style/MethodDefParentheses:
   Enabled: true
 
 # Use `foo {}` not `foo{}`.
-Style/SpaceBeforeBlockBraces:
+Layout/SpaceBeforeBlockBraces:
   Enabled: true
 
 # Use `foo { bar }` not `foo {bar}`.
-Style/SpaceInsideBlockBraces:
+Layout/SpaceInsideBlockBraces:
   Enabled: true
 
 # Use `{ a: 1 }` not `{a:1}`.
-Style/SpaceInsideHashLiteralBraces:
+Layout/SpaceInsideHashLiteralBraces:
   Enabled: true
 
-Style/SpaceInsideParens:
+Layout/SpaceInsideParens:
   Enabled: true
 
 # Check quotes usage according to lint rule below.
@@ -98,15 +98,15 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 # Detect hard tabs, no hard tabs.
-Style/Tab:
+Layout/Tab:
   Enabled: true
 
 # Blank lines should not have any spaces.
-Style/TrailingBlankLines:
+Layout/TrailingBlankLines:
   Enabled: true
 
 # No trailing whitespace.
-Style/TrailingWhitespace:
+Layout/TrailingWhitespace:
   Enabled: true
 
 # Use quotes for string literals when they are enough.

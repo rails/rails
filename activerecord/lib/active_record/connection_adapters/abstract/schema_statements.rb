@@ -1280,9 +1280,10 @@ module ActiveRecord
         end
 
         def foreign_key_name(table_name, options)
-          identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-          hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
           options.fetch(:name) do
+            identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
             "fk_rails_#{hashed_identifier}"
           end
         end
