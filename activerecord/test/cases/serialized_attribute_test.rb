@@ -349,4 +349,34 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.foo
     refute topic.changed?
   end
+
+  def test_serialized_attribute_works_under_concurrent_access
+    Topic.serialize :content, JSON
+    Topic.reset_column_information
+
+    concurrency = 4
+
+    barrier = Concurrent::CyclicBarrier.new(concurrency)
+    jobs = Array.new(concurrency) do
+      lambda do
+        Topic.last
+      end
+    end
+
+    process = lambda do |i|
+      barrier.wait
+      begin
+        jobs[i].call
+      ensure
+        barrier.wait
+      end
+    end
+
+    threads = concurrency.times.map { |i| Thread.new(i, &process) }
+
+    threads.map(&:join)
+
+    assert_instance_of(ActiveRecord::Type::Serialized, Topic.attribute_types["content"])
+    assert_instance_of(ActiveRecord::Type::Text, Topic.attribute_types["content"].subtype)
+  end
 end
