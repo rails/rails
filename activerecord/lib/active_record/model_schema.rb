@@ -149,6 +149,9 @@ module ActiveRecord
       class_attribute :ignored_columns, instance_accessor: false
       self.ignored_columns = [].freeze
 
+      class_attribute :load_schema_monitor, instance_accessor: false
+      self.load_schema_monitor = Monitor.new
+
       self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
@@ -442,8 +445,13 @@ module ActiveRecord
         end
 
         def load_schema
-          unless schema_loaded?
-            load_schema!
+          # This method is wrapped in a Mutex because some of multiple competing
+          # threads might find `@columns_hash` to be defined even before schema has
+          # finished loading, and that may produce unexpected results.
+          # For more information, see: https://github.com/rails/rails/issues/28589
+
+          load_schema_monitor.synchronize do
+            load_schema! unless schema_loaded?
           end
         end
 
