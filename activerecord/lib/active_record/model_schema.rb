@@ -1,3 +1,5 @@
+require "monitor"
+
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
@@ -152,6 +154,8 @@ module ActiveRecord
       self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
+
+      initialize_load_schema_monitor
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -435,15 +439,27 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
+      protected
+
+        def initialize_load_schema_monitor
+          @load_schema_monitor = Monitor.new
+        end
+
       private
 
+        def inherited(child_class)
+          super
+          child_class.initialize_load_schema_monitor
+        end
+
         def schema_loaded?
-          defined?(@columns_hash) && @columns_hash
+          defined?(@schema_loaded) && @schema_loaded
         end
 
         def load_schema
-          unless schema_loaded?
-            load_schema!
+          return if schema_loaded?
+          @load_schema_monitor.synchronize do
+            load_schema! unless defined?(@columns_hash) && @columns_hash
           end
         end
 
@@ -457,6 +473,8 @@ module ActiveRecord
               user_provided_default: false
             )
           end
+
+          @schema_loaded = true
         end
 
         def reload_schema_from_cache
@@ -470,6 +488,7 @@ module ActiveRecord
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
+          @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
           direct_descendants.each do |descendant|

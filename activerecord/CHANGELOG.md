@@ -1,3 +1,10 @@
+*   Loading model schema from database is now thread-safe.
+
+    Fixes #28589.
+
+    *Vikrant Chaudhary*, *David Abdemoulaie*
+
+
 ## Rails 5.1.1 (May 12, 2017) ##
 
 *   Add type caster to `RuntimeReflection#alias_name`
