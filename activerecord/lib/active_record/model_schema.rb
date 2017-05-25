@@ -381,7 +381,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.to_hash
       end
 
       def _default_attributes # :nodoc:
@@ -484,6 +484,7 @@ module ActiveRecord
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil
+          @column_defaults = nil
           @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
           @columns = nil
