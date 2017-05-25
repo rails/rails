@@ -524,6 +524,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.where(id: "1-meowmeow".."2-hello"), Topic.where(id: 1..2)
   end
 
+  def test_find_by_set
+    assert_equal Topic.where(id: Set.new([1, 2])), Topic.find([1, 2])
+    assert_equal 2, Topic.where(id: Set.new(["1-meowmeow", "2-hello"])).count
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
     assert_equal false, Topic.new == Topic.new
