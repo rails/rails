@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 
-class PerRequestDigestCacheTest < ActiveSupport::TestCase
+class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
   include Rack::Test::Methods
 
@@ -49,7 +49,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/views/customers/index.html.erb", <<-RUBY
-      <%= Current.customer.try(:name) %>, <%= Time.zone.name %>
+      <%= Current.customer.try(:name) || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
     require "#{app_path}/config/environment"
@@ -60,10 +60,10 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
   test "current customer is assigned and cleared" do
     get "/customers/set_current_customer"
     assert_equal 200, last_response.status
-    assert_match(/david, Copenhagen/, last_response.body)
+    assert_match(/david,Copenhagen/, last_response.body)
 
     get "/customers/set_no_customer"
     assert_equal 200, last_response.status
-    assert_match(/^\s+, UTC/, last_response.body)
+    assert_match(/noone,UTC/, last_response.body)
   end
 end
