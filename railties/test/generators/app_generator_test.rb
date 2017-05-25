@@ -412,13 +412,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_skip_yarn_is_given
-    run_generator [destination_root, "--skip-yarn"]
-
-    assert_no_file "package.json"
-    assert_no_file "bin/yarn"
-  end
-
   def test_generator_if_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
@@ -524,6 +517,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_for_yarn_skipped
     run_generator([destination_root, "--skip-yarn"])
     assert_no_file "package.json"
+    assert_no_file "bin/yarn"
 
     assert_file "config/initializers/assets.rb" do |content|
       assert_no_match(/node_modules/, content)
