@@ -199,7 +199,7 @@ module ActiveRecord
       def klass_join_scope(table, predicate_builder) # :nodoc:
         if klass.current_scope
           klass.current_scope.clone.tap { |scope|
-            scope.joins_values = []
+            scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
           relation = ActiveRecord::Relation.create(
