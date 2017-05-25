@@ -122,21 +122,6 @@ module ActiveSupport
         end
       end
 
-      # Delegate methods on both the class and instance level. Example:
-      #
-      #   class Current < ActiveSupport::CurrentAttributes
-      #     attribute :user
-      #     bidelegate :identity, to: :user
-      #   end
-      #
-      #   Current.instance.identity == Current.identity
-      def bidelegate(*methods, to:)
-        methods.each do |method|
-          define_method(method)           { |*args| public_send(to).public_send(method, *args) }
-          define_singleton_method(method) { |*args| public_send(to).public_send(method, *args) }
-        end
-      end
-
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
@@ -155,6 +140,15 @@ module ActiveSupport
 
         def current_instances
           Thread.current[:current_attributes_instances] ||= []
+        end
+
+        def method_missing(name, *args, &block)
+          # Caches the method definition as a singleton method of the receiver.
+          #
+          # By letting #delegate handle it, we avoid an enclosure that'll capture args.
+          singleton_class.delegate name, to: :instance
+
+          send(name, *args, &block)
         end
     end
 
