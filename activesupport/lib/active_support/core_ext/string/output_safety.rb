@@ -256,4 +256,8 @@ class String
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end
+
+  def html_safe?
+    false
+  end
 end
