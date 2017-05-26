@@ -403,9 +403,9 @@ module ActiveRecord
     #
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
+    # issue. When running callbacks is not needed for each record update,
+    # it is preferred to use #update_all for updating all records
+    # in a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
