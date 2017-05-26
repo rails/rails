@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/except"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/hash/indifferent_access"
 
@@ -355,9 +356,7 @@ module ActiveRecord
         # associations are just regular associations.
         def generate_association_writer(association_name, type)
           generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
-            if method_defined?(:#{association_name}_attributes=)
-              remove_method(:#{association_name}_attributes=)
-            end
+            silence_redefinition_of_method :#{association_name}_attributes=
             def #{association_name}_attributes=(attributes)
               assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
             end
