@@ -13,7 +13,6 @@ module Rails
       DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
-      WEBPACKS = %w( react vue angular )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -30,9 +29,6 @@ module Rails
 
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :webpack,            type: :string, default: nil,
-                                          desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
 
         class_option :skip_yarn,          type: :boolean, default: false,
                                           desc: "Don't use Yarn for managing JavaScript dependencies"
