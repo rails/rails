@@ -356,7 +356,7 @@ send_file('/var/www/uploads/' + params[:filename])
 Simply pass a file name like "../../../etc/passwd" to download the server's login information. A simple solution against this, is to _check that the requested file is in the expected directory_:
 
 ```ruby
-basename = File.expand_path(File.join(File.dirname(__FILE__), '../../files'))
+basename = File.expand_path('../../files', __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
 raise if basename !=
      File.expand_path(File.join(File.dirname(filename), '../../../'))

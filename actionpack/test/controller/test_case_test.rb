@@ -122,7 +122,7 @@ XML
     end
 
     def test_send_file
-      send_file(File.expand_path(__FILE__))
+      send_file(__FILE__)
     end
 
     def redirect_to_same_controller
@@ -780,7 +780,7 @@ XML
     end
   end
 
-  FILES_DIR = File.dirname(__FILE__) + "/../fixtures/multipart"
+  FILES_DIR = File.expand_path("../fixtures/multipart", __dir__)
 
   READ_BINARY = "rb:binary"
   READ_PLAIN = "r:binary"
@@ -855,7 +855,7 @@ XML
   end
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
-    TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
+    TestCaseTest.stub :fixture_path, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end

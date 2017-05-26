@@ -237,9 +237,6 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 end
 
-class AlsoDoingNothingTest < ActiveSupport::TestCase
-end
-
 # Setup and teardown callbacks.
 class SetupAndTeardownTest < ActiveSupport::TestCase
   setup :reset_callback_record, :foo

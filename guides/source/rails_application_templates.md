@@ -277,6 +277,6 @@ relative paths to your template's location.
 
 ```ruby
 def source_paths
-  [File.expand_path(File.dirname(__FILE__))]
+  [__dir__]
 end
 ```

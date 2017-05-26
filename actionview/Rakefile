@@ -2,8 +2,6 @@ require "rake/testtask"
 require "fileutils"
 require "open3"
 
-dir = File.dirname(__FILE__)
-
 desc "Default Task"
 task default: :test
 
@@ -95,7 +93,7 @@ namespace :assets do
   desc "Verify compiled Action View assets"
   task :verify do
     file = "lib/assets/compiled/rails-ujs.js"
-    pathname = Pathname.new("#{dir}/#{file}")
+    pathname = Pathname.new("#{__dir__}/#{file}")
 
     print "[verify] #{file} exists "
     if pathname.exist?
@@ -113,11 +111,11 @@ namespace :assets do
       fail
     end
 
-    print "[verify] #{dir} can be required as a module "
+    print "[verify] #{__dir__} can be required as a module "
     js = <<-JS
       window = { Event: class {} }
       class Element {}
-      require('#{dir}')
+      require('#{__dir__}')
     JS
     _, stderr, status = Open3.capture3("node", "--print", js)
     if status.success?
@@ -130,7 +128,7 @@ namespace :assets do
 end
 
 task :lines do
-  load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
+  load File.join(File.expand_path("..", __dir__), "/tools/line_statistics")
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

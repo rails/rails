@@ -954,7 +954,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Developer._reflections["shared_computers"]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
-    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")
     assert_equal developers(:david).shared_computers.first, computers(:laptop)
   end
 

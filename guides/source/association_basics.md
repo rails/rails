@@ -1559,7 +1559,7 @@ The `collection.size` method returns the number of objects in the collection.
 The `collection.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`.
 
 ```ruby
-@available_books = @author.books.find(1)
+@available_book = @author.books.find(1)
 ```
 
 ##### `collection.where(...)`

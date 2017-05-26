@@ -294,7 +294,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/config/routes.rb",              /Rails.application.routes.draw do/
     assert_file "hyphenated-name/lib/hyphenated/name/engine.rb", /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
     assert_file "hyphenated-name/lib/hyphenated/name.rb",        /require "hyphenated\/name\/engine"/
-    assert_file "hyphenated-name/bin/rails",                     /\.\.\/\.\.\/lib\/hyphenated\/name\/engine/
+    assert_file "hyphenated-name/bin/rails",                     /\.\.\/lib\/hyphenated\/name\/engine/
   end
 
   def test_creating_engine_with_hyphenated_and_underscored_name_in_full_mode
@@ -311,7 +311,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/config/routes.rb",              /Rails\.application\.routes\.draw do/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb", /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",        /require "my_hyphenated\/name\/engine"/
-    assert_file "my_hyphenated-name/bin/rails",                     /\.\.\/\.\.\/lib\/my_hyphenated\/name\/engine/
+    assert_file "my_hyphenated-name/bin/rails",                     /\.\.\/lib\/my_hyphenated\/name\/engine/
   end
 
   def test_being_quiet_while_creating_dummy_application
@@ -420,9 +420,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_usage_of_engine_commands
     run_generator [destination_root, "--full"]
-    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/\.\.\/lib\/bukkits\/engine', __FILE__\)/
-    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.\/\.\.', __FILE__\)/
-    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./\.\./test/dummy/config/application', __FILE__\)|
+    assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
+    assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
+    assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
     assert_file "bin/rails", /require 'rails\/all'/
     assert_file "bin/rails", /require 'rails\/engine\/commands'/
   end
@@ -741,7 +741,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     quietly { Rails::Engine::Updater.run(:create_bin_files) }
 
     assert_file "#{destination_root}/bin/rails" do |content|
-      assert_match(%r|APP_PATH = File\.expand_path\('\.\./\.\./test/dummy/config/application', __FILE__\)|, content)
+      assert_match(%r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|, content)
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")

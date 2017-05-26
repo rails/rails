@@ -316,7 +316,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_autoload_paths
-    path = File.expand_path("../../models/autoloadable", __FILE__)
+    path = File.expand_path("../models/autoloadable", __dir__)
     ActiveSupport::Dependencies.autoload_paths << path
 
     firm = Company.new(type: "ExtraFirm")
