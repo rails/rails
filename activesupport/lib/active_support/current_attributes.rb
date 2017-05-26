@@ -92,7 +92,9 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        Thread.current[:"current_attributes_for_#{name}"] ||= new
+        Thread.current[:"current_attributes_for_#{name}"] ||= new.tap do |instance|
+          current_instances << instance
+        end
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -120,21 +122,6 @@ module ActiveSupport
         end
       end
 
-      # Delegate methods on both the class and instance level. Example:
-      #
-      #   class Current < ActiveSupport::CurrentAttributes
-      #     attribute :user
-      #     bidelegate :identity, to: :user
-      #   end
-      #
-      #   Current.instance.identity == Current.identity
-      def bidelegate(*methods, to:)
-        methods.each do |method|
-          define_method(method)           { |*args| public_send(to).public_send(method, *args) }
-          define_singleton_method(method) { |*args| public_send(to).public_send(method, *args) }
-        end
-      end
-
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
@@ -142,9 +129,26 @@ module ActiveSupport
 
       delegate :set, :reset, to: :instance
 
+      def reset_all # :nodoc:
+        current_instances.each(&:reset)
+      end
+
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
+        end
+
+        def current_instances
+          Thread.current[:current_attributes_instances] ||= []
+        end
+
+        def method_missing(name, *args, &block)
+          # Caches the method definition as a singleton method of the receiver.
+          #
+          # By letting #delegate handle it, we avoid an enclosure that'll capture args.
+          singleton_class.delegate name, to: :instance
+
+          send(name, *args, &block)
         end
     end
 

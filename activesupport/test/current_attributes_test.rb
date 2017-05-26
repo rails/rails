@@ -5,7 +5,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
   class Current < ActiveSupport::CurrentAttributes
     attribute :world, :account, :person, :request
-    bidelegate :time_zone, to: :person
+    delegate :time_zone, to: :person
 
     resets { Time.zone = "UTC" }
 
@@ -21,6 +21,10 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     def request
       "#{super} something"
+    end
+
+    def intro
+      "#{person.name}, in #{time_zone}"
     end
   end
 
@@ -78,9 +82,15 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal "account/1", Current.account
   end
 
-  test "bidelegation" do
+  test "delegation" do
     Current.person = Person.new("David", "Central Time (US & Canada)")
     assert_equal "Central Time (US & Canada)", Current.time_zone
     assert_equal "Central Time (US & Canada)", Current.instance.time_zone
+  end
+
+  test "all methods forward to the instance" do
+    Current.person = Person.new("David", "Central Time (US & Canada)")
+    assert_equal "David, in Central Time (US & Canada)", Current.intro
+    assert_equal "David, in Central Time (US & Canada)", Current.instance.intro
   end
 end
