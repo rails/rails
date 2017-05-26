@@ -21,7 +21,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  FIXTURE_PATH = File.dirname(__FILE__) + "/../../fixtures/multipart"
+  FIXTURE_PATH = File.expand_path("../../fixtures/multipart", __dir__)
 
   def teardown
     TestController.last_request_parameters = nil

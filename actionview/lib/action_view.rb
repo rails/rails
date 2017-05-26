@@ -92,5 +92,5 @@ end
 require "active_support/core_ext/string/output_safety"
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+  I18n.load_path << File.expand_path("action_view/locale/en.yml", __dir__)
 end

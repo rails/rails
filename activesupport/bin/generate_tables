@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 begin
-  $:.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
+  $:.unshift(File.expand_path("../lib", __dir__))
   require "active_support"
 rescue IOError
 end
