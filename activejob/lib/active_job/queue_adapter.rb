@@ -49,10 +49,10 @@ module ActiveJob
           end
         end
 
-      def assign_adapter(adapter_name, queue_adapter)
-        self._queue_adapter_name = ActiveSupport::StringInquirer.new(adapter_name)
-        self._queue_adapter = queue_adapter
-      end
+        def assign_adapter(adapter_name, queue_adapter)
+          self._queue_adapter_name = adapter_name
+          self._queue_adapter = queue_adapter
+        end
 
         QUEUE_ADAPTER_METHODS = [:enqueue, :enqueue_at].freeze
 

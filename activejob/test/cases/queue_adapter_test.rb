@@ -29,13 +29,13 @@ class QueueAdapterTest < ActiveJob::TestCase
 
     child_job_one.queue_adapter = :stub_one
 
+    assert_not_equal ActiveJob::Base.queue_adapter, child_job_one.queue_adapter
     assert_equal "stub_one", child_job_one.queue_adapter_name
-    assert child_job_one.queue_adapter_name.stub_one?
     assert_kind_of ActiveJob::QueueAdapters::StubOneAdapter, child_job_one.queue_adapter
 
     child_job_two = Class.new(ActiveJob::Base)
     child_job_two.queue_adapter = :stub_two
-    assert child_job_two.queue_adapter_name.stub_two?
+
     assert_equal "stub_two", child_job_two.queue_adapter_name
 
     assert_kind_of ActiveJob::QueueAdapters::StubTwoAdapter, child_job_two.queue_adapter
