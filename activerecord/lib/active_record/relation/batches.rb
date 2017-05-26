@@ -30,11 +30,11 @@ module ActiveRecord
     #   end
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order and limit have to be ignored due to batching.
+    #   the order and limit have to be ignored due to batching.
     #
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
@@ -85,11 +85,11 @@ module ActiveRecord
     # To be yielded each record one by one, use #find_each instead.
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order and limit have to be ignored due to batching.
+    #   the order and limit have to be ignored due to batching.
     #
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
@@ -132,9 +132,9 @@ module ActiveRecord
     # If you do not provide a block to #in_batches, it will return a
     # BatchEnumerator which is enumerable.
     #
-    #   Person.in_batches.with_index do |relation, batch_index|
+    #   Person.in_batches.each_with_index do |relation, batch_index|
     #     puts "Processing relation ##{batch_index}"
-    #     relation.each { |relation| relation.delete_all }
+    #     relation.delete_all
     #   end
     #
     # Examples of calling methods on the returned BatchEnumerator object:
@@ -144,12 +144,12 @@ module ActiveRecord
     #   Person.in_batches.each_record(&:party_all_night!)
     #
     # ==== Options
-    # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
-    # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
+    # * <tt>:of</tt> - Specifies the size of the batch. Defaults to 1000.
+    # * <tt>:load</tt> - Specifies if the relation should be loaded. Defaults to false.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               the order and limit have to be ignored due to batching.
+    #   the order and limit have to be ignored due to batching.
     #
     # This is especially useful if you want to work with the
     # ActiveRecord::Relation object instead of the array of records, or if
@@ -176,7 +176,7 @@ module ActiveRecord
     #
     # NOTE: It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
-    # consistent. Therefore the primary key must be orderable, e.g an integer
+    # consistent. Therefore the primary key must be orderable, e.g. an integer
     # or a string.
     #
     # NOTE: You can't set the limit either, that's used to control the batch
