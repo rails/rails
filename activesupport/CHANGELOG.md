@@ -1,3 +1,8 @@
+*   Add ActiveSupport::CurrentAttributes to provide a thread-isolated attributes singleton.
+    Primary use case is keeping all the per-request attributes easily available to the whole system.
+    
+    *DHH*
+
 *   Fix implicit coercion calculations with scalars and durations
 
     Previously calculations where the scalar is first would be converted to a duration
