@@ -90,7 +90,7 @@ group :cable do
 end
 
 # Add your own local bundler stuff.
-local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do

@@ -138,7 +138,7 @@ module RenderTestCases
   end
 
   def test_render_file_with_full_path
-    template_path = File.join(File.dirname(__FILE__), "../fixtures/test/hello_world")
+    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
     assert_equal "Hello world!", @view.render(file: template_path)
   end
 
@@ -160,7 +160,7 @@ module RenderTestCases
   end
 
   def test_render_outside_path
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
       @view.render(template: "../\\../test/abstract_unit.rb")
     end
