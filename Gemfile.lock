@@ -8,11 +8,11 @@ GIT
 
 GIT
   remote: https://github.com/matthewd/rb-inotify.git
-  revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
+  revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
   specs:
-    rb-inotify (0.9.7)
-      ffi (>= 0.5.0)
+    rb-inotify (0.9.9)
+      ffi (~> 1.0)
 
 GIT
   remote: https://github.com/matthewd/websocket-client-simple.git

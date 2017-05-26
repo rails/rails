@@ -224,6 +224,18 @@ module Rails
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
+        # --webpack uses webpacker, which uses action view helpers
+        # --api skips action view
+        if options[:webpack] && options[:api]
+          raise Error, "Incompatible options --api and --webpack supplied. Please use either --api or --webpack"
+        end
+
+        # --webpack requires webpacker gem to be pre-bundled
+        # --skip-bundle skips bundle install
+        if options[:webpack] && options[:skip_bundle]
+          raise Error, "Incompatible options --webpack and --skip-bundle supplied. Please use either --skip-bundle or --webpack"
+        end
+
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]

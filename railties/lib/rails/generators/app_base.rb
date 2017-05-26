@@ -13,7 +13,7 @@ module Rails
       DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
-      WEBPACKS = %w( react vue angular )
+      WEBPACKS = %w( react vue angular elm )
 
       attr_accessor :rails_template
       add_shebang_option!

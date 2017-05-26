@@ -384,6 +384,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test/mailers"
   end
 
+  def test_generator_if_skip_bundle_and_webpack_is_given
+    stderr_output = capture(:stderr) { run_generator [destination_root, "--skip-bundle", "--webpack"] }
+    assert_equal(stderr_output, "Incompatible options --webpack and --skip-bundle supplied. Please use either --skip-bundle or --webpack\n")
+  end
+
+  def test_generator_if_api_and_webpack_is_given
+    stderr_output = capture(:stderr) { run_generator [destination_root, "--api", "--webpack"] }
+    assert_equal(stderr_output, "Incompatible options --api and --webpack supplied. Please use either --api or --webpack\n")
+  end
+
   def test_generator_has_assets_gems
     run_generator
 
