@@ -328,6 +328,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.foo
     refute topic.changed?
   end
+end
+
+class ThreadedSerializedAttributeTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+  fixtures :topics
 
   def test_serialized_attribute_works_under_concurrent_initial_access
     model = Topic.dup
