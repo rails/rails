@@ -1,12 +1,13 @@
 module ActiveSupport
-  # Abstract super class that provides a thread-isolated attributes singleton.
-  # Primary use case is keeping all the per-request attributes easily available to the whole system.
+  # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
+  # before and after reach request. This allows you to keep all the per-request attributes easily
+  # available to the whole system.
   #
   # The following full app-like example demonstrates how to use a Current class to
   # facilitate easy access to the global, per-request attributes without passing them deeply
   # around everywhere:
   #
-  #   # app/services/current.rb
+  #   # app/models/current.rb
   #   class Current < ActiveSupport::CurrentAttributes
   #     attribute :account, :user
   #     attribute :request_id, :user_agent, :ip_address
@@ -14,18 +15,9 @@ module ActiveSupport
   #     resets { Time.zone = nil }
   #
   #     def user=(user)
-  #       attributes[:user] = user
-  #       self.account = user.try(:account)
-  #       Time.zone = user.try(:time_zone)
-  #     end
-  #   end
-  #
-  #   module Current::Reset
-  #     extend ActiveSupport::Concern
-  #
-  #     included do
-  #       before_action { Current.reset }
-  #       after_action  { Current.reset }
+  #       super
+  #       self.account = user.account
+  #       Time.zone    = user.time_zone
   #     end
   #   end
   #
@@ -34,12 +26,16 @@ module ActiveSupport
   #     extend ActiveSupport::Concern
   #
   #     included do
-  #       before_action :set_current_authenticated_user
+  #       before_action :authenticate
   #     end
   #
   #     private
-  #       def set_current_authenticated_user
-  #         Current.user = User.find(cookies.signed[:user_id])
+  #       def authenticate
+  #         if authenticated_user = User.find(cookies.signed[:user_id])
+  #           Current.user = authenticated_user
+  #         else
+  #           redirect_to new_session_url
+  #         end
   #       end
   #   end
   #
@@ -57,7 +53,6 @@ module ActiveSupport
   #   end
   #
   #   class ApplicationController < ActionController::Base
-  #     include Current::Reset
   #     include Authentication
   #     include SetCurrentRequestDetails
   #   end
