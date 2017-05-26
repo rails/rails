@@ -1,3 +1,8 @@
+
+*   Fix Inflector#apply_inflections to use a locale for uncountables
+
+    *Eilis Hamilton*
+
 *   Fix implicit coercion calculations with scalars and durations
 
     Previously calculations where the scalar is first would be converted to a duration
