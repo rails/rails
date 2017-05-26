@@ -52,22 +52,17 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
       <%= Current.customer.try(:name) || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
-    app_file "config/initializers/executor_intercept.rb", <<-RUBY
-      class ExecutorIntercept
-        def initialize(app)
-          @app = app
-        end
+    app_file "app/executor_intercept.rb", <<-RUBY
+      check_state = -> { puts [ Current.customer.try(:name) || "noone", Time.zone.name ].join(",") }
 
-        def call(env)
-          @app.call(env).tap do |response|
-            puts "intercept"
-            # `complete!` is called after `response.body.close` is called.
-            response.body << [ "after", Current.customer.try(:name) || "noone", Time.zone.name ].join(",")
-          end
-        end
+      check_state.call
+
+      Rails.application.executor.wrap do
+        Current.customer = Customer.new("david")
+        check_state.call
       end
 
-      Rails.application.config.middleware.use ExecutorIntercept
+      check_state.call
     RUBY
 
     require "#{app_path}/config/environment"
@@ -79,11 +74,15 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
     get "/customers/set_current_customer"
     assert_equal 200, last_response.status
     assert_match(/david,Copenhagen/, last_response.body)
-    assert_match(/after,noone,UTC/,  last_response.body)
 
     get "/customers/set_no_customer"
     assert_equal 200, last_response.status
     assert_match(/noone,UTC/, last_response.body)
-    assert_match(/after,noone,UTC/,  last_response.body)
+  end
+
+  test "resets after execution" do
+    Dir.chdir(app_path) do
+      assert_equal "noone,UTC\ndavid,Copenhagen\nnoone,UTC\n", `bin/rails runner app/executor_intercept.rb`
+    end
   end
 end

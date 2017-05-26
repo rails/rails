@@ -9,7 +9,6 @@ module ActionDispatch
     def call(env)
       state = @executor.run!
       begin
-        puts "running"
         response = @app.call(env)
         returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
       ensure
