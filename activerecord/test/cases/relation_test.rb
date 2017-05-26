@@ -89,6 +89,10 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_arel_table_alias
+      assert_equal Post.t, Post.arel_table
+    end
+
     def test_table_name_delegates_to_klass
       relation = Relation.new(FakeKlass.new("posts"), :b, Post.predicate_builder)
       assert_equal "posts", relation.table_name
