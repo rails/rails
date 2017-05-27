@@ -8,7 +8,7 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
   setup do
     build_app
 
-    app_file "app/services/current.rb", <<-RUBY
+    app_file "app/models/current.rb", <<-RUBY
       class Current < ActiveSupport::CurrentAttributes
         attribute :customer
 
