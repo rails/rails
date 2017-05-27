@@ -377,14 +377,15 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq && seq.identifier == "#{table_name}_#{pk}_seq"
-            new_seq = "#{new_name}_#{pk}_seq"
+          if pk
             idx = "#{table_name}_pkey"
             new_idx = "#{new_name}_pkey"
-            execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
             execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
+            if seq && seq.identifier == "#{table_name}_#{pk}_seq"
+              new_seq = "#{new_name}_#{pk}_seq"
+              execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
+            end
           end
-
           rename_table_indexes(table_name, new_name)
         end
 
