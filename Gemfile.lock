@@ -7,12 +7,12 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
-  remote: https://github.com/matthewd/rb-inotify.git
-  revision: 90553518d1fb79aedc98a3036c59bd2b6731ac40
-  branch: close-handling
+  remote: https://github.com/guard/rb-inotify.git
+  revision: 7e3c714a09ae2b38d2620835e794150d8857cd49
+  branch: master
   specs:
-    rb-inotify (0.9.7)
-      ffi (>= 0.5.0)
+    rb-inotify (0.9.9)
+      ffi (~> 1.0)
 
 GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
