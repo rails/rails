@@ -34,9 +34,7 @@ class Module
   #   end
   #
   #   Current.new.user # => NoMethodError
-  def thread_mattr_reader(*syms) # :nodoc:
-    options = syms.extract_options!
-
+  def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -48,7 +46,7 @@ class Module
         end
       EOS
 
-      unless options[:instance_reader] == false || options[:instance_accessor] == false
+      unless (instance_reader == false) || (instance_accessor == false)
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
             self.class.#{sym}
@@ -77,8 +75,7 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms) # :nodoc:
-    options = syms.extract_options!
+  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -90,7 +87,7 @@ class Module
         end
       EOS
 
-      unless options[:instance_writer] == false || options[:instance_accessor] == false
+      unless (instance_writer == false) || (instance_accessor == false)
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
             self.class.#{sym} = obj
@@ -140,9 +137,9 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
-  def thread_mattr_accessor(*syms)
-    thread_mattr_reader(*syms)
-    thread_mattr_writer(*syms)
+  def thread_mattr_accessor(*syms, instance_accessor: true, instance_reader: true, instance_writer: true)
+    thread_mattr_reader(*syms, instance_accessor: instance_accessor, instance_reader: instance_reader)
+    thread_mattr_writer(*syms, instance_accessor: instance_accessor, instance_writer: instance_writer)
   end
   alias :thread_cattr_accessor :thread_mattr_accessor
 end
