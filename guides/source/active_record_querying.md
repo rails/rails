@@ -150,7 +150,7 @@ The `take` method returns `nil` if no record is found and no exception will be r
 You can pass in a numerical argument to the `take` method to return up to that number of results. For example
 
 ```ruby
-client = Client.take(2)
+clients = Client.take(2)
 # => [
 #   #<Client id: 1, first_name: "Lifo">,
 #   #<Client id: 220, first_name: "Sara">
@@ -189,7 +189,7 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example
 
 ```ruby
-client = Client.first(3)
+clients = Client.first(3)
 # => [
 #   #<Client id: 1, first_name: "Lifo">,
 #   #<Client id: 2, first_name: "Fifo">,
@@ -240,7 +240,7 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example
 
 ```ruby
-client = Client.last(3)
+clients = Client.last(3)
 # => [
 #   #<Client id: 219, first_name: "James">,
 #   #<Client id: 220, first_name: "Sara">,
