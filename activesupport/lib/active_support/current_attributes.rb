@@ -31,7 +31,7 @@ module ActiveSupport
   #
   #     private
   #       def authenticate
-  #         if authenticated_user = User.find(cookies.signed[:user_id])
+  #         if authenticated_user = User.find_by(id: cookies.signed[:user_id])
   #           Current.user = authenticated_user
   #         else
   #           redirect_to new_session_url
