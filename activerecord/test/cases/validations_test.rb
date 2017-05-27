@@ -167,6 +167,20 @@ class ValidationsTest < ActiveRecord::TestCase
     assert topic.valid?
   end
 
+  def test_numericality_validation_checks_against_raw_value
+    klass = Class.new(Topic) do
+      def self.model_name
+        ActiveModel::Name.new(self, nil, "Topic")
+      end
+      attribute :wibble, :decimal, scale: 2, precision: 9
+      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal.new("97.18")
+    end
+
+    assert_not klass.new(wibble: "97.179").valid?
+    assert_not klass.new(wibble: 97.179).valid?
+    assert_not klass.new(wibble: BigDecimal.new("97.179")).valid?
+  end
+
   def test_acceptance_validator_doesnt_require_db_connection
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "posts"
