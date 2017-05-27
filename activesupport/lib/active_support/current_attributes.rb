@@ -1,6 +1,6 @@
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
-  # before and after reach request. This allows you to keep all the per-request attributes easily
+  # before and after each request. This allows you to keep all the per-request attributes easily
   # available to the whole system.
   #
   # The following full app-like example demonstrates how to use a Current class to
