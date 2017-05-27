@@ -118,7 +118,7 @@ You can also use this method to query for multiple objects. Call the `find` meth
 
 ```ruby
 # Find the clients with primary keys 1 and 10.
-client = Client.find([1, 10]) # Or even Client.find(1, 10)
+clients = Client.find([1, 10]) # Or even Client.find(1, 10)
 # => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
 ```
 
