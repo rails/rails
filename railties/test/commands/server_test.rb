@@ -165,6 +165,12 @@ class Rails::ServerTest < ActiveSupport::TestCase
 
     server_options = parse_arguments(["--port", 3001])
     assert_equal [:Port], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["-p3001", "-C", "--binding", "127.0.0.1"])
+    assert_equal [:Port, :Host, :caching], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["--port=3001"])
+    assert_equal [:Port], server_options[:user_supplied_options]
   end
 
   def test_default_options
