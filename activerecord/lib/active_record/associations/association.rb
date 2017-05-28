@@ -152,14 +152,6 @@ module ActiveRecord
         reset
       end
 
-      def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
-          owner.instance_exec(record, &sql)
-        else
-          sql
-        end
-      end
-
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
         ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
