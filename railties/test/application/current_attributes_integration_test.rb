@@ -52,19 +52,6 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
       <%= Current.customer.try(:name) || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
-    app_file "app/executor_intercept.rb", <<-RUBY
-      check_state = -> { puts [ Current.customer.try(:name) || "noone", Time.zone.name ].join(",") }
-
-      check_state.call
-
-      Rails.application.executor.wrap do
-        Current.customer = Customer.new("david")
-        check_state.call
-      end
-
-      check_state.call
-    RUBY
-
     require "#{app_path}/config/environment"
   end
 
@@ -81,8 +68,17 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
   end
 
   test "resets after execution" do
-    Dir.chdir(app_path) do
-      assert_equal "noone,UTC\ndavid,Copenhagen\nnoone,UTC\n", `bin/rails runner app/executor_intercept.rb`
+    assert_nil Current.customer
+    assert_equal "UTC", Time.zone.name
+
+    Rails.application.executor.wrap do
+      Current.customer = Customer.new("david")
+
+      assert_equal "david", Current.customer.name
+      assert_equal "Copenhagen", Time.zone.name
     end
+
+    assert_nil Current.customer
+    assert_equal "UTC", Time.zone.name
   end
 end
