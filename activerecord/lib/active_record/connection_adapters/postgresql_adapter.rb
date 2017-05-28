@@ -149,6 +149,7 @@ module ActiveRecord
         true
       end
 
+      # JSON isn't supported until PostgreSQL 9.2
       def supports_json?
         postgresql_version >= 90200
       end
@@ -283,6 +284,7 @@ module ActiveRecord
         true
       end
 
+      # Returns true, since this adapter supports advisory locks.
       def supports_advisory_locks?
         true
       end
@@ -300,6 +302,7 @@ module ActiveRecord
         postgresql_version >= 90200
       end
 
+      # Materialized views weren't supported until PostgreSQL 9.3
       def supports_materialized_views?
         postgresql_version >= 90300
       end
