@@ -1,3 +1,7 @@
+*   `#singularize` and `#pluralize` now respect uncountables for the specified locale.
+
+    *Eilis Hamilton*
+
 *   Add ActiveSupport::CurrentAttributes to provide a thread-isolated attributes singleton.
     Primary use case is keeping all the per-request attributes easily available to the whole system.
     
