@@ -1,3 +1,8 @@
+*   Fix regression in numericality validator when comparing Decimal and Float input 
+    values with more scale than the schema.
+
+    *Bradley Priest*
+
 *   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
 
     Change `#keys` to only return the keys that don't have empty messages.
