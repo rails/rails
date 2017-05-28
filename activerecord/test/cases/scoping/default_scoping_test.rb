@@ -486,6 +486,8 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_is_threadsafe
+    2.times { ThreadsafeDeveloper.unscoped.create! }
+
     threads = []
     assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
 
@@ -504,5 +506,7 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       ThreadsafeDeveloper.connection.close
     end
     threads.each(&:join)
+  ensure
+    ThreadsafeDeveloper.unscoped.destroy_all
   end
 end unless in_memory_db?
