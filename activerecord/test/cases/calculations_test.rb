@@ -705,6 +705,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
   end
 
+  def test_group_by_with_limit
+    expected = { "Post" => 8, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_offset
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_limit_and_offset
+    expected = { "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
   def test_pluck_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     ids = Company.includes(:contracts).pluck(:developer_id)
