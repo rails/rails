@@ -8,8 +8,9 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
-      app.executor.to_run      { ActiveSupport::CurrentAttributes.reset_all }
-      app.executor.to_complete { ActiveSupport::CurrentAttributes.reset_all }
+      app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
+      app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
+      app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
     end
 
     initializer "active_support.deprecation_behavior" do |app|

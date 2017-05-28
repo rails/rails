@@ -126,6 +126,11 @@ module ActiveSupport
         current_instances.each_value(&:reset)
       end
 
+      def clear_all # :nodoc:
+        reset_all
+        current_instances.clear
+      end
+
       private
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
