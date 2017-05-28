@@ -87,9 +87,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        Thread.current[:"current_attributes_for_#{name}"] ||= new.tap do |instance|
-          current_instances << instance
-        end
+        current_instances[name] ||= new
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -125,7 +123,7 @@ module ActiveSupport
       delegate :set, :reset, to: :instance
 
       def reset_all # :nodoc:
-        current_instances.each(&:reset)
+        current_instances.each_value(&:reset)
       end
 
       private
@@ -134,7 +132,7 @@ module ActiveSupport
         end
 
         def current_instances
-          Thread.current[:current_attributes_instances] ||= []
+          Thread.current[:current_attributes_instances] ||= {}
         end
 
         def method_missing(name, *args, &block)
