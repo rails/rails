@@ -30,13 +30,8 @@ module ActiveRecord
         end
 
         def default_scoped # :nodoc:
-          scope = build_default_scope
-
-          if scope
-            relation.spawn.merge!(scope)
-          else
-            relation
-          end
+          scope = relation
+          build_default_scope(scope) || scope
         end
 
         # Adds a class method for retrieving and querying objects.
