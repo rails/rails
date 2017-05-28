@@ -162,6 +162,11 @@ module ApplicationTests
         end
       RUBY
 
+      add_to_config <<-RUBY
+        # Enable AEAD cookies
+        config.action_dispatch.use_authenticated_cookie_encryption = true
+      RUBY
+
       require "#{app_path}/config/environment"
 
       get "/foo/write_session"
@@ -171,9 +176,9 @@ module ApplicationTests
       get "/foo/read_encrypted_cookie"
       assert_equal "1", last_response.body
 
-      secret = app.key_generator.generate_key("encrypted cookie")
-      sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
+      cipher = "aes-256-gcm"
+      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
@@ -209,6 +214,9 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+
+        # Enable AEAD cookies
+        config.action_dispatch.use_authenticated_cookie_encryption = true
       RUBY
 
       require "#{app_path}/config/environment"
@@ -220,9 +228,9 @@ module ApplicationTests
       get "/foo/read_encrypted_cookie"
       assert_equal "1", last_response.body
 
-      secret = app.key_generator.generate_key("encrypted cookie")
-      sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
+      cipher = "aes-256-gcm"
+      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body)["foo"]
@@ -264,6 +272,9 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+
+        # Enable AEAD cookies
+        config.action_dispatch.use_authenticated_cookie_encryption = true
       RUBY
 
       require "#{app_path}/config/environment"
@@ -279,9 +290,73 @@ module ApplicationTests
       get "/foo/read_encrypted_cookie"
       assert_equal "2", last_response.body
 
-      secret = app.key_generator.generate_key("encrypted cookie")
-      sign_secret = app.key_generator.generate_key("signed encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
+      cipher = "aes-256-gcm"
+      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+
+      get "/foo/read_raw_cookie"
+      assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
+    end
+
+    test "session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def write_raw_session
+            # AES-256-CBC with SHA1 HMAC
+            # {"session_id"=>"1965d95720fffc123941bdfb7d2e6870", "foo"=>1}
+            cookies[:_myapp_session] = "TlgrdS85aUpDd1R2cDlPWlR6K0FJeGExckwySjZ2Z0pkR3d2QnRObGxZT25aalJWYWVvbFVLcHF4d0VQVDdSaFF2QjFPbG9MVjJzeWp3YjcyRUlKUUU2ZlR4bXlSNG9ZUkJPRUtld0E3dVU9LS0xNDZXbGpRZ3NjdW43N2haUEZJSUNRPT0=--3639b5ce54c09495cfeaae928cd5634e0c4b2e96"
+            head :ok
+          end
+
+          def write_session
+            session[:foo] = session[:foo] + 1
+            head :ok
+          end
+
+          def read_session
+            render plain: session[:foo]
+          end
+
+          def read_encrypted_cookie
+            render plain: cookies.encrypted[:_myapp_session]['foo']
+          end
+
+          def read_raw_cookie
+            render plain: cookies[:_myapp_session]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        # Use a static key
+        secrets.secret_key_base = "known key base"
+
+        # Enable AEAD cookies
+        config.action_dispatch.use_authenticated_cookie_encryption = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/foo/write_raw_session"
+      get "/foo/read_session"
+      assert_equal "1", last_response.body
+
+      get "/foo/write_session"
+      get "/foo/read_session"
+      assert_equal "2", last_response.body
+
+      get "/foo/read_encrypted_cookie"
+      assert_equal "2", last_response.body
+
+      cipher = "aes-256-gcm"
+      secret = app.key_generator.generate_key("authenticated encrypted cookie")
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
 
       get "/foo/read_raw_cookie"
       assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]

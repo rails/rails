@@ -88,6 +88,10 @@ module Rails
             active_record.cache_versioning = true
           end
 
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_authenticated_cookie_encryption = true
+          end
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

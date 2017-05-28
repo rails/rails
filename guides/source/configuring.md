@@ -456,10 +456,14 @@ to `'http authentication'`.
 Defaults to `'signed cookie'`.
 
 * `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt
-value. Defaults to `'encrypted cookie'`.
+  value. Defaults to `'encrypted cookie'`.
 
 * `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
-encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+  encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+
+* `config.action_dispatch.authenticated_encrypted_cookie_salt` sets the
+  authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
+  cookie'`.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)

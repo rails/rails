@@ -1,3 +1,13 @@
+*   AEAD encrypted cookies and sessions with GCM
+
+    Encrypted cookies now use AES-GCM which couples authentication and
+    encryption in one faster step and produces shorter ciphertexts. Cookies
+    encrypted using AES in CBC HMAC mode will be seamlessly upgraded when
+    this new mode is enabled via the
+    `action_dispatch.use_authenticated_cookie_encryption` configuration value.
+
+    *Michael J Coyne*
+
 *   Change the cache key format for fragments to make it easier to debug key churn. The new format is:
 
         views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
