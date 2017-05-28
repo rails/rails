@@ -156,17 +156,17 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+              scope = all
+              scope = scope.scoping { instance_exec(*args, &body) || scope }
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           else
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
+              scope = all
+              scope = scope.scoping { body.call(*args) || scope }
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           end
         end
