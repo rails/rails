@@ -186,17 +186,17 @@ module ActiveRecord
 
         # Returns the current database encoding format.
         def encoding
-          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database collation.
         def collation
-          select_value("SELECT datcollate FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database ctype.
         def ctype
-          select_value("SELECT datctype FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns an array of schema names.
