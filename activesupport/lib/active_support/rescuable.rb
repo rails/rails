@@ -8,8 +8,7 @@ module ActiveSupport
     extend Concern
 
     included do
-      class_attribute :rescue_handlers
-      self.rescue_handlers = []
+      class_attribute :rescue_handlers, default: []
     end
 
     module ClassMethods

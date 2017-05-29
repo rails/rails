@@ -1,3 +1,14 @@
+*   Add default option to class_attribute. Before:
+
+      class_attribute :settings
+      self.settings = {}
+
+    Now:
+
+      class_attribute :settings, default: {}
+
+    *DHH*
+
 *   `#singularize` and `#pluralize` now respect uncountables for the specified locale.
 
     *Eilis Hamilton*

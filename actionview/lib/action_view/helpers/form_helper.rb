@@ -1606,14 +1606,15 @@ module ActionView
       include ModelNaming
 
       # The methods which wrap a form helper call.
-      class_attribute :field_helpers
-      self.field_helpers = [:fields_for, :fields, :label, :text_field, :password_field,
-                            :hidden_field, :file_field, :text_area, :check_box,
-                            :radio_button, :color_field, :search_field,
-                            :telephone_field, :phone_field, :date_field,
-                            :time_field, :datetime_field, :datetime_local_field,
-                            :month_field, :week_field, :url_field, :email_field,
-                            :number_field, :range_field]
+      class_attribute :field_helpers, default: [
+        :fields_for, :fields, :label, :text_field, :password_field,
+        :hidden_field, :file_field, :text_area, :check_box,
+        :radio_button, :color_field, :search_field,
+        :telephone_field, :phone_field, :date_field,
+        :time_field, :datetime_field, :datetime_local_field,
+        :month_field, :week_field, :url_field, :email_field,
+        :number_field, :range_field
+      ]
 
       attr_accessor :object_name, :object, :options
 

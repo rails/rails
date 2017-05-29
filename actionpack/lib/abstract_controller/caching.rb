@@ -37,8 +37,7 @@ module AbstractController
       config_accessor :enable_fragment_cache_logging
       self.enable_fragment_cache_logging = false
 
-      class_attribute :_view_cache_dependencies
-      self._view_cache_dependencies = []
+      class_attribute :_view_cache_dependencies, default: []
       helper_method :view_cache_dependencies if respond_to?(:helper_method)
     end
 

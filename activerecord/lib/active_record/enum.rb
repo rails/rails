@@ -95,8 +95,7 @@ module ActiveRecord
 
   module Enum
     def self.extended(base) # :nodoc:
-      base.class_attribute(:defined_enums, instance_writer: false)
-      base.defined_enums = {}
+      base.class_attribute(:defined_enums, instance_writer: false, default: {})
     end
 
     def inherited(base) # :nodoc:

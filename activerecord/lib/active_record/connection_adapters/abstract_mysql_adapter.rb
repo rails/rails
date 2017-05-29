@@ -29,8 +29,7 @@ module ActiveRecord
       # to your application.rb file:
       #
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
-      class_attribute :emulate_booleans
-      self.emulate_booleans = true
+      class_attribute :emulate_booleans, default: true
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
