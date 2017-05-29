@@ -809,4 +809,16 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
+
+  def test_deprecate_count_with_block_and_column_name
+    assert_deprecated do
+      assert_equal 6, Account.count(:firm_id) { true }
+    end
+  end
+
+  def test_deprecate_sum_with_block_and_column_name
+    assert_deprecated do
+      assert_equal 6, Account.sum(:firm_id) { 1 }
+    end
+  end
 end
