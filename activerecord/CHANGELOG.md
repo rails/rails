@@ -1,3 +1,7 @@
+*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
+
+    *Ryuta Kamizono*
+
 *   Loading model schema from database is now thread-safe.
 
     Fixes #28589.
