@@ -134,7 +134,7 @@ module ActiveRecord
       end
 
       def extensions
-        extensions = klass.all.extensions | reflection.extensions
+        extensions = klass.default_extensions | reflection.extensions
 
         if scope = reflection.scope
           extensions |= klass.unscoped.instance_exec(owner, &scope).extensions

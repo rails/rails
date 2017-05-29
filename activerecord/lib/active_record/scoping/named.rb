@@ -34,6 +34,14 @@ module ActiveRecord
           build_default_scope(scope) || scope
         end
 
+        def default_extensions # :nodoc:
+          if scope = current_scope || build_default_scope
+            scope.extensions
+          else
+            []
+          end
+        end
+
         # Adds a class method for retrieving and querying objects.
         # The method is intended to return an ActiveRecord::Relation
         # object, which is composable with other scopes.
