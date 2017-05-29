@@ -1,11 +1,11 @@
 *   Add default option to class_attribute. Before:
 
-      class_attribute :settings
-      self.settings = {}
+        class_attribute :settings
+        self.settings = {}
 
     Now:
 
-      class_attribute :settings, default: {}
+        class_attribute :settings, default: {}
 
     *DHH*
 
@@ -15,7 +15,7 @@
 
 *   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated attributes singleton.
     Primary use case is keeping all the per-request attributes easily available to the whole system.
-    
+
     *DHH*
 
 *   Fix implicit coercion calculations with scalars and durations
