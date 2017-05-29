@@ -36,10 +36,20 @@ Require `rails-ujs` into your application.js manifest.
 //= require rails-ujs
 ```
 
+Usage with yarn
+------------
+
+When using with Webpacker gem or your preferred JavaScript bundler. Just add the following to your main JS file and compile.
+
+```javascript
+import Rails from 'rails-ujs';
+Rails.start()
+```
+
 How to run tests
 ------------
 
-Run `bundle exec rake ujs:server` first, and then run the web tests by visiting [[http://localhost:4567]] in your browser.
+Run `bundle exec rake ujs:server` first, and then run the web tests by visiting http://localhost:4567 in your browser.
 
 ## License
 rails-ujs is released under the [MIT License](MIT-LICENSE).

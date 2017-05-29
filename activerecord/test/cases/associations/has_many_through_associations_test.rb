@@ -64,10 +64,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  club1.members.sort_by(&:id)
   end
 
-  def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
-  end
-
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
@@ -150,20 +146,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
     assert after_destroy_called, "after destroy should be called"
-  end
-
-  def make_no_pk_hm_t
-    lesson = make_model "Lesson"
-    student = make_model "Student"
-
-    lesson_student = make_model "LessonStudent"
-    lesson_student.table_name = "lessons_students"
-
-    lesson_student.belongs_to :lesson, anonymous_class: lesson
-    lesson_student.belongs_to :student, anonymous_class: student
-    lesson.has_many :lesson_students, anonymous_class: lesson_student
-    lesson.has_many :students, through: :lesson_students, anonymous_class: student
-    [lesson, lesson_student, student]
   end
 
   def test_pk_is_not_required_for_join
@@ -1252,4 +1234,23 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       )
     end
   end
+
+  private
+    def make_model(name)
+      Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    end
+
+    def make_no_pk_hm_t
+      lesson = make_model "Lesson"
+      student = make_model "Student"
+
+      lesson_student = make_model "LessonStudent"
+      lesson_student.table_name = "lessons_students"
+
+      lesson_student.belongs_to :lesson, anonymous_class: lesson
+      lesson_student.belongs_to :student, anonymous_class: student
+      lesson.has_many :lesson_students, anonymous_class: lesson_student
+      lesson.has_many :students, through: :lesson_students, anonymous_class: student
+      [lesson, lesson_student, student]
+    end
 end

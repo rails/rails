@@ -8,8 +8,7 @@ module ActiveSupport
     extend Concern
 
     included do
-      class_attribute :rescue_handlers
-      self.rescue_handlers = []
+      class_attribute :rescue_handlers, default: []
     end
 
     module ClassMethods
@@ -84,12 +83,18 @@ module ActiveSupport
       #     end
       #
       # Returns the exception if it was handled and +nil+ if it was not.
-      def rescue_with_handler(exception, object: self)
+      def rescue_with_handler(exception, object: self, visited_exceptions: [])
+        visited_exceptions << exception
+
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception
           exception
         elsif exception
-          rescue_with_handler(exception.cause, object: object)
+          if visited_exceptions.include?(exception.cause)
+            nil
+          else
+            rescue_with_handler(exception.cause, object: object, visited_exceptions: visited_exceptions)
+          end
         end
       end
 

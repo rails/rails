@@ -6,8 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
-      self.attributes_to_define_after_schema_loads = {}
+      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods

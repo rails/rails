@@ -10,8 +10,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, instance_writer: false
-      self.nested_attributes_options = {}
+      class_attribute :nested_attributes_options, instance_writer: false, default: {}
     end
 
     # = Active Record Nested Attributes
@@ -458,7 +457,7 @@ module ActiveRecord
         end
 
         unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
-          raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
+          raise ArgumentError, "Hash or Array expected for attribute `#{association_name}`, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
         end
 
         check_record_limit!(options[:limit], attributes_collection)

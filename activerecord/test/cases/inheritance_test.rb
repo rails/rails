@@ -316,7 +316,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_autoload_paths
-    path = File.expand_path("../../models/autoloadable", __FILE__)
+    path = File.expand_path("../models/autoloadable", __dir__)
     ActiveSupport::Dependencies.autoload_paths << path
 
     firm = Company.new(type: "ExtraFirm")
@@ -417,7 +417,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
+    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = 1/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end

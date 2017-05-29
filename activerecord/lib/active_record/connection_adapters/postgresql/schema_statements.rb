@@ -186,17 +186,17 @@ module ActiveRecord
 
         # Returns the current database encoding format.
         def encoding
-          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database collation.
         def collation
-          select_value("SELECT datcollate FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database ctype.
         def ctype
-          select_value("SELECT datctype FROM pg_database WHERE datname LIKE '#{current_database}'", "SCHEMA")
+          select_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns an array of schema names.
@@ -377,14 +377,15 @@ module ActiveRecord
           clear_cache!
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
-          if seq && seq.identifier == "#{table_name}_#{pk}_seq"
-            new_seq = "#{new_name}_#{pk}_seq"
+          if pk
             idx = "#{table_name}_pkey"
             new_idx = "#{new_name}_pkey"
-            execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
             execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
+            if seq && seq.identifier == "#{table_name}_#{pk}_seq"
+              new_seq = "#{new_name}_#{pk}_seq"
+              execute "ALTER TABLE #{seq.quoted} RENAME TO #{quote_table_name(new_seq)}"
+            end
           end
-
           rename_table_indexes(table_name, new_name)
         end
 

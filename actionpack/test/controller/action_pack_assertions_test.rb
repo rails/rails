@@ -83,7 +83,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_file_absolute_path
-    render file: File.expand_path("../../../README.rdoc", __FILE__)
+    render file: File.expand_path("../../README.rdoc", __dir__)
   end
 
   def render_file_relative_path

@@ -22,8 +22,7 @@ module ActionController
     include ActionController::ConditionalGet
 
     included do
-      class_attribute :etag_with_template_digest
-      self.etag_with_template_digest = true
+      class_attribute :etag_with_template_digest, default: true
 
       ActiveSupport.on_load :action_view, yield: true do
         etag do |options|

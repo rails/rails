@@ -159,8 +159,7 @@ module ActionController
     end
 
     included do
-      class_attribute :_wrapper_options
-      self._wrapper_options = Options.from_hash(format: [])
+      class_attribute :_wrapper_options, default: Options.from_hash(format: [])
     end
 
     module ClassMethods

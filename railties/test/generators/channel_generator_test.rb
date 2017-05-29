@@ -25,7 +25,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+      assert_match(/App\.chat = App\.cable\.subscriptions\.create\("ChatChannel/, channel)
     end
   end
 
@@ -39,7 +39,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+      assert_match(/App\.chat = App\.cable\.subscriptions\.create\("ChatChannel/, channel)
       assert_match(/,\n\n  speak/, channel)
       assert_match(/,\n\n  mute: function\(\) \{\n    return this\.perform\('mute'\);\n  \}\n\}\);/, channel)
     end

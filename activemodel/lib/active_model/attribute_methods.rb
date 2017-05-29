@@ -68,9 +68,8 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_aliases, :attribute_method_matchers, instance_writer: false
-      self.attribute_aliases = {}
-      self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
+      class_attribute :attribute_aliases, instance_writer: false, default: {}
+      class_attribute :attribute_method_matchers, instance_writer: false, default: [ ClassMethods::AttributeMethodMatcher.new ]
     end
 
     module ClassMethods

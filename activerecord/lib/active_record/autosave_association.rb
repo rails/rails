@@ -216,13 +216,7 @@ module ActiveRecord
               method = :validate_single_association
             end
 
-            define_non_cyclic_method(validation_method) do
-              send(method, reflection)
-              # TODO: remove the following line as soon as the return value of
-              # callbacks is ignored, that is, returning `false` does not
-              # display a deprecation warning or halts the callback chain.
-              true
-            end
+            define_non_cyclic_method(validation_method) { send(method, reflection) }
             validate validation_method
             after_validation :_ensure_no_duplicate_errors
           end
@@ -369,7 +363,6 @@ module ActiveRecord
       # association whether or not the parent was a new record before saving.
       def before_save_collection_association
         @new_record_before_save = new_record?
-        true
       end
 
       def after_save_collection_association
@@ -389,7 +382,7 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           # reconstruct the scope now that we know the owner's id
-          association.reset_scope if association.respond_to?(:reset_scope)
+          association.reset_scope
 
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
             if autosave

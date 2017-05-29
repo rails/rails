@@ -1,12 +1,3 @@
-require "active_record/relation/predicate_builder/array_handler"
-require "active_record/relation/predicate_builder/base_handler"
-require "active_record/relation/predicate_builder/basic_object_handler"
-require "active_record/relation/predicate_builder/range_handler"
-require "active_record/relation/predicate_builder/relation_handler"
-
-require "active_record/relation/predicate_builder/association_query_value"
-require "active_record/relation/predicate_builder/polymorphic_array_value"
-
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     delegate :resolve_column_aliases, to: :table
@@ -178,3 +169,12 @@ module ActiveRecord
       end
   end
 end
+
+require "active_record/relation/predicate_builder/array_handler"
+require "active_record/relation/predicate_builder/base_handler"
+require "active_record/relation/predicate_builder/basic_object_handler"
+require "active_record/relation/predicate_builder/range_handler"
+require "active_record/relation/predicate_builder/relation_handler"
+
+require "active_record/relation/predicate_builder/association_query_value"
+require "active_record/relation/predicate_builder/polymorphic_array_value"

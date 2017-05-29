@@ -23,7 +23,7 @@ module Rails
       end
 
       def environment # :nodoc:
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+        ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.

@@ -666,8 +666,8 @@ module ActionController
     # to key. If the key is not found, returns the default value. If the
     # optional code block is given and the key is not found, pass in the key
     # and return the result of block.
-    def delete(key)
-      convert_value_to_parameters(@parameters.delete(key))
+    def delete(key, &block)
+      convert_value_to_parameters(@parameters.delete(key, &block))
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt> with only

@@ -152,7 +152,7 @@ module ActionController
       end
 
       def write_sleep_autoload
-        path = File.join(File.dirname(__FILE__), "../fixtures")
+        path = File.expand_path("../fixtures", __dir__)
         ActiveSupport::Dependencies.autoload_paths << path
 
         response.headers["Content-Type"] = "text/event-stream"

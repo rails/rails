@@ -115,7 +115,7 @@ module ActiveSupport
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
+        raise InvalidMessage if aead_mode? && (auth_tag.nil? || auth_tag.bytes.length != 16)
 
         cipher.decrypt
         cipher.key = @secret

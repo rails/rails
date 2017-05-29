@@ -8,10 +8,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_reflections, instance_writer: false
-      class_attribute :aggregate_reflections, instance_writer: false
-      self._reflections = {}
-      self.aggregate_reflections = {}
+      class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
     def self.create(macro, name, scope, options, ar)
@@ -199,7 +197,7 @@ module ActiveRecord
       def klass_join_scope(table, predicate_builder) # :nodoc:
         if klass.current_scope
           klass.current_scope.clone.tap { |scope|
-            scope.joins_values = []
+            scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
           relation = ActiveRecord::Relation.create(
@@ -212,7 +210,7 @@ module ActiveRecord
       end
 
       def constraints
-        chain.map(&:scopes).flatten
+        chain.flat_map(&:scopes)
       end
 
       def counter_cache_column
@@ -1105,7 +1103,7 @@ module ActiveRecord
       end
 
       def alias_name
-        Arel::Table.new(table_name)
+        Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
 
       def all_includes; yield; end

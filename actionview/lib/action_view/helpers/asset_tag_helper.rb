@@ -122,9 +122,9 @@ module ActionView
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
-      # an RSS or Atom feed. The +type+ can either be <tt>:rss</tt> (default) or
-      # <tt>:atom</tt>. Control the link options in url_for format using the
-      # +url_options+. You can modify the LINK tag itself in +tag_options+.
+      # an RSS, Atom, or JSON feed. The +type+ can be <tt>:rss</tt> (default),
+      # <tt>:atom</tt>, or <tt>:json</tt>. Control the link options in url_for format
+      # using the +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
       # ==== Options
       #
@@ -138,6 +138,8 @@ module ActionView
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
       #   auto_discovery_link_tag(:atom)
       #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
+      #   auto_discovery_link_tag(:json)
+      #   # => <link rel="alternate" type="application/json" title="JSON" href="http://www.currenthost.com/controller/action" />
       #   auto_discovery_link_tag(:rss, {action: "feed"})
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
       #   auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
@@ -147,8 +149,8 @@ module ActionView
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
       #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
-        if !(type == :rss || type == :atom) && tag_options[:type].blank?
-          raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")
+        if !(type == :rss || type == :atom || type == :json) && tag_options[:type].blank?
+          raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss, :atom, or :json.")
         end
 
         tag(

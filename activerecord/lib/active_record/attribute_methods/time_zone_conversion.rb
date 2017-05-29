@@ -57,11 +57,8 @@ module ActiveRecord
         mattr_accessor :time_zone_aware_attributes, instance_writer: false
         self.time_zone_aware_attributes = false
 
-        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
-        self.skip_time_zone_conversion_for_attributes = []
-
-        class_attribute :time_zone_aware_types, instance_writer: false
-        self.time_zone_aware_types = [:datetime, :time]
+        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false, default: []
+        class_attribute :time_zone_aware_types, instance_writer: false, default: [ :datetime, :time ]
       end
 
       module ClassMethods

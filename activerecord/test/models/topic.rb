@@ -14,7 +14,7 @@ class Topic < ActiveRecord::Base
   scope :replied, -> { where "replies_count > 0" }
 
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> { all } do
+  scope :anonymous_extension, -> {} do
     def one
       1
     end

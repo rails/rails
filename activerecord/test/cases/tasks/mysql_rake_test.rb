@@ -305,6 +305,15 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
 
+      def test_structure_dump_with_ignore_tables
+        filename = "awesome-file.sql"
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      end
+
       def test_warn_when_external_structure_dump_command_execution_fails
         filename = "awesome-file.sql"
         Kernel.expects(:system)

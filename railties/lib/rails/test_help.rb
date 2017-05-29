@@ -12,7 +12,12 @@ require "rails/generators/test_case"
 require "active_support/testing/autorun"
 
 if defined?(ActiveRecord::Base)
-  ActiveRecord::Migration.maintain_test_schema!
+  begin
+    ActiveRecord::Migration.maintain_test_schema!
+  rescue ActiveRecord::PendingMigrationError => e
+    puts e.to_s.strip
+    exit 1
+  end
 
   module ActiveSupport
     class TestCase

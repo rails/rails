@@ -8,7 +8,7 @@ require "models/project"
 require "models/rating"
 
 class RelationMergingTest < ActiveRecord::TestCase
-  fixtures :developers, :comments, :authors, :posts
+  fixtures :developers, :comments, :authors, :author_addresses, :posts
 
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
@@ -56,7 +56,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked.present?
+    assert devs.locked?
   end
 
   def test_relation_merging_with_preload
@@ -114,7 +114,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :developers
+  fixtures :posts, :authors, :author_addresses, :developers
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
