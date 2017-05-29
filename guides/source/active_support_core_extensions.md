@@ -755,6 +755,8 @@ NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
 ### Method Delegation
 
+#### `delegate`
+
 The macro `delegate` offers an easy way to forward methods.
 
 Let's imagine that users in some application have login information in the `User` model but name and other data in a separate `Profile` model:
@@ -834,6 +836,25 @@ delegate :size, to: :attachment, prefix: :avatar
 ```
 
 In the previous example the macro generates `avatar_size` rather than `size`.
+
+NOTE: Defined in `active_support/core_ext/module/delegation.rb`
+
+#### `delegate_missing_to`
+
+Imagine you would like to delegate everything missing from the `User` object,
+to the `Profile` one. The `delegate_missing_to` macro lets you implement this
+in a breeze:
+
+```ruby
+class User < ApplicationRecord
+  has_one :profile
+
+  delegate_missing_to :profile
+end
+```
+
+The target can be anything callable within the object, e.g. instance variables,
+methods, constants, etc. Only the public methods of the target are delegated.
 
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
