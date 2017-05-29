@@ -125,7 +125,7 @@ class Class
         attr_writer name
       end
 
-      if default_value
+      unless default_value.nil?
         self.send("#{name}=", default_value)
       end
     end
