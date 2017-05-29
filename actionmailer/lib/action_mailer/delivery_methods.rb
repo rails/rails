@@ -7,8 +7,6 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :delivery_methods, :delivery_method
-
       # Do not make this inheritable, because we always want it to propagate
       cattr_accessor :raise_delivery_errors
       self.raise_delivery_errors = true
@@ -19,8 +17,8 @@ module ActionMailer
       cattr_accessor :deliver_later_queue_name
       self.deliver_later_queue_name = :mailers
 
-      self.delivery_methods = {}.freeze
-      self.delivery_method  = :smtp
+      class_attribute :delivery_methods, default: {}.freeze
+      class_attribute :delivery_method, default: :smtp
 
       add_delivery_method :smtp, Mail::SMTP,
         address:              "localhost",

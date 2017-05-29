@@ -14,12 +14,12 @@ module Rails
         include ActiveSupport::Testing::Stream
 
         included do
-          class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-
           # Generators frequently change the current path using +FileUtils.cd+.
           # So we need to store the path at file load and revert back to it after each test.
-          self.current_path = File.expand_path(Dir.pwd)
-          self.default_arguments = []
+          class_attribute :current_path, default: File.expand_path(Dir.pwd)
+          class_attribute :default_arguments, default: []
+          class_attribute :destination_root
+          class_attribute :generator_class
         end
 
         module ClassMethods

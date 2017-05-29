@@ -38,8 +38,7 @@ module ActiveRecord
     included do
       # Determines whether to store the full constant name including namespace when using STI.
       # This is true, by default.
-      class_attribute :store_full_sti_class, instance_writer: false
-      self.store_full_sti_class = true
+      class_attribute :store_full_sti_class, instance_writer: false, default: true
     end
 
     module ClassMethods

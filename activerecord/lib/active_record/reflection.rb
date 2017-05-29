@@ -8,10 +8,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_reflections, instance_writer: false
-      class_attribute :aggregate_reflections, instance_writer: false
-      self._reflections = {}
-      self.aggregate_reflections = {}
+      class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
     def self.create(macro, name, scope, options, ar)

@@ -11,8 +11,7 @@ module ActiveRecord
       # versioning is off. Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
-      class_attribute :cache_timestamp_format, instance_writer: false
-      self.cache_timestamp_format = :usec
+      class_attribute :cache_timestamp_format, instance_writer: false, default: :usec
 
       ##
       # :singleton-method:
@@ -20,8 +19,7 @@ module ActiveRecord
       # by a changing version in the #cache_version method.
       #
       # This is +false+, by default until Rails 6.0.
-      class_attribute :cache_versioning, instance_writer: false
-      self.cache_versioning = false
+      class_attribute :cache_versioning, instance_writer: false, default: false
     end
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this

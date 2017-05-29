@@ -130,26 +130,13 @@ module ActiveRecord
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
-      class_attribute :table_name_prefix, instance_writer: false
-      self.table_name_prefix = ""
-
-      class_attribute :table_name_suffix, instance_writer: false
-      self.table_name_suffix = ""
-
-      class_attribute :schema_migrations_table_name, instance_accessor: false
-      self.schema_migrations_table_name = "schema_migrations"
-
-      class_attribute :internal_metadata_table_name, instance_accessor: false
-      self.internal_metadata_table_name = "ar_internal_metadata"
-
-      class_attribute :protected_environments, instance_accessor: false
-      self.protected_environments = ["production"]
-
-      class_attribute :pluralize_table_names, instance_writer: false
-      self.pluralize_table_names = true
-
-      class_attribute :ignored_columns, instance_accessor: false
-      self.ignored_columns = [].freeze
+      class_attribute :table_name_prefix, instance_writer: false, default: ""
+      class_attribute :table_name_suffix, instance_writer: false, default: ""
+      class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
+      class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
+      class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
+      class_attribute :pluralize_table_names, instance_writer: false, default: true
+      class_attribute :ignored_columns, instance_accessor: false, default: [].freeze
 
       self.inheritance_column = "type"
 

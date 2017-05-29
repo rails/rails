@@ -878,20 +878,12 @@ module ActiveRecord
 
     included do
       class_attribute :fixture_path, instance_writer: false
-      class_attribute :fixture_table_names
-      class_attribute :fixture_class_names
-      class_attribute :use_transactional_tests
-      class_attribute :use_instantiated_fixtures # true, false, or :no_instances
-      class_attribute :pre_loaded_fixtures
-      class_attribute :config
-
-      self.fixture_table_names = []
-      self.use_instantiated_fixtures = false
-      self.pre_loaded_fixtures = false
-      self.config = ActiveRecord::Base
-
-      self.fixture_class_names = {}
-      self.use_transactional_tests = true
+      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_class_names, default: {}
+      class_attribute :use_transactional_tests, default: true
+      class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
+      class_attribute :pre_loaded_fixtures, default: false
+      class_attribute :config, default: ActiveRecord::Base
     end
 
     module ClassMethods

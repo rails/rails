@@ -10,8 +10,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, instance_writer: false
-      self.nested_attributes_options = {}
+      class_attribute :nested_attributes_options, instance_writer: false, default: {}
     end
 
     # = Active Record Nested Attributes

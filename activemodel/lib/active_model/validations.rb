@@ -49,8 +49,7 @@ module ActiveModel
       private :validation_context=
       define_callbacks :validate, scope: :name
 
-      class_attribute :_validators, instance_writer: false
-      self._validators = Hash.new { |h, k| h[k] = [] }
+      class_attribute :_validators, instance_writer: false, default: Hash.new { |h, k| h[k] = [] }
     end
 
     module ClassMethods
