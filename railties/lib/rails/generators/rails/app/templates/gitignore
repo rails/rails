@@ -7,9 +7,6 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore encrypted secrets key file
-config/secrets.yml.enc
-
 <% if sqlite3? -%>
 # Ignore the default SQLite database.
 /db/*.sqlite3
