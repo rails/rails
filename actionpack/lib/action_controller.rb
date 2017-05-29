@@ -19,6 +19,7 @@ module ActionController
   end
 
   autoload_under "metal" do
+    autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
