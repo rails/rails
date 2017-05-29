@@ -205,7 +205,7 @@ module Rails
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
-      WEBPACKS = %w( react vue angular )
+      WEBPACKS = %w( react vue angular elm )
 
       add_shared_options_for "application"
 
