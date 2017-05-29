@@ -13,7 +13,7 @@
 
     *Eilis Hamilton*
 
-*   Add ActiveSupport::CurrentAttributes to provide a thread-isolated attributes singleton.
+*   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated attributes singleton.
     Primary use case is keeping all the per-request attributes easily available to the whole system.
     
     *DHH*
