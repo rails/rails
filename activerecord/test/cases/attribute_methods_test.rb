@@ -442,7 +442,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "boolean attribute predicate" do
-    [nil, "", false, "false", "f", 0].each do |value|
+    [nil, "", " ", [], false, "false", "f", 0].each do |value|
       assert_equal false, Topic.new(approved: value).approved?
     end
 
