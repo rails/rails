@@ -9,7 +9,7 @@
 } = Rails
 
 # For backward compatibility
-if jQuery? and not jQuery.rails
+if jQuery? and jQuery.ajax? and not jQuery.rails
   jQuery.rails = Rails
   jQuery.ajaxPrefilter (options, originalOptions, xhr) ->
     CSRFProtection(xhr) unless options.crossDomain
