@@ -103,6 +103,9 @@ module Rails
   #     end
   #   end
   #
+  # Since filenames on the load path are shared across gems, be sure that files you load
+  # through a railtie have unique names.
+  #
   # == Application and Engine
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
