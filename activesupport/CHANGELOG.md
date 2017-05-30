@@ -1,3 +1,7 @@
+*   Add `Date#prev_occurring` and `Date#next_occurring` to return specified next/previous occurring day of week.
+
+    *Shota Iguchi*
+
 *   Add default option to class_attribute. Before:
 
         class_attribute :settings
