@@ -160,6 +160,17 @@ module JSONSharedTestCases
     assert_not json.changed?
   end
 
+  def test_changes_in_place_with_ruby_object
+    time = Time.now.utc
+    json = JsonDataType.create!(payload: time)
+
+    json.reload
+    assert_not json.changed?
+
+    json.payload = time
+    assert_not json.changed?
+  end
+
   def test_assigning_string_literal
     json = JsonDataType.create!(payload: "foo")
     assert_equal "foo", json.payload
