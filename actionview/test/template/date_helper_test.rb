@@ -138,11 +138,19 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "10 minutes", distance_of_time_in_words(Time.at(600), 0)
   end
 
-  def test_distance_in_words_with_mathn_required
-    # test we avoid Integer#/ (redefined by mathn)
-    silence_warnings { require "mathn" }
+  def test_distance_in_words_doesnt_use_the_quotient_operator
+    rubinius_skip "Date is written in Ruby and relies on Fixnum#/"
+    jruby_skip "Date is written in Ruby and relies on Fixnum#/"
+
+    klass = RUBY_VERSION > "2.4" ? Integer : Fixnum
+
+    # Make sure that we avoid {Integer,Fixnum}#/ (redefined by mathn)
+    klass.send :private, :/
+
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
+  ensure
+    klass.send :public, :/
   end
 
   def test_time_ago_in_words_passes_include_seconds
