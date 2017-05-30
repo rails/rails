@@ -468,7 +468,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
     else
-      assert_file "Gemfile", /# gem 'therubyracer', platforms: :ruby/
+      assert_file "Gemfile", /# gem 'mini_racer', platforms: :ruby/
     end
   end
 

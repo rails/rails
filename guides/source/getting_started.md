@@ -208,7 +208,7 @@ TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+Rails adds the `mini_racer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
