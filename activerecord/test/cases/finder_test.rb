@@ -1000,6 +1000,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
   end
 
+  def test_find_by_case_sensitive_consistency_with_dyanmic_matcher
+    author = authors(:david)
+
+    # MySQL queries are not case sensitive by default
+    if ARTest.connection_name =~ /mysql/
+      assert_equal(author, Author.find_by_name("david"))
+      assert_equal(author, Author.find_by(name: 'david'))
+    else
+      assert_equal(nil, Author.find_by_name("david"))
+      assert_equal(nil, Author.find_by(name: 'david'))
+    end
+
+    assert_equal(author, Author.find_by_name("David"))
+    assert_equal(author, Author.find_by(name: 'David'))
+  end
+
   def test_find_last_with_offset
     devs = Developer.order("id")
 
