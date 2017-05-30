@@ -868,7 +868,7 @@ pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
 group :production do
-  gem 'therubyracer'
+  gem 'mini_racer'
 end
 ```
 
