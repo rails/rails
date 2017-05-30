@@ -23,7 +23,7 @@ class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
 
     # Run twice to ensure encrypted secrets can be reread after first edit pass.
     2.times do
-      assert_match(/external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289…/, run_edit_command)
+      assert_match(/external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289/, run_edit_command)
     end
   end
 
