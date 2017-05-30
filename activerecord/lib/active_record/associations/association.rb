@@ -133,6 +133,16 @@ module ActiveRecord
         AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
       end
 
+      def extensions
+        extensions = klass.default_extensions | reflection.extensions
+
+        if scope = reflection.scope
+          extensions |= klass.unscoped.instance_exec(owner, &scope).extensions
+        end
+
+        extensions
+      end
+
       # Loads the \target if needed and returns it.
       #
       # This method is abstract in the sense that it relies on +find_target+,
