@@ -63,6 +63,16 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     UUIDType.reset_column_information
   end
 
+  def test_add_column_with_null_true_and_default_nil
+    assert_nothing_raised do
+      connection.add_column :uuid_data_type, :thingy, :uuid, null: true, default: nil
+    end
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+    assert column.null
+    assert_nil column.default
+  end
+
   def test_data_type_of_uuid_types
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
