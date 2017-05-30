@@ -1,3 +1,9 @@
+*   Restore previous behavior of collection proxies: their values can have
+    methods stubbed, and they respect extension modules applied by a default
+    scope.
+
+    *Ryuta Kamizono*
+
 *   Loading model schema from database is now thread-safe.
 
     Fixes #28589.
