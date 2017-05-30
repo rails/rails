@@ -225,6 +225,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_same david.projects, david.projects
   end
 
+  test "proxy object can be stubbed" do
+    david = developers(:david)
+    david.projects.define_singleton_method(:extra_method) { 42 }
+
+    assert_equal 42, david.projects.extra_method
+  end
+
   test "inverses get set of subsets of the association" do
     man = Man.create
     man.interests.create
