@@ -49,8 +49,7 @@ module ActiveSupport
     CYAN    = "\e[36m"
     WHITE   = "\e[37m"
 
-    mattr_accessor :colorize_logging
-    self.colorize_logging = true
+    mattr_accessor :colorize_logging, default: true
 
     class << self
       def logger

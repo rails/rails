@@ -119,8 +119,7 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
-    cattr_accessor :permit_all_parameters, instance_accessor: false
-    self.permit_all_parameters = false
+    cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
@@ -205,8 +204,7 @@ module ActionController
     # config. For instance:
     #
     #    config.always_permitted_parameters = %w( controller action format )
-    cattr_accessor :always_permitted_parameters
-    self.always_permitted_parameters = %w( controller action )
+    cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of

@@ -7,8 +7,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
-      mattr_accessor :tld_length
-      self.tld_length = 1
+      mattr_accessor :tld_length, default: 1
 
       class << self
         # Returns the domain part of a host given the domain level.
