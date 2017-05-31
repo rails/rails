@@ -154,7 +154,7 @@ module ActionView
 
           wildcard_dependencies.flat_map { |query, templates|
             @view_paths.find_all_with_query(query).map do |template|
-              "#{File.dirname(query)}/#{File.basename(template).split('.').first}"
+              "#{File.join(File.dirname(query), File.basename(template).split('.').first)}"
             end
           }.sort
         end

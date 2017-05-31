@@ -134,7 +134,7 @@ task drop_postgresql_databases: "db:postgresql:drop"
 task rebuild_postgresql_databases: "db:postgresql:rebuild"
 
 task :lines do
-  load File.expand_path("../tools/line_statistics", __dir__)
+  load File.join(File.dirname(__dir__), "/tools/line_statistics")
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end
