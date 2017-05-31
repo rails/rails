@@ -26,6 +26,10 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   class ErrorFromAttributeWriter < StandardError
   end
 
+  class ClassWithMethodStringifyKeys
+    def stringify_keys; nil; end
+  end
+
   class ProtectedParams
     attr_accessor :permitted
     alias :permitted? :permitted
@@ -93,37 +97,40 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   end
 
   test "an ArgumentError is raised if a non-hash-like object is passed" do
-    assert_raises(ArgumentError) do
-      Model.new(1)
+    [nil, 1, 'str', [], -> {}].each do |obj|
+      assert_raises(ArgumentError) { Model.new(obj) }
     end
   end
 
   test "forbidden attributes cannot be used for mass assignment" do
-    params = ProtectedParams.new(name: "Guille", description: "m")
-
-    assert_raises(ActiveModel::ForbiddenAttributesError) do
-      Model.new(params)
-    end
+    params = { name: "Guille", description: "m" }
+    Hash.class_eval { def permitted?; false; end }
+    assert_raises(ActiveModel::ForbiddenAttributesError) { Model.new(params) }
+    Hash.class_eval { undef permitted? }
   end
 
   test "permitted attributes can be used for mass assignment" do
-    params = ProtectedParams.new(name: "Guille", description: "desc")
-    params.permit!
+    params = { name: "Guille", description: "desc" }
+    Hash.class_eval { def permitted?; true; end }
     model = Model.new(params)
-
     assert_equal "Guille", model.name
     assert_equal "desc", model.description
+    Hash.class_eval { undef permitted? }
+  end
+
+  test 'an ArgumentError is raised even given param has #stringify_keys' do
+    obj = ClassWithMethodStringifyKeys.new
+    assert_raises(ArgumentError) { Model.new(obj) }
   end
 
   test "regular hash should still be used for mass assignment" do
     model = Model.new(name: "Guille", description: "m")
-
     assert_equal "Guille", model.name
     assert_equal "m", model.description
   end
 
   test "assigning no attributes should not raise, even if the hash is un-permitted" do
     model = Model.new
-    assert_nil model.assign_attributes(ProtectedParams.new({}))
+    assert_nil model.assign_attributes({})
   end
 end
