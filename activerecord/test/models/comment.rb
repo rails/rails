@@ -29,6 +29,8 @@ class Comment < ActiveRecord::Base
 
   default_scope { extending OopsExtension }
 
+  scope :oops_comments, -> { extending OopsExtension }
+
   # Should not be called if extending modules that having the method exists on an association.
   def self.greeting
     raise
