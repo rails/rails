@@ -1355,7 +1355,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.create(client_of: firm.id, name: "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
     assert_equal 2, Client.where(client_of: firm.id).size
-    assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
+    assert_equal 1, firm.dependent_hash_conditional_clients_of_firm.size
     firm.destroy
     # only the correctly associated client should have been deleted
     assert_equal 1, Client.where(client_of: firm.id).size
