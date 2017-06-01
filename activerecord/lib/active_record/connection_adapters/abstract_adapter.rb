@@ -478,6 +478,8 @@ module ActiveRecord
           m.alias_type %r(number)i,    "decimal"
           m.alias_type %r(double)i,    "float"
 
+          m.register_type %r(^json)i, Type::Json.new
+
           m.register_type(%r(decimal)i) do |sql_type|
             scale = extract_scale(sql_type)
             precision = extract_precision(sql_type)
