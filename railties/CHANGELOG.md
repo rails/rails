@@ -1,3 +1,7 @@
+*   Add `bootsnap` to default `Gemfile`.
+
+    *Burke Libbey*
+
 *   Properly expand shortcuts for environment's name running the `console`
     and `dbconsole` commands.
 

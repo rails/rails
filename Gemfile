@@ -54,6 +54,9 @@ gem "libxml-ruby", platforms: :ruby
 # Action View. For testing Erubis handler deprecation.
 gem "erubis", "~> 2.7.0", require: false
 
+# for railties app_generator_test
+gem "bootsnap", ">= 1.1.0", require: false
+
 # Active Job.
 group :job do
   gem "resque", require: false
