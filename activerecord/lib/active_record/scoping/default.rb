@@ -107,7 +107,11 @@ module ActiveRecord
 
             if default_scope_override
               # The user has defined their own default scope method, so call that
-              evaluate_default_scope { default_scope }
+              evaluate_default_scope do
+                if scope = default_scope
+                  (base_rel ||= relation).merge(scope)
+                end
+              end
             elsif default_scopes.any?
               base_rel ||= relation
               evaluate_default_scope do
