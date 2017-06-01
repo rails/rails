@@ -1441,6 +1441,34 @@ module ApplicationTests
       assert_equal "dev_db",  ar_config["development"]["database"]
     end
 
+    test "configuration.database_configuration with only ENV['DATABASE_URL'] is not blank" do
+      FileUtils.rm("#{app_path}/config/database.yml")
+      app "development"
+
+      ENV["DATABASE_URL"] = "postgresql://user:pass@127.0.0.1/my_app?encoding=utf8&pool=5&wait_timeout=5"
+
+      expected_config = {
+        "development" => {
+          "adapter"      => "postgresql",
+          "username"     => "user",
+          "password"     => "pass",
+          "host"         => "127.0.0.1",
+          "database"     => "my_app",
+          "encoding"     => "utf8",
+          "pool"         => "5",
+          "wait_timeout" => "5"
+        }
+      }
+
+      app_config = Rails.application.config.database_configuration
+      ar_config  = ActiveRecord::Base.configurations
+
+      assert_equal expected_config, ar_config
+      assert_equal expected_config, app_config
+
+      ENV.delete("DATABASE_URL")
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 

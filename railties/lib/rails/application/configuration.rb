@@ -156,7 +156,7 @@ module Rails
         elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
-          {}
+          ActiveRecord::Base.configurations
         else
           raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
         end
