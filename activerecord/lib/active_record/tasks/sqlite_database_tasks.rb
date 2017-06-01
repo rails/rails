@@ -42,7 +42,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
-          condition = ignore_tables.map { |table| connection.quote_table_name(table) }.join(", ")
+          condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")
           args << "SELECT sql FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
         else
           args << ".schema"
