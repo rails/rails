@@ -1,3 +1,4 @@
+unless {}.respond_to?(:transform_values) # TODO: Remove this file when we drop support to ruby < 2.4
 class Hash
   # Returns a new hash with the results of running +block+ once for every value.
   # The keys are unchanged.
@@ -27,4 +28,5 @@ class Hash
     end
   end unless method_defined? :transform_values!
   # TODO: Remove this file when supporting only Ruby 2.4+.
+end
 end
