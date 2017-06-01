@@ -32,10 +32,6 @@ module ActiveRecord
           args.each { |name| column(name, :longtext, options) }
         end
 
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
-
         def unsigned_integer(*args, **options)
           args.each { |name| column(name, :unsigned_integer, options) }
         end
