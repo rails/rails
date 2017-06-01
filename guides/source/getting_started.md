@@ -910,6 +910,7 @@ And then finally, add the view for this action, located at
   <tr>
     <th>Title</th>
     <th>Text</th>
+    <th></th>
   </tr>
 
   <% @articles.each do |article| %>
