@@ -1,3 +1,7 @@
+*   Rollback transactions where the block is exited using `return`, `break` or `throw`
+
+    *Dylan Thacker-Smith*
+
 *   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
 
     *Ryuta Kamizono*

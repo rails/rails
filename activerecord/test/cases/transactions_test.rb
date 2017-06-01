@@ -63,27 +63,40 @@ class TransactionTest < ActiveRecord::TestCase
     topic.add_to_transaction
   end
 
-  def test_successful_with_return
-    committed = false
+  def test_rollback_with_return
+    rolledback = false
 
     Topic.connection.class_eval do
-      alias :real_commit_db_transaction :commit_db_transaction
-      define_method(:commit_db_transaction) do
-        committed = true
-        real_commit_db_transaction
+      alias :real_rollback_db_transaction :rollback_db_transaction
+      define_method(:rollback_db_transaction) do
+        rolledback = true
+        real_rollback_db_transaction
       end
     end
 
     transaction_with_return
-    assert committed
+    assert rolledback
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert Topic.find(2).approved?, "Second should still be approved"
   ensure
     Topic.connection.class_eval do
-      remove_method :commit_db_transaction
-      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+      remove_method :rollback_db_transaction
+      alias :rollback_db_transaction :real_rollback_db_transaction rescue nil
     end
+  end
+
+  def test_rollback_on_timeout
+    catch do |timeout|
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+
+        throw timeout
+      end
+    end
+
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
   end
 
   def test_number_of_transactions_in_commit
