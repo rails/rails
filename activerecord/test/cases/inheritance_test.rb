@@ -1,6 +1,7 @@
 require "cases/helper"
 require "models/author"
 require "models/company"
+require "models/membership"
 require "models/person"
 require "models/post"
 require "models/project"
@@ -29,7 +30,7 @@ end
 
 class InheritanceTest < ActiveRecord::TestCase
   include InheritanceTestHelper
-  fixtures :companies, :projects, :subscribers, :accounts, :vegetables
+  fixtures :companies, :projects, :subscribers, :accounts, :vegetables, :memberships
 
   def test_class_with_store_full_sti_class_returns_full_name
     with_store_full_sti_class do
@@ -434,6 +435,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_scope_inherited_properly
     assert_nothing_raised { Company.of_first_firm }
     assert_nothing_raised { Client.of_first_firm }
+  end
+
+  def test_inheritance_with_default_scope
+    assert_equal 1, SelectedMembership.count(:all)
   end
 end
 
