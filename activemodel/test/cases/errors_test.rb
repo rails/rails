@@ -157,6 +157,24 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["cannot be blank"], person.errors[:name]
   end
 
+  test "add an error message with interpolated %{model}" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "%{model}")
+    assert_equal ["Person"], person.errors[:name]
+  end
+
+  test "add an error message with interpolated %{attribute}" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "%{attribute}")
+    assert_equal ["name"], person.errors[:name]
+  end
+
+  test "add an error message with interpolated %{value}" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "%{value}")
+    assert_equal ["nil"], person.errors[:name]
+  end
+
   test "add an error with a symbol" do
     person = Person.new
     person.errors.add(:name, :blank)
