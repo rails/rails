@@ -333,7 +333,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope, self
+      previous, klass.current_scope = klass.current_scope(true), self
       yield
     ensure
       klass.current_scope = previous
