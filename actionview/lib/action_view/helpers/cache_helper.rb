@@ -39,6 +39,14 @@ module ActionView
       # This will include both records as part of the cache key and updating either of them will
       # expire the cache.
       #
+      # To force a cache miss and write a fresh fragment to the cache, based on some override
+      # variable:
+      #
+      #   <% cache [ project, current_user ], force: @bust_cache do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
       # ==== Template digest
       #
       # The template digest that's added to the cache key is computed by taking an md5 of the
@@ -176,7 +184,8 @@ module ActionView
 
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        read_fragment_for(name, options) || write_fragment_for(name, options, &block)
+        force = options.is_a?(Hash) && options[:force]
+        !force && read_fragment_for(name, options) || write_fragment_for(name, options, &block)
       end
 
       def read_fragment_for(name, options) #:nodoc:
