@@ -215,4 +215,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
   end
+
+  test "SecurePassword can be used with Integer values" do
+    @user.password = 1234
+    assert @user.password_digest
+    assert @user.authenticate(1234)
+    assert @user.authenticate('1234')
+  end
 end
