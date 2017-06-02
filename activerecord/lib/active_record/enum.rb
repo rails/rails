@@ -72,7 +72,7 @@ module ActiveRecord
   # Use that class method when you need to know the ordinal value of an enum.
   # For example, you can use that when manually building SQL strings:
   #
-  #   Conversation.where("status <> ?", Conversation.statuses[:archived])
+  #   Conversation.where(status: Conversation.statuses[:archived])
   #
   # You can use the +:_prefix+ or +:_suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
