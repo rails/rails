@@ -2,16 +2,30 @@ module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
       def validate(record)
-        super
         attributes.each do |attribute|
-          next unless record.class._reflect_on_association(attribute)
-          associated_records = Array.wrap(record.send(attribute))
-
-          # Superclass validates presence. Ensure present records aren't about to be destroyed.
-          if associated_records.present? && associated_records.all? { |r| r.marked_for_destruction? }
-            record.errors.add(attribute, :blank, options)
+          begin
+            reflection = record.class._reflect_on_association(attribute)
+            validate_attribute_presence(record, attribute)
+            validate_association_persistence(record, attribute) if reflection
+          rescue RangeError
+            record.errors.add(reflection ? reflection.foreign_key : attribute, :invalid, options)
           end
         end
+      end
+
+      protected
+
+      def validate_attribute_presence(record, attribute)
+        value = record.read_attribute_for_validation(attribute)
+        return if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+        validate_each(record, attribute, value)
+      end
+
+      def validate_association_persistence(record, attribute)
+        associated_records = Array.wrap(record.read_attribute_for_validation(attribute))
+        # validate_attribute_presence validates presence. Ensure all present records aren't about to be destroyed.
+        return if associated_records.blank? || associated_records.any? { |r| !r.marked_for_destruction? }
+        record.errors.add(attribute, :blank, options)
       end
     end
 

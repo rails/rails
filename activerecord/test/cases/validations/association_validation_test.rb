@@ -74,6 +74,19 @@ class AssociationValidationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_validates_presence_of_belongs_to_association__out_of_range_error
+    repair_validations(Interest) do
+      Interest.validates_presence_of(:man)
+      man = Man.create!(:name => 'John')
+      interest = Interest.create!(:man => man, :topic => 'Airplanes')
+
+      interest.man_id = 10_000_000_000
+
+      assert !interest.valid?
+      assert interest.errors[:man_id] == ["is invalid"]
+    end
+  end
+
   def test_validates_presence_of_belongs_to_association__existing_parent
     repair_validations(Interest) do
       Interest.validates_presence_of(:man)
