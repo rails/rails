@@ -53,19 +53,7 @@ module Rails
         @x                             = Custom.new
 
         @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled                  = true
-        @assets.paths                    = []
-        @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
-                                             /(?:\/|\\|\A)application\.(css|js)$/ ]
-        @assets.prefix                   = "/assets"
-        @assets.version                  = '1.0'
-        @assets.debug                    = false
-        @assets.compile                  = true
-        @assets.digest                   = false
-        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
-        @assets.js_compressor            = nil
-        @assets.css_compressor           = nil
-        @assets.logger                   = nil
+        @assets.paths = []
       end
 
       def encoding=(value)
