@@ -33,4 +33,16 @@ class AccessTest < ActiveSupport::TestCase
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end
+
+  def test_first
+    assert_equal 1, [1,2,3,4,5].first
+    assert_equal 2, [1,2,3,4,5].first { |i| i >= 2 }
+    assert_equal nil, [1,2,3,4,5].first { |i| i >= 6 }
+    assert_equal [], [1,2,3,4,5].first(0)
+    assert_equal [], [1,2,3,4,5].first(0) { |i| i >= 2 }
+    assert_equal [1,2], [1,2,3,4,5].first(2)
+    assert_equal [2,3], [1,2,3,4,5].first(2) { |i| i >= 2 }
+    assert_equal [1,2,3,4,5], [1,2,3,4,5].first(8)
+    assert_equal [2,3,4,5], [1,2,3,4,5].first(8) { |i| i >= 2 }
+  end
 end
