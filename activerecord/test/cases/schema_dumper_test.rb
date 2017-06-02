@@ -116,32 +116,22 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_includes_limit_constraint_for_integer_columns
     output = dump_all_table_schema([/^(?!integer_limits)/])
 
-    assert_match %r{c_int_without_limit}, output
+    assert_match %r{"c_int_without_limit"(?!.*limit)}, output
 
     if current_adapter?(:PostgreSQLAdapter)
-      assert_no_match %r{c_int_without_limit.*limit:}, output
-
       assert_match %r{c_int_1.*limit: 2}, output
       assert_match %r{c_int_2.*limit: 2}, output
 
       # int 3 is 4 bytes in postgresql
-      assert_match %r{c_int_3.*}, output
-      assert_no_match %r{c_int_3.*limit:}, output
-
-      assert_match %r{c_int_4.*}, output
-      assert_no_match %r{c_int_4.*limit:}, output
+      assert_match %r{"c_int_3"(?!.*limit)}, output
+      assert_match %r{"c_int_4"(?!.*limit)}, output
     elsif current_adapter?(:Mysql2Adapter)
-      assert_match %r{c_int_without_limit"$}, output
-
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
 
-      assert_match %r{c_int_4.*}, output
-      assert_no_match %r{c_int_4.*:limit}, output
+      assert_match %r{"c_int_4"(?!.*limit)}, output
     elsif current_adapter?(:SQLite3Adapter)
-      assert_no_match %r{c_int_without_limit.*limit:}, output
-
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output

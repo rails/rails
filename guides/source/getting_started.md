@@ -208,7 +208,7 @@ TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+Rails adds the `mini_racer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
@@ -910,6 +910,7 @@ And then finally, add the view for this action, located at
   <tr>
     <th>Title</th>
     <th>Text</th>
+    <th></th>
   </tr>
 
   <% @articles.each do |article| %>
@@ -1489,14 +1490,14 @@ second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
 user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `jquery_ujs` which is automatically included in your
+JavaScript file `rails-ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
 appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
-TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy

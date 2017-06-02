@@ -349,7 +349,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
         else
-          GemfileEntry.new "therubyracer", nil, comment, { platforms: :ruby }, true
+          GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
         end
       end
 

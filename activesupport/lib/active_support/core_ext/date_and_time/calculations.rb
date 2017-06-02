@@ -320,6 +320,22 @@ module DateAndTime
       beginning_of_year..end_of_year
     end
 
+    # Returns specific next occurring day of week
+    def next_occurring(day_of_week)
+      current_day_number = wday != 0 ? wday - 1 : 6
+      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - current_day_number
+      from_now += 7 unless from_now > 0
+      since(from_now.days)
+    end
+
+    # Returns specific previous occurring day of week
+    def prev_occurring(day_of_week)
+      current_day_number = wday != 0 ? wday - 1 : 6
+      ago = current_day_number - DAYS_INTO_WEEK.fetch(day_of_week)
+      ago += 7 unless ago > 0
+      ago(ago.days)
+    end
+
     private
       def first_hour(date_or_time)
         date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time

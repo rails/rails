@@ -559,8 +559,8 @@ SELECT * FROM clients WHERE (clients.locked != 1)
 
 ### OR Conditions
 
-`OR` condition between two relations can be build by calling `or` on the first relation
-and passing the second one as an argument.
+`OR` conditions between two relations can be built by calling `or` on the first
+relation, and passing the second one as an argument.
 
 ```ruby
 Client.where(locked: true).or(Client.where(orders_count: [1,3,5]))

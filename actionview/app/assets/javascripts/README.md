@@ -30,7 +30,7 @@ Run `yarn add rails-ujs` to install the rails-ujs package.
 Usage
 ------------
 
-Require `rails-ujs` into your application.js manifest.
+Require `rails-ujs` in your application.js manifest.
 
 ```javascript
 //= require rails-ujs
@@ -39,7 +39,8 @@ Require `rails-ujs` into your application.js manifest.
 Usage with yarn
 ------------
 
-When using with Webpacker gem or your preferred JavaScript bundler. Just add the following to your main JS file and compile.
+When using with the Webpacker gem or your preferred JavaScript bundler, just
+add the following to your main JS file and compile.
 
 ```javascript
 import Rails from 'rails-ujs';

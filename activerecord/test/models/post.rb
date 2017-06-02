@@ -13,7 +13,7 @@ class Post < ActiveRecord::Base
 
   module NamedExtension2
     def greeting
-      "hello"
+      "hullo"
     end
   end
 

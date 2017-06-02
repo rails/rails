@@ -51,11 +51,10 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def options
-          reflection.options
-        end
-
         private
+          def options
+            reflection.options
+          end
 
           def associated_records_by_owner(preloader)
             records = load_records do |record|

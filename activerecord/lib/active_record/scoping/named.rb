@@ -30,12 +30,15 @@ module ActiveRecord
         end
 
         def default_scoped # :nodoc:
-          scope = build_default_scope
+          scope = relation
+          build_default_scope(scope) || scope
+        end
 
-          if scope
-            relation.spawn.merge!(scope)
+        def default_extensions # :nodoc:
+          if scope = current_scope || build_default_scope
+            scope.extensions
           else
-            relation
+            []
           end
         end
 
