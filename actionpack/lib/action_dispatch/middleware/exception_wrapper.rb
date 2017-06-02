@@ -16,7 +16,8 @@ module ActionDispatch
       'ActionController::InvalidCrossOriginRequest'   => :unprocessable_entity,
       'ActionDispatch::ParamsParser::ParseError'      => :bad_request,
       'ActionController::BadRequest'                  => :bad_request,
-      'ActionController::ParameterMissing'            => :bad_request
+      'ActionController::ParameterMissing'            => :bad_request,
+      'ActionController::InvalidParameterEncoding'    => :bad_request
     )
 
     cattr_accessor :rescue_templates

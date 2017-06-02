@@ -14,6 +14,12 @@ module ActionController
     end
   end
 
+  class InvalidParameterEncoding < ActionControllerError
+    def initialize(param, value)
+      super("Invalid parameter encoding: #{param} => #{value.inspect}")
+    end
+  end
+
   class RenderError < ActionControllerError #:nodoc:
   end
 
