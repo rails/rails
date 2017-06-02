@@ -1,3 +1,15 @@
+*   `driven_by` now registers poltergeist and capybara-webkit
+
+    If driver poltergeist or capybara-webkit is set for System Tests,
+    `driven_by` will register the driver and set additional options passed via
+    `:options` param.
+
+    Refer to drivers documentation to learn what options can be passed.
+
+    *Mario Chavez*
+
+*   AEAD encrypted cookies and sessions with GCM
+
 ## Rails 5.1.1 (May 12, 2017) ##
 
 *   No changes.
