@@ -144,7 +144,7 @@ It's called "Russian Doll Caching" because it nests multiple fragments. The adva
 
 Sometimes you need to cache a particular value or query result, instead of caching view fragments. Rails caching mechanism works great for storing __any__ kind of information.
 
-The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, the result of the block will be cached to the given key and the result is returned.
+The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, the result of the block will be cached to the given key and returned in the event of a cache miss.
 
 Consider the following example. An application has a `Product` model with an instance method that looks up the product’s price on a competing website. The data returned by this method would be perfect for low-level caching:
 
