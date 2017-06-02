@@ -20,6 +20,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         t.integer 'ratings', array: true
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
+        t.point :points, array: true
+        t.point :single_point
       end
     end
     @column = PgArray.columns_hash['tags']
@@ -114,6 +116,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal(['1','2','3'], x.tags)
   end
 
+  def test_select_with_points
+    @connection.execute "insert into pg_arrays (points) VALUES ('{\"(1,2)\",\"(2,3)\"}')"
+    x = PgArray.first
+    assert_equal([[1,2],[2,3]], x.points)
+  end
+
   def test_rewrite_with_strings
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
@@ -174,6 +182,10 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_contains_nils
     assert_cycle(:tags, ['1',nil,nil])
+  end
+
+  def test_points
+     assert_cycle(:points, [[0.1,0.2]])
   end
 
   def test_insert_fixture
