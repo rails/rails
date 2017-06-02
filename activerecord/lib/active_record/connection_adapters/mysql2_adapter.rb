@@ -271,6 +271,113 @@ module ActiveRecord
       def set_field_encoding field_name
         field_name
       end
+
+      #--
+      # BACKPORTED FROM 5.0 ======================================
+      #++
+
+      def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+        Mysql2Adapter::TableDefinition.new native_database_types, name, temporary, options, as
+      end
+
+      module ColumnMethods
+        def unsigned_integer(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
+          args.each { |name| column(name, :unsigned_integer, options) }
+        end
+
+        def unsigned_bigint(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
+          args.each { |name| column(name, :unsigned_bigint, options) }
+        end
+
+        def unsigned_float(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
+          args.each { |name| column(name, :unsigned_float, options) }
+        end
+
+        def unsigned_decimal(*args)
+          options = args.last.is_a?( Hash ) ? args.pop : {}
+          args.each { |name| column(name, :unsigned_decimal, options) }
+        end
+      end
+
+      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
+        attr_accessor :charset, :unsigned
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        include ColumnMethods
+
+        def new_column_definition(name, type, options) # :nodoc:
+          column = super
+          if column.type =~ /\Aunsigned_(?<type>.+)\z/
+            column.type = $~[:type].to_sym
+            column.unsigned = true
+          end
+          column.unsigned ||= options[:unsigned]
+          column.charset = options[:charset]
+          column
+        end
+
+        private
+
+        def create_column_definition(name, type)
+          Mysql2Adapter::ColumnDefinition.new(name, type)
+        end
+      end
+
+      class Table < ActiveRecord::ConnectionAdapters::Table
+        include ColumnMethods
+      end
+
+      module ColumnDumper
+        def prepare_column_options(column,_)
+          spec = super
+          spec[:unsigned] = 'true' if column.unsigned?
+          spec
+        end
+        def migration_keys
+          super + [:unsigned]
+        end
+      end
+      include ColumnDumper
+
+      class SchemaCreation < AbstractMysqlAdapter::SchemaCreation
+        # Backported from 5.0
+        def visit_ColumnDefinition(o)
+          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.unsigned)
+          column_sql = "#{quote_column_name(o.name)} #{sql_type}"
+          add_column_options!(column_sql, column_options(o)) unless o.primary_key?
+          column_sql
+        end
+      end
+
+      def schema_creation
+        Mysql2Adapter::SchemaCreation.new self
+      end
+
+      class Column < AbstractMysqlAdapter::Column
+        def unsigned?
+          /\bunsigned\z/ === sql_type
+        end
+      end
+
+      public
+
+      def update_table_definition(table_name, base) #:nodoc:
+        Mysql2Adapter::Table.new(table_name, base)
+      end
+
+      def new_column(field, default, cast_type, sql_type = nil, null = true, collation = "", extra = "") # :nodoc:
+        Mysql2Adapter::Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
+      end
+
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil, unsigned = nil)
+        sql = super(type, limit, precision, scale)
+        sql << ' unsigned' if unsigned && type != :primary_key
+        sql
+      end
     end
   end
 end
