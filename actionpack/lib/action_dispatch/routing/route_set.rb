@@ -849,6 +849,8 @@ module ActionDispatch
             else
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
+          else
+            req.path_parameters = old_params
           end
         end
 
