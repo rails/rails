@@ -237,7 +237,23 @@ XML
     put :render_body, "document body"
     assert_equal "document body", @response.body
   end
-
+  
+  def test_json_body_with_post
+    param = { 'id' => 1 }.to_json
+    
+    post :render_body, param, format: :json
+    
+    assert_equal param, @response.body
+  end
+  
+  def test_json_body_with_put
+    param = { 'id' => 1 }.to_json
+    
+    put :render_body, param, format: :json
+    
+    assert_equal param, @response.body
+  end
+  
   def test_head
     head :test_params
     assert_equal 200, @response.status

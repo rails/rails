@@ -624,6 +624,10 @@ module ActionController
           @controller.class.controller_path
 
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
+        
+        if @request.env.include?('RAW_POST_DATA') && json_format?(parameters)
+          @request.env["action_dispatch.request.request_parameters"] = ActiveSupport::JSON.decode(@request.raw_post)
+        end
 
         @request.session.update(session) if session
         @request.flash.update(flash || {})
@@ -753,6 +757,11 @@ module ActionController
       def html_format?(parameters)
         return true unless parameters.key?(:format)
         Mime.fetch(parameters[:format]) { Mime['html'] }.html?
+      end
+      
+      def json_format?(parameters)
+        return false unless parameters.key?(:format)
+        Mime.fetch(parameters[:format]) { Mime['json'] }.json?
       end
     end
 
