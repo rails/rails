@@ -602,11 +602,8 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 System Testing
 --------------
 
-System tests are full-browser tests that can be used to test your application's
-JavaScript and user experience. System tests use Capybara as a base.
-
-System tests allow for running tests in either a real browser or a headless
-driver for testing full user interactions with your application.
+System tests allows test user interactions with your application, running tests
+in either a real or a headless browser. System tests uses Capybara as base.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -672,8 +669,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If your Capybara configuration requires more setup than provided by Rails, all
-of that configuration can be put into the `application_system_test_case.rb` file.
+If your Capybara configuration requires more setup than provided by Rails, this
+additional configuration could be added into `application_system_test_case.rb`
+file.
 
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
 for additional settings.
@@ -696,9 +694,9 @@ take a screenshot of the browser.
 Now we're going to add a system test to our blog application. We'll demonstrate
 writing a system test by visiting the index page and creating a new blog article.
 
-If you used the scaffold generator, a system test skeleton is automatically
-created for you. If you did not use the generator start by creating a system
-test skeleton.
+If you used the scaffold generator, a system test skeleton was automatically
+created for you. If you didn't use the scaffold generator, start by creating a
+system test skeleton.
 
 ```bash
 $ bin/rails generate system_test articles
