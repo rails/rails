@@ -60,6 +60,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [:written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
+    assert_equal books(:ddd), Book.where(read_status: :forgotten).first
   end
 
   test "find via where with strings" do
@@ -69,6 +70,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: ["written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
+    assert_equal books(:ddd), Book.where(read_status: "forgotten").first
   end
 
   test "build from scope" do

@@ -107,21 +107,26 @@ module ActiveRecord
             first = value.begin
             last = value.end
             unless first.respond_to?(:infinite?) && first.infinite?
-              binds << build_bind_param(column_name, first)
+              binds << build_bind_attribute(column_name, first)
               first = Arel::Nodes::BindParam.new
             end
             unless last.respond_to?(:infinite?) && last.infinite?
-              binds << build_bind_param(column_name, last)
+              binds << build_bind_attribute(column_name, last)
               last = Arel::Nodes::BindParam.new
             end
 
             result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
+          when value.is_a?(Relation)
+            binds.concat(value.bound_attributes)
           else
             if can_be_bound?(column_name, value)
-              result[column_name] = Arel::Nodes::BindParam.new
-              binds << build_bind_param(column_name, value)
-            elsif value.is_a?(Relation)
-              binds.concat(value.bound_attributes)
+              bind_attribute = build_bind_attribute(column_name, value)
+              if value.is_a?(StatementCache::Substitute) || !bind_attribute.value_for_database.nil?
+                result[column_name] = Arel::Nodes::BindParam.new
+                binds << bind_attribute
+              else
+                result[column_name] = nil
+              end
             end
           end
         end
@@ -164,7 +169,7 @@ module ActiveRecord
         end
       end
 
-      def build_bind_param(column_name, value)
+      def build_bind_attribute(column_name, value)
         Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
       end
   end
