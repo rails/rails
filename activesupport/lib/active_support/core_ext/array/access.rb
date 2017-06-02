@@ -88,17 +88,17 @@ class Array
     self[-2]
   end
 
-  # enhance Array#first method, return the first +k+ that satisfy the block condition  
+  # enhance Array#first method, return the first +k+ that satisfy the block condition
   #   [1,2,3,4,5].first                   # => 1
   #   [1,2,3,4,5].first { |i| i >= 2 }    # => 2
   #   [1,2,3,4,5].first { |i| i >= 6 }    # => nil
   #   [1,2,3,4,5].first(2)                # => [1,2]
   #   [1,2,3,4,5].first(2) { |i| i >= 2 } # => [2,3]
   def first(*k)
-    if !block_given? || k.length > 1 
+    if !block_given? || k.length > 1
       super
     else
       self.select { |item| yield item }.instance_eval("super")
-    end 
-  end   
+    end
+  end
 end
