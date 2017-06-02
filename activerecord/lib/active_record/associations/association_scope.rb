@@ -153,6 +153,9 @@ module ActiveRecord
           # was already merged in the #scope method.
           scope_chain[i].each do |scope_chain_item|
             item  = eval_scope(klass, scope_chain_item, owner)
+            unless item.is_a?(Relation)
+              raise ArgumentError, "#{item.inspect} is not valid scope argument"
+            end
 
             if scope_chain_item == refl.scope
               scope.merge! item.except(:where, :includes, :bind)
