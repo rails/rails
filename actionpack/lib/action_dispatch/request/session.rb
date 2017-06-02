@@ -98,10 +98,12 @@ module ActionDispatch
       alias :include? :has_key?
 
       def keys
+        load_for_read!
         @delegate.keys
       end
 
       def values
+        load_for_read!
         @delegate.values
       end
 
