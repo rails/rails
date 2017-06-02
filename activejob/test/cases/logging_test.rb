@@ -3,6 +3,7 @@ require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
 require "jobs/hello_job"
 require "jobs/logging_job"
+require "jobs/custom_tags_logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
@@ -131,5 +132,10 @@ class LoggingTest < ActiveSupport::TestCase
   rescue RescueJob::OtherError
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
     assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+  end
+
+  def test_custom_tags_logging
+    CustomTagsLoggingJob.perform_later "Dummy", log_tags: ["123-456"]
+    assert_match(/\[123-456\]/, @logger.messages)
   end
 end

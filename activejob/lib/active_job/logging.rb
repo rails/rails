@@ -17,7 +17,7 @@ module ActiveJob
       end
 
       around_perform do |job, block, _|
-        tag_logger(job.class.name, job.job_id) do
+        tag_logger(*extract_tags(job)) do
           payload = { adapter: job.class.queue_adapter, job: job }
           ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
           ActiveSupport::Notifications.instrument("perform.active_job", payload) do
@@ -38,6 +38,14 @@ module ActiveJob
     end
 
     private
+      def extract_tags(job)
+        tags = [job.class.name, job.job_id]
+        if custom_tags = job.arguments.find { |x| x.is_a?(Hash) && x[:log_tags] }
+          tags += custom_tags[:log_tags]
+        end
+        tags
+      end
+
       def tag_logger(*tags)
         if logger.respond_to?(:tagged)
           tags.unshift "ActiveJob" unless logger_tagged_by_active_job?
