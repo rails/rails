@@ -8,6 +8,9 @@ module Erb # :nodoc:
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
+      # Creates an empty root directory to hold the view files for the
+      # scaffolded resource. The path to the directory will be
+      # 'app/views/<controller_file_path>'.
       def create_root_folder
         empty_directory File.join("app/views", controller_file_path)
       end
