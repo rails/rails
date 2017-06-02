@@ -660,8 +660,9 @@ end
 
 The driver name is a required argument for `driven_by`. The optional arguments
 that can be passed to `driven_by` are `:using` for the browser (this will only
-be used by Selenium), and `:screen_size` to change the size of the screen for
-screenshots.
+be used by Selenium), `:screen_size` to change the size of the screen for
+screenshots, and `:options` which can be used to set options supported by the
+driver.
 
 ```ruby
 require "test_helper"
