@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require 'shellwords'
 
 module Rails
   class TestTask < Rake::TestTask # :nodoc: all
