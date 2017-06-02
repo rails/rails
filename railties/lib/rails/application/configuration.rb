@@ -15,7 +15,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :log_start_response_message, :x
 
       attr_reader :encoding
 
@@ -50,6 +50,7 @@ module Rails
         @eager_load                    = nil
         @secret_token                  = nil
         @secret_key_base               = nil
+        @log_start_response_message    = false
         @x                             = Custom.new
 
         @assets = ActiveSupport::OrderedOptions.new
