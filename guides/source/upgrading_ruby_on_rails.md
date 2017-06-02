@@ -325,6 +325,25 @@ class StreamingSupport
 end
 ```
 
+### Specify Rails release for migrations
+
+Rails 5 introduced a version for migration classes, so parameter defaults can be changed without breaking existing
+migrations, or forcing them to be rewritten through a deprecation cycle.
+
+To make sure the current migrations keep using Rails 4.2 defaults, inherit from Migration[4.2]:
+
+```ruby
+class SomeMigration < ActiveRecord::Migration
+end
+```
+
+becomes
+
+```ruby
+class SomeMigration < ActiveRecord::Migration[4.2]
+end
+```
+
 ### New Framework Defaults
 
 #### Active Record `belongs_to` Required by Default Option
