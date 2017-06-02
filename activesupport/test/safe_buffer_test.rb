@@ -177,4 +177,17 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = "Hello".html_safe
     assert_nil x[/a/, 1]
   end
+
+  test "Should be joinable in an Array" do
+    joined = ["<h>".html_safe.freeze, "<foo/>".freeze, "</h>".html_safe.freeze].join
+    assert joined.html_safe?
+    assert_equal joined, "<h>&lt;foo/&gt;</h>"
+
+    joined = ["<h>", "<foo/>".html_safe, "</h>"].join
+    assert !joined.html_safe?
+    assert_equal joined, "<h><foo/></h>"
+
+    assert_equal "<br/>&lt;foo/&gt;<br/></bar>", [@buffer, "<foo/>", "</bar>".html_safe].join("<br/>".html_safe)
+    assert_equal "&lt;br/&gt;", [@buffer, @buffer].join("<br/>")
+  end
 end
