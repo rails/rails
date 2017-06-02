@@ -92,6 +92,14 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_with_conditional_returns
+    options = {1 => :one, 2 => :two}
+    assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ], returns: proc{|x| options[x.first]}) do
+      assert_equal :one, @object << 1
+      assert_equal :two, @object << 2
+    end
+  end
+
   def test_assert_not_called
     assert_not_called(@object, :decrement) do
       @object.increment
