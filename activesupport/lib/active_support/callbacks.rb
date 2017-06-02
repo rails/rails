@@ -289,13 +289,12 @@ module ActiveSupport
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               user_callback.call(target, value) {
-                env = run.call env
-                env.value
+                run.call.value
               }
 
               env
             else
-              run.call env
+              run.call
             end
           end
         end
@@ -307,11 +306,10 @@ module ActiveSupport
             value  = env.value
 
             if env.halted
-              run.call env
+              run.call
             else
               user_callback.call(target, value) {
-                env = run.call env
-                env.value
+                run.call.value
               }
               env
             end
@@ -326,12 +324,11 @@ module ActiveSupport
 
             if user_conditions.all? { |c| c.call(target, value) }
               user_callback.call(target, value) {
-                env = run.call env
-                env.value
+                run.call.value
               }
               env
             else
-              run.call env
+              run.call
             end
           end
         end
@@ -340,8 +337,7 @@ module ActiveSupport
         def self.simple(callback_sequence, user_callback)
           callback_sequence.around do |env, &run|
             user_callback.call(env.target, env.value) {
-              env = run.call env
-              env.value
+              run.call.value
             }
             env
           end
