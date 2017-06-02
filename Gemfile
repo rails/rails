@@ -90,6 +90,8 @@ group :test do
 end
 
 platforms :ruby do
+  gem 'nokogiri', RUBY_VERSION < '2.1' ? '~> 1.6.0' : '>= 1.7'
+
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
 
