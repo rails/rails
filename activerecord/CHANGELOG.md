@@ -1,3 +1,9 @@
+*   Restore `after_commit on: :update` with optimistic locking
+
+    Fixes #29318
+
+    *Morgan Grubb*, *Rui Serra*
+
 *   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
 
     *Ryuta Kamizono*
