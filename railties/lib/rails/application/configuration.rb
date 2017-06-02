@@ -92,6 +92,10 @@ module Rails
             action_dispatch.use_authenticated_cookie_encryption = true
           end
 
+          if respond_to?(:active_support)
+            active_support.use_authenticated_message_encryption = true
+          end
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
