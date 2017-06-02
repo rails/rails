@@ -83,6 +83,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_option_attributes_without_preselected_and_disabled_value
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\" title=\"To a little house\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" title=\"To a little house\">Babe went home</option>\n<option value=\"Cabe\" title=\"To a little house\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", nil, :title => "body")
+    )
+  end
+
+  def test_collection_options_with_option_attributes_with_preselected_and_disabled_value
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\" title=\"To a little house\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" title=\"To a little house\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\" title=\"To a little house\" disabled=\"disabled\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", { :selected => "Babe", :disabled => "Cabe" }, { :title => "body" })
+    )
+  end
+
   def test_collection_options_with_proc_for_value_method
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
