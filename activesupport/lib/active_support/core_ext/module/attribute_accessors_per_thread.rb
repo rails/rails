@@ -118,6 +118,8 @@ class Module
   #   class Customer < Account
   #   end
   #
+  #   Account.user = 'DHH'
+  #   Customer.user # => nil
   #   Customer.user = "Rafael"
   #   Customer.user # => "Rafael"
   #   Account.user  # => "DHH"
