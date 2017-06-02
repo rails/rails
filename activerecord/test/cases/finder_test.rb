@@ -1023,16 +1023,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end
 
-  def test_find_all_with_join
-    developers_on_project_one = Developer.
-      joins("LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id").
-      where("project_id=1").to_a
-    assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map(&:name)
-    assert_includes developer_names, "David"
-    assert_includes developer_names, "Jamis"
-  end
-
   def test_joins_dont_clobber_id
     first = Firm.
       joins("INNER JOIN companies clients ON clients.firm_id = companies.id").
