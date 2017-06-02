@@ -30,17 +30,17 @@
 
 ## Rails 4.2.4 (August 24, 2015) ##
 
-* No Changes *
+*   No changes.
 
 
 ## Rails 4.2.3 (June 25, 2015) ##
 
-* No Changes *
+*   No changes.
 
 
 ## Rails 4.2.2 (June 16, 2015) ##
 
-* No Changes *
+*   No changes.
 
 
 ## Rails 4.2.1 (March 19, 2015) ##
@@ -54,16 +54,16 @@
 
     *Xavier Noria*
 
-* Change Posts to Articles in Getting Started sample application in order to
+*   Change Posts to Articles in Getting Started sample application in order to
 better align with the actual guides.
 
     *John Kelly Ferguson*
 
-* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
+*   Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
 
     *John Kelly Ferguson*
 
-* Split up rows in the Explain Queries table of the ActiveRecord Querying section
+*   Split up rows in the Explain Queries table of the ActiveRecord Querying section
 in order to improve readability.
 
     *John Kelly Ferguson*
