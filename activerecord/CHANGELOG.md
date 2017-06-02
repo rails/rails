@@ -2,6 +2,10 @@
 
     *Dylan Thacker-Smith*
 
+*   Prevent making bind param if casted value is nil.
+
+    *Ryuta Kamizono*
+
 *   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
 
     *Ryuta Kamizono*
