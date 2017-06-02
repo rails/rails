@@ -81,10 +81,12 @@ module ActiveRecord
           end
 
           def add_column_options!(sql, options)
-            sql << " DEFAULT #{quote_value(options[:default], options[:column])}" if options_include_default?(options)
+            sql << " DEFAULT #{option_is_a_function?(options[:default]) ? options[:default] : quote_value(options[:default], options[:column])}" if options_include_default?(options)
             # must explicitly check for :null to allow change_column to work on migrations
             if options[:null] == false
               sql << " NOT NULL"
+            elsif options[:column].sql_type == "timestamp"
+              sql << " NULL "
             end
             if options[:auto_increment] == true
               sql << " AUTO_INCREMENT"
@@ -118,6 +120,17 @@ module ActiveRecord
 
           def type_for_column(column)
             @conn.lookup_cast_type(column.sql_type)
+          end
+
+          def option_is_a_function?(option)
+            return false if option.blank? or option =~ /\(\w+\)$/
+
+            _o = option.dup
+            # append parenthesis to ensure function syntax.
+            _o += "()" unless _o =~ /\(\)$/
+            ActiveRecord::Base.connection.select_value("SELECT #{_o}").present?
+          rescue StandardError => e
+            return false
           end
       end
     end
