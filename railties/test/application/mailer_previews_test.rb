@@ -407,6 +407,36 @@ module ApplicationTests
       assert_match "David Heinemeier Hansson &lt;david@heinemeierhansson.com&gt;", last_response.body
     end
 
+    test "mailer preview has access to params" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo(user_name)
+            mail to: "\#{user_name}@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo(params.fetch('user_name'))
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo?user_name=barcar"
+      assert_equal 200, last_response.status
+      assert_match "barcar@example.org", last_response.body
+    end
+
     test "part menu selects correct option" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
