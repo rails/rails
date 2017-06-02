@@ -453,7 +453,7 @@ module ActionView
       #   # => <a href="mailto:me@domain.com">
       #          <strong>Email me:</strong> <span>me@domain.com</span>
       #        </a>
-      def mail_to(email_address, name = nil, html_options = {}, &block)
+      def mail_to(name = nil, email_address, html_options = {}, &block)
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
