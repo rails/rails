@@ -52,7 +52,7 @@ module ActionDispatch
           end
 
           def screenshots_disabled?
-            ENV['RAILS_SYSTEM_TESTING_SCREENSHOT'] == 'disabled'
+            ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] == "disabled"
           end
 
           def output_type
