@@ -187,8 +187,7 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
-          [ActiveRecord::Relation.create(klass, table, predicate_builder)
-            .instance_exec(&scope)]
+          [build_scope(table, predicate_builder).instance_exec(&scope)]
         else
           []
         end
@@ -200,11 +199,7 @@ module ActiveRecord
             scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
-          relation = ActiveRecord::Relation.create(
-            klass,
-            table,
-            predicate_builder,
-          )
+          relation = build_scope(table, predicate_builder)
           klass.send(:build_default_scope, relation)
         end
       end
@@ -285,6 +280,14 @@ module ActiveRecord
 
       def get_join_keys(association_klass)
         JoinKeys.new(join_pk(association_klass), join_fk)
+      end
+
+      def build_scope(table, predicate_builder = predicate_builder(table))
+        Relation.create(klass, table, predicate_builder)
+      end
+
+      def predicate_builder(table)
+        PredicateBuilder.new(TableMetadata.new(klass, table))
       end
 
       protected

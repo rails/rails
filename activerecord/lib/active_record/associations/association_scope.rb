@@ -138,7 +138,7 @@ module ActiveRecord
             # Exclude the scope of the association itself, because that
             # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
-              item = eval_scope(reflection.klass, table, scope_chain_item, owner)
+              item = eval_scope(reflection, table, scope_chain_item, owner)
 
               if scope_chain_item == refl.scope
                 scope.merge! item.except(:where, :includes)
@@ -159,9 +159,8 @@ module ActiveRecord
           scope
         end
 
-        def eval_scope(klass, table, scope, owner)
-          predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-          ActiveRecord::Relation.create(klass, table, predicate_builder).instance_exec(owner, &scope)
+        def eval_scope(reflection, table, scope, owner)
+          reflection.build_scope(table).instance_exec(owner, &scope)
         end
     end
   end

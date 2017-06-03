@@ -40,7 +40,7 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
+            predicate_builder = reflection.predicate_builder(table)
             scope_chain_items = reflection.join_scopes(table, predicate_builder)
             klass_scope       = reflection.klass_join_scope(table, predicate_builder)
 
