@@ -134,6 +134,7 @@ class AppearanceChannel < ApplicationCable::Channel
   end
 end
 ```
+NOTE: You must implement `appear`, `disappear`, and `away` methods for `current_user`
 
 The `#subscribed` callback is invoked when, as we'll show below, a client-side subscription is initiated. In this case,
 we take that opportunity to say "the current user has indeed appeared". That appear/disappear API could be backed by
