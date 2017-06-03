@@ -97,7 +97,7 @@ but is built for better flexibility and more features to meet Rails' requirement
 Rails has a handy task for inspecting the middleware stack in use:
 
 ```bash
-$ bin/rails middleware
+$ bin/rake middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
