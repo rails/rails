@@ -473,4 +473,14 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
       assert_nil post.updated_at
     end
   end
+
+  def test_do_read_timestamps_even_if_they_are_not_attributes
+    with_example_table ActiveRecord::Base.connection, "timestamp_attribute_posts", "id integer primary key" do
+      post = TimestampAttributePost.create(id: 1)
+      time = Time.now
+      # updated_at can't be saved to the model's table, but can be read for the cache_key
+      post.updated_at = time.utc
+      assert_equal post.cache_key, "timestamps_without_transaction_test/timestamp_attribute_posts/1-#{time.to_s(:nsec)}"
+    end
+  end
 end
