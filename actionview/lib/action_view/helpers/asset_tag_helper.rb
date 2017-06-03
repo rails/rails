@@ -227,14 +227,28 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
+      #   image_tag("icon.png", srcset: "/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w", sizes: '100vw', class: 'my-image')
+      #   <img src="/assets/ants_1980.jpg" srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw" class="my-image">
+      #   image_tag("icon.png", srcset: { 'pic_640.jpg' => '640w', 'pic_1024.jpg' => '1024w', 'pic_1980.jpg' => '1980w' }, sizes: '100vw', class: 'my-image')
+      #   <img src="/assets/ants_1980.jpg" srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw" class="my-image">
+      #   image_tag("icon.png", srcset: [['pic_640.jpg', '640w'], ['pic_1024.jpg', '1024w'], ['pic_1980.jpg', '1980w']], sizes: '100vw', class: 'my-image')
+      #   <img src="/assets/ants_1980.jpg" srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw" class="my-image">
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
+        skip_pipeline = options.delete(:skip_pipeline)
 
-        src = options[:src] = path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
+        src = options[:src] = path_to_image(source, skip_pipeline: skip_pipeline)
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
+        end
+
+        if options[:srcset] && !options[:srcset].is_a?(String)
+          options[:srcset] = options[:srcset].map do |src, size|
+            src_path = path_to_image(src, skip_pipeline: skip_pipeline)
+            "#{src_path} #{size}"
+          end.join(", ")
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
