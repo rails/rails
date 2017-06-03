@@ -188,7 +188,7 @@ module ActiveRecord
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       #
-      #   If an array is passed, a composite primary key will created.
+      #   If an array is passed, a composite primary key will be created.
       #
       #   Note that Active Record models will automatically detect their
       #   primary key. This can be avoided by using
