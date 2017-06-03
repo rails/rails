@@ -4,15 +4,15 @@ require "capybara/dsl"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
   test "screenshots are not taken if disabled" do
-    new_test = DrivenBySeleniumWithChrome.new('x')
+    new_test = DrivenBySeleniumWithChrome.new("x")
 
-    cached_env_value = ENV['RAILS_SYSTEM_TESTING_SCREENSHOT']
-    ENV['RAILS_SYSTEM_TESTING_SCREENSHOT'] = 'disabled'
+    cached_env_value = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
+    ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "disabled"
 
     assert new_test.send(:screenshots_disabled?)
     assert_nil new_test.take_failed_screenshot
 
-    ENV['RAILS_SYSTEM_TESTING_SCREENSHOT'] = cached_env_value
+    ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = cached_env_value
   end
 
   test "image path is saved in tmp directory" do
