@@ -10,16 +10,7 @@ module Rails
     end
 
     private
-      %w(template copy_file directory empty_directory inside
-         empty_directory_with_keep_file create_file chmod shebang).each do |method|
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            @generator.send(:#{method}, *args, &block)
-          end
-        RUBY
-      end
 
-      # TODO: Remove once this is fully in place
       def method_missing(meth, *args, &block)
         @generator.send(meth, *args, &block)
       end
