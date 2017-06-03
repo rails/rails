@@ -69,7 +69,7 @@ module ActionDispatch
   # +application_system_test_case.rb+ file. In this case you would leave out the +:using+
   # option because the driver is headless, but you can still use
   # +:screen_size+ to change the size of the browser screen, also you can use
-  # +:options+ to pass options supported by the driver. Please refeer to your
+  # +:options+ to pass options supported by the driver. Please refer to your
   # driver documentation to learn about supported options.
   #
   #   require "test_helper"
