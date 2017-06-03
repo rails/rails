@@ -3,11 +3,9 @@ require "models/post"
 require "models/comment"
 require "models/author"
 require "models/rating"
-require "support/connection_helper"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    include ConnectionHelper
 
     fixtures :posts, :comments, :authors, :author_addresses
 
@@ -253,8 +251,6 @@ module ActiveRecord
 
       silence_warnings { post = Post.select("'title' as post_title").first }
       assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
-    ensure
-      reset_connection
     end
 
     def test_select_quotes_when_using_from_clause
