@@ -380,6 +380,8 @@ module ActionDispatch
 
             New keyword style:
             get "/profile", params: { id: 1 }, headers: { "X-Extra-Header" => "123" }
+
+            Supported keyword arguments: params, env, headers, xhr, as.
           MSG
         end
 

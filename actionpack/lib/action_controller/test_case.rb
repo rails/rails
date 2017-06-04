@@ -670,6 +670,8 @@ module ActionController
           New keyword style:
           get :show, params: { id: 1 }, flash: { notice: "This is a flash message" },
             session: nil # Can safely be omitted.
+
+          Supported keyword arguments: params, session, flash, xhr.
         MSG
       end
 
