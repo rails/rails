@@ -269,6 +269,42 @@ module CacheStoreBehavior
     end
   end
 
+  def test_cache_if_truthy_write
+    assert_called_with(@cache, :write) do
+      assert_equal 'bar', @cache.cache_if_truthy('foo') { 'bar' }
+    end
+  end
+
+  def test_cache_if_truthy_2nd_truthy_write
+    @cache.cache_if_truthy('foo') { 'bar' }
+    assert_equal 'bar', @cache.read('foo')
+
+    assert_not_called(@cache, :write) do
+      assert_equal 'bar', @cache.cache_if_truthy('foo') { 'baz' }
+    end
+  end
+
+  def test_cache_if_truthy_without_false_write
+    assert_not_called(@cache, :write) do
+      assert_equal false, @cache.cache_if_truthy('foo') { false }
+    end
+    assert_equal nil, @cache.read('foo')
+  end
+
+  def test_cache_if_truthy_without_nil_write
+    assert_not_called(@cache, :write) do
+      assert_equal nil, @cache.cache_if_truthy('foo') { nil }
+    end
+    assert_equal nil, @cache.read('foo')
+  end
+
+  def test_cache_if_truthy_without_2nd_false_write
+    @cache.cache_if_truthy('foo') { 'true string' }
+    assert_not_called(@cache, :write) do
+      assert_equal 'true string', @cache.cache_if_truthy('foo') { false }
+    end
+  end
+
   def test_fetch_with_cache_miss
     assert_called_with(@cache, :write, ["foo", "baz", @cache.options]) do
       assert_equal "baz", @cache.fetch("foo") { "baz" }

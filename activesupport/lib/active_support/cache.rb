@@ -443,6 +443,34 @@ module ActiveSupport
         end
       end
 
+      # Caches the result of a method if the result is truthy
+      #
+      # Hence if you do this the result will not be cached:
+      #   cache_if_truthy("User:#{id}:falsy_method") { nil }
+      #
+      # On the other hand this would be cached.
+      #   cache_if_truthy("User:#{id}:truthy_method") { 'a string is truthy in ruby' }
+      #
+      # Note if you only care about a boolean method then the above method should be implemented like this:
+      #   cache_if_truthy("User:#{id}:truthy_method") { !!'a string is truthy in ruby' }
+      #
+      # Thus a large string is not cached, only true or false is returned
+      #
+      def cache_if_truthy(key, options = nil)
+        if block_given?
+          result = read(key, options)
+          if !result || (options && options[:force])
+            result = yield
+            write(key, result, options) if result || (options && options[:force])
+          end
+        elsif options && options[:force]
+          raise ArgumentError, 'Missing block: Calling `Cache#cache_if_truthy` with `force: true` requires a block.'
+        else
+          result = read(name, options)
+        end
+        result
+      end
+
       # Deletes all entries with keys matching the pattern.
       #
       # Options are passed to the underlying cache implementation.
