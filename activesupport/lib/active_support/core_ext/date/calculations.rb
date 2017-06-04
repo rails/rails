@@ -153,9 +153,9 @@ class Date
     factors[:months] = factors[:days] * 30
     factors[:years] = factors[:days] * 365.25
     distance = if respond_to? :to_i
-      to_i - other.to_i
-    else to_time.to_i - other.to_time.to_i
-    end
+                 to_i - other.to_i
+               else to_time.to_i - other.to_time.to_i
+               end
     remainder = distance
     parts = factors.to_a.reverse.map do |time_type, factor|
       quotient, remainder = remainder.divmod factor
