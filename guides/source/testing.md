@@ -1405,7 +1405,7 @@ In order to test that your mailer is working as expected, you can use unit tests
 
 #### Revenge of the Fixtures
 
-For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within `test/fixtures` directly corresponds to the name of the mailer. So, for a mailer named `UserMailer`, the fixtures should reside in `test/fixtures/user_mailer` directory.
+For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within `test/fixtures` directly corresponds to the name of the mailer. So, for a mailer named `UserMailer`, the fixtures should reside in `test/fixtures/user_mailer` directory. By convention, each fixture has the name of an action, but you can add as many fixtures as you like.
 
 If you generated your mailer, the generator does not create stub fixtures for the mailers actions. You'll have to create those files yourself as described above.
 
@@ -1419,8 +1419,7 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Create the email and store it for further assertions
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now)
+    email = UserMailer.invite('me@example.com', 'friend@example.com', Time.now)
 
     # Send the email, then test that it got queued
     assert_emails 1 do
@@ -1431,7 +1430,7 @@ class UserMailerTest < ActionMailer::TestCase
     assert_equal ['me@example.com'], email.from
     assert_equal ['friend@example.com'], email.to
     assert_equal 'You have been invited by me@example.com', email.subject
-    assert_equal read_fixture('invite').join, email.body.to_s
+    assert_equal read_fixture('invite').join, email.text_part.body.to_s
   end
 end
 ```
@@ -1440,10 +1439,11 @@ In the test we send the email and store the returned object in the `email`
 variable. We then ensure that it was sent (the first assert), then, in the
 second batch of assertions, we ensure that the email does indeed contain what we
 expect. The helper `read_fixture` is used to read in the content from this file.
+This helper returns the file contents as an array of lines, which you can join
+to compare to the generated email.
 
-NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present.
-If the mailer provides both, you can test your fixture against specific parts
-with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
+NOTE: If the mailer provides both text and HTML views, you can test your fixture against specific parts
+with `email.text_part.body.to_s` or `email.html_part.body.to_s`. If you're testing the HTML part, the fixture must contain the full contents of the HTML including the tags supplied by your mailer layout.
 
 Here's the content of the `invite` fixture:
 
