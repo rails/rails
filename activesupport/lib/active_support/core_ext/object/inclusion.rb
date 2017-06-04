@@ -13,6 +13,12 @@ class Object
     raise ArgumentError.new("The parameter passed to #in? must respond to #include?")
   end
 
+  # Returns true if this object is excluded out from argument. Argument must be
+  # any object which responds to +#exclude?+. Usage:
+  def out?(another_object)
+    another_object.exclude?(self)
+  end
+
   # Returns the receiver if it's included in the argument otherwise returns +nil+.
   # Argument must be any object which responds to +#include?+. Usage:
   #
