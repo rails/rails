@@ -446,7 +446,11 @@ module ActiveRecord
         def load_schema
           return if schema_loaded?
           @load_schema_monitor.synchronize do
-            load_schema! unless defined?(@columns_hash) && @columns_hash
+            return if defined?(@columns_hash) && @columns_hash
+
+            load_schema!
+
+            @schema_loaded = true
           end
         end
 
@@ -460,8 +464,6 @@ module ActiveRecord
               user_provided_default: false
             )
           end
-
-          @schema_loaded = true
         end
 
         def reload_schema_from_cache
