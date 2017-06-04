@@ -6,8 +6,7 @@ module LoggerSilence
   extend ActiveSupport::Concern
 
   included do
-    cattr_accessor :silencer
-    self.silencer = true
+    cattr_accessor :silencer, default: true
   end
 
   # Silences the logger for the duration of the block.

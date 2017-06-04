@@ -1,3 +1,12 @@
+*   Add default option to module and class attribute accessors.
+
+       mattr_accessor :settings, default: {}
+
+    Works for `mattr_reader`, `mattr_writer`, `cattr_accessor`, `cattr_reader`,
+    and `cattr_writer` as well.
+
+    *Genadi Samokovarov*
+
 *   Add `Date#prev_occurring` and `Date#next_occurring` to return specified next/previous occurring day of week.
 
     *Shota Iguchi*

@@ -940,8 +940,7 @@ The macros `cattr_reader`, `cattr_writer`, and `cattr_accessor` are analogous to
 ```ruby
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans.
-  cattr_accessor :emulate_booleans
-  self.emulate_booleans = true
+  cattr_accessor :emulate_booleans, default: true
 end
 ```
 
@@ -950,8 +949,7 @@ Instance methods are created as well for convenience, they are just proxies to t
 ```ruby
 module ActionView
   class Base
-    cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ ... }
+    cattr_accessor :field_error_proc, default: Proc.new { ... }
   end
 end
 ```
@@ -963,7 +961,7 @@ Also, you can pass a block to `cattr_*` to set up the attribute with a default v
 ```ruby
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans with default value of true.
-  cattr_accessor(:emulate_booleans) { true }
+  cattr_accessor :emulate_booleans, default: true
 end
 ```
 

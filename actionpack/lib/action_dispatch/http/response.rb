@@ -81,8 +81,8 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
-    cattr_accessor(:default_charset) { "utf-8" }
-    cattr_accessor(:default_headers)
+    cattr_accessor :default_charset, default: "utf-8"
+    cattr_accessor :default_headers
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.

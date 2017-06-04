@@ -140,30 +140,25 @@ module ActionView #:nodoc:
     include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
-    cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
+    cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
-    cattr_accessor :streaming_completion_on_exception
-    @@streaming_completion_on_exception = %("><script>window.location = "/500.html"</script></html>)
+    cattr_accessor :streaming_completion_on_exception, default: %("><script>window.location = "/500.html"</script></html>)
 
     # Specify whether rendering within namespaced controllers should prefix
     # the partial paths for ActiveModel objects with the namespace.
     # (e.g., an Admin::PostsController would render @post using /admin/posts/_post.erb)
-    cattr_accessor :prefix_partial_path_with_controller_namespace
-    @@prefix_partial_path_with_controller_namespace = true
+    cattr_accessor :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
 
     # Specify whether an error should be raised for missing translations
-    cattr_accessor :raise_on_missing_translations
-    @@raise_on_missing_translations = false
+    cattr_accessor :raise_on_missing_translations, default: false
 
     # Specify whether submit_tag should automatically disable on click
-    cattr_accessor :automatically_disable_submit_tag
-    @@automatically_disable_submit_tag = true
+    cattr_accessor :automatically_disable_submit_tag, default: true
 
     class_attribute :_routes
     class_attribute :logger

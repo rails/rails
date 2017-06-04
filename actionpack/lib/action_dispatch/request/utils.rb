@@ -1,8 +1,7 @@
 module ActionDispatch
   class Request
     class Utils # :nodoc:
-      mattr_accessor :perform_deep_munge
-      self.perform_deep_munge = true
+      mattr_accessor :perform_deep_munge, default: true
 
       def self.each_param_value(params, &block)
         case params

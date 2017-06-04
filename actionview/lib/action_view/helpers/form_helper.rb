@@ -474,7 +474,7 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      mattr_accessor(:form_with_generates_remote_forms) { true }
+      mattr_accessor :form_with_generates_remote_forms, default: true
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
@@ -2318,8 +2318,6 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    cattr_accessor(:default_form_builder, instance_writer: false, instance_reader: false) do
-      ::ActionView::Helpers::FormBuilder
-    end
+    cattr_accessor :default_form_builder, instance_writer: false, instance_reader: false, default: ::ActionView::Helpers::FormBuilder
   end
 end

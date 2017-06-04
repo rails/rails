@@ -492,8 +492,7 @@ module ActiveRecord
       end
     end
 
-    cattr_accessor :all_loaded_fixtures
-    self.all_loaded_fixtures = {}
+    cattr_accessor :all_loaded_fixtures, default: {}
 
     class ClassCache
       def initialize(class_names, config)

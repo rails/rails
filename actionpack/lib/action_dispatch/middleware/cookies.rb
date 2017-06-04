@@ -432,8 +432,7 @@ module ActionDispatch
         end
       end
 
-      mattr_accessor :always_write_cookie
-      self.always_write_cookie = false
+      mattr_accessor :always_write_cookie, default: false
 
       private
 
