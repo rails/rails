@@ -100,6 +100,10 @@ module ActiveRecord
       !(@new_record || @destroyed)
     end
 
+    ##
+    # :call-seq:
+    #   save(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -121,12 +125,16 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*args)
-      create_or_update(*args)
+    def save(*args, &block)
+      create_or_update(*args, &block)
     rescue ActiveRecord::RecordInvalid
       false
     end
 
+    ##
+    # :call-seq:
+    #   save!(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -148,8 +156,10 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save!(*args)
-      create_or_update(*args) || raise(RecordNotSaved.new("Failed to save the record", self))
+    #
+    # Unless an error is raised, returns true.
+    def save!(*args, &block)
+      create_or_update(*args, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -338,14 +348,16 @@ module ActiveRecord
       self
     end
 
-    # Wrapper around #increment that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def increment!(attribute, by = 1)
+    # Wrapper around #increment that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
-      self.class.update_counters(id, attribute => change)
+      self.class.update_counters(id, attribute => change, touch: touch)
       clear_attribute_change(attribute) # eww
       self
     end
@@ -357,12 +369,14 @@ module ActiveRecord
       increment(attribute, -by)
     end
 
-    # Wrapper around #decrement that saves the record. This method differs from
-    # its non-bang version in the sense that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def decrement!(attribute, by = 1)
-      increment!(attribute, -by)
+    # Wrapper around #decrement that writes the update to the database.
+    # Only +attribute+ is updated; the record itself is not saved.
+    # This means that any other modified attributes will still be dirty.
+    # Validations and callbacks are skipped. Supports the `touch` option from
+    # +update_counters+, see that for more.
+    # Returns +self+.
+    def decrement!(attribute, by = 1, touch: nil)
+      increment!(attribute, -by, touch: touch)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -392,8 +406,8 @@ module ActiveRecord
 
     # Reloads the record from the database.
     #
-    # This method finds record by its primary key (which could be assigned manually) and
-    # modifies the receiver in-place:
+    # This method finds the record by its primary key (which could be assigned
+    # manually) and modifies the receiver in-place:
     #
     #   account = Account.new
     #   # => #<Account id: nil, email: nil>
@@ -544,9 +558,9 @@ module ActiveRecord
       self.class.unscoped.where(self.class.primary_key => id)
     end
 
-    def create_or_update(*args)
+    def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
-      result = new_record? ? _create_record : _update_record(*args)
+      result = new_record? ? _create_record(&block) : _update_record(*args, &block)
       result != false
     end
 
@@ -561,6 +575,9 @@ module ActiveRecord
         rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
         @_trigger_update_callback = rows_affected > 0
       end
+
+      yield(self) if block_given?
+
       rows_affected
     end
 
@@ -573,6 +590,9 @@ module ActiveRecord
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false
+
+      yield(self) if block_given?
+
       id
     end
 

@@ -18,7 +18,7 @@ class LockWithoutDefault < ActiveRecord::Base; end
 
 class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.table_name = :lock_without_defaults_cust
-  self.column_defaults # to test @column_defaults caching.
+  column_defaults # to test @column_defaults caching.
   self.locking_column = :custom_lock_version
 end
 
@@ -247,17 +247,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_without_default_should_update_with_lock_col
-    t1 = LockWithoutDefault.create(title: "title1", lock_version: 6)
-
-    assert_equal 6, t1.lock_version
-
-    t1.update(lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.lock_version
-  end
-
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -269,12 +258,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.lock_version
-
-    assert_queries(1) { t1.update(title: "title3", lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.lock_version
 
     t2 = LockWithoutDefault.new(title: "title1")
 
@@ -321,17 +304,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_with_custom_column_without_default_should_update_with_lock_col
-    t1 = LockWithCustomColumnWithoutDefault.create(title: "title1", custom_lock_version: 6)
-
-    assert_equal 6, t1.custom_lock_version
-
-    t1.update(custom_lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.custom_lock_version
-  end
-
   def test_lock_with_custom_column_without_default_queries_count
     t1 = LockWithCustomColumnWithoutDefault.create(title: "title1")
 
@@ -343,12 +315,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.custom_lock_version
-
-    assert_queries(1) { t1.update(title: "title3", custom_lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.custom_lock_version
 
     t2 = LockWithCustomColumnWithoutDefault.new(title: "title1")
 
@@ -536,7 +502,10 @@ unless in_memory_db?
         Person.transaction do
           person = Person.find 1
           old, person.first_name = person.first_name, "fooman"
-          person.lock!
+          # Locking a dirty record is deprecated
+          assert_deprecated do
+            person.lock!
+          end
           assert_equal old, person.first_name
         end
       end
@@ -579,7 +548,7 @@ unless in_memory_db?
         assert first.end > second.end
       end
 
-      protected
+      private
 
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil

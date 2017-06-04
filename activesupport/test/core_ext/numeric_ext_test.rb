@@ -12,7 +12,7 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
       10.minutes => 600,
       1.hour + 15.minutes => 4500,
       2.days + 4.hours + 30.minutes => 189000,
-      5.years + 1.month + 1.fortnight => 161589600
+      5.years + 1.month + 1.fortnight => 161624106
     }
   end
 
@@ -61,10 +61,10 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
   end
 
   def test_duration_after_conversion_is_no_longer_accurate
-    assert_equal 30.days.to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
-    assert_equal 365.25.days.to_f.seconds.since(@now), 1.year.to_f.seconds.since(@now)
-    assert_equal 30.days.to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
-    assert_equal 365.25.days.to_f.seconds.since(@dtnow), 1.year.to_f.seconds.since(@dtnow)
+    assert_equal (1.year / 12).to_i.seconds.since(@now), 1.month.to_i.seconds.since(@now)
+    assert_equal 365.2425.days.to_f.seconds.since(@now), 1.year.to_f.seconds.since(@now)
+    assert_equal (1.year / 12).to_i.seconds.since(@dtnow), 1.month.to_i.seconds.since(@dtnow)
+    assert_equal 365.2425.days.to_f.seconds.since(@dtnow), 1.year.to_f.seconds.since(@dtnow)
   end
 
   def test_add_one_year_to_leap_day
@@ -394,6 +394,10 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal "1000010.0", BigDecimal("1000010").to_s
     assert_equal "10000 10.0", BigDecimal("1000010").to_s("5F")
+
+    assert_raises TypeError do
+      1.to_s({})
+    end
   end
 
   def test_in_milliseconds

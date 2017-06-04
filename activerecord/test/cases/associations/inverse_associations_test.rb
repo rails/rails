@@ -443,7 +443,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
     assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
 
-    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    assert_nil man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
     man.name = "Ben Bitdiddle"
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
     man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
@@ -638,20 +638,6 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
-    face = faces(:confused)
-    new_man = Man.new
-
-    assert_not_nil face.polymorphic_man
-    face.polymorphic_man = new_man
-
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
-    face.description = "Bongo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
-    new_man.polymorphic_face.description = "Mungo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
-  end
-
-  def test_child_instance_should_be_shared_with_replaced_via_method_parent
     face = faces(:confused)
     new_man = Man.new
 

@@ -1,7 +1,7 @@
 require "rake/testtask"
 
-require File.expand_path(File.dirname(__FILE__)) + "/test/config"
-require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
+require File.expand_path("test/config", __dir__)
+require File.expand_path("test/support/config", __dir__)
 
 def run_without_aborting(*tasks)
   errors = []
@@ -111,11 +111,6 @@ namespace :db do
       config = ARTest.config["connections"]["postgresql"]
       %x( createdb -E UTF8 -T template0 #{config["arunit"]["database"]} )
       %x( createdb -E UTF8 -T template0 #{config["arunit2"]["database"]} )
-
-      # prepare hstore
-      if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
-        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/current/static/hstore.html"
-      end
     end
 
     desc "Drop the PostgreSQL test databases"
@@ -139,7 +134,7 @@ task drop_postgresql_databases: "db:postgresql:drop"
 task rebuild_postgresql_databases: "db:postgresql:rebuild"
 
 task :lines do
-  load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
+  load File.expand_path("../tools/line_statistics", __dir__)
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

@@ -269,8 +269,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
-      self.cookies["cookie_1"] = "sugar"
-      self.cookies["cookie_2"] = "oatmeal"
+      cookies["cookie_1"] = "sugar"
+      cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
@@ -289,7 +289,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -494,7 +494,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_includes @response.headers, "c"
   end
 
-  def test_accept_not_overriden_when_xhr_true
+  def test_accept_not_overridden_when_xhr_true
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
@@ -1091,7 +1091,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   end
 
   def self.fixture_path
-    File.dirname(__FILE__) + "/../fixtures/multipart"
+    File.expand_path("../fixtures/multipart", __dir__)
   end
 
   routes.draw do

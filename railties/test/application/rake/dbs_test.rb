@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   module RakeTests
@@ -175,7 +174,7 @@ module ApplicationTests
           `bin/rails generate model book title:string;
            bin/rails db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE \"books\"/, structure_dump)
+          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           `bin/rails environment db:drop db:structure:load`
           assert_match expected_database, ActiveRecord::Base.connection_config[:database]
           require "#{app_path}/app/models/book"
@@ -203,7 +202,7 @@ module ApplicationTests
           stderr_output = capture(:stderr) { `bin/rails db:structure:dump` }
           assert_empty stderr_output
           structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE \"posts\"/, structure_dump)
+          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"posts\"/, structure_dump)
         end
       end
 

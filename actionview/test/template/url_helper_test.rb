@@ -231,18 +231,22 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
 
     def to_h
-      { foo: :bar, baz: "quux" }
+      if permitted?
+        { foo: :bar, baz: "quux" }
+      else
+        raise ArgumentError
+      end
     end
   end
 
-  def test_button_to_with_permited_strong_params
+  def test_button_to_with_permitted_strong_params
     assert_dom_equal(
       %{<form action="http://www.example.com" class="button_to" method="post"><input type="submit" value="Hello" /><input type="hidden" name="baz" value="quux" /><input type="hidden" name="foo" value="bar" /></form>},
       button_to("Hello", "http://www.example.com", params: FakeParams.new)
     )
   end
 
-  def test_button_to_with_unpermited_strong_params
+  def test_button_to_with_unpermitted_strong_params
     assert_raises(ArgumentError) do
       button_to("Hello", "http://www.example.com", params: FakeParams.new(false))
     end
@@ -496,6 +500,21 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/")
   end
 
+  def test_current_page_considering_params
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(url_hash, check_parameters: true)
+    assert !current_page?(url_hash.merge(check_parameters: true))
+    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert !current_page?("http://www.example.com/", check_parameters: true)
+  end
+
+  def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(:back, check_parameters: false)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
@@ -596,8 +615,8 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_mail_to_with_special_characters
     assert_dom_equal(
-      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
-      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C@example.org">#!$%&amp;&#39;*+-/=?^_`{}|@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|@example.org")
     )
   end
 
@@ -663,13 +682,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def request_forgery_protection_token
     "form_token"
   end
-
-  private
-    def sort_query_string_params(uri)
-      path, qs = uri.split("?")
-      qs = qs.split("&amp;").sort.join("&amp;") if qs
-      qs ? "#{path}?#{qs}" : path
-    end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
@@ -810,9 +822,9 @@ class TasksController < ActionController::Base
     render_default
   end
 
-  protected
+  private
     def render_default
-      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" +
+      render inline: "<%= link_to_unless_current('tasks', tasks_path) %>\n" \
         "<%= link_to_unless_current('tasks', tasks_url) %>"
     end
 end
@@ -866,6 +878,11 @@ class WorkshopsController < ActionController::Base
   def show
     @workshop = Workshop.new(params[:id])
     render inline: "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
+  end
+
+  def edit
+    @workshop = Workshop.new(params[:id])
+    render inline: "<%= current_page?(@workshop) %>"
   end
 end
 
@@ -930,5 +947,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
   end
 end

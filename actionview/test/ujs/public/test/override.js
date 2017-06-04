@@ -46,7 +46,7 @@ asyncTest('the event selector strings are overridable', 1, function() {
   start()
 })
 
-asyncTest('including jquery-ujs multiple times throws error', 1, function() {
+asyncTest('including rails-ujs multiple times throws error', 1, function() {
   throws(function() {
     Rails.start()
   }, 'appending rails.js again throws error')

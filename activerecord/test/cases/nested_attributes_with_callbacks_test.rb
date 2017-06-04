@@ -120,14 +120,14 @@ class NestedAttributesWithCallbacksTest < ActiveRecord::TestCase
     assert_assignment_affects_records_in_target(:birds_with_add)
   end
 
-  test("Assignment updates records in target when not loaded" +
+  test("Assignment updates records in target when not loaded" \
        " and callback loads target") do
     assert_not @pirate.birds_with_add_load.loaded?
     @pirate.birds_with_add_load_attributes = update_new_and_destroy_bird_attributes
     assert_assignment_affects_records_in_target(:birds_with_add_load)
   end
 
-  test("Assignment updates records in target when loaded" +
+  test("Assignment updates records in target when loaded" \
        " and callback loads target") do
     @pirate.birds_with_add_load.load_target
     @pirate.birds_with_add_load_attributes = update_new_and_destroy_bird_attributes

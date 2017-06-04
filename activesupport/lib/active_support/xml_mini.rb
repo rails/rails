@@ -73,7 +73,7 @@ module ActiveSupport
             begin
               BigDecimal(number)
             rescue ArgumentError
-              BigDecimal('0')
+              BigDecimal("0")
             end
           else
             BigDecimal(number)
@@ -159,7 +159,7 @@ module ActiveSupport
       key
     end
 
-    protected
+    private
 
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
@@ -168,7 +168,7 @@ module ActiveSupport
       end
 
       # TODO: Add support for other encodings
-      def _parse_binary(bin, entity) #:nodoc:
+      def _parse_binary(bin, entity)
         case entity["encoding"]
         when "base64"
           ::Base64.decode64(bin)
@@ -184,8 +184,6 @@ module ActiveSupport
         f.content_type = entity["content_type"]
         f
       end
-
-    private
 
       def current_thread_backend
         Thread.current[:xml_mini_backend]

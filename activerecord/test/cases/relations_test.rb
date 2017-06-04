@@ -22,7 +22,7 @@ require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
@@ -112,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal "The First Topic", topics.first.title
@@ -123,7 +123,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first_with_limit
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal ["The First Topic",
@@ -136,7 +136,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_get_more_than_available
     topics = Topic.all.order("id ASC")
     unloaded_first = topics.first(10)
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       loaded_first = topics.first(10)
@@ -218,14 +218,31 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
-  def test_finding_with_reverted_assoc_order
+  def test_finding_with_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_assoc_order
     topics = Topic.order(id: :asc).reverse_order
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_function
     topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_arel_assoc_order_with_function
+    topics = Topic.order(Arel.sql("length(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -248,6 +265,12 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+    end
+  end
+
+  def test_reverse_arel_assoc_order_with_multiargument_function
+    assert_nothing_raised do
+      Topic.order(Arel.sql("REPLACE(title, '', '')") => :asc).reverse_order
     end
   end
 
@@ -442,7 +465,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries(ignore_none: false) do
       assert_equal 0, Developer.none.count
       assert_equal 0, Developer.none.calculate(:count, nil)
-      assert_equal nil, Developer.none.calculate(:average, "salary")
+      assert_nil Developer.none.calculate(:average, "salary")
     end
   end
 
@@ -485,28 +508,28 @@ class RelationTest < ActiveRecord::TestCase
   def test_null_relation_average
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal nil, ac.engines.average(:id)
+    assert_nil ac.engines.average(:id)
   end
 
   def test_null_relation_minimum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal nil, ac.engines.minimum(:id)
+    assert_nil ac.engines.minimum(:id)
   end
 
   def test_null_relation_maximum
     ac = Aircraft.new
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal nil, ac.engines.maximum(:id)
+    assert_nil ac.engines.maximum(:id)
   end
 
   def test_null_relation_in_where_condition
@@ -571,7 +594,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_respond_to_delegates_to_relation
+  def test_respond_to_delegates_to_arel
     relation = Topic.all
     fake_arel = Struct.new(:responds) {
       def respond_to?(method, access = false)
@@ -584,10 +607,6 @@ class RelationTest < ActiveRecord::TestCase
 
     relation.respond_to?(:matching_attributes)
     assert_equal [:matching_attributes, false], fake_arel.responds.first
-
-    fake_arel.responds = []
-    relation.respond_to?(:matching_attributes, true)
-    assert_equal [:matching_attributes, true], fake_arel.responds.first
   end
 
   def test_respond_to_dynamic_finders
@@ -674,16 +693,6 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
       assert posts.first.comments.first
     end
-  end
-
-  def test_default_scope_with_conditions_string
-    assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_nil DeveloperCalledDavid.create!.name
-  end
-
-  def test_default_scope_with_conditions_hash
-    assert_equal Developer.where(name: "Jamis").map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
-    assert_equal "Jamis", DeveloperCalledJamis.create!.name
   end
 
   def test_default_scoping_finder_methods
@@ -838,15 +847,6 @@ class RelationTest < ActiveRecord::TestCase
     author = Author.first
     authors = Author.find([author.id])
     assert_equal author, authors.first
-  end
-
-  class Mary < Author; end
-
-  def test_find_by_classname
-    Author.create!(name: Mary.name)
-    assert_deprecated do
-      assert_equal 1, Author.where(name: Mary).size
-    end
   end
 
   def test_find_by_id_with_list_of_ar
@@ -1013,23 +1013,11 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
-  def test_destroy_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.destroy_all(name: "David") }
-    end
-  end
-
   def test_delete_all
     davids = Author.where(name: "David")
 
     assert_difference("Author.count", -1) { davids.delete_all }
     assert ! davids.loaded?
-  end
-
-  def test_delete_all_with_conditions_is_deprecated
-    assert_deprecated do
-      assert_difference("Author.count", -1) { Author.delete_all(name: "David") }
-    end
   end
 
   def test_delete_all_loaded
@@ -1153,7 +1141,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1164,7 +1152,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1174,7 +1162,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
     assert ! posts.loaded?
 
-    posts.to_a # force load
+    posts.load # force load
     assert_no_queries { assert_equal 0, posts.size }
   end
 
@@ -1203,7 +1191,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! no_posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal false, best_posts.empty? }
   end
 
@@ -1638,9 +1626,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
-  def test_update_on_relation_passing_active_record_object_is_deprecated
+  def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_deprecated(/update/) do
+    assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
     end
   end
@@ -1654,17 +1642,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["Foo", "Foo"], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
-      assert_deprecated { assert_equal ["Foo"], query.uniq(true).map(&:name) }
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
-
-    assert_deprecated do
-      assert_equal ["Foo", "Foo"], query.uniq(true).uniq(false).map(&:name)
-    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank
@@ -1814,7 +1796,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by returns nil if the record is missing" do
-    assert_equal nil, Post.all.find_by("1 = 0")
+    assert_nil Post.all.find_by("1 = 0")
   end
 
   test "find_by doesn't have implicit ordering" do
@@ -1905,6 +1887,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
+  test "relations don't load all records in #inspect" do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      Post.all.inspect
+    end
+  end
+
   test "already-loaded relations don't perform a new query in #inspect" do
     relation = Post.limit(2)
     relation.to_a
@@ -1962,40 +1950,55 @@ class RelationTest < ActiveRecord::TestCase
     assert !Post.all.respond_to?(:by_lifo)
   end
 
-  def test_unscope_removes_binds
-    left = Post.where(id: Arel::Nodes::BindParam.new)
-    column = Post.columns_hash["id"]
-    left.bind_values += [[column, 20]]
+  def test_unscope_with_subquery
+    p1 = Post.where(id: 1)
+    p2 = Post.where(id: 2)
 
-    relation = left.unscope(where: :id)
-    assert_equal [], relation.bind_values
+    assert_not_equal p1, p2
+
+    comments = Comment.where(post: p1).unscope(where: :post_id).where(post: p2)
+
+    assert_not_equal p1.first.comments, comments
+    assert_equal p2.first.comments, comments
   end
 
-  def test_merging_removes_rhs_bind_parameters
+  def test_unscope_specific_where_value
+    posts = Post.where(title: "Welcome to the weblog", body: "Such a lovely day")
+
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+    assert_equal 1, posts.unscope(where: :body).count
+  end
+
+  def test_unscope_removes_binds
+    left = Post.where(id: 20)
+
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
+
+    relation = left.unscope(where: :id)
+    assert_equal [], relation.bound_attributes
+  end
+
+  def test_merging_removes_rhs_binds
     left = Post.where(id: 20)
     right = Post.where(id: [1, 2, 3, 4])
 
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
+
     merged = left.merge(right)
-    assert_equal [], merged.bind_values
+    assert_equal [], merged.bound_attributes
   end
 
-  def test_merging_keeps_lhs_bind_parameters
-    binds = [ActiveRecord::Relation::QueryAttribute.new("id", 20, Post.type_for_attribute("id"))]
+  def test_merging_keeps_lhs_binds
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
 
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)
 
     merged = left.merge(right)
     assert_equal binds, merged.bound_attributes
-  end
-
-  def test_merging_reorders_bind_params
-    post  = Post.first
-    right = Post.where(id: post.id)
-    left  = Post.where(title: post.title)
-
-    merged = left.merge(right)
-    assert_equal post, merged.first
   end
 
   def test_relation_join_method

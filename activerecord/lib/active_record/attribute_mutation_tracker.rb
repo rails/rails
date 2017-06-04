@@ -5,6 +5,7 @@ module ActiveRecord
     def initialize(attributes)
       @attributes = attributes
       @forced_changes = Set.new
+      @deprecated_forced_changes = Set.new
     end
 
     def changed_values
@@ -31,7 +32,7 @@ module ActiveRecord
     end
 
     def any_changes?
-      attr_names.any? { |attr| changed?(attr) }
+      attr_names.any? { |attr| changed?(attr) } || deprecated_forced_changes.any?
     end
 
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
@@ -60,9 +61,15 @@ module ActiveRecord
       forced_changes << attr_name.to_s
     end
 
+    def deprecated_force_change(attr_name)
+      deprecated_forced_changes << attr_name.to_s
+    end
+
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-      attr_reader :attributes, :forced_changes
+      attr_reader :attributes, :forced_changes, :deprecated_forced_changes
 
     private
 

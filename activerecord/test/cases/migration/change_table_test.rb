@@ -101,12 +101,7 @@ module ActiveRecord
 
       def test_primary_key_creates_primary_key_column
         with_change_table do |t|
-          if current_adapter?(:Mysql2Adapter)
-            @connection.expect :add_column, nil, [:delete_me, :id, :primary_key, { first: true, auto_increment: true, limit: 8, primary_key: true }]
-          else
-            @connection.expect :add_column, nil, [:delete_me, :id, :primary_key, primary_key: true, first: true]
-          end
-
+          @connection.expect :add_column, nil, [:delete_me, :id, :primary_key, primary_key: true, first: true]
           t.primary_key :id, first: true
         end
       end

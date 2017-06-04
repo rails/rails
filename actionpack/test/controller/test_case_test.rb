@@ -122,7 +122,7 @@ XML
     end
 
     def test_send_file
-      send_file(File.expand_path(__FILE__))
+      send_file(__FILE__)
     end
 
     def redirect_to_same_controller
@@ -134,7 +134,7 @@ XML
     end
 
     def create
-      head :created, location: "created resource"
+      head :created, location: "/resource"
     end
 
     def render_cookie
@@ -679,6 +679,11 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_path_is_kept_after_the_request
+    get :test_params, params: { id: "foo" }
+    assert_equal "/test_case_test/test/test_params/foo", @request.path
+  end
+
   def test_path_params_reset_between_request
     get :test_params, params: { id: "foo" }
     assert_equal "foo", @request.path_parameters[:id]
@@ -775,7 +780,7 @@ XML
     end
   end
 
-  FILES_DIR = File.dirname(__FILE__) + "/../fixtures/multipart"
+  FILES_DIR = File.expand_path("../fixtures/multipart", __dir__)
 
   READ_BINARY = "rb:binary"
   READ_PLAIN = "r:binary"
@@ -796,7 +801,6 @@ XML
     new_content_type = "new content_type"
     file.content_type = new_content_type
     assert_equal new_content_type, file.content_type
-
   end
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
@@ -851,7 +855,7 @@ XML
   end
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
-    TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
+    TestCaseTest.stub :fixture_path, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
@@ -880,12 +884,12 @@ XML
     assert_response :created
 
     # Redirect url doesn't care that it wasn't a :redirect response.
-    assert_equal "created resource", @response.redirect_url
+    assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
     # Must be a :redirect response.
     assert_raise(ActiveSupport::TestCase::Assertion) do
-      assert_redirected_to "created resource"
+      assert_redirected_to "/resource"
     end
   end
 

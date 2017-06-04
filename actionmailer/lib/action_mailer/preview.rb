@@ -52,6 +52,12 @@ module ActionMailer
   class Preview
     extend ActiveSupport::DescendantsTracker
 
+    attr_reader :params
+
+    def initialize(params = {})
+      @params = params
+    end
+
     class << self
       # Returns all mailer preview classes.
       def all
@@ -62,8 +68,8 @@ module ActionMailer
       # Returns the mail object for the given email name. The registered preview
       # interceptors will be informed so that they can transform the message
       # as they would if the mail was actually being delivered.
-      def call(email)
-        preview = self.new
+      def call(email, params = {})
+        preview = new(params)
         message = preview.public_send(email)
         inform_preview_interceptors(message)
         message
@@ -94,22 +100,22 @@ module ActionMailer
         name.sub(/Preview$/, "").underscore
       end
 
-      protected
-        def load_previews #:nodoc:
+      private
+        def load_previews
           if preview_path
             Dir["#{preview_path}/**/*_preview.rb"].each { |file| require_dependency file }
           end
         end
 
-        def preview_path #:nodoc:
+        def preview_path
           Base.preview_path
         end
 
-        def show_previews #:nodoc:
+        def show_previews
           Base.show_previews
         end
 
-        def inform_preview_interceptors(message) #:nodoc:
+        def inform_preview_interceptors(message)
           Base.preview_interceptors.each do |interceptor|
             interceptor.previewing_email(message)
           end

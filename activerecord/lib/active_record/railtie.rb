@@ -87,8 +87,8 @@ module ActiveRecord
             if File.file?(filename)
               cache = YAML.load(File.read(filename))
               if cache.version == ActiveRecord::Migrator.current_version
-                self.connection.schema_cache = cache
-                self.connection_pool.schema_cache = cache.dup
+                connection.schema_cache = cache
+                connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
@@ -165,6 +165,14 @@ end_warning
     initializer "active_record.add_watchable_files" do |app|
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
+    end
+
+    initializer "active_record.clear_active_connections" do
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record) do
+          clear_active_connections!
+        end
+      end
     end
   end
 end

@@ -204,9 +204,9 @@ module ActionView
     include ActionView::Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions, instance_accessor: false
-      self._layout = nil
-      self._layout_conditions = {}
+      class_attribute :_layout, instance_accessor: false
+      class_attribute :_layout_conditions, instance_accessor: false, default: {}
+
       _write_layout_method
     end
 
@@ -319,7 +319,7 @@ module ActionView
             name_clause
           end
 
-        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def _layout(formats)
             if _conditional_layout?
               #{layout_definition}
@@ -338,7 +338,7 @@ module ActionView
         #
         # ==== Returns
         # * <tt>String</tt> - A template name
-        def _implied_layout_name # :nodoc:
+        def _implied_layout_name
           controller_path
         end
     end

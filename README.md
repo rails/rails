@@ -71,12 +71,16 @@ and may also be used independently outside Rails.
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
+    * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
 
 We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+
+Trying to report a possible security vulnerability in Rails? Please
+check out our [security policy](http://rubyonrails.org/security/) for
+guidelines about how to proceed.
 
 Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 

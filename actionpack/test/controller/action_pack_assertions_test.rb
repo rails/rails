@@ -83,7 +83,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_file_absolute_path
-    render file: File.expand_path("../../../README.rdoc", __FILE__)
+    render file: File.expand_path("../../README.rdoc", __dir__)
   end
 
   def render_file_relative_path
@@ -128,6 +128,16 @@ module Admin
   end
 end
 
+class ApiOnlyController < ActionController::API
+  def nothing
+    head :ok
+  end
+
+  def redirect_to_new_route
+    redirect_to new_route_url
+  end
+end
+
 class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_render_file_absolute_path
     get :render_file_absolute_path
@@ -167,6 +177,20 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "photos", to: "action_pack_assertions#nothing", constraints: { subdomain: "admin" }
       end
+    end
+  end
+
+  def test_with_routing_works_with_api_only_controllers
+    @controller = ApiOnlyController.new
+
+    with_routing do |set|
+      set.draw do
+        get "new_route", to: "api_only#nothing"
+        get "redirect_to_new_route", to: "api_only#redirect_to_new_route"
+      end
+
+      process :redirect_to_new_route
+      assert_redirected_to "http://test.host/new_route"
     end
   end
 

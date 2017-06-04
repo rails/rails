@@ -136,9 +136,9 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output "> "
   end
 
-  def spawn_console
+  def spawn_console(options)
     Process.spawn(
-      "#{app_path}/bin/rails console --sandbox",
+      "#{app_path}/bin/rails console #{options}",
       in: @slave, out: @slave, err: @slave
     )
 
@@ -146,18 +146,26 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox
-    spawn_console
+    spawn_console("--sandbox")
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
     @master.puts "quit"
 
-    spawn_console
+    spawn_console("--sandbox")
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
+    @master.puts "quit"
+  end
+
+  def test_environment_option_and_irb_option
+    spawn_console("test -- --verbose")
+
+    write_prompt "a = 1", "a = 1"
+    write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
     @master.puts "quit"
   end
 end

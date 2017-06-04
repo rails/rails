@@ -1,6 +1,7 @@
 require "cases/helper"
 require "models/author"
 require "models/company"
+require "models/membership"
 require "models/person"
 require "models/post"
 require "models/project"
@@ -29,7 +30,7 @@ end
 
 class InheritanceTest < ActiveRecord::TestCase
   include InheritanceTestHelper
-  fixtures :companies, :projects, :subscribers, :accounts, :vegetables
+  fixtures :companies, :projects, :subscribers, :accounts, :vegetables, :memberships
 
   def test_class_with_store_full_sti_class_returns_full_name
     with_store_full_sti_class do
@@ -58,21 +59,21 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_compute_type_success
-    assert_equal Author, ActiveRecord::Base.send(:compute_type, "Author")
+    assert_equal Author, Company.send(:compute_type, "Author")
   end
 
   def test_compute_type_nonexistent_constant
     e = assert_raises NameError do
-      ActiveRecord::Base.send :compute_type, "NonexistentModel"
+      Company.send :compute_type, "NonexistentModel"
     end
-    assert_equal "uninitialized constant ActiveRecord::Base::NonexistentModel", e.message
-    assert_equal "ActiveRecord::Base::NonexistentModel", e.name
+    assert_equal "uninitialized constant Company::NonexistentModel", e.message
+    assert_equal "Company::NonexistentModel", e.name
   end
 
   def test_compute_type_no_method_error
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise NoMethodError }) do
       assert_raises NoMethodError do
-        ActiveRecord::Base.send :compute_type, "InvalidModel"
+        Company.send :compute_type, "InvalidModel"
       end
     end
   end
@@ -90,7 +91,7 @@ class InheritanceTest < ActiveRecord::TestCase
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
 
       exception = assert_raises NameError do
-        ActiveRecord::Base.send :compute_type, "InvalidModel"
+        Company.send :compute_type, "InvalidModel"
       end
       assert_equal error.message, exception.message
     end
@@ -99,7 +100,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_compute_type_argument_error
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise ArgumentError }) do
       assert_raises ArgumentError do
-        ActiveRecord::Base.send :compute_type, "InvalidModel"
+        Company.send :compute_type, "InvalidModel"
       end
     end
   end
@@ -316,7 +317,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_autoload_paths
-    path = File.expand_path("../../models/autoloadable", __FILE__)
+    path = File.expand_path("../models/autoloadable", __dir__)
     ActiveSupport::Dependencies.autoload_paths << path
 
     firm = Company.new(type: "ExtraFirm")
@@ -417,7 +418,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
+    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = 1/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end
@@ -434,6 +435,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_scope_inherited_properly
     assert_nothing_raised { Company.of_first_firm }
     assert_nothing_raised { Client.of_first_firm }
+  end
+
+  def test_inheritance_with_default_scope
+    assert_equal 1, SelectedMembership.count(:all)
   end
 end
 

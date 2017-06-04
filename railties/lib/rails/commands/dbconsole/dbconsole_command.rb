@@ -99,14 +99,14 @@ module Rails
       Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
     end
 
-    protected
-      def configurations
+    private
+      def configurations # :doc:
         require APP_PATH
         ActiveRecord::Base.configurations = Rails.application.config.database_configuration
         ActiveRecord::Base.configurations
       end
 
-      def find_cmd_and_exec(commands, *args)
+      def find_cmd_and_exec(commands, *args) # :doc:
         commands = Array(commands)
 
         dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
@@ -140,7 +140,7 @@ module Rails
       class_option :mode, enum: %w( html list line column ), type: :string,
         desc: "Automatically put the sqlite3 database in the specified mode (html, list, line, column)."
 
-      class_option :header, type: :string
+      class_option :header, type: :boolean
 
       class_option :environment, aliases: "-e", type: :string,
         desc: "Specifies the environment to run this console under (test/development/production)."

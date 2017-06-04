@@ -10,8 +10,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :nested_attributes_options, instance_writer: false
-      self.nested_attributes_options = {}
+      class_attribute :nested_attributes_options, instance_writer: false, default: {}
     end
 
     # = Active Record Nested Attributes
@@ -393,7 +392,7 @@ module ActiveRecord
       # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
       # then the existing record will be marked for destruction.
       def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
-        options = self.nested_attributes_options[association_name]
+        options = nested_attributes_options[association_name]
         if attributes.respond_to?(:permitted?)
           attributes = attributes.to_h
         end
@@ -452,13 +451,13 @@ module ActiveRecord
       #     { id: '2', _destroy: true }
       #   ])
       def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
-        options = self.nested_attributes_options[association_name]
+        options = nested_attributes_options[association_name]
         if attributes_collection.respond_to?(:permitted?)
           attributes_collection = attributes_collection.to_h
         end
 
         unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
-          raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
+          raise ArgumentError, "Hash or Array expected for attribute `#{association_name}`, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
         end
 
         check_record_limit!(options[:limit], attributes_collection)
@@ -562,7 +561,7 @@ module ActiveRecord
       def call_reject_if(association_name, attributes)
         return false if will_be_destroyed?(association_name, attributes)
 
-        case callback = self.nested_attributes_options[association_name][:reject_if]
+        case callback = nested_attributes_options[association_name][:reject_if]
         when Symbol
           method(callback).arity == 0 ? send(callback) : send(callback, attributes)
         when Proc

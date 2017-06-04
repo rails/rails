@@ -6,7 +6,6 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
-require "active_support/core_ext/string/strip"
 
 require "support/config"
 require "support/connection"
@@ -26,9 +25,6 @@ ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
-
-# FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
-ActiveRecord::Base.time_zone_aware_types << :time
 
 def current_adapter?(*types)
   types.any? do |type|

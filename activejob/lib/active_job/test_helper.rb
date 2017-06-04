@@ -8,16 +8,35 @@ module ActiveJob
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
 
+    module TestQueueAdapter
+      extend ActiveSupport::Concern
+
+      included do
+        class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
+      end
+
+      module ClassMethods
+        def queue_adapter
+          self._test_adapter.nil? ? super : self._test_adapter
+        end
+
+        def disable_test_adapter
+          self._test_adapter = nil
+        end
+
+        def enable_test_adapter(test_adapter)
+          self._test_adapter = test_adapter
+        end
+      end
+    end
+
+    ActiveJob::Base.include(TestQueueAdapter)
+
     def before_setup # :nodoc:
       test_adapter = queue_adapter_for_test
 
-      @old_queue_adapters = (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
-        # only override explicitly set adapters, a quirk of `class_attribute`
-        klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
-      end.map do |klass|
-        [klass, klass.queue_adapter].tap do
-          klass.queue_adapter = test_adapter
-        end
+      queue_adapter_changed_jobs.each do |klass|
+        klass.enable_test_adapter(test_adapter)
       end
 
       clear_enqueued_jobs
@@ -27,9 +46,8 @@ module ActiveJob
 
     def after_teardown # :nodoc:
       super
-      @old_queue_adapters.each do |(klass, adapter)|
-        klass.queue_adapter = adapter
-      end
+
+      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
     # Specifies the queue adapter to use with all active job test helpers.
@@ -55,7 +73,7 @@ module ActiveJob
     #     assert_enqueued_jobs 2
     #   end
     #
-    # If a block is passed, that block should cause the specified number of
+    # If a block is passed, that block will cause the specified number of
     # jobs to be enqueued.
     #
     #   def test_jobs_again
@@ -77,14 +95,23 @@ module ActiveJob
     #       HelloJob.perform_later('jeremy')
     #     end
     #   end
-    def assert_enqueued_jobs(number, only: nil)
+    #
+    # The number of times a job is enqueued to a specific queue can also be asserted.
+    #
+    #   def test_logging_job
+    #     assert_enqueued_jobs 2, queue: 'default' do
+    #       LoggingJob.perform_later
+    #       HelloJob.perform_later('elfassy')
+    #     end
+    #   end
+    def assert_enqueued_jobs(number, only: nil, queue: nil)
       if block_given?
-        original_count = enqueued_jobs_size(only: only)
+        original_count = enqueued_jobs_size(only: only, queue: queue)
         yield
-        new_count = enqueued_jobs_size(only: only)
+        new_count = enqueued_jobs_size(only: only, queue: queue)
         assert_equal number, new_count - original_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
       else
-        actual_count = enqueued_jobs_size(only: only)
+        actual_count = enqueued_jobs_size(only: only, queue: queue)
         assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
       end
     end
@@ -284,7 +311,7 @@ module ActiveJob
     #   def test_perform_enqueued_jobs_with_only
     #     perform_enqueued_jobs(only: MyJob) do
     #       MyJob.perform_later(1, 2, 3) # will be performed
-    #       HelloJob.perform_later(1, 2, 3) # will not be perfomed
+    #       HelloJob.perform_later(1, 2, 3) # will not be performed
     #     end
     #     assert_performed_jobs 1
     #   end
@@ -315,34 +342,46 @@ module ActiveJob
     end
 
     private
-      def clear_enqueued_jobs # :nodoc:
+      def clear_enqueued_jobs
         enqueued_jobs.clear
       end
 
-      def clear_performed_jobs # :nodoc:
+      def clear_performed_jobs
         performed_jobs.clear
       end
 
-      def enqueued_jobs_size(only: nil) # :nodoc:
-        if only
-          enqueued_jobs.count { |job| Array(only).include?(job.fetch(:job)) }
-        else
-          enqueued_jobs.count
+      def enqueued_jobs_size(only: nil, queue: nil)
+        enqueued_jobs.count do |job|
+          job_class = job.fetch(:job)
+          if only
+            next false unless Array(only).include?(job_class)
+          end
+          if queue
+            next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
+          end
+          true
         end
       end
 
-      def serialize_args_for_assertion(args) # :nodoc:
+      def serialize_args_for_assertion(args)
         args.dup.tap do |serialized_args|
           serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
           serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
         end
       end
 
-      def instantiate_job(payload) # :nodoc:
+      def instantiate_job(payload)
         job = payload[:job].new(*payload[:args])
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
         job
+      end
+
+      def queue_adapter_changed_jobs
+        (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
+          # only override explicitly set adapters, a quirk of `class_attribute`
+          klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
+        end
       end
   end
 end

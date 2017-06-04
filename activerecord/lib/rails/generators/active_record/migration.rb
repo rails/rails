@@ -20,6 +20,14 @@ module ActiveRecord
           key_type = options[:primary_key_type]
           ", id: :#{key_type}" if key_type
         end
+
+        def db_migrate_path
+          if defined?(Rails.application) && Rails.application
+            Rails.application.config.paths["db/migrate"].to_ary.first
+          else
+            "db/migrate"
+          end
+        end
     end
   end
 end

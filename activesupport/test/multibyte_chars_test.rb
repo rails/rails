@@ -50,7 +50,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
   end
 
-  def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
+  def test_forwarded_method_with_non_string_result_should_be_returned_verbatim
     str = ""
     str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
     @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
@@ -231,7 +231,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal 0, @chars.index("こに")
     assert_equal 2, @chars.index("ち")
     assert_equal 2, @chars.index("ち", -2)
-    assert_equal nil, @chars.index("ち", -1)
+    assert_nil @chars.index("ち", -1)
     assert_equal 3, @chars.index("わ")
     assert_equal 5, "ééxééx".mb_chars.index("x", 4)
   end
@@ -390,11 +390,11 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_should_take_character_offsets
-    assert_equal nil, "".mb_chars.slice(0)
+    assert_nil "".mb_chars.slice(0)
     assert_equal "こ", @chars.slice(0)
     assert_equal "わ", @chars.slice(3)
-    assert_equal nil, "".mb_chars.slice(-1..1)
-    assert_equal nil, "".mb_chars.slice(-1, 1)
+    assert_nil "".mb_chars.slice(-1..1)
+    assert_nil "".mb_chars.slice(-1, 1)
     assert_equal "", "".mb_chars.slice(0..10)
     assert_equal "にちわ", @chars.slice(1..3)
     assert_equal "にちわ", @chars.slice(1, 3)
@@ -403,10 +403,10 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert_equal "", @chars.slice(4..10)
     assert_equal "に", @chars.slice(/に/u)
     assert_equal "にち", @chars.slice(/に./u)
-    assert_equal nil, @chars.slice(/unknown/u)
+    assert_nil @chars.slice(/unknown/u)
     assert_equal "にち", @chars.slice(/(にち)/u, 1)
-    assert_equal nil, @chars.slice(/(にち)/u, 2)
-    assert_equal nil, @chars.slice(7..6)
+    assert_nil @chars.slice(/(にち)/u, 2)
+    assert_nil @chars.slice(7..6)
   end
 
   def test_slice_bang_returns_sliced_out_substring
@@ -414,7 +414,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_slice_bang_returns_nil_on_out_of_bound_arguments
-    assert_equal nil, @chars.mb_chars.slice!(9..10)
+    assert_nil @chars.mb_chars.slice!(9..10)
   end
 
   def test_slice_bang_removes_the_slice_from_the_receiver
@@ -664,7 +664,6 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   end
 
   def test_tidy_bytes_should_tidy_bytes
-
     single_byte_cases = {
       "\x21" => "!",   # Valid ASCII byte, low
       "\x41" => "A",   # Valid ASCII byte, mid

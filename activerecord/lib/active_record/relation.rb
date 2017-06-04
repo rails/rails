@@ -2,7 +2,7 @@ module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
@@ -18,6 +18,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
+    alias :locked? :locked
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -261,10 +262,6 @@ module ActiveRecord
       coder.represent_seq(nil, records)
     end
 
-    def as_json(options = nil) #:nodoc:
-      records.as_json(options)
-    end
-
     # Returns size of the records.
     def size
       loaded? ? @records.length : count(:all)
@@ -273,8 +270,7 @@ module ActiveRecord
     # Returns true if there are no records.
     def empty?
       return @records.empty? if loaded?
-
-      limit_value == 0 || !exists?
+      !exists?
     end
 
     # Returns true if there are no records.
@@ -408,9 +404,9 @@ module ActiveRecord
     #
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
+    # issue. When running callbacks is not needed for each record update,
+    # it is preferred to use #update_all for updating all records
+    # in a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
@@ -418,8 +414,7 @@ module ActiveRecord
         records.each { |record| record.update(attributes) }
       else
         if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             You are passing an instance of ActiveRecord::Base to `update`.
             Please pass the id of the object by calling `.id`.
           MSG
@@ -446,16 +441,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all.
-        MESSAGE
-        where(conditions).destroy_all
-      else
-        records.each(&:destroy).tap { reset }
-      end
+    def destroy_all
+      records.each(&:destroy).tap { reset }
     end
 
     # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -503,7 +490,7 @@ module ActiveRecord
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
-    def delete_all(conditions = nil)
+    def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = get_value(method)
         SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
@@ -512,27 +499,19 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all.
-        MESSAGE
-        where(conditions).delete_all
+      stmt = Arel::DeleteManager.new
+      stmt.from(table)
+
+      if has_join_values?
+        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
-        stmt = Arel::DeleteManager.new
-        stmt.from(table)
-
-        if has_join_values?
-          @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
-        else
-          stmt.wheres = arel.constraints
-        end
-
-        affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
-
-        reset
-        affected
+        stmt.wheres = arel.constraints
       end
+
+      affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
+
+      reset
+      affected
     end
 
     # Deletes the row with a primary key matching the +id+ argument, using a
@@ -630,15 +609,6 @@ module ActiveRecord
       includes_values & joins_values
     end
 
-    # {#uniq}[rdoc-ref:QueryMethods#uniq] and
-    # {#uniq!}[rdoc-ref:QueryMethods#uniq!] are silently deprecated.
-    # #uniq_value delegates to #distinct_value to maintain backwards compatibility.
-    # Use #distinct_value instead.
-    def uniq_value
-      distinct_value
-    end
-    deprecate uniq_value: :distinct_value
-
     # Compares two relations for equality.
     def ==(other)
       case other
@@ -665,7 +635,9 @@ module ActiveRecord
     end
 
     def inspect
-      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
+      subject = loaded? ? records : self
+      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"

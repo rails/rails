@@ -10,11 +10,15 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
         attr_reader :migration_action, :join_tables
+
+      private
 
         # Sets the default migration template that is being used for the generation of the migration.
         # Depending on command line arguments, the migration template and the table name instance
@@ -52,7 +56,6 @@ module ActiveRecord
           end.to_sym
         end
 
-      private
         def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }
         end

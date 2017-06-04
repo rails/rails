@@ -5,7 +5,7 @@ require "models/post"
 require "models/author"
 
 class YamlSerializationTest < ActiveRecord::TestCase
-  fixtures :topics, :authors, :posts
+  fixtures :topics, :authors, :author_addresses, :posts
 
   def test_to_yaml_with_time_with_zone_should_not_raise_exception
     with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
@@ -95,7 +95,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
     topic = YAML.load(yaml_fixture("rails_4_1"))
 
     assert topic.new_record?
-    assert_equal nil, topic.id
+    assert_nil topic.id
     assert_equal "The First Topic", topic.title
     assert_equal({ omg: :lol }, topic.content)
   end
@@ -123,8 +123,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
     def yaml_fixture(file_name)
       path = File.expand_path(
-        "../../support/yaml_compatibility_fixtures/#{file_name}.yml",
-        __FILE__
+        "../support/yaml_compatibility_fixtures/#{file_name}.yml",
+        __dir__
       )
       File.read(path)
     end

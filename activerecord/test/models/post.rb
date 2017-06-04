@@ -13,7 +13,7 @@ class Post < ActiveRecord::Base
 
   module NamedExtension2
     def greeting
-      "hello"
+      "hullo"
     end
   end
 
@@ -58,6 +58,10 @@ class Post < ActiveRecord::Base
 
     def the_association
       proxy_association
+    end
+
+    def with_content(content)
+      self.detect { |comment| comment.body == content }
     end
   end
 

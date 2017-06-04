@@ -111,7 +111,7 @@ profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
 
 Profile.where("settings->'color' = ?", "yellow")
-#=> #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
+# => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
 ### JSON

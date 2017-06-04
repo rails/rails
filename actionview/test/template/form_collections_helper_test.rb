@@ -1,7 +1,6 @@
 require "abstract_unit"
 
-class Category < Struct.new(:id, :name)
-end
+Category = Struct.new(:id, :name)
 
 class FormCollectionsHelperTest < ActionView::TestCase
   def assert_no_select(selector, value = nil)

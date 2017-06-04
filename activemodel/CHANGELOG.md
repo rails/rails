@@ -1,22 +1,37 @@
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+*   Fix regression in numericality validator when comparing Decimal and Float input 
+    values with more scale than the schema.
 
-    *Iain Beeston*
+    *Bradley Priest*
 
-*   Allow indifferent access in `ActiveModel::Errors`.
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
 
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
+    Change `#keys` to only return the keys that don't have empty messages.
 
-    *Kenichi Kamiya*
+    Change `#values` to only return the not empty values.
 
-*   Removed deprecated `:tokenizer` in the length validator.
+    Example:
 
-    *Rafael Mendonça França*
+        # Before
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => [:name]
+        person.errors.values   # => [[]]
 
-*   Removed deprecated methods in `ActiveModel::Errors`.
+        # After
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => []
+        person.errors.values   # => []
 
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
+    *bogdanvlviv*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.

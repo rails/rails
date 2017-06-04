@@ -15,7 +15,7 @@ class BlankTest < ActiveSupport::TestCase
   end
 
   BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", [], {} ]
-  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 } ]
+  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 }, Time.now ]
 
   def test_blank
     BLANK.each { |v| assert_equal true, v.blank?,  "#{v.inspect} should be blank" }
@@ -28,7 +28,7 @@ class BlankTest < ActiveSupport::TestCase
   end
 
   def test_presence
-    BLANK.each { |v| assert_equal nil, v.presence, "#{v.inspect}.presence should return nil" }
+    BLANK.each { |v| assert_nil v.presence, "#{v.inspect}.presence should return nil" }
     NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }
   end
 end

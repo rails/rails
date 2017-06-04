@@ -433,6 +433,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(nsec: 1000000000) }
   end
 
+  def test_change_offset
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, "-08:00"), Time.new(2006, 2, 22, 15, 15, 10, "+01:00").change(offset: "-08:00")
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, -28800), Time.new(2006, 2, 22, 15, 15, 10, 3600).change(offset: -28800)
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(usec: 1000000, offset: "-08:00") }
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(nsec: 1000000000, offset: -28800) }
+  end
+
   def test_advance
     assert_equal Time.local(2006, 2, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 1)
     assert_equal Time.local(2005, 6, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(months: 4)
@@ -567,6 +574,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
     assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
     Time::DATE_FORMATS.delete(:custom)
+  end
+
+  def test_rfc3339_with_fractional_seconds
+    time = Time.new(1999, 12, 31, 19, 0, Rational(1, 8), -18000)
+    assert_equal "1999-12-31T19:00:00.125-05:00", time.rfc3339(3)
   end
 
   def test_to_date
@@ -771,7 +783,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal   1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999).to_s
     assert_equal   0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
     assert_equal(-1, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1, 0).to_s)
-    assert_equal nil, Time.utc(2000) <=> "Invalid as Time"
+    assert_nil Time.utc(2000) <=> "Invalid as Time"
   end
 
   def test_at_with_datetime
@@ -909,6 +921,37 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_all_year
     assert_equal Time.local(2011, 1, 1, 0, 0, 0)..Time.local(2011, 12, 31, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_year
+  end
+
+  def test_rfc3339_parse
+    time = Time.rfc3339("1999-12-31T19:00:00.125-05:00")
+
+    assert_equal 1999, time.year
+    assert_equal 12, time.month
+    assert_equal 31, time.day
+    assert_equal 19, time.hour
+    assert_equal 0, time.min
+    assert_equal 0, time.sec
+    assert_equal 125000, time.usec
+    assert_equal(-18000, time.utc_offset)
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("1999-12-31")
+    end
+
+    assert_equal "invalid date", exception.message
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("1999-12-31T19:00:00")
+    end
+
+    assert_equal "invalid date", exception.message
+
+    exception = assert_raises(ArgumentError) do
+      Time.rfc3339("foobar")
+    end
+
+    assert_equal "invalid date", exception.message
   end
 end
 

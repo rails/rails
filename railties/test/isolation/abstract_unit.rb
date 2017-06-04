@@ -14,7 +14,7 @@ require "active_support/testing/autorun"
 require "active_support/testing/stream"
 require "active_support/test_case"
 
-RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
+RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
 # These files do not require any others and are needed
 # to run the tests
@@ -22,6 +22,7 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
+require "rails/secrets"
 
 module TestHelpers
   module Paths
@@ -118,7 +119,7 @@ module TestHelpers
       end
 
       routes = File.read("#{app_path}/config/routes.rb")
-      if routes =~ /(\n\s*end\s*)\Z/
+      if routes =~ /(\n\s*end\s*)\z/
         File.open("#{app_path}/config/routes.rb", "w") do |f|
           f.puts $` + "\nActiveSupport::Deprecation.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
@@ -250,7 +251,7 @@ module TestHelpers
 
     def add_to_config(str)
       environment = File.read("#{app_path}/config/application.rb")
-      if environment =~ /(\n\s*end\s*end\s*)\Z/
+      if environment =~ /(\n\s*end\s*end\s*)\z/
         File.open("#{app_path}/config/application.rb", "w") do |f|
           f.puts $` + "\n#{str}\n" + $1
         end
@@ -259,7 +260,7 @@ module TestHelpers
 
     def add_to_env_config(env, str)
       environment = File.read("#{app_path}/config/environments/#{env}.rb")
-      if environment =~ /(\n\s*end\s*)\Z/
+      if environment =~ /(\n\s*end\s*)\z/
         File.open("#{app_path}/config/environments/#{env}.rb", "w") do |f|
           f.puts $` + "\n#{str}\n" + $1
         end

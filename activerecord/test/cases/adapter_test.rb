@@ -30,9 +30,18 @@ module ActiveRecord
       assert_nothing_raised { Book.destroy(0) }
     end
 
+    def test_valid_column
+      @connection.native_database_types.each_key do |type|
+        assert @connection.valid_type?(type)
+      end
+    end
+
+    def test_invalid_column
+      assert_not @connection.valid_type?(:foobar)
+    end
+
     def test_tables
-      tables = nil
-      ActiveSupport::Deprecation.silence { tables = @connection.tables }
+      tables = @connection.tables
       assert_includes tables, "accounts"
       assert_includes tables, "authors"
       assert_includes tables, "tasks"
@@ -40,17 +49,11 @@ module ActiveRecord
     end
 
     def test_table_exists?
-      ActiveSupport::Deprecation.silence do
-        assert @connection.table_exists?("accounts")
-        assert @connection.table_exists?(:accounts)
-        assert_not @connection.table_exists?("nonexistingtable")
-        assert_not @connection.table_exists?("'")
-        assert_not @connection.table_exists?(nil)
-      end
-    end
-
-    def test_table_exists_checking_both_tables_and_views_is_deprecated
-      assert_deprecated { @connection.table_exists?("accounts") }
+      assert @connection.table_exists?("accounts")
+      assert @connection.table_exists?(:accounts)
+      assert_not @connection.table_exists?("nonexistingtable")
+      assert_not @connection.table_exists?("'")
+      assert_not @connection.table_exists?(nil)
     end
 
     def test_data_sources
@@ -191,34 +194,6 @@ module ActiveRecord
     end
 
     unless current_adapter?(:SQLite3Adapter)
-      def test_foreign_key_violations_are_translated_to_specific_exception
-        error = assert_raises(ActiveRecord::InvalidForeignKey) do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-        end
-
-        assert_not_nil error.cause
-      end
-
-      def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
-        klass_has_fk = Class.new(ActiveRecord::Base) do
-          self.table_name = "fk_test_has_fk"
-        end
-
-        error = assert_raises(ActiveRecord::InvalidForeignKey) do
-          has_fk = klass_has_fk.new
-          has_fk.fk_id = 1231231231
-          has_fk.save(validate: false)
-        end
-
-        assert_not_nil error.cause
-      end
-
       def test_value_limit_violations_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::ValueTooLong) do
           Event.create(title: "abcdefgh")
@@ -229,33 +204,25 @@ module ActiveRecord
 
       def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.connection.create("INSERT INTO books(author_id) VALUES (2147483648)")
+          Book.connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
         end
 
         assert_not_nil error.cause
       end
     end
 
-    def test_disable_referential_integrity
-      assert_nothing_raised do
-        @connection.disable_referential_integrity do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-          # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
-          # and will fail (at least on Oracle)
-          @connection.execute "DELETE FROM fk_test_has_fk"
-        end
-      end
-    end
-
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
+    end
+
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_select_all_with_legacy_binds
+        post = Post.create!(title: "foo", body: "bar")
+        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
+        result = @connection.select_all("SELECT * FROM posts WHERE id = #{bind_param.to_sql}", nil, [[nil, post.id]])
+        assert_equal expected.to_hash, result.to_hash
+      end
     end
 
     def test_select_methods_passing_a_association_relation
@@ -294,16 +261,59 @@ module ActiveRecord
         assert_not_nil error.message
       end
     end
+  end
 
-    if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
-      def test_tables_returning_both_tables_and_views_is_deprecated
-        assert_deprecated { @connection.tables }
+  class AdapterForeignKeyTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+    end
+
+    def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
+      klass_has_fk = Class.new(ActiveRecord::Base) do
+        self.table_name = "fk_test_has_fk"
+      end
+
+      error = assert_raises(ActiveRecord::InvalidForeignKey) do
+        has_fk = klass_has_fk.new
+        has_fk.fk_id = 1231231231
+        has_fk.save(validate: false)
+      end
+
+      assert_not_nil error.cause
+    end
+
+    def test_foreign_key_violations_are_translated_to_specific_exception
+      error = assert_raises(ActiveRecord::InvalidForeignKey) do
+        insert_into_fk_test_has_fk
+      end
+
+      assert_not_nil error.cause
+    end
+
+    def test_disable_referential_integrity
+      assert_nothing_raised do
+        @connection.disable_referential_integrity do
+          insert_into_fk_test_has_fk
+          # should delete created record as otherwise disable_referential_integrity will try to enable constraints
+          # after executed block and will fail (at least on Oracle)
+          @connection.execute "DELETE FROM fk_test_has_fk"
+        end
       end
     end
 
-    def test_passing_arguments_to_tables_is_deprecated
-      assert_deprecated { @connection.tables(:books) }
-    end
+    private
+
+      def insert_into_fk_test_has_fk
+        # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
+        if @connection.prefetch_primary_key?
+          id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
+          @connection.execute "INSERT INTO fk_test_has_fk (id,fk_id) VALUES (#{id_value},0)"
+        else
+          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+        end
+      end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase

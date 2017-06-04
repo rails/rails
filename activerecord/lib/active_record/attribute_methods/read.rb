@@ -4,7 +4,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        protected
+        private
 
           # We want to generate the methods via module_eval rather than
           # define_method, because define_method is slower on dispatch.
@@ -54,7 +54,7 @@ module ActiveRecord
           attr_name.to_s
         end
 
-        name = self.class.primary_key if name == "id".freeze
+        name = self.class.primary_key if name == "id".freeze && self.class.primary_key
         _read_attribute(name, &block)
       end
 

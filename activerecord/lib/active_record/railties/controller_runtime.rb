@@ -6,9 +6,13 @@ module ActiveRecord
     module ControllerRuntime #:nodoc:
       extend ActiveSupport::Concern
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_internal :db_runtime
+
+    private
 
       def process_action(action, *args)
         # We also need to reset the runtime before each action

@@ -1,4 +1,4 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -24,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "activemodel",   version
 
-  s.add_dependency "arel", "~> 7.0"
+  s.add_dependency "arel", "~> 8.0"
 end

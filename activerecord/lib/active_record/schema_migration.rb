@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       def table_exists?
-        ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
+        connection.table_exists?(table_name)
       end
 
       def create_table
@@ -39,7 +39,11 @@ module ActiveRecord
       end
 
       def normalized_versions
-        pluck(:version).map { |v| normalize_migration_number v }
+        all_versions.map { |v| normalize_migration_number v }
+      end
+
+      def all_versions
+        order(:version).pluck(:version)
       end
     end
 

@@ -25,26 +25,13 @@ module ActiveRecord
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
-      def reader(force_reload = false)
-        if force_reload
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing an argument to force an association to reload is now
-            deprecated and will be removed in Rails 5.1. Please call `reload`
-            on the result collection proxy instead.
-          MSG
-
-          klass.uncached { reload }
-        elsif stale_target?
+      def reader
+        if stale_target?
           reload
         end
 
-        if null_scope?
-          # Cache the proxy separately before the owner has an id
-          # or else a post-save proxy will still lack the id
-          @null_proxy ||= CollectionProxy.create(klass, self)
-        else
-          @proxy ||= CollectionProxy.create(klass, self)
-        end
+        @proxy ||= CollectionProxy.create(klass, self)
+        @proxy.reset_scope
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -55,9 +42,7 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          load_target.map do |record|
-            record.send(reflection.association_primary_key)
-          end
+          target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= (
             column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
@@ -296,26 +281,9 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
-      def replace_on_target(record, index, skip_callbacks)
-        callback(:before_add, record) unless skip_callbacks
-
-        yield(record) if block_given?
-
-        if index
-          @target[index] = record
-        else
-          append_record(record)
-        end
-
-        callback(:after_add, record) unless skip_callbacks
-        set_inverse_instance(record)
-
-        record
-      end
-
-      def scope(opts = {})
-        scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+      def scope
+        scope = super
+        scope.none! if null_scope?
         scope
       end
 
@@ -389,15 +357,19 @@ module ActiveRecord
             transaction do
               add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
-                insert_record(record, true, raise)
+                insert_record(record, true, raise) { @_was_loaded = loaded? }
               end
             end
           end
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true, raise = false)
-          raise NotImplementedError
+        def insert_record(record, validate = true, raise = false, &block)
+          if raise
+            record.save!(validate: validate, &block)
+          else
+            record.save(validate: validate, &block)
+          end
         end
 
         def create_scope
@@ -452,17 +424,39 @@ module ActiveRecord
           end
         end
 
-        def concat_records(records, should_raise = false)
+        def concat_records(records, raise = false)
           result = true
 
           records.each do |record|
             raise_on_type_mismatch!(record)
-            add_to_target(record) do |rec|
-              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
+            add_to_target(record) do
+              result &&= insert_record(record, true, raise) { @_was_loaded = loaded? } unless owner.new_record?
             end
           end
 
           result && records
+        end
+
+        def replace_on_target(record, index, skip_callbacks)
+          callback(:before_add, record) unless skip_callbacks
+
+          set_inverse_instance(record)
+
+          @_was_loaded = true
+
+          yield(record) if block_given?
+
+          if index
+            target[index] = record
+          elsif @_was_loaded || !loaded?
+            target << record
+          end
+
+          callback(:after_add, record) unless skip_callbacks
+
+          record
+        ensure
+          @_was_loaded = nil
         end
 
         def callback(method, record)
@@ -501,10 +495,6 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
-        end
-
-        def append_record(record)
-          @target << record unless @target.include?(record)
         end
     end
   end

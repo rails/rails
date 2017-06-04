@@ -21,6 +21,10 @@ module ActiveRecord
         self.target = record
       end
 
+      def default(&block)
+        writer(owner.instance_exec(&block)) if reader.nil?
+      end
+
       def reset
         super
         @updated = false

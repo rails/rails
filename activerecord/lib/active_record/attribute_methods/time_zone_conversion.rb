@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/strip"
-
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
@@ -59,11 +57,8 @@ module ActiveRecord
         mattr_accessor :time_zone_aware_attributes, instance_writer: false
         self.time_zone_aware_attributes = false
 
-        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
-        self.skip_time_zone_conversion_for_attributes = []
-
-        class_attribute :time_zone_aware_types, instance_writer: false
-        self.time_zone_aware_types = [:datetime, :not_explicitly_configured]
+        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false, default: []
+        class_attribute :time_zone_aware_types, instance_writer: false, default: [ :datetime, :time ]
       end
 
       module ClassMethods
@@ -86,29 +81,8 @@ module ActiveRecord
           def create_time_zone_conversion_attribute?(name, cast_type)
             enabled_for_column = time_zone_aware_attributes &&
               !skip_time_zone_conversion_for_attributes.include?(name.to_sym)
-            result = enabled_for_column &&
-              time_zone_aware_types.include?(cast_type.type)
 
-            if enabled_for_column &&
-              !result &&
-              cast_type.type == :time &&
-              time_zone_aware_types.include?(:not_explicitly_configured)
-              ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-                Time columns will become time zone aware in Rails 5.1. This
-                still causes `String`s to be parsed as if they were in `Time.zone`,
-                and `Time`s to be converted to `Time.zone`.
-
-                To keep the old behavior, you must add the following to your initializer:
-
-                    config.active_record.time_zone_aware_types = [:datetime]
-
-                To silence this deprecation warning, add the following:
-
-                    config.active_record.time_zone_aware_types = [:datetime, :time]
-              MESSAGE
-            end
-
-            result
+            enabled_for_column && time_zone_aware_types.include?(cast_type.type)
           end
       end
     end

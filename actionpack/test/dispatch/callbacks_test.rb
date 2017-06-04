@@ -35,24 +35,6 @@ class DispatcherTest < ActiveSupport::TestCase
     assert_equal 6, Foo.b
   end
 
-  def test_to_prepare_and_cleanup_delegation
-    prepared = cleaned = false
-    assert_deprecated do
-      ActionDispatch::Callbacks.to_prepare { prepared = true }
-      ActionDispatch::Callbacks.to_prepare { cleaned = true }
-    end
-
-    assert_deprecated do
-      ActionDispatch::Reloader.prepare!
-    end
-    assert prepared
-
-    assert_deprecated do
-      ActionDispatch::Reloader.cleanup!
-    end
-    assert cleaned
-  end
-
   private
 
     def dispatch(&block)

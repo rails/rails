@@ -16,7 +16,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    assert_match %r{^bin/rails test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
+    assert_match %r{^bin/rails test .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
     assert_rerun_snippet_count 1
   end
 
@@ -52,7 +52,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       @reporter.record(failed_test)
       @reporter.report
 
-      assert_match %r{^bin/test .*test/test_unit/reporter_test.rb:\d+$}, @output.string
+      assert_match %r{^bin/test .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
     ensure
       Rails::TestUnitReporter.executable = original_executable
     end
@@ -62,7 +62,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -70,7 +70,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -79,7 +79,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     verbose.record(skipped_test)
     verbose.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 

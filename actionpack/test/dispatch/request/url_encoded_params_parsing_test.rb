@@ -107,7 +107,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     query = [
       "customers[boston][first][name]=David",
       "something_else=blah",
-      "logo=#{File.expand_path(__FILE__)}"
+      "logo=#{__FILE__}"
     ].join("&")
     expected = {
       "customers" => {
@@ -118,7 +118,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
         }
       },
       "something_else" => "blah",
-      "logo" => File.expand_path(__FILE__),
+      "logo" => __FILE__,
     }
     assert_parses expected, query
   end

@@ -128,11 +128,29 @@ class DateHelperTest < ActionView::TestCase
     assert_distance_of_time_in_words(from)
   end
 
-  def test_distance_in_words_with_mathn_required
-    # test we avoid Integer#/ (redefined by mathn)
-    silence_warnings { require "mathn" }
+  def test_distance_in_words_with_nil_input
+    assert_raises(ArgumentError) { distance_of_time_in_words(nil) }
+    assert_raises(ArgumentError) { distance_of_time_in_words(0, nil) }
+  end
+
+  def test_distance_in_words_with_mixed_argument_types
+    assert_equal "1 minute", distance_of_time_in_words(0, Time.at(60))
+    assert_equal "10 minutes", distance_of_time_in_words(Time.at(600), 0)
+  end
+
+  def test_distance_in_words_doesnt_use_the_quotient_operator
+    rubinius_skip "Date is written in Ruby and relies on Fixnum#/"
+    jruby_skip "Date is written in Ruby and relies on Fixnum#/"
+
+    klass = RUBY_VERSION > "2.4" ? Integer : Fixnum
+
+    # Make sure that we avoid {Integer,Fixnum}#/ (redefined by mathn)
+    klass.send :private, :/
+
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
+  ensure
+    klass.send :public, :/
   end
 
   def test_time_ago_in_words_passes_include_seconds
@@ -832,7 +850,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_select_date_with_too_big_range_between_start_year_and_end_year
     assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: 2000, end_year: 20000, prefix: "date[first]", order: [:month, :day, :year]) }
-    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: Date.today.year - 100.years, end_year: 2000, prefix: "date[first]", order: [:month, :day, :year]) }
+    assert_raise(ArgumentError) { select_date(Time.mktime(2003, 8, 16), start_year: 100, end_year: 2000, prefix: "date[first]", order: [:month, :day, :year]) }
   end
 
   def test_select_date_can_have_more_then_1000_years_interval_if_forced_via_parameter
@@ -1407,7 +1425,6 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_datetime_with_custom_prompt
-
     expected =  %(<select id="date_first_year" name="date[first][year]">\n)
     expected << %(<option value="">Choose year</option>\n<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
     expected << "</select>\n"

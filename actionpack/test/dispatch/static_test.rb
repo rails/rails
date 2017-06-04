@@ -163,7 +163,7 @@ module StaticTests
     assert_equal file_name, env["PATH_INFO"]
   end
 
-  def test_serves_gzip_with_propper_content_type_fallback
+  def test_serves_gzip_with_proper_content_type_fallback
     file_name = "/gzip/foo.zoo"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip file_name, response
@@ -177,9 +177,9 @@ module StaticTests
     last_modified = File.mtime(File.join(@root, "#{file_name}.gz"))
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "HTTP_IF_MODIFIED_SINCE" => last_modified.httpdate)
     assert_equal 304, response.status
-    assert_equal nil, response.headers["Content-Type"]
-    assert_equal nil, response.headers["Content-Encoding"]
-    assert_equal nil, response.headers["Vary"]
+    assert_nil response.headers["Content-Type"]
+    assert_nil response.headers["Content-Encoding"]
+    assert_nil response.headers["Vary"]
   end
 
   def test_serves_files_with_headers
@@ -224,7 +224,7 @@ module StaticTests
 
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
-      actual   = Zlib::GzipReader.new(StringIO.new(response.body)).read
+      actual   = ActiveSupport::Gzip.decompress(response.body)
       assert_equal expected, actual
     end
 

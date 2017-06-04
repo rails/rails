@@ -1,30 +1,11 @@
 require "abstract_unit"
 require "active_support/core_ext/module"
 
-module One
-  Constant1 = "Hello World"
-  Constant2 = "What's up?"
-end
-
-class Ab
-  include One
-  Constant1 = "Hello World" # Will have different object id than One::Constant1
-  Constant3 = "Goodbye World"
-end
-
-module Yz
-  module Zy
-    class Cd
-      include One
-    end
-  end
-end
-
 Somewhere = Struct.new(:street, :city) do
   attr_accessor :name
 end
 
-class Someone < Struct.new(:name, :place)
+Someone = Struct.new(:name, :place) do
   delegate :street, :city, :to_f, to: :place
   delegate :name=, to: :place, prefix: true
   delegate :upcase, to: "place.city"
@@ -35,10 +16,10 @@ class Someone < Struct.new(:name, :place)
     "some_table"
   end
 
-  FAILED_DELEGATE_LINE = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, to: :place
 
-  FAILED_DELEGATE_LINE_2 = __LINE__ + 1
+  self::FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, to: :place, allow_nil: true
 
   private
@@ -89,7 +70,23 @@ Product = Struct.new(:name) do
   end
 end
 
+module ExtraMissing
+  def method_missing(sym, *args)
+    if sym == :extra_missing
+      42
+    else
+      super
+    end
+  end
+
+  def respond_to_missing?(sym, priv = false)
+    sym == :extra_missing || super
+  end
+end
+
 DecoratedTester = Struct.new(:client) do
+  include ExtraMissing
+
   delegate_missing_to :client
 end
 
@@ -210,21 +207,21 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_prefix
     invoice = Invoice.new(@david)
-    assert_equal invoice.client_name, "David"
-    assert_equal invoice.client_street, "Paulina"
-    assert_equal invoice.client_city, "Chicago"
+    assert_equal "David", invoice.client_name
+    assert_equal "Paulina", invoice.client_street
+    assert_equal "Chicago", invoice.client_city
   end
 
   def test_delegation_custom_prefix
     invoice = Invoice.new(@david)
-    assert_equal invoice.customer_name, "David"
-    assert_equal invoice.customer_street, "Paulina"
-    assert_equal invoice.customer_city, "Chicago"
+    assert_equal "David", invoice.customer_name
+    assert_equal "Paulina", invoice.customer_street
+    assert_equal "Chicago", invoice.customer_city
   end
 
   def test_delegation_prefix_with_nil_or_false
-    assert_equal Developer.new(@david).name, "David"
-    assert_equal Tester.new(@david).name, "David"
+    assert_equal "David", Developer.new(@david).name
+    assert_equal "David", Tester.new(@david).name
   end
 
   def test_delegation_prefix_with_instance_variable
@@ -240,7 +237,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_with_allow_nil
     rails = Project.new("Rails", Someone.new("David"))
-    assert_equal rails.name, "David"
+    assert_equal "David", rails.name
   end
 
   def test_delegation_with_allow_nil_and_nil_value
@@ -351,15 +348,15 @@ class ModuleTest < ActiveSupport::TestCase
     assert has_block.hello?
   end
 
-  def test_delegate_to_missing_with_method
+  def test_delegate_missing_to_with_method
     assert_equal "David", DecoratedTester.new(@david).name
   end
 
-  def test_delegate_to_missing_with_reserved_methods
+  def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_private_methods
+  def test_delegate_missing_to_does_not_delegate_to_private_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).private_name
     end
@@ -367,7 +364,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `private_name' for/, e.message)
   end
 
-  def test_delegate_to_missing_does_not_delegate_to_fake_methods
+  def test_delegate_missing_to_does_not_delegate_to_fake_methods
     e = assert_raises(NoMethodError) do
       DecoratedReserved.new(@david).my_fake_method
     end
@@ -375,15 +372,20 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
-  def test_parent
-    assert_equal Yz::Zy, Yz::Zy::Cd.parent
-    assert_equal Yz, Yz::Zy.parent
-    assert_equal Object, Yz.parent
+  def test_delegate_missing_to_affects_respond_to
+    assert DecoratedTester.new(@david).respond_to?(:name)
+    assert_not DecoratedTester.new(@david).respond_to?(:private_name)
+    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method)
+
+    assert DecoratedTester.new(@david).respond_to?(:name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:private_name, true)
+    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method, true)
   end
 
-  def test_parents
-    assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
-    assert_equal [Yz, Object], Yz::Zy.parents
+  def test_delegate_missing_to_respects_superclass_missing
+    assert_equal 42, DecoratedTester.new(@david).extra_missing
+
+    assert_respond_to DecoratedTester.new(@david), :extra_missing
   end
 
   def test_delegate_with_case

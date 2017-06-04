@@ -5,7 +5,7 @@ module ActionDispatch
         # Normalizes URI path.
         #
         # Strips off trailing slash and ensures there is a leading slash.
-        # Also converts downcase url encoded string to uppercase.
+        # Also converts downcase URL encoded string to uppercase.
         #
         #   normalize_path("/foo")  # => "/foo"
         #   normalize_path("/foo/") # => "/foo"
@@ -13,11 +13,13 @@ module ActionDispatch
         #   normalize_path("")      # => "/"
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
+          encoding = path.encoding
           path = "/#{path}"
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
           path = "/" if path == "".freeze
+          path.force_encoding(encoding)
           path
         end
 
@@ -58,7 +60,7 @@ module ActionDispatch
             uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
           end
 
-          protected
+          private
             def escape(component, pattern)
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
@@ -84,6 +86,10 @@ module ActionDispatch
           ENCODER.escape_fragment(fragment.to_s)
         end
 
+        # Replaces any escaped sequences with their unescaped representations.
+        #
+        #   uri = "/topics?title=Ruby%20on%20Rails"
+        #   unescape_uri(uri)  #=> "/topics?title=Ruby on Rails"
         def self.unescape_uri(uri)
           ENCODER.unescape_uri(uri)
         end

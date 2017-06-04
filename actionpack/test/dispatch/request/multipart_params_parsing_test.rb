@@ -21,7 +21,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  FIXTURE_PATH = File.dirname(__FILE__) + "/../../fixtures/multipart"
+  FIXTURE_PATH = File.expand_path("../../fixtures/multipart", __dir__)
 
   def teardown
     TestController.last_request_parameters = nil
@@ -129,7 +129,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     params = parse_multipart("none")
     assert_equal %w(submit-name), params.keys.sort
     assert_equal "Larry", params["submit-name"]
-    assert_equal nil, params["files"]
+    assert_nil params["files"]
   end
 
   test "parses empty upload file" do

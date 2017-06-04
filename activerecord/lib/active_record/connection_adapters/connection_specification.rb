@@ -149,9 +149,18 @@ module ActiveRecord
         # Expands each key in @configurations hash into fully resolved hash
         def resolve_all
           config = configurations.dup
+
+          if env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+            env_config = config[env] if config[env].is_a?(Hash) && !(config[env].key?("adapter") || config[env].key?("url"))
+          end
+
+          config.reject! { |k, v| v.is_a?(Hash) && !(v.key?("adapter") || v.key?("url")) }
+          config.merge! env_config if env_config
+
           config.each do |key, value|
             config[key] = resolve(value) if value
           end
+
           config
         end
 

@@ -53,6 +53,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:json)) => %(<link href="http://www.example.com" rel="alternate" title="JSON" type="application/json" />),
     %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "http://localhost/feed")) => %(<link href="http://localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "//localhost/feed")) => %(<link href="//localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
@@ -630,7 +631,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   end
 
   def test_should_return_nothing_if_asset_host_isnt_configured
-    assert_equal nil, compute_asset_host("foo")
+    assert_nil compute_asset_host("foo")
   end
 
   def test_should_current_request_host_is_always_returned_for_request
@@ -709,13 +710,13 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_wildcard_asset_host
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com), compute_asset_host("foo"))
+    assert_match(%r(http://a[0123]\.example\.com), compute_asset_host("foo"))
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_path("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_url("xml.png"))
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative

@@ -1,12 +1,30 @@
 require "cases/helper"
-require "support/ddl_helper"
 require "support/schema_dumping_helper"
+
+if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
+  module ActiveRecord
+    class Migration
+      class ForeignKeyInCreateTest < ActiveRecord::TestCase
+        def test_foreign_keys
+          foreign_keys = ActiveRecord::Base.connection.foreign_keys("fk_test_has_fk")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "fk_test_has_fk", fk.from_table
+          assert_equal "fk_test_has_pk", fk.to_table
+          assert_equal "fk_id", fk.column
+          assert_equal "pk_id", fk.primary_key
+          assert_equal "fk_name", fk.name unless current_adapter?(:SQLite3Adapter)
+        end
+      end
+    end
+  end
+end
 
 if ActiveRecord::Base.connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ForeignKeyTest < ActiveRecord::TestCase
-        include DdlHelper
         include SchemaDumpingHelper
         include ActiveSupport::Testing::Stream
 
@@ -29,10 +47,8 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         teardown do
-          if defined?(@connection)
-            @connection.drop_table "astronauts", if_exists: true
-            @connection.drop_table "rockets", if_exists: true
-          end
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
 
         def test_foreign_keys
@@ -76,20 +92,23 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_with_non_standard_primary_key
-          with_example_table @connection, "space_shuttles", "pk BIGINT PRIMARY KEY" do
-            @connection.add_foreign_key(:astronauts, :space_shuttles,
-                                        column: "rocket_id", primary_key: "pk", name: "custom_pk")
-
-            foreign_keys = @connection.foreign_keys("astronauts")
-            assert_equal 1, foreign_keys.size
-
-            fk = foreign_keys.first
-            assert_equal "astronauts", fk.from_table
-            assert_equal "space_shuttles", fk.to_table
-            assert_equal "pk", fk.primary_key
-
-            @connection.remove_foreign_key :astronauts, name: "custom_pk"
+          @connection.create_table :space_shuttles, id: false, force: true do |t|
+            t.bigint :pk, primary_key: true
           end
+
+          @connection.add_foreign_key(:astronauts, :space_shuttles,
+            column: "rocket_id", primary_key: "pk", name: "custom_pk")
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "astronauts", fk.from_table
+          assert_equal "space_shuttles", fk.to_table
+          assert_equal "pk", fk.primary_key
+        ensure
+          @connection.remove_foreign_key :astronauts, name: "custom_pk"
+          @connection.drop_table :space_shuttles
         end
 
         def test_add_on_delete_restrict_foreign_key
@@ -101,7 +120,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           fk = foreign_keys.first
           if current_adapter?(:Mysql2Adapter)
             # ON DELETE RESTRICT is the default on MySQL
-            assert_equal nil, fk.on_delete
+            assert_nil fk.on_delete
           else
             assert_equal :restrict, fk.on_delete
           end
@@ -229,7 +248,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table("cities") { |t| }
 
             create_table("houses") do |t|
-              t.column :city_id, :bigint
+              t.references :city
             end
             add_foreign_key :houses, :cities, column: "city_id"
 
@@ -261,7 +280,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             create_table(:schools)
 
             create_table(:classes) do |t|
-              t.column :school_id, :bigint
+              t.references :school
             end
             add_foreign_key :classes, :schools
           end
@@ -305,9 +324,11 @@ else
           @connection.remove_foreign_key :clubs, :categories
         end
 
-        def test_foreign_keys_should_raise_not_implemented
-          assert_raises NotImplementedError do
-            @connection.foreign_keys("clubs")
+        unless current_adapter?(:SQLite3Adapter)
+          def test_foreign_keys_should_raise_not_implemented
+            assert_raises NotImplementedError do
+              @connection.foreign_keys("clubs")
+            end
           end
         end
       end

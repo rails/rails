@@ -27,9 +27,7 @@ module ActiveJob
     end
 
     included do
-      class_attribute :priority, instance_accessor: false
-
-      self.priority = default_priority
+      class_attribute :priority, instance_accessor: false, default: default_priority
     end
 
     # Returns the priority that the job will be created with

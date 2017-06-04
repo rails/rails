@@ -61,7 +61,7 @@ module ActiveModel
       #   The method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #   See <tt>ActiveModel::Validations#validates!</tt> for more information.
       #
       # If you pass any additional configuration options, they will be passed
       # to the class and available as +options+:

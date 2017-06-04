@@ -85,7 +85,7 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
-    # Aliasing these off because AD::Http::Cache::Response defines them
+    # Aliasing these off because AD::Http::Cache::Response defines them.
     alias :_cache_control :cache_control
     alias :_cache_control= :cache_control=
 
@@ -142,7 +142,7 @@ module ActionDispatch # :nodoc:
       private
 
         def each_chunk(&block)
-          @buf.each(&block) # extract into own method
+          @buf.each(&block)
         end
     end
 
@@ -425,7 +425,7 @@ module ActionDispatch # :nodoc:
 
     def set_content_type(content_type, charset)
       type = (content_type || "").dup
-      type << "; charset=#{charset}" if charset
+      type << "; charset=#{charset.to_s.downcase}" if charset
       set_header CONTENT_TYPE, type
     end
 

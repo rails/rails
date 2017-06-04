@@ -42,7 +42,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.update("set @@wait_timeout=1")
     sleep 2
     assert !@connection.active?
-
+  ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
@@ -63,12 +63,25 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert @connection.active?
   end
 
+  def test_verify_with_args_is_deprecated
+    assert_deprecated do
+      @connection.verify!(option: true)
+    end
+    assert_deprecated do
+      @connection.verify!([])
+    end
+    assert_deprecated do
+      @connection.verify!({})
+    end
+  end
+
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    assert_raise(ActiveRecord::StatementInvalid) do
+    error = assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
+    assert_kind_of Mysql2::Error, error.cause
   end
 
   def test_quote_after_disconnect
@@ -82,6 +95,22 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_active_after_disconnect
     @connection.disconnect!
     assert_equal false, @connection.active?
+  end
+
+  def test_wait_timeout_as_string
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge(wait_timeout: "60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
+  end
+
+  def test_wait_timeout_as_url
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "mysql2:///?wait_timeout=60"))
+      result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
+      assert_equal 60, result
+    end
   end
 
   def test_mysql_connection_collation_is_configured
@@ -119,7 +148,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_passing_arbitary_flags_to_adapter
+  def test_passing_arbitrary_flags_to_adapter
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
       assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
@@ -186,7 +215,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
       "expected release_advisory_lock to return false when there was no lock to release"
   end
 
-  protected
+  private
 
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1

@@ -1,9 +1,5 @@
 source 'https://rubygems.org'
-
-git_source(:github) do |repo_name|
-  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
-  "https://github.com/#{repo_name}.git"
-end
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 <% gemfile_entries.each do |gem| -%>
 <% if gem.comment -%>
@@ -31,7 +27,12 @@ end
 <% if RUBY_ENGINE == 'ruby' -%>
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
-  gem 'byebug', platform: :mri
+  gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
+  <%- if depends_on_system_test? -%>
+  # Adds support for Capybara system testing and selenium driver
+  gem 'capybara', '~> 2.13'
+  gem 'selenium-webdriver'
+  <%- end -%>
 end
 
 group :development do

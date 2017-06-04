@@ -14,11 +14,9 @@ module ActiveSupport
         data = StringIO.new(data || "")
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
         LibXML::XML::Parser.io(data).parse.to_hash
       end
     end
@@ -73,6 +71,8 @@ module LibXML #:nodoc:
     end
   end
 end
+
+# :enddoc:
 
 LibXML::XML::Document.include(LibXML::Conversions::Document)
 LibXML::XML::Node.include(LibXML::Conversions::Node)

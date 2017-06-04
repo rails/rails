@@ -6,7 +6,6 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/string/strip"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -71,8 +70,8 @@ module ActiveSupport
       # each of elements in the array will be turned into parameters/keys and
       # concatenated into a single key. For example:
       #
-      #   expand_cache_key([:foo, :bar])               # => "foo/bar"
-      #   expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar])               # => "foo/bar"
+      #   ActiveSupport::Cache.expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
@@ -89,10 +88,11 @@ module ActiveSupport
       private
         def retrieve_cache_key(key)
           case
-          when key.respond_to?(:cache_key) then key.cache_key
-          when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
-          when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
-          else                                  key.to_param
+          when key.respond_to?(:cache_key_with_version) then key.cache_key_with_version
+          when key.respond_to?(:cache_key)              then key.cache_key
+          when key.is_a?(Array)                         then key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)                   then retrieve_cache_key(key.to_a)
+          else                                               key.to_param
           end.to_s
         end
 
@@ -220,6 +220,10 @@ module ActiveSupport
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
       #
+      # Setting <tt>:version</tt> verifies the cache stored under <tt>name</tt>
+      # is of the same version. nil is returned on mismatches despite contents.
+      # This feature is used to support recyclable cache keys.
+      #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
       # cache expires and due to heavy load several different processes will try
@@ -288,6 +292,7 @@ module ActiveSupport
           instrument(:read, name, options) do |payload|
             cached_entry = read_entry(key, options) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
+            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = :fetch if payload
             payload[:hit] = !!entry if payload
           end
@@ -304,19 +309,28 @@ module ActiveSupport
         end
       end
 
-      # Fetches data from the cache, using the given key. If there is data in
+      # Reads data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
+      #
+      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
+      # both of these conditions are applied before the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
-        key = normalize_key(name, options)
+        key     = normalize_key(name, options)
+        version = normalize_version(name, options)
+
         instrument(:read, name, options) do |payload|
           entry = read_entry(key, options)
+
           if entry
             if entry.expired?
               delete_entry(key, options)
+              payload[:hit] = false if payload
+              nil
+            elsif entry.mismatched?(version)
               payload[:hit] = false if payload
               nil
             else
@@ -342,11 +356,15 @@ module ActiveSupport
 
         results = {}
         names.each do |name|
-          key = normalize_key(name, options)
-          entry = read_entry(key, options)
+          key     = normalize_key(name, options)
+          version = normalize_version(name, options)
+          entry   = read_entry(key, options)
+
           if entry
             if entry.expired?
               delete_entry(key, options)
+            elsif entry.mismatched?(version)
+              # Skip mismatched versions
             else
               results[name] = entry.value
             end
@@ -397,7 +415,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:write, name, options) do
-          entry = Entry.new(value, options)
+          entry = Entry.new(value, options.merge(version: normalize_version(name, options)))
           write_entry(normalize_key(name, options), entry, options)
         end
       end
@@ -421,7 +439,7 @@ module ActiveSupport
 
         instrument(:exist?, name) do
           entry = read_entry(normalize_key(name, options), options)
-          (entry && !entry.expired?) || false
+          (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end
 
@@ -471,12 +489,12 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
-      protected
+      private
         # Adds the namespace defined in the options to a pattern designed to
         # match keys. Implementations that support delete_matched should call
         # this method to translate a pattern that matches names into one that
         # matches namespaced keys.
-        def key_matcher(pattern, options)
+        def key_matcher(pattern, options) # :doc:
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
             source = pattern.source
@@ -493,25 +511,24 @@ module ActiveSupport
 
         # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           raise NotImplementedError.new
         end
 
         # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           raise NotImplementedError.new
         end
 
-      private
         # Merges the default options with ones specific to a method call.
-        def merged_options(call_options) # :nodoc:
+        def merged_options(call_options)
           if call_options
             options.merge(call_options)
           else
@@ -519,10 +536,20 @@ module ActiveSupport
           end
         end
 
+        # Prefixes a key with the namespace. Namespace and key will be delimited
+        # with a colon.
+        def normalize_key(key, options)
+          key = expanded_key(key)
+          namespace = options[:namespace] if options
+          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+          key = "#{prefix}:#{key}" if prefix
+          key
+        end
+
         # Expands key to be a consistent string value. Invokes +cache_key+ if
         # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key) # :nodoc:
+        def expanded_key(key)
           return key.cache_key.to_s if key.respond_to?(:cache_key)
 
           case key
@@ -539,14 +566,16 @@ module ActiveSupport
           key.to_param
         end
 
-        # Prefixes a key with the namespace. Namespace and key will be delimited
-        # with a colon.
-        def normalize_key(key, options)
-          key = expanded_key(key)
-          namespace = options[:namespace] if options
-          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-          key = "#{prefix}:#{key}" if prefix
-          key
+        def normalize_version(key, options = nil)
+          (options && options[:version].try(:to_param)) || expanded_version(key)
+        end
+
+        def expanded_version(key)
+          case
+          when key.respond_to?(:cache_version) then key.cache_version.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
+          when key.respond_to?(:to_a)          then expanded_version(key.to_a)
+          end
         end
 
         def instrument(operation, key, options = nil)
@@ -593,13 +622,16 @@ module ActiveSupport
         end
     end
 
-    # This class is used to represent cache entries. Cache entries have a value and an optional
-    # expiration time. The expiration time is used to support the :race_condition_ttl option
-    # on the cache.
+    # This class is used to represent cache entries. Cache entries have a value, an optional
+    # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
+    # on the cache. The version is used to support the :version option on the cache for rejecting
+    # mismatches.
     #
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
+      attr_reader :version
+
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
       # Creates a new cache entry for the specified value. Options supported are
@@ -612,6 +644,7 @@ module ActiveSupport
           @value = value
         end
 
+        @version    = options[:version]
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
@@ -619,6 +652,10 @@ module ActiveSupport
 
       def value
         compressed? ? uncompress(@value) : @value
+      end
+
+      def mismatched?(version)
+        @version && version && @version != version
       end
 
       # Checks if the entry is expired. The +expires_in+ parameter can override

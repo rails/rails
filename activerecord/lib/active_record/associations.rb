@@ -97,6 +97,16 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughOrderError < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name = nil, reflection = nil, through_reflection = nil)
+      if owner_class_name && reflection && through_reflection
+        super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' which goes through '#{owner_class_name}##{through_reflection.name}' before the through association is defined.")
+      else
+        super("Cannot have a has_many :through association before the through association is defined.")
+      end
+    end
+  end
+
   class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError #:nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
@@ -104,6 +114,21 @@ module ActiveRecord
       else
         super("Cannot modify association.")
       end
+    end
+  end
+
+  class AmbiguousSourceReflectionForThroughAssociation < ActiveRecordError # :nodoc:
+    def initialize(klass, macro, association_name, options, possible_sources)
+      example_options = options.dup
+      example_options[:source] = possible_sources.first
+
+      super("Ambiguous source reflection for through association. Please " \
+            "specify a :source directive on your declaration like:\n" \
+            "\n" \
+            "  class #{klass} < ActiveRecord::Base\n" \
+            "    #{macro} :#{association_name}, #{example_options}\n" \
+            "  end"
+           )
     end
   end
 
@@ -260,11 +285,11 @@ module ActiveRecord
 
     private
       # Clears out the association cache.
-      def clear_association_cache # :nodoc:
+      def clear_association_cache
         @association_cache.clear if persisted?
       end
 
-      def init_internals # :nodoc:
+      def init_internals
         @association_cache = {}
         super
       end
@@ -354,23 +379,23 @@ module ActiveRecord
       #
       # === Overriding generated methods
       #
-      # Association methods are generated in a module that is included into the model class,
-      # which allows you to easily override with your own methods and call the original
-      # generated method with +super+. For example:
+      # Association methods are generated in a module included into the model
+      # class, making overrides easy. The original generated method can thus be
+      # called with +super+:
       #
       #   class Car < ActiveRecord::Base
       #     belongs_to :owner
       #     belongs_to :old_owner
+      #
       #     def owner=(new_owner)
       #       self.old_owner = self.owner
       #       super
       #     end
       #   end
       #
-      # If your model class is <tt>Project</tt>, then the module is
-      # named <tt>Project::GeneratedAssociationMethods</tt>. The +GeneratedAssociationMethods+ module is
-      # included in the model class immediately after the (anonymous) generated attributes methods
-      # module, meaning an association will override the methods for an attribute with the same name.
+      # The association methods module is included immediately after the
+      # generated attributes methods module, meaning an association will
+      # override the methods for an attribute with the same name.
       #
       # == Cardinality and associations
       #
@@ -1251,7 +1276,7 @@ module ActiveRecord
         # Scope examples:
         #   has_many :comments, -> { where(author_id: 1) }
         #   has_many :employees, -> { joins(:address) }
-        #   has_many :posts, ->(post) { where("max_post_length > ?", post.length) }
+        #   has_many :posts, ->(blog) { where("max_post_length > ?", blog.max_post_length) }
         #
         # === Extensions
         #
@@ -1418,7 +1443,7 @@ module ActiveRecord
         # Scope examples:
         #   has_one :author, -> { where(comment_id: 1) }
         #   has_one :employer, -> { joins(:company) }
-        #   has_one :dob, ->(dob) { where("Date.new(2000, 01, 01) > ?", dob) }
+        #   has_one :latest_post, ->(blog) { where("created_at > ?", blog.enabled_at) }
         #
         # === Options
         #
@@ -1548,7 +1573,7 @@ module ActiveRecord
         # Scope examples:
         #   belongs_to :firm, -> { where(id: 2) }
         #   belongs_to :user, -> { joins(:friends) }
-        #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
+        #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
         # === Options
         #
@@ -1622,6 +1647,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        # [:default]
+        #   Provide a callable (i.e. proc or lambda) to specify that the association should
+        #   be initialized with a particular record before validation.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1635,6 +1663,7 @@ module ActiveRecord
         #   belongs_to :comment, touch: true
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
+        #   belongs_to :account, default: -> { company.account }
         def belongs_to(name, scope = nil, options = {})
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1740,9 +1769,8 @@ module ActiveRecord
         #
         # Scope examples:
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
-        #   has_and_belongs_to_many :categories, ->(category) {
-        #     where("default_category = ?", category.name)
-        #   }
+        #   has_and_belongs_to_many :categories, ->(post) {
+        #     where("default_category = ?", post.default_category)
         #
         # === Extensions
         #
@@ -1802,7 +1830,7 @@ module ActiveRecord
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
 
-          join_model = builder.through_model
+          join_model = ActiveSupport::Deprecation.silence { builder.through_model }
 
           const_set join_model.name, join_model
           private_constant join_model.name
@@ -1831,8 +1859,8 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
-          self._reflections[name.to_s].parent_reflection = habtm_reflection
+          ActiveSupport::Deprecation.silence { has_many name, scope, hm_options, &extension }
+          _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end
   end

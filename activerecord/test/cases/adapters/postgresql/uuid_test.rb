@@ -13,6 +13,10 @@ module PostgresqlUUIDHelper
   def uuid_function
     connection.supports_pgcrypto_uuid? ? "gen_random_uuid()" : "uuid_generate_v4()"
   end
+
+  def uuid_default
+    connection.supports_pgcrypto_uuid? ? {} : { default: uuid_function }
+  end
 end
 
 class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
@@ -59,6 +63,16 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     UUIDType.reset_column_information
   end
 
+  def test_add_column_with_null_true_and_default_nil
+    assert_nothing_raised do
+      connection.add_column :uuid_data_type, :thingy, :uuid, null: true, default: nil
+    end
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+    assert column.null
+    assert_nil column.default
+  end
+
   def test_data_type_of_uuid_types
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
@@ -71,12 +85,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
 
   def test_treat_blank_uuid_as_nil
     UUIDType.create! guid: ""
-    assert_equal(nil, UUIDType.last.guid)
+    assert_nil(UUIDType.last.guid)
   end
 
   def test_treat_invalid_uuid_as_nil
     uuid = UUIDType.create! guid: "foobar"
-    assert_equal(nil, uuid.guid)
+    assert_nil(uuid.guid)
   end
 
   def test_invalid_uuid_dont_modify_before_type_cast
@@ -178,7 +192,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.uuid "other_uuid_2", default: "my_uuid_generator()"
     end
 
-    connection.create_table("pg_uuids_3", id: :uuid) do |t|
+    connection.create_table("pg_uuids_3", id: :uuid, **uuid_default) do |t|
       t.string "name"
     end
   end
@@ -210,7 +224,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     def test_pk_and_sequence_for_uuid_primary_key
       pk, seq = connection.pk_and_sequence_for("pg_uuids")
       assert_equal "id", pk
-      assert_equal nil, seq
+      assert_nil seq
     end
 
     def test_schema_dumper_for_uuid_primary_key
@@ -234,25 +248,23 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       end
     end
 
-    if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
-      def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
-        @verbose_was = ActiveRecord::Migration.verbose
-        ActiveRecord::Migration.verbose = false
+    def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+      @verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
 
-        migration = Class.new(ActiveRecord::Migration[4.2]) do
-          def version; 101 end
-          def migrate(x)
-            create_table("pg_uuids_4", id: :uuid)
-          end
-        end.new
-        ActiveRecord::Migrator.new(:up, [migration]).migrate
+      migration = Class.new(ActiveRecord::Migration[5.0]) do
+        def version; 101 end
+        def migrate(x)
+          create_table("pg_uuids_4", id: :uuid)
+        end
+      end.new
+      ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-        schema = dump_table_schema "pg_uuids_4"
-        assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
-      ensure
-        drop_table "pg_uuids_4"
-        ActiveRecord::Migration.verbose = @verbose_was
-      end
+      schema = dump_table_schema "pg_uuids_4"
+      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+    ensure
+      drop_table "pg_uuids_4"
+      ActiveRecord::Migration.verbose = @verbose_was
     end
   end
 end
@@ -285,6 +297,25 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
       schema = dump_table_schema "pg_uuids"
       assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
     end
+
+    def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
+      @verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
+
+      migration = Class.new(ActiveRecord::Migration[5.0]) do
+        def version; 101 end
+        def migrate(x)
+          create_table("pg_uuids_4", id: :uuid, default: nil)
+        end
+      end.new
+      ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+      schema = dump_table_schema "pg_uuids_4"
+      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
+    ensure
+      drop_table "pg_uuids_4"
+      ActiveRecord::Migration.verbose = @verbose_was
+    end
   end
 end
 
@@ -303,10 +334,10 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
   setup do
     connection.transaction do
-      connection.create_table("pg_uuid_posts", id: :uuid) do |t|
+      connection.create_table("pg_uuid_posts", id: :uuid, **uuid_default) do |t|
         t.string "title"
       end
-      connection.create_table("pg_uuid_comments", id: :uuid) do |t|
+      connection.create_table("pg_uuid_comments", id: :uuid, **uuid_default) do |t|
         t.references :uuid_post, type: :uuid
         t.string "content"
       end
@@ -330,7 +361,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
       assert_raise ActiveRecord::RecordNotFound do
         UuidPost.find(123456)
       end
-
     end
 
     def test_find_by_with_uuid

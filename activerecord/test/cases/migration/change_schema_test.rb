@@ -269,6 +269,8 @@ module ActiveRecord
 
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "timestamp without time zone", klass.columns_hash["foo"].sql_type
+        elsif current_adapter?(:Mysql2Adapter)
+          assert_equal "timestamp", klass.columns_hash["foo"].sql_type
         else
           assert_equal klass.connection.type_to_sql("datetime"), klass.columns_hash["foo"].sql_type
         end
@@ -409,9 +411,9 @@ module ActiveRecord
 
       def test_drop_table_if_exists
         connection.create_table(:testings)
-        ActiveSupport::Deprecation.silence { assert connection.table_exists?(:testings) }
+        assert connection.table_exists?(:testings)
         connection.drop_table(:testings, if_exists: true)
-        ActiveSupport::Deprecation.silence { assert_not connection.table_exists?(:testings) }
+        assert_not connection.table_exists?(:testings)
       end
 
       def test_drop_table_if_exists_nothing_raised

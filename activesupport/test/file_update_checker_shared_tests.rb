@@ -273,4 +273,10 @@ module FileUpdateCheckerSharedTests
     assert checker.execute_if_updated
     assert_equal 2, i
   end
+
+  test "initialize raises an ArgumentError if no block given" do
+    assert_raise ArgumentError do
+      new_checker([])
+    end
+  end
 end

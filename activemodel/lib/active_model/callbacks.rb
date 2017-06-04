@@ -56,6 +56,9 @@ module ActiveModel
   #
   # Would only create the +after_create+ and +before_create+ callback methods in
   # your class.
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  #
   module Callbacks
     def self.extended(base) #:nodoc:
       base.class_eval do
@@ -103,7 +106,6 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-        terminator: deprecated_false_terminator,
         skip_after_callbacks_if_terminated: true,
         scope: [:kind, :name],
         only: [:before, :around, :after]
@@ -122,19 +124,19 @@ module ActiveModel
 
     private
 
-      def _define_before_model_callback(klass, callback) #:nodoc:
+      def _define_before_model_callback(klass, callback)
         klass.define_singleton_method("before_#{callback}") do |*args, &block|
           set_callback(:"#{callback}", :before, *args, &block)
         end
       end
 
-      def _define_around_model_callback(klass, callback) #:nodoc:
+      def _define_around_model_callback(klass, callback)
         klass.define_singleton_method("around_#{callback}") do |*args, &block|
           set_callback(:"#{callback}", :around, *args, &block)
         end
       end
 
-      def _define_after_model_callback(klass, callback) #:nodoc:
+      def _define_after_model_callback(klass, callback)
         klass.define_singleton_method("after_#{callback}") do |*args, &block|
           options = args.extract_options!
           options[:prepend] = true

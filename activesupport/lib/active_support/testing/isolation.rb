@@ -43,7 +43,7 @@ module ActiveSupport
                   end
                 }
               end
-              result = Marshal.dump(self.dup)
+              result = Marshal.dump(dup)
             end
 
             write.puts [result].pack("m")
@@ -78,7 +78,7 @@ module ActiveSupport
                 "ISOLATION_OUTPUT" => tmpfile.path
               }
 
-              test_opts = "-n#{self.class.name}##{self.name}"
+              test_opts = "-n#{self.class.name}##{name}"
 
               load_path_args = []
               $-I.each do |p|

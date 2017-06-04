@@ -6,6 +6,11 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :timestamp_defaults, force: true do |t|
+    t.timestamp :nullable_timestamp
+    t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
+  end
+
   create_table :binary_fields, force: true do |t|
     t.binary :var_binary, limit: 255
     t.binary :var_binary_large, limit: 4095

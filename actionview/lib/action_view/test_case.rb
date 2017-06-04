@@ -71,7 +71,7 @@ module ActionView
         def helper_method(*methods)
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
-            _helpers.module_eval <<-end_eval
+            _helpers.module_eval <<-end_eval, __FILE__, __LINE__ + 1
               def #{method}(*args, &block)                    # def current_user(*args, &block)
                 _test_case.send(%(#{method}), *args, &block)  #   _test_case.send(%(current_user), *args, &block)
               end                                             # end
@@ -122,6 +122,10 @@ module ActionView
 
       def rendered_views
         @_rendered_views ||= RenderedViewsCollection.new
+      end
+
+      def _routes
+        @controller._routes if @controller.respond_to?(:_routes)
       end
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
@@ -206,8 +210,8 @@ module ActionView
           view = @controller.view_context
           view.singleton_class.include(_helpers)
           view.extend(Locals)
-          view.rendered_views = self.rendered_views
-          view.output_buffer = self.output_buffer
+          view.rendered_views = rendered_views
+          view.output_buffer = output_buffer
           view
         end
       end
@@ -256,10 +260,6 @@ module ActionView
         Hash[_user_defined_ivars.map do |ivar|
           [ivar[1..-1].to_sym, instance_variable_get(ivar)]
         end]
-      end
-
-      def _routes
-        @controller._routes if @controller.respond_to?(:_routes)
       end
 
       def method_missing(selector, *args)

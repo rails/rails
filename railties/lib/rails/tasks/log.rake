@@ -3,7 +3,7 @@ namespace :log do
   ##
   # Truncates all/specified log files
   # ENV['LOGS']
-  #   - defaults to standard environment log files i.e. 'development,test,production'
+  #   - defaults to all environments log files i.e. 'development,test,production'
   #   - ENV['LOGS']=all truncates all files i.e. log/*.log
   #   - ENV['LOGS']='test,development' truncates only specified files
   desc "Truncates all/specified *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)"
@@ -19,7 +19,7 @@ namespace :log do
     elsif ENV["LOGS"]
       log_files_to_truncate(ENV["LOGS"])
     else
-      log_files_to_truncate("development,test,production")
+      log_files_to_truncate(all_environments.join(","))
     end
   end
 
@@ -32,5 +32,9 @@ namespace :log do
   def clear_log_file(file)
     f = File.open(file, "w")
     f.close
+  end
+
+  def all_environments
+    Dir["config/environments/*.rb"].map { |fname| File.basename(fname, ".*") }
   end
 end

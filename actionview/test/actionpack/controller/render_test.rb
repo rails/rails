@@ -1,45 +1,14 @@
 require "abstract_unit"
 require "active_model"
+require "controller/fake_models"
 
 class ApplicationController < ActionController::Base
   self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
 end
 
-class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-
-  undef_method :to_json
-
-  def to_xml(options = {})
-    if options[:builder]
-      options[:builder].name name
-    else
-      "<name>#{name}</name>"
-    end
-  end
-
-  def to_js(options = {})
-    "name: #{name.inspect}"
-  end
-  alias :to_text :to_js
-
-  def errors
-    []
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def cache_key
-    name.to_s
-  end
-end
-
 module Quiz
   #Models
-  class Question < Struct.new(:name, :id)
+  Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -55,9 +24,6 @@ module Quiz
     end
   end
 end
-
-class BadCustomer < Customer; end
-class GoodCustomer < Customer; end
 
 module Fun
   class GamesController < ApplicationController
@@ -90,7 +56,7 @@ class TestController < ApplicationController
   end
 
   def hello_world_file
-    render file: File.expand_path("../../../fixtures/actionpack/hello", __FILE__), formats: [:html]
+    render file: File.expand_path("../../fixtures/actionpack/hello", __dir__), formats: [:html]
   end
 
   # :ported:
@@ -159,7 +125,7 @@ class TestController < ApplicationController
   # :ported:
   def render_file_with_instance_variables
     @secret = "in the sauce"
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
+    path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
     render file: path
   end
 
@@ -176,21 +142,21 @@ class TestController < ApplicationController
 
   def render_file_using_pathname
     @secret = "in the sauce"
-    render file: Pathname.new(File.dirname(__FILE__)).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
+    render file: Pathname.new(__dir__).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
   end
 
   def render_file_from_template
     @secret = "in the sauce"
-    @path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar"))
+    @path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals"))
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 

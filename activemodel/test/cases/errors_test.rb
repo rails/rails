@@ -1,4 +1,5 @@
 require "cases/helper"
+require "active_support/core_ext/string/strip"
 require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
@@ -98,12 +99,28 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg", "zomg"], errors.values
   end
 
+  test "values returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.values
+  end
+
   test "keys returns the error keys" do
     errors = ActiveModel::Errors.new(self)
     errors.messages[:foo] << "omg"
     errors.messages[:baz] << "zomg"
 
     assert_equal [:foo, :baz], errors.keys
+  end
+
+  test "keys returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.keys
   end
 
   test "detecting whether there are errors with empty?, blank?, include?" do

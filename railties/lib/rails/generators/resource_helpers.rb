@@ -23,9 +23,13 @@ module Rails
         assign_controller_names!(controller_name.pluralize)
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :controller_name, :controller_file_name
+
+      private
 
         def controller_class_path
           if options[:model_name]
@@ -55,7 +59,7 @@ module Rails
         end
 
         # Loads the ORM::Generators::ActiveModel class. This class is responsible
-        # to tell scaffold entities how to generate an specific method for the
+        # to tell scaffold entities how to generate a specific method for the
         # ORM. Check Rails::Generators::ActiveModel for more information.
         def orm_class
           @orm_class ||= begin

@@ -11,7 +11,6 @@ module ActiveRecord
                        :before_commit_without_transaction_enrollment,
                        :commit_without_transaction_enrollment,
                        :rollback_without_transaction_enrollment,
-                       terminator: deprecated_false_terminator,
                        scope: [:kind, :name]
     end
 
@@ -124,7 +123,7 @@ module ActiveRecord
     #     # statement will cause a PostgreSQL error, even though the unique
     #     # constraint is no longer violated:
     #     Number.create(i: 1)
-    #     # => "PGError: ERROR:  current transaction is aborted, commands
+    #     # => "PG::Error: ERROR:  current transaction is aborted, commands
     #     #     ignored until end of transaction block"
     #   end
     #
@@ -274,16 +273,6 @@ module ActiveRecord
         set_callback(:rollback_without_transaction_enrollment, :after, *args, &block)
       end
 
-      def raise_in_transactional_callbacks
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.raise_in_transactional_callbacks is deprecated and will be removed without replacement.")
-        true
-      end
-
-      def raise_in_transactional_callbacks=(value)
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.raise_in_transactional_callbacks= is deprecated, has no effect and will be removed without replacement.")
-        value
-      end
-
       private
 
         def set_options_for_callbacks!(args, enforced_options = {})
@@ -294,7 +283,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if] << "transaction_include_any_action?(#{fire_on})"
+            options[:if].unshift("transaction_include_any_action?(#{fire_on})")
           end
         end
 
@@ -407,10 +396,10 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
-      def remember_transaction_record_state #:nodoc:
+      def remember_transaction_record_state
         @_start_transaction_state[:id] = id
         @_start_transaction_state.reverse_merge!(
           new_record: @new_record,
@@ -421,18 +410,18 @@ module ActiveRecord
       end
 
       # Clear the new record state and id of a record.
-      def clear_transaction_record_state #:nodoc:
+      def clear_transaction_record_state
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
       end
 
       # Force to clear the transaction record state.
-      def force_clear_transaction_record_state #:nodoc:
+      def force_clear_transaction_record_state
         @_start_transaction_state.clear
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
-      def restore_transaction_record_state(force = false) #:nodoc:
+      def restore_transaction_record_state(force = false)
         unless @_start_transaction_state.empty?
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
           if transaction_level < 1 || force
@@ -450,12 +439,12 @@ module ActiveRecord
       end
 
       # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-      def transaction_record_state(state) #:nodoc:
+      def transaction_record_state(state)
         @_start_transaction_state[state]
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
-      def transaction_include_any_action?(actions) #:nodoc:
+      def transaction_include_any_action?(actions)
         actions.any? do |action|
           case action
           when :create
@@ -469,13 +458,11 @@ module ActiveRecord
         end
       end
 
-    private
-
-      def set_transaction_state(state) # :nodoc:
+      def set_transaction_state(state)
         @transaction_state = state
       end
 
-      def has_transactional_callbacks? # :nodoc:
+      def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
       end
 

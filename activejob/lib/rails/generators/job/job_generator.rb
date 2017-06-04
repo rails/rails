@@ -12,14 +12,14 @@ module Rails # :nodoc:
       hook_for :test_framework
 
       def self.default_generator_root
-        File.dirname(__FILE__)
+        __dir__
       end
 
       def create_job_file
         template "job.rb", File.join("app/jobs", class_path, "#{file_name}_job.rb")
 
         in_root do
-          if self.behavior == :invoke && !File.exist?(application_job_file_name)
+          if behavior == :invoke && !File.exist?(application_job_file_name)
             template "application_job.rb", application_job_file_name
           end
         end

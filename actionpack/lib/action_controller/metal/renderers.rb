@@ -26,8 +26,7 @@ module ActionController
     RENDERERS = Set.new
 
     included do
-      class_attribute :_renderers
-      self._renderers = Set.new.freeze
+      class_attribute :_renderers, default: Set.new.freeze
     end
 
     # Used in <tt>ActionController::Base</tt>
@@ -104,7 +103,7 @@ module ActionController
       #
       # Since <tt>ActionController::Metal</tt> controllers cannot render, the controller
       # must include <tt>AbstractController::Rendering</tt>, <tt>ActionController::Rendering</tt>,
-      # and <tt>ActionController::Renderers</tt>, and have at lest one renderer.
+      # and <tt>ActionController::Renderers</tt>, and have at least one renderer.
       #
       # Rather than including <tt>ActionController::Renderers::All</tt> and including all renderers,
       # you may specify which renderers to include by passing the renderer name or names to

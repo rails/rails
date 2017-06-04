@@ -69,14 +69,21 @@ module ActiveJob
         def perform_start(event)
           info do
             job = event.payload[:job]
-            "Performing #{job.class.name} from #{queue_name(event)}" + args_info(job)
+            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + args_info(job)
           end
         end
 
         def perform(event)
-          info do
-            job = event.payload[:job]
-            "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2)}ms"
+          job = event.payload[:job]
+          ex = event.payload[:exception_object]
+          if ex
+            error do
+              "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+            end
+          else
+            info do
+              "Performed #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms"
+            end
           end
         end
 

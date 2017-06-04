@@ -4,6 +4,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/category"
+require "models/categorization"
 require "models/company"
 require "models/customer"
 require "models/developer"
@@ -33,8 +34,6 @@ class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -45,8 +44,6 @@ class CreditCard < ActiveRecord::Base
   class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
@@ -55,12 +52,6 @@ class ReadonlyTitlePost < Post
 end
 
 class Weird < ActiveRecord::Base; end
-
-class Boolean < ActiveRecord::Base
-  def has_fun
-    super
-  end
-end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -73,7 +64,7 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
@@ -107,12 +98,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
-    def test_limit_with_comma
-      assert_deprecated do
-        assert Topic.limit("1,2").to_a
-      end
-    end
+  def test_primary_key_and_references_columns_should_be_identical_type
+    pk = Author.columns_hash["id"]
+    ref = Post.columns_hash["author_id"]
+
+    assert_equal pk.bigint?, ref.bigint?
   end
 
   def test_many_mutations
@@ -144,10 +134,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_deprecated do
-      assert_raises(ArgumentError) do
-        Topic.limit("1, 7 procedure help()").to_a
-      end
+    assert_raises(ArgumentError) do
+      Topic.limit("1, 7 procedure help()").to_a
     end
   end
 
@@ -622,7 +610,7 @@ class BasicsTest < ActiveRecord::TestCase
       Topic.find(topic.id).destroy
     end
 
-    assert_equal nil, Topic.find_by_id(topic.id)
+    assert_nil Topic.find_by_id(topic.id)
   end
 
   def test_comparison_with_different_objects
@@ -713,6 +701,17 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_nil topic.bonus_time
+  end
+
+  def test_attributes
+    category = Category.new(name: "Ruby")
+
+    expected_attributes = category.attribute_names.map do |attribute_name|
+      [attribute_name, category.public_send(attribute_name)]
+    end.to_h
+
+    assert_instance_of Hash, category.attributes
+    assert_equal expected_attributes, category.attributes
   end
 
   def test_boolean
@@ -906,80 +905,6 @@ class BasicsTest < ActiveRecord::TestCase
         assert_equal "a text field", default.char3
       end
     end
-  end
-
-  class NumericData < ActiveRecord::Base
-    self.table_name = "numeric_data"
-
-    attribute :my_house_population, :integer
-    attribute :atoms_in_universe, :integer
-  end
-
-  def test_big_decimal_conditions
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-    assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
-  end
-
-  def test_numeric_fields
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
-  end
-
-  def test_numeric_fields_with_scale
-    m = NumericData.new(
-      bank_balance: 1586.43122334,
-      big_bank_balance: BigDecimal("234000567.952344"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
   end
 
   def test_auto_id
@@ -1376,12 +1301,6 @@ class BasicsTest < ActiveRecord::TestCase
     company = Company.new(rating: 1, name: "37signals", firm_name: "37signals")
     assert_raises(ActiveRecord::ActiveRecordError) do
       company.touch :updated_at
-    end
-  end
-
-  def test_uniq_delegates_to_scoped
-    assert_deprecated do
-      assert_equal Bird.all.distinct, Bird.uniq
     end
   end
 

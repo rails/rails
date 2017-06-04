@@ -6,6 +6,15 @@ class Map < Hash
   end
 end
 
+class CustomEnumerable
+  include Enumerable
+
+  def each
+    yield "one"
+    yield "two"
+  end
+end
+
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
@@ -393,30 +402,30 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_time_zone_options_no_params
     opts = time_zone_options_for_select
-    assert_dom_equal "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>\n" +
+    assert_dom_equal "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\">D</option>\n" \
                  "<option value=\"E\">E</option>",
                  opts
   end
 
   def test_time_zone_options_with_selected
     opts = time_zone_options_for_select("D")
-    assert_dom_equal "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+    assert_dom_equal "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
                  "<option value=\"E\">E</option>",
                  opts
   end
 
   def test_time_zone_options_with_unknown_selected
     opts = time_zone_options_for_select("K")
-    assert_dom_equal "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>\n" +
+    assert_dom_equal "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\">D</option>\n" \
                  "<option value=\"E\">E</option>",
                  opts
   end
@@ -424,11 +433,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_options_with_priority_zones
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select(nil, zones)
-    assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\">E</option>" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
+    assert_dom_equal "<option value=\"B\">B</option>\n" \
+                 "<option value=\"E\">E</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
                  "<option value=\"D\">D</option>",
                  opts
   end
@@ -436,11 +445,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_options_with_selected_priority_zones
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select("E", zones)
-    assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\" selected=\"selected\">E</option>" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
+    assert_dom_equal "<option value=\"B\">B</option>\n" \
+                 "<option value=\"E\" selected=\"selected\">E</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
                  "<option value=\"D\">D</option>",
                  opts
   end
@@ -448,11 +457,11 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_options_with_unselected_priority_zones
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select("C", zones)
-    assert_dom_equal "<option value=\"B\">B</option>\n" +
-                 "<option value=\"E\">E</option>" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"C\" selected=\"selected\">C</option>\n" +
+    assert_dom_equal "<option value=\"B\">B</option>\n" \
+                 "<option value=\"E\">E</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"C\" selected=\"selected\">C</option>\n" \
                  "<option value=\"D\">D</option>",
                  opts
   end
@@ -904,6 +913,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_enumerable
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option value=\"two\">two</option></select>",
+      select("post", "category", CustomEnumerable.new)
+    )
+  end
+
   def test_collection_select
     @post = Post.new
     @post.author_name = "Babe"
@@ -1031,12 +1048,12 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1049,12 +1066,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-      "<option value=\"A\">A</option>\n" +
-      "<option value=\"B\">B</option>\n" +
-      "<option value=\"C\">C</option>\n" +
-      "<option value=\"D\" selected=\"selected\">D</option>\n" +
-      "<option value=\"E\">E</option>" +
+      "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+      "<option value=\"A\">A</option>\n" \
+      "<option value=\"B\">B</option>\n" \
+      "<option value=\"C\">C</option>\n" \
+      "<option value=\"D\" selected=\"selected\">D</option>\n" \
+      "<option value=\"E\">E</option>" \
       "</select>",
       output_buffer
     )
@@ -1068,12 +1085,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      "<select id=\"firm_305_time_zone\" name=\"firm[305][time_zone]\">" +
-      "<option value=\"A\">A</option>\n" +
-      "<option value=\"B\">B</option>\n" +
-      "<option value=\"C\">C</option>\n" +
-      "<option value=\"D\" selected=\"selected\">D</option>\n" +
-      "<option value=\"E\">E</option>" +
+      "<select id=\"firm_305_time_zone\" name=\"firm[305][time_zone]\">" \
+      "<option value=\"A\">A</option>\n" \
+      "<option value=\"B\">B</option>\n" \
+      "<option value=\"C\">C</option>\n" \
+      "<option value=\"D\" selected=\"selected\">D</option>\n" \
+      "<option value=\"E\">E</option>" \
       "</select>",
       output_buffer
     )
@@ -1088,12 +1105,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal(
-      "<select id=\"firm_305_time_zone\" name=\"firm[305][time_zone]\">" +
-      "<option value=\"A\">A</option>\n" +
-      "<option value=\"B\">B</option>\n" +
-      "<option value=\"C\">C</option>\n" +
-      "<option value=\"D\" selected=\"selected\">D</option>\n" +
-      "<option value=\"E\">E</option>" +
+      "<select id=\"firm_305_time_zone\" name=\"firm[305][time_zone]\">" \
+      "<option value=\"A\">A</option>\n" \
+      "<option value=\"B\">B</option>\n" \
+      "<option value=\"C\">C</option>\n" \
+      "<option value=\"D\" selected=\"selected\">D</option>\n" \
+      "<option value=\"E\">E</option>" \
       "</select>",
       output_buffer
     )
@@ -1102,13 +1119,13 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_blank
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, include_blank: true)
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"\"></option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"\"></option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1116,13 +1133,13 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_blank_as_string
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, include_blank: "No Zone")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"\">No Zone</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"\">No Zone</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1131,12 +1148,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, {},
       "style" => "color: red")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil, {},
@@ -1147,13 +1164,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil,
       { include_blank: true }, "style" => "color: red")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
-                 "<option value=\"\"></option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" \
+                 "<option value=\"\"></option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
@@ -1164,13 +1181,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil,
       { include_blank: "No Zone" }, "style" => "color: red")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
-                 "<option value=\"\">No Zone</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" \
+                 "<option value=\"\">No Zone</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
     assert_dom_equal html, time_zone_select("firm", "time_zone", nil,
@@ -1181,13 +1198,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones)
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1200,13 +1217,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1221,13 +1238,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" +
-                 "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                 "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                 "<option value=\"E\">E</option>" \
                  "</select>",
                  html
   end
@@ -1237,12 +1254,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm.time_zone = nil
 
     html = time_zone_select("firm", "time_zone", nil, default: "B")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                  "<option value=\"A\">A</option>\n" +
-                  "<option value=\"B\" selected=\"selected\">B</option>\n" +
-                  "<option value=\"C\">C</option>\n" +
-                  "<option value=\"D\">D</option>\n" +
-                  "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                  "<option value=\"A\">A</option>\n" \
+                  "<option value=\"B\" selected=\"selected\">B</option>\n" \
+                  "<option value=\"C\">C</option>\n" \
+                  "<option value=\"D\">D</option>\n" \
+                  "<option value=\"E\">E</option>" \
                   "</select>",
                   html
   end
@@ -1251,12 +1268,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
 
     html = time_zone_select("firm", "time_zone", nil, default: "B")
-    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                  "<option value=\"A\">A</option>\n" +
-                  "<option value=\"B\">B</option>\n" +
-                  "<option value=\"C\">C</option>\n" +
-                  "<option value=\"D\" selected=\"selected\">D</option>\n" +
-                  "<option value=\"E\">E</option>" +
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                  "<option value=\"A\">A</option>\n" \
+                  "<option value=\"B\">B</option>\n" \
+                  "<option value=\"C\">C</option>\n" \
+                  "<option value=\"D\" selected=\"selected\">D</option>\n" \
+                  "<option value=\"E\">E</option>" \
                   "</select>",
                   html
   end

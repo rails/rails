@@ -49,19 +49,3 @@ class KernelSuppressTest < ActiveSupport::TestCase
     suppress(LoadError, ArgumentError) { raise ArgumentError }
   end
 end
-
-class MockStdErr
-  attr_reader :output
-  def puts(message)
-    @output ||= []
-    @output << message
-  end
-
-  def info(message)
-    puts(message)
-  end
-
-  def write(message)
-    puts(message)
-  end
-end

@@ -5,8 +5,10 @@ module ActiveRecord
         class Array < Type::Value # :nodoc:
           include Type::Helpers::Mutable
 
+          Data = Struct.new(:encoder, :values) # :nodoc:
+
           attr_reader :subtype, :delimiter
-          delegate :type, :user_input_in_time_zone, :limit, to: :subtype
+          delegate :type, :user_input_in_time_zone, :limit, :precision, :scale, to: :subtype
 
           def initialize(subtype, delimiter = ",")
             @subtype = subtype
@@ -17,8 +19,11 @@ module ActiveRecord
           end
 
           def deserialize(value)
-            if value.is_a?(::String)
+            case value
+            when ::String
               type_cast_array(@pg_decoder.decode(value), :deserialize)
+            when Data
+              type_cast_array(value.values, :deserialize)
             else
               super
             end
@@ -33,11 +38,8 @@ module ActiveRecord
 
           def serialize(value)
             if value.is_a?(::Array)
-              result = @pg_encoder.encode(type_cast_array(value, :serialize))
-              if encoding = determine_encoding_of_strings(value)
-                result.force_encoding(encoding)
-              end
-              result
+              casted_values = type_cast_array(value, :serialize)
+              Data.new(@pg_encoder, casted_values)
             else
               super
             end
@@ -58,6 +60,10 @@ module ActiveRecord
             value.map(&block)
           end
 
+          def changed_in_place?(raw_old_value, new_value)
+            deserialize(raw_old_value) != new_value
+          end
+
           private
 
             def type_cast_array(value, method)
@@ -65,13 +71,6 @@ module ActiveRecord
                 value.map { |item| type_cast_array(item, method) }
               else
                 @subtype.public_send(method, value)
-              end
-            end
-
-            def determine_encoding_of_strings(value)
-              case value
-              when ::Array then determine_encoding_of_strings(value.first)
-              when ::String then value.encoding
               end
             end
         end

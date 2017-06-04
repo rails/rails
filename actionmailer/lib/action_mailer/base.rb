@@ -133,6 +133,9 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
+  # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
+  # default settings per-mailer.
+  #
   # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
   #
   # = Sending mail
@@ -208,6 +211,19 @@ module ActionMailer
   #       end
   #     end
   #
+  # You can also send attachments with html template, in this case you need to add body, attachments,
+  # and custom content type like this:
+  #
+  #     class NotifierMailer < ApplicationMailer
+  #       def welcome(recipient)
+  #         attachments["free_book.pdf"] = File.read("path/to/file.pdf")
+  #         mail(to: recipient,
+  #              subject: "New account information",
+  #              content_type: "text/html",
+  #              body: "<html><body>Hello there</body></html>")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -275,20 +291,19 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
-  # can define methods that evaluate as the message is being generated:
+  # Finally, Action Mailer also supports passing <tt>Proc</tt> and <tt>Lambda</tt> objects into the default hash,
+  # so you can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
-  #     default 'X-Special-Header' => Proc.new { my_method }
+  #     default 'X-Special-Header' => Proc.new { my_method }, to: -> { @inviter.email_address }
   #
   #     private
-  #
   #       def my_method
   #         'some complex call'
   #       end
   #   end
   #
-  # Note that the proc is evaluated right at the start of the mail message generation, so if you
+  # Note that the proc/lambda is evaluated right at the start of the mail message generation, so if you
   # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
@@ -311,7 +326,6 @@ module ActionMailer
   #     end
   #
   #     private
-  #
   #       def add_inline_attachment!
   #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
   #       end
@@ -417,10 +431,11 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>. Defaults to +mailers+.
   class Base < AbstractController::Base
     include DeliveryMethods
     include Rescuable
+    include Parameterized
     include Previews
 
     abstract!
@@ -444,8 +459,7 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :default_params
-    self.default_params = {
+    class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
       content_type: "text/plain",
@@ -544,9 +558,9 @@ module ActionMailer
         end
       end
 
-    protected
+    private
 
-      def set_payload_for_mail(payload, mail) #:nodoc:
+      def set_payload_for_mail(payload, mail)
         payload[:mailer]     = name
         payload[:message_id] = mail.message_id
         payload[:subject]    = mail.subject
@@ -558,7 +572,7 @@ module ActionMailer
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method_name, *args) # :nodoc:
+      def method_missing(method_name, *args)
         if action_methods.include?(method_name.to_s)
           MessageDelivery.new(self, method_name, *args)
         else
@@ -566,10 +580,8 @@ module ActionMailer
         end
       end
 
-    private
-
-      def respond_to_missing?(method, include_all = false) #:nodoc:
-        action_methods.include?(method.to_s)
+      def respond_to_missing?(method, include_all = false)
+        action_methods.include?(method.to_s) || super
       end
     end
 
@@ -588,7 +600,8 @@ module ActionMailer
     def process(method_name, *args) #:nodoc:
       payload = {
         mailer: self.class.name,
-        action: method_name
+        action: method_name,
+        args: args
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -830,7 +843,7 @@ module ActionMailer
       message
     end
 
-    protected
+    private
 
       # Used by #mail to set the content type of the message.
       #
@@ -841,7 +854,7 @@ module ActionMailer
       # If there is no content type passed in via headers, and there are no
       # attachments, or the message is multipart, then the default content type is
       # used.
-      def set_content_type(m, user_content_type, class_default)
+      def set_content_type(m, user_content_type, class_default) # :doc:
         params = m.content_type_parameters || {}
         case
         when user_content_type.present?
@@ -863,23 +876,21 @@ module ActionMailer
       # If it does not find a translation for the +subject+ under the specified scope it will default to a
       # humanized version of the <tt>action_name</tt>.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
-      def default_i18n_subject(interpolations = {})
+      def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")
         I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
       end
 
       # Emails do not support relative path links.
-      def self.supports_path?
+      def self.supports_path? # :doc:
         false
       end
-
-    private
 
       def apply_defaults(headers)
         default_values = self.class.default.map do |key, value|
           [
             key,
-            value.is_a?(Proc) ? instance_eval(&value) : value
+            value.is_a?(Proc) ? instance_exec(&value) : value
           ]
         end.to_h
 
@@ -900,13 +911,17 @@ module ActionMailer
           yield(collector)
           collector.responses
         elsif headers[:body]
-          [{
-            body: headers.delete(:body),
-            content_type: self.class.default[:content_type] || "text/plain"
-          }]
+          collect_responses_from_text(headers)
         else
           collect_responses_from_templates(headers)
         end
+      end
+
+      def collect_responses_from_text(headers)
+        [{
+          body: headers.delete(:body),
+          content_type: headers[:content_type] || "text/plain"
+        }]
       end
 
       def collect_responses_from_templates(headers)
@@ -959,7 +974,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer"
+        "action_mailer".freeze
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)

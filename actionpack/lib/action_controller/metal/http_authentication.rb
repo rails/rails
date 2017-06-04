@@ -28,7 +28,7 @@ module ActionController
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
     #
-    #     protected
+    #     private
     #       def set_account
     #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
@@ -363,7 +363,7 @@ module ActionController
     #   class ApplicationController < ActionController::Base
     #     before_action :set_account, :authenticate
     #
-    #     protected
+    #     private
     #       def set_account
     #         @account = Account.find_by(url_name: request.subdomains.first)
     #       end
@@ -445,7 +445,7 @@ module ActionController
         end
       end
 
-      # Parses the token and options out of the token authorization header.
+      # Parses the token and options out of the token Authorization header.
       # The value for the Authorization header is expected to have the prefix
       # <tt>"Token"</tt> or <tt>"Bearer"</tt>. If the header looks like this:
       #   Authorization: Token token="abc", nonce="def"

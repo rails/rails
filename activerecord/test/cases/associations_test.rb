@@ -22,7 +22,7 @@ require "models/interest"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers, :authors, :author_favorites
+           :computers, :people, :readers, :authors, :author_addresses, :author_favorites
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -88,10 +88,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert firm.clients.empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    ActiveSupport::Deprecation.silence do
-      assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
-      assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
-    end
+    firm.clients.reload
+
+    assert !firm.clients.empty?, "New firm should have reloaded client objects"
+    assert_equal 1, firm.clients.size, "New firm should have reloaded clients count"
   end
 
   def test_using_limitable_reflections_helper
@@ -104,19 +104,6 @@ class AssociationsTest < ActiveRecord::TestCase
     assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
 
-  def test_force_reload_is_uncached
-    firm = Firm.create!("name" => "A New Firm, Inc")
-    Client.create!("name" => "TheClient.com", :firm => firm)
-
-    ActiveSupport::Deprecation.silence do
-      ActiveRecord::Base.cache do
-        firm.clients.each {}
-        assert_queries(0) { assert_not_nil firm.clients.each {} }
-        assert_queries(1) { assert_not_nil firm.clients(true).each {} }
-      end
-    end
-  end
-
   def test_association_with_references
     firm = companies(:first_firm)
     assert_includes firm.association_with_references.references_values, "foo"
@@ -124,7 +111,7 @@ class AssociationsTest < ActiveRecord::TestCase
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
+  fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
   def test_push_does_not_load_target
     david = authors(:david)
@@ -235,7 +222,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   test "proxy object is cached" do
     david = developers(:david)
-    assert david.projects.equal?(david.projects)
+    assert_same david.projects, david.projects
+  end
+
+  test "proxy object can be stubbed" do
+    david = developers(:david)
+    david.projects.define_singleton_method(:extra_method) { 42 }
+
+    assert_equal 42, david.projects.extra_method
   end
 
   test "inverses get set of subsets of the association" do

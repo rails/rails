@@ -419,7 +419,7 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 
 #### auto_discovery_link_tag
 
-Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
+Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) # =>

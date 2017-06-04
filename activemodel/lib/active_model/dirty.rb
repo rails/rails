@@ -179,13 +179,13 @@ module ActiveModel
     # Handles <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN) # :nodoc:
       !!changes_include?(attr) &&
-        (to == OPTION_NOT_GIVEN || to == __send__(attr)) &&
+        (to == OPTION_NOT_GIVEN || to == _read_attribute(attr)) &&
         (from == OPTION_NOT_GIVEN || from == changed_attributes[attr])
     end
 
     # Handles <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
-      attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
+      attribute_changed?(attr) ? changed_attributes[attr] : _read_attribute(attr)
     end
 
     # Handles <tt>*_previously_changed?</tt> for +method_missing+.
@@ -226,7 +226,7 @@ module ActiveModel
 
       # Handles <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+        [changed_attributes[attr], _read_attribute(attr)] if attribute_changed?(attr)
       end
 
       # Handles <tt>*_previous_change</tt> for +method_missing+.
@@ -239,7 +239,7 @@ module ActiveModel
         return if attribute_changed?(attr)
 
         begin
-          value = __send__(attr)
+          value = _read_attribute(attr)
           value = value.duplicable? ? value.clone : value
         rescue TypeError, NoMethodError
         end

@@ -74,7 +74,7 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_when_database_created_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stdout.string, "Created database 'my-app-db'\n"
+        assert_equal "Created database 'my-app-db'\n", $stdout.string
       end
 
       def test_create_when_database_exists_outputs_info_to_stderr
@@ -84,7 +84,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
 
-        assert_equal $stderr.string, "Database 'my-app-db' already exists\n"
+        assert_equal "Database 'my-app-db' already exists\n", $stderr.string
       end
     end
 
@@ -126,7 +126,7 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_when_database_dropped_successfully_outputs_info_to_stdout
         ActiveRecord::Tasks::DatabaseTasks.drop @configuration
 
-        assert_equal $stdout.string, "Dropped database 'my-app-db'\n"
+        assert_equal "Dropped database 'my-app-db'\n", $stdout.string
       end
     end
 
@@ -217,21 +217,52 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(structure_dump: true)
+        @connection    = stub(schema_search_path: nil, structure_dump: true)
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
         }
-        @filename = "awesome-file.sql"
+        @filename = "/tmp/awesome-file.sql"
+        FileUtils.touch(@filename)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
         Kernel.stubs(:system)
-        File.stubs(:open)
+      end
+
+      def teardown
+        FileUtils.rm_f(@filename)
       end
 
       def test_structure_dump
         Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+
+      def test_structure_dump_header_comments_removed
+        Kernel.stubs(:system).returns(true)
+        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+
+        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
+      end
+
+      def test_structure_dump_with_extra_flags
+        expected_command = ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--noop", "my-app-db"]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+
+      def test_structure_dump_with_ignore_tables
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db").returns(true)
 
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
@@ -263,13 +294,20 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-
         def with_dump_schemas(value, &block)
           old_dump_schemas = ActiveRecord::Base.dump_schemas
           ActiveRecord::Base.dump_schemas = value
           yield
         ensure
           ActiveRecord::Base.dump_schemas = old_dump_schemas
+        end
+
+        def with_structure_dump_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
         end
     end
 
@@ -293,12 +331,32 @@ if current_adapter?(:PostgreSQLAdapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
       end
 
+      def test_structure_load_with_extra_flags
+        filename = "awesome-file.sql"
+        expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, "--noop", @configuration["database"]]
+
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_load_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+          end
+        end
+      end
+
       def test_structure_load_accepts_path_with_spaces
         filename = "awesome file.sql"
         Kernel.expects(:system).with("psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]).returns(true)
 
         ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
       end
+
+      private
+        def with_structure_load_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        end
     end
   end
 end

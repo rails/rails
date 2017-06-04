@@ -11,8 +11,8 @@ module ActiveRecord
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp.
-    # This setting is only used if ActiveRecord::Base.schema_format == :ruby
+    # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
+    # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
     cattr_accessor :ignore_tables
     @@ignore_tables = []
 
@@ -47,9 +47,18 @@ module ActiveRecord
         @options = options
       end
 
-      def header(stream)
-        define_params = @version ? "version: #{@version}" : ""
+      # turns 20170404131909 into "2017_04_04_131909"
+      def formatted_version
+        stringified = @version.to_s
+        return stringified unless stringified.length == 14
+        stringified.insert(4, "_").insert(7, "_").insert(10, "_")
+      end
 
+      def define_params
+        @version ? "version: #{formatted_version}" : ""
+      end
+
+      def header(stream)
         stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
@@ -85,7 +94,7 @@ HEADER
       end
 
       def tables(stream)
-        sorted_tables = @connection.data_sources.sort - @connection.views
+        sorted_tables = @connection.tables.sort
 
         sorted_tables.each do |table_name|
           table(table_name, stream) unless ignored?(table_name)
@@ -188,7 +197,7 @@ HEADER
         index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
         index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
         index_parts << "where: #{index.where.inspect}" if index.where
-        index_parts << "using: #{index.using.inspect}" if index.using
+        index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts

@@ -101,6 +101,17 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"favorite_quote":"Constraints are liberating"}, methods_json
   end
 
+  def test_uses_serializable_hash_with_frozen_hash
+    def @contact.serializable_hash(options = nil)
+      super({ only: %w(name) }.freeze)
+    end
+
+    json = @contact.to_json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_no_match %r{awesome}, json
+    assert_no_match %r{age}, json
+  end
+
   def test_uses_serializable_hash_with_only_option
     def @contact.serializable_hash(options = nil)
       super(only: %w(name))
@@ -157,7 +168,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
 end
 
 class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments, :tags, :taggings
+  fixtures :authors, :author_addresses, :posts, :comments, :tags, :taggings
 
   include JsonSerializationHelpers
 
@@ -243,7 +254,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
 
     assert !@david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
-    assert_equal %r{"favorite_quote":}.match(json).size, 1
+    assert_equal 1, %r{"favorite_quote":}.match(json).size
   end
 
   def test_should_allow_only_option_for_list_of_authors

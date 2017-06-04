@@ -38,6 +38,10 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
     assert_equal "🎂", render(file: "test/render_file_unicode_local", locals: { 🎃: "🎂" })
   end
 
+  def test_template_with_instance_variable_identifier
+    assert_equal "bar", render(file: "test/render_file_instance_variable", locals: { "@foo": "bar" })
+  end
+
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
     assert_equal "one", render(file: "test/render_file_with_locals_and_default")
     assert_equal "two", render(file: "test/render_file_with_locals_and_default", locals: { secret: "two" })

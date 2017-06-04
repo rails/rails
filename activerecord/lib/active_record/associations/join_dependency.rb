@@ -32,7 +32,7 @@ module ActiveRecord
           @alias_cache[node][column]
         end
 
-        class Table < Struct.new(:node, :columns) # :nodoc:
+        Table = Struct.new(:node, :columns) do # :nodoc:
           def table
             Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
           end
@@ -106,12 +106,7 @@ module ActiveRecord
 
       def join_constraints(outer_joins, join_type)
         joins = join_root.children.flat_map { |child|
-
-          if join_type == Arel::Nodes::OuterJoin
-            make_left_outer_joins join_root, child
-          else
-            make_inner_joins join_root, child
-          end
+          make_join_constraints(join_root, child, join_type)
         }
 
         joins.concat outer_joins.flat_map { |oj|
@@ -171,31 +166,19 @@ module ActiveRecord
           chain         = child.reflection.chain
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, child, join_type, tables, child.reflection.scope_chain, chain)
+          child.join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
         end
 
         def make_outer_joins(parent, child)
-          tables    = table_aliases_for(parent, child)
           join_type = Arel::Nodes::OuterJoin
-          info      = make_constraints parent, child, tables, join_type
-
-          [info] + child.children.flat_map { |c| make_outer_joins(child, c) }
+          make_join_constraints(parent, child, join_type, true)
         end
 
-        def make_left_outer_joins(parent, child)
-          tables    = child.tables
-          join_type = Arel::Nodes::OuterJoin
-          info      = make_constraints parent, child, tables, join_type
+        def make_join_constraints(parent, child, join_type, aliasing = false)
+          tables = aliasing ? table_aliases_for(parent, child) : child.tables
+          info   = make_constraints(parent, child, tables, join_type)
 
-          [info] + child.children.flat_map { |c| make_left_outer_joins(child, c) }
-        end
-
-        def make_inner_joins(parent, child)
-          tables    = child.tables
-          join_type = Arel::Nodes::InnerJoin
-          info      = make_constraints parent, child, tables, join_type
-
-          [info] + child.children.flat_map { |c| make_inner_joins(child, c) }
+          [info] + child.children.flat_map { |c| make_join_constraints(child, c, join_type, aliasing) }
         end
 
         def table_aliases_for(parent, node)

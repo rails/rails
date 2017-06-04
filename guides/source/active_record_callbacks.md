@@ -36,7 +36,7 @@ class User < ApplicationRecord
 
   before_validation :ensure_login_has_a_value
 
-  protected
+  private
     def ensure_login_has_a_value
       if login.nil?
         self.login = email unless email.blank?
@@ -66,7 +66,7 @@ class User < ApplicationRecord
   # :on takes an array as well
   after_validation :set_location, on: [ :create, :update ]
 
-  protected
+  private
     def normalize_name
       self.name = name.downcase.titleize
     end
@@ -77,7 +77,7 @@ class User < ApplicationRecord
 end
 ```
 
-It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
+It is considered good practice to declare callback methods as private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
 Available Callbacks
 -------------------
@@ -116,6 +116,10 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `after_commit/after_rollback`
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
+
+NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
+associations (or use the `prepend: true` option), to ensure they execute before
+the records are deleted by `dependent: :destroy`.
 
 ### `after_initialize` and `after_find`
 
@@ -202,11 +206,9 @@ The following methods trigger callbacks:
 
 * `create`
 * `create!`
-* `decrement!`
 * `destroy`
 * `destroy!`
 * `destroy_all`
-* `increment!`
 * `save`
 * `save!`
 * `save(validate: false)`
@@ -256,7 +258,11 @@ Halting Execution
 
 As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
 
-The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
+The whole callback chain is wrapped in a transaction. If any callback raises an exception, the execution chain gets halted and a ROLLBACK is issued. To intentionally stop a chain use:
+
+```ruby
+throw :abort
+```
 
 WARNING. Any exception that is not `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
 
@@ -290,7 +296,7 @@ Article destroyed
 Conditional Callbacks
 ---------------------
 
-As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
 
 ### Using `:if` and `:unless` with a `Symbol`
 
@@ -299,16 +305,6 @@ You can associate the `:if` and `:unless` options with a symbol corresponding to
 ```ruby
 class Order < ApplicationRecord
   before_save :normalize_card_number, if: :paid_with_card?
-end
-```
-
-### Using `:if` and `:unless` with a String
-
-You can also use a string that will be evaluated using `eval` and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number, if: "paid_with_card?"
 end
 ```
 

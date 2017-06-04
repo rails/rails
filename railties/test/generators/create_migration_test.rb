@@ -46,7 +46,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
   def test_invoke
     create_migration
 
-    assert_match(/create  db\/migrate\/1_create_articles.rb\n/, invoke!)
+    assert_match(/create  db\/migrate\/1_create_articles\.rb\n/, invoke!)
     assert_file @migration.destination
   end
 
@@ -67,7 +67,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration
 
-    assert_match(/identical  db\/migrate\/1_create_articles.rb\n/, invoke!)
+    assert_match(/identical  db\/migrate\/1_create_articles\.rb\n/, invoke!)
     assert @migration.identical?
   end
 
@@ -84,8 +84,8 @@ class CreateMigrationTest < Rails::Generators::TestCase
     create_migration(dest, force: true) { "different content" }
 
     stdout = invoke!
-    assert_match(/remove  db\/migrate\/1_migration.rb\n/, stdout)
-    assert_match(/create  db\/migrate\/2_migration.rb\n/, stdout)
+    assert_match(/remove  db\/migrate\/1_migration\.rb\n/, stdout)
+    assert_match(/create  db\/migrate\/2_migration\.rb\n/, stdout)
     assert_file @migration.destination
     assert_no_file @existing_migration.destination
   end
@@ -97,8 +97,8 @@ class CreateMigrationTest < Rails::Generators::TestCase
     end
 
     stdout = invoke!
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, stdout)
-    assert_match(/create  db\/migrate\/2_create_articles.rb\n/, stdout)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, stdout)
+    assert_match(/create  db\/migrate\/2_create_articles\.rb\n/, stdout)
     assert_no_file @migration.destination
   end
 
@@ -106,7 +106,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration(default_destination_path, {}, skip: true) { "different content" }
 
-    assert_match(/skip  db\/migrate\/2_create_articles.rb\n/, invoke!)
+    assert_match(/skip  db\/migrate\/2_create_articles\.rb\n/, invoke!)
     assert_no_file @migration.destination
   end
 
@@ -114,7 +114,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
     assert_no_file @existing_migration.destination
   end
 
@@ -122,13 +122,13 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration(default_destination_path, {}, pretend: true)
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
     assert_file @existing_migration.destination
   end
 
   def test_revoke_when_no_exists
     create_migration
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
   end
 end

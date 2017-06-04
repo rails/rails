@@ -32,11 +32,8 @@ module ActiveJob
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false
-      class_attribute :queue_name_delimiter, instance_accessor: false
-
-      self.queue_name = default_queue_name
-      self.queue_name_delimiter = "_" # set default delimiter to '_'
+      class_attribute :queue_name, instance_accessor: false, default: default_queue_name
+      class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
     end
 
     # Returns the name of the queue the job will be run on.
