@@ -52,7 +52,7 @@ module ActiveRecord
         end
 
         def application_record_exist?
-          file_exist = nil
+          file_exist = false
           in_root { file_exist = File.exist?(application_record_file_name) }
           file_exist
         end
