@@ -373,6 +373,19 @@ module ActiveSupport
         results
       end
 
+      # Cache Storage API to write multiple values at once.
+      def write_multi(hash, options = nil)
+        options = merged_options(options)
+
+        instrument :write_multi, hash, options do |payload|
+          entries = hash.each_with_object({}) do |(name, value), memo|
+            memo[normalize_key(name, options)] = Entry.new(value, options.merge(version: normalize_version(name, options)))
+          end
+
+          write_multi_entries entries, options
+        end
+      end
+
       # Fetches data from the cache, using the given keys. If there is data in
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
@@ -397,14 +410,15 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-        results = read_multi(*names, options)
 
-        names.each_with_object({}) do |name, memo|
-          memo[name] = results.fetch(name) do
-            value = yield name
-            write(name, value, options)
-            value
+        read_multi(*names, options).tap do |results|
+          writes = {}
+
+          (names - results.keys).each do |name|
+            results[name] = writes[name] = yield(name)
           end
+
+          write_multi writes, options
         end
       end
 
@@ -519,6 +533,14 @@ module ActiveSupport
         # this method.
         def write_entry(key, entry, options)
           raise NotImplementedError.new
+        end
+
+        # Writes multiple entries to the cache implementation. Subclasses MAY
+        # implement this method.
+        def write_multi_entries(hash, options)
+          hash.each do |key, entry|
+            write_entry key, entry, options
+          end
         end
 
         # Deletes an entry from the cache implementation. Subclasses must
