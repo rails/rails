@@ -151,7 +151,10 @@ module ActiveRecord
           config = configurations.dup
 
           if env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-            env_config = config[env] if config[env].is_a?(Hash) && !(config[env].key?("adapter") || config[env].key?("url"))
+            if config[env].is_a?(Hash) && !(config[env].key?("adapter") || config[env].key?("url"))
+              env_config = config[env]
+              env_config.each { |connection, config| config["environment"] = env }
+            end
           end
 
           config.reject! { |k, v| v.is_a?(Hash) && !(v.key?("adapter") || v.key?("url")) }
