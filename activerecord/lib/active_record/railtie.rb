@@ -121,7 +121,15 @@ module ActiveRecord
         self.configurations = Rails.application.config.database_configuration
 
         begin
-          establish_connection
+          connections = configurations.select { |n, c| c["environment"] == Rails.env }
+
+          unless configurations.key?(Rails.env) || connections.empty?
+            connections.each do |name, value|
+              connection_handler.establish_connection(name.to_sym)
+            end
+          else
+            establish_connection
+          end
         rescue ActiveRecord::NoDatabaseError
           warn <<-end_warning
 Oops - You have a database configured, but it doesn't exist yet!
