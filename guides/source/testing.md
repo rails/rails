@@ -1442,8 +1442,11 @@ expect. The helper `read_fixture` is used to read in the content from this file.
 This helper returns the file contents as an array of lines, which you can join
 to compare to the generated email.
 
-NOTE: If the mailer provides both text and HTML views, you can test your fixture against specific parts
-with `email.text_part.body.to_s` or `email.html_part.body.to_s`. If you're testing the HTML part, the fixture must contain the full contents of the HTML including the tags supplied by your mailer layout.
+NOTE: If the mailer provides both text and HTML views, you can test your fixture
+against specific parts with `email.text_part.body.to_s` or
+`email.html_part.body.to_s`. If you're testing the HTML part, the fixture must
+contain the full contents of the HTML including the tags supplied by your mailer
+layout.
 
 Here's the content of the `invite` fixture:
 
