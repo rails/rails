@@ -1,3 +1,10 @@
+*   Allow to pass a custom connection name to the `rails dbconsole`
+    command when using a 3-level database configuration.
+
+        $ bin/rails dbconsole -c replica
+
+    *Robin Dupret*, *Jeremy Daer*
+
 *   Skip unused components when running `bin/rails app:update`.
 
     If the initial app generation skipped Action Cable, Active Record etc.,
