@@ -1,3 +1,17 @@
+*   Cache: `write_multi`
+
+        Rails.cache.write_multi foo: 'bar', baz: 'qux'
+
+    Plus faster fetch_multi with stores that implement `write_multi_entries`.
+    Keys that aren't found may be written to the cache store in one shot
+    instead of separate writes.
+
+    The default implementation simply calls `write_entry` for each entry.
+    Stores may override if they're capable of one-shot bulk writes, like
+    Redis `MSET`.
+
+    *Jeremy Daer*
+
 *   Add default option to module and class attribute accessors.
 
         mattr_accessor :settings, default: {}
