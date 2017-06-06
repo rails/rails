@@ -83,6 +83,7 @@ module ActionDispatch
           @path_helpers.include?(key) || @url_helpers.include?(key)
         end
 
+        # Return an array with the names of all the routes in this collection
         def helper_names
           @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
         end
