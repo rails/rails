@@ -30,7 +30,7 @@ module ActiveRecord
           const_set const_name, value.dup.freeze
         end
       end
-    }
+    } unless defined?(AttrNames)
 
     BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
