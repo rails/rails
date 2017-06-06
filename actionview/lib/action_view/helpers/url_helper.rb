@@ -552,6 +552,9 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
+        # if you set default_url_options[:trailing_slash], url_string becomes same as request_uri
+        request_uri.chomp!("/") if request_uri.start_with?("/") && request_uri != "/" && url_options[:trailing_slash]
+
         url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
 
         if %r{^\w+://}.match?(url_string)
