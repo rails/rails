@@ -327,5 +327,13 @@ module ActiveRecord
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
+
+    test "where condition with array with repititive values" do
+      assert_equal Post.where(id: [1,2,3,4]).to_sql, Post.where(id: [1,2,3,4,1,2,4,1,2]).to_sql
+    end
+
+    test "where clause checks equality instead of IN query when array elements are same" do
+      assert_equal Post.where(id: 1).to_sql, Post.where(id: [1,1,1,1,1]).to_sql
+    end
   end
 end

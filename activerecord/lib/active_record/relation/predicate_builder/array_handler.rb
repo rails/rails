@@ -13,6 +13,7 @@ module ActiveRecord
         nils, values = values.partition(&:nil?)
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
+        values.uniq!
         values_predicate =
           case values.length
           when 0 then NullPredicate
