@@ -3238,11 +3238,11 @@ var EventTarget = (function () {
   }
 
   /*
-  * Ties a listener function to a event type which can later be invoked via the
+  * Ties a listener function to an event type which can later be invoked via the
   * dispatchEvent method.
   *
   * @param {string} type - the type of event (ie: 'open', 'message', etc.)
-  * @param {function} listener - the callback function to invoke whenever a event is dispatched matching the given type
+  * @param {function} listener - the callback function to invoke whenever an event is dispatched matching the given type
   * @param {boolean} useCapture - N/A TODO: implement useCapture functionality
   */
 
@@ -3267,7 +3267,7 @@ var EventTarget = (function () {
     * Removes the listener so it will no longer be invoked via the dispatchEvent method.
     *
     * @param {string} type - the type of event (ie: 'open', 'message', etc.)
-    * @param {function} listener - the callback function to invoke whenever a event is dispatched matching the given type
+    * @param {function} listener - the callback function to invoke whenever an event is dispatched matching the given type
     * @param {boolean} useCapture - N/A TODO: implement useCapture functionality
     */
   }, {
