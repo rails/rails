@@ -1249,6 +1249,7 @@ module ActiveRecord
         migrations.detect { |m| m.version == @target_version }
       end
 
+      # Returns the key of the 'target', if it exists in migrations, else returns the index of the last element in migrations.
       def finish
         migrations.index(target) || migrations.size - 1
       end
