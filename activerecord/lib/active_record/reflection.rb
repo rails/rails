@@ -894,6 +894,21 @@ module ActiveRecord
         options[:source] ? [options[:source]] : [name.to_s.singularize, name].uniq
       end
 
+      # Returns name of the association for which the through class has a reflection
+      #
+      #   class Post < ActiveRecord::Base
+      #     has_many :taggings
+      #     has_many :tags, through: :taggings
+      #   end
+      #
+      #   tags_reflection = Post.reflect_on_association(:tags)
+      #   tags_reflection.source_reflection_names
+      #
+      #   Returns :tags if Tagging has a reflection on association :tags
+      #   Returns nil if Tagging does not have reflection on associations :tag and :tags
+      #
+      #   Raises AmbiguousSourceReflectionForThroughAssociation in case of ambiguous reflection
+      #   i.e., if Tagging has reflection for both :tag and :tags
       def source_reflection_name # :nodoc:
         return @source_reflection_name if @source_reflection_name
 
