@@ -13,6 +13,10 @@ module ActiveModel
 
         date_string = ::Time.now.utc.strftime("%F")
         assert_equal date_string, type.cast(date_string).strftime("%F")
+
+        assert_equal ::Date.new(2015, 10, 18), type.cast("2015-10-18")
+        assert_equal ::Date.new(2015, 10, 18), type.cast("18/10/2015")
+        assert_equal ::Date.new(2015, 10, 18), type.cast("10/18/2015")
       end
     end
   end
