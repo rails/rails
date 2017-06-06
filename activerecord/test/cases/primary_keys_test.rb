@@ -46,7 +46,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     assert_nil topic.id
-    assert_nothing_raised { topic.save! }
+    topic.save!
     id = topic.id
 
     topicReloaded = Topic.find(id)
@@ -56,21 +56,28 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
     keyboard = Keyboard.new(name: "HHKB")
-    assert_nothing_raised { keyboard.save! }
+    keyboard.save!
     assert_equal keyboard.id, Keyboard.find_by_name("HHKB").id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
     assert_nil keyboard.id
-    assert_nothing_raised { assert_nil keyboard.key_number }
+    assert_nil keyboard.key_number
   end
 
   def test_customized_string_primary_key_settable_before_save
     subscriber = Subscriber.new
-    assert_nothing_raised { subscriber.id = "webster123" }
+    subscriber.id = "webster123"
     assert_equal "webster123", subscriber.id
     assert_equal "webster123", subscriber.nick
+  end
+
+  def test_update_with_non_primary_key_id_column
+    subscriber = Subscriber.first
+    subscriber.update(update_count: 1)
+    subscriber.reload
+    assert_equal 1, subscriber.update_count
   end
 
   def test_string_key
@@ -83,7 +90,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     subscriber.id = "jdoe"
     assert_equal("jdoe", subscriber.id)
     subscriber.name = "John Doe"
-    assert_nothing_raised { subscriber.save! }
+    subscriber.save!
     assert_equal("jdoe", subscriber.id)
 
     subscriberReloaded = Subscriber.find("jdoe")
