@@ -81,7 +81,11 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_set_record_to_nil_should_delete_association
     @member.club = nil
+    assert_nil @member.joined_on
+    assert_nil @member.current_membership
+    assert_nil @member.club
     @member.reload
+    assert_nil @member.joined_on
     assert_nil @member.current_membership
     assert_nil @member.club
   end
