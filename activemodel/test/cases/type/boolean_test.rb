@@ -18,6 +18,10 @@ module ActiveModel
         assert type.cast("TRUE")
         assert type.cast("on")
         assert type.cast("ON")
+        assert type.cast("y")
+        assert type.cast("Y")
+        assert type.cast("yes")
+        assert type.cast("YES")
         assert type.cast(" ")
         assert type.cast("\u3000\r\n")
         assert type.cast("\u0000")
@@ -33,6 +37,10 @@ module ActiveModel
         assert_equal false, type.cast("FALSE")
         assert_equal false, type.cast("off")
         assert_equal false, type.cast("OFF")
+        assert_equal false, type.cast("n")
+        assert_equal false, type.cast("N")
+        assert_equal false, type.cast("no")
+        assert_equal false, type.cast("NO")
       end
     end
   end
