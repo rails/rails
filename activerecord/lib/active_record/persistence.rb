@@ -607,10 +607,6 @@ module ActiveRecord
       @_association_destroy_exception = nil
     end
 
-    def belongs_to_touch_method
-      :touch
-    end
-
     def _raise_readonly_record_error
       raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
