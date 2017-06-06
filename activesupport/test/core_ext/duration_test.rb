@@ -315,7 +315,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, scalar <=> 5)
     assert_equal(0, scalar <=> 10)
     assert_equal(-1, scalar <=> 15)
-    assert_equal(nil, scalar <=> "foo")
+    assert_nil(scalar <=> "foo")
   end
 
   def test_scalar_plus
