@@ -124,7 +124,14 @@ module ActiveRecord
           #
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key        = value && value.to_s
+            value = value && value.to_s
+
+            if defined?(@primary_key)
+              return if value == @primary_key
+              reset_column_information if connected?
+            end
+
+            @primary_key        = value
             @quoted_primary_key = nil
             @attributes_builder = nil
           end
