@@ -271,9 +271,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert_nothing_raised do
-      Author.all.merge!(includes: :hello_posts_with_hash_conditions).to_a
-    end
     assert !Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
