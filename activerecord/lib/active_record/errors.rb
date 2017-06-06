@@ -105,7 +105,7 @@ module ActiveRecord
   class WrappedDatabaseException < StatementInvalid
   end
 
-  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  # Raised when a record cannot be inserted or updated because it would violate a uniqueness constraint.
   class RecordNotUnique < WrappedDatabaseException
   end
 
