@@ -214,7 +214,7 @@ GEM
     mime-types (3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
-    mini_portile2 (2.1.0)
+    mini_portile2 (2.2.0)
     minitest (5.3.3)
     mocha (0.14.0)
       metaclass (~> 0.0.1)
@@ -226,12 +226,12 @@ GEM
     mysql2 (0.4.6-x64-mingw32)
     mysql2 (0.4.6-x86-mingw32)
     nio4r (2.0.0)
-    nokogiri (1.7.1)
-      mini_portile2 (~> 2.1.0)
-    nokogiri (1.7.1-x64-mingw32)
-      mini_portile2 (~> 2.1.0)
-    nokogiri (1.7.1-x86-mingw32)
-      mini_portile2 (~> 2.1.0)
+    nokogiri (1.8.0)
+      mini_portile2 (~> 2.2.0)
+    nokogiri (1.8.0-x64-mingw32)
+      mini_portile2 (~> 2.2.0)
+    nokogiri (1.8.0-x86-mingw32)
+      mini_portile2 (~> 2.2.0)
     parallel (1.11.2)
     parser (2.4.0.0)
       ast (~> 2.2)
@@ -436,4 +436,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.15.0
+   1.15.1
