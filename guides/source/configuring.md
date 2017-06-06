@@ -469,7 +469,7 @@ Defaults to `'signed cookie'`.
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.
 
-* `config.action_dispatch.rescue_responses` configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
+* `config.action_dispatch.rescue_responses` configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. Please note that this is only for the purposes of logging. No exceptions are actually rescued. By default, this is defined as:
 
   ```ruby
   config.action_dispatch.rescue_responses = {
