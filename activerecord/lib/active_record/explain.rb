@@ -26,9 +26,7 @@ module ActiveRecord
       end.join("\n")
 
       # Overriding inspect to be more human readable, especially in the console.
-      def str.inspect
-        self
-      end
+      str.define_singleton_method(:inspect) { self }
 
       str
     end
