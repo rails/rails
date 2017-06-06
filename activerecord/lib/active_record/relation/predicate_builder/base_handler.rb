@@ -1,6 +1,7 @@
 module ActiveRecord
   class PredicateBuilder
     class BaseHandler # :nodoc:
+      #:notnew: stops RDoc from seeing the initialize method as the new method
       def initialize(predicate_builder)
         @predicate_builder = predicate_builder
       end
