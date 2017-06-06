@@ -937,7 +937,7 @@ module ActiveRecord
       # already been opened.
       def connected?(spec_name)
         conn = retrieve_connection_pool(spec_name)
-        conn && conn.connected?
+        !!(conn && conn.connected?)
       end
 
       # Remove the connection for this class. This will close the active

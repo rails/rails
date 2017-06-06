@@ -103,6 +103,13 @@ module ActiveRecord
         assert !@handler.active_connections?
       end
 
+      def test_connected?
+        assert @handler.retrieve_connection(@spec_name)
+        assert_equal true, @handler.connected?(@spec_name)
+        @handler.remove_connection(@spec_name)
+        assert_equal false, @handler.connected?(@spec_name)
+      end
+
       def test_retrieve_connection_pool
         assert_not_nil @handler.retrieve_connection_pool(@spec_name)
       end
