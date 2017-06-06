@@ -513,34 +513,31 @@ module ActiveRecord
       attributes = timestamp_attributes_for_update_in_model
       attributes.concat(names)
 
-      unless attributes.empty?
-        changes = {}
+      return true if attributes.empty?
 
-        attributes.each do |column|
-          column = column.to_s
-          changes[column] = write_attribute(column, time)
-        end
+      changes = {}
 
-        primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
+      attributes.each do |column|
+        column = column.to_s
+        changes[column] = write_attribute(column, time)
+      end
 
-        if locking_enabled?
-          locking_column = self.class.locking_column
-          scope = scope.where(locking_column => _read_attribute(locking_column))
-          changes[locking_column] = increment_lock
-        end
+      primary_key = self.class.primary_key
+      scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
-        clear_attribute_changes(changes.keys)
-        result = scope.update_all(changes) == 1
+      if locking_enabled?
+        locking_column = self.class.locking_column
+        scope = scope.where(locking_column => _read_attribute(locking_column))
+        changes[locking_column] = increment_lock
+      end
 
-        if !result && locking_enabled?
-          raise ActiveRecord::StaleObjectError.new(self, "touch")
-        end
+      clear_attribute_changes(changes.keys)
 
-        @_trigger_update_callback = result
-        result
+      if scope.update_all(changes) == 1
+        @_trigger_update_callback = true
       else
-        true
+        raise ActiveRecord::StaleObjectError.new(self, "touch") if locking_enabled?
+        @_trigger_update_callback = false
       end
     end
 
