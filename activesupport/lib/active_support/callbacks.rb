@@ -570,9 +570,6 @@ module ActiveSupport
           callbacks.each { |c| prepend_one(c) }
         end
 
-        protected
-          def chain; @chain; end
-
         private
 
           def append_one(callback)
