@@ -417,13 +417,14 @@ module ActiveRecord
     #   # => #<Account id: 1, email: 'account@example.com'>
     #
     # Attributes are reloaded from the database, and caches busted, in
-    # particular the associations cache and the QueryCache.
+    # particular, the association's cache and the QueryCache.
     #
-    # If the record no longer exists in the database ActiveRecord::RecordNotFound
-    # is raised. Otherwise, in addition to the in-place modification the method
-    # returns +self+ for convenience.
+    # If the record no longer exists in the database
+    # ActiveRecord::RecordNotFound is raised. Otherwise, in addition to the
+    # in-place modification, the method returns +self+ for convenience.
     #
-    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
+    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded
+    # record:
     #
     #   reload(lock: true) # reload with pessimistic locking
     #
@@ -435,20 +436,18 @@ module ActiveRecord
     #   assert_equal 25, account.credit        # check it is updated in memory
     #   assert_equal 25, account.reload.credit # check it is also persisted
     #
-    # Another common use case is optimistic locking handling:
+    # Another common use case is optimistic lock handling:
     #
     #   def with_optimistic_retry
+    #     yield
+    #   rescue ActiveRecord::StaleObjectError
     #     begin
-    #       yield
-    #     rescue ActiveRecord::StaleObjectError
-    #       begin
-    #         # Reload lock_version in particular.
-    #         reload
-    #       rescue ActiveRecord::RecordNotFound
-    #         # If the record is gone there is nothing to do.
-    #       else
-    #         retry
-    #       end
+    #       # Reload lock_version in particular.
+    #       reload
+    #     rescue ActiveRecord::RecordNotFound
+    #       # If the record is gone there is nothing to do.
+    #     else
+    #       retry
     #     end
     #   end
     #
