@@ -348,7 +348,7 @@ module ActiveRecord
     #   post.init_with(coder)
     #   post.title # => 'hello world'
     def init_with(coder)
-      coder = LegacyYamlAdapter.convert(self.class, coder)
+      coder = ActiveRecord::LegacyYamlAdapter.convert(self.class, coder)
       @attributes = self.class.yaml_encoder.decode(coder)
 
       init_internals
