@@ -579,11 +579,23 @@ module ActiveRecord
           end
         end
 
+        def prepared_statements?(sql)
+          sql =~ /\$\d+/i
+        end
+
+        def bind_param(value)
+          ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+        end
+
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
         def execute_and_clear(sql, name, binds, prepare: false)
           if without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, [])
+            if prepared_statements?(sql)
+              result = exec_no_cache(sql, name, binds.map { |value| bind_param(value) })
+            else
+              result = exec_no_cache(sql, name, [])
+            end
           elsif !prepare
             result = exec_no_cache(sql, name, binds)
           else
