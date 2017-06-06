@@ -1,4 +1,3 @@
-require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
 require "active_support/core_ext/regexp"
 require "active_support/i18n"
@@ -26,7 +25,7 @@ module ActiveSupport
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
-      @__instance__ = Concurrent::Map.new
+      @instances = {}
 
       class Uncountables < Array
         def initialize
@@ -61,20 +60,17 @@ module ActiveSupport
       end
 
       def self.instance(locale = :en)
-        @__instance__[locale] ||= new
+        @instances[locale] ||= new
+      end
+
+      def self.clear! # :nodoc:
+        @instances = {}
       end
 
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
 
       def initialize
         @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], Uncountables.new, [], {}, /(?=a)b/
-      end
-
-      # Private, for the test suite.
-      def initialize_dup(orig) # :nodoc:
-        %w(plurals singulars uncountables humans acronyms acronym_regex).each do |scope|
-          instance_variable_set("@#{scope}", orig.send(scope).dup)
-        end
       end
 
       # Specifies a new acronym. An acronym must be specified as it will appear

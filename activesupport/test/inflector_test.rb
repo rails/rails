@@ -8,18 +8,10 @@ class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 
-  def setup
-    # Dups the singleton before each test, restoring the original inflections later.
-    #
-    # This helper is implemented by setting @__instance__ because in some tests
-    # there are module functions that access ActiveSupport::Inflector.inflections,
-    # so we need to replace the singleton itself.
-    @original_inflections = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: @original_inflections.dup)
-  end
-
   def teardown
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: @original_inflections)
+    # Restore the default rules
+    ActiveSupport::Inflector::Inflections.clear!
+    load "active_support/inflections.rb"
   end
 
   def test_pluralize_plurals
