@@ -1061,3 +1061,26 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
     assert_kind_of OtherDog, other_dogs(:lassie)
   end
 end
+
+class FixturesCacheTest < ActiveRecord::TestCase
+  def setup
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("parrots")
+  end
+
+  def test_no_queries_for_cached_fixtures
+    assert_no_queries do
+      create_fixtures("parrots")
+    end
+  end
+
+  def test_reset_cache_for_loaded_fixtures_on_same_table_as_new_fixtures
+    assert_equal 5, Parrot.count
+
+    assert_queries :any do
+      create_fixtures("parrots", "live_parrots")
+    end
+
+    assert_equal 6, Parrot.count
+  end
+end

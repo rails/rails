@@ -534,24 +534,28 @@ module ActiveRecord
       # FIXME: Apparently JK uses this.
       connection = block_given? ? yield : ActiveRecord::Base.connection
 
-      files_to_read = fixture_set_names.reject { |fs_name|
-        fixture_is_cached?(connection, fs_name)
-      }
+      table_fixtures_map = Hash.new { |h, k| h[k] = [] }
 
-      unless files_to_read.empty?
+      fixture_set_names.each do |fs_name|
+        klass = class_names[fs_name]
+        conn = klass ? klass.connection : connection
+        fixture_set = new( # ActiveRecord::FixtureSet.new
+                          conn,
+                          fs_name,
+                          klass,
+                          ::File.join(fixtures_directory, fs_name))
+        table_fixtures_map[fixture_set.table_name] << fixture_set
+      end
+
+      table_fixtures_map.reject! do |table_name, fixture_sets|
+        fixture_sets.all? { |fixture_set| fixture_is_cached?(connection, fixture_set.name) }
+      end
+
+      fixture_sets = table_fixtures_map.values.flatten
+      fixtures_map = fixture_sets.index_by(&:name)
+
+      unless fixture_sets.empty?
         connection.disable_referential_integrity do
-          fixtures_map = {}
-
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
-
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(requires_new: true) do
