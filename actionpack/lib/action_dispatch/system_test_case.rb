@@ -66,8 +66,8 @@ module ActionDispatch
   #
   # To use a headless driver, like Poltergeist, update your Gemfile to use
   # Poltergeist instead of Selenium and then declare the driver name in the
-  # +application_system_test_case.rb+ file. In this case you would leave out the +:using+
-  # option because the driver is headless, but you can still use
+  # +application_system_test_case.rb+ file. In this case, you would leave out
+  # the +:using+ option because the driver is headless, but you can still use
   # +:screen_size+ to change the size of the browser screen, also you can use
   # +:options+ to pass options supported by the driver. Please refer to your
   # driver documentation to learn about supported options.
@@ -77,7 +77,7 @@ module ActionDispatch
   #
   #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   #     driven_by :poltergeist, screen_size: [1400, 1400], options:
-  #     { js_errors: true }
+  #       { js_errors: true }
   #   end
   #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara

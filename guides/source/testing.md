@@ -602,8 +602,8 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 System Testing
 --------------
 
-System tests allows test user interactions with your application, running tests
-in either a real or a headless browser. System tests uses Capybara as base.
+System tests allow you to test user interactions with your application, running tests
+in either a real or a headless browser. System tests uses Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -670,7 +670,7 @@ end
 ```
 
 If your Capybara configuration requires more setup than provided by Rails, this
-additional configuration could be added into `application_system_test_case.rb`
+additional configuration could be added into the `application_system_test_case.rb`
 file.
 
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
