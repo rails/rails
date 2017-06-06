@@ -537,10 +537,8 @@ module ActiveRecord
             # Object identifier types
           when /\A-?\d+\z/
             $1
-          else
             # Anything else is blank, some user type, or some function
             # and we can't know the value of that, so return nil.
-            nil
           end
         end
 

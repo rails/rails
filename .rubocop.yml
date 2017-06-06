@@ -25,6 +25,10 @@ Layout/CaseIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
+# No empty else.
+Style/EmptyElse:
+  Enabled: true
+
 # No extra empty lines.
 Layout/EmptyLines:
   Enabled: true

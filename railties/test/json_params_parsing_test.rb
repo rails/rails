@@ -21,8 +21,6 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       params = ActionController::Parameters.new request.parameters
       if params[:t]
         klass.find_by_title(params[:t])
-      else
-        nil
       end
     }
 

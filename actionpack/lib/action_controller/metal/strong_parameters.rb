@@ -954,8 +954,6 @@ module ActionController
               sanitized[key] = permit_any_in_array(value)
             when Parameters
               sanitized[key] = permit_any_in_parameters(value)
-            else
-              # Filter this one out.
             end
           end
         end
@@ -969,8 +967,6 @@ module ActionController
               sanitized << element
             when Parameters
               sanitized << permit_any_in_parameters(element)
-            else
-              # Filter this one out.
             end
           end
         end
