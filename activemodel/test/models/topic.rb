@@ -1,6 +1,9 @@
 class Topic
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks
+  include ActiveModel::Dirty
+
+  define_attribute_methods :title
 
   def self._validates_default_keys
     super | [ :message ]
@@ -15,6 +18,23 @@ class Topic
     attributes.each do |key, value|
       send "#{key}=", value
     end
+  end
+
+  def title=(val)
+    title_will_change! unless val == @title
+    @title = val
+  end
+
+  def save
+    changes_applied
+  end
+
+  def reload!
+    clear_changes_information
+  end
+
+  def rollback!
+    restore_attributes
   end
 
   def condition_is_true
