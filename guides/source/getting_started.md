@@ -337,6 +337,8 @@ action and is rendering the view correctly.
 
 TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
 
+TIP: If you are using Windows and you see a server error page instead of "Hello, Rails!", then edit 'application' to 'default' in lines 5 and 6 of the file `views/layouts/aplication.html.erb`. Then stop the web server with Ctrl+C and restart it. 
+
 Getting Up and Running
 ----------------------
 
