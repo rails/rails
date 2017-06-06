@@ -1123,4 +1123,13 @@ class HashToXmlTest < ActiveSupport::TestCase
       Hash.from_xml(attack_xml)
     end
   end
+
+  def test_has_keys
+    hash = HashWithIndifferentAccess.new(a: 1, b: 2)
+    assert_equal true, hash.keys?("a", "b")
+    assert_equal true, hash.keys?(:a, :b)
+
+    assert_equal false, hash.keys?("a", "b", "c")
+    assert_equal false, hash.keys?(:a, :b, :c)
+  end
 end
