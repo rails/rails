@@ -1131,7 +1131,7 @@ module ActiveRecord
       validate(@migrations)
 
       ActiveRecord::SchemaMigration.create_table
-      ActiveRecord::InternalMetadata.create_table
+      ActiveRecord::InternalMetadata.initialize_table
     end
 
     def current_version
@@ -1216,7 +1216,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+        ActiveRecord::InternalMetadata.record_current_environment
       end
 
       def ran?(migration)

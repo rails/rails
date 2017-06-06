@@ -237,8 +237,7 @@ module ActiveRecord
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
-        ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+        ActiveRecord::InternalMetadata.initialize_table
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)

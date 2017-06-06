@@ -27,7 +27,7 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
       table_name = ActiveRecord::InternalMetadata.table_name
       connection.drop_table table_name, if_exists: true
 
-      ActiveRecord::InternalMetadata.create_table
+      ActiveRecord::InternalMetadata.initialize_table
 
       assert connection.column_exists?(table_name, :key, :string)
     end

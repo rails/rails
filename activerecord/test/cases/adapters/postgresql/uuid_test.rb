@@ -303,7 +303,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
       ActiveRecord::Migration.verbose = false
 
       migration = Class.new(ActiveRecord::Migration[5.0]) do
-        def version; 101 end
+        def version; 102 end
         def migrate(x)
           create_table("pg_uuids_4", id: :uuid, default: nil)
         end

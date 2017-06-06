@@ -26,18 +26,30 @@ module ActiveRecord
         connection.table_exists?(table_name)
       end
 
-      # Creates an internal metadata table with columns +key+ and +value+
-      def create_table
-        unless table_exists?
-          key_options = connection.internal_string_options_for_primary_key
+      def initialize_table
+        create_table
+        connection.reset!
+        record_current_environment
+      end
 
-          connection.create_table(table_name, id: false) do |t|
-            t.string :key, key_options
-            t.string :value
-            t.timestamps
+      def record_current_environment
+        self[:environment] = ActiveRecord::Migrator.current_environment
+      end
+
+      private
+
+        # Creates an internal metadata table with columns +key+ and +value+
+        def create_table
+          unless table_exists?
+            key_options = connection.internal_string_options_for_primary_key
+
+            connection.create_table(table_name, id: false) do |t|
+              t.string :key, key_options
+              t.string :value
+              t.timestamps
+            end
           end
         end
-      end
     end
   end
 end
