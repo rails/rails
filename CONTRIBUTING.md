@@ -42,7 +42,6 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 * Please read [Contributing to the Rails Documentation](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation).
 
-</br>
 Ruby on Rails is a volunteer effort. We encourage you to pitch in and [join the team](http://contributors.rubyonrails.org)!
 
 Thanks! :heart: :heart: :heart:
