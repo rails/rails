@@ -528,7 +528,7 @@ module ActiveSupport
         end
 
         # Merges the default options with ones specific to a method call.
-        def merged_options(call_options)
+        def merged_options(call_options) # :doc:
           if call_options
             options.merge(call_options)
           else

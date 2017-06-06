@@ -463,7 +463,7 @@ module ActiveModel
 
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
-      def matched_attribute_method(method_name)
+      def matched_attribute_method(method_name) # :doc:
         matches = self.class.send(:attribute_method_matchers_matching, method_name)
         matches.detect { |match| attribute_method?(match.attr_name) }
       end
