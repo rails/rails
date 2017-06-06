@@ -12,6 +12,7 @@ require "models/vertex"
 require "models/edge"
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
   fixtures :authors, :author_addresses, :mixins, :companies, :posts, :topics, :accounts, :comments,
            :categorizations, :people, :categories, :edges, :vertices
 
