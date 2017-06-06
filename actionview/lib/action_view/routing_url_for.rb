@@ -78,6 +78,8 @@ module ActionView
       case options
       when String
         options
+      when URI
+        options.to_s
       when nil
         super(only_path: _generate_paths_by_default)
       when Hash

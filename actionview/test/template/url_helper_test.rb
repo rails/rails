@@ -269,6 +269,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="http://www.example.com">Hello</a>}, link_to("Hello", "http://www.example.com")
   end
 
+  def test_link_tag_with_uri_instance
+    assert_dom_equal %{<a href="http://www.example.com">Hello</a>}, link_to("Hello", URI("http://www.example.com"))
+  end
+
   def test_link_tag_without_host_option
     assert_dom_equal(%{<a href="/">Test Link</a>}, link_to("Test Link", url_hash))
   end
