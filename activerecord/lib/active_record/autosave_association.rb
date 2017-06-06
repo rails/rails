@@ -368,6 +368,10 @@ module ActiveRecord
         @new_record_before_save = false
       end
 
+      def after_save_collection_association
+        @new_record_before_save = false
+      end
+
       # Saves any new associated records, or all loaded autosave associations if
       # <tt>:autosave</tt> is enabled on the association.
       #
