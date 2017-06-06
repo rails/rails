@@ -107,6 +107,18 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
 
+      def pluck(*column_names)
+        if loaded? && !column_names.find { |column_name| column_name.is_a?(String) }
+          stringified_column_names = column_names.map(&:to_s)
+          load_target.map do |record|
+            values = record.attributes.slice(*stringified_column_names).values
+            values.one? ? values.first : values
+          end
+        else
+          @association.scope.pluck(*column_names)
+        end
+      end
+
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as ActiveRecord::Base.find. Returns ActiveRecord::RecordNotFound
       # error if the object cannot be found.
