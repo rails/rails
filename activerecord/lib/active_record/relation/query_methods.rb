@@ -287,6 +287,9 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
+      args.map! do |arg|
+        arg.split(",") if arg.is_a? String
+      end
       args.flatten!
 
       self.group_values += args
