@@ -39,7 +39,7 @@ module ActionDispatch
       "192.168.0.0/16", # private IPv4 range 192.168.x.x
     ].map { |proxy| IPAddr.new(proxy) }
 
-    attr_reader :check_ip, :proxies
+    attr_reader :check_ip, :proxies, :use_first_ip_from_header
 
     # Create a new +RemoteIp+ middleware instance.
     #
@@ -57,9 +57,14 @@ module ActionDispatch
     # with your proxy servers after it. If your proxies aren't removed, pass
     # them in via the +custom_proxies+ parameter. That way, the middleware will
     # ignore those IP addresses, and return the one that you want.
-    def initialize(app, ip_spoofing_check = true, custom_proxies = nil)
+    #
+    # To use the first address that is probably accurate, use the
+    # config.action_dispatch.use_first_ip_from_header option this matches the
+    # general format (https://en.wikipedia.org/wiki/X-Forwarded-For)
+    def initialize(app, ip_spoofing_check = true, custom_proxies = nil, use_first_ip_from_header = false)
       @app = app
       @check_ip = ip_spoofing_check
+      @use_first_ip_from_header = use_first_ip_from_header
       @proxies = if custom_proxies.blank?
         TRUSTED_PROXIES
       elsif custom_proxies.respond_to?(:any?)
@@ -75,7 +80,7 @@ module ActionDispatch
     # GetIp#calculate_ip method will calculate the memoized client IP address.
     def call(env)
       req = ActionDispatch::Request.new env
-      req.remote_ip = GetIp.new(req, check_ip, proxies)
+      req.remote_ip = GetIp.new(req, check_ip, proxies, use_first_ip_from_header)
       @app.call(req.env)
     end
 
@@ -83,10 +88,11 @@ module ActionDispatch
     # into an actual IP address. If the ActionDispatch::Request#remote_ip method
     # is called, this class will calculate the value and then memoize it.
     class GetIp
-      def initialize(req, check_ip, proxies)
+      def initialize(req, check_ip, proxies, use_first_ip_from_header = false)
         @req      = req
         @check_ip = check_ip
         @proxies  = proxies
+        @use_first_ip_from_header = use_first_ip_from_header
       end
 
       # Sort through the various IP address headers, looking for the IP most
@@ -107,13 +113,22 @@ module ActionDispatch
       # In order to find the first address that is (probably) accurate, we
       # take the list of IPs, remove known and trusted proxies, and then take
       # the last address left, which was presumably set by one of those proxies.
+      #
+      # To instead use the first address that is probably accurate, use the
+      # config.action_dispatch.use_first_ip_from_header option this matches the
+      # general format (https://en.wikipedia.org/wiki/X-Forwarded-For)
       def calculate_ip
         # Set by the Rack web server, this is a single value.
         remote_addr = ips_from(@req.remote_addr).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        client_ips = ips_from(@req.client_ip).reverse
+
+        if @use_first_ip_from_header
+          forwarded_ips = ips_from(@req.x_forwarded_for)
+        else
+          forwarded_ips = ips_from(@req.x_forwarded_for).reverse
+        end
 
         # +Client-Ip+ and +X-Forwarded-For+ should not, generally, both be set.
         # If they are both set, it means that either:
@@ -172,8 +187,12 @@ module ActionDispatch
       end
 
       def filter_proxies(ips) # :doc:
-        ips.reject do |ip|
-          @proxies.any? { |proxy| proxy === ip }
+        if @use_first_ip_from_header
+          return ips
+        else
+          ips.reject do |ip|
+            @proxies.any? { |proxy| proxy === ip }
+          end
         end
       end
     end

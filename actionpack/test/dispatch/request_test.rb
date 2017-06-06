@@ -20,9 +20,10 @@ class BaseRequestTest < ActiveSupport::TestCase
 
   private
     def stub_request(env = {})
+      use_first_ip_from_header = env.key?(:use_first_ip_from_header) ? env.delete(:use_first_ip_from_header) : false
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies)
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies, use_first_ip_from_header)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)
@@ -101,6 +102,11 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
     assert_nil request.remote_ip
+  end
+
+  test "use first ip from header" do
+    request = stub_request(:use_first_ip_from_header => true, "HTTP_X_FORWARDED_FOR" => "10.0.0.1, 3.4.5.6")
+    assert_equal "10.0.0.1", request.remote_ip
   end
 
   test "remote ip spoof detection" do
