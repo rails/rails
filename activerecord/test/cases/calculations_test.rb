@@ -580,8 +580,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
-      Company.order(:id).limit(1).pluck
+    if current_adapter?(:OracleAdapter)
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+    else
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+    end
   end
 
   def test_pluck_type_cast
