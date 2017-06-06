@@ -862,6 +862,8 @@ module ActionDispatch
             end
 
             return req.path_parameters
+          else
+            req.path_parameters = old_params
           end
         end
 
