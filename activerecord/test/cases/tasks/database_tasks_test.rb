@@ -210,6 +210,30 @@ module ActiveRecord
         ActiveSupport::StringInquirer.new("development")
       )
     end
+
+    def test_creating_production_failure_does_not_dump_credentials
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "production"
+
+      @configurations['production'].merge!('username'=>'users_uname',
+        'password'=>'users_password')
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:class_for_adapter).raises(Exception)
+
+      expected_arguments_in_order = [Exception.new,
+        "Couldn't create database for #{@configurations["production"].except("username", "password").inspect}"]
+
+      $stderr.stubs(:puts).returns(true)
+      $stderr.expects(:puts).
+        with("Couldn't create database for #{@configurations["production"].except("username","password").inspect}")
+
+      begin
+        ActiveRecord::Tasks::DatabaseTasks.create_current(
+          ActiveSupport::StringInquirer.new("production")
+        )
+      rescue Exception; end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
