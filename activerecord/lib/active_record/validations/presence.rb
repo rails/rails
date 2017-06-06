@@ -1,11 +1,19 @@
 module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
-      def validate_each(record, attribute, association_or_value)
-        if record.class._reflect_on_association(attribute)
-          association_or_value = Array.wrap(association_or_value).reject(&:marked_for_destruction?)
+      def validate(record)
+        attributes.each do |attribute|
+          begin
+            reflection = record.class._reflect_on_association(attribute)
+            value = record.read_attribute_for_validation(attribute)
+            next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
+
+            value = Array.wrap(value).reject(&:marked_for_destruction?) if reflection
+            validate_each(record, attribute, value)
+          rescue RangeError
+            record.errors.add(reflection ? reflection.foreign_key : attribute, :invalid, options)
+          end
         end
-        super
       end
     end
 
