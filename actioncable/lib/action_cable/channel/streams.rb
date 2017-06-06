@@ -72,7 +72,7 @@ module ActionCable
       # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
       # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
       def stream_from(broadcasting, callback = nil, coder: nil, &block)
-        broadcasting = String(broadcasting)
+        broadcasting = [connection.server.config.channel_prefix, String(broadcasting)].compact.join(':')
 
         # Don't send the confirmation until pubsub#subscribe is successful
         defer_subscription_confirmation!

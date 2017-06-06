@@ -6,6 +6,7 @@ module ActionCable
       attr_accessor :logger, :log_tags
       attr_accessor :connection_class, :worker_pool_size
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host
+      attr_accessor :channel_prefix
       attr_accessor :cable, :url, :mount_path
 
       def initialize
