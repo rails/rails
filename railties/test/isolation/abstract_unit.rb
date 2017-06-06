@@ -313,8 +313,6 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
-
-  self.test_order = :sorted
 end
 
 # Create a scope and build a fixture rails app
