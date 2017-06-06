@@ -39,9 +39,10 @@ module ActiveModel
         assert_equal BigDecimal("0.33"), type.cast(Rational(1, 3))
       end
 
-      def test_type_cast_decimal_from_rational_without_precision_defaults_to_18_36
+      def test_type_cast_decimal_from_rational_without_precision_returns_at_least_16_precision
         type = Decimal.new
-        assert_equal BigDecimal("0.333333333333333333E0"), type.cast(Rational(1, 3))
+        expected = BigDecimal("0.3333333333333333E0")
+        assert_equal expected, type.cast(Rational(1, 3)).round(16)
       end
 
       def test_type_cast_decimal_from_object_responding_to_d
