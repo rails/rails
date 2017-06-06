@@ -1,6 +1,6 @@
 *   Add default option to module and class attribute accessors.
 
-       mattr_accessor :settings, default: {}
+        mattr_accessor :settings, default: {}
 
     Works for `mattr_reader`, `mattr_writer`, `cattr_accessor`, `cattr_reader`,
     and `cattr_writer` as well.
@@ -11,7 +11,9 @@
 
     *Shota Iguchi*
 
-*   Add default option to class_attribute. Before:
+*   Add default option to `class_attribute`.
+
+    Before:
 
         class_attribute :settings
         self.settings = {}
