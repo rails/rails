@@ -479,6 +479,8 @@ class LoginsController < ApplicationController
 end
 ```
 
+To remove all keys and their values from the session, call `session.clear`.
+
 To reset the entire session, use `reset_session`.
 
 ### The Flash
