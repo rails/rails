@@ -33,7 +33,7 @@ class EncryptedSecretsGeneratorTest < Rails::Generators::TestCase
 
   def test_doesnt_generate_a_new_key_file_if_already_opted_in_to_encrypted_secrets
     FileUtils.mkdir("config")
-    File.open("config/secrets.yml.enc", "w") { |f| f.puts "already secrety" }
+    File.open("config/secrets.yml.enc", "w") { |f| f.puts "already secretly" }
 
     run_generator
 
