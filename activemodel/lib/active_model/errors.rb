@@ -221,6 +221,16 @@ module ActiveModel
     def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
+    
+    def encode_json(encoder)
+      errors = []
+      each_pair do |key, value|
+        value = value.first if value.size == 1
+        errors << "#{encoder.encode(key.to_s)}:#{encoder.encode(value, false)}"
+      end
+
+      "{#{errors * ','}}"
+    end
 
     # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
