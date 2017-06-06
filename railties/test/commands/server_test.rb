@@ -182,6 +182,14 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_port_environment_variable
+    args = ["-p", 3001]
+    options = parse_arguments(args)
+    ENV['PORT'] = nil
+    Rails::Server.new(options)
+    assert_equal "3001", ENV["PORT"]
+  end
+
   def test_restart_command_contains_customized_options
     original_args = ARGV.dup
     args = %w(-p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C)
