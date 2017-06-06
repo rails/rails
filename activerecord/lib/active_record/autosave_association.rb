@@ -176,7 +176,8 @@ module ActiveRecord
         # check if the save or validation methods have already been defined
         # before actually defining them.
         def add_autosave_association_callbacks(reflection)
-          save_method = :"autosave_associated_records_for_#{reflection.name}"
+          method_suffix = reflection.options[:class_name].try(:underscore)
+          save_method = :"autosave_associated_records_for_#{reflection.name}_#{method_suffix}"
 
           if reflection.collection?
             before_save :before_save_collection_association
