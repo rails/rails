@@ -3,6 +3,8 @@ require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/module/delegation'
 require "active_support/rescuable"
 require "action_dispatch/http/upload"
 require "rack/test"
