@@ -28,7 +28,11 @@ module ActiveRecord
       #   end
       def create(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, &block) }
+          if attributes.empty?
+            new.save
+          else
+            attributes.collect { |attr| create(attr, &block) }
+          end
         else
           object = new(attributes, &block)
           object.save
@@ -45,7 +49,11 @@ module ActiveRecord
       # multiple objects when given an Array of Hashes.
       def create!(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
+          if attributes.empty?
+            new.save!
+          else
+            attributes.collect { |attr| create!(attr, &block) }
+          end
         else
           object = new(attributes, &block)
           object.save!
