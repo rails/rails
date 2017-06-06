@@ -52,6 +52,7 @@ module ActiveSupport
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises
+    alias :assert_not :refute
     alias :assert_not_empty :refute_empty
     alias :assert_not_equal :refute_equal
     alias :assert_not_in_delta :refute_in_delta
