@@ -4,7 +4,11 @@ class RelationCacheTest < ActionView::TestCase
   tests ActionView::Helpers::CacheHelper
 
   def setup
-    @virtual_path = "path"
+    view_paths     = ActionController::Base.view_paths
+    lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
+    @view_renderer = ActionView::Renderer.new(lookup_context)
+    @virtual_path  = "path"
+
     controller.cache_store = ActiveSupport::Cache::MemoryStore.new
   end
 

@@ -211,8 +211,6 @@ module ActionView
         end
       end
 
-      attr_reader :cache_hit # :nodoc:
-
     private
 
       def fragment_name_with_digest(name, virtual_path)
@@ -228,10 +226,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @cache_hit = true
+          @view_renderer.cache_hits[@virtual_path] = :hit
           content
         else
-          @cache_hit = false
+          @view_renderer.cache_hits[@virtual_path] = :miss
           write_fragment_for(name, options, &block)
         end
       end
