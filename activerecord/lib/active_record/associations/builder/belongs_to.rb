@@ -136,6 +136,20 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       if reflection.options[:optional].nil?
         required = model.belongs_to_required_by_default
+      elsif reflection.options[:optional] == :with_integrity
+        callback = lambda do |record|
+          fk       = reflection.foreign_key
+          fk_value = record.public_send(fk)
+          association_klass = record.association(reflection.name).klass
+          association_pk    = association_klass.primary_key
+
+          if fk_value.present? && association_klass.find_by("#{association_pk}": fk_value).nil?
+            record.errors.add(fk, :invalid)
+          end
+        end
+
+        model.validate callback
+        required = false
       else
         required = !reflection.options[:optional]
       end
