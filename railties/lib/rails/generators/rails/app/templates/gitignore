@@ -27,3 +27,6 @@
 
 <% end -%>
 .byebug_history
+
+# Ignore Spring temporary directory.
+/spring-*
