@@ -24,7 +24,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     end
   end
 
-  test "count number of methods in MiniTest file" do
+  test "count number of methods in Minitest file" do
     code = <<-RUBY
       class FooTest < ActionController::TestCase
         test 'expectation' do
@@ -52,7 +52,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 3, @code_statistics_calculator.classes
     assert_equal 4, @code_statistics_calculator.methods
 
-    code_statistics_calculator_2 =  CodeStatisticsCalculator.new(2, 3, 4, 5)
+    code_statistics_calculator_2 = CodeStatisticsCalculator.new(2, 3, 4, 5)
     @code_statistics_calculator.add(code_statistics_calculator_2)
 
     assert_equal 3, @code_statistics_calculator.lines
@@ -317,7 +317,7 @@ class Animal
 
   private
     def temp_file(name, content)
-      dir = File.expand_path "../fixtures/tmp", __FILE__
+      dir = File.expand_path "fixtures/tmp", __dir__
       path = "#{dir}/#{name}"
 
       FileUtils.mkdir_p dir

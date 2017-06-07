@@ -2,7 +2,7 @@ require "active_record"
 require "benchmark/ips"
 
 TIME    = (ENV["BENCHMARK_TIME"] || 20).to_i
-RECORDS = (ENV["BENCHMARK_RECORDS"] || TIME*1000).to_i
+RECORDS = (ENV["BENCHMARK_RECORDS"] || TIME * 1000).to_i
 
 conn = { adapter: "sqlite3", database: ":memory:" }
 
@@ -42,7 +42,7 @@ class Exhibit < ActiveRecord::Base
   def self.feel(exhibits) exhibits.each(&:feel) end
 end
 
-def progress_bar(int); print "." if (int%100).zero? ; end
+def progress_bar(int); print "." if (int % 100).zero? ; end
 
 puts "Generating data..."
 

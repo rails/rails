@@ -1,78 +1,148 @@
+require "monitor"
+
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
 
+    ##
+    # :singleton-method: primary_key_prefix_type
+    # :call-seq: primary_key_prefix_type
+    #
+    # The prefix type that will be prepended to every primary key column name.
+    # The options are +:table_name+ and +:table_name_with_underscore+. If the first is specified,
+    # the Product class will look for "productid" instead of "id" as the primary column. If the
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # that this is a global setting for all Active Records.
+
+    ##
+    # :singleton-method: primary_key_prefix_type=
+    # :call-seq: primary_key_prefix_type=(prefix_type)
+    #
+    # Sets the prefix type that will be prepended to every primary key column name.
+    # The options are +:table_name+ and +:table_name_with_underscore+. If the first is specified,
+    # the Product class will look for "productid" instead of "id" as the primary column. If the
+    # latter is specified, the Product class will look for "product_id" instead of "id". Remember
+    # that this is a global setting for all Active Records.
+
+    ##
+    # :singleton-method: table_name_prefix
+    # :call-seq: table_name_prefix
+    #
+    # The prefix string to prepend to every table name.
+
+    ##
+    # :singleton-method: table_name_prefix=
+    # :call-seq: table_name_prefix=(prefix)
+    #
+    # Sets the prefix string to prepend to every table name. So if set to "basecamp_", all table
+    # names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient
+    # way of creating a namespace for tables in a shared database. By default, the prefix is the
+    # empty string.
+    #
+    # If you are organising your models within modules you can add a prefix to the models within
+    # a namespace by defining a singleton method in the parent module called table_name_prefix which
+    # returns your chosen prefix.
+
+    ##
+    # :singleton-method: table_name_suffix
+    # :call-seq: table_name_suffix
+    #
+    # The suffix string to append to every table name.
+
+    ##
+    # :singleton-method: table_name_suffix=
+    # :call-seq: table_name_suffix=(suffix)
+    #
+    # Works like +table_name_prefix=+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
+    # "people_basecamp"). By default, the suffix is the empty string.
+    #
+    # If you are organising your models within modules, you can add a suffix to the models within
+    # a namespace by defining a singleton method in the parent module called table_name_suffix which
+    # returns your chosen suffix.
+
+    ##
+    # :singleton-method: schema_migrations_table_name
+    # :call-seq: schema_migrations_table_name
+    #
+    # The name of the schema migrations table. By default, the value is <tt>"schema_migrations"</tt>.
+
+    ##
+    # :singleton-method: schema_migrations_table_name=
+    # :call-seq: schema_migrations_table_name=(table_name)
+    #
+    # Sets the name of the schema migrations table.
+
+    ##
+    # :singleton-method: internal_metadata_table_name
+    # :call-seq: internal_metadata_table_name
+    #
+    # The name of the internal metadata table. By default, the value is <tt>"ar_internal_metadata"</tt>.
+
+    ##
+    # :singleton-method: internal_metadata_table_name=
+    # :call-seq: internal_metadata_table_name=(table_name)
+    #
+    # Sets the name of the internal metadata table.
+
+    ##
+    # :singleton-method: protected_environments
+    # :call-seq: protected_environments
+    #
+    # The array of names of environments where destructive actions should be prohibited. By default,
+    # the value is <tt>["production"]</tt>.
+
+    ##
+    # :singleton-method: protected_environments=
+    # :call-seq: protected_environments=(environments)
+    #
+    # Sets an array of names of environments where destructive actions should be prohibited.
+
+    ##
+    # :singleton-method: pluralize_table_names
+    # :call-seq: pluralize_table_names
+    #
+    # Indicates whether table names should be the pluralized versions of the corresponding class names.
+    # If true, the default table name for a Product class will be "products". If false, it would just be "product".
+    # See table_name for the full rules on table/class naming. This is true, by default.
+
+    ##
+    # :singleton-method: pluralize_table_names=
+    # :call-seq: pluralize_table_names=(value)
+    #
+    # Set whether table names should be the pluralized versions of the corresponding class names.
+    # If true, the default table name for a Product class will be "products". If false, it would just be "product".
+    # See table_name for the full rules on table/class naming. This is true, by default.
+
+    ##
+    # :singleton-method: ignored_columns
+    # :call-seq: ignored_columns
+    #
+    # The list of columns names the model should ignore. Ignored columns won't have attribute
+    # accessors defined, and won't be referenced in SQL queries.
+
+    ##
+    # :singleton-method: ignored_columns=
+    # :call-seq: ignored_columns=(columns)
+    #
+    # Sets the columns names the model should ignore. Ignored columns won't have attribute
+    # accessors defined, and won't be referenced in SQL queries.
+
     included do
-      ##
-      # :singleton-method:
-      # Accessor for the prefix type that will be prepended to every primary key column name.
-      # The options are :table_name and :table_name_with_underscore. If the first is specified,
-      # the Product class will look for "productid" instead of "id" as the primary column. If the
-      # latter is specified, the Product class will look for "product_id" instead of "id". Remember
-      # that this is a global setting for all Active Records.
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
-      ##
-      # :singleton-method:
-      # Accessor for the name of the prefix string to prepend to every table name. So if set
-      # to "basecamp_", all table names will be named like "basecamp_projects", "basecamp_people",
-      # etc. This is a convenient way of creating a namespace for tables in a shared database.
-      # By default, the prefix is the empty string.
-      #
-      # If you are organising your models within modules you can add a prefix to the models within
-      # a namespace by defining a singleton method in the parent module called table_name_prefix which
-      # returns your chosen prefix.
-      class_attribute :table_name_prefix, instance_writer: false
-      self.table_name_prefix = ""
-
-      ##
-      # :singleton-method:
-      # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
-      # "people_basecamp"). By default, the suffix is the empty string.
-      #
-      # If you are organising your models within modules, you can add a suffix to the models within
-      # a namespace by defining a singleton method in the parent module called table_name_suffix which
-      # returns your chosen suffix.
-      class_attribute :table_name_suffix, instance_writer: false
-      self.table_name_suffix = ""
-
-      ##
-      # :singleton-method:
-      # Accessor for the name of the schema migrations table. By default, the value is "schema_migrations"
-      class_attribute :schema_migrations_table_name, instance_accessor: false
-      self.schema_migrations_table_name = "schema_migrations"
-
-      ##
-      # :singleton-method:
-      # Accessor for the name of the internal metadata table. By default, the value is "ar_internal_metadata"
-      class_attribute :internal_metadata_table_name, instance_accessor: false
-      self.internal_metadata_table_name = "ar_internal_metadata"
-
-      ##
-      # :singleton-method:
-      # Accessor for an array of names of environments where destructive actions should be prohibited. By default,
-      # the value is ["production"]
-      class_attribute :protected_environments, instance_accessor: false
-      self.protected_environments = ["production"]
-
-      ##
-      # :singleton-method:
-      # Indicates whether table names should be the pluralized versions of the corresponding class names.
-      # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
-      # See table_name for the full rules on table/class naming. This is true, by default.
-      class_attribute :pluralize_table_names, instance_writer: false
-      self.pluralize_table_names = true
-
-      ##
-      # :singleton-method:
-      # Accessor for the list of columns names the model should ignore. Ignored columns won't have attribute
-      # accessors defined, and won't be referenced in SQL queries.
-      class_attribute :ignored_columns, instance_accessor: false
-      self.ignored_columns = [].freeze
+      class_attribute :table_name_prefix, instance_writer: false, default: ""
+      class_attribute :table_name_suffix, instance_writer: false, default: ""
+      class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
+      class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
+      class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
+      class_attribute :pluralize_table_names, instance_writer: false, default: true
+      class_attribute :ignored_columns, instance_accessor: false, default: [].freeze
 
       self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
+
+      initialize_load_schema_monitor
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -213,7 +283,7 @@ module ActiveRecord
       end
 
       # Sets the name of the sequence to use when generating ids to the given
-      # value, or (if the value is nil or false) to the value returned by the
+      # value, or (if the value is +nil+ or +false+) to the value returned by the
       # given block. This is required for Oracle and is useful for any
       # database which relies on sequences for primary key generation.
       #
@@ -298,7 +368,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.to_hash
       end
 
       def _default_attributes # :nodoc:
@@ -353,17 +423,34 @@ module ActiveRecord
         connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
+        initialize_find_by_cache
       end
+
+      protected
+
+        def initialize_load_schema_monitor
+          @load_schema_monitor = Monitor.new
+        end
 
       private
 
+        def inherited(child_class)
+          super
+          child_class.initialize_load_schema_monitor
+        end
+
         def schema_loaded?
-          defined?(@columns_hash) && @columns_hash
+          defined?(@schema_loaded) && @schema_loaded
         end
 
         def load_schema
-          unless schema_loaded?
+          return if schema_loaded?
+          @load_schema_monitor.synchronize do
+            return if defined?(@columns_hash) && @columns_hash
+
             load_schema!
+
+            @schema_loaded = true
           end
         end
 
@@ -386,10 +473,12 @@ module ActiveRecord
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil
+          @column_defaults = nil
           @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
+          @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
           direct_descendants.each do |descendant|

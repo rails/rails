@@ -88,8 +88,19 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_executed_only_once
     create_test_file "foo"
-    result =  run_test_command("test/foo_test.rb")
+    result = run_test_command("test/foo_test.rb")
     assert_equal 1, result.scan(/1 runs, 1 assertions, 0 failures/).length
+  end
+
+  def test_warnings_option
+    plugin_file "test/models/warnings_test.rb", <<-RUBY
+      require 'test_helper'
+      def test_warnings
+        a = 1
+      end
+    RUBY
+    assert_match(/warning: assigned but unused variable/,
+      capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
   end
 
   private

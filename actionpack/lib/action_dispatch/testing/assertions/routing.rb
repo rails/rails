@@ -18,8 +18,8 @@ module ActionDispatch
       #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
       #
       # You can also pass in +extras+ with a hash containing URL parameters that would normally be in the query string. This can be used
-      # to assert that values in the query string will end up in the params hash correctly. To test query strings you must use the
-      # extras argument, appending the query string on the path directly will not work. For example:
+      # to assert that values in the query string will end up in the params hash correctly. To test query strings you must use the extras
+      # argument because appending the query string on the path directly will not work. For example:
       #
       #   # Asserts that a path of '/items/list/1?view=print' returns the correct options
       #   assert_recognizes({controller: 'items', action: 'list', id: '1', view: 'print'}, 'items/list/1', { view: "print" })
@@ -37,7 +37,7 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
-      def assert_recognizes(expected_options, path, extras={}, msg=nil)
+      def assert_recognizes(expected_options, path, extras = {}, msg = nil)
         if path.is_a?(Hash) && path[:method].to_s == "all"
           [:get, :post, :put, :delete].each do |method|
             assert_recognizes(expected_options, path.merge(method: method), extras, msg)
@@ -75,7 +75,7 @@ module ActionDispatch
       #
       #   # Asserts that the generated route gives us our custom route
       #   assert_generates "changesets/12", { controller: 'scm', action: 'show_diff', revision: "12" }
-      def assert_generates(expected_path, options, defaults={}, extras={}, message=nil)
+      def assert_generates(expected_path, options, defaults = {}, extras = {}, message = nil)
         if expected_path =~ %r{://}
           fail_on(URI::InvalidURIError, message) do
             uri = URI.parse(expected_path)
@@ -119,7 +119,7 @@ module ActionDispatch
       #
       #  # Tests a route with an HTTP method
       #  assert_routing({ method: 'put', path: '/product/321' }, { controller: "product", action: "update", id: "321" })
-      def assert_routing(path, options, defaults={}, extras={}, message=nil)
+      def assert_routing(path, options, defaults = {}, extras = {}, message = nil)
         assert_recognizes(options, path, extras, message)
 
         controller, default_controller = options[:controller], defaults[:controller]
@@ -132,8 +132,7 @@ module ActionDispatch
       end
 
       # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces @routes
-      # with a new RouteSet instance.
+      # This method temporarily replaces @routes with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
       # will create some routes using <tt>set.draw { match ... }</tt>:
@@ -152,8 +151,11 @@ module ActionDispatch
           _routes = @routes
 
           @controller.singleton_class.include(_routes.url_helpers)
-          @controller.view_context_class = Class.new(@controller.view_context_class) do
-            include _routes.url_helpers
+
+          if @controller.respond_to? :view_context_class
+            @controller.view_context_class = Class.new(@controller.view_context_class) do
+              include _routes.url_helpers
+            end
           end
         end
         yield @routes
@@ -183,7 +185,6 @@ module ActionDispatch
             method = :get
           end
 
-          # Assume given controller
           request = ActionController::TestRequest.create @controller.class
 
           if path =~ %r{://}

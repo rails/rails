@@ -47,7 +47,7 @@ class PostgresqlCollationTest < ActiveRecord::PostgreSQLTestCase
 
   test "schema dump includes collation" do
     output = dump_table_schema("postgresql_collations")
-    assert_match %r{t.string\s+"string_c",\s+collation: "C"$}, output
-    assert_match %r{t.text\s+"text_posix",\s+collation: "POSIX"$}, output
+    assert_match %r{t\.string\s+"string_c",\s+collation: "C"$}, output
+    assert_match %r{t\.text\s+"text_posix",\s+collation: "POSIX"$}, output
   end
 end

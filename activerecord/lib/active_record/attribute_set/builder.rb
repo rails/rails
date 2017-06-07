@@ -90,6 +90,8 @@ module ActiveRecord
       @materialized = true
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :types, :values, :additional_types, :delegate_hash, :default

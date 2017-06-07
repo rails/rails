@@ -6,8 +6,7 @@ module ActionDispatch
       extend ActiveSupport::Concern
 
       included do
-        mattr_accessor :ignore_accept_header
-        self.ignore_accept_header = false
+        mattr_accessor :ignore_accept_header, default: false
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
@@ -29,8 +28,8 @@ module ActionDispatch
         content_mime_type && content_mime_type.to_s
       end
 
-      def has_content_type?
-        has_header? "CONTENT_TYPE"
+      def has_content_type? # :nodoc:
+        get_header "CONTENT_TYPE"
       end
 
       # Returns the accepted MIME type for the request.
@@ -135,9 +134,7 @@ module ActionDispatch
         }
       end
 
-      # Receives an array of mimes and return the first user sent mime that
-      # matches the order array.
-      #
+      # Returns the first MIME type that matches the provided array of MIME types.
       def negotiate_mime(order)
         formats.each do |priority|
           if priority == Mime::ALL
@@ -150,20 +147,20 @@ module ActionDispatch
         order.include?(Mime::ALL) ? format : nil
       end
 
-      protected
+      private
 
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
-        def valid_accept_header
+        def valid_accept_header # :doc:
           (xhr? && (accept.present? || content_mime_type)) ||
             (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
         end
 
-        def use_accept_header
+        def use_accept_header # :doc:
           !self.class.ignore_accept_header
         end
 
-        def format_from_path_extension
+        def format_from_path_extension # :doc:
           path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
           if match = path && path.match(/\.(\w+)\z/)
             Mime[match.captures.first]

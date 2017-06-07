@@ -17,7 +17,7 @@ module ActiveSupport
     # Returns a derived key suitable for use.  The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
-    def generate_key(salt, key_size=64)
+    def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
     end
   end

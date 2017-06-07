@@ -68,12 +68,33 @@ class ClientTest < ActionCable::TestCase
     server.min_threads = 1
     server.max_threads = 4
 
-    t = Thread.new { server.run.join }
-    yield port
+    thread = server.run
 
-  ensure
-    server.stop(true) if server
-    t.join if t
+    begin
+      yield port
+
+    ensure
+      server.stop
+
+      begin
+        thread.join
+
+      rescue IOError
+        # Work around https://bugs.ruby-lang.org/issues/13405
+        #
+        # Puma's sometimes raising while shutting down, when it closes
+        # its internal pipe. We can safely ignore that, but we do need
+        # to do the step skipped by the exception:
+        server.binder.close
+
+      rescue RuntimeError => ex
+        # Work around https://bugs.ruby-lang.org/issues/13239
+        raise unless ex.message =~ /can't modify frozen IOError/
+
+        # Handle this as if it were the IOError: do the same as above.
+        server.binder.close
+      end
+    end
   end
 
   class SyncClient
@@ -186,9 +207,9 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "ding", message: "hello")
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "message"=>{ "dong"=>"hello" } }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "message" => { "dong" => "hello" } }, c.read_message)
       c.close
     end
   end
@@ -203,9 +224,9 @@ class ClientTest < ActionCable::TestCase
       concurrently(clients) do |c|
         assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-        assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "type"=>"confirm_subscription" }, c.read_message)
+        assert_equal({ "identifier" => '{"channel":"ClientTest::EchoChannel"}', "type" => "confirm_subscription" }, c.read_message)
         c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "ding", message: "hello")
-        assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "message"=>{ "dong"=>"hello" } }, c.read_message)
+        assert_equal({ "identifier" => '{"channel":"ClientTest::EchoChannel"}', "message" => { "dong" => "hello" } }, c.read_message)
         barrier_1.wait WAIT_WHEN_EXPECTING_EVENT
         c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "bulk", message: "hello")
         barrier_2.wait WAIT_WHEN_EXPECTING_EVENT
@@ -223,9 +244,9 @@ class ClientTest < ActionCable::TestCase
       concurrently(clients) do |c|
         assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
         c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-        assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "type"=>"confirm_subscription" }, c.read_message)
+        assert_equal({ "identifier" => '{"channel":"ClientTest::EchoChannel"}', "type" => "confirm_subscription" }, c.read_message)
         c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "ding", message: "hello")
-        assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "message"=>{ "dong"=>"hello" } }, c.read_message)
+        assert_equal({ "identifier" => '{"channel":"ClientTest::EchoChannel"}', "message" => { "dong" => "hello" } }, c.read_message)
       end
 
       concurrently(clients, &:close)
@@ -237,16 +258,16 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "delay", message: "hello")
       c.close # disappear before write
 
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message) # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       c.send_message command: "message", identifier: JSON.generate(channel: "ClientTest::EchoChannel"), data: JSON.generate(action: "ding", message: "hello")
-      assert_equal({ "identifier"=>'{"channel":"ClientTest::EchoChannel"}', "message"=>{ "dong"=>"hello" } }, c.read_message)
+      assert_equal({ "identifier" => '{"channel":"ClientTest::EchoChannel"}', "message" => { "dong" => "hello" } }, c.read_message)
       c.close # disappear before read
     end
   end
@@ -259,7 +280,7 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: identifier
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
       assert_equal(1, app.connections.count)
       assert(app.remote_connections.where(identifier: identifier))
 
@@ -280,7 +301,7 @@ class ClientTest < ActionCable::TestCase
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
-      assert_equal({ "identifier"=>"{\"channel\":\"ClientTest::EchoChannel\"}", "type"=>"confirm_subscription" }, c.read_message)
+      assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
 
       ActionCable.server.restart
       c.wait_for_close

@@ -47,6 +47,17 @@ module ActiveSupport
             assert_raises(RuntimeError) { middleware.call({}) }
             assert_nil LocalCacheRegistry.cache_for(key)
           end
+
+          def test_local_cache_cleared_on_throw
+            key = "super awesome key"
+            assert_nil LocalCacheRegistry.cache_for key
+            middleware = Middleware.new("<3", key).new(->(env) {
+              assert LocalCacheRegistry.cache_for(key), "should have a cache"
+              throw :warden
+            })
+            assert_throws(:warden) { middleware.call({}) }
+            assert_nil LocalCacheRegistry.cache_for(key)
+          end
         end
       end
     end
@@ -316,7 +327,7 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_nil
     assert @cache.write("foo", nil)
-    assert_equal nil, @cache.read("foo")
+    assert_nil @cache.read("foo")
   end
 
   def test_should_read_and_write_false
@@ -464,7 +475,7 @@ module CacheStoreBehavior
 
     Time.stub(:now, Time.at(time)) do
       result = @cache.fetch("foo") do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -476,7 +487,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar", expires_in: 60)
     Time.stub(:now, time + 71) do
       result = @cache.fetch("foo", race_condition_ttl: 10) do
-        assert_equal nil, @cache.read("foo")
+        assert_nil @cache.read("foo")
         "baz"
       end
       assert_equal "baz", result
@@ -566,11 +577,92 @@ module CacheStoreBehavior
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
+end
 
-  def test_can_call_deprecated_namesaced_key
-    assert_deprecated "`namespaced_key` is deprecated" do
-      @cache.send(:namespaced_key, 111, {})
-    end
+module CacheStoreVersionBehavior
+  ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
+
+  def test_fetch_with_right_version_should_hit
+    @cache.fetch("foo", version: 1) { "bar" }
+    assert_equal "bar", @cache.read("foo", version: 1)
+  end
+
+  def test_fetch_with_wrong_version_should_miss
+    @cache.fetch("foo", version: 1) { "bar" }
+    assert_nil @cache.read("foo", version: 2)
+  end
+
+  def test_read_with_right_version_should_hit
+    @cache.write("foo", "bar", version: 1)
+    assert_equal "bar", @cache.read("foo", version: 1)
+  end
+
+  def test_read_with_wrong_version_should_miss
+    @cache.write("foo", "bar", version: 1)
+    assert_nil @cache.read("foo", version: 2)
+  end
+
+  def test_exist_with_right_version_should_be_true
+    @cache.write("foo", "bar", version: 1)
+    assert @cache.exist?("foo", version: 1)
+  end
+
+  def test_exist_with_wrong_version_should_be_false
+    @cache.write("foo", "bar", version: 1)
+    assert !@cache.exist?("foo", version: 2)
+  end
+
+  def test_reading_and_writing_with_model_supporting_cache_version
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
+
+    @cache.write(m1v1, "bar")
+    assert_equal "bar", @cache.read(m1v1)
+    assert_nil @cache.read(m1v2)
+  end
+
+  def test_reading_and_writing_with_model_supporting_cache_version_using_nested_key
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
+
+    @cache.write([ "something", m1v1 ], "bar")
+    assert_equal "bar", @cache.read([ "something", m1v1 ])
+    assert_nil @cache.read([ "something", m1v2 ])
+  end
+
+  def test_fetching_with_model_supporting_cache_version
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
+
+    @cache.fetch(m1v1) { "bar" }
+    assert_equal "bar", @cache.fetch(m1v1) { "bu" }
+    assert_equal "bu", @cache.fetch(m1v2) { "bu" }
+  end
+
+  def test_exist_with_model_supporting_cache_version
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
+
+    @cache.write(m1v1, "bar")
+    assert     @cache.exist?(m1v1)
+    assert_not @cache.fetch(m1v2)
+  end
+
+  def test_fetch_multi_with_model_supporting_cache_version
+    m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
+    m2v1 = ModelWithKeyAndVersion.new("model/2", 1)
+    m2v2 = ModelWithKeyAndVersion.new("model/2", 2)
+
+    first_fetch_values  = @cache.fetch_multi(m1v1, m2v1) { |m| m.cache_key }
+    second_fetch_values = @cache.fetch_multi(m1v1, m2v2) { |m| m.cache_key + " 2nd" }
+
+    assert_equal({ m1v1 => "model/1", m2v1 => "model/2" }, first_fetch_values)
+    assert_equal({ m1v1 => "model/1", m2v2 => "model/2 2nd" }, second_fetch_values)
+  end
+
+  def test_version_is_normalized
+    @cache.write("foo", "bar", version: 1)
+    assert_equal "bar", @cache.read("foo", version: "1")
   end
 end
 
@@ -681,9 +773,9 @@ module LocalCacheBehavior
 
   def test_local_cache_of_read_nil
     @cache.with_local_cache do
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
       @cache.send(:bypass_local_cache) { @cache.write "foo", "bar" }
-      assert_equal nil, @cache.read("foo")
+      assert_nil @cache.read("foo")
     end
   end
 
@@ -700,6 +792,14 @@ module LocalCacheBehavior
       assert_nil @cache.read("foo")
       @peek.write("foo", "bar")
       assert_nil @cache.read("foo")
+    end
+  end
+
+  def test_local_cache_of_write_with_unless_exist
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write("foo", "baz", unless_exist: true)
+      assert_equal @peek.read("foo"), @cache.read("foo")
     end
   end
 
@@ -746,15 +846,6 @@ module LocalCacheBehavior
     }
     app = @cache.middleware.new(app)
     app.call({})
-  end
-
-  def test_can_call_deprecated_set_cache_value
-    @cache.with_local_cache do
-      assert_deprecated "`set_cache_value` is deprecated" do
-        @cache.send(:set_cache_value, 1, "foo", :ignored, {})
-      end
-      assert_equal 1, @cache.read("foo")
-    end
   end
 end
 
@@ -818,6 +909,7 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
@@ -838,8 +930,8 @@ class FileStoreTest < ActiveSupport::TestCase
   end
 
   def test_long_uri_encoded_keys
-    @cache.write("%"*870, 1)
-    assert_equal 1, @cache.read("%"*870)
+    @cache.write("%" * 870, 1)
+    assert_equal 1, @cache.read("%" * 870)
   end
 
   def test_key_transformation
@@ -859,7 +951,7 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:normalize_key, key, {})
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname + ".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname + '.lock').length}"
     end
   end
 
@@ -918,12 +1010,6 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
-
-  def test_can_call_deprecated_key_file_path
-    assert_deprecated "`key_file_path` is deprecated" do
-      assert_equal 111, @cache.send(:key_file_path, 111)
-    end
-  end
 end
 
 class MemoryStoreTest < ActiveSupport::TestCase
@@ -933,6 +1019,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
 
@@ -1004,7 +1091,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def test_pruning_is_capped_at_a_max_time
-    def @cache.delete_entry (*args)
+    def @cache.delete_entry(*args)
       sleep(0.01)
       super
     end
@@ -1054,6 +1141,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   include CacheStoreBehavior
+  include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior
@@ -1097,12 +1185,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_not_equal value.object_id, @cache.read("foo").object_id
     value << "bingo"
     assert_not_equal value, @cache.read("foo")
-  end
-
-  def test_can_call_deprecated_escape_key
-    assert_deprecated "`escape_key` is deprecated" do
-      assert_equal 111, @cache.send(:escape_key, 111)
-    end
   end
 end
 
@@ -1216,4 +1298,62 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value, entry.value
     assert_equal value.bytesize, entry.size
   end
+end
+
+class CacheStoreWriteMultiEntriesStoreProviderInterfaceTest < ActiveSupport::TestCase
+  setup do
+    @cache = ActiveSupport::Cache.lookup_store(:null_store)
+  end
+
+  test "fetch_multi uses write_multi_entries store provider interface" do
+    assert_called_with(@cache, :write_multi_entries) do
+      @cache.fetch_multi "a", "b", "c" do |key|
+        key * 2
+      end
+    end
+  end
+end
+
+class CacheStoreWriteMultiInstrumentationTest < ActiveSupport::TestCase
+  setup do
+    @cache = ActiveSupport::Cache.lookup_store(:null_store)
+  end
+
+  test "instrumentation" do
+    writes = { "a" => "aa", "b" => "bb" }
+
+    events = with_instrumentation "write_multi" do
+      @cache.write_multi(writes)
+    end
+
+    assert_equal %w[ cache_write_multi.active_support ], events.map(&:name)
+    assert_nil events[0].payload[:super_operation]
+    assert_equal({ "a" => "aa", "b" => "bb" }, events[0].payload[:key])
+  end
+
+  test "instrumentation with fetch_multi as super operation" do
+    skip "fetch_multi isn't instrumented yet"
+
+    events = with_instrumentation "write_multi" do
+      @cache.fetch_multi("a", "b") { |key| key * 2 }
+    end
+
+    assert_equal %w[ cache_write_multi.active_support ], events.map(&:name)
+    assert_nil events[0].payload[:super_operation]
+    assert !events[0].payload[:hit]
+  end
+
+  private
+    def with_instrumentation(method)
+      event_name = "cache_#{method}.active_support"
+
+      [].tap do |events|
+        ActiveSupport::Notifications.subscribe event_name do |*args|
+          events << ActiveSupport::Notifications::Event.new(*args)
+        end
+        yield
+      end
+    ensure
+      ActiveSupport::Notifications.unsubscribe event_name
+    end
 end

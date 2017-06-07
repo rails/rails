@@ -87,7 +87,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
       from: "jose@test.plataformatec.com"
     }
 
-    def welcome(hash={})
+    def welcome(hash = {})
       mail(DEFAULT_HEADERS.merge(hash))
     end
   end

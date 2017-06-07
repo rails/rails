@@ -14,7 +14,7 @@ class FixtureTemplate
 end
 
 class FixtureFinder < ActionView::LookupContext
-  FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
+  FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
 
   def initialize(details = {})
     super(ActionView::PathSet.new(["digestor", "digestor/api"]), details, [])
@@ -122,13 +122,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template_for_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       dependencies("messages/something_missing")
     end
   end
 
   def test_logging_of_missing_template_for_nested_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       nested_dependencies("messages/something_missing")
     end
   end
@@ -139,7 +139,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_getting_of_doubly_nested_dependencies
-    doubly_nested = [{ "comments/comments"=>["comments/comment"] }, "messages/message"]
+    doubly_nested = [{ "comments/comments" => ["comments/comment"] }, "messages/message"]
     assert_equal doubly_nested, nested_dependencies("messages/peek")
   end
 
@@ -150,13 +150,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_nested_template_deps
-    nested_deps = ["messages/header", { "comments/comments"=>["comments/comment"] }, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
+    nested_deps = ["messages/header", { "comments/comments" => ["comments/comment"] }, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
     assert_equal nested_deps, nested_dependencies("messages/show")
   end
 
   def test_nested_template_deps_with_non_default_rendered_format
     finder.rendered_format = nil
-    nested_deps = [{ "comments/comments"=>["comments/comment"] }]
+    nested_deps = [{ "comments/comments" => ["comments/comment"] }]
     assert_equal nested_deps, nested_dependencies("messages/thread")
   end
 

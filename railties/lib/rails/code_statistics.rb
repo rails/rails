@@ -7,7 +7,8 @@ class CodeStatistics #:nodoc:
                 "Model tests",
                 "Mailer tests",
                 "Job tests",
-                "Integration tests"]
+                "Integration tests",
+                "System tests"]
 
   HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
@@ -106,7 +107,7 @@ class CodeStatistics #:nodoc:
       code  = calculate_code
       tests = calculate_tests
 
-      puts "  Code LOC: #{code}     Test LOC: #{tests}     Code to Test Ratio: 1:#{sprintf("%.1f", tests.to_f/code)}"
+      puts "  Code LOC: #{code}     Test LOC: #{tests}     Code to Test Ratio: 1:#{sprintf("%.1f", tests.to_f / code)}"
       puts ""
     end
 end

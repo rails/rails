@@ -1,10 +1,11 @@
 module ActionDispatch
-  module Journey # :nodoc:
+  # :stopdoc:
+  module Journey
     class Format
       ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
       ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
 
-      class Parameter < Struct.new(:name, :escaper)
+      Parameter = Struct.new(:name, :escaper) do
         def escape(value); escaper.call value; end
       end
 
@@ -21,7 +22,7 @@ module ActionDispatch
         @children   = []
         @parameters = []
 
-        parts.each_with_index do |object,i|
+        parts.each_with_index do |object, i|
           case object
           when Journey::Format
             @children << i
@@ -153,7 +154,7 @@ module ActionDispatch
         end
       end
 
-      # Loop through the requirements AST
+      # Loop through the requirements AST.
       class Each < FunctionalVisitor # :nodoc:
         def visit(node, block)
           block.call(node)
@@ -261,4 +262,5 @@ module ActionDispatch
       end
     end
   end
+  # :startdoc:
 end

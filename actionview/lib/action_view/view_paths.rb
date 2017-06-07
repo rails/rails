@@ -3,9 +3,7 @@ module ActionView
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_view_paths
-      self._view_paths = ActionView::PathSet.new
-      self._view_paths.freeze
+      class_attribute :_view_paths, default: ActionView::PathSet.new.freeze
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
@@ -46,10 +44,22 @@ module ActionView
       {}
     end
 
+    # Append a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def append_view_path(path)
       lookup_context.view_paths.push(*path)
     end
 
+    # Prepend a path to the list of view paths for the current <tt>LookupContext</tt>.
+    #
+    # ==== Parameters
+    # * <tt>path</tt> - If a String is provided, it gets converted into
+    #   the default view path. You may also provide a custom view path
+    #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
       lookup_context.view_paths.unshift(*path)
     end

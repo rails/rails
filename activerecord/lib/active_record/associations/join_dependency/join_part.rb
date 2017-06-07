@@ -22,10 +22,6 @@ module ActiveRecord
           @children = children
         end
 
-        def name
-          reflection.name
-        end
-
         def match?(other)
           self.class == other.class
         end

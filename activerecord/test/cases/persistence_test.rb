@@ -49,7 +49,7 @@ class PersistenceTest < ActiveRecord::TestCase
         assert !test_update_with_order_succeeds.call("id ASC") # test that this wasn't a fluke and using an incorrect order results in an exception
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\Z/i) do
+        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
           test_update_with_order_succeeds.call("id DESC")
         end
       end
@@ -88,6 +88,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal count, 1
     assert_equal count, Pet.joins(:toys).where(where_args).delete_all
+  end
+
+  def test_delete_all_with_left_joins
+    where_args = { toys: { name: "Bone" } }
+    count = Pet.left_joins(:toys).where(where_args).count
+
+    assert_equal count, 1
+    assert_equal count, Pet.left_joins(:toys).where(where_args).delete_all
   end
 
   def test_delete_all_with_joins_and_where_part_is_not_hash
@@ -129,6 +137,14 @@ class PersistenceTest < ActiveRecord::TestCase
     a1.increment!(:credit_limit)
     a2.increment!(:credit_limit)
     assert_equal initial_credit + 2, a1.reload.credit_limit
+  end
+
+  def test_increment_updates_timestamps
+    topic = topics(:first)
+    topic.update_columns(updated_at: 5.minutes.ago)
+    previous_updated_at = topic.updated_at
+    topic.increment!(:replies_count, touch: true)
+    assert_operator previous_updated_at, :<, topic.reload.updated_at
   end
 
   def test_destroy_all
@@ -220,6 +236,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
     accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
     assert_equal 41, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_decrement_updates_timestamps
+    topic = topics(:first)
+    topic.update_columns(updated_at: 5.minutes.ago)
+    previous_updated_at = topic.updated_at
+    topic.decrement!(:replies_count, touch: true)
+    assert_operator previous_updated_at, :<, topic.reload.updated_at
   end
 
   def test_create
@@ -451,6 +475,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "bulk updated with hash!", Topic.find(2).content
     assert_nil Topic.find(1).last_read
     assert_nil Topic.find(2).last_read
+  end
+
+  def test_update_all_with_joins
+    where_args = { toys: { name: "Bone" } }
+    count = Pet.left_joins(:toys).where(where_args).count
+
+    assert_equal count, Pet.joins(:toys).where(where_args).update_all(name: "Bob")
+  end
+
+  def test_update_all_with_left_joins
+    where_args = { toys: { name: "Bone" } }
+    count = Pet.left_joins(:toys).where(where_args).count
+
+    assert_equal count, Pet.left_joins(:toys).where(where_args).update_all(name: "Bob")
   end
 
   def test_update_all_with_non_standard_table_name
@@ -967,7 +1005,7 @@ class PersistenceTest < ActiveRecord::TestCase
         self.table_name = :widgets
       end
 
-      instance  = widget.create!(
+      instance = widget.create!(
         name: "Bob",
         created_at: 1.day.ago,
         updated_at: 1.day.ago)

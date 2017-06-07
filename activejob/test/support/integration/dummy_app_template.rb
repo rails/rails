@@ -5,7 +5,7 @@ end
 rails_command("db:migrate")
 
 initializer "activejob.rb", <<-CODE
-require "#{File.expand_path("../jobs_manager.rb",  __FILE__)}"
+require "#{File.expand_path("jobs_manager.rb",  __dir__)}"
 JobsManager.current_manager.setup
 CODE
 
@@ -18,12 +18,13 @@ class TestJob < ActiveJob::Base
   queue_as :integration_tests
 
   def perform(x)
-    File.open(Rails.root.join("tmp/\#{x}"), "wb+") do |f|
+    File.open(Rails.root.join("tmp/\#{x}.new"), "wb+") do |f|
       f.write Marshal.dump({
         "locale" => I18n.locale.to_s || "en",
         "executed_at" => Time.now.to_r
       })
     end
+    File.rename(Rails.root.join("tmp/\#{x}.new"), Rails.root.join("tmp/\#{x}"))
   end
 end
 CODE

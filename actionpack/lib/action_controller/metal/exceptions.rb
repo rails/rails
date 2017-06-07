@@ -14,7 +14,7 @@ module ActionController
 
   class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
-    def initialize(message, failures=[])
+    def initialize(message, failures = [])
       super(message)
       @failures = failures
     end

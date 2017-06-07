@@ -21,11 +21,11 @@ module ActiveSupport
 
     # Decompresses a gzipped string.
     def self.decompress(source)
-      Zlib::GzipReader.new(StringIO.new(source)).read
+      Zlib::GzipReader.wrap(StringIO.new(source), &:read)
     end
 
     # Compresses a string using gzip.
-    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY)
+    def self.compress(source, level = Zlib::DEFAULT_COMPRESSION, strategy = Zlib::DEFAULT_STRATEGY)
       output = Stream.new
       gz = Zlib::GzipWriter.new(output, level, strategy)
       gz.write(source)

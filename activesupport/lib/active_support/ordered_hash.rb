@@ -25,7 +25,7 @@ module ActiveSupport
     end
 
     def encode_with(coder)
-      coder.represent_seq "!omap", map { |k,v| { k => v } }
+      coder.represent_seq "!omap", map { |k, v| { k => v } }
     end
 
     def select(*args, &block)

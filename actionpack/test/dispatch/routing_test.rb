@@ -1603,7 +1603,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "account/login", to: redirect("/login")
     end
 
-    previous_host, self.host = self.host, "www.example.com:3000"
+    previous_host, self.host = host, "www.example.com:3000"
 
     get "/account/login"
     verify_redirect "http://www.example.com:3000/login"
@@ -1933,7 +1933,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
           post :preview, on: :new
         end
 
-        resource  :admin, path_names: { new: "novo" }, path: "administrador" do
+        resource :admin, path_names: { new: "novo" }, path: "administrador" do
           post :preview, on: :new
         end
 
@@ -3633,7 +3633,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
     params = ActionController::Parameters.new(id: "1")
 
-    assert_raises ArgumentError do
+    assert_raises ActionController::UnfilteredParameters do
       root_path(params)
     end
   end
@@ -3706,6 +3706,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/bar", bar_root_path
   end
 
+  def test_nested_routes_under_format_resource
+    draw do
+      resources :formats do
+        resources :items
+      end
+    end
+
+    get "/formats/1/items.json"
+    assert_equal 200, @response.status
+    assert_equal "items#index", @response.body
+    assert_equal "/formats/1/items.json", format_items_path(1, :json)
+
+    get "/formats/1/items/2.json"
+    assert_equal 200, @response.status
+    assert_equal "items#show", @response.body
+    assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
+  end
+
 private
 
   def draw(&block)
@@ -3736,7 +3754,7 @@ private
     https!(old_https)
   end
 
-  def verify_redirect(url, status=301)
+  def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
     assert_equal expected_redirect_body(url), @response.body
@@ -4163,7 +4181,7 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
   end
 
 private
-  def verify_redirect(url, status=301)
+  def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
     assert_equal expected_redirect_body(url), @response.body
@@ -4189,7 +4207,7 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
 
   test "parameters are reset between constraint checks" do
     get "/bar"
-    assert_equal nil, @request.params[:foo]
+    assert_nil @request.params[:foo]
     assert_equal "bar", @request.params[:bar]
   end
 end
@@ -4401,7 +4419,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 
-  test "invalid UTF-8 encoding returns a 400 Bad Request" do
+  test "invalid UTF-8 encoding is treated as ASCII 8BIT encode" do
     with_routing do |set|
       set.draw do
         get "/bar/:id", to: redirect("/foo/show/%{id}")
@@ -4417,19 +4435,19 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       end
 
       get "/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/show/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
 
       get "/bar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :redirect
 
       get "/foobar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
     end
   end
 end
@@ -4696,15 +4714,15 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
   end
 
   test "url helpers raise message with mixed parameters when generation fails" do
-    url, missing = { action: "show", controller: "products", id: nil, "id"=>"url-tested" }, [:id]
+    url, missing = { action: "show", controller: "products", id: nil, "id" => "url-tested" }, [:id]
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
     # Optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_equal message, error.message
 
     # Non-optimized url helper
-    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id"=>"url-tested") }
+    error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
     assert_equal message, error.message
   end
 end
@@ -4912,4 +4930,114 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
       request.path_parameters
     )
   end
+end
+
+class FlashRedirectTest < ActionDispatch::IntegrationTest
+  SessionKey = "_myapp_session"
+  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+
+  class KeyGeneratorMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.key_generator"] ||= Generator
+      @app.call(env)
+    end
+  end
+
+  class FooController < ActionController::Base
+    def bar
+      render plain: (flash[:foo] || "foo")
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    get "/foo", to: redirect { |params, req| req.flash[:foo] = "bar"; "/bar" }
+    get "/bar", to: "flash_redirect_test/foo#bar"
+  end
+
+  APP = build_app Routes do |middleware|
+    middleware.use KeyGeneratorMiddleware
+    middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
+    middleware.use ActionDispatch::Flash
+    middleware.delete ActionDispatch::ShowExceptions
+  end
+
+  def app
+    APP
+  end
+
+  include Routes.url_helpers
+
+  def test_block_redirect_commits_flash
+    get "/foo", env: { "action_dispatch.key_generator" => Generator }
+    assert_response :redirect
+
+    follow_redirect!
+    assert_equal "bar", response.body
+  end
+end
+
+class TestRecognizePath < ActionDispatch::IntegrationTest
+  class PageConstraint
+    attr_reader :key, :pattern
+
+    def initialize(key, pattern)
+      @key = key
+      @pattern = pattern
+    end
+
+    def matches?(request)
+      request.path_parameters[key] =~ pattern
+    end
+  end
+
+  stub_controllers do |routes|
+    Routes = routes
+    routes.draw do
+      get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
+      get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
+
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+
+      get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
+      get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
+    end
+  end
+
+  APP = build_app Routes
+  def app
+    APP
+  end
+
+  def test_hash_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/hash/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_proc_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/proc/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_class_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/class/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  private
+
+    def recognize_path(*args)
+      Routes.recognize_path(*args)
+    end
 end

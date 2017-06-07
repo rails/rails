@@ -56,7 +56,7 @@ module Rails
         end
       end
 
-      def initialize(name, type=nil, index_type=false, attr_options={})
+      def initialize(name, type = nil, index_type = false, attr_options = {})
         @name           = name
         @type           = type || :string
         @has_index      = INDEX_OPTIONS.include?(index_type)
@@ -151,7 +151,7 @@ module Rails
       end
 
       def inject_options
-        "".tap { |s| options_for_migration.each { |k,v| s << ", #{k}: #{v.inspect}" } }
+        "".tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options

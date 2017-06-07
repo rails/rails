@@ -28,6 +28,9 @@ require "models/member"
 require "models/membership"
 require "models/club"
 require "models/organization"
+require "models/user"
+require "models/family"
+require "models/family_tree"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -61,10 +64,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  club1.members.sort_by(&:id)
   end
 
-  def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
-  end
-
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
@@ -75,7 +74,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     posts = person_prime.includes(:posts).first.posts
 
     assert_operator posts.length, :>, 1
-    posts.each_cons(2) do |left,right|
+    posts.each_cons(2) do |left, right|
       assert_operator left.id, :>, right.id
     end
   end
@@ -147,20 +146,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
     assert after_destroy_called, "after destroy should be called"
-  end
-
-  def make_no_pk_hm_t
-    lesson = make_model "Lesson"
-    student = make_model "Student"
-
-    lesson_student = make_model "LessonStudent"
-    lesson_student.table_name = "lessons_students"
-
-    lesson_student.belongs_to :lesson, anonymous_class: lesson
-    lesson_student.belongs_to :student, anonymous_class: student
-    lesson.has_many :lesson_students, anonymous_class: lesson_student
-    lesson.has_many :students, through: :lesson_students, anonymous_class: student
-    [lesson, lesson_student, student]
   end
 
   def test_pk_is_not_required_for_join
@@ -402,7 +387,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal nil, reference.reload.job_id
+    assert_nil reference.reload.job_id
   ensure
     Reference.make_comments = false
   end
@@ -423,7 +408,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     # Check that the destroy callback on Reference did not run
-    assert_equal nil, person.reload.comments
+    assert_nil person.reload.comments
   ensure
     Reference.make_comments = false
   end
@@ -485,7 +470,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     references.each do |reference|
-      assert_equal nil, reference.reload.job_id
+      assert_nil reference.reload.job_id
     end
   end
 
@@ -702,7 +687,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Bob"],
       [:added, :before, "Lary"],
       [:added, :after, "Lary"]
-    ],log.last(6)
+    ], log.last(6)
 
     post.people_with_callbacks.build(first_name: "Ted")
     assert_equal [
@@ -716,7 +701,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :after, "Sam"]
     ], log.last(2)
 
-    post.people_with_callbacks = [people(:michael),people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
+    post.people_with_callbacks = [people(:michael), people(:david), Person.new(first_name: "Julian"), Person.create!(first_name: "Roger")]
     assert_equal((%w(Ted Bob Sam Lary) * 2).sort, log[-12..-5].collect(&:last).sort)
     assert_equal [
       [:added, :before, "Julian"],
@@ -880,13 +865,34 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       book.subscriber_ids = []
       assert_equal [], book.subscribers.reload
     end
+  end
 
+  def test_collection_singular_ids_setter_with_changed_primary_key
+    company = companies(:first_firm)
+    client = companies(:first_client)
+    company.clients_using_primary_key_ids = [client.name]
+    assert_equal [client], company.clients_using_primary_key
   end
 
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
-    ids =  [Developer.first.id, -9999]
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { company.developer_ids= ids }
+    ids = [Developer.first.id, -9999]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
+    assert_match(/Couldn't find all Developers with 'id'/, e.message)
+  end
+
+  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
+    company = companies(:first_firm)
+    ids = [Client.first.name, "unknown client"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
+    assert_match(/Couldn't find all Clients with 'name'/, e.message)
+  end
+
+  def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
+    author = authors(:david)
+    ids = [categories(:general).name, "Unknown"]
+    e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
+    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
@@ -1182,12 +1188,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil Club.new.special_favourites.distinct_value
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    post = Post.find(1)
-
-    assert_deprecated { post.people(true) }
-  end
-
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
     member = Member.create!
     club = Club.create!
@@ -1215,4 +1215,42 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   ensure
     TenantMembership.current_member = nil
   end
+
+  def test_has_many_through_with_scope_should_respect_table_alias
+    family = Family.create!
+    users = 3.times.map { User.create! }
+    FamilyTree.create!(member: users[0], family: family)
+    FamilyTree.create!(member: users[1], family: family)
+    FamilyTree.create!(member: users[2], family: family, token: "wat")
+
+    assert_equal 2, users[0].family_members.to_a.size
+    assert_equal 0, users[2].family_members.to_a.size
+  end
+
+  def test_incorrectly_ordered_through_associations
+    assert_raises(ActiveRecord::HasManyThroughOrderError) do
+      DeveloperWithIncorrectlyOrderedHasManyThrough.create(
+        companies: [Company.create]
+      )
+    end
+  end
+
+  private
+    def make_model(name)
+      Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    end
+
+    def make_no_pk_hm_t
+      lesson = make_model "Lesson"
+      student = make_model "Student"
+
+      lesson_student = make_model "LessonStudent"
+      lesson_student.table_name = "lessons_students"
+
+      lesson_student.belongs_to :lesson, anonymous_class: lesson
+      lesson_student.belongs_to :student, anonymous_class: student
+      lesson.has_many :lesson_students, anonymous_class: lesson_student
+      lesson.has_many :students, through: :lesson_students, anonymous_class: student
+      [lesson, lesson_student, student]
+    end
 end

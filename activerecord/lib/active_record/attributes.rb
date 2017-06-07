@@ -6,8 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
-      self.attributes_to_define_after_schema_loads = {}
+      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods
@@ -116,7 +115,7 @@ module ActiveRecord
       # Users may also define their own custom types, as long as they respond
       # to the methods defined on the value type. The method +deserialize+ or
       # +cast+ will be called on your type object, with raw input from the
-      # database or from your controllers. See ActiveRecord::Type::Value for the
+      # database or from your controllers. See ActiveModel::Type::Value for the
       # expected API. It is recommended that your type objects inherit from an
       # existing type, or from ActiveRecord::Type::Value
       #
@@ -143,7 +142,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       #
       # For more details on creating custom types, see the documentation for
-      # ActiveRecord::Type::Value. For more details on registering your types
+      # ActiveModel::Type::Value. For more details on registering your types
       # to be referenced by a symbol, see ActiveRecord::Type.register. You can
       # also pass a type object directly, in place of a symbol.
       #
@@ -190,8 +189,8 @@ module ActiveRecord
       # The type of an attribute is given the opportunity to change how dirty
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
-      # methods in ActiveRecord::Type::Value for more details.
-      def attribute(name, cast_type, **options)
+      # methods in ActiveModel::Type::Value for more details.
+      def attribute(name, cast_type = Type::Value.new, **options)
         name = name.to_s
         reload_schema_from_cache
 

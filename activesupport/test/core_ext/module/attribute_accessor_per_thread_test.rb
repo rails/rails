@@ -121,11 +121,11 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
 
   def test_should_not_affect_superclass_if_subclass_set_value
     @class.foo = "super"
-    assert_equal @class.foo, "super"
+    assert_equal "super", @class.foo
     assert_nil @subclass.foo
 
     @subclass.foo = "sub"
-    assert_equal @class.foo, "super"
-    assert_equal @subclass.foo, "sub"
+    assert_equal "super", @class.foo
+    assert_equal "sub", @subclass.foo
   end
 end

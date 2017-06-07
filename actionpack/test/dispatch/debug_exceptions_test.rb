@@ -287,7 +287,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 
-    get "/", params: { "foo"=>"bar" }, headers: { "action_dispatch.show_exceptions" => true,
+    get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => true,
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
     assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
@@ -382,6 +382,23 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       # .. all the remaining lines should be from the backtrace
       assert_match(/:\d+:in /, line)
     end
+  end
+
+  test "logs with non active support loggers" do
+    @app = DevelopmentApp
+    io = StringIO.new
+    logger = Logger.new(io)
+
+    _old, ActionView::Base.logger = ActionView::Base.logger, logger
+    begin
+      assert_nothing_raised do
+        get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
+      end
+    ensure
+      ActionView::Base.logger = _old
+    end
+
+    assert_match(/puke/, io.rewind && io.read)
   end
 
   test "uses backtrace cleaner from env" do

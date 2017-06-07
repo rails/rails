@@ -1,12 +1,11 @@
 require "abstract_unit"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
 
-ActionController::Base.view_paths = [ File.dirname(__FILE__) + "/../../fixtures/actionpack/layout_tests/" ]
+ActionController::Base.view_paths = [ File.expand_path("../../fixtures/actionpack/layout_tests", __dir__) ]
 
 class LayoutTest < ActionController::Base
   def self.controller_path; "views" end
@@ -97,7 +96,7 @@ class StreamingLayoutController < LayoutTest
 end
 
 class AbsolutePathLayoutController < LayoutTest
-  layout File.expand_path(File.expand_path(__FILE__) + "/../../../fixtures/actionpack/layout_tests/layouts/layout_test")
+  layout File.expand_path("../../fixtures/actionpack/layout_tests/layouts/layout_test", __dir__)
 end
 
 class HasOwnLayoutController < LayoutTest
@@ -118,7 +117,7 @@ end
 
 class PrependsViewPathController < LayoutTest
   def hello
-    prepend_view_path File.dirname(__FILE__) + "/../../fixtures/actionpack/layout_tests/alt/"
+    prepend_view_path File.expand_path("../../fixtures/actionpack/layout_tests/alt", __dir__)
     render layout: "alt"
   end
 end
@@ -253,7 +252,7 @@ class LayoutStatusIsRenderedTest < ActionController::TestCase
   end
 end
 
-unless /mswin|mingw/.match?(RbConfig::CONFIG["host_os"])
+unless Gem.win_platform?
   class LayoutSymlinkedTest < LayoutTest
     layout "symlinked/symlinked_layout"
   end

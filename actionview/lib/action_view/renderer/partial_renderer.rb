@@ -1,5 +1,4 @@
 require "concurrent/map"
-require "active_support/core_ext/regexp"
 require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
@@ -99,8 +98,8 @@ module ActionView
   #
   #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
-  # If the given <tt>:collection</tt> is nil or empty, <tt>render</tt> will return nil. This will allow you
-  # to specify a text which will displayed instead by using this form:
+  # If the given <tt>:collection</tt> is +nil+ or empty, <tt>render</tt> will return nil. This will allow you
+  # to specify a text which will be displayed instead by using this form:
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
   #
@@ -358,7 +357,7 @@ module ActionView
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)
-        @view   = context
+        @view = context
         @options = options
         @block   = block
 
@@ -459,7 +458,7 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          template = (cache[path] ||= find_template(path, keys + [as, counter]))
+          template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
           content = template.render(view, locals)
           partial_iteration.iterate!
           content
@@ -533,11 +532,11 @@ module ActionView
         [variable, variable_counter, variable_iteration]
       end
 
-      IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+      IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
                                  "make sure your partial name starts with underscore."
 
-      OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " +
-                                 "make sure it starts with lowercase letter, " +
+      OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " \
+                                 "make sure it starts with lowercase letter, " \
                                  "and is followed by any combination of letters, numbers and underscores."
 
       def raise_invalid_identifier(path)

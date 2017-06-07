@@ -76,7 +76,7 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   def test_class_methods_are_extended_only_on_expected_objects
-    ::Object.__send__(:include, Qux)
+    ::Object.include(Qux)
     Object.extend(Qux::ClassMethods)
     # module needs to be created after Qux is included in Object or bug won't
     # be triggered

@@ -1,6 +1,6 @@
 module Rails
   module Command
-    class VersionCommand < Base
+    class VersionCommand < Base # :nodoc:
       def perform
         Rails::Command.invoke :application, [ "--version" ]
       end

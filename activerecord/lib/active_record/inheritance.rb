@@ -38,8 +38,7 @@ module ActiveRecord
     included do
       # Determines whether to store the full constant name including namespace when using STI.
       # This is true, by default.
-      class_attribute :store_full_sti_class, instance_writer: false
-      self.store_full_sti_class = true
+      class_attribute :store_full_sti_class, instance_writer: false, default: true
     end
 
     module ClassMethods
@@ -130,16 +129,26 @@ module ActiveRecord
         store_full_sti_class ? name : name.demodulize
       end
 
+      def inherited(subclass)
+        subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
+        super
+      end
+
       protected
 
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
-          if type_name.match(/^::/)
+          if type_name.start_with?("::".freeze)
             # If the type is prefixed with a scope operator then we assume that
             # the type_name is an absolute reference.
             ActiveSupport::Dependencies.constantize(type_name)
           else
+            type_candidate = @_type_candidates_cache[type_name]
+            if type_candidate && type_constant = ActiveSupport::Dependencies.safe_constantize(type_candidate)
+              return type_constant
+            end
+
             # Build a list of candidates to search for
             candidates = []
             name.scan(/::|$/) { candidates.unshift "#{$`}::#{type_name}" }
@@ -147,7 +156,10 @@ module ActiveRecord
 
             candidates.each do |candidate|
               constant = ActiveSupport::Dependencies.safe_constantize(candidate)
-              return constant if candidate == constant.to_s
+              if candidate == constant.to_s
+                @_type_candidates_cache[type_name] = candidate
+                return constant
+              end
             end
 
             raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
@@ -204,7 +216,7 @@ module ActiveRecord
         def subclass_from_attributes(attrs)
           attrs = attrs.to_h if attrs.respond_to?(:permitted?)
           if attrs.is_a?(Hash)
-            subclass_name = attrs.with_indifferent_access[inheritance_column]
+            subclass_name = attrs[inheritance_column] || attrs[inheritance_column.to_sym]
 
             if subclass_name.present?
               find_sti_class(subclass_name)

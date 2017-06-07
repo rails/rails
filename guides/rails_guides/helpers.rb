@@ -15,7 +15,7 @@ module RailsGuides
     end
 
     def documents_by_section
-      @documents_by_section ||= YAML.load_file(File.expand_path("../../source/#{@lang ? @lang + '/' : ''}documents.yaml", __FILE__))
+      @documents_by_section ||= YAML.load_file(File.expand_path("../source/#{@language ? @language + '/' : ''}documents.yaml", __dir__))
     end
 
     def documents_flat
@@ -26,7 +26,7 @@ module RailsGuides
       documents.reject { |document| document["work_in_progress"] }
     end
 
-    def docs_for_menu(position=nil)
+    def docs_for_menu(position = nil)
       if position.nil?
         documents_by_section
       elsif position == "L"

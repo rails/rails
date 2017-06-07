@@ -15,7 +15,7 @@ require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :binaries, :essays, :cars, :treasures, :price_estimates
+    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -48,6 +48,10 @@ module ActiveRecord
       assert_equal [chef], chefs.to_a
     end
 
+    def test_where_with_casted_value_is_nil
+      assert_equal 4, Topic.where(last_read: "").count
+    end
+
     def test_rewhere_on_root
       assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
     end
@@ -64,12 +68,12 @@ module ActiveRecord
     end
 
     def test_belongs_to_array_value_where
-      assert_equal Post.where(author_id: [1,2]).to_sql, Post.where(author: [1,2]).to_sql
+      assert_equal Post.where(author_id: [1, 2]).to_sql, Post.where(author: [1, 2]).to_sql
     end
 
     def test_belongs_to_nested_relation_where
-      expected = Post.where(author_id: Author.where(id: [1,2])).to_sql
-      actual   = Post.where(author:    Author.where(id: [1,2])).to_sql
+      expected = Post.where(author_id: Author.where(id: [1, 2])).to_sql
+      actual   = Post.where(author:    Author.where(id: [1, 2])).to_sql
 
       assert_equal expected, actual
     end
@@ -87,7 +91,7 @@ module ActiveRecord
     def test_belongs_to_nested_where_with_relation
       author = authors(:david)
 
-      expected = Author.where(id: author ).joins(:posts)
+      expected = Author.where(id: author).joins(:posts)
       actual   = Author.where(posts: { author_id: Author.where(id: author.id) }).joins(:posts)
 
       assert_equal expected.to_a, actual.to_a
@@ -127,8 +131,8 @@ module ActiveRecord
     end
 
     def test_polymorphic_nested_relation_where
-      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1,2]))
-      actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
+      expected = PriceEstimate.where(estimate_of_type: "Treasure", estimate_of_id: Treasure.where(id: [1, 2]))
+      actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
     end
@@ -286,6 +290,11 @@ module ActiveRecord
     def test_where_on_association_with_custom_primary_key_with_array_of_ids
       essay = Essay.where(writer: ["David"]).first
 
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_select_relation
+      essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
     end
 

@@ -38,10 +38,16 @@ module ActiveRecord
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
       if block_given?
-        to_a.count { |*block_args| yield(*block_args) }
-      else
-        calculate(:count, column_name)
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `count' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+        end
+
+        return super()
       end
+
+      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -75,8 +81,17 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(column_name = nil, &block)
-      return super(&block) if block_given?
+    def sum(column_name = nil)
+      if block_given?
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `sum' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+        end
+
+        return super()
+      end
+
       calculate(:sum, column_name)
     end
 
@@ -193,7 +208,7 @@ module ActiveRecord
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.
-        distinct = self.distinct_value
+        distinct = distinct_value
 
         if operation == "count"
           column_name ||= select_for_count
@@ -223,17 +238,17 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-        relation = unscope(:order)
-
         column_alias = column_name
 
-        if operation == "count" && (relation.limit_value || relation.offset_value)
+        if operation == "count" && (limit_value || offset_value)
           # Shortcut when limit is zero.
-          return 0 if relation.limit_value == 0
+          return 0 if limit_value == 0
 
-          query_builder = build_count_subquery(relation, column_name, distinct)
+          query_builder = build_count_subquery(spawn, column_name, distinct)
         else
+          # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+          relation = unscope(:order).distinct!(false)
+
           column = aggregate_column(column_name)
 
           select_value = operation_over_aggregate_column(column, operation, distinct)
@@ -282,7 +297,7 @@ module ActiveRecord
             operation,
             distinct).as(aggregate_alias)
         ]
-        select_values += select_values unless having_clause.empty?
+        select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
           if field.respond_to?(:as)
@@ -292,7 +307,7 @@ module ActiveRecord
           end
         }
 
-        relation = except(:group)
+        relation = except(:group).distinct!(false)
         relation.group_values  = group_fields
         relation.select_values = select_values
 
@@ -371,9 +386,8 @@ module ActiveRecord
         relation.select_values = [aliased_column]
         subquery = relation.arel.as(subquery_alias)
 
-        sm = Arel::SelectManager.new relation.engine
         select_value = operation_over_aggregate_column(column_alias, "count", distinct)
-        sm.project(select_value).from(subquery)
+        Arel::SelectManager.new(subquery).project(select_value)
       end
   end
 end

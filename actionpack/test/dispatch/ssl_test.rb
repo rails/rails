@@ -102,7 +102,11 @@ class StrictTransportSecurityTest < SSLTest
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
-    assert_equal expected, response.headers["Strict-Transport-Security"]
+    if expected.nil?
+      assert_nil response.headers["Strict-Transport-Security"]
+    else
+      assert_equal expected, response.headers["Strict-Transport-Security"]
+    end
   end
 
   test "enabled by default" do
@@ -130,7 +134,7 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test ":expires supports AS::Duration arguments" do
-    assert_hsts "max-age=31557600; includeSubDomains", hsts: { expires: 1.year }
+    assert_hsts "max-age=31556952; includeSubDomains", hsts: { expires: 1.year }
   end
 
   test "include subdomains" do

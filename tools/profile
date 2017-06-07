@@ -12,7 +12,7 @@ module CodeTools
     Error = Class.new(StandardError)
 
     attr_reader :path, :mode
-    def initialize(path, mode=nil)
+    def initialize(path, mode = nil)
       assert_ruby_file_exists(path)
       @path, @mode = path, mode
       require "benchmark"

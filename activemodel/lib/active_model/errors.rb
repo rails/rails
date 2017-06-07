@@ -110,6 +110,7 @@ module ActiveModel
     #   person.errors.include?(:name) # => true
     #   person.errors.include?(:age)  # => false
     def include?(attribute)
+      attribute = attribute.to_sym
       messages.key?(attribute) && messages[attribute].present?
     end
     alias :has_key? :include?
@@ -121,8 +122,9 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(key)
-      details.delete(key)
-      messages.delete(key)
+      attribute = key.to_sym
+      details.delete(attribute)
+      messages.delete(attribute)
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
@@ -130,15 +132,6 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
-    #
-    # Note that, if you try to get errors of an attribute which has
-    # no errors associated with it, this method will instantiate
-    # an empty error list for it and +keys+ will return an array
-    # of error keys which includes this attribute.
-    #
-    #   person.errors.keys    # => []
-    #   person.errors[:name]  # => []
-    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -179,7 +172,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.values
+      messages.select do |key, value|
+        !value.empty?
+      end.values
     end
 
     # Returns all message keys.
@@ -187,7 +182,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.keys
+      messages.select do |key, value|
+        !value.empty?
+      end.keys
     end
 
     # Returns +true+ if no errors are found, +false+ otherwise.
@@ -211,7 +208,7 @@ module ActiveModel
     #   #    <error>name can't be blank</error>
     #   #    <error>name must be specified</error>
     #   #  </errors>
-    def to_xml(options={})
+    def to_xml(options = {})
       to_a.to_xml({ root: "errors", skip_types: true }.merge!(options))
     end
 
@@ -221,7 +218,7 @@ module ActiveModel
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
-    def as_json(options=nil)
+    def as_json(options = nil)
       to_hash(options && options[:full_messages])
     end
 
@@ -342,6 +339,7 @@ module ActiveModel
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
+      attribute = attribute.to_sym
       messages[attribute].map { |message| full_message(attribute, message) }
     end
 
@@ -416,12 +414,19 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-    def marshal_dump
+    def marshal_dump # :nodoc:
       [@base, without_default_proc(@messages), without_default_proc(@details)]
     end
 
-    def marshal_load(array)
+    def marshal_load(array) # :nodoc:
       @base, @messages, @details = array
+      apply_default_array(@messages)
+      apply_default_array(@details)
+    end
+
+    def init_with(coder) # :nodoc:
+      coder.map.each { |k, v| instance_variable_set(:"@#{k}", v) }
+      @details ||= {}
       apply_default_array(@messages)
       apply_default_array(@details)
     end

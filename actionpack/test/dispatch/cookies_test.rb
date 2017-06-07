@@ -43,7 +43,7 @@ class CookieJarTest < ActiveSupport::TestCase
   def test_each
     request.cookie_jar["foo"] = :bar
     list = []
-    request.cookie_jar.each do |k,v|
+    request.cookie_jar.each do |k, v|
       list << [k, v]
     end
 
@@ -52,7 +52,7 @@ class CookieJarTest < ActiveSupport::TestCase
 
   def test_enumerable
     request.cookie_jar["foo"] = :bar
-    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    actual = request.cookie_jar.map { |k, v| [k.to_s, v.to_s] }
     assert_equal [["foo", "bar"]], actual
   end
 
@@ -95,17 +95,17 @@ class CookiesTest < ActionController::TestCase
     end
 
     def authenticate_for_fourteen_days
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def authenticate_for_fourteen_days_with_symbols
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
     def set_multiple_cookies
-      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10,5) }
+      cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       cookies["login"]     = "XJ-122"
       head :ok
     end
@@ -205,7 +205,7 @@ class CookiesTest < ActionController::TestCase
 
     def delete_and_set_cookie
       cookies.delete :user_name
-      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10,5) }
+      cookies[:user_name] = { value: "david", expires: Time.utc(2005, 10, 10, 5) }
       head :ok
     end
 
@@ -272,6 +272,10 @@ class CookiesTest < ActionController::TestCase
     def noop
       head :ok
     end
+
+    def encrypted_cookie
+      cookies.encrypted["foo"]
+    end
   end
 
   tests TestController
@@ -284,8 +288,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new(SALT, iterations: 2)
 
     @request.env["action_dispatch.signed_cookie_salt"] =
-      @request.env["action_dispatch.encrypted_cookie_salt"] =
-      @request.env["action_dispatch.encrypted_signed_cookie_salt"] = SALT
+      @request.env["action_dispatch.authenticated_encrypted_cookie_salt"] = SALT
 
     @request.host = "www.nextangle.com"
   end
@@ -527,9 +530,7 @@ class CookiesTest < ActionController::TestCase
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal "bar", cookies[:foo]
-    assert_raise TypeError do
-      cookies.signed[:foo]
-    end
+    assert_nil cookies.signed[:foo]
     assert_equal "bar", cookies.encrypted[:foo]
   end
 
@@ -538,9 +539,7 @@ class CookiesTest < ActionController::TestCase
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal "bar", cookies[:foo]
-    assert_raises TypeError do
-      cookies.signed[:foo]
-    end
+    assert_nil cookies.signed[:foo]
     assert_equal "bar", cookies.encrypted[:foo]
   end
 
@@ -549,9 +548,7 @@ class CookiesTest < ActionController::TestCase
     get :set_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal "bar", cookies[:foo]
-    assert_raises ::JSON::ParserError do
-      cookies.signed[:foo]
-    end
+    assert_nil cookies.signed[:foo]
     assert_equal "bar", cookies.encrypted[:foo]
   end
 
@@ -560,9 +557,7 @@ class CookiesTest < ActionController::TestCase
     get :set_wrapped_encrypted_cookie
     cookies = @controller.send :cookies
     assert_not_equal "wrapped: bar", cookies[:foo]
-    assert_raises ::JSON::ParserError do
-      cookies.signed[:foo]
-    end
+    assert_nil cookies.signed[:foo]
     assert_equal "wrapped: bar", cookies.encrypted[:foo]
   end
 
@@ -573,38 +568,16 @@ class CookiesTest < ActionController::TestCase
     assert_equal "bar was dumped and loaded", cookies.encrypted[:foo]
   end
 
-  def test_encrypted_cookie_using_custom_digest
-    @request.env["action_dispatch.cookies_digest"] = "SHA256"
-    get :set_encrypted_cookie
-    cookies = @controller.send :cookies
-    assert_not_equal "bar", cookies[:foo]
-    assert_equal "bar", cookies.encrypted[:foo]
-
-    sign_secret = @request.env["action_dispatch.key_generator"].generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-
-    sha1_verifier   = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: "SHA1")
-    sha256_verifier = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: "SHA256")
-
-    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
-      sha1_verifier.verify(cookies[:foo])
-    end
-
-    assert_nothing_raised do
-      sha256_verifier.verify(cookies[:foo])
-    end
-  end
-
   def test_encrypted_cookie_using_hybrid_serializer_can_migrate_marshal_dumped_value_to_json
     @request.env["action_dispatch.cookies_serializer"] = :hybrid
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
-    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
-    secret = key_generator.generate_key(encrypted_cookie_salt)
-    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: Marshal)
 
-    marshal_value = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: Marshal).encrypt_and_sign("bar")
-    @request.headers["Cookie"] = "foo=#{marshal_value}"
+    marshal_value = encryptor.encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
 
     get :get_encrypted_cookie
 
@@ -612,20 +585,21 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal "bar", cookies[:foo]
     assert_equal "bar", cookies.encrypted[:foo]
 
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON)
-    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
+    json_encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: JSON)
+    assert_not_nil @response.cookies["foo"]
+    assert_equal "bar", json_encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
   def test_encrypted_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
     @request.env["action_dispatch.cookies_serializer"] = :hybrid
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
-    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
-    secret = key_generator.generate_key(encrypted_cookie_salt)
-    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
-    json_value = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON).encrypt_and_sign("bar")
-    @request.headers["Cookie"] = "foo=#{json_value}"
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: JSON)
+
+    json_value = encryptor.encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape json_value}"
 
     get :get_encrypted_cookie
 
@@ -633,19 +607,6 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal "bar", cookies[:foo]
     assert_equal "bar", cookies.encrypted[:foo]
 
-    assert_nil @response.cookies["foo"]
-  end
-
-  def test_compat_encrypted_cookie_using_64_byte_key
-    # Cookie generated with 64 bytes secret
-    message = ["566d4e75536d686e633246564e6b493062557079626c566d51574d30515430394c53315665564a694e4563786555744f57537454576b396a5a31566a626e52525054303d2d2d34663234333330623130623261306163363562316266323335396164666364613564643134623131"].pack("H*")
-    @request.headers["Cookie"] = "foo=#{message}"
-
-    get :get_encrypted_cookie
-
-    cookies = @controller.send :cookies
-    assert_not_equal "bar", cookies[:foo]
-    assert_equal "bar", cookies.encrypted[:foo]
     assert_nil @response.cookies["foo"]
   end
 
@@ -809,10 +770,10 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
-    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret)
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: Marshal)
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
@@ -838,8 +799,6 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_serializer"] = :json
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
-    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
 
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate("bar")
 
@@ -848,10 +807,10 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
-    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON)
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: JSON)
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
@@ -877,8 +836,6 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_serializer"] = :hybrid
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
-    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
 
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate("bar")
 
@@ -887,10 +844,10 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
-    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON)
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: JSON)
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
@@ -916,8 +873,6 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_serializer"] = :hybrid
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
-    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
 
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate("bar")
 
@@ -926,10 +881,10 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
-    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
-    encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON)
+    cipher = "aes-256-gcm"
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: JSON)
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
@@ -940,8 +895,8 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "user_id=45"
     get :get_signed_cookie
 
-    assert_equal nil, @controller.send(:cookies).signed[:user_id]
-    assert_equal nil, @response.cookies["user_id"]
+    assert_nil @controller.send(:cookies).signed[:user_id]
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_legacy_signed_cookie_is_treated_as_nil_by_encrypted_cookie_jar_if_tampered
@@ -951,8 +906,91 @@ class CookiesTest < ActionController::TestCase
     @request.headers["Cookie"] = "foo=baz"
     get :get_encrypted_cookie
 
-    assert_equal nil, @controller.send(:cookies).encrypted[:foo]
-    assert_equal nil, @response.cookies["foo"]
+    assert_nil @controller.send(:cookies).encrypted[:foo]
+    assert_nil @response.cookies["foo"]
+  end
+
+  def test_legacy_hmac_aes_cbc_encrypted_marshal_cookie_is_upgraded_to_authenticated_encrypted_cookie
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.env["action_dispatch.encrypted_cookie_salt"] =
+      @request.env["action_dispatch.encrypted_signed_cookie_salt"] = SALT
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    marshal_value = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: Marshal).encrypt_and_sign("bar")
+
+    @request.headers["Cookie"] = "foo=#{marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    aead_cipher = "aes-256-gcm"
+    aead_salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    aead_secret = key_generator.generate_key(aead_salt)[0, ActiveSupport::MessageEncryptor.key_len(aead_cipher)]
+    aead_encryptor = ActiveSupport::MessageEncryptor.new(aead_secret, cipher: aead_cipher, serializer: Marshal)
+
+    assert_equal "bar", aead_encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_hmac_aes_cbc_encrypted_json_cookie_is_upgraded_to_authenticated_encrypted_cookie
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.env["action_dispatch.encrypted_cookie_salt"] =
+      @request.env["action_dispatch.encrypted_signed_cookie_salt"] = SALT
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    marshal_value = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len], sign_secret, serializer: JSON).encrypt_and_sign("bar")
+
+    @request.headers["Cookie"] = "foo=#{marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    aead_cipher = "aes-256-gcm"
+    aead_salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    aead_secret = key_generator.generate_key(aead_salt)[0, ActiveSupport::MessageEncryptor.key_len(aead_cipher)]
+    aead_encryptor = ActiveSupport::MessageEncryptor.new(aead_secret, cipher: aead_cipher, serializer: JSON)
+
+    assert_equal "bar", aead_encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_hmac_aes_cbc_encrypted_cookie_using_64_byte_key_is_upgraded_to_authenticated_encrypted_cookie
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.env["action_dispatch.encrypted_cookie_salt"] =
+      @request.env["action_dispatch.encrypted_signed_cookie_salt"] = SALT
+
+    # Cookie generated with 64 bytes secret
+    message = ["566d4e75536d686e633246564e6b493062557079626c566d51574d30515430394c53315665564a694e4563786555744f57537454576b396a5a31566a626e52525054303d2d2d34663234333330623130623261306163363562316266323335396164666364613564643134623131"].pack("H*")
+    @request.headers["Cookie"] = "foo=#{message}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+    cipher = "aes-256-gcm"
+
+    salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    secret = @request.env["action_dispatch.key_generator"].generate_key(salt)[0, ActiveSupport::MessageEncryptor.key_len(cipher)]
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: Marshal)
+
+    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
   def test_cookie_with_all_domain_option
@@ -1187,6 +1225,12 @@ class CookiesTest < ActionController::TestCase
     get :noop
     assert_equal "david", cookies["user_name"]
     assert_equal "david", cookies[:user_name]
+  end
+
+  def test_cookies_are_not_cleared
+    cookies.encrypted["foo"] = "bar"
+    get :noop
+    assert_equal "bar", @controller.encrypted_cookie
   end
 
   private

@@ -1,5 +1,4 @@
 require "zlib"
-require "active_support/core_ext/regexp"
 
 module ActionView
   # = Action View Asset URL Helpers
@@ -97,8 +96,8 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     # Note that the request parameter might not be supplied, e.g. when the assets
-    # are precompiled via a Rake task. Make sure to use a Proc instead of a lambda,
-    # since a Proc allows missing parameters and sets them to nil.
+    # are precompiled via a Rake task. Make sure to use a +Proc+ instead of a lambda,
+    # since a +Proc+ allows missing parameters and sets them to +nil+.
     #
     #   config.action_controller.asset_host = Proc.new { |source, request|
     #     if request && request.ssl?
@@ -233,12 +232,16 @@ module ActionView
         stylesheet: ".css"
       }
 
-      # Compute extname to append to asset path. Returns nil if
+      # Compute extname to append to asset path. Returns +nil+ if
       # nothing should be added.
       def compute_asset_extname(source, options = {})
         return if options[:extname] == false
         extname = options[:extname] || ASSET_EXTENSIONS[options[:type]]
-        extname if extname && File.extname(source) != extname
+        if extname && File.extname(source) != extname
+          extname
+        else
+          nil
+        end
       end
 
       # Maps asset types to public directory.
@@ -407,7 +410,7 @@ module ActionView
       def video_url(source, options = {})
         url_to_asset(source, { type: :video }.merge!(options))
       end
-      alias_method :url_to_video, :video_url # aliased to avoid conflicts with an video_url named route
+      alias_method :url_to_video, :video_url # aliased to avoid conflicts with a video_url named route
 
       # Computes the path to an audio asset in the public audios directory.
       # Full paths from the document root will be passed through.
@@ -446,7 +449,7 @@ module ActionView
       def font_path(source, options = {})
         path_to_asset(source, { type: :font }.merge!(options))
       end
-      alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
+      alias_method :path_to_font, :font_path # aliased to avoid conflicts with a font_path named route
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
@@ -458,7 +461,7 @@ module ActionView
       def font_url(source, options = {})
         url_to_asset(source, { type: :font }.merge!(options))
       end
-      alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
+      alias_method :url_to_font, :font_url # aliased to avoid conflicts with a font_url named route
     end
   end
 end

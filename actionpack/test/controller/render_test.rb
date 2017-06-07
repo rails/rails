@@ -257,7 +257,7 @@ end
 module TemplateModificationHelper
   private
     def modify_template(name)
-      path = File.expand_path("../../fixtures/#{name}.erb", __FILE__)
+      path = File.expand_path("../fixtures/#{name}.erb", __dir__)
       original = File.read(path)
       File.write(path, "#{original} Modified!")
       ActionView::LookupContext::DetailsKey.clear
@@ -287,9 +287,9 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     response = get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
-    assert_equal File.read(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb")),
+    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
       response.body
   end
 
@@ -306,17 +306,16 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
       get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
   end
 
   def test_permitted_dynamic_render_file_hash
-    skip "FIXME: this test passes on 4-2-stable but not master. Why?"
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     response = get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
-    assert_equal File.read(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb")),
+    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
       response.body
   end
 
@@ -368,7 +367,7 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_date_header_when_expires_in
-    time = Time.mktime(2011,10,30)
+    time = Time.mktime(2011, 10, 30)
     Time.stub :now, time do
       get :conditional_hello_with_expires_in
       assert_equal Time.now.httpdate, @response.headers["Date"]

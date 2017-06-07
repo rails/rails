@@ -23,8 +23,8 @@ module ActiveSupport
   module LazyLoadHooks
     def self.extended(base) # :nodoc:
       base.class_eval do
-        @load_hooks = Hash.new { |h,k| h[k] = [] }
-        @loaded     = Hash.new { |h,k| h[k] = [] }
+        @load_hooks = Hash.new { |h, k| h[k] = [] }
+        @loaded     = Hash.new { |h, k| h[k] = [] }
       end
     end
 

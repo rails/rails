@@ -1,227 +1,99 @@
-*   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
+*   Cache: `write_multi`
 
-    Previously calls to `in` were being sent to the non-DST aware
-    method `Time#since` via `method_missing`. It is now aliased to
-    the DST aware `ActiveSupport::TimeWithZone#+` which handles
-    transitions across DST boundaries, e.g:
+        Rails.cache.write_multi foo: 'bar', baz: 'qux'
 
-        Time.zone = "US/Eastern"
+    Plus faster fetch_multi with stores that implement `write_multi_entries`.
+    Keys that aren't found may be written to the cache store in one shot
+    instead of separate writes.
 
-        t = Time.zone.local(2016,11,6,1)
-        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00 
-
-        t.in(1.hour)
-        # => Sun, 06 Nov 2016 01:00:00 EST -05:00 
-
-    Fixes #26580.
-
-    *Thomas Balthazar*
-
-*   Remove unused parameter `options = nil` for `#clear` of
-    `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
-    `ActiveSupport::Cache::Strategy::LocalCache`.
-
-    *Yosuke Kabuto*
-
-*   Fix `thread_mattr_accessor` subclass no longer overwrites parent.
-
-    Assigning a value to a subclass using `thread_mattr_accessor` no
-    longer changes the value of the parent class. This brings the
-    behavior inline with the documentation.
-
-    Given:
-
-        class Account
-          thread_mattr_accessor :user
-        end
-
-        class Customer < Account
-        end
-
-        Account.user = "DHH"
-        Customer.user = "Rafael"
-
-    Before:
-
-        Account.user  # => "Rafael"
-
-    After:
-
-        Account.user  # => "DHH"
-
-    *Shinichi Maeshima*
-
-*   Since weeks are no longer converted to days, add `:weeks` to the list of
-    parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
-    of variable duration to take account of DST transitions.
-
-    Fixes #26039.
-
-    *Andrew White*
-
-*   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
-    has the same interface, but it does not have the performance boost. Its
-    purpose is to be able to write 2.4 compatible code.
-
-    *Xavier Noria*
-
-*   Allow `MessageEncryptor` to take advantage of authenticated encryption modes.
-
-    AEAD modes like `aes-256-gcm` provide both confidentiality and data
-    authenticity, eliminating the need to use `MessageVerifier` to check if the
-    encrypted data has been tampered with. This speeds up encryption/decryption
-    and results in shorter cipher text.
-
-    *Bart de Water*
-
-*   Introduce `assert_changes` and `assert_no_changes`.
-
-    `assert_changes` is a more general `assert_difference` that works with any
-    value.
-
-        assert_changes 'Error.current', from: nil, to: 'ERR' do
-          expected_bad_operation
-        end
-
-    Can be called with strings, to be evaluated in the binding (context) of
-    the block given to the assertion, or a lambda.
-
-        assert_changes -> { Error.current }, from: nil, to: 'ERR' do
-          expected_bad_operation
-        end
-
-    The `from` and `to` arguments are compared with the case operator (`===`).
-
-        assert_changes 'Error.current', from: nil, to: Error do
-          expected_bad_operation
-        end
-
-    This is pretty useful, if you need to loosely compare a value. For example,
-    you need to test a token has been generated and it has that many random
-    characters.
-
-        user = User.start_registration
-        assert_changes 'user.token', to: /\w{32}/ do
-          user.finish_registration
-        end
-
-    *Genadi Samokovarov*
-
-*   Add `:fallback_string` option to `Array#to_sentence`. If an empty array
-    calls the function and a fallback string option is set then it returns the
-    fallback string other than an empty string.
-
-    *Mohamed Osama*
-
-*   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
-    given time doesn't match the format. The error is the same as the one given
-    by Ruby's `Date.strptime`. Previously it raised
-    `NoMethodError: undefined method empty? for nil:NilClass.` due to a bug.
-
-    Fixes #25701.
-
-    *John Gesimondo*
-
-*   `travel/travel_to` travel time helpers, now raise on nested calls,
-     as this can lead to confusing time stubbing.
-
-     Instead of:
-
-         travel_to 2.days.from_now do
-           # 2 days from today
-           travel_to 3.days.from_now do
-             # 5 days from today
-           end
-         end
-
-     preferred way to achieve above is:
-
-         travel 2.days do
-           # 2 days from today
-         end
-
-         travel 5.days do
-           # 5 days from today
-         end
-
-     *Vipul A M*
-
-*   Support parsing JSON time in ISO8601 local time strings in
-    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
-    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
-    the end) will be parsed in the local timezone (`Time.zone`). In
-    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
-    objects.
-
-    *Grzegorz Witek*
-
-*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
-    properly delegate to all loggers. Silencing now properly suppresses logging
-    to both the log and the console.
-
-    *Kevin McPhillips*
-
-*   Remove deprecated arguments in `assert_nothing_raised`.
-
-    *Rafel Mendonça França*
-
-*   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
-    will now produce `01 Feb` instead of ` 1 Feb`.
-
-    Fixes #25251.
-
-    *Sean Griffin*
-
-*   Introduce `Module#delegate_missing_to`.
-
-    When building a decorator, a common pattern emerges:
-
-        class Partition
-          def initialize(first_event)
-            @events = [ first_event ]
-          end
-
-          def people
-            if @events.first.detail.people.any?
-              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-            else
-              @events.collect(&:creator).uniq
-            end
-          end
-
-          private
-            def respond_to_missing?(name, include_private = false)
-              @events.respond_to?(name, include_private)
-            end
-
-            def method_missing(method, *args, &block)
-              @events.send(method, *args, &block)
-            end
-        end
-
-    With `Module#delegate_missing_to`, the above is condensed to:
-
-        class Partition
-          delegate_missing_to :@events
-
-          def initialize(first_event)
-            @events = [ first_event ]
-          end
-
-          def people
-            if @events.first.detail.people.any?
-              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-            else
-              @events.collect(&:creator).uniq
-            end
-          end
-        end
-
-    *Genadi Samokovarov*, *DHH*
-
-*   Rescuable: If a handler doesn't match the exception, check for handlers
-    matching the exception's cause.
+    The default implementation simply calls `write_entry` for each entry.
+    Stores may override if they're capable of one-shot bulk writes, like
+    Redis `MSET`.
 
     *Jeremy Daer*
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activesupport/CHANGELOG.md) for previous changes.
+*   Add default option to module and class attribute accessors.
+
+        mattr_accessor :settings, default: {}
+
+    Works for `mattr_reader`, `mattr_writer`, `cattr_accessor`, `cattr_reader`,
+    and `cattr_writer` as well.
+
+    *Genadi Samokovarov*
+
+*   Add `Date#prev_occurring` and `Date#next_occurring` to return specified next/previous occurring day of week.
+
+    *Shota Iguchi*
+
+*   Add default option to `class_attribute`.
+
+    Before:
+
+        class_attribute :settings
+        self.settings = {}
+
+    Now:
+
+        class_attribute :settings, default: {}
+
+    *DHH*
+
+*   `#singularize` and `#pluralize` now respect uncountables for the specified locale.
+
+    *Eilis Hamilton*
+
+*   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated attributes singleton.
+    Primary use case is keeping all the per-request attributes easily available to the whole system.
+
+    *DHH*
+
+*   Fix implicit coercion calculations with scalars and durations
+
+    Previously calculations where the scalar is first would be converted to a duration
+    of seconds but this causes issues with dates being converted to times, e.g:
+
+        Time.zone = "Beijing"           # => Asia/Shanghai
+        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
+        2 * 1.day                       # => 172800 seconds
+        date + 2 * 1.day                # => Mon, 22 May 2017 00:00:00 CST +08:00
+
+    Now the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
+    the part structure of the duration where possible, e.g:
+
+        Time.zone = "Beijing"           # => Asia/Shanghai
+        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
+        2 * 1.day                       # => 2 days
+        date + 2 * 1.day                # => Mon, 22 May 2017
+
+    Fixes #29160, #28970.
+
+    *Andrew White*
+
+*   Add support for versioned cache entries. This enables the cache stores to recycle cache keys, greatly saving
+    on storage in cases with frequent churn. Works together with the separation of `#cache_key` and `#cache_version`
+    in Active Record and its use in Action Pack's fragment caching.
+
+    *DHH*
+
+*   Pass gem name and deprecation horizon to deprecation notifications.
+
+    *Willem van Bergen*
+
+*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
+
+    *Andrew White*
+
+*   Add support for `:offset` to `Time#change`
+
+    Fixes #28723.
+
+    *Andrew White*
+
+*   Add `fetch_values` for `HashWithIndifferentAccess`
+
+    The method was originally added to `Hash` in Ruby 2.3.0.
+
+    *Josh Pencheon*
+
+
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activesupport/CHANGELOG.md) for previous changes.

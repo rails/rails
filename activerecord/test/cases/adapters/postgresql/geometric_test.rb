@@ -93,10 +93,8 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_empty_string_assignment
-    assert_nothing_raised { PostgresqlPoint.new(x: "") }
-
     p = PostgresqlPoint.new(x: "")
-    assert_equal nil, p.x
+    assert_nil p.x
   end
 
   def test_array_of_points_round_trip

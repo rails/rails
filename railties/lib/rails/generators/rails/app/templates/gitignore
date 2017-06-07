@@ -21,5 +21,9 @@
 !/tmp/.keep
 <% end -%>
 
-# Ignore Byebug command history file.
+<% unless options[:skip_yarn] -%>
+/node_modules
+/yarn-error.log
+
+<% end -%>
 .byebug_history

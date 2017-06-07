@@ -10,7 +10,7 @@ require "models/person"
 require "models/reference"
 
 class RelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts, :developers_projects
 
   setup do
     developers(:david)
@@ -28,7 +28,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scope_breaks_caching_on_collections
     author = authors :david
     ids = author.reload.special_posts_with_default_scope.map(&:id)
-    assert_equal [1,5,6], ids.sort
+    assert_equal [1, 5, 6], ids.sort
     scoped_posts = SpecialPostWithDefaultScope.unscoped do
       author = authors :david
       author.reload.special_posts_with_default_scope.to_a
@@ -229,16 +229,23 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_circular_joins_with_current_scope_does_not_crash
+  def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
-      Post.current_scope.first(10)
+      Post.first(10)
     end
     assert_equal posts, Post.joins(comments: :post).first(10)
+  end
+
+  def test_circular_left_joins_with_scoping_does_not_crash
+    posts = Post.left_joins(comments: :post).scoping do
+      Post.first(10)
+    end
+    assert_equal posts, Post.left_joins(comments: :post).first(10)
   end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.where("salary = 80000").scoping do
@@ -277,7 +284,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
         assert_equal "David", Developer.first.name
 
         Developer.unscoped.where("name = 'Maiha'") do
-          assert_equal nil, Developer.first
+          assert_nil Developer.first
         end
 
         # ensure that scoping is restored

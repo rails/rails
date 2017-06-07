@@ -1,6 +1,5 @@
 require "action_view/helpers/tag_helper"
 require "active_support/core_ext/string/access"
-require "active_support/core_ext/regexp"
 require "i18n/exceptions"
 
 module ActionView
@@ -12,8 +11,7 @@ module ActionView
       include TagHelper
 
       included do
-        mattr_accessor :debug_missing_translation
-        self.debug_missing_translation = true
+        mattr_accessor :debug_missing_translation, default: true
       end
 
       # Delegates to <tt>I18n#translate</tt> but also performs three additional

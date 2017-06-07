@@ -38,7 +38,6 @@ module ActiveJob
       end
 
       private
-
         def job_to_hash(job, extras = {})
           { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
         end

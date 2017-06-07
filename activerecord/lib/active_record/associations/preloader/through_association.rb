@@ -16,15 +16,13 @@ module ActiveRecord
                             through_scope)
 
           through_records = owners.map do |owner|
-            association = owner.association through_reflection.name
-
-            center = target_records_from_association(association)
+            center = owner.association(through_reflection.name).target
             [owner, Array(center)]
           end
 
           reset_association owners, through_reflection.name
 
-          middle_records = through_records.flat_map { |(_,rec)| rec }
+          middle_records = through_records.flat_map(&:last)
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -32,20 +30,18 @@ module ActiveRecord
 
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
-          middle_to_pl = preloaders.each_with_object({}) do |pl,h|
+          middle_to_pl = preloaders.each_with_object({}) do |pl, h|
             pl.owners.each { |middle|
               h[middle] = pl
             }
           end
 
-          through_records.each_with_object({}) do |(lhs,center), records_by_owner|
+          through_records.each_with_object({}) do |(lhs, center), records_by_owner|
             pl_to_middle = center.group_by { |record| middle_to_pl[record] }
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
               rhs_records = middles.flat_map { |r|
-                association = r.association source_reflection.name
-
-                target_records_from_association(association)
+                r.association(source_reflection.name).target
               }.compact
 
               # Respect the order on `reflection_scope` if it exists, else use the natural order.
@@ -69,7 +65,7 @@ module ActiveRecord
 
           def reset_association(owners, association_name)
             should_reset = (through_scope != through_reflection.klass.unscoped) ||
-               (reflection.options[:source_type] && through_reflection.collection?)
+               (options[:source_type] && through_reflection.collection?)
 
             # Don't cache the association - we would only be caching a subset
             if should_reset
@@ -97,10 +93,6 @@ module ActiveRecord
             end
 
             scope
-          end
-
-          def target_records_from_association(association)
-            association.loaded? ? association.target : association.reader
           end
       end
     end

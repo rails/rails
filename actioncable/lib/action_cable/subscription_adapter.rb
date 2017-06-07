@@ -4,5 +4,6 @@ module ActionCable
 
     autoload :Base
     autoload :SubscriberMap
+    autoload :ChannelPrefix
   end
 end

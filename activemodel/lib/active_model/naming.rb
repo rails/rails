@@ -1,7 +1,6 @@
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/remove_method"
-require "active_support/core_ext/module/delegation"
 
 module ActiveModel
   class Name
@@ -174,7 +173,7 @@ module ActiveModel
     #   BlogPost.model_name.human # => "Blog post"
     #
     # Specify +options+ with additional translating options.
-    def human(options={})
+    def human(options = {})
       return @human unless @klass.respond_to?(:lookup_ancestors) &&
                            @klass.respond_to?(:i18n_scope)
 
@@ -235,7 +234,7 @@ module ActiveModel
     #   Person.model_name.plural   # => "people"
     def model_name
       @_model_name ||= begin
-        namespace = self.parents.detect do |n|
+        namespace = parents.detect do |n|
           n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
         end
         ActiveModel::Name.new(self, namespace)

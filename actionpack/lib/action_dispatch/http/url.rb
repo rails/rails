@@ -7,8 +7,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
-      mattr_accessor :tld_length
-      self.tld_length = 1
+      mattr_accessor :tld_length, default: 1
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -66,7 +65,7 @@ module ActionDispatch
         end
 
         def path_for(options)
-          path  = options[:script_name].to_s.chomp("/".freeze)
+          path = options[:script_name].to_s.chomp("/".freeze)
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
@@ -80,7 +79,7 @@ module ActionDispatch
 
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
-          params.reject! { |_,v| v.to_param.nil? }
+          params.reject! { |_, v| v.to_param.nil? }
           query = params.to_query
           path << "?#{query}" unless query.empty?
         end
@@ -101,10 +100,8 @@ module ActionDispatch
         end
 
         def add_trailing_slash(path)
-          # includes querysting
           if path.include?("?")
             path.sub!(/\?/, '/\&')
-          # does not have a .format
           elsif !path.include?(".")
             path.sub!(/[^\/]\z|\A\z/, '\&/')
           end

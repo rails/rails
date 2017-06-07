@@ -108,7 +108,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set(secure: true) do
       get "/set_session_value"
       assert_response :success
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
     end
   end
 
@@ -169,17 +169,17 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/no_session_access"
       assert_response :success
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
     end
   end
 
   def test_doesnt_write_session_cookie_if_session_is_unchanged
     with_test_route_set do
-      cookies[SessionKey] = "BAh7BjoIZm9vIghiYXI%3D--" +
+      cookies[SessionKey] = "BAh7BjoIZm9vIghiYXI%3D--" \
         "fef868465920f415f2c0652d6910d3af288a0367"
       get "/no_session_access"
       assert_response :success
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
     end
   end
 

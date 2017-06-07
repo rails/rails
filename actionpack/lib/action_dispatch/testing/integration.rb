@@ -2,7 +2,6 @@ require "stringio"
 require "uri"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/object/try"
-require "active_support/core_ext/string/strip"
 require "rack/test"
 require "minitest"
 
@@ -69,7 +68,7 @@ module ActionDispatch
       DEFAULT_HOST = "www.example.com"
 
       include Minitest::Assertions
-      include RequestHelpers, Assertions
+      include TestProcess, RequestHelpers, Assertions
 
       %w( status status_message headers body redirect? ).each do |method|
         delegate method, to: :response, allow_nil: true
@@ -145,8 +144,8 @@ module ActionDispatch
 
         self.host        = DEFAULT_HOST
         self.remote_addr = "127.0.0.1"
-        self.accept      = "text/xml,application/xml,application/xhtml+xml," +
-                           "text/html;q=0.9,text/plain;q=0.8,image/png," +
+        self.accept      = "text/xml,application/xml,application/xhtml+xml," \
+                           "text/html;q=0.9,text/plain;q=0.8,image/png," \
                            "*/*;q=0.5"
 
         unless defined? @named_routes_configured
@@ -193,11 +192,10 @@ module ActionDispatch
       # HTTP methods in integration tests. +#process+ is only required when using a
       # request method that doesn't have a method defined in the integration tests.
       #
-      # This method returns a Response object, which one can use to
-      # inspect the details of the response. Furthermore, if this method was
-      # called from an ActionDispatch::IntegrationTest object, then that
-      # object's <tt>@response</tt> instance variable will point to the same
-      # response object.
+      # This method returns the response status, after performing the request.
+      # Furthermore, if this method was called from an ActionDispatch::IntegrationTest object,
+      # then that object's <tt>@response</tt> instance variable will point to a Response object
+      # which one can use to inspect the details of the response.
       #
       # Example:
       #   process :get, '/author', params: { since: 201501011400 }
@@ -211,7 +209,7 @@ module ActionDispatch
         end
 
         if path =~ %r{://}
-          path = build_expanded_path(path, request_encoder) do |location|
+          path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
             if url_host = location.host
@@ -220,8 +218,6 @@ module ActionDispatch
               host! url_host
             end
           end
-        elsif as
-          path = build_expanded_path(path, request_encoder)
         end
 
         hostname, port = host.split(":")
@@ -239,7 +235,7 @@ module ActionDispatch
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
           "CONTENT_TYPE"   => request_encoder.content_type,
-          "HTTP_ACCEPT"    => accept
+          "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
         wrapped_headers = Http::Headers.from_hash({})
@@ -250,7 +246,7 @@ module ActionDispatch
           wrapped_headers["HTTP_ACCEPT"] ||= [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(", ")
         end
 
-        # this modifies the passed request_env directly
+        # This modifies the passed request_env directly.
         if wrapped_headers.present?
           Http::Headers.from_hash(request_env).merge!(wrapped_headers)
         end
@@ -261,11 +257,11 @@ module ActionDispatch
         session = Rack::Test::Session.new(_mock_session)
 
         # NOTE: rack-test v0.5 doesn't build a default uri correctly
-        # Make sure requested path is always a full uri
+        # Make sure requested path is always a full URI.
         session.request(build_full_uri(path, request_env), request_env)
 
         @request_count += 1
-        @request  = ActionDispatch::Request.new(session.last_request.env)
+        @request = ActionDispatch::Request.new(session.last_request.env)
         response = _mock_session.last_response
         @response = ActionDispatch::TestResponse.from_response(response)
         @response.request = @request
@@ -291,10 +287,10 @@ module ActionDispatch
           "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
         end
 
-        def build_expanded_path(path, request_encoder)
+        def build_expanded_path(path)
           location = URI.parse(path)
           yield location if block_given?
-          path = request_encoder.append_format_to location.path
+          path = location.path
           location.query ? "#{path}?#{location.query}" : path
         end
     end
@@ -328,8 +324,8 @@ module ActionDispatch
 
       def create_session(app)
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
-          # If the app is a Rails app, make url_helpers available on the session
-          # This makes app.url_for and app.foo_path available in the console
+          # If the app is a Rails app, make url_helpers available on the session.
+          # This makes app.url_for and app.foo_path available in the console.
           if app.respond_to?(:routes)
             include app.routes.url_helpers
             include app.routes.mounted_helpers
@@ -368,6 +364,7 @@ module ActionDispatch
       # simultaneously.
       def open_session
         dup.tap do |session|
+          session.reset!
           yield session if block_given?
         end
       end
@@ -388,14 +385,15 @@ module ActionDispatch
         integration_session.default_url_options = options
       end
 
-      def respond_to_missing?(method, include_private = false)
-        integration_session.respond_to?(method, include_private) || super
+    private
+      def respond_to_missing?(method, _)
+        integration_session.respond_to?(method) || super
       end
 
       # Delegate unhandled messages to the current session instance.
-      def method_missing(sym, *args, &block)
-        if integration_session.respond_to?(sym)
-          integration_session.__send__(sym, *args, &block).tap do
+      def method_missing(method, *args, &block)
+        if integration_session.respond_to?(method)
+          integration_session.public_send(method, *args, &block).tap do
             copy_session_variables!
           end
         else
@@ -574,17 +572,19 @@ module ActionDispatch
   #       end
   #
   #       assert_response :success
-  #       assert_equal({ id: Arcticle.last.id, title: "Ahoy!" }, response.parsed_body)
+  #       assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
   #     end
   #   end
   #
-  # The +as+ option sets the format to JSON, sets the content type to
+  # The +as+ option passes an "application/json" Accept header (thereby setting
+  # the request format to JSON unless overridden), sets the content type to
   # "application/json" and encodes the parameters as JSON.
   #
   # Calling +parsed_body+ on the response parses the response body based on the
   # last response MIME type.
   #
-  # For any custom MIME types you've registered, you can even add your own encoders with:
+  # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
+  # types you've registered, you can add your own encoders with:
   #
   #   ActionDispatch::IntegrationTest.register_encoder :wibble,
   #     param_encoder: -> params { params.to_wibble },
@@ -597,9 +597,7 @@ module ActionDispatch
   # Consult the Rails Testing Guide for more.
 
   class IntegrationTest < ActiveSupport::TestCase
-    include TestProcess
-
-    undef :assigns
+    include TestProcess::FixtureFile
 
     module UrlOptions
       extend ActiveSupport::Concern

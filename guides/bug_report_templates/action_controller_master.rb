@@ -8,12 +8,13 @@ end
 gemfile(true) do
   source "https://rubygems.org"
   gem "rails", github: "rails/rails"
+  gem "arel", github: "rails/arel"
 end
 
 require "action_controller/railtie"
 
 class TestApp < Rails::Application
-  config.root = File.dirname(__FILE__)
+  config.root = __dir__
   secrets.secret_token    = "secret_token"
   secrets.secret_key_base = "secret_key_base"
 

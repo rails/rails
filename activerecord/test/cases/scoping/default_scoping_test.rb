@@ -5,7 +5,7 @@ require "models/developer"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
-require "active_support/core_ext/regexp"
+require "concurrent/atomic/cyclic_barrier"
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
@@ -51,23 +51,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_equal nil, DeveloperCalledDavid.create!.name
+    assert_nil DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
     assert_equal Developer.where(name: "Jamis").map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
     assert_equal "Jamis", DeveloperCalledJamis.create!.name
-  end
-
-  unless in_memory_db?
-    def test_default_scoping_with_threads
-      2.times do
-        Thread.new {
-          assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
-          DeveloperOrderedBySalary.connection.close
-        }.join
-      end
-    end
   end
 
   def test_default_scope_with_inheritance
@@ -315,7 +304,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_create_attribute_overwrites_default_values
-    assert_equal nil, PoorDeveloperCalledJamis.create!(salary: nil).salary
+    assert_nil PoorDeveloperCalledJamis.create!(salary: nil).salary
     assert_equal 50000, PoorDeveloperCalledJamis.create!(name: "David").salary
   end
 
@@ -433,24 +422,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal comment, CommentWithDefaultScopeReferencesAssociation.find_by(id: comment.id)
   end
 
-  unless in_memory_db?
-    def test_default_scope_is_threadsafe
-      threads = []
-      assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
-
-      threads << Thread.new do
-        Thread.current[:long_default_scope] = true
-        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
-      end
-      threads << Thread.new do
-        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
-      end
-      threads.each(&:join)
-    end
-  end
-
   test "additional conditions are ANDed with the default scope" do
     scope = DeveloperCalledJamis.where(name: "David")
     assert_equal 2, scope.where_clause.ast.children.length
@@ -491,6 +462,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
     vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
       [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
+    elsif current_adapter?(:OracleAdapter)
+      [/"LIONS"."IS_VEGETARIAN"/, /"LIONS"."GENDER"/]
     else
       [/"lions"."is_vegetarian"/, /"lions"."gender"/]
     end
@@ -524,3 +497,37 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_not_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id2)
   end
 end
+
+class DefaultScopingWithThreadTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def test_default_scoping_with_threads
+    2.times do
+      Thread.new {
+        assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
+        DeveloperOrderedBySalary.connection.close
+      }.join
+    end
+  end
+
+  def test_default_scope_is_threadsafe
+    threads = []
+    assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
+
+    barrier_1 = Concurrent::CyclicBarrier.new(2)
+    barrier_2 = Concurrent::CyclicBarrier.new(2)
+
+    threads << Thread.new do
+      Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
+    end
+    threads << Thread.new do
+      Thread.current[:default_scope_delay] = -> { barrier_2.wait }
+      barrier_1.wait
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
+    end
+    threads.each(&:join)
+  end
+end unless in_memory_db?

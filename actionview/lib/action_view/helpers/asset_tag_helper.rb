@@ -1,6 +1,5 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/regexp"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
@@ -36,18 +35,37 @@ module ActionView
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
+      # ==== Options
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. The following options are supported:
+      #
+      # * <tt>:extname</tt>  - Append an extension to the generated url unless the extension
+      #   already exists. This only applies for relative urls.
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated url, this option only
+      #   applies when a relative url and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative url is provided the host is added to the
+      #   that path.
+      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      #   when it is set to true.
+      #
+      # ==== Examples
+      #
       #   javascript_include_tag "xmlhr"
-      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.debug-1284139606.js"></script>
+      #
+      #   javascript_include_tag "xmlhr", host: "localhost", protocol: "https"
+      #   # => <script src="https://localhost/assets/xmlhr.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "template.jst", extname: false
-      #   # => <script src="/assets/template.jst?1284139606"></script>
+      #   # => <script src="/assets/template.debug-1284139606.jst"></script>
       #
       #   javascript_include_tag "xmlhr.js"
-      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools"
-      #   # => <script src="/assets/common.javascript?1284139606"></script>
-      #   #    <script src="/elsewhere/cools.js?1423139606"></script>
+      #   # => <script src="/assets/common.javascript.debug-1284139606.js"></script>
+      #   #    <script src="/elsewhere/cools.debug-1284139606.js"></script>
       #
       #   javascript_include_tag "http://www.example.com/xmlhr"
       #   # => <script src="http://www.example.com/xmlhr"></script>
@@ -104,9 +122,9 @@ module ActionView
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
-      # an RSS or Atom feed. The +type+ can either be <tt>:rss</tt> (default) or
-      # <tt>:atom</tt>. Control the link options in url_for format using the
-      # +url_options+. You can modify the LINK tag itself in +tag_options+.
+      # an RSS, Atom, or JSON feed. The +type+ can be <tt>:rss</tt> (default),
+      # <tt>:atom</tt>, or <tt>:json</tt>. Control the link options in url_for format
+      # using the +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
       # ==== Options
       #
@@ -120,6 +138,8 @@ module ActionView
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
       #   auto_discovery_link_tag(:atom)
       #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
+      #   auto_discovery_link_tag(:json)
+      #   # => <link rel="alternate" type="application/json" title="JSON" href="http://www.currenthost.com/controller/action" />
       #   auto_discovery_link_tag(:rss, {action: "feed"})
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
       #   auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
@@ -129,8 +149,8 @@ module ActionView
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
       #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
-        if !(type == :rss || type == :atom) && tag_options[:type].blank?
-          raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")
+        if !(type == :rss || type == :atom || type == :json) && tag_options[:type].blank?
+          raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss, :atom, or :json.")
         end
 
         tag(
@@ -169,7 +189,7 @@ module ActionView
       #
       #   favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
       #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
-      def favicon_link_tag(source="favicon.ico", options={})
+      def favicon_link_tag(source = "favicon.ico", options = {})
         tag("link", {
           rel: "shortcut icon",
           type: "image/x-icon",
@@ -207,7 +227,7 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
-      def image_tag(source, options={})
+      def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
 

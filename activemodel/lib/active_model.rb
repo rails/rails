@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2016 David Heinemeier Hansson
+# Copyright (c) 2004-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -42,7 +42,6 @@ module ActiveModel
   autoload :Naming
   autoload :SecurePassword
   autoload :Serialization
-  autoload :TestCase
   autoload :Translation
   autoload :Validations
   autoload :Validator
@@ -69,5 +68,5 @@ module ActiveModel
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + "/active_model/locale/en.yml"
+  I18n.load_path << File.expand_path("active_model/locale/en.yml", __dir__)
 end

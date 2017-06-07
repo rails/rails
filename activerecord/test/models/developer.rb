@@ -251,7 +251,7 @@ class ThreadsafeDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
   def self.default_scope
-    sleep 0.05 if Thread.current[:long_default_scope]
+    Thread.current[:default_scope_delay].call
     limit(1)
   end
 end
@@ -259,4 +259,10 @@ end
 class CachedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.cache_timestamp_format = :number
+end
+
+class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
+  self.table_name = "developers"
+  has_many :companies, through: :contracts
+  has_many :contracts, foreign_key: :developer_id
 end

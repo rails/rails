@@ -77,6 +77,8 @@ db_namespace = namespace :db do
   namespace :migrate do
     # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task redo: [:environment, :load_config] do
+      raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
+
       if ENV["VERSION"]
         db_namespace["migrate:down"].invoke
         db_namespace["migrate:up"].invoke
@@ -91,16 +93,17 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: [:environment, :load_config] do
+      raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: [:environment, :load_config] do
+      raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      raise "VERSION is required - To go down one migration, run db:rollback" unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
     end
@@ -110,28 +113,13 @@ db_namespace = namespace :db do
       unless ActiveRecord::SchemaMigration.table_exists?
         abort "Schema migrations table does not exist yet."
       end
-      db_list = ActiveRecord::SchemaMigration.normalized_versions
 
-      file_list =
-          ActiveRecord::Tasks::DatabaseTasks.migrations_paths.flat_map do |path|
-            Dir.foreach(path).map do |file|
-              next unless ActiveRecord::Migrator.match_to_migration_filename?(file)
-
-              version, name, scope = ActiveRecord::Migrator.parse_migration_filename(file)
-              version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
-              status = db_list.delete(version) ? "up" : "down"
-              [status, version, (name + scope).humanize]
-            end.compact
-          end
-
-      db_list.map! do |version|
-        ["up", version, "********** NO FILE **********"]
-      end
       # output
       puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      (db_list + file_list).sort_by { |_, version, _| version }.each do |status, version, name|
+      paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
+      ActiveRecord::Migrator.migrations_status(paths).each do |status, version, name|
         puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
       end
       puts
@@ -265,19 +253,16 @@ db_namespace = namespace :db do
     end
 
     namespace :cache do
-      desc "Creates a db/schema_cache.dump file."
+      desc "Creates a db/schema_cache.yml file."
       task dump: [:environment, :load_config] do
-        con = ActiveRecord::Base.connection
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
-
-        con.schema_cache.clear!
-        con.data_sources.each { |table| con.schema_cache.add(table) }
-        open(filename, "wb") { |f| f.write(Marshal.dump(con.schema_cache)) }
+        conn = ActiveRecord::Base.connection
+        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
       end
 
-      desc "Clears a db/schema_cache.dump file."
+      desc "Clears a db/schema_cache.yml file."
       task clear: [:environment, :load_config] do
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.dump")
+        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
         rm_f filename, verbose: false
       end
     end
@@ -291,8 +276,7 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
-      if ActiveRecord::Base.connection.supports_migrations? &&
-          ActiveRecord::SchemaMigration.table_exists?
+      if ActiveRecord::SchemaMigration.table_exists?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
           f.print "\n"
@@ -312,14 +296,6 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-
-    task :deprecated do
-      Rake.application.top_level_tasks.grep(/^db:test:/).each do |task|
-        $stderr.puts "WARNING: #{task} is deprecated. The Rails test helper now maintains " \
-                     "your test schema automatically, see the release notes for details."
-      end
-    end
-
     # desc "Recreate the test database from the current schema"
     task load: %w(db:test:purge) do
       case ActiveRecord::Base.schema_format
@@ -347,22 +323,6 @@ db_namespace = namespace :db do
     task load_structure: %w(db:test:purge) do
       ActiveRecord::Tasks::DatabaseTasks.load_schema ActiveRecord::Base.configurations["test"], :sql, ENV["SCHEMA"]
     end
-
-    # desc "Recreate the test database from a fresh schema"
-    task clone: %w(db:test:deprecated environment) do
-      case ActiveRecord::Base.schema_format
-      when :ruby
-        db_namespace["test:clone_schema"].invoke
-      when :sql
-        db_namespace["test:clone_structure"].invoke
-      end
-    end
-
-    # desc "Recreate the test database from a fresh schema.rb file"
-    task clone_schema: %w(db:test:deprecated db:schema:dump db:test:load_schema)
-
-    # desc "Recreate the test database from a fresh structure.sql file"
-    task clone_structure: %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
     task purge: %w(environment load_config check_protected_environments) do

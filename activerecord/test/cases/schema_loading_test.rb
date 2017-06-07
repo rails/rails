@@ -8,7 +8,7 @@ module SchemaLoadCounter
 
     def load_schema!
       self.load_schema_calls ||= 0
-      self.load_schema_calls +=1
+      self.load_schema_calls += 1
       super
     end
   end

@@ -49,8 +49,7 @@ module ActiveSupport
     CYAN    = "\e[36m"
     WHITE   = "\e[37m"
 
-    mattr_accessor :colorize_logging
-    self.colorize_logging = true
+    mattr_accessor :colorize_logging, default: true
 
     class << self
       def logger
@@ -85,7 +84,7 @@ module ActiveSupport
       logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
     end
 
-  protected
+  private
 
     %w(info debug warn error fatal unknown).each do |level|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -99,7 +98,7 @@ module ActiveSupport
     # option is set to +true+, it also adds bold to the string. This is based
     # on the Highline implementation and will automatically append CLEAR to the
     # end of the returned String.
-    def color(text, color, bold=false)
+    def color(text, color, bold = false) # :doc:
       return text unless colorize_logging
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""

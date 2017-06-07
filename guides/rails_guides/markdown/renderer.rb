@@ -1,9 +1,7 @@
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
-      def initialize(options={})
-        super
-      end
+      cattr_accessor :edge, :version
 
       def block_code(code, language)
         <<-HTML
@@ -15,6 +13,16 @@ module RailsGuides
 HTML
       end
 
+      def link(url, title, content)
+        if url.start_with?("http://api.rubyonrails.org")
+          %(<a href="#{api_link(url)}">#{content}</a>)
+        elsif title
+          %(<a href="#{url}" title="#{title}">#{content}</a>)
+        else
+          %(<a href="#{url}">#{content}</a>)
+        end
+      end
+
       def header(text, header_level)
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
@@ -23,7 +31,9 @@ HTML
       end
 
       def paragraph(text)
-        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
+        if text =~ %r{^NOTE:\s+Defined\s+in\s+<code>(.*?)</code>\.?$}
+          %(<div class="note"><p>Defined in <code><a href="#{github_file_url($1)}">#{$1}</a></code>.</p></div>)
+        elsif text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
           convert_notes(text)
         elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
@@ -52,7 +62,7 @@ HTML
             "ruby; html-script: true"
           when "html"
             "xml" # HTML is understood, but there are .xml rules in the CSS
-            else
+          else
             "plain"
           end
         end
@@ -77,6 +87,33 @@ HTML
                 $1.downcase
               end
             %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
+          end
+        end
+
+        def github_file_url(file_path)
+          tree = version || edge
+
+          root = file_path[%r{(\w+)/}, 1]
+          path = \
+            case root
+            when "abstract_controller", "action_controller", "action_dispatch"
+              "actionpack/lib/#{file_path}"
+            when /\A(action|active)_/
+              "#{root.sub("_", "")}/lib/#{file_path}"
+            else
+              file_path
+            end
+
+          "https://github.com/rails/rails/tree/#{tree}/#{path}"
+        end
+
+        def api_link(url)
+          if url =~ %r{http://api\.rubyonrails\.org/v\d+\.}
+            url
+          elsif edge
+            url.sub("api", "edgeapi")
+          else
+            url.sub(/(?<=\.org)/, "/#{version}")
           end
         end
     end

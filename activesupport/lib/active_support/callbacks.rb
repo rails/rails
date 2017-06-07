@@ -4,7 +4,6 @@ require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/filters"
 require "active_support/deprecation"
 require "thread"
@@ -63,17 +62,10 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false
-      self.__callbacks ||= {}
+      class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
-
-    # If true, Active Record and Active Model callbacks returning +false+ will
-    # halt the entire callback chain and display a deprecation message.
-    # If false, callback chains will only be halted by calling +throw :abort+.
-    # Defaults to +true+.
-    mattr_accessor(:halt_and_display_warning_on_return_false, instance_writer: false) { true }
 
     # Runs the callbacks for the given event.
     #
@@ -109,16 +101,22 @@ module ActiveSupport
         invoke_sequence = Proc.new do
           skipped = nil
           while true
-            current, next_sequence = next_sequence, next_sequence.nested
+            current = next_sequence
             current.invoke_before(env)
             if current.final?
               env.value = !env.halted && (!block_given? || yield)
             elsif current.skip?(env)
               (skipped ||= []) << current
+              next_sequence = next_sequence.nested
               next
             else
-              expanded = current.expand_call_template(env, invoke_sequence)
-              expanded.shift.send(*expanded, &expanded.shift)
+              next_sequence = next_sequence.nested
+              begin
+                target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                target.send(method, *arguments, &block)
+              ensure
+                next_sequence = current
+              end
             end
             current.invoke_after(env)
             skipped.pop.invoke_after(env) while skipped && skipped.first
@@ -280,9 +278,9 @@ module ActiveSupport
       class Callback #:nodoc:#
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to define callback is deprecated and will be removed
-              in Rails 5.1 without replacement.
+            raise ArgumentError, <<-MSG.squish
+              Passing string to define a callback is not supported. See the `.set_callback`
+              documentation to see supported values.
             MSG
           end
 
@@ -293,7 +291,7 @@ module ActiveSupport
         attr_reader :chain_config
 
         def initialize(name, filter, kind, options, chain_config)
-          @chain_config  = chain_config
+          @chain_config = chain_config
           @name    = name
           @kind    = kind
           @filter  = filter
@@ -410,8 +408,8 @@ module ActiveSupport
         # values.
         def make_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            target.send(method, *arguments, &block)
           end
         end
 
@@ -419,8 +417,8 @@ module ActiveSupport
         # values, but then return the boolean inverse of that result.
         def inverted_lambda
           lambda do |target, value, &block|
-            c = expand(target, value, block)
-            ! c.shift.send(*c, &c.shift)
+            target, block, method, *arguments = expand(target, value, block)
+            ! target.send(method, *arguments, &block)
           end
         end
 
@@ -513,7 +511,6 @@ module ActiveSupport
         end
       end
 
-      # An Array with a compile method.
       class CallbackChain #:nodoc:#
         include Enumerable
 
@@ -637,9 +634,8 @@ module ActiveSupport
         #   set_callback :save, :before_method
         #
         # The callback can be specified as a symbol naming an instance method; as a
-        # proc, lambda, or block; as a string to be instance evaluated(deprecated); or as an
-        # object that responds to a certain method determined by the <tt>:scope</tt>
-        # argument to +define_callbacks+.
+        # proc, lambda, or block; or as an object that responds to a certain method
+        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -653,16 +649,24 @@ module ActiveSupport
         #
         # ===== Options
         #
-        # * <tt>:if</tt> - A symbol, a string or an array of symbols and strings,
+        # * <tt>:if</tt> - A symbol, a string (deprecated) or an array of symbols,
         #   each naming an instance method or a proc; the callback will be called
         #   only when they all return a true value.
-        # * <tt>:unless</tt> - A symbol, a string or an array of symbols and
-        #   strings, each naming an instance method or a proc; the callback will
-        #   be called only when they all return a false value.
+        # * <tt>:unless</tt> - A symbol, a string (deprecated) or an array of symbols,
+        #   each naming an instance method or a proc; the callback will be called
+        #   only when they all return a false value.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
             Callback.build(self_chain, filter, type, options)
@@ -686,6 +690,14 @@ module ActiveSupport
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          if options[:if].is_a?(String) || options[:unless].is_a?(String)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing string to :if and :unless conditional options is deprecated
+              and will be removed in Rails 5.2 without replacement.
+            MSG
+          end
+
           options[:raise] = true unless options.key?(:raise)
 
           __update_callbacks(name) do |target, chain|
@@ -834,30 +846,6 @@ module ActiveSupport
 
           def set_callbacks(name, callbacks) # :nodoc:
             self.__callbacks = __callbacks.merge(name.to_sym => callbacks)
-          end
-
-          def deprecated_false_terminator # :nodoc:
-            Proc.new do |target, result_lambda|
-              terminate = true
-              catch(:abort) do
-                result = result_lambda.call if result_lambda.is_a?(Proc)
-                if Callbacks.halt_and_display_warning_on_return_false && result == false
-                  display_deprecation_warning_for_false_terminator
-                else
-                  terminate = false
-                end
-              end
-              terminate
-            end
-          end
-
-        private
-
-          def display_deprecation_warning_for_false_terminator
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Returning `false` in Active Record and Active Model callbacks will not implicitly halt a callback chain in Rails 5.1.
-              To explicitly halt the callback chain, please use `throw :abort` instead.
-            MSG
           end
       end
   end

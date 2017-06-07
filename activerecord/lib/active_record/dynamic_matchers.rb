@@ -1,17 +1,14 @@
-require "active_support/core_ext/regexp"
-
 module ActiveRecord
   module DynamicMatchers #:nodoc:
-    def respond_to_missing?(name, include_private = false)
-      if self == Base
-        super
-      else
-        match = Method.match(self, name)
-        match && match.valid? || super
-      end
-    end
-
     private
+      def respond_to_missing?(name, _)
+        if self == Base
+          super
+        else
+          match = Method.match(self, name)
+          match && match.valid? || super
+        end
+      end
 
       def method_missing(name, *arguments, &block)
         match = Method.match(self, name)

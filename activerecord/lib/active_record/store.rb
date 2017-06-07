@@ -78,7 +78,7 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(options[:coder])
+        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
         store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
       end
 
@@ -121,18 +121,17 @@ module ActiveRecord
       end
     end
 
-    protected
-      def read_store_attribute(store_attribute, key)
+    private
+      def read_store_attribute(store_attribute, key) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.read(self, store_attribute, key)
       end
 
-      def write_store_attribute(store_attribute, key, value)
+      def write_store_attribute(store_attribute, key, value) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.write(self, store_attribute, key, value)
       end
 
-    private
       def store_accessor_for(store_attribute)
         type_for_attribute(store_attribute.to_s).accessor
       end
@@ -178,12 +177,12 @@ module ActiveRecord
       end
 
       class IndifferentCoder # :nodoc:
-        def initialize(coder_or_class_name)
+        def initialize(attr_name, coder_or_class_name)
           @coder =
             if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
               coder_or_class_name
             else
-              ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+              ActiveRecord::Coders::YAMLColumn.new(attr_name, coder_or_class_name || Object)
             end
         end
 

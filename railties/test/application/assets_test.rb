@@ -384,7 +384,7 @@ module ApplicationTests
 
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
-      assert_equal nil, last_response.headers["Set-Cookie"]
+      assert_nil last_response.headers["Set-Cookie"]
     end
 
     test "files in any assets/ directories are not added to Sprockets" do
@@ -475,9 +475,9 @@ module ApplicationTests
 
       class ::PostsController < ActionController::Base; end
 
-      get "/posts", {}, "HTTPS"=>"off"
+      get "/posts", {}, "HTTPS" => "off"
       assert_match('src="http://example.com/assets/application.self.js', last_response.body)
-      get "/posts", {}, "HTTPS"=>"on"
+      get "/posts", {}, "HTTPS" => "on"
       assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 

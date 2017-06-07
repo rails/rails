@@ -71,12 +71,10 @@ module ActiveSupport
         data = StringIO.new(data || "")
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
-        document = self.document_class.new
+        document = document_class.new
         parser = Nokogiri::XML::SAX::Parser.new(document)
         parser.parse(data)
         document.hash

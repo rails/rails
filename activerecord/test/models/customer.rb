@@ -56,7 +56,7 @@ class GpsLocation
   end
 
   def ==(other)
-    self.latitude == other.latitude && self.longitude == other.longitude
+    latitude == other.latitude && longitude == other.longitude
   end
 end
 

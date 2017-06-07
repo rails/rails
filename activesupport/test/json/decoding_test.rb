@@ -15,7 +15,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
   TESTS = {
     %q({"returnTo":{"\/categories":"\/"}})        => { "returnTo" => { "/categories" => "/" } },
     %q({"return\\"To\\":":{"\/categories":"\/"}}) => { "return\"To\":" => { "/categories" => "/" } },
-    %q({"returnTo":{"\/categories":1}})          => { "returnTo" => { "/categories" => 1 } },
+    %q({"returnTo":{"\/categories":1}}) => { "returnTo" => { "/categories" => 1 } },
     %({"returnTo":[1,"a"]})                    => { "returnTo" => [1, "a"] },
     %({"returnTo":[1,"\\"a\\",", "b"]})        => { "returnTo" => [1, "\"a\",", "b"] },
     %({"a": "'", "b": "5,000"})                  => { "a" => "'", "b" => "5,000" },
@@ -40,8 +40,8 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %({"a": "2007-01-01 : it's your birthday"})  => { "a" => "2007-01-01 : it's your birthday" },
     %([])    => [],
     %({})    => {},
-    %({"a":1})     => { "a" => 1 },
-    %({"a": ""})    => { "a" => "" },
+    %({"a":1}) => { "a" => 1 },
+    %({"a": ""}) => { "a" => "" },
     %({"a":"\\""}) => { "a" => "\"" },
     %({"a": null})  => { "a" => nil },
     %({"a": true})  => { "a" => true },
@@ -51,19 +51,19 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a": "\u003cunicode\u0020escape\u003e"}) => { "a" => "<unicode escape>" },
     '{"a": "\\\\u0020skip double backslashes"}' => { "a" => "\\u0020skip double backslashes" },
     %q({"a": "\u003cbr /\u003e"}) => { "a" => "<br />" },
-    %q({"b":["\u003ci\u003e","\u003cb\u003e","\u003cu\u003e"]}) => { "b" => ["<i>","<b>","<u>"] },
+    %q({"b":["\u003ci\u003e","\u003cb\u003e","\u003cu\u003e"]}) => { "b" => ["<i>", "<b>", "<u>"] },
     # test combination of dates and escaped or unicode encoded data in arrays
     %q([{"d":"1970-01-01", "s":"\u0020escape"},{"d":"1970-01-01", "s":"\u0020escape"}]) =>
-      [{ "d" => Date.new(1970, 1, 1), "s" => " escape" },{ "d" => Date.new(1970, 1, 1), "s" => " escape" }],
+      [{ "d" => Date.new(1970, 1, 1), "s" => " escape" }, { "d" => Date.new(1970, 1, 1), "s" => " escape" }],
     %q([{"d":"1970-01-01","s":"http:\/\/example.com"},{"d":"1970-01-01","s":"http:\/\/example.com"}]) =>
       [{ "d" => Date.new(1970, 1, 1), "s" => "http://example.com" },
        { "d" => Date.new(1970, 1, 1), "s" => "http://example.com" }],
     # tests escaping of "\n" char with Yaml backend
-    %q({"a":"\n"})  => { "a"=>"\n" },
-    %q({"a":"\u000a"}) => { "a"=>"\n" },
-    %q({"a":"Line1\u000aLine2"}) => { "a"=>"Line1\nLine2" },
+    %q({"a":"\n"}) => { "a" => "\n" },
+    %q({"a":"\u000a"}) => { "a" => "\n" },
+    %q({"a":"Line1\u000aLine2"}) => { "a" => "Line1\nLine2" },
     # prevent json unmarshalling
-    '{"json_class":"TestJSONDecoding::Foo"}' => { "json_class"=>"TestJSONDecoding::Foo" },
+    '{"json_class":"TestJSONDecoding::Foo"}' => { "json_class" => "TestJSONDecoding::Foo" },
     # json "fragments" - these are invalid JSON, but ActionPack relies on this
     '"a string"' => "a string",
     "1.1" => 1.1,
@@ -75,12 +75,17 @@ class TestJSONDecoding < ActiveSupport::TestCase
   }
 
   TESTS.each_with_index do |(json, expected), index|
+    fail_message = "JSON decoding failed for #{json}"
+
     test "json decodes #{index}" do
       with_tz_default "Eastern Time (US & Canada)" do
         with_parse_json_times(true) do
           silence_warnings do
-            assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
-            failed for #{json}"
+            if expected.nil?
+              assert_nil ActiveSupport::JSON.decode(json), fail_message
+            else
+              assert_equal expected, ActiveSupport::JSON.decode(json), fail_message
+            end
           end
         end
       end

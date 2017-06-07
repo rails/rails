@@ -83,7 +83,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge(association_scope)
+        target_scope.merge!(association_scope)
       end
 
       # The scope for this association.
@@ -112,6 +112,15 @@ module ActiveRecord
         record
       end
 
+      # Remove the inverse association, if possible
+      def remove_inverse_instance(record)
+        if invertible_for?(record)
+          inverse = record.association(inverse_reflection_for(record).name)
+          inverse.target = nil
+          inverse.inversed = false
+        end
+      end
+
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
@@ -122,6 +131,16 @@ module ActiveRecord
       # through association's scope)
       def target_scope
         AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
+      end
+
+      def extensions
+        extensions = klass.default_extensions | reflection.extensions
+
+        if scope = reflection.scope
+          extensions |= klass.unscoped.instance_exec(owner, &scope).extensions
+        end
+
+        extensions
       end
 
       # Loads the \target if needed and returns it.
@@ -143,14 +162,6 @@ module ActiveRecord
         reset
       end
 
-      def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
-          owner.instance_exec(record, &sql)
-        else
-          sql
-        end
-      end
-
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
         ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
@@ -166,7 +177,7 @@ module ActiveRecord
       def initialize_attributes(record, except_from_scope_attributes = nil) #:nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
-        assigned_keys = record.changed
+        assigned_keys = record.changed_attribute_names_to_save
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
         attributes = create_scope.except(*(assigned_keys - skip_assign))
         record.assign_attributes(attributes)
@@ -254,7 +265,7 @@ module ActiveRecord
         # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
-        # This is only relevant to certain associations, which is why it returns nil by default.
+        # This is only relevant to certain associations, which is why it returns +nil+ by default.
         def stale_state
         end
 

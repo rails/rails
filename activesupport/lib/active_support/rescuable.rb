@@ -8,8 +8,7 @@ module ActiveSupport
     extend Concern
 
     included do
-      class_attribute :rescue_handlers
-      self.rescue_handlers = []
+      class_attribute :rescue_handlers, default: []
     end
 
     module ClassMethods
@@ -36,7 +35,7 @@ module ActiveSupport
       #       render xml: exception, status: 500
       #     end
       #
-      #     protected
+      #     private
       #       def deny_access
       #         ...
       #       end
@@ -74,7 +73,7 @@ module ActiveSupport
       #
       # If no handler matches the exception, check for a handler matching the
       # (optional) exception.cause. If no handler matches the exception or its
-      # cause, this returns nil so you can deal with unhandled exceptions.
+      # cause, this returns +nil+, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
       #     begin
@@ -83,11 +82,19 @@ module ActiveSupport
       #       rescue_with_handler(exception) || raise
       #     end
       #
-      # Returns the exception if it was handled and nil if it was not.
-      def rescue_with_handler(exception, object: self)
+      # Returns the exception if it was handled and +nil+ if it was not.
+      def rescue_with_handler(exception, object: self, visited_exceptions: [])
+        visited_exceptions << exception
+
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception
           exception
+        elsif exception
+          if visited_exceptions.include?(exception.cause)
+            nil
+          else
+            rescue_with_handler(exception.cause, object: object, visited_exceptions: visited_exceptions)
+          end
         end
       end
 
@@ -121,7 +128,7 @@ module ActiveSupport
               end
             end
 
-            handler || find_rescue_handler(exception.cause)
+            handler
           end
         end
 

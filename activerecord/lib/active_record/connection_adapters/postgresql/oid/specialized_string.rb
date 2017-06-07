@@ -5,8 +5,9 @@ module ActiveRecord
         class SpecializedString < Type::String # :nodoc:
           attr_reader :type
 
-          def initialize(type)
+          def initialize(type, **options)
             @type = type
+            super(options)
           end
         end
       end

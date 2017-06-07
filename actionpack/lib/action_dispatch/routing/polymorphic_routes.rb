@@ -40,7 +40,7 @@ module ActionDispatch
     #
     # Example usage:
     #
-    #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
+    #   edit_polymorphic_path(@post)           # => "/posts/1/edit"
     #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
     # == Usage with mounted engines
@@ -103,6 +103,10 @@ module ActionDispatch
           return polymorphic_url record, options
         end
 
+        if mapping = polymorphic_mapping(record_or_hash_or_array)
+          return mapping.call(self, [record_or_hash_or_array, options], false)
+        end
+
         opts   = options.dup
         action = opts.delete :action
         type   = opts.delete(:routing_type) || :url
@@ -121,6 +125,10 @@ module ActionDispatch
           options = record_or_hash_or_array.merge(options)
           record  = options.delete :id
           return polymorphic_path record, options
+        end
+
+        if mapping = polymorphic_mapping(record_or_hash_or_array)
+          return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
         opts   = options.dup
@@ -156,11 +164,19 @@ module ActionDispatch
           polymorphic_path(record_or_hash, options.merge(action: action))
         end
 
+        def polymorphic_mapping(record)
+          if record.respond_to?(:to_model)
+            _routes.polymorphic_mappings[record.to_model.model_name.name]
+          else
+            _routes.polymorphic_mappings[record.class.name]
+          end
+        end
+
         class HelperMethodBuilder # :nodoc:
           CACHE = { "path" => {}, "url" => {} }
 
           def self.get(action, type)
-            type   = type.to_s
+            type = type.to_s
             CACHE[type].fetch(action) { build action, type }
           end
 
@@ -255,9 +271,13 @@ module ActionDispatch
             [named_route, args]
           end
 
-          def handle_model_call(target, model)
-            method, args = handle_model model
-            target.send(method, *args)
+          def handle_model_call(target, record)
+            if mapping = polymorphic_mapping(target, record)
+              mapping.call(target, [record], suffix == "path")
+            else
+              method, args = handle_model(record)
+              target.send(method, *args)
+            end
           end
 
           def handle_list(list)
@@ -266,7 +286,7 @@ module ActionDispatch
 
             args = []
 
-            route  = record_list.map { |parent|
+            route = record_list.map { |parent|
               case parent
               when Symbol, String
                 parent.to_s
@@ -303,8 +323,16 @@ module ActionDispatch
 
           private
 
+            def polymorphic_mapping(target, record)
+              if record.respond_to?(:to_model)
+                target._routes.polymorphic_mappings[record.to_model.model_name.name]
+              else
+                target._routes.polymorphic_mappings[record.class.name]
+              end
+            end
+
             def get_method_for_class(klass)
-              name   = @key_strategy.call klass.model_name
+              name = @key_strategy.call klass.model_name
               get_method_for_string name
             end
 

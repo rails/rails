@@ -3,7 +3,7 @@ require "cases/helper"
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
-      class FakeColumn < Struct.new(:name)
+      FakeColumn = Struct.new(:name) do
         def type; :integer; end
       end
 
@@ -14,6 +14,7 @@ module ActiveRecord
           def self.decorate_matching_attribute_types(*); end
           def self.initialize_generated_modules; end
 
+          include ActiveRecord::DefineCallbacks
           include ActiveRecord::AttributeMethods
 
           def self.attribute_names

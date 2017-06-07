@@ -7,17 +7,19 @@ require "models/binary"
 require "models/book"
 require "models/bulb"
 require "models/category"
+require "models/post"
 require "models/comment"
 require "models/company"
 require "models/computer"
 require "models/course"
 require "models/developer"
+require "models/dog"
 require "models/doubloon"
 require "models/joke"
 require "models/matey"
+require "models/other_dog"
 require "models/parrot"
 require "models/pirate"
-require "models/post"
 require "models/randomly_named_c1"
 require "models/reply"
 require "models/ship"
@@ -93,6 +95,24 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nil(topics["second"]["author_email_address"])
   end
 
+  def test_no_args_returns_all
+    all_topics = topics
+    assert_equal 5, all_topics.length
+    assert_equal "The First Topic", all_topics.first["title"]
+    assert_equal 5, all_topics.last.id
+  end
+
+  def test_no_args_record_returns_all_without_array
+    all_binaries = binaries
+    assert_kind_of(Array, all_binaries)
+    assert_equal 1, binaries.length
+  end
+
+  def test_nil_raises
+    assert_raise(StandardError) { topics(nil) }
+    assert_raise(StandardError) { topics([nil]) }
+  end
+
   def test_inserts
     create_fixtures("topics")
     first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'David'")
@@ -102,64 +122,62 @@ class FixturesTest < ActiveRecord::TestCase
     assert_nil(second_row["author_email_address"])
   end
 
-  if ActiveRecord::Base.connection.supports_migrations?
-    def test_inserts_with_pre_and_suffix
-      # Reset cache to make finds on the new table work
-      ActiveRecord::FixtureSet.reset_cache
+  def test_inserts_with_pre_and_suffix
+    # Reset cache to make finds on the new table work
+    ActiveRecord::FixtureSet.reset_cache
 
-      ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
-        t.column :title, :string
-        t.column :author_name, :string
-        t.column :author_email_address, :string
-        t.column :written_on, :datetime
-        t.column :bonus_time, :time
-        t.column :last_read, :date
-        t.column :content, :string
-        t.column :approved, :boolean, default: true
-        t.column :replies_count, :integer, default: 0
-        t.column :parent_id, :integer
-        t.column :type, :string, limit: 50
-      end
-
-      # Store existing prefix/suffix
-      old_prefix = ActiveRecord::Base.table_name_prefix
-      old_suffix = ActiveRecord::Base.table_name_suffix
-
-      # Set a prefix/suffix we can test against
-      ActiveRecord::Base.table_name_prefix = "prefix_"
-      ActiveRecord::Base.table_name_suffix = "_suffix"
-
-      other_topic_klass = Class.new(ActiveRecord::Base) do
-        def self.name
-          "OtherTopic"
-        end
-      end
-
-      topics = [create_fixtures("other_topics")].flatten.first
-
-      # This checks for a caching problem which causes a bug in the fixtures
-      # class-level configuration helper.
-      assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
-
-      first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
-      assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
-      assert_equal("The First Topic", first_row["title"])
-
-      second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
-      assert_nil(second_row["author_email_address"])
-
-      assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
-      # This assertion should preferably be the last in the list, because calling
-      # other_topic_klass.table_name sets a class-level instance variable
-      assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
-
-    ensure
-      # Restore prefix/suffix to its previous values
-      ActiveRecord::Base.table_name_prefix = old_prefix
-      ActiveRecord::Base.table_name_suffix = old_suffix
-
-      ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
+    ActiveRecord::Base.connection.create_table :prefix_other_topics_suffix do |t|
+      t.column :title, :string
+      t.column :author_name, :string
+      t.column :author_email_address, :string
+      t.column :written_on, :datetime
+      t.column :bonus_time, :time
+      t.column :last_read, :date
+      t.column :content, :string
+      t.column :approved, :boolean, default: true
+      t.column :replies_count, :integer, default: 0
+      t.column :parent_id, :integer
+      t.column :type, :string, limit: 50
     end
+
+    # Store existing prefix/suffix
+    old_prefix = ActiveRecord::Base.table_name_prefix
+    old_suffix = ActiveRecord::Base.table_name_suffix
+
+    # Set a prefix/suffix we can test against
+    ActiveRecord::Base.table_name_prefix = "prefix_"
+    ActiveRecord::Base.table_name_suffix = "_suffix"
+
+    other_topic_klass = Class.new(ActiveRecord::Base) do
+      def self.name
+        "OtherTopic"
+      end
+    end
+
+    topics = [create_fixtures("other_topics")].flatten.first
+
+    # This checks for a caching problem which causes a bug in the fixtures
+    # class-level configuration helper.
+    assert_not_nil topics, "Fixture data inserted, but fixture objects not returned from create"
+
+    first_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'David'")
+    assert_not_nil first_row, "The prefix_other_topics_suffix table appears to be empty despite create_fixtures: the row with author_name = 'David' was not found"
+    assert_equal("The First Topic", first_row["title"])
+
+    second_row = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_other_topics_suffix WHERE author_name = 'Mary'")
+    assert_nil(second_row["author_email_address"])
+
+    assert_equal :prefix_other_topics_suffix, topics.table_name.to_sym
+    # This assertion should preferably be the last in the list, because calling
+    # other_topic_klass.table_name sets a class-level instance variable
+    assert_equal :prefix_other_topics_suffix, other_topic_klass.table_name.to_sym
+
+  ensure
+    # Restore prefix/suffix to its previous values
+    ActiveRecord::Base.table_name_prefix = old_prefix
+    ActiveRecord::Base.table_name_suffix = old_suffix
+
+    ActiveRecord::Base.connection.drop_table :prefix_other_topics_suffix rescue nil
   end
 
   def test_insert_with_datetime
@@ -192,28 +210,38 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
     #sanity check to make sure that this file never exists
-    assert Dir[nonexistent_fixture_path+"*"].empty?
+    assert Dir[nonexistent_fixture_path + "*"].empty?
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new( Account.connection, "companies", Company, nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
-    assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new( Account.connection, "courses", Course, FIXTURES_ROOT + "/naked/yml/courses")
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
     end
+    assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
+  end
+
+  def test_yaml_file_with_one_invalid_fixture
+    fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
+    error = assert_raise(ActiveRecord::Fixture::FormatError) do
+      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+    end
+    assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
 
   def test_yaml_file_with_invalid_column
@@ -628,6 +656,8 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   def test_transaction_created_on_connection_notification
     connection = stub(transaction_open?: false)
     connection.expects(:begin_transaction).with(joinable: false)
+    pool = connection.stubs(:pool).returns(ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.spec))
+    pool.stubs(:lock_thread=).with(false)
     fire_connection_notification(connection)
   end
 
@@ -635,11 +665,15 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     # Mocha is not thread-safe so define our own stub to test
     connection = Class.new do
       attr_accessor :rollback_transaction_called
+      attr_accessor :pool
       def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
+    end.new
+    connection.pool = Class.new do
+      def lock_thread=(lock_thread); false; end
     end.new
     fire_connection_notification(connection)
     teardown_fixtures
@@ -750,7 +784,7 @@ end
 
 class FasterFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
-  fixtures :categories, :authors
+  fixtures :categories, :authors, :author_addresses
 
   def load_extra_fixture(name)
     fixture = create_fixtures(name).first
@@ -948,7 +982,7 @@ end
 class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   ActiveRecord::FixtureSet.reset_cache
 
-  set_fixture_class :randomly_named_a9         =>
+  set_fixture_class :randomly_named_a9 =>
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
                         Admin::ClassNameThatDoesNotFollowCONVENTIONS1,
@@ -1000,7 +1034,7 @@ end
 
 class FixtureClassNamesTest < ActiveRecord::TestCase
   def setup
-    @saved_cache = self.fixture_class_names.dup
+    @saved_cache = fixture_class_names.dup
   end
 
   def teardown
@@ -1009,5 +1043,18 @@ class FixtureClassNamesTest < ActiveRecord::TestCase
 
   test "fixture_class_names returns nil for unregistered identifier" do
     assert_nil fixture_class_names["unregistered_identifier"]
+  end
+end
+
+class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
+  fixtures :dogs, :other_dogs
+
+  test "fixtures are properly loaded" do
+    # Force loading the fixtures again to reproduce issue
+    ActiveRecord::FixtureSet.reset_cache
+    create_fixtures("dogs", "other_dogs")
+
+    assert_kind_of Dog, dogs(:sophie)
+    assert_kind_of OtherDog, other_dogs(:lassie)
   end
 end

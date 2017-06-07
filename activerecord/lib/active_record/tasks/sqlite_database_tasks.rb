@@ -21,7 +21,7 @@ module ActiveRecord
 
         FileUtils.rm(file)
       rescue Errno::ENOENT => error
-        raise NoDatabaseError.new(error.message, error)
+        raise NoDatabaseError.new(error.message)
       end
 
       def purge
@@ -35,14 +35,25 @@ module ActiveRecord
         connection.encoding
       end
 
-      def structure_dump(filename)
-        dbfile = configuration["database"]
-        `sqlite3 #{dbfile} .schema > #{filename}`
+      def structure_dump(filename, extra_flags)
+        args = []
+        args.concat(Array(extra_flags)) if extra_flags
+        args << configuration["database"]
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")
+          args << "SELECT sql FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
+        else
+          args << ".schema"
+        end
+        run_cmd("sqlite3", args, filename)
       end
 
-      def structure_load(filename)
+      def structure_load(filename, extra_flags)
         dbfile = configuration["database"]
-        `sqlite3 #{dbfile} < "#{filename}"`
+        flags = extra_flags.join(" ") if extra_flags
+        `sqlite3 #{flags} #{dbfile} < "#{filename}"`
       end
 
       private
@@ -53,6 +64,17 @@ module ActiveRecord
 
         def root
           @root
+        end
+
+        def run_cmd(cmd, args, out)
+          fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)
+        end
+
+        def run_cmd_error(cmd, args)
+          msg = "failed to execute:\n"
+          msg << "#{cmd} #{args.join(' ')}\n\n"
+          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
+          msg
         end
     end
   end

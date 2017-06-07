@@ -154,7 +154,7 @@ case, the column definition might look like this:
 
 ```ruby
 create_table :accounts do |t|
-  t.belongs_to :supplier, index: true, unique: true, foreign_key: true
+  t.belongs_to :supplier, index: { unique: true }, foreign_key: true
   # ...
 end
 ```
@@ -582,13 +582,29 @@ class CreateBooks < ActiveRecord::Migration[5.0]
       t.string   :book_number
       t.integer  :author_id
     end
-
-    add_index :books, :author_id
   end
 end
 ```
 
 If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
+
+It's a good practice to add an index on the foreign key to improve queries
+performance and a foreign key constraint to ensure referential data integrity:
+
+```ruby
+class CreateBooks < ActiveRecord::Migration[5.0]
+  def change
+    create_table :books do |t|
+      t.datetime :published_at
+      t.string   :book_number
+      t.integer  :author_id
+    end
+
+    add_index :books, :author_id
+    add_foreign_key :books, :authors
+  end
+end
+```
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -709,55 +725,73 @@ class Book < ApplicationRecord
 end
 ```
 
-By default, Active Record doesn't know about the connection between these associations. This can lead to two copies of an object getting out of sync:
+Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
 
 ```ruby
 a = Author.first
 b = a.books.first
 a.first_name == b.author.first_name # => true
-a.first_name = 'Manny'
-a.first_name == b.author.first_name # => false
-```
-
-This happens because `a` and `b.author` are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books, inverse_of: :author
-end
-
-class Book < ApplicationRecord
-  belongs_to :author, inverse_of: :books
-end
-```
-
-With these changes, Active Record will only load one copy of the author object, preventing inconsistencies and making your application more efficient:
-
-```ruby
-a = Author.first
-b = a.books.first
-a.first_name == b.author.first_name # => true
-a.first_name = 'Manny'
+a.first_name = 'David'
 a.first_name == b.author.first_name # => true
 ```
 
-There are a few limitations to `inverse_of` support:
-
-* They do not work with `:through` associations.
-* They do not work with `:polymorphic` associations.
-* They do not work with `:as` associations.
-* For `belongs_to` associations, `has_many` inverse associations are ignored.
-
-Every association will attempt to automatically find the inverse association
-and set the `:inverse_of` option heuristically (based on the association name).
-Most associations with standard names will be supported. However, associations
-that contain the following options will not have their inverses set
-automatically:
+Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain any of the following options:
 
 * `:conditions`
 * `:through`
 * `:polymorphic`
+* `:class_name`
 * `:foreign_key`
+
+For example, consider the following model declarations:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books
+end
+
+class Book < ApplicationRecord
+  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+end
+```
+
+Active Record will no longer automatically recognize the bi-directional association:
+
+```ruby
+a = Author.first
+b = a.books.first
+a.first_name == b.writer.first_name # => true
+a.first_name = 'David'
+a.first_name == b.writer.first_name # => false
+```
+
+Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, inverse_of: 'writer'
+end
+
+class Book < ApplicationRecord
+  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+end
+```
+
+By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
+
+```ruby
+a = Author.first
+b = a.books.first
+a.first_name == b.writer.first_name # => true
+a.first_name = 'David'
+a.first_name == b.writer.first_name # => true
+```
+
+There are a few limitations to `:inverse_of` support:
+
+* They do not work with `:through` associations.
+* They do not work with `:polymorphic` associations.
+* They do not work with `:as` associations.
 
 Detailed Association Reference
 ------------------------------
@@ -1383,7 +1417,7 @@ If either of these saves fails due to validation errors, then the assignment sta
 
 If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
 
-If you want to assign an object to a `has_one` association without saving the object, use the `association.build` method.
+If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
 
 ### `has_many` Association Reference
 
@@ -1525,7 +1559,7 @@ The `collection.size` method returns the number of objects in the collection.
 The `collection.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`.
 
 ```ruby
-@available_books = @author.books.find(1)
+@available_book = @author.books.find(1)
 ```
 
 ##### `collection.where(...)`
@@ -1994,11 +2028,9 @@ The `collection.delete` method removes one or more objects from the collection b
 @part.assemblies.delete(@assembly1)
 ```
 
-WARNING: This does not trigger callbacks on the join records.
-
 ##### `collection.destroy(object, ...)`
 
-The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each record in the join table, including running callbacks. This does not destroy the objects.
+The `collection.destroy` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 ```ruby
 @part.assemblies.destroy(@assembly1)

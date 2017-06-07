@@ -19,14 +19,14 @@ module ActiveSupport
       set_callback(:complete, *args, &block)
     end
 
-    class RunHook < Struct.new(:hook) # :nodoc:
+    RunHook = Struct.new(:hook) do # :nodoc:
       def before(target)
         hook_state = target.send(:hook_state)
         hook_state[hook] = hook.run
       end
     end
 
-    class CompleteHook < Struct.new(:hook) # :nodoc:
+    CompleteHook = Struct.new(:hook) do # :nodoc:
       def before(target)
         hook_state = target.send(:hook_state)
         if hook_state.key?(hook)

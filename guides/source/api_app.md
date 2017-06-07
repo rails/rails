@@ -206,16 +206,17 @@ An API application comes with the following middleware by default:
 - `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 - `Rack::Runtime`
 - `ActionDispatch::RequestId`
+- `ActionDispatch::RemoteIp`
 - `Rails::Rack::Logger`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
-- `ActionDispatch::RemoteIp`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
 - `ActiveRecord::Migration::CheckPending`
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
+- `MyApi::Application::Routes`
 
 See the [internal middleware](rails_on_rack.html#internal-middleware-stack)
 section of the Rack guide for further information on them.
@@ -360,7 +361,7 @@ middleware set, you can remove it with:
 config.middleware.delete ::Rack::Sendfile
 ```
 
-Keep in mind that removing these middleware will remove support for certain
+Keep in mind that removing these middlewares will remove support for certain
 features in Action Controller.
 
 Choosing Controller Modules
@@ -385,8 +386,9 @@ controller modules by default:
   hooks defined by Action Controller (see [the instrumentation
   guide](active_support_instrumentation.html#action-controller) for
 more information regarding this).
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash, 
+- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
   so that you don't have to specify root elements sending POST requests for instance.
+- `ActionController::Head`: Support for returning a response with no content, only headers
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
@@ -394,12 +396,12 @@ included into `ActionController::API` in the rails console:
 ```bash
 $ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
-=> [ActionController::API, 
-    ActiveRecord::Railties::ControllerRuntime, 
-    ActionDispatch::Routing::RouteSet::MountedHelpers, 
-    ActionController::ParamsWrapper, 
-    ... , 
-    AbstractController::Rendering, 
+=> [ActionController::API,
+    ActiveRecord::Railties::ControllerRuntime,
+    ActionDispatch::Routing::RouteSet::MountedHelpers,
+    ActionController::ParamsWrapper,
+    ... ,
+    AbstractController::Rendering,
     ActionView::ViewPaths]
 ```
 

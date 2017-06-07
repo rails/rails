@@ -1,12 +1,37 @@
-*   Removed deprecated `:tokenizer` in the length validator.
+*   Fix regression in numericality validator when comparing Decimal and Float input 
+    values with more scale than the schema.
 
-    *Rafael Mendonça França*
+    *Bradley Priest*
 
-*   Removed deprecated methods in `ActiveModel::Errors`.
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
 
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
+    Change `#keys` to only return the keys that don't have empty messages.
 
-    *Rafael Mendonça França*
+    Change `#values` to only return the not empty values.
+
+    Example:
+
+        # Before
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => [:name]
+        person.errors.values   # => [[]]
+
+        # After
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => []
+        person.errors.values   # => []
+
+    *bogdanvlviv*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.

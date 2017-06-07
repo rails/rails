@@ -51,20 +51,20 @@ module ActionView
       ActionView::Base.logger
     end
 
-  protected
+  private
 
     EMPTY = ""
-    def from_rails_root(string)
+    def from_rails_root(string) # :doc:
       string = string.sub(rails_root, EMPTY)
       string.sub!(VIEWS_PATTERN, EMPTY)
       string
     end
 
-    def rails_root
+    def rails_root # :doc:
       @root ||= "#{Rails.root}/"
     end
 
-    def render_count(payload)
+    def render_count(payload) # :doc:
       if payload[:cache_hits]
         "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
       else
@@ -72,15 +72,13 @@ module ActionView
       end
     end
 
-    def cache_message(payload)
+    def cache_message(payload) # :doc:
       if payload[:cache_hit]
         "[cache hit]"
       else
         "[cache miss]"
       end
     end
-
-  private
 
     def log_rendering_start(payload)
       info do

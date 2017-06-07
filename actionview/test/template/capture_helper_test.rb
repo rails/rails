@@ -127,18 +127,18 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_content_for_returns_nil_when_writing
     assert ! content_for?(:title)
-    assert_equal nil, content_for(:title, "foo")
-    assert_equal nil, content_for(:title) { output_buffer << "bar"; nil }
-    assert_equal nil, content_for(:title) { output_buffer << "  \n  "; nil }
+    assert_nil content_for(:title, "foo")
+    assert_nil content_for(:title) { output_buffer << "bar"; nil }
+    assert_nil content_for(:title) { output_buffer << "  \n  "; nil }
     assert_equal "foobar", content_for(:title)
-    assert_equal nil, content_for(:title, "foo", flush: true)
-    assert_equal nil, content_for(:title, flush: true) { output_buffer << "bar"; nil }
-    assert_equal nil, content_for(:title, flush: true) { output_buffer << "  \n  "; nil }
+    assert_nil content_for(:title, "foo", flush: true)
+    assert_nil content_for(:title, flush: true) { output_buffer << "bar"; nil }
+    assert_nil content_for(:title, flush: true) { output_buffer << "  \n  "; nil }
     assert_equal "bar", content_for(:title)
   end
 
   def test_content_for_returns_nil_when_content_missing
-    assert_equal nil, content_for(:some_missing_key)
+    assert_nil content_for(:some_missing_key)
   end
 
   def test_content_for_question_mark

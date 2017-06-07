@@ -17,8 +17,8 @@ module ActiveRecord
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
     # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You'd need to provide an explicit QueryMethods#order
-    # option if you want the results are sorted.
+    # provide since database rows are unordered. You will need to provide an explicit QueryMethods#order
+    # option if you want the results to be sorted.
     #
     # ==== Find with lock
     #
@@ -76,7 +76,7 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue RangeError
+    rescue ::RangeError
       nil
     end
 
@@ -84,7 +84,7 @@ module ActiveRecord
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue RangeError
+    rescue ::RangeError
       raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
                                @klass.name)
     end
@@ -147,19 +147,11 @@ module ActiveRecord
     def last(limit = nil)
       return find_last(limit) if loaded? || limit_value
 
-      result = limit(limit || 1)
+      result = limit(limit)
       result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
-    rescue ActiveRecord::IrreversibleOrderError
-      ActiveSupport::Deprecation.warn(<<-WARNING.squish)
-          Finding a last element by loading the relation when SQL ORDER
-          can not be reversed is deprecated.
-          Rails 5.1 will raise ActiveRecord::IrreversibleOrderError in this case.
-          Please call `to_a.last` if you still want to load the relation.
-      WARNING
-      find_last(limit)
     end
 
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
@@ -309,31 +301,23 @@ module ActiveRecord
     #   Person.exists?
     def exists?(conditions = :none)
       if Base === conditions
-        conditions = conditions.id
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        raise ArgumentError, <<-MSG.squish
           You are passing an instance of ActiveRecord::Base to `exists?`.
           Please pass the id of the object by calling `.id`.
         MSG
       end
 
-      return false if !conditions
+      return false if !conditions || limit_value == 0
 
-      relation = apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+      relation = self unless eager_loading?
+      relation ||= apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+
       return false if ActiveRecord::NullRelation === relation
 
-      relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
-
-      case conditions
-      when Array, Hash
-        relation = relation.where(conditions)
-      else
-        unless conditions == :none
-          relation = relation.where(primary_key => conditions)
-        end
-      end
+      relation = construct_relation_for_exists(relation, conditions)
 
       connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
-    rescue RangeError
+    rescue ::RangeError
       false
     end
 
@@ -345,7 +329,7 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil) # :nodoc:
+    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
       conditions = arel.where_sql(@klass.arel_engine)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
@@ -355,10 +339,10 @@ module ActiveRecord
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name)
       elsif Array(ids).size == 1
-        error = "Couldn't find #{name} with '#{primary_key}'=#{ids}#{conditions}"
-        raise RecordNotFound.new(error, name, primary_key, ids)
+        error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
+        raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{primary_key}': "
+        error = "Couldn't find all #{name.pluralize} with '#{key}': "
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
 
         raise RecordNotFound.new(error, name, primary_key, ids)
@@ -400,6 +384,19 @@ module ActiveRecord
         end
       end
 
+      def construct_relation_for_exists(relation, conditions)
+        relation = relation.except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+
+        case conditions
+        when Array, Hash
+          relation.where!(conditions)
+        else
+          relation.where!(primary_key => conditions) unless conditions == :none
+        end
+
+        relation
+      end
+
       def construct_join_dependency(joins = [], eager_loading: true)
         including = eager_load_values + includes_values
         ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
@@ -410,8 +407,7 @@ module ActiveRecord
       end
 
       def apply_join_dependency(relation, join_dependency)
-        relation = relation.except(:includes, :eager_load, :preload)
-        relation = relation.joins join_dependency
+        relation = relation.except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if using_limitable_reflections?(join_dependency.reflections)
           relation
@@ -439,8 +435,6 @@ module ActiveRecord
         reflections.none?(&:collection?)
       end
 
-    protected
-
       def find_with_ids(*ids)
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
@@ -458,14 +452,13 @@ module ActiveRecord
         else
           find_some(ids)
         end
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
       end
 
       def find_one(id)
         if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             You are passing an instance of ActiveRecord::Base to `find`.
             Please pass the id of the object by calling `.id`.
           MSG
@@ -548,8 +541,12 @@ module ActiveRecord
             self
           end
 
-          relation = relation.offset(offset_index + index) unless index.zero?
-          relation.limit(limit).to_a
+          if limit_value.nil? || index < limit_value
+            relation = relation.offset(offset_index + index) unless index.zero?
+            relation.limit(limit).to_a
+          else
+            []
+          end
         end
       end
 
@@ -571,8 +568,6 @@ module ActiveRecord
           # e.g., reverse_order.offset(index-1).first
         end
       end
-
-    private
 
       def find_last(limit)
         limit ? records.last(limit) : records.last

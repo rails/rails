@@ -29,7 +29,7 @@ class StarStarMimeControllerTest < ActionController::TestCase
 end
 
 class AbstractPostController < ActionController::Base
-  self.view_paths = File.dirname(__FILE__) + "/../../fixtures/post_test/"
+  self.view_paths = File.expand_path("../../fixtures/post_test", __dir__)
 end
 
 # For testing layouts which are set automatically
@@ -40,7 +40,7 @@ class PostController < AbstractPostController
     respond_to(:html, :iphone, :js)
   end
 
-protected
+private
 
   def with_iphone
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"

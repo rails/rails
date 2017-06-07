@@ -5,7 +5,7 @@ module ActionView
     attr_reader :content
 
     def initialize
-      @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
+      @content = Hash.new { |h, k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
     # Called by _layout_for to read stored values.

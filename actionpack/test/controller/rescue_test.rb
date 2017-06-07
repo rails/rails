@@ -149,7 +149,7 @@ class RescueController < ActionController::Base
     raise RangeError
   end
 
-  protected
+  private
     def deny_access
       head :forbidden
     end
@@ -327,7 +327,7 @@ class RescueTest < ActionDispatch::IntegrationTest
       raise "b00m"
     end
 
-    protected
+    private
       def show_errors(exception)
         render plain: exception.message
       end

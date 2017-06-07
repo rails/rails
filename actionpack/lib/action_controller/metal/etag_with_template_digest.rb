@@ -22,8 +22,7 @@ module ActionController
     include ActionController::ConditionalGet
 
     included do
-      class_attribute :etag_with_template_digest
-      self.etag_with_template_digest = true
+      class_attribute :etag_with_template_digest, default: true
 
       ActiveSupport.on_load :action_view, yield: true do
         etag do |options|
@@ -40,7 +39,7 @@ module ActionController
       end
 
       # Pick the template digest to include in the ETag. If the +:template+ option
-      # is present, use the named template. If +:template+ is nil or absent, use
+      # is present, use the named template. If +:template+ is +nil+ or absent, use
       # the default controller/action template. If +:template+ is false, omit the
       # template digest from the ETag.
       def pick_template_for_etag(options)

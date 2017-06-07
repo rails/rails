@@ -140,6 +140,11 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
     assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
 
+    assert_equal(
+      { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" }, "2" => {} } } },
+      permitted.to_h
+    )
+
     assert_filtered_out permitted[:book][:authors_attributes]["0"], :age_of_death
   end
 

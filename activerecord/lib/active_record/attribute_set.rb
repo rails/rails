@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     def deep_dup
-      dup.tap do |copy|
+      self.class.allocate.tap do |copy|
         copy.instance_variable_set(:@attributes, attributes.deep_dup)
       end
     end
@@ -98,6 +98,8 @@ module ActiveRecord
       attributes == other.attributes
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
       attr_reader :attributes

@@ -20,7 +20,7 @@ module ActionDispatch
           "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar\Z},
           "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))\Z},
         }.each do |path, expected|
-          define_method(:"test_to_regexp_#{path}") do
+          define_method(:"test_to_regexp_#{Regexp.escape(path)}") do
             path = Pattern.build(
               path,
               { controller: /.+/ },
@@ -44,7 +44,7 @@ module ActionDispatch
           "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar},
           "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))},
         }.each do |path, expected|
-          define_method(:"test_to_non_anchored_regexp_#{path}") do
+          define_method(:"test_to_non_anchored_regexp_#{Regexp.escape(path)}") do
             path = Pattern.build(
               path,
               { controller: /.+/ },
@@ -67,7 +67,7 @@ module ActionDispatch
           "/:controller/*foo"            => %w{ controller foo },
           "/:controller/*foo/bar"        => %w{ controller foo },
         }.each do |path, expected|
-          define_method(:"test_names_#{path}") do
+          define_method(:"test_names_#{Regexp.escape(path)}") do
             path = Pattern.build(
               path,
               { controller: /.+/ },

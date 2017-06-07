@@ -25,6 +25,27 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_not @params.delete(:person).permitted?
   end
 
+  test "delete returns the value when the key is present" do
+    assert_equal "32", @params[:person].delete(:age)
+  end
+
+  test "delete removes the entry when the key present" do
+    @params[:person].delete(:age)
+    assert_not @params[:person].key?(:age)
+  end
+
+  test "delete returns nil when the key is not present" do
+    assert_equal nil, @params[:person].delete(:first_name)
+  end
+
+  test "delete returns the value of the given block when the key is not present" do
+    assert_equal "David", @params[:person].delete(:first_name) { "David" }
+  end
+
+  test "delete yields the key to the given block when the key is not present" do
+    assert_equal "first_name: David", @params[:person].delete(:first_name) { |k| "#{k}: David" }
+  end
+
   test "delete_if retains permitted status" do
     @params.permit!
     assert @params.delete_if { |k| k == "person" }.permitted?
@@ -45,11 +66,11 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "keep_if retains permitted status" do
     @params.permit!
-    assert @params.keep_if { |k,v| k == "person" }.permitted?
+    assert @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "keep_if retains unpermitted status" do
-    assert_not @params.keep_if { |k,v| k == "person" }.permitted?
+    assert_not @params.keep_if { |k, v| k == "person" }.permitted?
   end
 
   test "reject! retains permitted status" do

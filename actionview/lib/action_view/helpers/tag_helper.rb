@@ -138,8 +138,7 @@ module ActionView
       #
       # ==== Options
       #
-      # Any passed options become attributes on the generated tag.
-      # You can only use symbols (not strings) for the attribute names.
+      # Use symbol keyed options to add attributes to the generated tag.
       #
       #   tag.section class: %w( kitties puppies )
       #   # => <section class="kitties puppies"></section>
@@ -201,7 +200,7 @@ module ActionView
       # hash to +options+. Set +escape+ to false to disable attribute value
       # escaping.
       #
-      # ==== Options (Legacy syntax)
+      # ==== Options
       #
       # You can use symbols or strings for the attribute names.
       #
@@ -211,7 +210,7 @@ module ActionView
       # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
       #
-      # ==== Examples (Legacy syntax)
+      # ==== Examples
       #
       #   tag("br")
       #   # => <br />

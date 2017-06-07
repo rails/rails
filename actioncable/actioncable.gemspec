@@ -1,4 +1,4 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -20,6 +20,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "actionpack", version
 
-  s.add_dependency "nio4r",            "~> 1.2"
+  s.add_dependency "nio4r",            "~> 2.0"
   s.add_dependency "websocket-driver", "~> 0.6.1"
 end

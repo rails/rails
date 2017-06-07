@@ -14,7 +14,7 @@ class Topic < ActiveRecord::Base
   scope :replied, -> { where "replies_count > 0" }
 
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> { all } do
+  scope :anonymous_extension, -> {} do
     def one
       1
     end
@@ -73,7 +73,7 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
-  protected
+  private
 
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")

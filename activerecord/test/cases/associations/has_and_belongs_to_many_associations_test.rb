@@ -86,6 +86,12 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
+ActiveSupport::Deprecation.silence do
+  class DeveloperWithConstantClassName < Developer
+    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
+  end
+end
+
 class DeveloperWithExtendOption < Developer
   module NamedExtension
     def category
@@ -103,6 +109,21 @@ class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
     join_table: "developers_projects",
     foreign_key: "project_id",
     association_foreign_key: "developer_id"
+end
+
+class Kitchen < ActiveRecord::Base
+  has_one :sink
+end
+
+class Sink < ActiveRecord::Base
+  has_and_belongs_to_many :sources, join_table: :edges
+  belongs_to :kitchen
+  accepts_nested_attributes_for :kitchen
+end
+
+class Source < ActiveRecord::Base
+  self.table_name = "men"
+  has_and_belongs_to_many :sinks, join_table: :edges
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -249,8 +270,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert !p.persisted?
     assert aredridel.save
     assert aredridel.persisted?
-    assert_equal no_of_devels+1, Developer.count
-    assert_equal no_of_projects+1, Project.count
+    assert_equal no_of_devels + 1, Developer.count
+    assert_equal no_of_projects + 1, Project.count
     assert_equal 2, aredridel.projects.size
     assert_equal 2, aredridel.projects.reload.size
   end
@@ -346,19 +367,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
 
-  def test_create_by_new_record
-    devel = Developer.new(name: "Marcel", salary: 75000)
-    devel.projects.build(name: "Make bed")
-    proj2 = devel.projects.build(name: "Lie in it")
-    assert_equal devel.projects.last, proj2
-    assert !proj2.persisted?
-    devel.save
-    assert devel.persisted?
-    assert proj2.persisted?
-    assert_equal devel.projects.last, proj2
-    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
-  end
-
   def test_creation_respects_hash_condition
     # in Oracle '' is saved as null therefore need to save ' ' in not null column
     post = categories(:general).post_with_conditions.build(body: " ")
@@ -379,7 +387,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     dev.projects << projects(:active_record)
 
     assert_equal 3, dev.projects.size
-    assert_equal 1, dev.projects.distinct.size
+    assert_equal 1, dev.projects.uniq.size
   end
 
   def test_distinct_before_the_fact
@@ -739,8 +747,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped_having
-    assert_equal 2, projects(:active_record).well_payed_salary_groups.to_a.size
-    assert projects(:active_record).well_payed_salary_groups.all? { |g| g.salary > 10000 }
+    assert_equal 2, projects(:active_record).well_paid_salary_groups.to_a.size
+    assert projects(:active_record).well_paid_salary_groups.all? { |g| g.salary > 10000 }
   end
 
   def test_get_ids
@@ -933,20 +941,22 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Developer._reflections["shared_computers"]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
-    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")
     assert_equal developers(:david).shared_computers.first, computers(:laptop)
   end
 
   def test_with_symbol_class_name
     assert_nothing_raised do
-      DeveloperWithSymbolClassName.new
+      developer = DeveloperWithSymbolClassName.new
+      developer.projects
     end
   end
 
-  def test_association_force_reload_with_only_true_is_deprecated
-    developer = Developer.find(1)
-
-    assert_deprecated { developer.projects(true) }
+  def test_with_constant_class_name
+    assert_nothing_raised do
+      developer = DeveloperWithConstantClassName.new
+      developer.projects
+    end
   end
 
   def test_alternate_database
@@ -999,5 +1009,23 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_association_name_is_the_same_as_join_table_name
     user = User.create!
     assert_nothing_raised { user.jobs_pool.clear }
+  end
+
+  def test_has_and_belongs_to_many_while_partial_writes_false
+    begin
+      original_partial_writes = ActiveRecord::Base.partial_writes
+      ActiveRecord::Base.partial_writes = false
+      developer = Developer.new(name: "Mehmet Emin İNAÇ")
+      developer.projects << Project.new(name: "Bounty")
+
+      assert developer.save
+    ensure
+      ActiveRecord::Base.partial_writes = original_partial_writes
+    end
+  end
+
+  def test_has_and_belongs_to_many_with_belongs_to
+    sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
+    assert_equal 1, sink.sources.count
   end
 end

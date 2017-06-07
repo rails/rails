@@ -130,11 +130,6 @@
       url: active_support_instrumentation.html
       description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
     -
-      name: Profiling Rails Applications
-      work_in_progress: true
-      url: profiling.html
-      description: This guide explains how to profile your Rails applications to improve performance.
-    -
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
@@ -193,6 +188,10 @@
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 5.1 Release Notes
+      url: 5_1_release_notes.html
+      description: Release notes for Rails 5.1.
     -
       name: Ruby on Rails 5.0 Release Notes
       url: 5_0_release_notes.html

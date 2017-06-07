@@ -22,6 +22,10 @@ module ActiveRecord
           elsif record
             attributes = construct_join_attributes(record)
 
+            if through_record && through_record.destroyed?
+              through_record = through_proxy.tap(&:reload).target
+            end
+
             if through_record
               through_record.update(attributes)
             elsif owner.new_record?

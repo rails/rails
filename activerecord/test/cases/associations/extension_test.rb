@@ -36,6 +36,11 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal comments(:greetings), posts(:welcome).comments.not_again.find_most_recent
   end
 
+  def test_extension_with_dirty_target
+    comment = posts(:welcome).comments.build(body: "New comment")
+    assert_equal comment, posts(:welcome).comments.with_content("New comment")
+  end
+
   def test_marshalling_extensions
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
@@ -45,7 +50,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     # Marshaling an association shouldn't make it unusable by wiping its reflection.
     assert_not_nil david.association(:projects).reflection
 
-    david_too  = Marshal.load(marshalled)
+    david_too = Marshal.load(marshalled)
     assert_equal projects(:action_controller), david_too.projects.find_most_recent
   end
 
@@ -71,6 +76,12 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
     assert_equal post.association(:comments), post.comments.where("1=1").the_association
+  end
+
+  def test_association_with_default_scope
+    assert_raises OopsError do
+      posts(:welcome).comments.destroy_all
+    end
   end
 
   private

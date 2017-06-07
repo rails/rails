@@ -33,7 +33,7 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att,value|
+      self.class.scope_attributes.each do |att, value|
         send("#{att}=", value) if respond_to?("#{att}=")
       end
     end

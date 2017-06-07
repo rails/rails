@@ -17,7 +17,7 @@ module RailsGuides
 
     private
 
-      def process(string, current_level=3, counters=[1])
+      def process(string, current_level = 3, counters = [1])
         s = StringScanner.new(string)
 
         level_hash = {}

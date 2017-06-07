@@ -9,7 +9,7 @@ module ActiveSupport
       NORMALIZATION_FORMS = [:c, :kc, :d, :kd]
 
       # The Unicode version that is supported by the implementation
-      UNICODE_VERSION = "8.0.0"
+      UNICODE_VERSION = "9.0.0"
 
       # The default normalization used for operations that require
       # normalization. It can be set to any of the normalizations
@@ -52,35 +52,35 @@ module ActiveSupport
         pos = 0
         marker = 0
         eoc = codepoints.length
-        while(pos < eoc)
+        while (pos < eoc)
           pos += 1
-          previous = codepoints[pos-1]
+          previous = codepoints[pos - 1]
           current = codepoints[pos]
 
+          # See http://unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
           should_break =
+            if pos == eoc
+              true
             # GB3. CR X LF
-            if previous == database.boundary[:cr] && current == database.boundary[:lf]
+            elsif previous == database.boundary[:cr] && current == database.boundary[:lf]
               false
             # GB4. (Control|CR|LF) ÷
-            elsif previous && in_char_class?(previous, [:control,:cr,:lf])
+            elsif previous && in_char_class?(previous, [:control, :cr, :lf])
               true
             # GB5. ÷ (Control|CR|LF)
-            elsif in_char_class?(current, [:control,:cr,:lf])
+            elsif in_char_class?(current, [:control, :cr, :lf])
               true
             # GB6. L X (L|V|LV|LVT)
-            elsif database.boundary[:l] === previous && in_char_class?(current, [:l,:v,:lv,:lvt])
+            elsif database.boundary[:l] === previous && in_char_class?(current, [:l, :v, :lv, :lvt])
               false
             # GB7. (LV|V) X (V|T)
-            elsif in_char_class?(previous, [:lv,:v]) && in_char_class?(current, [:v,:t])
+            elsif in_char_class?(previous, [:lv, :v]) && in_char_class?(current, [:v, :t])
               false
             # GB8. (LVT|T) X (T)
-            elsif in_char_class?(previous, [:lvt,:t]) && database.boundary[:t] === current
+            elsif in_char_class?(previous, [:lvt, :t]) && database.boundary[:t] === current
               false
-            # GB8a. Regional_Indicator X Regional_Indicator
-            elsif database.boundary[:regional_indicator] === previous && database.boundary[:regional_indicator] === current
-              false
-            # GB9. X Extend
-            elsif database.boundary[:extend] === current
+            # GB9. X (Extend | ZWJ)
+            elsif in_char_class?(current, [:extend, :zwj])
               false
             # GB9a. X SpacingMark
             elsif database.boundary[:spacingmark] === current
@@ -88,13 +88,23 @@ module ActiveSupport
             # GB9b. Prepend X
             elsif database.boundary[:prepend] === previous
               false
-            # GB10. Any ÷ Any
+            # GB10. (E_Base | EBG) Extend* X E_Modifier
+            elsif (marker...pos).any? { |i| in_char_class?(codepoints[i], [:e_base, :e_base_gaz]) && codepoints[i + 1...pos].all? { |c| database.boundary[:extend] === c } } && database.boundary[:e_modifier] === current
+              false
+            # GB11. ZWJ X (Glue_After_Zwj | EBG)
+            elsif database.boundary[:zwj] === previous && in_char_class?(current, [:glue_after_zwj, :e_base_gaz])
+              false
+            # GB12. ^ (RI RI)* RI X RI
+            # GB13. [^RI] (RI RI)* RI X RI
+            elsif codepoints[marker..pos].all? { |c| database.boundary[:regional_indicator] === c } && codepoints[marker..pos].count { |c| database.boundary[:regional_indicator] === c }.even?
+              false
+            # GB999. Any ÷ Any
             else
               true
             end
 
           if should_break
-            unpacked << codepoints[marker..pos-1]
+            unpacked << codepoints[marker..pos - 1]
             marker = pos
           end
         end
@@ -110,12 +120,12 @@ module ActiveSupport
 
       # Re-order codepoints so the string becomes canonical.
       def reorder_characters(codepoints)
-        length = codepoints.length- 1
+        length = codepoints.length - 1
         pos = 0
         while pos < length do
-          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos+1]]
+          cp1, cp2 = database.codepoints[codepoints[pos]], database.codepoints[codepoints[pos + 1]]
           if (cp1.combining_class > cp2.combining_class) && (cp2.combining_class > 0)
-            codepoints[pos..pos+1] = cp2.code, cp1.code
+            codepoints[pos..pos + 1] = cp2.code, cp1.code
             pos += (pos > 0 ? -1 : 1)
           else
             pos += 1
@@ -157,9 +167,9 @@ module ActiveSupport
           lindex = starter_char - HANGUL_LBASE
           # -- Hangul
           if 0 <= lindex && lindex < HANGUL_LCOUNT
-            vindex = codepoints[starter_pos+1] - HANGUL_VBASE rescue vindex = -1
+            vindex = codepoints[starter_pos + 1] - HANGUL_VBASE rescue vindex = -1
             if 0 <= vindex && vindex < HANGUL_VCOUNT
-              tindex = codepoints[starter_pos+2] - HANGUL_TBASE rescue tindex = -1
+              tindex = codepoints[starter_pos + 2] - HANGUL_TBASE rescue tindex = -1
               if 0 <= tindex && tindex < HANGUL_TCOUNT
                 j = starter_pos + 2
                 eoa -= 2
@@ -251,7 +261,7 @@ module ActiveSupport
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
       #   Default is ActiveSupport::Multibyte::Unicode.default_normalization_form.
-      def normalize(string, form=nil)
+      def normalize(string, form = nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a
@@ -347,7 +357,7 @@ module ActiveSupport
 
         # Returns the directory in which the data files are stored.
         def self.dirname
-          File.dirname(__FILE__) + "/../values/"
+          File.expand_path("../values", __dir__)
         end
 
         # Returns the filename for the data file for this version.
@@ -358,7 +368,7 @@ module ActiveSupport
 
       private
 
-        def apply_mapping(string, mapping) #:nodoc:
+        def apply_mapping(string, mapping)
           database.codepoints
           string.each_codepoint.map do |codepoint|
             cp = database.codepoints[codepoint]

@@ -5,10 +5,12 @@ class Module
   #
   #   M::N.parent_name # => "M"
   def parent_name
-    if defined? @parent_name
+    if defined?(@parent_name)
       @parent_name
     else
-      @parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+      @parent_name = parent_name unless frozen?
+      parent_name
     end
   end
 
@@ -54,13 +56,5 @@ class Module
     end
     parents << Object unless parents.include? Object
     parents
-  end
-
-  def local_constants #:nodoc:
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
-      Module#local_constants is deprecated and will be removed in Rails 5.1.
-      Use Module#constants(false) instead.
-    MSG
-    constants(false)
   end
 end

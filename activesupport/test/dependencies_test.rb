@@ -104,7 +104,7 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading "dependencies" do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
       filename = "check_warnings"
-      expanded = File.expand_path("#{File.dirname(__FILE__)}/dependencies/#{filename}")
+      expanded = File.expand_path("dependencies/#{filename}", __dir__)
       $check_warnings_load_count = 0
 
       assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
@@ -121,7 +121,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       silence_warnings { require_dependency filename }
       assert_equal 2, $check_warnings_load_count
-      assert_equal nil, $checked_verbose, "After first load warnings should be left alone."
+      assert_nil $checked_verbose, "After first load warnings should be left alone."
 
       assert_includes ActiveSupport::Dependencies.loaded, expanded
       ActiveSupport::Dependencies.clear
@@ -271,7 +271,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_raising_discards_autoloaded_constants
     with_autoloading_fixtures do
-      assert_raises(Exception, "arbitray exception message") { RaisesArbitraryException }
+      e = assert_raises(Exception) { RaisesArbitraryException }
+      assert_equal("arbitrary exception message", e.message)
       assert_not defined?(A)
       assert_not defined?(RaisesArbitraryException)
     end
@@ -292,7 +293,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_doesnt_break_normal_require
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
     with_autoloading_fixtures do
@@ -311,7 +312,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_doesnt_break_normal_require_nested
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -331,7 +332,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_true_when_file_not_yet_required
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -344,7 +345,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -358,7 +359,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_false_when_file_already_required
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -378,7 +379,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_load_returns_true_when_file_found
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -397,14 +398,17 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  def failing_test_access_thru_and_upwards_fails
-    with_autoloading_fixtures do
-      assert_not defined?(ModuleFolder)
-      assert_raise(NameError) { ModuleFolder::Object }
-      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+  # This raises only on 2.5.. (warns on ..2.4)
+  if RUBY_VERSION > "2.5"
+    def test_access_thru_and_upwards_fails
+      with_autoloading_fixtures do
+        assert_not defined?(ModuleFolder)
+        assert_raise(NameError) { ModuleFolder::Object }
+        assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+      end
+    ensure
+      remove_constants(:ModuleFolder)
     end
-  ensure
-    remove_constants(:ModuleFolder)
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
@@ -434,7 +438,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_loadable_constants_for_path_should_handle_relative_paths
     fake_root = "dependencies"
-    relative_root = File.dirname(__FILE__) + "/dependencies"
+    relative_root = File.expand_path("dependencies", __dir__)
     ["", "/"].each do |suffix|
       with_loading fake_root + suffix do
         assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + "/a/b")
@@ -459,7 +463,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_loadable_constants_with_load_path_without_trailing_slash
-    path = File.dirname(__FILE__) + "/autoloading_fixtures/class_folder/inline_class.rb"
+    path = File.expand_path("autoloading_fixtures/class_folder/inline_class.rb", __dir__)
     with_loading "autoloading_fixtures/class/" do
       assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path(path)
     end
@@ -526,8 +530,8 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_file_search
     with_loading "dependencies" do
       root = ActiveSupport::Dependencies.autoload_paths.first
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three")
-      assert_equal nil, ActiveSupport::Dependencies.search_for_file("service_three.rb")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three")
+      assert_nil ActiveSupport::Dependencies.search_for_file("service_three.rb")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one")
       assert_equal root + "/service_one.rb", ActiveSupport::Dependencies.search_for_file("service_one.rb")
     end
@@ -548,7 +552,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
       assert_equal autoload + "/conflict.rb", ActiveSupport::Dependencies.search_for_file("conflict")
     end
-
   end
 
   def test_custom_const_missing_should_work
@@ -757,14 +760,14 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_contants_in_without_constants
     assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
   def test_new_constants_in_with_a_single_constant
     assert_equal ["Hello"], ActiveSupport::Dependencies.new_constants_in(Object) {
                               Object.const_set :Hello, 10
                             }.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:Hello)
   end
@@ -781,7 +784,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
 
     assert_equal ["OuterAfter", "OuterBefore"], outer.sort.map(&:to_s)
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:OuterBefore, :Inner, :OuterAfter)
   end
@@ -800,7 +803,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end
@@ -818,7 +821,7 @@ class DependenciesTest < ActiveSupport::TestCase
       M.const_set :OuterAfter, 30
     end
     assert_equal ["M::OuterAfter", "M::OuterBefore"], outer.sort
-    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k,v| v.empty? }
+    assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   ensure
     remove_constants(:M)
   end
@@ -988,7 +991,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_remove_constant_does_not_trigger_loading_autoloads
     constant = "ShouldNotBeAutoloaded"
     Object.class_eval do
-      autoload constant, File.expand_path("../autoloading_fixtures/should_not_be_required", __FILE__)
+      autoload constant, File.expand_path("autoloading_fixtures/should_not_be_required", __dir__)
     end
 
     assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"

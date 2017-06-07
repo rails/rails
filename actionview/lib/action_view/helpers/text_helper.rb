@@ -151,7 +151,7 @@ module ActionView
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
       # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, nil is returned.
+      # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
@@ -187,7 +187,7 @@ module ActionView
         unless separator.empty?
           text.split(separator).each do |value|
             if value.match(regex)
-              regex = phrase = value
+              phrase = value
               break
             end
           end

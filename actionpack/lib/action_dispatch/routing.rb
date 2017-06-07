@@ -1,3 +1,5 @@
+require "active_support/core_ext/string/filters"
+
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
@@ -118,7 +120,7 @@ module ActionDispatch
   #   controller :blog do
   #     get 'blog/show'     => :list
   #     get 'blog/delete'   => :delete
-  #     get 'blog/edit' => :edit
+  #     get 'blog/edit'     => :edit
   #   end
   #
   #   # provides named routes for show, delete, and edit
@@ -252,14 +254,5 @@ module ActionDispatch
 
     SEPARATORS = %w( / . ? ) #:nodoc:
     HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
-
-    #:stopdoc:
-    INSECURE_URL_PARAMETERS_MESSAGE = <<-MSG.squish
-      Attempting to generate a URL from non-sanitized request parameters!
-
-      An attacker can inject malicious data into the generated URL, such as
-      changing the host. Whitelist and sanitize passed parameters to be secure.
-    MSG
-    #:startdoc:
   end
 end

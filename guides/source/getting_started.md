@@ -20,16 +20,7 @@ Guide Assumptions
 
 This guide is designed for beginners who want to get started with a Rails
 application from scratch. It does not assume that you have any prior experience
-with Rails. However, to get the most out of it, you need to have some
-prerequisites installed:
-
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
-* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
-  are using Windows.
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with
-  Ruby by default. To learn more about RubyGems, please read the
-  [RubyGems Guides](http://guides.rubygems.org).
-* A working installation of the [SQLite3 Database](https://www.sqlite.org).
+with Rails.
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
@@ -46,7 +37,7 @@ development with Rails.
 What is Rails?
 --------------
 
-Rails is a web application development framework written in the Ruby language.
+Rails is a web application development framework written in the Ruby programming language.
 It is designed to make programming web applications easier by making assumptions
 about what every developer needs to get started. It allows you to write less
 code while accomplishing more than many other languages and frameworks.
@@ -86,7 +77,10 @@ your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
-Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
+Before you install Rails, you should check to make sure that your system has the
+proper prerequisites installed. These include Ruby and SQLite3.
+
+Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
@@ -96,12 +90,19 @@ $ ruby -v
 ruby 2.3.1p112
 ```
 
+Rails requires Ruby version 2.2.2 or later. If the version number returned is
+less than that number, you'll need to install a fresh copy of Ruby.
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
-while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
+while macOS users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
+If you are working on Windows, you should also install the
+[Ruby Installer Development Kit](http://rubyinstaller.org/downloads/).
+
+You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
 already have SQLite installed. Others can find installation instructions
@@ -127,7 +128,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.0.0", you are ready to continue.
+If it says something like "Rails 5.1.1", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -182,7 +183,7 @@ of the files and folders that Rails created by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.gitignore|This file tells git which files (or patterns) it should ignore. See [Github - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
 
 Hello, Rails!
 -------------
@@ -206,8 +207,8 @@ folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
-Usually Mac OS X and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+Usually macOS and Windows come with a JavaScript runtime installed.
+Rails adds the `mini_racer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
@@ -221,7 +222,7 @@ your application in action, open a browser window and navigate to
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
-cursor again. For most UNIX-like systems including Mac OS X this will be a
+cursor again. For most UNIX-like systems including macOS this will be a
 dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
@@ -474,7 +475,7 @@ one here because the `ArticlesController` inherits from `ApplicationController`.
 The next part of the message contains `request.formats` which specifies
 the format of template to be served in response. It is set to `text/html` as we
 requested this page via browser, so Rails is looking for an HTML template.
-`request.variants` specifies what kind of physical devices would be served by
+`request.variant` specifies what kind of physical devices would be served by
 the response and helps Rails determine which template to use in the response.
 It is empty because no information has been provided.
 
@@ -827,7 +828,7 @@ NOTE: A frequent practice is to place the standard CRUD actions in each
 controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
 and `destroy`. You may use any order you choose, but keep in mind that these
 are public methods; as mentioned earlier in this guide, they must be placed
-before any private or protected method in the controller in order to work.
+before declaring `private` visibility in the controller.
 
 Given that, let's add the `show` action, as follows:
 
@@ -909,6 +910,7 @@ And then finally, add the view for this action, located at
   <tr>
     <th>Title</th>
     <th>Text</th>
+    <th></th>
   </tr>
 
   <% @articles.each do |article| %>
@@ -1157,7 +1159,7 @@ it look as follows:
 ```html+erb
 <h1>Edit article</h1>
 
-<%= form_for :article, url: article_path(@article), method: :patch do |f| %>
+<%= form_for(@article) do |f| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1195,14 +1197,15 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `method: :patch` option tells Rails that we want this form to be submitted
+Passing the article object to the method, will automagically create url for submitting the edited article form.
+This option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
 The first parameter of `form_for` can be an object, say, `@article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
 symbol (`:article`) with the same name as the instance variable (`@article`)
-also automagically leads to the same behavior. This is what is happening here.
+also automagically leads to the same behavior.
 More details can be found in [form_for documentation]
 (http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
 
@@ -1487,14 +1490,14 @@ second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
 user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `jquery_ujs` which is automatically included in your
+JavaScript file `rails-ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
 appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
-TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy
@@ -1655,8 +1658,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
+| app/assets/javascripts/comments.coffee       | CoffeeScript for the controller          |
+| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back

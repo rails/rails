@@ -1,8 +1,10 @@
 module Rails
   module Command
-    class NewCommand < Base
-      def help
-        Rails::Command.invoke :application, [ "--help" ]
+    class NewCommand < Base # :nodoc:
+      no_commands do
+        def help
+          Rails::Command.invoke :application, [ "--help" ]
+        end
       end
 
       def perform(*)

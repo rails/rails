@@ -43,10 +43,10 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
-    ActiveRecord::Base.connection.initialize_schema_migrations_table
-    ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::Migrator.schema_migrations_table_name}"
+    ActiveRecord::SchemaMigration.create_table
+    ActiveRecord::SchemaMigration.delete_all
 
-    %w(things awesome_things prefix_things_suffix p_awesome_things_s ).each do |table|
+    %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
       Thing.connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
@@ -337,20 +337,20 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_schema_migrations_table_name
-    original_schema_migrations_table_name = ActiveRecord::Migrator.schema_migrations_table_name
+    original_schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-    assert_equal "schema_migrations", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "schema_migrations", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.schema_migrations_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "prefix_changed_suffix", ActiveRecord::SchemaMigration.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::Migrator.schema_migrations_table_name
+    assert_equal "changed", ActiveRecord::SchemaMigration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
     Reminder.reset_table_name
@@ -388,7 +388,7 @@ class MigrationTest < ActiveRecord::TestCase
     original_rails_env  = ENV["RAILS_ENV"]
     original_rack_env   = ENV["RACK_ENV"]
     ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
     refute_equal current_env, new_env
 
@@ -399,44 +399,19 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
-  end
-
-  def test_migration_sets_internal_metadata_even_when_fully_migrated
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-    migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
-
     ActiveRecord::Migrator.up(migrations_path)
-    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
-
-    original_rails_env  = ENV["RAILS_ENV"]
-    original_rack_env   = ENV["RACK_ENV"]
-    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-
-    refute_equal current_env, new_env
-
-    sleep 1 # mysql by default does not store fractional seconds in the database
-
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
-  ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
-    ENV["RAILS_ENV"] = original_rails_env
-    ENV["RACK_ENV"]  = original_rack_env
   end
 
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
-    ActiveRecord::InternalMetadata[:foo]  = "bar"
+    ActiveRecord::InternalMetadata[:foo] = "bar"
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path        = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
@@ -705,7 +680,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
-  protected
+  private
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
     def new_isolated_reminder_class
@@ -887,7 +862,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal :datetime, column(:birthdate).type
     end
 
-    protected
+    private
 
       def with_bulk_change_table
         # Reset columns/indexes cache as we're changing the table
@@ -914,7 +889,6 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         @indexes ||= Person.connection.indexes("delete_me")
       end
   end # AlterTableMigrationsTest
-
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase
@@ -1131,5 +1105,22 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
+  end
+
+  def test_deprecate_initialize_internal_tables
+    assert_deprecated { ActiveRecord::Base.connection.initialize_schema_migrations_table }
+    assert_deprecated { ActiveRecord::Base.connection.initialize_internal_metadata_table }
+  end
+
+  def test_deprecate_migration_keys
+    assert_deprecated { ActiveRecord::Base.connection.migration_keys }
+  end
+
+  def test_deprecate_supports_migrations
+    assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
+  end
+
+  def test_deprecate_schema_migrations_table_name
+    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
   end
 end

@@ -10,7 +10,7 @@ module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    RESCUES_TEMPLATE_PATH = File.expand_path("../templates", __FILE__)
+    RESCUES_TEMPLATE_PATH = File.expand_path("templates", __dir__)
 
     class DebugView < ActionView::Base
       def debug_params(params)
@@ -38,7 +38,9 @@ module ActionDispatch
       end
 
       def render(*)
-        if logger = ActionView::Base.logger
+        logger = ActionView::Base.logger
+
+        if logger && logger.respond_to?(:silence)
           logger.silence { super }
         else
           super
@@ -173,7 +175,11 @@ module ActionDispatch
       end
 
       def log_array(logger, array)
-        array.map { |line| logger.fatal line }
+        if logger.formatter && logger.formatter.respond_to?(:tags_text)
+          logger.fatal array.join("\n#{logger.formatter.tags_text}")
+        else
+          logger.fatal array.join("\n")
+        end
       end
 
       def logger(request)

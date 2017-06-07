@@ -62,19 +62,19 @@ module ActiveRecord
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = "Abstract".freeze
+      include ActiveSupport::Callbacks
+      define_callbacks :checkout, :checkin
+
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ActiveSupport::Callbacks
       include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
 
-      define_callbacks :checkout, :checkin
-
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :owner, :logger
+      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
@@ -93,8 +93,6 @@ module ActiveRecord
         end
       end
 
-      attr_reader :prepared_statements
-
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
 
@@ -106,7 +104,8 @@ module ActiveRecord
         @pool                = nil
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor             = arel_visitor
+        @visitor = arel_visitor
+        @lock = Monitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -141,24 +140,8 @@ module ActiveRecord
         end
       end
 
-      def collector
-        if prepared_statements
-          SQLString.new
-        else
-          BindCollector.new
-        end
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::ToSql.new(self)
-      end
-
-      def valid_type?(type)
-        false
-      end
-
-      def schema_creation
-        SchemaCreation.new self
+      def valid_type?(type) # :nodoc:
+        !native_database_types[type].nil?
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -168,7 +151,7 @@ module ActiveRecord
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
-            msg << "it is already in use by a different thread: #{@owner}. " <<
+            msg << "it is already in use by a different thread: #{@owner}. " \
                    "Current thread: #{Thread.current}."
           end
           raise ActiveRecordError, msg
@@ -186,8 +169,8 @@ module ActiveRecord
       def expire
         if in_use?
           if @owner != Thread.current
-            raise ActiveRecordError, "Cannot expire connection, " <<
-              "it is owned by a different thread: #{@owner}. " <<
+            raise ActiveRecordError, "Cannot expire connection, " \
+              "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{Thread.current}."
           end
 
@@ -223,16 +206,15 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      # Does this adapter support migrations?
-      def supports_migrations?
-        false
+      def supports_migrations? # :nodoc:
+        true
       end
+      deprecate :supports_migrations?
 
-      # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables?
-      def supports_primary_key?
-        false
+      def supports_primary_key? # :nodoc:
+        true
       end
+      deprecate :supports_primary_key?
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
@@ -302,6 +284,12 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating foreign key constraints
+      # in the same statement as creating the table?
+      def supports_foreign_keys_in_create?
+        supports_foreign_keys?
+      end
+
       # Does this adapter support views?
       def supports_views?
         false
@@ -330,6 +318,11 @@ module ActiveRecord
       # Does this adapter support multi-value insert?
       def supports_multi_insert?
         true
+      end
+
+      # Does this adapter support virtual columns?
+      def supports_virtual_columns?
+        false
       end
 
       # This is meant to be implemented by the adapters that support extensions
@@ -420,12 +413,15 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!(*ignored)
+        if ignored.size > 0
+          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no effect and has been deprecated. Please remove all arguments from the #verify method call.")
+        end
         reconnect! unless active?
       end
 
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
-      # and a PGconn object in case of PostgreSQLAdapter.
+      # and a PG::Connection object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
@@ -433,15 +429,15 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value)
-        table[attribute].eq(Arel::Nodes::BindParam.new)
+      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
+        table[attribute].eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value)
+      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new))
+          table[attribute].lower.eq(table.lower(value))
         else
-          table[attribute].eq(Arel::Nodes::BindParam.new)
+          table[attribute].eq(value)
         end
       end
 
@@ -459,14 +455,6 @@ module ActiveRecord
         @type_map ||= Type::TypeMap.new.tap do |mapping|
           initialize_type_map(mapping)
         end
-      end
-
-      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
-        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
@@ -491,9 +479,13 @@ module ActiveRecord
         result
       end
 
-      protected
+      def default_index_type?(index) # :nodoc:
+        index.using.nil?
+      end
 
-        def initialize_type_map(m) # :nodoc:
+      private
+
+        def initialize_type_map(m)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean
           register_class_with_limit m, %r(char)i,          Type::String
           register_class_with_limit m, %r(binary)i,        Type::Binary
@@ -524,37 +516,37 @@ module ActiveRecord
           end
         end
 
-        def reload_type_map # :nodoc:
+        def reload_type_map
           type_map.clear
           initialize_type_map(type_map)
         end
 
-        def register_class_with_limit(mapping, key, klass) # :nodoc:
+        def register_class_with_limit(mapping, key, klass)
           mapping.register_type(key) do |*args|
             limit = extract_limit(args.last)
             klass.new(limit: limit)
           end
         end
 
-        def register_class_with_precision(mapping, key, klass) # :nodoc:
+        def register_class_with_precision(mapping, key, klass)
           mapping.register_type(key) do |*args|
             precision = extract_precision(args.last)
             klass.new(precision: precision)
           end
         end
 
-        def extract_scale(sql_type) # :nodoc:
+        def extract_scale(sql_type)
           case sql_type
           when /\((\d+)\)/ then 0
           when /\((\d+)(,(\d+))\)/ then $3.to_i
           end
         end
 
-        def extract_precision(sql_type) # :nodoc:
+        def extract_precision(sql_type)
           $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
         end
 
-        def extract_limit(sql_type) # :nodoc:
+        def extract_limit(sql_type)
           case sql_type
           when /^bigint/i
             8
@@ -575,7 +567,7 @@ module ActiveRecord
           exception
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -583,24 +575,45 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
-            connection_id:     object_id) { yield }
+            connection_id:     object_id) do
+              @lock.synchronize do
+                yield
+              end
+            end
         rescue => e
           raise translate_exception_class(e, sql)
         end
 
         def translate_exception(exception, message)
           # override in derived class
-          ActiveRecord::StatementInvalid.new(message)
+          case exception
+          when RuntimeError
+            exception
+          else
+            ActiveRecord::StatementInvalid.new(message)
+          end
         end
 
         def without_prepared_statement?(binds)
           !prepared_statements || binds.empty?
         end
 
-        def column_for(table_name, column_name) # :nodoc:
+        def column_for(table_name, column_name)
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def collector
+          if prepared_statements
+            SQLString.new
+          else
+            BindCollector.new
+          end
+        end
+
+        def arel_visitor
+          Arel::Visitors::ToSql.new(self)
         end
     end
   end

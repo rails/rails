@@ -29,6 +29,8 @@ module ActiveModel
         result
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :range
@@ -46,7 +48,7 @@ module ActiveModel
 
         def ensure_in_range(value)
           unless range.cover?(value)
-            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit}"
+            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
           end
         end
 

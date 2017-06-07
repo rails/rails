@@ -54,7 +54,7 @@ module ActiveRecord
           elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
             class_name_or_coder
           else
-            Coders::YAMLColumn.new(class_name_or_coder)
+            Coders::YAMLColumn.new(attr_name, class_name_or_coder)
           end
 
           decorate_attribute_type(attr_name, :serialize) do |type|

@@ -32,6 +32,14 @@ module Rails
   # This allows you to override entire operations, like the creation of the
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
+  #
+  #  class CustomAppBuilder < Rails::AppBuilder
+  #    def test
+  #      @generator.gem "rspec-rails", group: [:development, :test]
+  #      run "bundle install"
+  #      generate "rspec:install"
+  #    end
+  #  end
   class AppBuilder
     def rakefile
       template "Rakefile"
@@ -53,10 +61,20 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init"
+      end
+    end
+
+    def package_json
+      template "package.json"
+    end
+
     def app
       directory "app"
 
-      keep_file  "app/assets/images"
+      keep_file "app/assets/images"
       empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
       keep_file  "app/controllers/concerns"
@@ -68,6 +86,16 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
+    end
+
+    def bin_when_updating
+      bin_yarn_exist = File.exist?("bin/yarn")
+
+      bin
+
+      if options[:api] && !bin_yarn_exist
+        remove_file "bin/yarn"
+      end
     end
 
     def config
@@ -92,10 +120,9 @@ module Rails
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
       action_cable_config_exist = File.exist?("config/cable.yml")
       rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
+      assets_config_exist = File.exist?("config/initializers/assets.rb")
 
       config
-
-      gsub_file "config/environments/development.rb", /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
@@ -107,6 +134,16 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if options[:api]
+        unless cookie_serializer_config_exist
+          remove_file "config/initializers/cookies_serializer.rb"
+        end
+
+        unless assets_config_exist
+          remove_file "config/initializers/assets.rb"
+        end
       end
     end
 
@@ -144,6 +181,12 @@ module Rails
       template "test/test_helper.rb"
     end
 
+    def system_test
+      empty_directory_with_keep_file "test/system"
+
+      template "test/application_system_test_case.rb"
+    end
+
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
@@ -151,28 +194,19 @@ module Rails
     end
 
     def vendor
-      vendor_javascripts
-      vendor_stylesheets
-    end
-
-    def vendor_javascripts
-      unless options[:skip_javascript]
-        empty_directory_with_keep_file "vendor/assets/javascripts"
-      end
-    end
-
-    def vendor_stylesheets
-      empty_directory_with_keep_file "vendor/assets/stylesheets"
+      empty_directory_with_keep_file "vendor"
     end
   end
 
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
+      WEBPACKS = %w( react vue angular elm )
+
       add_shared_options_for "application"
 
       # Add bin/rails options
@@ -182,20 +216,24 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
+                                 desc: "Don't run bundle install"
+
+      class_option :webpack, type: :string, default: nil,
+                             desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
+
       def initialize(*args)
         super
-
-        unless app_path
-          raise Error, "Application name should be provided in arguments. For details run: rails --help"
-        end
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets to be skipped when generating API only apps.
+        # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
-        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
+        if options[:api]
+          self.options = options.merge(skip_sprockets: true, skip_javascript: true, skip_yarn: true).freeze
+        end
       end
 
       public_task :set_default_accessors!
@@ -205,8 +243,10 @@ module Rails
         build(:readme)
         build(:rakefile)
         build(:configru)
-        build(:gitignore) unless options[:skip_git]
-        build(:gemfile)   unless options[:skip_gemfile]
+        build(:gitignore)   unless options[:skip_git]
+        build(:gemfile)     unless options[:skip_gemfile]
+        build(:version_control)
+        build(:package_json) unless options[:skip_yarn]
       end
 
       def create_app_files
@@ -216,6 +256,11 @@ module Rails
       def create_bin_files
         build(:bin)
       end
+
+      def update_bin_files
+        build(:bin_when_updating)
+      end
+      remove_task :update_bin_files
 
       def create_config_files
         build(:config)
@@ -241,6 +286,7 @@ module Rails
       end
 
       def create_db_files
+        return if options[:skip_active_record]
         build(:db)
       end
 
@@ -260,6 +306,10 @@ module Rails
         build(:test) unless options[:skip_test]
       end
 
+      def create_system_test_files
+        build(:system_test) if depends_on_system_test?
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -273,7 +323,6 @@ module Rails
           remove_dir "app/assets"
           remove_dir "lib/assets"
           remove_dir "tmp/cache/assets"
-          remove_dir "vendor/assets"
         end
       end
 
@@ -321,7 +370,6 @@ module Rails
 
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
-          remove_file "app/mailers/application_mailer.rb"
           remove_file "app/views/layouts/mailer.html.erb"
           remove_file "app/views/layouts/mailer.text.erb"
           remove_dir "app/mailers"
@@ -349,22 +397,32 @@ module Rails
         end
       end
 
+      def delete_new_framework_defaults
+        unless options[:update]
+          remove_file "config/initializers/new_framework_defaults_5_2.rb"
+        end
+      end
+
+      def delete_bin_yarn_if_skip_yarn_option
+        remove_file "bin/yarn" if options[:skip_yarn]
+      end
+
       def finish_template
         build(:leftovers)
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_spring_binstubs
+      public_task :run_webpack, :generate_spring_binstubs
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
       end
 
-    protected
-
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
+
+    private
 
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
@@ -422,7 +480,7 @@ module Rails
           "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
           "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
           "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+        ].find { |f| File.exist?(f) } unless Gem.win_platform?
       end
 
       def get_builder_class

@@ -7,8 +7,7 @@ module ActionController
     include Head
 
     included do
-      class_attribute :etaggers
-      self.etaggers = []
+      class_attribute :etaggers, default: []
     end
 
     module ClassMethods
@@ -238,7 +237,7 @@ module ActionController
       )
       options.delete(:private)
 
-      response.cache_control[:extras] = options.map { |k,v| "#{k}=#{v}" }
+      response.cache_control[:extras] = options.map { |k, v| "#{k}=#{v}" }
       response.date = Time.now unless response.date?
     end
 

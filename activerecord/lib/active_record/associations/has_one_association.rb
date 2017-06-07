@@ -12,14 +12,7 @@ module ActiveRecord
         when :restrict_with_error
           if load_target
             record = owner.class.human_attribute_name(reflection.name).downcase
-            message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.one', record: record, raise: true) rescue nil
-            if message
-              ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-                The error key `:'restrict_dependent_destroy.one'` has been deprecated and will be removed in Rails 5.1.
-                Please use `:'restrict_dependent_destroy.has_one'` instead.
-              MESSAGE
-            end
-            owner.errors.add(:base, message || :'restrict_dependent_destroy.has_one', record: record)
+            owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: record)
             throw(:abort)
           end
 
@@ -35,7 +28,7 @@ module ActiveRecord
         return target unless target || record
 
         assigning_another_record = target != record
-        if assigning_another_record || record.changed?
+        if assigning_another_record || record.has_changes_to_save?
           save &&= owner.persisted?
 
           transaction_if(save) do
@@ -86,12 +79,13 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroy
-            else
+          else
             nullify_owner_attributes(target)
+            remove_inverse_instance(target)
 
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
+              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
                                     "The record failed to save after its foreign key was set to nil."
             end
           end

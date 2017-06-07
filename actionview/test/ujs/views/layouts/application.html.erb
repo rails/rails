@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html id="html">
+  <head>
+    <title><%= @title %></title>
+    <link href="/vendor/qunit.css" media="screen" rel="stylesheet" type="text/css" media="screen, projection" />
+    <%= script_tag "http://code.jquery.com/jquery-2.2.0.js" %>
+    <script>
+      // This is for test in override.js.
+      // Must go before rails-ujs.
+      document.addEventListener('rails:attachBindings', function() {
+        window.Rails.linkClickSelector += ', a[data-custom-remote-link]';
+        // Hijacks link click before ujs binds any handlers
+        // This is only used for ctrl-clicking test on remote links
+        window.Rails.delegate(document, '#qunit-fixture a', 'click', function(e) {
+          e.preventDefault();
+        });
+      });
+    </script>
+    <%= script_tag "/rails-ujs.js" %>
+  </head>
+
+  <body id="body">
+    <%= yield %>
+  </body>
+</html>

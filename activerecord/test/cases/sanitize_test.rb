@@ -12,8 +12,8 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "name='#{quoted_bambi}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi"])
     assert_equal "name='#{quoted_bambi}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi".mb_chars])
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote_string("Bambi\nand\nThumper")
-    assert_equal "name='#{quoted_bambi_and_thumper}'",Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper"])
-    assert_equal "name='#{quoted_bambi_and_thumper}'",Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper".mb_chars])
+    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper"])
+    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper".mb_chars])
   end
 
   def test_sanitize_sql_array_handles_bind_variables
@@ -152,11 +152,15 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_bind_record
-    o = Struct.new(:quoted_id).new(1)
-    assert_equal "1", bind("?", o)
+    o = Class.new {
+      def quoted_id
+        1
+      end
+    }.new
+    assert_deprecated { assert_equal "1", bind("?", o) }
 
     os = [o] * 3
-    assert_equal "1,1,1", bind("?", os)
+    assert_deprecated { assert_equal "1,1,1", bind("?", os) }
   end
 
   def test_named_bind_with_postgresql_type_casts

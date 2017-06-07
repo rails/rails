@@ -340,8 +340,7 @@ module Yaffle
 
     module ClassMethods
       def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
       end
     end
   end
@@ -411,8 +410,7 @@ module Yaffle
 
     module ClassMethods
       def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
 
         include Yaffle::ActsAsYaffle::LocalInstanceMethods
       end

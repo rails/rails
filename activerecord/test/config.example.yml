@@ -77,6 +77,9 @@ connections:
   postgresql:
     arunit:
       min_messages: warning
+    arunit_without_prepared_statements:
+      min_messages: warning
+      prepared_statements: false
     arunit2:
       min_messages: warning
 

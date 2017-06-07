@@ -56,8 +56,7 @@ module ActiveRecord
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
       # dates and times from the database. This is set to :utc by default.
-      mattr_accessor :default_timezone, instance_writer: false
-      self.default_timezone = :utc
+      mattr_accessor :default_timezone, instance_writer: false, default: :utc
 
       ##
       # :singleton-method:
@@ -67,16 +66,14 @@ module ActiveRecord
       # ActiveRecord::Schema file which can be loaded into any database that
       # supports migrations. Use :ruby if you want to have different database
       # adapters for, e.g., your development and test environments.
-      mattr_accessor :schema_format, instance_writer: false
-      self.schema_format = :ruby
+      mattr_accessor :schema_format, instance_writer: false, default: :ruby
 
       ##
       # :singleton-method:
       # Specifies if an error should be raised if the query has an order being
       # ignored when doing batch queries. Useful in applications where the
       # scope being ignored is error-worthy, rather than a warning.
-      mattr_accessor :error_on_ignored_order, instance_writer: false
-      self.error_on_ignored_order = false
+      mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
 
       def self.error_on_ignored_order_or_limit
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -101,8 +98,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
-      mattr_accessor :timestamped_migrations, instance_writer: false
-      self.timestamped_migrations = true
+      mattr_accessor :timestamped_migrations, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -110,8 +106,7 @@ module ActiveRecord
       # db:migrate rake task. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
-      mattr_accessor :dump_schema_after_migration, instance_writer: false
-      self.dump_schema_after_migration = true
+      mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -120,8 +115,7 @@ module ActiveRecord
       # schema_search_path are dumped. Use :all to dump all schemas regardless
       # of schema_search_path, or a string of comma separated schemas for a
       # custom list.
-      mattr_accessor :dump_schemas, instance_writer: false
-      self.dump_schemas = :schema_search_path
+      mattr_accessor :dump_schemas, instance_writer: false, default: :schema_search_path
 
       ##
       # :singleton-method:
@@ -130,7 +124,6 @@ module ActiveRecord
       # be used to identify queries which load thousands of records and
       # potentially cause memory bloat.
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
-      self.warn_on_records_fetched_greater_than = nil
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
@@ -171,41 +164,37 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column) ||
-                        ids.first.kind_of?(Array)
+                        columns_hash.include?(inheritance_column)
 
-        id  = ids.first
-        if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
+        id = ids.first
+
+        return super if id.kind_of?(Array) ||
+                         id.is_a?(ActiveRecord::Base)
 
         key = primary_key
 
         statement = cached_find_by_statement(key) { |params|
           where(key => params.bind).limit(1)
         }
+
         record = statement.execute([id], self, connection).first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
         end
         record
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
                                  name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || !(Hash === args.first) || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any?
 
         hash = args.first
 
-        return super if hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v
+        return super if !(Hash === hash) || hash.values.any? { |v|
+          v.nil? || Array === v || Hash === v || Relation === v || Base === v
         }
 
         # We can't cache Post.find_by(author: david) ...yet
@@ -223,7 +212,7 @@ module ActiveRecord
           statement.execute(hash.values, self, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue RangeError
+        rescue ::RangeError
           nil
         end
       end
@@ -239,7 +228,9 @@ module ActiveRecord
       def generated_association_methods
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
+          private_constant :GeneratedAssociationMethods
           include mod
+
           mod
         end
       end
@@ -299,24 +290,24 @@ module ActiveRecord
 
       private
 
-        def cached_find_by_statement(key, &block) # :nodoc:
+        def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache[key] || cache.synchronize {
             cache[key] ||= StatementCache.create(connection, &block)
           }
         end
 
-        def relation # :nodoc:
+        def relation
           relation = Relation.create(self, arel_table, predicate_builder)
 
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
+            relation.where(type_condition).create_with(inheritance_column.to_s => sti_name)
           else
             relation
           end
         end
 
-        def table_metadata # :nodoc:
+        def table_metadata
           TableMetadata.new(self, arel_table)
         end
     end
@@ -330,8 +321,8 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      @attributes = self.class._default_attributes.deep_dup
       self.class.define_attribute_methods
+      @attributes = self.class._default_attributes.deep_dup
 
       init_internals
       initialize_internals_callback
@@ -452,7 +443,7 @@ module ActiveRecord
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
       if id
-        self.class.hash ^ self.id.hash
+        self.class.hash ^ id.hash
       else
         super
       end
@@ -474,7 +465,7 @@ module ActiveRecord
     # Allows sort on objects
     def <=>(other_object)
       if other_object.is_a?(self.class)
-        self.to_key <=> other_object.to_key
+        to_key <=> other_object.to_key
       else
         super
       end
@@ -538,7 +529,7 @@ module ActiveRecord
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.flatten.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     private
@@ -561,7 +552,6 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @new_record               = true
-        @txn                      = nil
         @_start_transaction_state = {}
         @transaction_state        = nil
       end

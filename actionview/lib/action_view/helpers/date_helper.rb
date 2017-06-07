@@ -95,10 +95,10 @@ module ActionView
           scope: :'datetime.distance_in_words'
         }.merge!(options)
 
-        from_time = from_time.to_time if from_time.respond_to?(:to_time)
-        to_time = to_time.to_time if to_time.respond_to?(:to_time)
+        from_time = normalize_distance_of_time_argument_to_time(from_time)
+        to_time = normalize_distance_of_time_argument_to_time(to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
-        distance_in_minutes = ((to_time - from_time)/60.0).round
+        distance_in_minutes = ((to_time - from_time) / 60.0).round
         distance_in_seconds = (to_time - from_time).round
 
         I18n.with_options locale: options[:locale], scope: options[:scope] do |locale|
@@ -130,22 +130,18 @@ module ActionView
             # 60 days up to 365 days
           when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
             else
-            if from_time.acts_like?(:time) && to_time.acts_like?(:time)
-              fyear = from_time.year
-              fyear += 1 if from_time.month >= 3
-              tyear = to_time.year
-              tyear -= 1 if to_time.month < 3
-              leap_years = (fyear > tyear) ? 0 : (fyear..tyear).count { |x| Date.leap?(x) }
-              minute_offset_for_leap_year = leap_years * 1440
-              # Discount the leap year days when calculating year distance.
-              # e.g. if there are 20 leap year days between 2 dates having the same day
-              # and month then the based on 365 days calculation
-              # the distance in years will come out to over 80 years when in written
-              # English it would read better as about 80 years.
-              minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
-            else
-              minutes_with_offset = distance_in_minutes
-            end
+            from_year = from_time.year
+            from_year += 1 if from_time.month >= 3
+            to_year = to_time.year
+            to_year -= 1 if to_time.month < 3
+            leap_years = (from_year > to_year) ? 0 : (from_year..to_year).count { |x| Date.leap?(x) }
+            minute_offset_for_leap_year = leap_years * 1440
+            # Discount the leap year days when calculating year distance.
+            # e.g. if there are 20 leap year days between 2 dates having the same day
+            # and month then the based on 365 days calculation
+            # the distance in years will come out to over 80 years when in written
+            # English it would read better as about 80 years.
+            minutes_with_offset = distance_in_minutes - minute_offset_for_leap_year
             remainder                   = (minutes_with_offset % MINUTES_IN_YEAR)
             distance_in_years           = (minutes_with_offset.div MINUTES_IN_YEAR)
             if remainder < MINUTES_IN_QUARTER_YEAR
@@ -220,7 +216,7 @@ module ActionView
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
-      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is nil.
+      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
       # * <tt>:selected</tt>          - Set a date that overrides the actual value.
       # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
       # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
@@ -267,7 +263,7 @@ module ActionView
       #   date_select("article", "written_on", default: 3.days.from_now)
       #
       #   # Generates a date select that when POSTed is stored in the article variable, in the written_on attribute
-      #   # which is set in the form with todays date, regardless of the value in the Active Record object.
+      #   # which is set in the form with today's date, regardless of the value in the Active Record object.
       #   date_select("article", "written_on", selected: Date.today)
       #
       #   # Generates a date select that when POSTed is stored in the credit_card variable, in the bill_due attribute
@@ -687,6 +683,18 @@ module ActionView
 
         content_tag("time".freeze, content, options.reverse_merge(datetime: datetime), &block)
       end
+
+      private
+
+        def normalize_distance_of_time_argument_to_time(value)
+          if value.is_a?(Numeric)
+            Time.at(value)
+          elsif value.respond_to?(:to_time)
+            value.to_time
+          else
+            raise ArgumentError, "#{value.inspect} can't be converted to a Time value"
+          end
+        end
     end
 
     class DateTimeSelector #:nodoc:
@@ -866,7 +874,7 @@ module ActionView
         end
 
         # Returns translated month names, but also ensures that a custom month
-        # name array has a leading nil element.
+        # name array has a leading +nil+ element.
         def month_names
           @month_names ||= begin
             month_names = @options[:use_month_names] || translated_month_names

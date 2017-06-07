@@ -490,9 +490,6 @@ If you set `:only_integer` to `true`, then it will use the
 regular expression to validate the attribute's value. Otherwise, it will try to
 convert the value to a number using `Float`.
 
-WARNING. Note that the regular expression above allows a trailing newline
-character.
-
 ```ruby
 class Player < ApplicationRecord
   validates :points, numericality: true
@@ -916,18 +913,6 @@ class Order < ApplicationRecord
 end
 ```
 
-### Using a String with `:if` and `:unless`
-
-You can also use a string that will be evaluated using `eval` and needs to
-contain valid Ruby code. You should use this option only when the string
-represents a really short condition.
-
-```ruby
-class Person < ApplicationRecord
-  validates :surname, presence: true, if: "name.nil?"
-end
-```
-
 ### Using a Proc with `:if` and `:unless`
 
 Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
@@ -968,7 +953,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?],
+                    if: [Proc.new  { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```

@@ -32,29 +32,32 @@ class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
 
     timers.each_with_index do |timer, i|
       assert_kind_of Proc, timer[0]
-      assert_equal i+1, timer[1][:every]
+      assert_equal i + 1, timer[1][:every]
     end
   end
 
   test "disallow negative and zero periods" do
     [ 0, 0.0, 0.seconds, -1, -1.seconds, "foo", :foo, Object.new ].each do |invalid|
-      assert_raise ArgumentError, /Expected every:/ do
+      e = assert_raise ArgumentError do
         ChatChannel.periodically :send_updates, every: invalid
       end
+      assert_match(/Expected every:/, e.message)
     end
   end
 
   test "disallow block and arg together" do
-    assert_raise ArgumentError, /not both/ do
+    e = assert_raise ArgumentError do
       ChatChannel.periodically(:send_updates, every: 1) { ping }
     end
+    assert_match(/not both/, e.message)
   end
 
   test "disallow unknown args" do
     [ "send_updates", Object.new, nil ].each do |invalid|
-      assert_raise ArgumentError, /Expected a Symbol/ do
+      e = assert_raise ArgumentError do
         ChatChannel.periodically invalid, every: 1
       end
+      assert_match(/Expected a Symbol/, e.message)
     end
   end
 

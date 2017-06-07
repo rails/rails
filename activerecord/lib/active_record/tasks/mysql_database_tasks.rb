@@ -14,7 +14,7 @@ module ActiveRecord
         connection.create_database configuration["database"], creation_options
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database exists/ === error.message
+        if error.message.include?("database exists")
           raise DatabaseAlreadyExists
         else
           raise
@@ -53,21 +53,29 @@ module ActiveRecord
         connection.collation
       end
 
-      def structure_dump(filename)
+      def structure_dump(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
+        args.concat(Array(extra_flags)) if extra_flags
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          args += ignore_tables.map { |table| "--ignore-table=#{configuration['database']}.#{table}" }
+        end
+
         args.concat(["#{configuration['database']}"])
 
         run_cmd("mysqldump", args, "dumping")
       end
 
-      def structure_load(filename)
+      def structure_load(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
+        args.concat(Array(extra_flags)) if extra_flags
 
         run_cmd("mysql", args, "loading")
       end
@@ -102,7 +110,7 @@ module ActiveRecord
 
         def grant_statement
           <<-SQL
-GRANT ALL PRIVILEGES ON #{configuration['database']}.*
+GRANT ALL PRIVILEGES ON `#{configuration['database']}`.*
   TO '#{configuration['username']}'@'localhost'
 IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
           SQL

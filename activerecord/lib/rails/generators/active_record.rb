@@ -10,7 +10,7 @@ module ActiveRecord
 
       # Set the current directory as base for the inherited generators.
       def self.base_root
-        File.dirname(__FILE__)
+        __dir__
       end
     end
   end

@@ -4,6 +4,7 @@ require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/category"
+require "models/categorization"
 require "models/company"
 require "models/customer"
 require "models/developer"
@@ -33,8 +34,6 @@ class SecondAbstractClass < FirstAbstractClass
   self.abstract_class = true
 end
 class Photo < SecondAbstractClass; end
-class Category < ActiveRecord::Base; end
-class Categorization < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
   class PinNumber < ActiveRecord::Base
@@ -45,8 +44,6 @@ class CreditCard < ActiveRecord::Base
   class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
-class Post < ActiveRecord::Base; end
-class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
 class TestOracleDefault < ActiveRecord::Base; end
 
@@ -55,12 +52,6 @@ class ReadonlyTitlePost < Post
 end
 
 class Weird < ActiveRecord::Base; end
-
-class Boolean < ActiveRecord::Base
-  def has_fun
-    super
-  end
-end
 
 class LintTest < ActiveRecord::TestCase
   include ActiveModel::Lint::Tests
@@ -73,7 +64,7 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
@@ -107,12 +98,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
-    def test_limit_with_comma
-      assert_deprecated do
-        assert Topic.limit("1,2").to_a
-      end
-    end
+  def test_primary_key_and_references_columns_should_be_identical_type
+    pk = Author.columns_hash["id"]
+    ref = Post.columns_hash["author_id"]
+
+    assert_equal pk.bigint?, ref.bigint?
   end
 
   def test_many_mutations
@@ -144,10 +134,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
-    assert_deprecated do
-      assert_raises(ArgumentError) do
-        Topic.limit("1, 7 procedure help()").to_a
-      end
+    assert_raises(ArgumentError) do
+      Topic.limit("1, 7 procedure help()").to_a
     end
   end
 
@@ -494,12 +482,12 @@ class BasicsTest < ActiveRecord::TestCase
 
     def test_utc_as_time_zone_and_new
       with_timezone_config default: :utc do
-        attributes = { "bonus_time(1i)"=>"2000",
-          "bonus_time(2i)"=>"1",
-          "bonus_time(3i)"=>"1",
-          "bonus_time(4i)"=>"10",
-          "bonus_time(5i)"=>"35",
-          "bonus_time(6i)"=>"50" }
+        attributes = { "bonus_time(1i)" => "2000",
+          "bonus_time(2i)" => "1",
+          "bonus_time(3i)" => "1",
+          "bonus_time(4i)" => "10",
+          "bonus_time(5i)" => "35",
+          "bonus_time(6i)" => "50" }
         topic = Topic.new(attributes)
         assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
       end
@@ -622,7 +610,7 @@ class BasicsTest < ActiveRecord::TestCase
       Topic.find(topic.id).destroy
     end
 
-    assert_equal nil, Topic.find_by_id(topic.id)
+    assert_nil Topic.find_by_id(topic.id)
   end
 
   def test_comparison_with_different_objects
@@ -713,6 +701,17 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_nil topic.bonus_time
+  end
+
+  def test_attributes
+    category = Category.new(name: "Ruby")
+
+    expected_attributes = category.attribute_names.map do |attribute_name|
+      [attribute_name, category.public_send(attribute_name)]
+    end.to_h
+
+    assert_instance_of Hash, category.attributes
+    assert_equal expected_attributes, category.attributes
   end
 
   def test_boolean
@@ -898,7 +897,7 @@ class BasicsTest < ActiveRecord::TestCase
 
         # fixed dates / times
         assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
+        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
         # char types
         assert_equal "Y", default.char1
@@ -906,80 +905,6 @@ class BasicsTest < ActiveRecord::TestCase
         assert_equal "a text field", default.char3
       end
     end
-  end
-
-  class NumericData < ActiveRecord::Base
-    self.table_name = "numeric_data"
-
-    attribute :my_house_population, :integer
-    attribute :atoms_in_universe, :integer
-  end
-
-  def test_big_decimal_conditions
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-    assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
-  end
-
-  def test_numeric_fields
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
-  end
-
-  def test_numeric_fields_with_scale
-    m = NumericData.new(
-      bank_balance: 1586.43122334,
-      big_bank_balance: BigDecimal("234000567.952344"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
   end
 
   def test_auto_id
@@ -1109,7 +1034,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_set_table_name_with_inheritance
-    k = Class.new( ActiveRecord::Base )
+    k = Class.new(ActiveRecord::Base)
     def k.name; "Foo"; end
     def k.table_name; super + "ks"; end
     assert_equal "foosks", k.table_name
@@ -1160,7 +1085,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_last
-    last  = Developer.last
+    last = Developer.last
     assert_equal last, Developer.all.merge!(order: "id desc").first
   end
 
@@ -1179,17 +1104,17 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_ordered_last
-    last  = Developer.all.merge!(order: "developers.salary ASC").last
+    last = Developer.all.merge!(order: "developers.salary ASC").last
     assert_equal last, Developer.all.merge!(order: "developers.salary ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.all.merge!(order: "developers.salary DESC").last
+    last = Developer.all.merge!(order: "developers.salary DESC").last
     assert_equal last, Developer.all.merge!(order: "developers.salary DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
+    last = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
     assert_equal last, Developer.all.merge!(order: "developers.name, developers.salary DESC").to_a.last
   end
 
@@ -1204,7 +1129,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.all.merge!(order: :salary).last
+    last = Developer.all.merge!(order: :salary).last
     assert_equal last, Developer.all.merge!(order: :salary).to_a.last
   end
 
@@ -1284,7 +1209,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_marshal_round_trip
     expected = posts(:welcome)
     marshalled = Marshal.dump(expected)
-    actual   = Marshal.load(marshalled)
+    actual = Marshal.load(marshalled)
 
     assert_equal expected.attributes, actual.attributes
   end
@@ -1379,12 +1304,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_uniq_delegates_to_scoped
-    assert_deprecated do
-      assert_equal Bird.all.distinct, Bird.uniq
-    end
-  end
-
   def test_distinct_delegates_to_scoped
     assert_equal Bird.all.distinct, Bird.distinct
   end
@@ -1426,6 +1345,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal hash[:arbitrary_method], company.arbitrary_method
     assert_nil hash[:firm_name]
     assert_nil hash["firm_name"]
+  end
+
+  def test_slice_accepts_array_argument
+    attrs = {
+      title: "slice",
+      author_name: "@Cohen-Carlisle",
+      content: "accept arrays so I don't have to splat"
+    }.with_indifferent_access
+    topic = Topic.new(attrs)
+    assert_equal attrs, topic.slice(attrs.keys)
   end
 
   def test_default_values_are_deeply_dupped
