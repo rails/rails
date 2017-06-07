@@ -878,24 +878,6 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_with_namespace
-    skip "Do namespaces still make sense?"
-    form_for(@post, namespace: "namespace") do |f|
-      concat f.text_field(:title)
-      concat f.text_area(:body)
-      concat f.check_box(:secret)
-    end
-
-    expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
-      "<input name='post[title]' type='text' value='Hello World' />" \
-      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
-      "<input name='post[secret]' type='hidden' value='0' />" \
-      "<input name='post[secret]' checked='checked' type='checkbox' value='1' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  end
-
   def test_submit_with_object_as_new_record_and_locale_strings
     with_locale :submit do
       @post.persisted = false
