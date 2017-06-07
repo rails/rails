@@ -63,7 +63,7 @@ module ActiveRecord
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
-        self.default_timezone = :utc
+        self.default_timezone = :local
       end
     end
 
