@@ -286,7 +286,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 2.days, 2 * 1.day
     assert_instance_of ActiveSupport::Duration, 2 * 1.day
     assert_equal Time.utc(2017, 1, 3), Time.utc(2017, 1, 1) + 2 * 1.day
-    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 2 * 1.day
+
+    with_env_tz "UTC" do
+      assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 2 * 1.day
+    end
   end
 
   def test_scalar_coerce
