@@ -29,8 +29,8 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY
-            raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
+          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Proc)
+            raise ArgumentError, ":#{key} must be a nonnegative Integer, Infinity or a proc"
           end
         end
       end
@@ -41,6 +41,10 @@ module ActiveModel
 
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
+
+          if check_value.is_a?(Proc)
+            check_value = check_value.call(record)
+          end
 
           if !value.nil? || skip_nil_check?(key)
             next if value_length.send(validity_check, check_value)
