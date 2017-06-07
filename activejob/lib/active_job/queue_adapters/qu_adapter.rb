@@ -26,7 +26,7 @@ module ActiveJob
         qu_job
       end
 
-      def enqueue_at(job, timestamp, *args) #:nodoc:
+      def enqueue_at(*) #:nodoc:
         raise NotImplementedError, "This queueing backend does not support scheduling jobs. To see what features are supported go to http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html"
       end
 
