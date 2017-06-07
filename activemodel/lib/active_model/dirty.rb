@@ -45,7 +45,7 @@ module ActiveModel
   #       changes_applied
   #     end
   #
-  #     def reload!
+  #     def reload
   #       # get the values from the persistence layer
   #
   #       clear_changes_information
@@ -83,7 +83,7 @@ module ActiveModel
   #   person.previous_changes         # => {"name" => [nil, "Bill"]}
   #   person.name_previously_changed? # => true
   #   person.name_previous_change     # => [nil, "Bill"]
-  #   person.reload!
+  #   person.reload
   #   person.previous_changes         # => {}
   #
   # Rollback the changes:
