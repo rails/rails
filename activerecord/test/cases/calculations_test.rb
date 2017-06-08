@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/club"
 require "models/company"
@@ -19,7 +20,7 @@ require "models/comment"
 require "models/rating"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :authors
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -651,6 +652,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_limit_and_empty_result
     assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
+  end
+
+  def test_pluck_with_limit_and_having
+    expected = [["David", 4]]
+    actual = Author.includes(:books).group(:id).limit(1)
+      .having("authors.name = 'David'").pluck("authors.name, COUNT(books.id)")
+    assert_equal expected, actual
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included
