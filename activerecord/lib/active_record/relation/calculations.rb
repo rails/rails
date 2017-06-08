@@ -189,6 +189,38 @@ module ActiveRecord
       end
     end
 
+    # Use #pluck_h as a shortcut to select one or more attributes without
+    # loading a bunch of records just to grab the attributes you want.
+    #
+    #   Person.pluck_h(:name)
+    #
+    # instead of
+    #
+    #   Person.all.map { |it| {name: it.name} }
+    #
+    # pluck_h returns an Array of Hashes. See also #pluck
+    #
+    #   Person.pluck_h(:name)
+    #   # SELECT people.name FROM people
+    #   # => [{name: 'David'}, {name: 'Jeremy'}, {name: 'Jose'}]
+    #
+    #   Person.pluck(:id, :name)
+    #   # SELECT people.id, people.name FROM people
+    #   # => [{id: 1, name: 'Olivia'}, {id: 2, name: 'Ava'}, {id: 3, name: 'Sophia'}]
+    #
+    #   Person.distinct.pluck(:role)
+    #   # SELECT DISTINCT role FROM people
+    #   # => [{role: 'admin'}, {role: 'member'}, {role: 'guest'}]
+    #
+    #   Person.where(age: 21).limit(5).pluck(:id)
+    #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   # => [{id: 2}, {id: 3}]
+    #
+    #
+    def pluck_h(*keys)
+      pluck(*keys).map { |pa| Hash[keys.zip(pa)] }
+    end
+
     # Pluck all the ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
