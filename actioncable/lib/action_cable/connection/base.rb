@@ -93,8 +93,13 @@ module ActionCable
       end
 
       # Close the WebSocket connection.
-      def close
-        websocket.close
+      def close(code = nil, reason = nil)
+        websocket.close(code, reason)
+      end
+
+      # Close the WebSocket connection with code 1011 (Internal Error)
+      def fail(error)
+        websocket.fail(error)
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
@@ -172,6 +177,8 @@ module ActionCable
           server.add_connection(self)
         rescue ActionCable::Connection::Authorization::UnauthorizedError
           respond_to_invalid_request
+        rescue => e
+          respond_to_unsuccessful_request(e)
         end
 
         def handle_close
@@ -219,6 +226,14 @@ module ActionCable
           [ 404, { "Content-Type" => "text/plain" }, [ "Page not found" ] ]
         end
 
+        def respond_to_unsuccessful_request(error)
+          fail(error) if websocket.alive?
+
+          logger.error unsuccessful_request_message(error)
+          logger.info finished_request_message
+          [ 500, { "Content-Type" => "text/plain" }, [ "Internal Server Error" ] ]
+        end
+
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
         def new_tagged_logger
           TaggedLoggerProxy.new server.logger,
@@ -245,6 +260,12 @@ module ActionCable
         def invalid_request_message
           "Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
+          ]
+        end
+
+        def unsuccessful_request_message(error)
+          "Failed to upgrade to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s) due to error (ERROR: %s)" % [
+            env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"], error
           ]
         end
 

@@ -7,6 +7,19 @@ module ActionCable
     #
     # Copyright (c) 2010-2015 James Coglan
     class ClientSocket # :nodoc:
+      CLOSE_CODES = {
+        normal:           1000,
+        going_away:       1001,
+        protocol_error:   1002,
+        unsupported:      1003,
+        encoding_error:   1007,
+        policy_violation: 1008,
+        too_large:        1009,
+        extension_error:  1010,
+        internal_error:   1011,
+        try_again:        1013
+      }
+
       def self.determine_url(env)
         scheme = secure_request?(env) ? "wss:" : "ws:"
         "#{ scheme }//#{ env['HTTP_HOST'] }#{ env['REQUEST_URI'] }"
@@ -86,17 +99,21 @@ module ActionCable
       end
 
       def close(code = nil, reason = nil)
-        code   ||= 1000
+        code   ||= CLOSE_CODES[:normal]
         reason ||= ""
 
-        unless code == 1000 || (code >= 3000 && code <= 4999)
+        unless CLOSE_CODES.values.include?(code) || (code >= 3000 && code <= 4999)
           raise ArgumentError, "Failed to execute 'close' on WebSocket: " \
-                               "The code must be either 1000, or between 3000 and 4999. " \
+                               "The code must be either #{CLOSE_CODES.values.join(',')} or between 3000 and 4999. " \
                                "#{code} is neither."
         end
 
         @ready_state = CLOSING unless @ready_state == CLOSED
         @driver.close(reason, code)
+      end
+
+      def fail(error)
+        close(CLOSE_CODES[:internal_error], error.to_s)
       end
 
       def parse(data)

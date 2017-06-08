@@ -109,7 +109,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "rejecting a connection causes a 404" do
+  test "rejecting a connection due to invalid origin causes a 404" do
     run_in_eventmachine do
       class CallMeMaybe
         def call(*)
@@ -126,6 +126,37 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = ActionCable::Connection::Base.new(@server, env)
       response = connection.process
       assert_equal 404, response[0]
+    end
+  end
+
+  test "on connection exception" do
+    run_in_eventmachine do
+      connection = open_connection
+
+      connection.stubs(:connect).raises(StandardError, "BOOM")
+      connection.websocket.expects(:fail).with do |error|
+        error.is_a?(StandardError) &&
+          error.to_s == "BOOM"
+      end
+
+      connection.process
+
+      assert ! connection.connected
+      assert_equal [], @server.connections
+    end
+  end
+
+  test "on connection unauthorized" do
+    run_in_eventmachine do
+      connection = open_connection
+
+      connection.stubs(:connect).raises(ActionCable::Connection::Authorization::UnauthorizedError)
+      connection.websocket.expects(:close)
+
+      connection.process
+
+      assert ! connection.connected
+      assert_equal [], @server.connections
     end
   end
 
