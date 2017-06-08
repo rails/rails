@@ -832,7 +832,7 @@ module ActionMailer
       create_parts_from_responses(message, responses)
 
       # Setup content type, reapply charset and handle parts order
-      message.content_type = set_content_type(message, content_type, headers[:content_type])
+      message.content_type = set_content_type(message, content_type, self.class.default[:content_type])
       message.charset      = charset
 
       if message.multipart?
