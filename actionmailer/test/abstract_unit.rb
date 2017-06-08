@@ -9,7 +9,7 @@ end
 
 module Rails
   def self.root
-    File.expand_path("..", __dir__)
+    File.dirname(__dir__)
   end
 end
 

@@ -66,7 +66,7 @@ module RailsGuides
       end
 
       def initialize_dirs
-        @guides_dir = File.expand_path("..", __dir__)
+        @guides_dir = File.dirname(__dir__)
 
         @source_dir  = "#{@guides_dir}/source"
         @source_dir += "/#{@language}" if @language
