@@ -234,10 +234,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @view_renderer.cache_hits[@virtual_path] = :hit
+          @view_renderer.cache_hits[@virtual_path] = :hit if defined?(@view_renderer)
           content
         else
-          @view_renderer.cache_hits[@virtual_path] = :miss
+          @view_renderer.cache_hits[@virtual_path] = :miss if defined?(@view_renderer)
           write_fragment_for(name, options, &block)
         end
       end
