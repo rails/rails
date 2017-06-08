@@ -1,8 +1,17 @@
+require "rails/template_precompiler"
+
 module Rails
   class Application
     module Finisher
       include Initializable
 
+      initializer :precompiler_view_templates do
+        compiler = Rails::TemplatePrecompiler.new(self)
+        compiler.compile_templates!
+        paths = compiler.paths
+        ActiveSupport.on_load(:action_controller){ prepend_view_path(paths) if respond_to?(:prepend_view_path) }
+        ActiveSupport.on_load(:action_mailer){ prepend_view_path(paths) }
+      end
       initializer :add_generator_templates do
         config.generators.templates.unshift(*paths["lib/templates"].existent)
       end
