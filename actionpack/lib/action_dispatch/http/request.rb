@@ -237,7 +237,7 @@ module ActionDispatch
       super.to_i
     end
 
-    # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
+    # Returns truthy if the "X-Requested-With" header contains "XMLHttpRequest"
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
