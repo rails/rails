@@ -307,6 +307,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_when_parent_is_new_raises
+    firm = Firm.new
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
+      firm.create_account
+    end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
+  end
+
   def test_reload_association
     odegy = companies(:odegy)
 
