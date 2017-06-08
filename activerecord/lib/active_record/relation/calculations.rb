@@ -196,7 +196,7 @@ module ActiveRecord
     #
     # instead of
     #
-    #   Person.all.map{|it| {name: it.name}}
+    #   Person.all.map { |it| {name: it.name} }
     #
     # pluck_h returns an Array of Hashes. See also #pluck
     #
@@ -218,7 +218,7 @@ module ActiveRecord
     #
     #
     def pluck_h(*keys)
-      pluck(*keys).map{|pa| Hash[keys.zip(pa)]}
+      pluck(*keys).map { |pa| Hash[keys.zip(pa)] }
     end
 
     # Pluck all the ID's for the relation using the table's primary key
