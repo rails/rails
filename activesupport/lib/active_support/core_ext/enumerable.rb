@@ -105,11 +105,19 @@ module Enumerable
   #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
   #   # => [[1, "David"], [2, "Rafael"]]
   def pluck(*keys)
-    if keys.many?
-      map { |element| keys.map { |key| element[key] } }
-    else
-      map { |element| element[keys.first] }
+    entries = map do |element|
+      keys.map do |key|
+        case element
+        when ActiveRecord::Base, Hash, Struct
+          element.pluck(key)
+        else
+          element.send(key)
+        end
+      end
     end
+
+    return entries if keys.many?
+    entries.flatten!
   end
 end
 
@@ -153,5 +161,35 @@ if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
         super
       end
     end
+  end
+end
+
+module ActiveRecord
+  class Base
+    private
+
+    # :nodoc:
+    def pluck(key)
+      self[key]
+    end
+  end
+end
+
+class Hash
+  private
+
+  # :nodoc:
+  def pluck(key)
+    fetch(key, nil)
+  end
+end
+
+class Struct
+  private
+
+  # :nodoc:
+  def pluck(key)
+    return unless members.include?(key)
+    self[key]
   end
 end
