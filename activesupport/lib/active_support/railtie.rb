@@ -28,14 +28,7 @@ module ActiveSupport
         raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
       end
       require "active_support/core_ext/time/zones"
-      zone_default = Time.find_zone!(app.config.time_zone)
-
-      unless zone_default
-        raise "Value assigned to config.time_zone not recognized. " \
-          'Run "rake time:zones:all" for a time zone names list.'
-      end
-
-      Time.zone_default = zone_default
+      Time.zone_default = Time.find_zone!(app.config.time_zone)
     end
 
     # Sets the default week start
