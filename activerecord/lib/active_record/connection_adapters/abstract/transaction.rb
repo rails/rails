@@ -191,7 +191,9 @@ module ActiveRecord
         @connection.lock.synchronize do
           begin
             transaction = begin_transaction options
-            yield
+            ret = yield
+            completed = true
+            ret
           rescue Exception => error
             if transaction
               rollback_transaction
@@ -200,15 +202,15 @@ module ActiveRecord
             raise
           ensure
             unless error
-              if Thread.current.status == "aborting"
-                rollback_transaction if transaction
-              else
+              if completed
                 begin
                   commit_transaction
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?
                   raise
                 end
+              else
+                rollback_transaction if transaction
               end
             end
           end

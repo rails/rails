@@ -1,3 +1,7 @@
+*   Rollback transactions where the block is exited using `return`, `break` or `throw`
+
+    *Dylan Thacker-Smith*
+
 *   Prevent making bind param if casted value is nil.
 
     *Ryuta Kamizono*
