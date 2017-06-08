@@ -33,7 +33,9 @@ module ActionDispatch
         # fails add +take_failed_screenshot+ to the teardown block before clearing
         # sessions.
         def take_failed_screenshot
-          take_screenshot if failed? && supports_screenshot?
+          if failed? && supports_screenshot? && !screenshots_disabled?
+            take_screenshot
+          end
         end
 
         private
@@ -47,6 +49,10 @@ module ActionDispatch
 
           def save_image
             page.save_screenshot(Rails.root.join(image_path))
+          end
+
+          def screenshots_disabled?
+            ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] == "disabled"
           end
 
           def output_type

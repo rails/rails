@@ -1,3 +1,12 @@
+*   Allow disabling system test screenshots
+
+    Add a `disabled` option to `RAILS_SYSTEM_TESTING_SCREENSHOT`, e.g.:
+
+        RAILS_SYSTEM_TESTING_SCREENSHOT=disabled rails test:system
+
+    Which disables screenshots for failed `ApplicationSystemTestCase`s.
+
+    *David Faulkenberry*
 *   `driven_by` now registers poltergeist and capybara-webkit
 
     If driver poltergeist or capybara-webkit is set for System Tests,
