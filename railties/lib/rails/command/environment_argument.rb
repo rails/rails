@@ -13,6 +13,12 @@ module Rails
         def extract_environment_option_from_argument
           if environment
             self.options = options.merge(environment: acceptable_environment(environment))
+
+            ActiveSupport::Deprecation.warn "Passing the environment's name as a " \
+                                            "regular argument is deprecated and "  \
+                                            "will be removed in the next Rails "   \
+                                            "version. Please, use the -e option "  \
+                                            "instead."
           elsif !options[:environment]
             self.options = options.merge(environment: Rails::Command.environment)
           end

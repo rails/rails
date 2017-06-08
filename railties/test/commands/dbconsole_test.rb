@@ -98,14 +98,18 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_development_when_argument_is_dev
-    stub_available_environments([ "development", "test" ]) do
-      assert_match("development", parse_arguments([ "dev" ])[:environment])
+    assert_deprecated do
+      stub_available_environments([ "development", "test" ]) do
+        assert_match("development", parse_arguments([ "dev" ])[:environment])
+      end
     end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    stub_available_environments([ "dev" ]) do
-      assert_match("dev", parse_arguments([ "dev" ])[:environment])
+    assert_deprecated do
+      stub_available_environments([ "dev" ]) do
+        assert_match("dev", parse_arguments([ "dev" ])[:environment])
+      end
     end
   end
 
