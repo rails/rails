@@ -54,3 +54,4 @@
       create: 'Create %{model}'
       update: 'Update %{model}'
       submit: 'Save %{model}'
+      no_model: 'Save changes'
