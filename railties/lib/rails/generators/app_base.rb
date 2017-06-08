@@ -242,6 +242,8 @@ module Rails
         dev_edge_common = [
           GemfileEntry.github("arel", "rails/arel"),
         ]
+        dev_edge_common << GemfileEntry.github("coffee-rails", "rails/coffee-rails") unless options[:skip_coffee]
+
         if options.dev?
           [
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
@@ -333,7 +335,7 @@ module Rails
           []
         else
           gems = [javascript_runtime_gemfile_entry]
-          gems << coffee_gemfile_entry unless options[:skip_coffee]
+          gems << coffee_gemfile_entry unless options[:skip_coffee] || options.dev? || options.edge?
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",
