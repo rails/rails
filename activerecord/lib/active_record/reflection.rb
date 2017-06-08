@@ -894,27 +894,6 @@ module ActiveRecord
         options[:source] ? [options[:source]] : [name.to_s.singularize, name].uniq
       end
 
-      def source_reflection_name # :nodoc:
-        return @source_reflection_name if @source_reflection_name
-
-        names = [name.to_s.singularize, name].collect(&:to_sym).uniq
-        names = names.find_all { |n|
-          through_reflection.klass._reflect_on_association(n)
-        }
-
-        if names.length > 1
-          raise AmbiguousSourceReflectionForThroughAssociation.new(
-            active_record.name,
-            macro,
-            name,
-            options,
-            source_reflection_names
-          )
-        end
-
-        @source_reflection_name = names.first
-      end
-
       def source_options
         source_reflection.options
       end
@@ -995,6 +974,28 @@ module ActiveRecord
         end
 
       private
+
+        def source_reflection_name # :nodoc:
+          return @source_reflection_name if @source_reflection_name
+
+          names = [name.to_s.singularize, name].collect(&:to_sym).uniq
+          names = names.find_all { |n|
+            through_reflection.klass._reflect_on_association(n)
+          }
+
+          if names.length > 1
+            raise AmbiguousSourceReflectionForThroughAssociation.new(
+              active_record.name,
+              macro,
+              name,
+              options,
+              source_reflection_names
+            )
+          end
+
+          @source_reflection_name = names.first
+        end
+
         def collect_join_reflections(seed)
           a = source_reflection.add_as_source seed
           if options[:source_type]
