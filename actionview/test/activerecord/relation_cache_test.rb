@@ -4,6 +4,7 @@ class RelationCacheTest < ActionView::TestCase
   tests ActionView::Helpers::CacheHelper
 
   def setup
+    @cache_hit = {}
     @virtual_path = "path"
     controller.cache_store = ActiveSupport::Cache::MemoryStore.new
   end

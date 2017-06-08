@@ -202,6 +202,7 @@ module ActionView #:nodoc:
         @view_renderer = ActionView::Renderer.new(lookup_context)
       end
 
+      @cache_hit = {}
       assign(assigns)
       assign_controller(controller)
       _prepare_context
