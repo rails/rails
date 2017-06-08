@@ -31,6 +31,7 @@ Rails.application.configure do
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
+  # Enable/disable caching. By default caching is disabled.
   config.action_mailer.perform_caching = false
   <%- end -%>
 
