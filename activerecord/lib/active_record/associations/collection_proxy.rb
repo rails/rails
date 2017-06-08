@@ -391,6 +391,13 @@ module ActiveRecord
         @association.concat(*records)
       end
 
+      def pluck(*attributes)
+        return records.pluck(*attributes) if loaded?
+
+        scope.pluck(*attributes)
+      end
+
+
       # Replaces this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
