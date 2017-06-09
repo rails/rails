@@ -23,7 +23,30 @@ module ActionDispatch
       # A string with the headers of the multipart request.
       attr_accessor :headers
 
-      def initialize(hash) # :nodoc:
+      # An ActionDispatch::Http::UploadedFile accepts an options hash and sets
+      # the following keys:
+      #
+      #   upload = ActionDispatch::Http::UploadedFile.new({
+      #     tempfile: File.new("/test/fixtures/photo.jpg"),
+      #     filename: "photo.jpg",
+      #     type: "image/jpeg",
+      #     head: "Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\nContent-Type: image/jpeg\r\n"
+      #   })
+      #
+      # After initialization, the following attributes return:
+      #
+      #   upload.tempfile
+      #   => #<File:/test/fixtures/photo.jpg>
+      #
+      #   upload.original_filename
+      #   => "photo.jpg"
+      #
+      #   upload.content_type
+      #   => "image/jpeg"
+      #
+      #   upload.headers
+      #   => "Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\nContent-Type: image/jpeg\r\n"
+      def initialize(hash)
         @tempfile = hash[:tempfile]
         raise(ArgumentError, ":tempfile is required") unless @tempfile
 
