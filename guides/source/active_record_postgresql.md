@@ -84,7 +84,7 @@ Book.where("array_length(ratings, 1) >= 3")
 ### Hstore
 
 * [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN167712)
+* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN179902)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
