@@ -40,7 +40,7 @@ gem 'mime-types', '< 3', require: false
 group :doc do
   gem 'sdoc', '>= 1.0.0.rc1', '< 1.1'
   gem 'redcarpet', '~> 3.1.2', platforms: :ruby
-  gem 'w3c_validators'
+  gem 'w3c_validators', RUBY_VERSION < '2.0' ? '1.2' : nil
   gem 'kindlerb', '0.1.1'
   gem 'mustache', '~> 0.99.8'
 end
