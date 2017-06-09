@@ -52,7 +52,7 @@ gem 'dalli', '>= 2.2.1'
 group :job do
   gem 'resque', require: false
   gem 'resque-scheduler', require: false
-  gem 'sidekiq', require: false
+  gem 'sidekiq', RUBY_VERSION < '2.2' ? '< 5' : nil, require: false
   gem 'sucker_punch', '< 2.0', require: false
   gem 'delayed_job', require: false
   gem 'queue_classic', require: false, platforms: :ruby
