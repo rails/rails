@@ -285,7 +285,7 @@ SELECT n.nspname AS enum_schema,
 ### UUID
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
+* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN182570)
 * [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
