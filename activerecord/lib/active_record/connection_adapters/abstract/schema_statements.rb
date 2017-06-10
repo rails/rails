@@ -512,8 +512,7 @@ module ActiveRecord
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column. This option could
-      #   have been named <tt>:null_allowed</tt>.
+      #   Allows or disallows +NULL+ values in the column.
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
