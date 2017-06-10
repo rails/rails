@@ -1,3 +1,9 @@
+*   Cache: Restore the `options = nil` argument for `LocalStore#clear`
+    that was removed in 5.1.0. Restores compatibility with backends that
+    take an options argument and use the local cache strategy.
+
+    *Jeremy Daer*
+
 *   Fix implicit coercion calculations with scalars and durations
 
     Previously calculations where the scalar is first would be converted to a duration
