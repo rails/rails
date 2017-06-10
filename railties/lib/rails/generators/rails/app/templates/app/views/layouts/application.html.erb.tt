@@ -9,10 +9,10 @@
     <%- else -%>
       <%- unless options[:skip_turbolinks] -%>
     <%%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload', async: true, defer: true %>
       <%- else -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>
-    <%%= javascript_include_tag 'application' %>
+    <%%= javascript_include_tag 'application', async: true, defer: true %>
       <%- end -%>
     <%- end -%>
   </head>
