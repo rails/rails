@@ -172,16 +172,16 @@ module Rails
             self.class.class_options.select do |key, option|
               if option.aliases.any? { |name| user_flag[name] } || user_flag["--#{option.name}"]
                 name = option.name.to_sym
-                case name
-                when :port
-                  name = :Port
-                when :binding
-                  name = :Host
-                when :"dev-caching"
-                  name = :caching
-                when :daemonize
-                  name = :daemon
-                end
+                name = case name
+                       when :port
+                         :Port
+                       when :binding
+                         :Host
+                       when :"dev-caching"
+                         :caching
+                       when :daemonize
+                         :daemon
+                       end
                 user_supplied_options << name
               end
             end
