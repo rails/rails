@@ -1,3 +1,10 @@
+*   Default `ActiveSupport::MessageEncryptor` to use AES 256 GCM encryption.
+
+    On for new Rails 5.2 apps. Upgrading apps can find the config as a new
+    framework default.
+
+    *Assain Jaleel*
+
 *   Cache: `write_multi`
 
         Rails.cache.write_multi foo: 'bar', baz: 'qux'
