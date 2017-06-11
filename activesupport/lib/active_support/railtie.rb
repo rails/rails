@@ -7,6 +7,13 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.set_authenticated_message_encryption" do |app|
+      if app.config.active_support.respond_to?(:use_authenticated_message_encryption)
+        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+          app.config.active_support.use_authenticated_message_encryption
+      end
+    end
+
     initializer "active_support.reset_all_current_attributes_instances" do |app|
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }

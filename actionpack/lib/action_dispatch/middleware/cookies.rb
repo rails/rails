@@ -630,7 +630,7 @@ module ActionDispatch
         secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
         sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
 
-        @legacy_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
+        @legacy_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
       def decrypt_and_verify_legacy_encrypted_message(name, signed_message)
