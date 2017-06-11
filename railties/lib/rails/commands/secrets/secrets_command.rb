@@ -31,7 +31,7 @@ module Rails
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
         say "New secrets encrypted and saved."
@@ -43,7 +43,7 @@ module Rails
         raise unless error.message =~ /secrets\.yml\.enc/
 
         Rails::Secrets.read_template_for_editing do |tmp_path|
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
           generator.skip_secrets_file { setup }
         end
       end
