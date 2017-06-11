@@ -143,7 +143,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
   end
 
-  test "relation merging (using a proc  argument)" do
+  test "relation merging (using a proc argument)" do
     dev = Developer.where(name: "Jamis").first
 
     comment_1 = dev.comments.create!(body: "I'm Jamis", post: Post.first)
