@@ -1,3 +1,12 @@
+*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
+
+    This makes sure that the labels are linked up with the fields.
+
+    Fixes #29014.
+
+    *Yuji Yaginuma*
+
+
 ## Rails 5.1.1 (May 12, 2017) ##
 
 *   No changes.
