@@ -82,6 +82,29 @@ module ActiveRecord
       nil
     end
 
+    # Like #find_by, except compatible with virtual attributes: if you pass
+    # in virtual attributes it does not use them to general the SQL SELECT query,
+    # and instead sets those virtual attributes on the resulting active record object.
+    def find_by_with_virtual_attributes(arg, *args)
+      symbolized_column_names = column_names.map(&:to_sym)
+      database_attributes, virtual_attributes = {}, {}
+
+      arg.each do |attribute, value|
+        if symbolized_column_names.include?(attribute)
+          database_attributes[attribute] = value
+        else
+          virtual_attributes[attribute] = value
+        end
+      end
+
+      record = find_by(database_attributes, *args)
+
+      return nil if record.nil?
+
+      record.assign_attributes(virtual_attributes)
+      record
+    end
+
     # Like #find_by, except that if no record is found, raises
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)

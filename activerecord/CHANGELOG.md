@@ -1,3 +1,21 @@
+*   Make `ActiveRecord::Base.find_or_*` methods compatible with virtual attributes
+
+    `ActiveRecord::Base.create` is compatible with virtual attributes:
+    a common use case is passing them in the arguments hash so that
+    callbacks that need them have access to them.
+
+    Based on this behavior one might expect the `ActiveRecord::Base.find_or_*`
+    methods: (find_or_create_by, find_or_create_by!, and find_or_initialize_by)
+    to work the same way, but that is not the case.
+
+    Instead, the `ActiveRecord::Base.find_or_*` methods blow up when
+    passed virtual attributes, as they attempt to generate SQL select
+    statements with the virtual attributes assumed to be column names.
+
+    This fixes that, and the `ActiveRecord::Base.find_or_*` methods now
+    behave how you would expect them to, given the behavior of
+    `ActiveRecord::Base.create`.
+
 *   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
     when lock wait time expires.
 
