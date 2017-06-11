@@ -1,3 +1,11 @@
+*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
+
+    This makes sure that the labels are linked up with the fields.
+
+    Fixes #29014.
+
+    *Yuji Yaginuma*
+
 *   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
 
     *Mike Gunderloy*

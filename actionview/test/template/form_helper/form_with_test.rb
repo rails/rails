@@ -403,9 +403,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts") do
       "<input type='hidden' name='post[active]' value='' />" \
-      "<input name='post[active]' type='radio' value='true' />" \
+      "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "<label for='post_active_true'>true</label>" \
-      "<input checked='checked' name='post[active]' type='radio' value='false' />" \
+      "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
       "<label for='post_active_false'>false</label>"
     end
 
@@ -426,10 +426,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts") do
       "<input type='hidden' name='post[active]' value='' />" \
       "<label for='post_active_true'>" \
-      "<input name='post[active]' type='radio' value='true' />" \
+      "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "true</label>" \
       "<label for='post_active_false'>" \
-      "<input checked='checked' name='post[active]' type='radio' value='false' />" \
+      "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
       "false</label>"
     end
 
@@ -452,10 +452,10 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts") do
       "<input type='hidden' name='post[active]' value='' />" \
       "<label for='post_active_true'>" \
-      "<input name='post[active]' type='radio' value='true' />" \
+      "<input name='post[active]' type='radio' value='true' id='post_active_true' />" \
       "true</label>" \
       "<label for='post_active_false'>" \
-      "<input checked='checked' name='post[active]' type='radio' value='false' />" \
+      "<input checked='checked' name='post[active]' type='radio' value='false' id='post_active_false' />" \
       "false</label>" \
       "<input name='post[id]' type='hidden' value='1' />"
     end
@@ -473,9 +473,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts") do
       "<input type='hidden' name='post[1][active]' value='' />" \
-      "<input name='post[1][active]' type='radio' value='true' />" \
+      "<input name='post[1][active]' type='radio' value='true' id='post_1_active_true' />" \
       "<label for='post_1_active_true'>true</label>" \
-      "<input checked='checked' name='post[1][active]' type='radio' value='false' />" \
+      "<input checked='checked' name='post[1][active]' type='radio' value='false' id='post_1_active_false' />" \
       "<label for='post_1_active_false'>false</label>"
     end
 
@@ -492,11 +492,11 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts") do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "<label for='post_tag_ids_1'>Tag 1</label>" \
-      "<input name='post[tag_ids][]' type='checkbox' value='2' />" \
+      "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
       "<label for='post_tag_ids_2'>Tag 2</label>" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
       "<label for='post_tag_ids_3'>Tag 3</label>"
     end
 
@@ -517,13 +517,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts") do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
       "<label for='post_tag_ids_1'>" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "Tag 1</label>" \
       "<label for='post_tag_ids_2'>" \
-      "<input name='post[tag_ids][]' type='checkbox' value='2' />" \
+      "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
       "Tag 2</label>" \
       "<label for='post_tag_ids_3'>" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
       "Tag 3</label>"
     end
 
@@ -547,13 +547,13 @@ class FormWithActsLikeFormForTest < FormWithTest
     expected = whole_form("/posts") do
       "<input name='post[tag_ids][]' type='hidden' value='' />" \
       "<label for='post_tag_ids_1'>" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='1' id='post_tag_ids_1' />" \
       "Tag 1</label>" \
       "<label for='post_tag_ids_2'>" \
-      "<input name='post[tag_ids][]' type='checkbox' value='2' />" \
+      "<input name='post[tag_ids][]' type='checkbox' value='2' id='post_tag_ids_2' />" \
       "Tag 2</label>" \
       "<label for='post_tag_ids_3'>" \
-      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' />" \
+      "<input checked='checked' name='post[tag_ids][]' type='checkbox' value='3' id='post_tag_ids_3' />" \
       "Tag 3</label>" \
       "<input name='post[id]' type='hidden' value='1' />"
     end
@@ -572,7 +572,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts") do
       "<input name='post[1][tag_ids][]' type='hidden' value='' />" \
-      "<input checked='checked' name='post[1][tag_ids][]' type='checkbox' value='1' />" \
+      "<input checked='checked' name='post[1][tag_ids][]' type='checkbox' value='1' id='post_1_tag_ids_1' />" \
       "<label for='post_1_tag_ids_1'>Tag 1</label>"
     end
 
