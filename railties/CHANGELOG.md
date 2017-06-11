@@ -1,3 +1,7 @@
+*   Add Windows support to `rails secrets:edit`.
+
+    *Kasper Timm Hansen*
+
 ## Rails 5.1.1 (May 12, 2017) ##
 
 *   No changes.
