@@ -70,6 +70,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_loading_with_scope_including_joins
     assert_equal clubs(:boring_club), Member.preload(:general_club).find(1).general_club
+    assert_equal clubs(:boring_club), Member.eager_load(:general_club).find(1).general_club
   end
 
   def test_with_ordering

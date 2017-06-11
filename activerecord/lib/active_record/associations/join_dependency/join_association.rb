@@ -34,12 +34,18 @@ module ActiveRecord
             table = tables.shift
             klass = reflection.klass
 
-            join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
-
-            binds.concat join_scope.bound_attributes
-            constraint = join_scope.arel.constraints
+            constraint = reflection.build_join_constraint(table, foreign_table)
 
             joins << table.create_join(table, table.create_on(constraint), join_type)
+
+            join_scope = reflection.join_scope(table, foreign_klass)
+
+            if join_scope.arel.constraints.any?
+              binds.concat join_scope.bound_attributes
+              joins.concat join_scope.arel.join_sources
+              right = joins.last.right
+              right.expr = right.expr.and(join_scope.arel.constraints)
+            end
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, klass
