@@ -233,7 +233,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_usage_with_embedded_ruby
-    require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", __dir__)
+    require_relative "fixtures/lib/generators/usage_template/usage_template_generator"
     output = capture(:stdout) { Rails::Generators.invoke :usage_template, ["--help"] }
     assert_match(/:: 2 ::/, output)
   end

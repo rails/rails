@@ -63,7 +63,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/routes.rb"
     assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
-      assert_match(/require.+test\/dummy\/config\/environment/, content)
+      assert_match(/require_relative.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
       assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
       assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
@@ -438,7 +438,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
     assert_file "test/test_helper.rb" do |content|
-      assert_match(/require.+spec\/dummy\/config\/environment/, content)
+      assert_match(/require_relative.+spec\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+spec\/dummy\/db\/migrate/, content)
     end
   end
@@ -449,7 +449,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/fake/config/application.rb"
     assert_no_file "test/dummy"
     assert_file "test/test_helper.rb" do |content|
-      assert_match(/require.+spec\/fake\/config\/environment/, content)
+      assert_match(/require_relative.+spec\/fake\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+spec\/fake\/db\/migrate/, content)
     end
   end

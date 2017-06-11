@@ -1,7 +1,7 @@
 require "rake/testtask"
 
-require File.expand_path("test/config", __dir__)
-require File.expand_path("test/support/config", __dir__)
+require_relative "test/config"
+require_relative "test/support/config"
 
 def run_without_aborting(*tasks)
   errors = []

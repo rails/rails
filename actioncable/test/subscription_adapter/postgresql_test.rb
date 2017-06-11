@@ -1,5 +1,5 @@
 require "test_helper"
-require_relative "./common"
+require_relative "common"
 
 require "active_record"
 
