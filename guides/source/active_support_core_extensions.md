@@ -856,7 +856,7 @@ end
 The target can be anything callable within the object, e.g. instance variables,
 methods, constants, etc. Only the public methods of the target are delegated.
 
-NOTE: Defined in `active_support/core_ext/module/delegation.rb`
+NOTE: Defined in `active_support/core_ext/module/delegation.rb`.
 
 ### Redefining Methods
 
@@ -864,7 +864,7 @@ There are cases where you need to define a method with `define_method`, but don'
 
 The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
+NOTE: Defined in `active_support/core_ext/module/remove_method.rb`.
 
 Extensions to `Class`
 ---------------------
@@ -952,7 +952,7 @@ When `:instance_reader` is `false`, the instance predicate returns a `NoMethodEr
 
 If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
-NOTE: Defined in `active_support/core_ext/class/attribute.rb`
+NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
 
 #### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
@@ -1848,7 +1848,7 @@ as well as adding or subtracting their results from a Time object. For example:
 (4.months + 5.years).from_now
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
 ### Formatting
 
