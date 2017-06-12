@@ -1766,6 +1766,10 @@ class RelationTest < ActiveRecord::TestCase
 
     # the first query is triggered because there are no topics yet.
     assert_queries(1) { assert topics.present? }
+    assert !topics.loaded?
+
+    # load topics
+    topics.to_a
 
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
