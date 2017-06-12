@@ -106,10 +106,12 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.set_configs" do |app|
-      ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k, v|
-          send "#{k}=", v
+    initializer "active_record.set_configs" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          app.config.active_record.each do |k, v|
+            send "#{k}=", v
+          end
         end
       end
     end
