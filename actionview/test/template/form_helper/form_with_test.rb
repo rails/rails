@@ -325,6 +325,31 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_deadult_ids_on_form_with
+    form_with(model: @post, id: "create-post", skip_default_ids: false) do |f|
+      concat f.label(:title) { "The Title" }
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+      concat f.submit("Create post")
+      concat f.button {
+        concat content_tag(:span, "Create post")
+      }
+    end
+
+    expected = whole_form("/posts/123", "create-post", method: "patch") do
+      "<label for='post_title'>The Title</label>" +
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" +
+      "<button name='button' type='submit'><span>Create post</span></button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_only_url_on_create
     form_with(url: "/posts") do |f|
       concat f.label :title, "Label me"

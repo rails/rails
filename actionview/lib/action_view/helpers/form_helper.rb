@@ -714,7 +714,7 @@ module ActionView
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
         options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = true
+        options[:skip_default_ids] = true unless options.key?(:skip_default_ids)
 
         if model
           url ||= polymorphic_path(model, format: format)
