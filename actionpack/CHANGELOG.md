@@ -1,3 +1,5 @@
+## Rails 4.2.9.rc1 (June 13, 2017) ##
+
 *   Use more specific check for :format in route path
 
     The current check for whether to add an optional format to the path is very lax

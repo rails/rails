@@ -1,3 +1,8 @@
+## Rails 4.2.9.rc1 (June 13, 2017) ##
+
+*   No changes.
+
+
 ## Rails 4.2.8 (February 21, 2017) ##
 
 *   No changes.

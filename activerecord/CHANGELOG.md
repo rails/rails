@@ -1,3 +1,5 @@
+## Rails 4.2.9.rc1 (June 13, 2017) ##
+
 *   Fix `rake db:schema:load` with subdirectories.
 
     *Ryuta Kamizono*
