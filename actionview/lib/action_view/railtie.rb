@@ -28,6 +28,15 @@ module ActionView
       end
     end
 
+    initializer "action_view.form_with_generates_ids" do |app|
+      ActiveSupport.on_load(:action_view) do
+        form_with_generates_ids = app.config.action_view.delete(:form_with_generates_ids)
+        unless form_with_generates_ids.nil?
+          ActionView::Helpers::FormHelper.form_with_generates_ids = form_with_generates_ids
+        end
+      end
+    end
+
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end

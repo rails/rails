@@ -1,3 +1,14 @@
+*   Change `form_with` to generates ids by default.
+
+    When `form_with` was introduced we disabled the automatic generation of ids
+    that was enabled in `form_for`. This usually is not an good idea since labels don't work
+    when the input doesn't have an id and it made harder to test with Capybara.
+
+    You can still disable the automatic generation of ids setting `config.action_view.form_with_generates_ids`
+    to `false.`
+
+    *Nick Pezza*
+
 *   Fix issues with `field_error_proc` wrapping `optgroup` and select divider `option`.
 
     Fixes #31088

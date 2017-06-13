@@ -578,6 +578,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
 
+* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `true`.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:
