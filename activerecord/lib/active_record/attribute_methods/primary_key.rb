@@ -45,7 +45,7 @@ module ActiveRecord
         attribute_was(self.class.primary_key)
       end
 
-      def id_in_database
+      def id_in_db
         sync_with_transaction_state
         attribute_in_database(self.class.primary_key)
       end
@@ -65,7 +65,7 @@ module ActiveRecord
             end
           end
 
-          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database).to_set
+          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_db).to_set
 
           def dangerous_attribute_method?(method_name)
             super && !ID_ATTRIBUTE_METHODS.include?(method_name)
