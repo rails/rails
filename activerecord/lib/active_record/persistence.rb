@@ -572,7 +572,7 @@ module ActiveRecord
         rows_affected = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_db
         @_trigger_update_callback = rows_affected > 0
       end
 
