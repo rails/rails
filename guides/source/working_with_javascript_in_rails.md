@@ -376,6 +376,35 @@ browser to submit the form via normal means (i.e. non-AJAX submission) will be
 canceled and the form will not be submitted at all. This is useful for
 implementing your own AJAX file upload workaround.
 
+### Rails-ujs event handlers
+
+Rails 5.1 introduced rails-ujs and dropped jQuery as a dependency.
+As a result the Unobtrusive JavaScript (UJS) driver has been rewritten to operate without jQuery.
+These introductions cause small changes to `custom events` fired during the request:
+
+NOTE: Signature of calls to UJS’s event handlers have changed.
+Unlike the version with jqeury, all custom events return only one parameter: `event`.
+In this parameter, there is an additional attribute `details` which contains an array of extra parameters.
+
+| Event name          | Extra parameters (event.detail) | Fired                                                       |
+|---------------------|---------------------------------|-------------------------------------------------------------|
+| `ajax:before`       |                                 | Before the whole ajax business.                             |
+| `ajax:beforeSend`   | [xhr, options]                  | Before the request is sent.                                 |
+| `ajax:send`         | [xhr]                           | When the request is sent.                                   |
+| `ajax:stopped`      |                                 | When the request is stopped.                                |
+| `ajax:success`      | [response, status, xhr]         | After completion, if the response was a success.            |
+| `ajax:error`        | [response, status, xhr]         | After completion, if the response was an error.             |
+| `ajax:complete`     | [xhr, status]                   | After the request has been completed, no matter the outcome.|
+
+Example usage:
+
+```html
+document.body.addEventListener('ajax:success', function(event) {
+  var detail = event.detail;
+  var data = detail[0], status = detail[1],  xhr = detail[2];
+})
+```
+
 Server-Side Concerns
 --------------------
 
