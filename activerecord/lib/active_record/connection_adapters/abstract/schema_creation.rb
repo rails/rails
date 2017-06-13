@@ -55,7 +55,7 @@ module ActiveRecord
 
             create_sql << "(#{statements.join(', ')})" if statements.present?
             add_table_options!(create_sql, table_options(o))
-            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
+            create_sql << " AS #{to_sql(o.as)}" if o.as
             create_sql
           end
 
@@ -111,6 +111,11 @@ module ActiveRecord
             if options[:primary_key] == true
               sql << " PRIMARY KEY"
             end
+            sql
+          end
+
+          def to_sql(sql)
+            sql = sql.to_sql if sql.respond_to?(:to_sql)
             sql
           end
 
