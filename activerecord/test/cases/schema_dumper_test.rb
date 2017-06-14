@@ -320,7 +320,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
     output = standard_dump
-    assert_match %r{create_table "subscribers", id: false}, output
+    assert_match %r{create_table "string_key_objects", id: false}, output
   end
 
   if ActiveRecord::Base.connection.supports_foreign_keys?
