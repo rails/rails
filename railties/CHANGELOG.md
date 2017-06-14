@@ -1,3 +1,8 @@
+## Rails 5.0.4.rc1 (June 14, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.0.3 (May 12, 2017) ##
 
 *   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
