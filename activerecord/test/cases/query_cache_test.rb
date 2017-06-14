@@ -204,6 +204,12 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_exists_queries_with_cache
+    Post.cache do
+      assert_queries(1) { Post.exists?; Post.exists? }
+    end
+  end
+
   def test_query_cache_dups_results_correctly
     Task.cache do
       now  = Time.now.utc

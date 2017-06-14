@@ -316,7 +316,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+      connection.select_one(relation.arel, "#{name} Exists", relation.bound_attributes) ? true : false
     rescue ::RangeError
       false
     end
