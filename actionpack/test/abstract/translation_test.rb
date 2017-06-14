@@ -62,6 +62,7 @@ module AbstractController
       def test_default_translation
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t("one.two")
+          assert_equal "baz", @controller.t(".twoz", default: ["baz", :twoz])
         end
       end
 
