@@ -13,7 +13,7 @@ module AbstractController
         path = controller_path.tr("/", ".")
         defaults = [:"#{path}#{key}"]
         defaults << options[:default] if options[:default]
-        options[:default] = defaults
+        options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
       I18n.translate(key, options)
