@@ -42,7 +42,7 @@ module ActiveModel
       end
 
       def _assign_attribute(k, v)
-        setter = "#{k}="
+        setter = "#{k}=".freeze
         if respond_to?(setter)
           public_send(setter, v)
         else
