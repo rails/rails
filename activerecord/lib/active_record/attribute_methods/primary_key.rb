@@ -8,17 +8,14 @@ module ActiveRecord
       # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
-        sync_with_transaction_state
         key = id
         [key] if key
       end
 
       # Returns the primary key value.
       def id
-        if pk = self.class.primary_key
-          sync_with_transaction_state
-          _read_attribute(pk)
-        end
+        sync_with_transaction_state
+        _read_attribute(self.class.primary_key) if self.class.primary_key
       end
 
       # Sets the primary key value.
