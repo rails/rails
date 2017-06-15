@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -42,7 +44,7 @@ module ActiveModel
       end
 
       def _assign_attribute(k, v)
-        setter = "#{k}=".freeze
+        setter = :"#{k}="
         if respond_to?(setter)
           public_send(setter, v)
         else
