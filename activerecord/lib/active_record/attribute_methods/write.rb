@@ -35,30 +35,21 @@ module ActiveRecord
           attr_name.to_s
         end
 
-        write_attribute_with_type_cast(name, value, true)
+        name = self.class.primary_key if name == "id".freeze && self.class.primary_key
+        @attributes.write_from_user(name, value)
+        value
       end
 
       def raw_write_attribute(attr_name, value) # :nodoc:
-        write_attribute_with_type_cast(attr_name, value, false)
+        name = attr_name.to_s
+        @attributes.write_cast_value(name, value)
+        value
       end
 
       private
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)
           write_attribute(attribute_name, value)
-        end
-
-        def write_attribute_with_type_cast(attr_name, value, should_type_cast)
-          attr_name = attr_name.to_s
-          attr_name = self.class.primary_key if attr_name == "id" && self.class.primary_key
-
-          if should_type_cast
-            @attributes.write_from_user(attr_name, value)
-          else
-            @attributes.write_cast_value(attr_name, value)
-          end
-
-          value
         end
     end
   end
