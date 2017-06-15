@@ -28,6 +28,60 @@ module Arel
         }
       end
 
+      it 'works with multiple values' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new
+        manager.into table
+
+        manager.columns << table[:id]
+        manager.columns << table[:name]
+
+        manager.values = manager.create_values_list([
+          %w{1 david},
+          %w{2 kir},
+          ["3", Arel.sql('DEFAULT')],
+        ])
+
+        manager.to_sql.must_be_like %{
+          INSERT INTO \"users\" (\"id\", \"name\") VALUES ('1', 'david'), ('2', 'kir'), ('3', DEFAULT)
+        }
+      end
+
+      it 'literals in multiple values are not escaped' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new
+        manager.into table
+
+        manager.columns << table[:name]
+
+        manager.values = manager.create_values_list([
+          [Arel.sql('*')],
+          [Arel.sql('DEFAULT')],
+        ])
+
+        manager.to_sql.must_be_like %{
+          INSERT INTO \"users\" (\"name\") VALUES (*), (DEFAULT)
+        }
+      end
+
+      it 'works with multiple single values' do
+        table = Table.new(:users)
+        manager = Arel::InsertManager.new
+        manager.into table
+
+        manager.columns << table[:name]
+
+        manager.values = manager.create_values_list([
+          %w{david},
+          %w{kir},
+          [Arel.sql('DEFAULT')],
+        ])
+
+        manager.to_sql.must_be_like %{
+          INSERT INTO \"users\" (\"name\") VALUES ('david'), ('kir'), (DEFAULT)
+        }
+      end
+
       it "inserts false" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new

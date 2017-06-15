@@ -40,5 +40,9 @@ module Arel
     def create_values values, columns
       Nodes::Values.new values, columns
     end
+
+    def create_values_list(rows)
+      Nodes::ValuesList.new(rows)
+    end
   end
 end

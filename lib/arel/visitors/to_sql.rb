@@ -166,6 +166,28 @@ module Arel
         collector << "FALSE"
       end
 
+      def visit_Arel_Nodes_ValuesList o, collector
+        collector << "VALUES "
+
+        len = o.rows.length - 1
+        o.rows.each_with_index { |row, i|
+          collector << '('
+          row_len = row.length - 1
+          row.each_with_index do |value, k|
+            case value
+            when Nodes::SqlLiteral, Nodes::BindParam
+              collector = visit(value, collector)
+            else
+              collector << quote(value)
+            end
+            collector << COMMA unless k == row_len
+          end
+          collector << ')'
+          collector << COMMA unless i == len
+        }
+        collector
+      end
+
       def visit_Arel_Nodes_Values o, collector
         collector << "VALUES ("
 
