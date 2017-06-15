@@ -234,6 +234,23 @@ if current_adapter?(:PostgreSQLAdapter)
         FileUtils.rm_f(@filename)
       end
 
+      def test_database_name_fixnum
+        @configuration["database"] = 123456
+
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        }
+        assert_match(/^Invalid configuration. Your database name in database.yml must be of class String.$/, e.message)
+      end
+
+      def test_database_name_first_character_numeric
+        @configuration["database"] = "1test-db"
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        }
+        assert_match(/^Invalid configuration. Your database name in database.yml must not begin with a number.$/, e.message)
+      end
+
       def test_structure_dump
         Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
 
