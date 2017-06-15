@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -42,8 +44,9 @@ module ActiveModel
       end
 
       def _assign_attribute(k, v)
-        if respond_to?("#{k}=")
-          public_send("#{k}=", v)
+        setter = :"#{k}="
+        if respond_to?(setter)
+          public_send(setter, v)
         else
           raise UnknownAttributeError.new(self, k)
         end
