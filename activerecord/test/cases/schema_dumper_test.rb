@@ -17,6 +17,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     dump_all_table_schema []
   end
 
+  def test_dump_schema_information_with_empty_versions
+    ActiveRecord::SchemaMigration.delete_all
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_no_match(/INSERT INTO/, schema_info)
+  end
+
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.reverse_each do |v|
