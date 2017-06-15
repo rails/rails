@@ -89,9 +89,10 @@ module ActiveRecord
         end
 
         def add_table_options!(create_sql, options)
-          if options_sql = options[:options]
-            create_sql << " #{options_sql}"
-          end
+          options_sql = options[:options]
+          options_sql = options_sql[@conn.config[:adapter].to_sym] if options_sql.is_a?(Hash)
+
+          create_sql << " #{options_sql}" if options_sql.present?
           create_sql
         end
 

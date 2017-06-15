@@ -41,7 +41,7 @@ module ActiveRecord
       COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
 
       attr_accessor :pool
-      attr_reader :visitor, :owner, :logger, :lock
+      attr_reader :visitor, :owner, :logger, :lock, :config
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!

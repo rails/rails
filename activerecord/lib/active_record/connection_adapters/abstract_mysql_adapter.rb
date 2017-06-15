@@ -418,7 +418,9 @@ module ActiveRecord
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
 
-        table_options[:options] = raw_table_options unless raw_table_options.blank?
+        unless raw_table_options.blank?
+          table_options[:options] = { config[:adapter].to_sym => raw_table_options }
+        end
 
         # strip COMMENT
         if raw_table_options.sub!(/ COMMENT='.+'/, "")

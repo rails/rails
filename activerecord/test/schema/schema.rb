@@ -15,7 +15,7 @@ ActiveRecord::Schema.define do
       {}
     end
 
-  create_table :accounts, force: true do |t|
+  create_table :accounts, force: true, options: { unknown: "UNKNOWN" } do |t|
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit

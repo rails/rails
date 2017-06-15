@@ -17,28 +17,28 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "table options with ENGINE" do
     @connection.create_table "mysql_table_options", force: true, options: "ENGINE=MyISAM"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{ENGINE=MyISAM}, options
   end
 
   test "table options with ROW_FORMAT" do
     @connection.create_table "mysql_table_options", force: true, options: "ROW_FORMAT=REDUNDANT"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{ROW_FORMAT=REDUNDANT}, options
   end
 
   test "table options with CHARSET" do
     @connection.create_table "mysql_table_options", force: true, options: "CHARSET=utf8mb4"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{CHARSET=utf8mb4}, options
   end
 
   test "table options with COLLATE" do
     @connection.create_table "mysql_table_options", force: true, options: "COLLATE=utf8mb4_bin"
     output = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{COLLATE=utf8mb4_bin}, options
   end
 
@@ -79,7 +79,7 @@ class Mysql2DefaultEngineOptionSchemaDumpTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.connection.create_table "mysql_table_options", force: true
 
     output  = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{ENGINE=InnoDB}, options
   end
 
@@ -93,7 +93,7 @@ class Mysql2DefaultEngineOptionSchemaDumpTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     output  = dump_table_schema("mysql_table_options")
-    options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
+    options = %r/create_table "mysql_table_options", options: { mysql2: "(?<options>.*)" }/.match(output)[:options]
     assert_match %r{ENGINE=InnoDB}, options
   end
 end

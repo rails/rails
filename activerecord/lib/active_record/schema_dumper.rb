@@ -244,7 +244,13 @@ HEADER
       end
 
       def format_options(options)
-        options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
+        options.map do |key, value|
+          if value.is_a?(Hash)
+            "#{key}: { #{format_options(value)} }"
+          else
+            "#{key}: #{value.inspect}"
+          end
+        end.join(", ")
       end
 
       def format_index_parts(options)
