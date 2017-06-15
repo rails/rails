@@ -986,7 +986,7 @@ module ActiveRecord
 
       def dump_schema_information #:nodoc:
         versions = ActiveRecord::SchemaMigration.order('version').pluck(:version)
-        insert_versions_sql(versions)
+        insert_versions_sql(versions) if versions.any?
       end
 
       def insert_versions_sql(versions) # :nodoc:
