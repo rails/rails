@@ -118,7 +118,8 @@ module ActionMailer
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
           args = @mailer_class.name, @action.to_s, delivery_method.to_s, *@args
-          ::ActionMailer::DeliveryJob.set(options).perform_later(*args)
+          job = @mailer_class.delivery_job
+          job.set(options).perform_later(*args)
         end
       end
   end
