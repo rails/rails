@@ -80,6 +80,12 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 1, subscriber.update_count
   end
 
+  def test_update_columns_with_non_primary_key_id_column
+    subscriber = Subscriber.first
+    subscriber.update_columns(id: 1)
+    assert_not_equal 1, subscriber.nick
+  end
+
   def test_string_key
     subscriber = Subscriber.find(subscribers(:first).nick)
     assert_equal(subscribers(:first).name, subscriber.name)
