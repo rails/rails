@@ -64,7 +64,11 @@ class TestsController < ActionController::Base
     if params[:content_type] && params[:content]
       render inline: params[:content], content_type: params[:content_type]
     elsif request.xhr?
-      render json: JSON.generate(data)
+      if params[:with_turbolinks_redirect]
+        render inline: %{Turbolinks.clearCache()\nTurbolinks.visit("http://example.com/", {"action":"replace"})}
+      else
+        render json: JSON.generate(data)
+      end
     elsif params[:iframe]
       payload = JSON.generate(data).gsub("<", "&lt;").gsub(">", "&gt;")
       html = <<-HTML
