@@ -40,6 +40,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           end
         end
 
+        test "remove_column is prevented for a foreign key column" do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, foreign_key: true
+          end
+
+          assert_raises(ArgumentError) do
+            @connection.remove_column("testings", "testing_parent_id")
+          end
+        end
+
         test "options hash can be passed" do
           @connection.change_table :testing_parents do |t|
             t.references :other, index: { unique: true }

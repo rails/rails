@@ -593,6 +593,10 @@ module ActiveRecord
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
       def remove_column(table_name, column_name, type = nil, options = {})
+        if foreign_key_exists?(table_name, column: column_name)
+          raise ArgumentError.new("To remove a column referenced in a foreign_key, use `remove_reference` instead of `remove_column`. Example: remove_reference(:products, :user, foreign_key: true)")
+        end
+
         execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
       end
 
