@@ -37,7 +37,16 @@ module ActiveRecord
     # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
-      return super() if block_given?
+      if block_given?
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `count' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+        end
+
+        return super()
+      end
+
       calculate(:count, column_name)
     end
 
@@ -73,7 +82,16 @@ module ActiveRecord
     #
     #   Person.sum(:age) # => 4562
     def sum(column_name = nil)
-      return super() if block_given?
+      if block_given?
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `sum' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+        end
+
+        return super()
+      end
+
       calculate(:sum, column_name)
     end
 

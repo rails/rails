@@ -44,7 +44,7 @@ module ActiveSupport
             yield
           end
 
-          def clear
+          def clear(options = nil)
             @data.clear
           end
 
@@ -79,15 +79,15 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear # :nodoc:
+        def clear(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear
+          cache.clear(options)
           super
         end
 
         def cleanup(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear(options)
+          cache.clear
           super
         end
 

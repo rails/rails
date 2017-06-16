@@ -19,8 +19,7 @@ module Delayed
 
         include Delayed::Backend::Base
 
-        cattr_accessor :id
-        self.id = 0
+        cattr_accessor :id, default: 0
 
         def initialize(hash = {})
           self.attempts = 0

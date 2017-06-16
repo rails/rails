@@ -238,7 +238,7 @@ Run `bin/rails` to see the list of commands available.
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 
 Calling `params` in your application will now return an object instead of a hash. If your
-parameters are already permitted, then you will not need to make any changes. If you are using `slice`
+parameters are already permitted, then you will not need to make any changes. If you are using `map`
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 

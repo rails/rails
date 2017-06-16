@@ -4,8 +4,7 @@ module ActionCable
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :periodic_timers, instance_reader: false
-        self.periodic_timers = []
+        class_attribute :periodic_timers, instance_reader: false, default: []
 
         after_subscribe   :start_periodic_timers
         after_unsubscribe :stop_periodic_timers

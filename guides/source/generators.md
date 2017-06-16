@@ -96,7 +96,7 @@ This is the generator just created:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("../templates", __FILE__)
+  source_root File.expand_path("templates", __dir__)
 end
 ```
 
@@ -122,7 +122,7 @@ And now let's change the generator to copy this template when invoked:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("../templates", __FILE__)
+  source_root File.expand_path("templates", __dir__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"

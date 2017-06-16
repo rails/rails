@@ -28,6 +28,28 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_next_occur
+    datetime = DateTime.new(2016, 9, 24, 0, 0) # saturday
+    assert_equal datetime.next_occurring(:monday), datetime.since(2.days)
+    assert_equal datetime.next_occurring(:tuesday), datetime.since(3.days)
+    assert_equal datetime.next_occurring(:wednesday), datetime.since(4.days)
+    assert_equal datetime.next_occurring(:thursday), datetime.since(5.days)
+    assert_equal datetime.next_occurring(:friday), datetime.since(6.days)
+    assert_equal datetime.next_occurring(:saturday), datetime.since(1.week)
+    assert_equal datetime.next_occurring(:sunday), datetime.since(1.day)
+  end
+
+  def test_prev_occur
+    datetime = DateTime.new(2016, 9, 24, 0, 0) # saturday
+    assert_equal datetime.prev_occurring(:monday), datetime.ago(5.days)
+    assert_equal datetime.prev_occurring(:tuesday), datetime.ago(4.days)
+    assert_equal datetime.prev_occurring(:wednesday), datetime.ago(3.days)
+    assert_equal datetime.prev_occurring(:thursday), datetime.ago(2.days)
+    assert_equal datetime.prev_occurring(:friday), datetime.ago(1.day)
+    assert_equal datetime.prev_occurring(:saturday), datetime.ago(1.week)
+    assert_equal datetime.prev_occurring(:sunday), datetime.ago(6.days)
+  end
+
   def test_readable_inspect
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0)
     assert_equal "Mon, 21 Feb 2005 14:30:00 +0000", datetime.readable_inspect

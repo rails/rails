@@ -1091,7 +1091,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   end
 
   def self.fixture_path
-    File.dirname(__FILE__) + "/../fixtures/multipart"
+    File.expand_path("../fixtures/multipart", __dir__)
   end
 
   routes.draw do

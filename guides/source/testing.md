@@ -350,6 +350,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | --------------------------------------------------------------------------------- | ------- |
 | [`assert_difference(expressions, difference = 1, message = nil) {...}`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference) | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
 | [`assert_no_difference(expressions, message = nil, &block)`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference) | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
+| [`assert_changes(expressions, message = nil, from:, to:, &block)`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes) | Test that the result of evaluating an expression is changed after invoking the passed in block.|
+| [`assert_no_changes(expressions, message = nil, &block)`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes) | Test the result of evaluating an expression is not changed after invoking the passed in block.|
 | [`assert_nothing_raised { block }`](http://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised) | Ensures that the given block doesn't raise any exceptions.|
 | [`assert_recognizes(expected_options, path, extras={}, message=nil)`](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes) | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates) | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
@@ -600,11 +602,8 @@ Model tests don't have their own superclass like `ActionMailer::TestCase` instea
 System Testing
 --------------
 
-System tests are full-browser tests that can be used to test your application's
-JavaScript and user experience. System tests use Capybara as a base.
-
-System tests allow for running tests in either a real browser or a headless
-driver for testing full user interactions with your application.
+System tests allow you to test user interactions with your application, running tests
+in either a real or a headless browser. System tests uses Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -658,8 +657,9 @@ end
 
 The driver name is a required argument for `driven_by`. The optional arguments
 that can be passed to `driven_by` are `:using` for the browser (this will only
-be used by Selenium), and `:screen_size` to change the size of the screen for
-screenshots.
+be used by Selenium), `:screen_size` to change the size of the screen for
+screenshots, and `:options` which can be used to set options supported by the
+driver.
 
 ```ruby
 require "test_helper"
@@ -669,8 +669,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If your Capybara configuration requires more setup than provided by Rails, all
-of that configuration can be put into the `application_system_test_case.rb` file.
+If your Capybara configuration requires more setup than provided by Rails, this
+additional configuration could be added into the `application_system_test_case.rb`
+file.
 
 Please see [Capybara's documentation](https://github.com/teamcapybara/capybara#setup)
 for additional settings.
@@ -693,9 +694,9 @@ take a screenshot of the browser.
 Now we're going to add a system test to our blog application. We'll demonstrate
 writing a system test by visiting the index page and creating a new blog article.
 
-If you used the scaffold generator, a system test skeleton is automatically
-created for you. If you did not use the generator start by creating a system
-test skeleton.
+If you used the scaffold generator, a system test skeleton was automatically
+created for you. If you didn't use the scaffold generator, start by creating a
+system test skeleton.
 
 ```bash
 $ bin/rails generate system_test articles

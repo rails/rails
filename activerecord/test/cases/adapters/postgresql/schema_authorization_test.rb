@@ -75,17 +75,6 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  def test_schema_uniqueness
-    assert_nothing_raised do
-      set_session_auth
-      USERS.each do |u|
-        set_session_auth u
-        assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
-        set_session_auth
-      end
-    end
-  end
-
   def test_sequence_schema_caching
     assert_nothing_raised do
       USERS.each do |u|

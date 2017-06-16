@@ -1,5 +1,6 @@
 require "yaml"
 require "active_support/message_encryptor"
+require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
@@ -37,6 +38,15 @@ module Rails
         ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
       end
 
+      def template
+        <<-end_of_template.strip_heredoc
+          # See `secrets.yml` for tips on generating suitable keys.
+          # production:
+          #  external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289
+
+        end_of_template
+      end
+
       def encrypt(data)
         encryptor.encrypt_and_sign(data)
       end
@@ -54,15 +64,12 @@ module Rails
         FileUtils.mv("#{path}.tmp", path)
       end
 
-      def read_for_editing
-        tmp_path = File.join(Dir.tmpdir, File.basename(path))
-        IO.binwrite(tmp_path, read)
+      def read_for_editing(&block)
+        writing(read, &block)
+      end
 
-        yield tmp_path
-
-        write(IO.binread(tmp_path))
-      ensure
-        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
+      def read_template_for_editing(&block)
+        writing(template, &block)
       end
 
       private
@@ -90,6 +97,17 @@ module Rails
           else
             IO.read(path)
           end
+        end
+
+        def writing(contents)
+          tmp_path = File.join(Dir.tmpdir, File.basename(path))
+          File.write(tmp_path, contents)
+
+          yield tmp_path
+
+          write(File.read(tmp_path))
+        ensure
+          FileUtils.rm(tmp_path) if File.exist?(tmp_path)
         end
 
         def encryptor

@@ -125,8 +125,7 @@ module ActionView
         end
     end
 
-    cattr_accessor :caching
-    self.caching = true
+    cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching

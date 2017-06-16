@@ -8,10 +8,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_reflections, instance_writer: false
-      class_attribute :aggregate_reflections, instance_writer: false
-      self._reflections = {}
-      self.aggregate_reflections = {}
+      class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
     def self.create(macro, name, scope, options, ar)
@@ -199,7 +197,7 @@ module ActiveRecord
       def klass_join_scope(table, predicate_builder) # :nodoc:
         if klass.current_scope
           klass.current_scope.clone.tap { |scope|
-            scope.joins_values = []
+            scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
           relation = ActiveRecord::Relation.create(
@@ -288,6 +286,11 @@ module ActiveRecord
       def get_join_keys(association_klass)
         JoinKeys.new(join_pk(association_klass), join_fk)
       end
+
+      protected
+        def actual_source_reflection # FIXME: this is a horrible name
+          self
+        end
 
       private
 
@@ -581,11 +584,9 @@ module ActiveRecord
         seed + [self]
       end
 
-      protected
-
-        def actual_source_reflection # FIXME: this is a horrible name
-          self
-        end
+      def extensions
+        Array(options[:extend])
+      end
 
       private
 
@@ -759,7 +760,6 @@ module ActiveRecord
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
-      attr_reader :delegate_reflection
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :get_join_keys, to: :source_reflection
 
@@ -985,19 +985,23 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
-      def collect_join_reflections(seed)
-        a = source_reflection.add_as_source seed
-        if options[:source_type]
-          through_reflection.add_as_polymorphic_through self, a
-        else
-          through_reflection.add_as_through a
-        end
-      end
-
-      private
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
+      protected
+        attr_reader :delegate_reflection
 
         def actual_source_reflection # FIXME: this is a horrible name
-          source_reflection.send(:actual_source_reflection)
+          source_reflection.actual_source_reflection
+        end
+
+      private
+        def collect_join_reflections(seed)
+          a = source_reflection.add_as_source seed
+          if options[:source_type]
+            through_reflection.add_as_polymorphic_through self, a
+          else
+            through_reflection.add_as_through a
+          end
         end
 
         def primary_key(klass)

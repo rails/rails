@@ -36,25 +36,29 @@ module Rails
       end
 
       def add_encrypted_secrets_file
-        unless File.exist?("config/secrets.yml.enc")
+        unless (defined?(@@skip_secrets_file) && @@skip_secrets_file) || File.exist?("config/secrets.yml.enc")
           say "Adding config/secrets.yml.enc to store secrets that needs to be encrypted."
           say ""
+          say "For now the file contains this but it's been encrypted with the generated key:"
+          say ""
+          say Secrets.template, :on_green
+          say ""
 
-          template "config/secrets.yml.enc" do |prefill|
-            say ""
-            say "For now the file contains this but it's been encrypted with the generated key:"
-            say ""
-            say prefill, :on_green
-            say ""
-
-            Secrets.encrypt(prefill)
-          end
+          Secrets.write(Secrets.template)
 
           say "You can edit encrypted secrets with `bin/rails secrets:edit`."
-
-          say "Add this to your config/environments/production.rb:"
-          say "config.read_encrypted_secrets = true"
+          say ""
         end
+
+        say "Add this to your config/environments/production.rb:"
+        say "config.read_encrypted_secrets = true"
+      end
+
+      def self.skip_secrets_file
+        @@skip_secrets_file = true
+        yield
+      ensure
+        @@skip_secrets_file = false
       end
 
       private

@@ -95,16 +95,23 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 * The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret (`secrets.secret_token`) and inserted into the end of the cookie.
 
-However, since Rails 4, the default store is EncryptedCookieStore. With
-EncryptedCookieStore the session is encrypted before being stored in a cookie.
-This prevents the user from accessing and tampering the content of the cookie.
-Thus the session becomes a more secure place to store data. The encryption is
-done using a server-side secret key `secrets.secret_key_base` stored in
-`config/secrets.yml`.
+In Rails 4, encrypted cookies through AES in CBC mode with HMAC using SHA1 for
+verification was introduced. This prevents the user from accessing and tampering
+the content of the cookie. Thus the session becomes a more secure place to store
+data. The encryption is performed using a server-side `secrets.secret_key_base`.
+Two salts are used when deriving keys for encryption and verification. These
+salts are set via the `config.action_dispatch.encrypted_cookie_salt` and
+`config.action_dispatch.encrypted_signed_cookie_salt` configuration values.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA1, for compatibility). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters, use `rails secret` instead_.
+Rails 5.2 uses AES-GCM for the encryption which couples authentication
+and encryption in one faster step and produces shorter ciphertexts.
 
-`secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
+Encrypted cookies are automatically upgraded if the
+`config.action_dispatch.use_authenticated_cookie_encryption` is enabled.
+
+_Do not use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters! Instead use `rails secret` to generate secret keys!_
+
+Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
 
     development:
       secret_key_base: a75d...
@@ -356,7 +363,7 @@ send_file('/var/www/uploads/' + params[:filename])
 Simply pass a file name like "../../../etc/passwd" to download the server's login information. A simple solution against this, is to _check that the requested file is in the expected directory_:
 
 ```ruby
-basename = File.expand_path(File.join(File.dirname(__FILE__), '../../files'))
+basename = File.expand_path('../../files', __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
 raise if basename !=
      File.expand_path(File.join(File.dirname(filename), '../../../'))
@@ -796,7 +803,7 @@ In December 2006, 34,000 actual user names and passwords were stolen in a [MySpa
 
 INFO: _CSS Injection is actually JavaScript injection, because some browsers (IE, some versions of Safari and others) allow JavaScript in CSS. Think twice about allowing custom CSS in your web application._
 
-CSS Injection is explained best by the well-known [MySpace Samy worm](http://namb.la/popular/tech.html). This worm automatically sent a friend request to Samy (the attacker) simply by visiting his profile. Within several hours he had over 1 million friend requests, which created so much traffic that MySpace went offline. The following is a technical explanation of that worm.
+CSS Injection is explained best by the well-known [MySpace Samy worm](https://samy.pl/popular/tech.html). This worm automatically sent a friend request to Samy (the attacker) simply by visiting his profile. Within several hours he had over 1 million friend requests, which created so much traffic that MySpace went offline. The following is a technical explanation of that worm.
 
 MySpace blocked many tags, but allowed CSS. So the worm's author put JavaScript into CSS like this:
 
@@ -1053,6 +1060,7 @@ Additional Resources
 
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
-* Subscribe to the Rails security [mailing list](http://groups.google.com/group/rubyonrails-security)
-* [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too)
-* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet)
+* Subscribe to the Rails security [mailing list.](http://groups.google.com/group/rubyonrails-security)
+* [Brakeman - Rails Security Scanner](http://brakemanscanner.org/)- To perform static security analysis for Rails applications.
+* [Keep up to date on the other application layers.](http://secunia.com/) (they have a weekly newsletter, too)
+* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet.](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet)

@@ -447,15 +447,15 @@ For example, a new Rails application includes a default
 
 ```js
 // ...
-//= require jquery
-//= require jquery_ujs
+//= require rails-ujs
+//= require turbolinks
 //= require_tree .
 ```
 
 In JavaScript files, Sprockets directives begin with `//=`. In the above case,
 the file is using the `require` and the `require_tree` directives. The `require`
 directive is used to tell Sprockets the files you wish to require. Here, you are
-requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere
+requiring the files `rails-ujs.js` and `turbolinks.js` that are available somewhere
 in the search path for Sprockets. You need not supply the extensions explicitly.
 Sprockets assumes you are requiring a `.js` file when done from within a `.js`
 file.
@@ -868,7 +868,7 @@ pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
 group :production do
-  gem 'therubyracer'
+  gem 'mini_racer'
 end
 ```
 

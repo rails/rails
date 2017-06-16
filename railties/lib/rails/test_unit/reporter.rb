@@ -3,8 +3,7 @@ require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
-    class_attribute :executable
-    self.executable = "bin/rails test"
+    class_attribute :executable, default: "bin/rails test"
 
     def record(result)
       super

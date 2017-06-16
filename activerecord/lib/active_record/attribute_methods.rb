@@ -62,7 +62,6 @@ module ActiveRecord
           super(attribute_names)
           @attribute_methods_generated = true
         end
-        true
       end
 
       def undefine_attribute_methods # :nodoc:

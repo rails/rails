@@ -3,7 +3,7 @@ require "abstract_unit"
 require "pathname"
 
 class FileFixturesTest < ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("../../file_fixtures", __FILE__)
+  self.file_fixture_path = File.expand_path("../file_fixtures", __dir__)
 
   test "#file_fixture returns Pathname to file fixture" do
     path = file_fixture("sample.txt")
@@ -20,7 +20,7 @@ class FileFixturesTest < ActiveSupport::TestCase
 end
 
 class FileFixturesPathnameDirectoryTest < ActiveSupport::TestCase
-  self.file_fixture_path = Pathname.new(File.expand_path("../../file_fixtures", __FILE__))
+  self.file_fixture_path = Pathname.new(File.expand_path("../file_fixtures", __dir__))
 
   test "#file_fixture_path returns Pathname to file fixture" do
     path = file_fixture("sample.txt")

@@ -18,14 +18,6 @@ module ActionDispatch
           @tt = transition_table
         end
 
-        def simulate(string)
-          ms = memos(string) { return }
-          MatchData.new(ms)
-        end
-
-        alias :=~    :simulate
-        alias :match :simulate
-
         def memos(string)
           input = StringScanner.new(string)
           state = [0]

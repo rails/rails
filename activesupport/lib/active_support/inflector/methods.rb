@@ -28,7 +28,7 @@ module ActiveSupport
     #   pluralize('CamelOctopus')     # => "CamelOctopi"
     #   pluralize('ley', :es)         # => "leyes"
     def pluralize(word, locale = :en)
-      apply_inflections(word, inflections(locale).plurals)
+      apply_inflections(word, inflections(locale).plurals, locale)
     end
 
     # The reverse of #pluralize, returns the singular form of a word in a
@@ -45,7 +45,7 @@ module ActiveSupport
     #   singularize('CamelOctopi')      # => "CamelOctopus"
     #   singularize('leyes', :es)       # => "ley"
     def singularize(word, locale = :en)
-      apply_inflections(word, inflections(locale).singulars)
+      apply_inflections(word, inflections(locale).singulars, locale)
     end
 
     # Converts strings to UpperCamelCase.
@@ -387,12 +387,15 @@ module ActiveSupport
 
       # Applies inflection rules for +singularize+ and +pluralize+.
       #
-      #  apply_inflections('post', inflections.plurals)    # => "posts"
-      #  apply_inflections('posts', inflections.singulars) # => "post"
-      def apply_inflections(word, rules)
+      # If passed an optional +locale+ parameter, the uncountables will be
+      # found for that locale.
+      #
+      #  apply_inflections('post', inflections.plurals, :en)    # => "posts"
+      #  apply_inflections('posts', inflections.singulars, :en) # => "post"
+      def apply_inflections(word, rules, locale = :en)
         result = word.to_s.dup
 
-        if word.empty? || inflections.uncountables.uncountable?(result)
+        if word.empty? || inflections(locale).uncountables.uncountable?(result)
           result
         else
           rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }

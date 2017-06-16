@@ -2,7 +2,7 @@ module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
@@ -18,6 +18,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
+    alias :locked? :locked
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -403,9 +404,9 @@ module ActiveRecord
     #
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
+    # issue. When running callbacks is not needed for each record update,
+    # it is preferred to use #update_all for updating all records
+    # in a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }

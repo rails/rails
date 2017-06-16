@@ -57,7 +57,7 @@ module ActiveRecord
             else
               column = klass.column_for_attribute(attribute)
 
-              binds << predicate_builder.send(:build_bind_param, attribute, value)
+              binds << predicate_builder.send(:build_bind_attribute, attribute, value)
               value = Arel::Nodes::BindParam.new
 
               predicate = if options[:case_sensitive]

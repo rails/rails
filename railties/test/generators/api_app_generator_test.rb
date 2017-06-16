@@ -70,7 +70,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/initializers/cookies_serializer.rb"
     assert_no_file "config/initializers/assets.rb"
-    assert_no_file "config/initializers/new_framework_defaults_5_1.rb"
   end
 
   def test_app_update_does_not_generate_unnecessary_bin_files

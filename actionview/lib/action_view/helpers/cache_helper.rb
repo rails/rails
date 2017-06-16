@@ -8,10 +8,9 @@ module ActionView
       # fragments, and so on. This method takes a block that contains
       # the content you wish to cache.
       #
-      # The best way to use this is by doing key-based cache expiration
-      # on top of a cache store like Memcached that'll automatically
-      # kick out old entries. For more on key-based expiration, see:
-      # http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works
+      # The best way to use this is by doing recyclable key-based cache expiration
+      # on top of a cache store like Memcached or Redis that'll automatically
+      # kick out old entries.
       #
       # When using this method, you list the cache dependency as the name of the cache, like so:
       #
@@ -23,10 +22,14 @@ module ActionView
       # This approach will assume that when a new topic is added, you'll touch
       # the project. The cache key generated from this call will be something like:
       #
-      #   views/projects/123-20120806214154/7a1156131a6928cb0026877f8b749ac9
-      #         ^class   ^id ^updated_at    ^template tree digest
+      #   views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
+      #         ^template path           ^template tree digest            ^class   ^id
       #
-      # The cache is thus automatically bumped whenever the project updated_at is touched.
+      # This cache key is stable, but it's combined with a cache version derived from the project
+      # record. When the project updated_at is touched, the #cache_version changes, even
+      # if the key stays stable. This means that unlike a traditional key-based cache expiration
+      # approach, you won't be generating cache trash, unused keys, simply because the dependent
+      # record is updated.
       #
       # If your template cache depends on multiple sources (try to avoid this to keep things simple),
       # you can name all these dependencies as part of an array:
@@ -211,16 +214,19 @@ module ActionView
         end
       end
 
-      attr_reader :cache_hit # :nodoc:
-
     private
 
       def fragment_name_with_digest(name, virtual_path)
         virtual_path ||= @virtual_path
+
         if virtual_path
           name = controller.url_for(name).split("://").last if name.is_a?(Hash)
-          digest = Digestor.digest name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
-          [ name, digest ]
+
+          if digest = Digestor.digest(name: virtual_path, finder: lookup_context, dependencies: view_cache_dependencies).presence
+            [ "#{virtual_path}:#{digest}", name ]
+          else
+            [ virtual_path, name ]
+          end
         else
           name
         end
@@ -228,10 +234,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @cache_hit = true
+          @view_renderer.cache_hits[@virtual_path] = :hit if defined?(@view_renderer)
           content
         else
-          @cache_hit = false
+          @view_renderer.cache_hits[@virtual_path] = :miss if defined?(@view_renderer)
           write_fragment_for(name, options, &block)
         end
       end

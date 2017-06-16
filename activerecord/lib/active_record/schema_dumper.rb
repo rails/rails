@@ -13,8 +13,7 @@ module ActiveRecord
     # A list of tables which should not be dumped to the schema.
     # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
     # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
-    cattr_accessor :ignore_tables
-    @@ignore_tables = []
+    cattr_accessor :ignore_tables, default: []
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)

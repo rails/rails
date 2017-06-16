@@ -651,20 +651,6 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
-  def test_child_instance_should_be_shared_with_replaced_via_method_parent
-    face = faces(:confused)
-    new_man = Man.new
-
-    assert_not_nil face.polymorphic_man
-    face.polymorphic_man = new_man
-
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
-    face.description = "Bongo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
-    new_man.polymorphic_face.description = "Mungo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
-  end
-
   def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed
     new_man = Man.new
     face = Face.new

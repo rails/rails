@@ -1,3 +1,5 @@
+require "monitor"
+
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
@@ -128,30 +130,19 @@ module ActiveRecord
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
-      class_attribute :table_name_prefix, instance_writer: false
-      self.table_name_prefix = ""
-
-      class_attribute :table_name_suffix, instance_writer: false
-      self.table_name_suffix = ""
-
-      class_attribute :schema_migrations_table_name, instance_accessor: false
-      self.schema_migrations_table_name = "schema_migrations"
-
-      class_attribute :internal_metadata_table_name, instance_accessor: false
-      self.internal_metadata_table_name = "ar_internal_metadata"
-
-      class_attribute :protected_environments, instance_accessor: false
-      self.protected_environments = ["production"]
-
-      class_attribute :pluralize_table_names, instance_writer: false
-      self.pluralize_table_names = true
-
-      class_attribute :ignored_columns, instance_accessor: false
-      self.ignored_columns = [].freeze
+      class_attribute :table_name_prefix, instance_writer: false, default: ""
+      class_attribute :table_name_suffix, instance_writer: false, default: ""
+      class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
+      class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
+      class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
+      class_attribute :pluralize_table_names, instance_writer: false, default: true
+      class_attribute :ignored_columns, instance_accessor: false, default: [].freeze
 
       self.inheritance_column = "type"
 
       delegate :type_for_attribute, to: :class
+
+      initialize_load_schema_monitor
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -377,7 +368,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.to_hash
       end
 
       def _default_attributes # :nodoc:
@@ -435,15 +426,31 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
+      protected
+
+        def initialize_load_schema_monitor
+          @load_schema_monitor = Monitor.new
+        end
+
       private
 
+        def inherited(child_class)
+          super
+          child_class.initialize_load_schema_monitor
+        end
+
         def schema_loaded?
-          defined?(@columns_hash) && @columns_hash
+          defined?(@schema_loaded) && @schema_loaded
         end
 
         def load_schema
-          unless schema_loaded?
+          return if schema_loaded?
+          @load_schema_monitor.synchronize do
+            return if defined?(@columns_hash) && @columns_hash
+
             load_schema!
+
+            @schema_loaded = true
           end
         end
 
@@ -466,10 +473,12 @@ module ActiveRecord
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil
+          @column_defaults = nil
           @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
+          @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
           direct_descendants.each do |descendant|

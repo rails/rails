@@ -807,16 +807,18 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
-  create_table :string_key_objects, id: false, primary_key: :id, force: true do |t|
-    t.string     :id
-    t.string     :name
-    t.integer    :lock_version, null: false, default: 0
+  create_table :string_key_objects, id: false, force: true do |t|
+    t.string :id, null: false
+    t.string :name
+    t.integer :lock_version, null: false, default: 0
+    t.index :id, unique: true
   end
 
-  create_table :subscribers, force: true, id: false do |t|
+  create_table :subscribers, force: true do |t|
     t.string :nick, null: false
     t.string :name
-    t.column :books_count, :integer, null: false, default: 0
+    t.integer :books_count, null: false, default: 0
+    t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
   end
 

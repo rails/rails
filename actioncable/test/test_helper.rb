@@ -11,7 +11,7 @@ rescue LoadError
 end
 
 # Require all the stubs and models
-Dir[File.dirname(__FILE__) + "/stubs/*.rb"].each { |file| require file }
+Dir[File.expand_path("stubs/*.rb", __dir__)].each { |file| require file }
 
 class ActionCable::TestCase < ActiveSupport::TestCase
   def wait_for_async

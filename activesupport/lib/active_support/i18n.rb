@@ -10,4 +10,4 @@ end
 require "active_support/lazy_load_hooks"
 
 ActiveSupport.run_load_hooks(:i18n)
-I18n.load_path << "#{File.dirname(__FILE__)}/locale/en.yml"
+I18n.load_path << File.expand_path("locale/en.yml", __dir__)

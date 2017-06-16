@@ -102,7 +102,7 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../../..", __FILE__) + "/"
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__)
 
         def ignored_callstack(path)
           path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])

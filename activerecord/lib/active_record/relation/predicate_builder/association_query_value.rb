@@ -1,8 +1,6 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      attr_reader :associated_table, :value
-
       def initialize(associated_table, value)
         @associated_table = associated_table
         @value = value
@@ -11,6 +9,11 @@ module ActiveRecord
       def queries
         [associated_table.association_foreign_key.to_s => ids]
       end
+
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
+      protected
+        attr_reader :associated_table, :value
 
       private
         def ids

@@ -42,7 +42,7 @@ module AbstractController
         super
       end
 
-      append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
+      append_view_path File.expand_path("views", __dir__)
     end
 
     class Me2 < RenderingController
@@ -152,7 +152,7 @@ module AbstractController
     class OverridingLocalPrefixes < AbstractController::Base
       include AbstractController::Rendering
       include ActionView::Rendering
-      append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
+      append_view_path File.expand_path("views", __dir__)
 
       def index
         render

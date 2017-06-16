@@ -458,7 +458,7 @@ module ActiveRecord
           m.register_type "bytea", OID::Bytea.new
           m.register_type "point", OID::Point.new
           m.register_type "hstore", OID::Hstore.new
-          m.register_type "json", OID::Json.new
+          m.register_type "json", Type::Json.new
           m.register_type "jsonb", OID::Jsonb.new
           m.register_type "cidr", OID::Cidr.new
           m.register_type "inet", OID::Inet.new
@@ -843,7 +843,6 @@ module ActiveRecord
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
         ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
         ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
-        ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
         ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
         ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
         ActiveRecord::Type.register(:point, OID::Point, adapter: :postgresql)

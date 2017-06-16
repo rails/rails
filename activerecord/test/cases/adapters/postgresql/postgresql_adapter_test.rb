@@ -324,13 +324,13 @@ module ActiveRecord
         reset_connection
       end
 
-      def test_only_reload_type_map_once_for_every_unknown_type
+      def test_only_reload_type_map_once_for_every_unrecognized_type
         silence_warnings do
           assert_queries 2, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            @connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 1, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            @connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 2, ignore_none: true do
             @connection.select_all "SELECT NULL::anyarray"
@@ -340,13 +340,13 @@ module ActiveRecord
         reset_connection
       end
 
-      def test_only_warn_on_first_encounter_of_unknown_oid
+      def test_only_warn_on_first_encounter_of_unrecognized_oid
         warning = capture(:stderr) {
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
+          @connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          @connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          @connection.select_all "select 'pg_catalog.pg_class'::regclass"
         }
-        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'\. It will be treated as String\.\n\z/, warning)
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
         reset_connection
       end

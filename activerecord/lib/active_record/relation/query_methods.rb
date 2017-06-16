@@ -1100,14 +1100,16 @@ module ActiveRecord
       end
 
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"] # :nodoc:
+                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|
           next unless arg.is_a?(Hash)
           arg.each do |_key, value|
-            raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
-                                 "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
+            unless VALID_DIRECTIONS.include?(value)
+              raise ArgumentError,
+                "Direction \"#{value}\" is invalid. Valid directions are: #{VALID_DIRECTIONS.to_a.inspect}"
+            end
           end
         end
       end

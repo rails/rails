@@ -6,6 +6,15 @@ class Map < Hash
   end
 end
 
+class CustomEnumerable
+  include Enumerable
+
+  def each
+    yield "one"
+    yield "two"
+  end
+end
+
 class FormOptionsHelperTest < ActionView::TestCase
   tests ActionView::Helpers::FormOptionsHelper
 
@@ -901,6 +910,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"><option value=\"1\">1</option>\n<option value=\"2\">2</option>\n<option value=\"3\">3</option></select>",
       select("post", "category", 1..3)
+    )
+  end
+
+  def test_select_with_enumerable
+    @post = Post.new
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"one\">one</option>\n<option value=\"two\">two</option></select>",
+      select("post", "category", CustomEnumerable.new)
     )
   end
 

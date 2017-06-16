@@ -29,8 +29,7 @@ module ActiveRecord
       # to your application.rb file:
       #
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
-      class_attribute :emulate_booleans
-      self.emulate_booleans = true
+      class_attribute :emulate_booleans, default: true
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
@@ -544,7 +543,7 @@ module ActiveRecord
           m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
           m.register_type %r(^float)i,     Type::Float.new(limit: 24)
           m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-          m.register_type %r(^json)i,      MysqlJson.new
+          m.register_type %r(^json)i,      Type::Json.new
 
           register_integer_type m, %r(^bigint)i,    limit: 8
           register_integer_type m, %r(^int)i,       limit: 4
@@ -838,12 +837,7 @@ module ActiveRecord
           end
         end
 
-        class MysqlJson < Type::Internal::AbstractJson # :nodoc:
-          def changed_in_place?(raw_old_value, new_value)
-            # Normalization is required because MySQL JSON data format includes
-            # the space between the elements.
-            super(serialize(deserialize(raw_old_value)), new_value)
-          end
+        class MysqlJson < Type::Json # :nodoc:
         end
 
         class MysqlString < Type::String # :nodoc:
@@ -866,7 +860,6 @@ module ActiveRecord
             end
         end
 
-        ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
         ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end

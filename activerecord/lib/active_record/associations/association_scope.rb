@@ -24,7 +24,7 @@ module ActiveRecord
         alias_tracker = AliasTracker.create connection, association.klass.table_name, klass.type_caster
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
-        scope.extending! Array(reflection.options[:extend])
+        scope.extending! reflection.extensions
         add_constraints(scope, owner, reflection, chain_head, chain_tail)
       end
 

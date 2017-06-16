@@ -2,7 +2,7 @@ require "abstract_unit"
 
 class ResolverPatternsTest < ActiveSupport::TestCase
   def setup
-    path = File.expand_path("../../fixtures/", __FILE__)
+    path = File.expand_path("../fixtures", __dir__)
     pattern = ":prefix/{:formats/,}:action{.:formats,}{+:variants,}{.:handlers,}"
     @resolver = ActionView::FileSystemResolver.new(path, pattern)
   end

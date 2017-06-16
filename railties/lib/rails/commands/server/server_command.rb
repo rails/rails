@@ -155,9 +155,16 @@ module Rails
         def user_supplied_options
           @user_supplied_options ||= begin
             # Convert incoming options array to a hash of flags
-            #   ["-p", "3001", "-c", "foo"] # => {"-p" => true, "-c" => true}
+            #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
-            @original_options.each_with_index { |command, i| user_flag[command] = true if i.even? }
+            @original_options.each do |command|
+              if command.to_s.start_with?("--")
+                option = command.split("=")[0]
+                user_flag[option] = true
+              elsif command =~ /\A(-.)/
+                user_flag[Regexp.last_match[0]] = true
+              end
+            end
 
             # Collect all options that the user has explicitly defined so we can
             # differentiate them from defaults

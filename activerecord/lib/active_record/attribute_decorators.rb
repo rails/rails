@@ -3,8 +3,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attribute_type_decorations, instance_accessor: false # :internal:
-      self.attribute_type_decorations = TypeDecorator.new
+      class_attribute :attribute_type_decorations, instance_accessor: false, default: TypeDecorator.new # :internal:
     end
 
     module ClassMethods # :nodoc:

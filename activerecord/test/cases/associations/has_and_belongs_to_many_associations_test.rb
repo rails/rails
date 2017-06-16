@@ -367,19 +367,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
 
-  def test_create_by_new_record
-    devel = Developer.new(name: "Marcel", salary: 75000)
-    devel.projects.build(name: "Make bed")
-    proj2 = devel.projects.build(name: "Lie in it")
-    assert_equal devel.projects.last, proj2
-    assert !proj2.persisted?
-    devel.save
-    assert devel.persisted?
-    assert proj2.persisted?
-    assert_equal devel.projects.last, proj2
-    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
-  end
-
   def test_creation_respects_hash_condition
     # in Oracle '' is saved as null therefore need to save ' ' in not null column
     post = categories(:general).post_with_conditions.build(body: " ")
@@ -954,7 +941,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Developer._reflections["shared_computers"]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
-    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")
     assert_equal developers(:david).shared_computers.first, computers(:laptop)
   end
 

@@ -1,6 +1,6 @@
-$:.unshift(File.dirname(__FILE__) + "/lib")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
+$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path("fixtures/helpers", __dir__)
+$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -56,7 +56,7 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
+FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
@@ -156,7 +156,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
+    path = File.join(__dir__, "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else

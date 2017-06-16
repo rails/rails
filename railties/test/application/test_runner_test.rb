@@ -469,7 +469,7 @@ module ApplicationTests
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
-        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
         require 'bundler/setup' # Set up gems listed in the Gemfile.
       RUBY

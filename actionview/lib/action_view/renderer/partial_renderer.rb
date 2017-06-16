@@ -344,7 +344,7 @@ module ActionView
           end
 
           content = layout.render(view, locals) { content } if layout
-          payload[:cache_hit] = view.cache_hit
+          payload[:cache_hit] = view.view_renderer.cache_hits[@template.virtual_path]
           content
         end
       end

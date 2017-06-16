@@ -43,8 +43,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :record_timestamps
-      self.record_timestamps = true
+      class_attribute :record_timestamps, default: true
     end
 
     def initialize_dup(other) # :nodoc:

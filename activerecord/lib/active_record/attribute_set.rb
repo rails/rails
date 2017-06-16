@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     def deep_dup
-      dup.tap do |copy|
+      self.class.allocate.tap do |copy|
         copy.instance_variable_set(:@attributes, attributes.deep_dup)
       end
     end

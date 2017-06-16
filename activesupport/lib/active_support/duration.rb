@@ -37,27 +37,56 @@ module ActiveSupport
       end
 
       def +(other)
-        calculate(:+, other)
+        if Duration === other
+          seconds   = value + other.parts[:seconds]
+          new_parts = other.parts.merge(seconds: seconds)
+          new_value = value + other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:+, other)
+        end
       end
 
       def -(other)
-        calculate(:-, other)
+        if Duration === other
+          seconds   = value - other.parts[:seconds]
+          new_parts = other.parts.map { |part, other_value| [part, -other_value] }.to_h
+          new_parts = new_parts.merge(seconds: seconds)
+          new_value = value - other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:-, other)
+        end
       end
 
       def *(other)
-        calculate(:*, other)
+        if Duration === other
+          new_parts = other.parts.map { |part, other_value| [part, value * other_value] }.to_h
+          new_value = value * other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:*, other)
+        end
       end
 
       def /(other)
-        calculate(:/, other)
+        if Duration === other
+          new_parts = other.parts.map { |part, other_value| [part, value / other_value] }.to_h
+          new_value = new_parts.inject(0) { |total, (part, value)| total + value * Duration::PARTS_IN_SECONDS[part] }
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:/, other)
+        end
       end
 
       private
         def calculate(op, other)
           if Scalar === other
             Scalar.new(value.public_send(op, other.value))
-          elsif Duration === other
-            Duration.seconds(value).public_send(op, other)
           elsif Numeric === other
             Scalar.new(value.public_send(op, other))
           else

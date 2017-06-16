@@ -20,16 +20,7 @@ Guide Assumptions
 
 This guide is designed for beginners who want to get started with a Rails
 application from scratch. It does not assume that you have any prior experience
-with Rails. However, to get the most out of it, you need to have some
-prerequisites installed:
-
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
-* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
-  are using Windows.
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with
-  Ruby by default. To learn more about RubyGems, please read the
-  [RubyGems Guides](http://guides.rubygems.org).
-* A working installation of the [SQLite3 Database](https://www.sqlite.org).
+with Rails.
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
@@ -86,6 +77,9 @@ your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
+Before you install Rails, you should check to make sure that your system has the
+proper prerequisites installed. These include Ruby and SQLite3.
+
 Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
@@ -96,12 +90,19 @@ $ ruby -v
 ruby 2.3.1p112
 ```
 
+Rails requires Ruby version 2.2.2 or later. If the version number returned is
+less than that number, you'll need to install a fresh copy of Ruby.
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while macOS users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
+If you are working on Windows, you should also install the
+[Ruby Installer Development Kit](http://rubyinstaller.org/downloads/).
+
+You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
 already have SQLite installed. Others can find installation instructions
@@ -127,7 +128,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.1.0", you are ready to continue.
+If it says something like "Rails 5.1.1", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -207,7 +208,7 @@ TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+Rails adds the `mini_racer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
@@ -909,6 +910,7 @@ And then finally, add the view for this action, located at
   <tr>
     <th>Title</th>
     <th>Text</th>
+    <th></th>
   </tr>
 
   <% @articles.each do |article| %>
@@ -1195,7 +1197,7 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-Passing the article object to the method, will automagically create url for submitting the edited article form. 
+Passing the article object to the method, will automagically create url for submitting the edited article form.
 This option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
@@ -1488,14 +1490,14 @@ second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
 user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `jquery_ujs` which is automatically included in your
+JavaScript file `rails-ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
 appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
-TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy

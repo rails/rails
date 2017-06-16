@@ -420,6 +420,8 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/es$/, "")
 
       inflect.irregular("el", "los")
+
+      inflect.uncountable("agua")
     end
 
     assert_equal("hijos", "hijo".pluralize(:es))
@@ -432,12 +434,17 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("los", "el".pluralize(:es))
     assert_equal("els", "el".pluralize)
 
+    assert_equal("agua", "agua".pluralize(:es))
+    assert_equal("aguas", "agua".pluralize)
+
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
     assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
+    assert ActiveSupport::Inflector.inflections(:es).uncountables.empty?
     assert !ActiveSupport::Inflector.inflections.plurals.empty?
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
+    assert !ActiveSupport::Inflector.inflections.uncountables.empty?
   end
 
   def test_clear_all

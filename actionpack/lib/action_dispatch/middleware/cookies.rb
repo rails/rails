@@ -43,6 +43,10 @@ module ActionDispatch
       get_header Cookies::ENCRYPTED_SIGNED_COOKIE_SALT
     end
 
+    def authenticated_encrypted_cookie_salt
+      get_header Cookies::AUTHENTICATED_ENCRYPTED_COOKIE_SALT
+    end
+
     def secret_token
       get_header Cookies::SECRET_TOKEN
     end
@@ -149,6 +153,7 @@ module ActionDispatch
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
+    AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "action_dispatch.authenticated_encrypted_cookie_salt".freeze
     SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
@@ -207,6 +212,9 @@ module ActionDispatch
       # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
+      # If +config.action_dispatch.encrypted_cookie_salt+ and +config.action_dispatch.encrypted_signed_cookie_salt+
+      # are both set, legacy cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
+      #
       # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
       #
       # Example:
@@ -219,6 +227,8 @@ module ActionDispatch
         @encrypted ||=
           if upgrade_legacy_signed_cookies?
             UpgradeLegacyEncryptedCookieJar.new(self)
+          elsif upgrade_legacy_hmac_aes_cbc_cookies?
+            UpgradeLegacyHmacAesCbcCookieJar.new(self)
           else
             EncryptedCookieJar.new(self)
           end
@@ -239,6 +249,13 @@ module ActionDispatch
 
         def upgrade_legacy_signed_cookies?
           request.secret_token.present? && request.secret_key_base.present?
+        end
+
+        def upgrade_legacy_hmac_aes_cbc_cookies?
+          request.secret_key_base.present?                       &&
+            request.authenticated_encrypted_cookie_salt.present? &&
+            request.encrypted_signed_cookie_salt.present?        &&
+            request.encrypted_cookie_salt.present?
         end
     end
 
@@ -415,8 +432,7 @@ module ActionDispatch
         end
       end
 
-      mattr_accessor :always_write_cookie
-      self.always_write_cookie = false
+      mattr_accessor :always_write_cookie, default: false
 
       private
 
@@ -576,9 +592,11 @@ module ActionDispatch
             "Read the upgrade documentation to learn more about this new config option."
         end
 
-        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
-        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
+        cipher = "aes-256-gcm"
+        key_len = ActiveSupport::MessageEncryptor.key_len(cipher)
+        secret = key_generator.generate_key(request.authenticated_encrypted_cookie_salt || "")[0, key_len]
+
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: cipher, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
       private
@@ -601,6 +619,32 @@ module ActionDispatch
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
+    end
+
+    # UpgradeLegacyHmacAesCbcCookieJar is used by ActionDispatch::Session::CookieStore
+    # to upgrade cookies encrypted with AES-256-CBC with HMAC to AES-256-GCM
+    class UpgradeLegacyHmacAesCbcCookieJar < EncryptedCookieJar
+      def initialize(parent_jar)
+        super
+
+        secret = key_generator.generate_key(request.encrypted_cookie_salt || "")[0, ActiveSupport::MessageEncryptor.key_len]
+        sign_secret = key_generator.generate_key(request.encrypted_signed_cookie_salt || "")
+
+        @legacy_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
+      end
+
+      def decrypt_and_verify_legacy_encrypted_message(name, signed_message)
+        deserialize(name, @legacy_encryptor.decrypt_and_verify(signed_message)).tap do |value|
+          self[name] = { value: value }
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature, ActiveSupport::MessageEncryptor::InvalidMessage
+        nil
+      end
+
+      private
+        def parse(name, signed_message)
+          super || decrypt_and_verify_legacy_encrypted_message(name, signed_message)
+        end
     end
 
     def initialize(app)

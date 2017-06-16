@@ -1,4 +1,27 @@
-*   Respect 'SchemaDumper.ignore_tables' in rake tasks for databases structure dump
+*   Prevent making bind param if casted value is nil.
+
+    *Ryuta Kamizono*
+
+*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
+
+    *Ryuta Kamizono*
+
+*   Loading model schema from database is now thread-safe.
+
+    Fixes #28589.
+
+    *Vikrant Chaudhary*, *David Abdemoulaie*
+
+*   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
+    in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
+    that does not include a timestamp any more.
+
+    NOTE: This feature is turned off by default, and `#cache_key` will still return cache keys with timestamps
+    until you set `ActiveRecord::Base.cache_versioning = true`. That's the setting for all new apps on Rails 5.2+
+
+    *DHH*
+
+*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
 
     *Rusty Geldmacher*, *Guillermo Iguaran*
 

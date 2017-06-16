@@ -459,8 +459,8 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :default_params
-    self.default_params = {
+    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
       content_type: "text/plain",

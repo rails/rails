@@ -595,6 +595,52 @@ class TransactionTest < ActiveRecord::TestCase
     assert_not topic.frozen?
   end
 
+  def test_restore_id_after_rollback
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil topic.id
+  end
+
+  def test_restore_custom_primary_key_after_rollback
+    movie = Movie.new(name: "foo")
+
+    Movie.transaction do
+      movie.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil movie.id
+  end
+
+  def test_assign_id_after_rollback
+    topic = Topic.create!
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    topic.id = nil
+    assert_nil topic.id
+  end
+
+  def test_assign_custom_primary_key_after_rollback
+    movie = Movie.create!(name: "foo")
+
+    Movie.transaction do
+      movie.save!
+      raise ActiveRecord::Rollback
+    end
+
+    movie.id = nil
+    assert_nil movie.id
+  end
+
   def test_rollback_of_frozen_records
     topic = Topic.create.freeze
     Topic.transaction do

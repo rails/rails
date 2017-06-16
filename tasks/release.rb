@@ -1,7 +1,7 @@
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
-root    = File.expand_path("../../", __FILE__)
+root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 gem_version = Gem::Version.new(version)

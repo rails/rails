@@ -16,7 +16,7 @@ namespace :app do
   namespace :templates do
     # desc "Copy all the templates from rails to the application directory for customization. Already existing local copies will be overwritten"
     task :copy do
-      generators_lib = File.expand_path("../../generators", __FILE__)
+      generators_lib = File.expand_path("../generators", __dir__)
       project_templates = "#{Rails.root}/lib/templates"
 
       default_templates = { "erb"   => %w{controller mailer scaffold},

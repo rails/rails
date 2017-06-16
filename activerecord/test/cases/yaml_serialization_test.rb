@@ -123,8 +123,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
 
     def yaml_fixture(file_name)
       path = File.expand_path(
-        "../../support/yaml_compatibility_fixtures/#{file_name}.yml",
-        __FILE__
+        "../support/yaml_compatibility_fixtures/#{file_name}.yml",
+        __dir__
       )
       File.read(path)
     end

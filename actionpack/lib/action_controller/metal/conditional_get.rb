@@ -7,8 +7,7 @@ module ActionController
     include Head
 
     included do
-      class_attribute :etaggers
-      self.etaggers = []
+      class_attribute :etaggers, default: []
     end
 
     module ClassMethods

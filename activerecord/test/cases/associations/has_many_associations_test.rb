@@ -1355,7 +1355,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.create(client_of: firm.id, name: "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
     assert_equal 2, Client.where(client_of: firm.id).size
-    assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
+    assert_equal 1, firm.dependent_hash_conditional_clients_of_firm.size
     firm.destroy
     # only the correctly associated client should have been deleted
     assert_equal 1, Client.where(client_of: firm.id).size
@@ -2251,7 +2251,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test "association with extend option with multiple extensions" do
     post = posts(:welcome)
     assert_equal "lifo",  post.comments_with_extend_2.author
-    assert_equal "hello", post.comments_with_extend_2.greeting
+    assert_equal "hullo", post.comments_with_extend_2.greeting
+  end
+
+  test "extend option affects per association" do
+    post = posts(:welcome)
+    assert_equal "lifo",  post.comments_with_extend.author
+    assert_equal "lifo",  post.comments_with_extend_2.author
+    assert_equal "hello", post.comments_with_extend.greeting
+    assert_equal "hullo", post.comments_with_extend_2.greeting
   end
 
   test "delete record with complex joins" do

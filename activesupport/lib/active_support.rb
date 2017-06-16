@@ -32,6 +32,7 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :ExecutionWrapper

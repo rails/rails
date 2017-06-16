@@ -30,7 +30,8 @@ module ActiveRecord
           reload
         end
 
-        CollectionProxy.create(klass, self)
+        @proxy ||= CollectionProxy.create(klass, self)
+        @proxy.reset_scope
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items

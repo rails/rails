@@ -10,6 +10,7 @@ module ActionView
           def check_box(extra_html_options = {})
             html_options = extra_html_options.merge(@input_html_options)
             html_options[:multiple] = true
+            html_options[:skip_default_ids] = false
             @template_object.check_box(@object_name, @method_name, html_options, @value, nil)
           end
         end

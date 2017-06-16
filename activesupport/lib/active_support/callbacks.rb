@@ -62,8 +62,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false
-      self.__callbacks ||= {}
+      class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]

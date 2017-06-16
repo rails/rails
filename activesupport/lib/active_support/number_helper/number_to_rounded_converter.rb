@@ -5,26 +5,14 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        precision = options.delete :precision
+        helper = RoundingHelper.new(options)
+        rounded_number = helper.round(number)
 
-        if precision
-          case number
-          when Float, String
-            @number = BigDecimal(number.to_s)
-          when Rational
-            @number = BigDecimal(number, digit_count(number.to_i) + precision)
-          else
-            @number = number.to_d
-          end
-
-          if options.delete(:significant) && precision > 0
-            digits, rounded_number = digits_and_rounded_number(precision)
+        if precision = options[:precision]
+          if options[:significant] && precision > 0
+            digits = helper.digit_count(rounded_number)
             precision -= digits
             precision = 0 if precision < 0 # don't let it be negative
-          else
-            rounded_number = number.round(precision)
-            rounded_number = rounded_number.to_i if precision == 0 && rounded_number.finite?
-            rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
           end
 
           formatted_string =
@@ -38,7 +26,7 @@ module ActiveSupport
               "%00.#{precision}f" % rounded_number
             end
         else
-          formatted_string = number
+          formatted_string = rounded_number
         end
 
         delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
@@ -78,14 +66,6 @@ module ActiveSupport
           else
             number
           end
-        end
-
-        def absolute_number(number)
-          number.respond_to?(:abs) ? number.abs : number.to_d.abs
-        end
-
-        def zero?
-          number.respond_to?(:zero?) ? number.zero? : number.to_d.zero?
         end
     end
   end

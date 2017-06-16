@@ -337,6 +337,13 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
   end
 
+  def test_scalar_plus_parts
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal({ days: 1, seconds: 10 }, (scalar + 1.day).parts)
+    assert_equal({ days: -1, seconds: 10 }, (scalar + -1.day).parts)
+  end
+
   def test_scalar_minus
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
@@ -349,11 +356,21 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 5, scalar - 5.seconds
     assert_instance_of ActiveSupport::Duration, scalar - 5.seconds
 
+    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+
     exception = assert_raises(TypeError) do
       scalar - "foo"
     end
 
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_minus_parts
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
   end
 
   def test_scalar_multiply
@@ -375,6 +392,14 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
   end
 
+  def test_scalar_multiply_parts
+    scalar = ActiveSupport::Duration::Scalar.new(1)
+    assert_equal({ days: 2 }, (scalar * 2.days).parts)
+    assert_equal(172800, (scalar * 2.days).value)
+    assert_equal({ days: -2 }, (scalar * -2.days).parts)
+    assert_equal(-172800, (scalar * -2.days).value)
+  end
+
   def test_scalar_divide
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
@@ -392,6 +417,15 @@ class DurationTest < ActiveSupport::TestCase
     end
 
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_divide_parts
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal({ days: 2 }, (scalar / 5.days).parts)
+    assert_equal(172800, (scalar / 5.days).value)
+    assert_equal({ days: -2 }, (scalar / -5.days).parts)
+    assert_equal(-172800, (scalar / -5.days).value)
   end
 
   def test_twelve_months_equals_one_year

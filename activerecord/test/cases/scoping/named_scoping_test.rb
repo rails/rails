@@ -551,6 +551,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 1, SpecialComment.where(body: "go crazy").created.count
   end
 
+  def test_model_class_should_respond_to_extending
+    assert_raises OopsError do
+      Comment.unscoped.oops_comments.destroy_all
+    end
+  end
+
   def test_model_class_should_respond_to_none
     assert !Topic.none?
     Topic.delete_all

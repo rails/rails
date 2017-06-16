@@ -69,11 +69,8 @@ module ActiveSupport
       end
     end
 
-    class_attribute :executor
-    class_attribute :check
-
-    self.executor = Executor
-    self.check = lambda { false }
+    class_attribute :executor, default: Executor
+    class_attribute :check, default: lambda { false }
 
     def self.check! # :nodoc:
       @should_reload ||= check.call

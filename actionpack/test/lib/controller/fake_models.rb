@@ -26,6 +26,10 @@ Customer = Struct.new(:name, :id) do
   def persisted?
     id.present?
   end
+
+  def cache_key
+    "#{name}/#{id}"
+  end
 end
 
 Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do

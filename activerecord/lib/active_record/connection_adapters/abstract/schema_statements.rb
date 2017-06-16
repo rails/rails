@@ -188,6 +188,8 @@ module ActiveRecord
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       #
+      #   If an array is passed, a composite primary key will be created.
+      #
       #   Note that Active Record models will automatically detect their
       #   primary key. This can be avoided by using
       #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
@@ -240,6 +242,23 @@ module ActiveRecord
       #     id varchar PRIMARY KEY,
       #     label varchar
       #   )
+      #
+      # ====== Create a composite primary key
+      #
+      #   create_table(:orders, primary_key: [:product_id, :client_id]) do |t|
+      #     t.belongs_to :product
+      #     t.belongs_to :client
+      #   end
+      #
+      # generates:
+      #
+      #   CREATE TABLE order (
+      #       product_id integer NOT NULL,
+      #       client_id integer NOT NULL
+      #   );
+      #
+      #   ALTER TABLE ONLY "orders"
+      #     ADD CONSTRAINT orders_pkey PRIMARY KEY (product_id, client_id);
       #
       # ====== Do not add a primary key column
       #
@@ -493,8 +512,7 @@ module ActiveRecord
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column. This option could
-      #   have been named <tt>:null_allowed</tt>.
+      #   Allows or disallows +NULL+ values in the column.
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
@@ -992,7 +1010,7 @@ module ActiveRecord
 
       def dump_schema_information #:nodoc:
         versions = ActiveRecord::SchemaMigration.all_versions
-        insert_versions_sql(versions)
+        insert_versions_sql(versions) if versions.any?
       end
 
       def initialize_schema_migrations_table # :nodoc:
@@ -1280,9 +1298,10 @@ module ActiveRecord
         end
 
         def foreign_key_name(table_name, options)
-          identifier = "#{table_name}_#{options.fetch(:column)}_fk"
-          hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
           options.fetch(:name) do
+            identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
             "fk_rails_#{hashed_identifier}"
           end
         end

@@ -51,8 +51,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :lock_optimistically, instance_writer: false
-        self.lock_optimistically = true
+        class_attribute :lock_optimistically, instance_writer: false, default: true
       end
 
       def locking_enabled? #:nodoc:

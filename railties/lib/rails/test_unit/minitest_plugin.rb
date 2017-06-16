@@ -134,7 +134,7 @@ module Minitest
     end
   end
 
-  mattr_reader(:run_via) { RunVia.new }
+  mattr_reader :run_via, default: RunVia.new
 end
 
 # Put Rails as the first plugin minitest initializes so other plugins

@@ -310,6 +310,12 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
+NOTE: Using the asynchronous queue from a Rake task (for example, to
+send an email using `.deliver_later`) will generally not work because Rake will
+likely end, causing the in-process thread pool to be deleted, before any/all
+of the `.deliver_later` emails are processed. To avoid this problem, use
+`.deliver_now` or run a persistent queue in development.
+
 
 Internationalization
 --------------------

@@ -8,6 +8,7 @@ require "models/organization"
 require "models/possession"
 require "models/topic"
 require "models/reply"
+require "models/numeric_data"
 require "models/minivan"
 require "models/speedometer"
 require "models/ship_part"
@@ -16,14 +17,6 @@ require "models/developer"
 require "models/post"
 require "models/comment"
 require "models/rating"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-
-  attribute :world_population, :integer
-  attribute :my_house_population, :integer
-  attribute :atoms_in_universe, :integer
-end
 
 class CalculationsTest < ActiveRecord::TestCase
   fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
@@ -587,8 +580,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
-      Company.order(:id).limit(1).pluck
+    if current_adapter?(:OracleAdapter)
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+    else
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+    end
   end
 
   def test_pluck_type_cast
@@ -808,5 +804,17 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
+  end
+
+  def test_deprecate_count_with_block_and_column_name
+    assert_deprecated do
+      assert_equal 6, Account.count(:firm_id) { true }
+    end
+  end
+
+  def test_deprecate_sum_with_block_and_column_name
+    assert_deprecated do
+      assert_equal 6, Account.sum(:firm_id) { 1 }
+    end
   end
 end

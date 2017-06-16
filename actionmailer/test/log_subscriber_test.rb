@@ -36,7 +36,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
   end
 
   def test_receive_is_notified
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
+    fixture = File.read(File.expand_path("fixtures/raw_email", __dir__))
     TestMailer.receive(fixture)
     wait
     assert_equal(1, @logger.logged(:info).size)

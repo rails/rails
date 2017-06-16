@@ -19,7 +19,7 @@ addons:
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "gem update --system 2.6.11"
+  - "gem update --system"
   - "gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
@@ -98,17 +98,17 @@ matrix:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.9.0
+    - rvm: jruby-9.1.10.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.9.0
+    - rvm: jruby-9.1.10.0
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.9.0
+    - rvm: jruby-9.1.10.0
     - env: "GEM=ac:integration"
   fast_finish: true
 

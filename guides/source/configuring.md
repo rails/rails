@@ -456,10 +456,14 @@ to `'http authentication'`.
 Defaults to `'signed cookie'`.
 
 * `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt
-value. Defaults to `'encrypted cookie'`.
+  value. Defaults to `'encrypted cookie'`.
 
 * `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
-encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+  encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+
+* `config.action_dispatch.authenticated_encrypted_cookie_salt` sets the
+  authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
+  cookie'`.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
@@ -492,8 +496,6 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
-
-* `ActionDispatch::Callbacks.to_prepare` takes a block to run after `ActionDispatch::Callbacks.before`, but before the request. Runs for every request in `development` mode, but only once for `production` or environments with `cache_classes` set to `true`.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
 
@@ -1188,7 +1190,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties and engines.
 
-* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
+* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActiveSupport::Callbacks.to_run`.
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 

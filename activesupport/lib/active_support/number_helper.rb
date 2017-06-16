@@ -4,6 +4,7 @@ module ActiveSupport
 
     eager_autoload do
       autoload :NumberConverter
+      autoload :RoundingHelper
       autoload :NumberToRoundedConverter
       autoload :NumberToDelimitedConverter
       autoload :NumberToHumanConverter

@@ -14,8 +14,7 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        class_attribute :partial_writes, instance_writer: false
-        self.partial_writes = true
+        class_attribute :partial_writes, instance_writer: false, default: true
 
         after_create { changes_internally_applied }
         after_update { changes_internally_applied }

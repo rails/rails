@@ -18,20 +18,17 @@ class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
   end
 
   test "edit secrets" do
-    run_setup_command
+    # Runs setup before first edit.
+    assert_match(/Adding config\/secrets\.yml\.key to store the encryption key/, run_edit_command)
 
     # Run twice to ensure encrypted secrets can be reread after first edit pass.
     2.times do
-      assert_match(/external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289…/, run_edit_command)
+      assert_match(/external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289/, run_edit_command)
     end
   end
 
   private
     def run_edit_command(editor: "cat")
       Dir.chdir(app_path) { `EDITOR="#{editor}" bin/rails secrets:edit` }
-    end
-
-    def run_setup_command
-      Dir.chdir(app_path) { `bin/rails secrets:setup` }
     end
 end

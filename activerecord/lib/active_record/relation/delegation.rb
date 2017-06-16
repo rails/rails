@@ -25,8 +25,6 @@ module ActiveRecord
 
       def inherited(child_class)
         child_class.initialize_relation_delegate_cache
-        delegate = child_class.relation_delegate_class(ActiveRecord::Associations::CollectionProxy)
-        delegate.include ActiveRecord::Associations::CollectionProxy::DelegateExtending
         super
       end
     end
@@ -45,6 +43,8 @@ module ActiveRecord
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, to: :klass
+
+    delegate :ast, :locked, to: :arel
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern

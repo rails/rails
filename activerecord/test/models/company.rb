@@ -175,6 +175,7 @@ end
 class ExclusivelyDependentFirm < Company
   has_one :account, foreign_key: "firm_id", dependent: :delete
   has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
+  has_many :dependent_hash_conditional_clients_of_firm, -> { order("id").where(name: "BigShot Inc.") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
   has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", "BigShot Inc.") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
 end
 

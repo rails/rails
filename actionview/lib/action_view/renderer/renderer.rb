@@ -46,5 +46,9 @@ module ActionView
     def render_partial(context, options, &block) #:nodoc:
       PartialRenderer.new(@lookup_context).render(context, options, block)
     end
+
+    def cache_hits # :nodoc:
+      @cache_hits ||= {}
+    end
   end
 end

@@ -49,8 +49,7 @@ module ActiveSupport
     CYAN    = "\e[36m"
     WHITE   = "\e[37m"
 
-    mattr_accessor :colorize_logging
-    self.colorize_logging = true
+    mattr_accessor :colorize_logging, default: true
 
     class << self
       def logger
@@ -81,8 +80,10 @@ module ActiveSupport
 
     def finish(name, id, payload)
       super if logger
-    rescue Exception => e
-      logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
+    rescue => e
+      if logger
+        logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
+      end
     end
 
   private

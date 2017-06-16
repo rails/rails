@@ -133,6 +133,16 @@ module ActiveRecord
         AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
       end
 
+      def extensions
+        extensions = klass.default_extensions | reflection.extensions
+
+        if scope = reflection.scope
+          extensions |= klass.unscoped.instance_exec(owner, &scope).extensions
+        end
+
+        extensions
+      end
+
       # Loads the \target if needed and returns it.
       #
       # This method is abstract in the sense that it relies on +find_target+,
@@ -150,14 +160,6 @@ module ActiveRecord
         target
       rescue ActiveRecord::RecordNotFound
         reset
-      end
-
-      def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
-          owner.instance_exec(record, &sql)
-        else
-          sql
-        end
       end
 
       # We can't dump @reflection since it contains the scope proc
