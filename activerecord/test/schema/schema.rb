@@ -814,9 +814,10 @@ ActiveRecord::Schema.define do
     t.index :id, unique: true
   end
 
-  create_table :subscribers, force: true do |t|
+  create_table :subscribers, id: false, force: true do |t|
     t.string :nick, null: false
     t.string :name
+    t.integer :id
     t.integer :books_count, null: false, default: 0
     t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
