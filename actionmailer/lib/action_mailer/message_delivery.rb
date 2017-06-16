@@ -51,8 +51,8 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
     #
-    # By default, the email will be enqueued using ActionMailer::DeliveryJob. Each
-    # ActionMailer::Base class can specify the job to use by setting the class variable
+    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
+    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
@@ -75,8 +75,8 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
     #
-    # By default, the email will be enqueued using ActionMailer::DeliveryJob. Each
-    # ActionMailer::Base class can specify the job to use by setting the class variable
+    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
+    # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
