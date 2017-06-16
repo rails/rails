@@ -11,7 +11,7 @@ module Rails
       end
 
       def perform(*)
-        $LOAD_PATH << Rails::Command.root.join("test")
+        $LOAD_PATH << Rails::Command.root.join("test").to_s
 
         Minitest.run_via = :rails
 
