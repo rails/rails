@@ -3,7 +3,7 @@ require "websocket/driver"
 module ActionCable
   module Connection
     # Wrap the real socket to minimize the externally-presented API
-    class WebSocket
+    class WebSocket # :nodoc:
       def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
         @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, event_loop, protocols) : nil
       end
