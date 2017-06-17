@@ -79,6 +79,7 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = true
+            action_view.form_with_skip_default_ids = false
           end
 
         when "5.2"

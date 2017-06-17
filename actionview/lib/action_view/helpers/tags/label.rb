@@ -75,7 +75,7 @@ module ActionView
           end
 
           def skip_default_ids?
-            false # The id is used as the `for` attribute.
+            ActionView::Helpers::FormHelper.form_with_skip_default_ids
           end
       end
     end

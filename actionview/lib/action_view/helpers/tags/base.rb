@@ -13,7 +13,6 @@ module ActionView
 
           @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
-          @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
 
@@ -182,7 +181,7 @@ module ActionView
           end
 
           def skip_default_ids?
-            @skip_default_ids
+            ActionView::Helpers::FormHelper.form_with_skip_default_ids
           end
       end
     end

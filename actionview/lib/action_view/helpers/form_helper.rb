@@ -476,6 +476,8 @@ module ActionView
 
       mattr_accessor :form_with_generates_remote_forms, default: true
 
+      mattr_accessor :form_with_skip_default_ids, default: false
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
@@ -608,16 +610,6 @@ module ActionView
       #
       # Where <tt>@document = Document.find(params[:id])</tt>.
       #
-      # When using labels +form_with+ requires setting the id on the field being
-      # labelled:
-      #
-      #   <%= form_with(model: @post) do |form| %>
-      #     <%= form.label :title %>
-      #     <%= form.text_field :title, id: :post_title %>
-      #   <% end %>
-      #
-      # See +label+ for more on how the +for+ attribute is derived.
-      #
       # === Mixing with other form helpers
       #
       # While +form_with+ uses a FormBuilder object it's possible to mix and
@@ -714,7 +706,6 @@ module ActionView
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
         options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = true unless options.key?(:skip_default_ids)
 
         if model
           url ||= polymorphic_path(model, format: format)
@@ -1012,16 +1003,6 @@ module ActionView
       # or model is yielded, so any generated field names are prefixed with
       # either the passed scope or the scope inferred from the <tt>:model</tt>.
       #
-      # When using labels +fields+ requires setting the id on the field being
-      # labelled:
-      #
-      #   <%= fields :comment do |fields| %>
-      #     <%= fields.label :body %>
-      #     <%= fields.text_field :body, id: :comment_body %>
-      #   <% end %>
-      #
-      # See +label+ for more on how the +for+ attribute is derived.
-      #
       # === Mixing with other form helpers
       #
       # While +form_with+ uses a FormBuilder object it's possible to mix and
@@ -1040,7 +1021,6 @@ module ActionView
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = true
 
         if model
           scope ||= model_name_from_record_or_class(model).param_key
@@ -1644,7 +1624,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
+        @default_options = @options ? @options.slice(:index, :namespace, :allow_method_names_outside_object) : {}
 
         convert_to_legacy_options(@options)
 
@@ -1953,7 +1933,6 @@ module ActionView
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
-        options[:skip_default_ids] = true
 
         convert_to_legacy_options(options)
 
