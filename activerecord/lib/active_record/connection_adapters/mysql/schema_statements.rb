@@ -45,6 +45,13 @@ module ActiveRecord
           indexes
         end
 
+        def remove_column(table_name, column_name, type = nil, options = {})
+          if foreign_key_exists?(table_name, column: column_name)
+            remove_foreign_key(table_name, column: column_name)
+          end
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
             if CHARSETS_OF_4BYTES_MAXLEN.include?(charset) && (mariadb? || version < "8.0.0")
