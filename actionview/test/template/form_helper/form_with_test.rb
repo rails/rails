@@ -325,6 +325,34 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_skip_default_ids
+    old_value = ActionView::Helpers::FormHelper.form_with_skip_default_ids
+    ActionView::Helpers::FormHelper.form_with_skip_default_ids = true
+
+    form_with(model: @post, id: "create-post") do |f|
+      concat f.label(:title) { "The Title" }
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+      concat f.select(:category, %w( animal economy sports ))
+      concat f.submit("Create post")
+    end
+
+    expected = whole_form("/posts/123", "create-post", method: "patch") do
+      "<label>The Title</label>" \
+      "<input name='post[title]' type='text' value='Hello World' />" \
+      "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
+      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' checked='checked' type='checkbox' value='1' />" \
+      "<select name='post[category]'><option value='animal'>animal</option>\n<option value='economy'>economy</option>\n<option value='sports'>sports</option></select>" \
+      "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Helpers::FormHelper.form_with_skip_default_ids = old_value
+  end
+
   def test_form_with_only_url_on_create
     form_with(url: "/posts") do |f|
       concat f.label :title, "Label me"
