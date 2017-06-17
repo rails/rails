@@ -33,8 +33,7 @@ gem "bcrypt", "~> 3.1.11", require: false
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
 
-# FIXME: Pending rb-inotify 0.9.9 release
-gem "rb-inotify", github: "guard/rb-inotify", branch: "master", require: false
+gem "rb-inotify", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
