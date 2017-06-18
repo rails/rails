@@ -499,21 +499,8 @@ module ActiveRecord
               if failed
                 second_thread_done.set
 
-                puts
-                puts ">>> test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads / #{group_action_method}"
-                p [first_thread, second_thread]
-                p pool.stat
-                p pool.connections.map(&:owner)
-
                 first_thread.join(2)
                 second_thread.join(2)
-
-                puts "---"
-                p [first_thread, second_thread]
-                p pool.stat
-                p pool.connections.map(&:owner)
-                puts "<<<"
-                puts
               end
 
               first_thread.join(10) || raise("first_thread got stuck")
