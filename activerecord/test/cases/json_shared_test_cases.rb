@@ -160,6 +160,25 @@ module JSONSharedTestCases
     assert_not json.changed?
   end
 
+  def test_changes_in_place_ignores_key_order
+    json = JsonDataType.new
+    assert_not json.changed?
+
+    json.payload = { "three" => "four", "one" => "two" }
+    json.save!
+    json.reload
+
+    json.payload = { "three" => "four", "one" => "two" }
+    assert_not json.changed?
+
+    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    json.save!
+    json.reload
+
+    json.payload = [{ "three" => "four", "one" => "two" }, { "seven" => "eight", "five" => "six" }]
+    assert_not json.changed?
+  end
+
   def test_changes_in_place_with_ruby_object
     time = Time.now.utc
     json = JsonDataType.create!(payload: time)
