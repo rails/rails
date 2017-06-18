@@ -349,6 +349,12 @@ module ActiveRecord
         end
       end
 
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
+        end
+      end
+
       private
 
         def table_structure(table_name)

@@ -17,7 +17,7 @@ GIT
 
 GIT
   remote: https://github.com/rails/arel.git
-  revision: 5db56a513286814991c27000af2c0243cc19d1e2
+  revision: 67a51c62f4e19390cd8eb408596ca48bb0806362
   specs:
     arel (8.0.0)
 
