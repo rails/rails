@@ -86,7 +86,7 @@ module ActiveRecord
 
         all_timestamp_attributes_in_model.each do |column|
           if !attribute_present?(column)
-            write_attribute(column, current_time)
+            _write_attribute(column, current_time)
           end
         end
       end
@@ -100,7 +100,7 @@ module ActiveRecord
 
         timestamp_attributes_for_update_in_model.each do |column|
           next if will_save_change_to_attribute?(column)
-          write_attribute(column, current_time)
+          _write_attribute(column, current_time)
         end
       end
       super(*args)
