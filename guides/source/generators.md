@@ -689,14 +689,6 @@ Available options are:
 * `:env` - Specifies the environment in which to run this rake task.
 * `:sudo` - Whether or not to run this task using `sudo`. Defaults to `false`.
 
-### `capify!`
-
-Runs the `capify` command from Capistrano at the root of the application which generates Capistrano configuration.
-
-```ruby
-capify!
-```
-
 ### `route`
 
 Adds text to the `config/routes.rb` file:
