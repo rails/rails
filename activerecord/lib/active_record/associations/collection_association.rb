@@ -300,7 +300,8 @@ module ActiveRecord
       private
 
         def find_target
-          return scope.to_a if skip_statement_cache?
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do
