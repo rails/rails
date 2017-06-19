@@ -204,6 +204,52 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_exists_queries_with_cache
+    Post.cache do
+      assert_queries(1) { Post.exists?; Post.exists? }
+    end
+  end
+
+  def test_select_all_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_all(Post.all) }
+      end
+    end
+  end
+
+  def test_select_one_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_one(Post.all) }
+      end
+    end
+  end
+
+  def test_select_value_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_value(Post.all) }
+      end
+    end
+  end
+
+  def test_select_values_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_values(Post.all) }
+      end
+    end
+  end
+
+  def test_select_rows_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_rows(Post.all) }
+      end
+    end
+  end
+
   def test_query_cache_dups_results_correctly
     Task.cache do
       now  = Time.now.utc
