@@ -1,3 +1,7 @@
+*   Deprecate `capify!` method in generators and templates.
+
+    *Yuji Yaginuma*
+
 *   Allow irb options to be passed from `rails console` command.
 
     Fixes #28988.
