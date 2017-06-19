@@ -1,3 +1,8 @@
+## Rails 4.2.9.rc2 (June 19, 2017) ##
+
+*   No changes.
+
+
 ## Rails 4.2.9.rc1 (June 13, 2017) ##
 
 *   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
