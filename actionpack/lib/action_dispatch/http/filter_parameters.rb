@@ -74,7 +74,7 @@ module ActionDispatch
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
         query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter([[$1, $2]]).first.join("=")
+          parameter_filter.filter($1 => $2).first.join("=")
         end
       end
     end
