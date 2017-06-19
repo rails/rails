@@ -568,12 +568,16 @@ module ActiveRecord
         end
 
         def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
-          resolver = ConnectionSpecification::Resolver.new(Base.configurations)
+          spec_name = if pool
+            pool.spec.name
+          else
+            ConnectionSpecification::Resolver.new(Base.configurations).spec(@config).name
+          end
 
           @instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
-            spec_name:         resolver.spec(@config).name,
+            spec_name:         spec_name,
             name:              name,
             binds:             binds,
             type_casted_binds: type_casted_binds,

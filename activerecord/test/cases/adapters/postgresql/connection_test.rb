@@ -134,7 +134,7 @@ module ActiveRecord
     def test_spec_name_is_logged
       @connection.exec_query("SELECT $1::integer", "SQL")
 
-      assert @subscriber.payloads.last[:spec_name]
+      assert_equal "primary", @subscriber.payloads.last[:spec_name]
     end
 
     if ActiveRecord::Base.connection.prepared_statements
