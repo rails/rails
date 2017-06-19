@@ -94,7 +94,7 @@ module ActionView
             index = name_and_id_index(options)
             options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
 
-            if generates_ids?
+            if generate_ids?
               options["id"] = options.fetch("id") { tag_id(index) }
               if namespace = options.delete("namespace")
                 options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
@@ -180,7 +180,7 @@ module ActionView
             end
           end
 
-          def generates_ids?
+          def generate_ids?
             ActionView::Helpers::FormHelper.form_with_generates_ids
           end
       end

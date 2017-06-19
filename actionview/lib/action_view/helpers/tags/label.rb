@@ -73,10 +73,6 @@ module ActionView
           def render_component(builder)
             builder.translation
           end
-
-          def skip_default_ids?
-            ActionView::Helpers::FormHelper.form_with_skip_default_ids
-          end
       end
     end
   end
