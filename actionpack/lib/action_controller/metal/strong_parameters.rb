@@ -281,6 +281,10 @@ module ActionController
     #     nationality: "Danish"
     #   })
     #   params.to_query
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
+    #
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query
     #   # => "name=David&nationality=Danish"
     #
     # An optional namespace can be passed to enclose key names:
@@ -289,7 +293,8 @@ module ActionController
     #     name: "David",
     #     nationality: "Danish"
     #   })
-    #   params.to_query("user")
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query("user")
     #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
     #
     # The string pairs "key=value" that conform the query string
