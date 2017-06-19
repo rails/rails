@@ -1211,4 +1211,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     @user.business_ids = [businesses(:walmart).uuid]
     assert @user.businesses.include?(businesses(:walmart))
   end
+
+  def test_singular_collection_ids_are_added_correctly
+    user     = users(:one)
+    business = businesses(:walmart)
+    assert user.businesses.empty?
+    user.business_ids = [business.uuid]
+
+    assert_equal user.business_ids, [business.uuid]
+    assert_nothing_raised(ActiveRecord::RecordNotFound) do
+      user.business_ids += [business.uuid]
+    end
+  end
 end
