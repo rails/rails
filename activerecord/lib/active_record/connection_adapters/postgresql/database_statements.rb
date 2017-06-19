@@ -7,6 +7,34 @@ module ActiveRecord
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
         end
 
+        def select_value(arel, name = nil, binds = [])
+          arel, binds = binds_from_relation arel, binds
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
+          end
+        end
+
+        def select_values(arel, name = nil, binds = [])
+          arel, binds = binds_from_relation arel, binds
+          sql = to_sql(arel, binds)
+          execute_and_clear(sql, name, binds) do |result|
+            if result.nfields > 0
+              result.column_values(0)
+            else
+              []
+            end
+          end
+        end
+
+        # Executes a SELECT query and returns an array of rows. Each row is an
+        # array of field values.
+        def select_rows(sql, name = nil, binds = [])
+          execute_and_clear(sql, name, binds) do |result|
+            result.values
+          end
+        end
+
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.

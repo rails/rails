@@ -13,6 +13,15 @@ module ActiveRecord
           result
         end
 
+        # Returns an array of arrays containing the field values.
+        # Order is the same as that returned by +columns+.
+        def select_rows(sql, name = nil, binds = [])
+          select_result(sql, name, binds) do |result|
+            @connection.next_result while @connection.more_results?
+            result.to_a
+          end
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
