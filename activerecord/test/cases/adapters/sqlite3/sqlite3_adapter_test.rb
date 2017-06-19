@@ -403,6 +403,7 @@ module ActiveRecord
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
           yield
           assert_equal logs, subscriber.logged
+          refute_nil subscriber.payloads.last[:spec_name]
         ensure
           ActiveSupport::Notifications.unsubscribe(subscription)
         end

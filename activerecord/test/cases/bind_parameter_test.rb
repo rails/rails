@@ -73,6 +73,7 @@ if ActiveRecord::Base.connection.prepared_statements
           payload = {
             name: "SQL",
             sql: "select * from topics where id = ?",
+            spec_name: "primary",
             binds: binds,
             type_casted_binds: @connection.type_casted_binds(binds)
           }

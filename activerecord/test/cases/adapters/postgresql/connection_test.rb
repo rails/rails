@@ -131,6 +131,12 @@ module ActiveRecord
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
+    def test_spec_name_is_logged
+      @connection.exec_query("SELECT $1::integer", "SQL")
+
+      assert @subscriber.payloads.last[:spec_name]
+    end
+
     if ActiveRecord::Base.connection.prepared_statements
       def test_statement_key_is_logged
         binds = [bind_attribute(nil, 1)]

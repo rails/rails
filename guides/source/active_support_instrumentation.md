@@ -252,6 +252,7 @@ Active Record
 | Key              | Value                                    |
 | ---------------- | ---------------------------------------- |
 | `:sql`           | SQL statement                            |
+| `:spec_name`     | Connection specification name            |
 | `:name`          | Name of the operation                    |
 | `:connection_id` | `self.object_id`                         |
 | `:binds`         | Bind parameters                          |
