@@ -1,4 +1,4 @@
-## Rails 5.0.4.rc1 (June 14, 2017) ##
+## Rails 5.0.4 (June 19, 2017) ##
 
 *   Restore previous behavior of collection proxies: their values can have
     methods stubbed, and they respect extension modules applied by a default
