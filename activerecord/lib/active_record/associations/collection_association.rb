@@ -67,10 +67,14 @@ module ActiveRecord
           pk_type.type_cast_from_user(i)
         end
 
-        if (objs = klass.where(pk_column => ids)).size == ids.size
+        objs = klass.where(pk_column => ids).index_by do |r|
+          r.send(pk_column)
+        end.values_at(*ids).compact
+
+        if objs.size == ids.size
           replace(objs.index_by { |r| r.send(pk_column) }.values_at(*ids))
         else
-          objs.raise_record_not_found_exception!(ids, objs.size, ids.size)
+          klass.all.raise_record_not_found_exception!(ids, objs.size, ids.size)
         end
       end
 
