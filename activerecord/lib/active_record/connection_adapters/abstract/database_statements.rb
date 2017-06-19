@@ -308,16 +308,23 @@ module ActiveRecord
             raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
           end
         end
-        key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = binds.map(&:value_for_database).map do |value|
+
+        table = Arel::Table.new(table_name)
+
+        values = binds.map do |bind|
+          value = bind.value_for_database
           begin
             quote(value)
           rescue TypeError
-            quote(YAML.dump(value))
+            value = YAML.dump(value)
           end
+          [table[bind.name], value]
         end
 
-        execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", "Fixture Insert"
+        manager = Arel::InsertManager.new
+        manager.into(table)
+        manager.insert(values)
+        execute manager.to_sql, "Fixture Insert"
       end
 
       def empty_insert_statement_value
