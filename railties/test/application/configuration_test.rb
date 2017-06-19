@@ -723,9 +723,9 @@ module ApplicationTests
       assert_no_match(/data-remote/, last_response.body)
     end
 
-    test "form_with can be configured with form_with_skip_default_ids" do
+    test "form_with can be configured with form_with_generates_ids" do
       app_file "config/initializers/form_builder.rb", <<-RUBY
-      Rails.configuration.action_view.form_with_skip_default_ids = true
+      Rails.configuration.action_view.form_with_generates_ids = false
       RUBY
 
       app_file "app/models/post.rb", <<-RUBY

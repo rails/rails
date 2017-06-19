@@ -476,7 +476,7 @@ module ActionView
 
       mattr_accessor :form_with_generates_remote_forms, default: true
 
-      mattr_accessor :form_with_skip_default_ids, default: false
+      mattr_accessor :form_with_generates_ids, default: true
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #

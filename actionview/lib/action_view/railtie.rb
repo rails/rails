@@ -26,11 +26,11 @@ module ActionView
       end
     end
 
-    initializer "action_view.form_with_skip_default_ids" do |app|
+    initializer "action_view.form_with_generates_ids" do |app|
       ActiveSupport.on_load(:action_view) do
-        form_with_skip_default_ids = app.config.action_view.delete(:form_with_skip_default_ids)
-        unless form_with_skip_default_ids.blank?
-          ActionView::Helpers::FormHelper.form_with_skip_default_ids = form_with_skip_default_ids
+        form_with_generates_ids = app.config.action_view.delete(:form_with_generates_ids)
+        unless form_with_generates_ids.blank?
+          ActionView::Helpers::FormHelper.form_with_generates_ids = form_with_generates_ids
         end
       end
     end

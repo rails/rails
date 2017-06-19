@@ -94,7 +94,7 @@ module ActionView
             index = name_and_id_index(options)
             options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
 
-            unless skip_default_ids?
+            if generates_ids?
               options["id"] = options.fetch("id") { tag_id(index) }
               if namespace = options.delete("namespace")
                 options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
@@ -180,8 +180,8 @@ module ActionView
             end
           end
 
-          def skip_default_ids?
-            ActionView::Helpers::FormHelper.form_with_skip_default_ids
+          def generates_ids?
+            ActionView::Helpers::FormHelper.form_with_generates_ids
           end
       end
     end
