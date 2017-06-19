@@ -325,9 +325,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
-  def test_form_with_skip_default_ids
-    old_value = ActionView::Helpers::FormHelper.form_with_skip_default_ids
-    ActionView::Helpers::FormHelper.form_with_skip_default_ids = true
+  def test_form_with_not_outputting_ids
+    old_value = ActionView::Helpers::FormHelper.form_with_generates_ids
+    ActionView::Helpers::FormHelper.form_with_generates_ids = false
 
     form_with(model: @post, id: "create-post") do |f|
       concat f.label(:title) { "The Title" }
@@ -339,7 +339,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts/123", "create-post", method: "patch") do
-      "<label>The Title</label>" \
+      "<label for='post_title'>The Title</label>" \
       "<input name='post[title]' type='text' value='Hello World' />" \
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
@@ -350,7 +350,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, output_buffer
   ensure
-    ActionView::Helpers::FormHelper.form_with_skip_default_ids = old_value
+    ActionView::Helpers::FormHelper.form_with_generates_ids = old_value
   end
 
   def test_form_with_only_url_on_create
