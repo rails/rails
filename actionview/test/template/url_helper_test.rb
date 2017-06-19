@@ -15,6 +15,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+
+    scope :engine do
+      get "/" => "foo#bar"
+    end
   end
 
   include ActionView::Helpers::UrlHelper
@@ -521,10 +525,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/?order=desc&page=1")
   end
 
-  def test_current_page_with_not_get_verb
-    @request = request_for_url("/events", method: :post)
+  def test_current_page_with_scope_that_match
+    @request = request_for_url("/engine/")
 
-    assert !current_page?("/events")
+    assert current_page?("/engine")
   end
 
   def test_current_page_with_escaped_params
@@ -551,6 +555,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", method: :post)
+
+    assert !current_page?("/events")
   end
 
   def test_link_unless_current
