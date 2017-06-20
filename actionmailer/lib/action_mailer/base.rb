@@ -574,11 +574,7 @@ module ActionMailer
       end
 
       def method_missing(method_name, *args)
-        if action_methods.include?(method_name.to_s)
-          MessageDelivery.new(self, method_name, *args)
-        else
-          super
-        end
+        action_methods.include?(method_name.to_s) ? MessageDelivery.new(self, method_name, *args) : super
       end
 
       def respond_to_missing?(method, include_all = false)
@@ -664,11 +660,7 @@ module ActionMailer
     # +nil+ in order to reset the value otherwise another field will be added
     # for the same header.
     def headers(args = nil)
-      if args
-        @_message.headers(args)
-      else
-        @_message
-      end
+      args.present? ? @_message.headers(args) : @_message
     end
 
     # Allows you to add attachments to an email, like so:
