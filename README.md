@@ -54,7 +54,7 @@ and may also be used independently outside Rails.
 
         $ rails new myapp
 
-   where "myapp" is the application name.
+   where "myapp" is the application name..
 
 3. Change directory to `myapp` and start the web server:
 
