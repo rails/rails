@@ -128,7 +128,7 @@ module ActiveRecord
 
           if locking_enabled?
             locking_column = self.class.locking_column
-            relation = relation.where(locking_column => _read_attribute(locking_column))
+            relation = relation.where(locking_column => read_attribute_before_type_cast(locking_column))
           end
 
           relation

@@ -467,6 +467,31 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     PersonalLegacyThing.reset_column_information
   end
 
+  def test_destroy_existing_object_with_locking_column_value_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.destroy
+
+    assert t1.destroyed?
+  end
+
+  def test_destroy_stale_object
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.destroy!
+    end
+
+    refute stale_object.destroyed?
+  end
+
   private
 
     def add_counter_column_to(model, col = "test_count")

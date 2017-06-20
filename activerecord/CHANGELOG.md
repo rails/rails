@@ -1,3 +1,9 @@
+*   Fix destroying existing object does not work well when optimistic locking enabled and
+    `locking column` is null in the database.
+
+    *bogdanvlviv*
+
+
 ## Rails 5.1.5 (February 14, 2018) ##
 
 *   PostgreSQL: Allow pg-1.0 gem to be used with Active Record.
