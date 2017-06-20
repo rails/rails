@@ -1,3 +1,5 @@
+## Rails 5.1.2.rc1 (June 20, 2017) ##
+
 *   `driven_by` now registers poltergeist and capybara-webkit
 
     If driver poltergeist or capybara-webkit is set for System Tests,

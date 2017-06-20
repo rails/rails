@@ -1,3 +1,5 @@
+## Rails 5.1.2.rc1 (June 20, 2017) ##
+
 *   Add Windows support to `rails secrets:edit`.
 
     *Kasper Timm Hansen*

@@ -1,3 +1,5 @@
+## Rails 5.1.2.rc1 (June 20, 2017) ##
+
 *   Restore previous behavior of collection proxies: their values can have
     methods stubbed, and they respect extension modules applied by a default
     scope.
