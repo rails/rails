@@ -522,7 +522,7 @@ module ActiveRecord
 
         if locking_enabled?
           locking_column = self.class.locking_column
-          scope = scope.where(locking_column => _read_attribute(locking_column))
+          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
           changes[locking_column] = increment_lock
         end
 

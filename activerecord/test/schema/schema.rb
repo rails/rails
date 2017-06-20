@@ -459,11 +459,13 @@ ActiveRecord::Schema.define do
   create_table :lock_without_defaults, force: true do |t|
     t.column :title, :string
     t.column :lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
     t.column :title, :string
     t.column :custom_lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :magazines, force: true do |t|

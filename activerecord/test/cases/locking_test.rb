@@ -226,10 +226,33 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version_before_type_cast
   end
 
+  def test_touch_existing_lock_without_default_should_work_with_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.touch
+
+    assert_equal 1, t1.lock_version
+  end
+
+  def test_touch_stale_object_with_lock_without_default
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.touch
+    end
+  end
+
   def test_lock_without_default_should_work_with_null_in_the_database
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
-    t2 = LockWithoutDefault.last
+    t2 = LockWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
@@ -286,7 +309,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
 
     t1 = LockWithCustomColumnWithoutDefault.last
-    t2 = LockWithCustomColumnWithoutDefault.last
+    t2 = LockWithCustomColumnWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.custom_lock_version
     assert_nil t1.custom_lock_version_before_type_cast
