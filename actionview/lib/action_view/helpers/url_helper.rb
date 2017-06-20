@@ -552,7 +552,10 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
+        if url_string.start_with?("/") && url_string != "/"
+          url_string.chomp!("/")
+          request_uri.chomp!("/")
+        end
 
         if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
