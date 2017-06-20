@@ -18,7 +18,7 @@ module ActionDispatch
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = "/" if path == "".freeze
+          path = "/".dup if path == "".freeze
           path.force_encoding(encoding)
           path
         end
