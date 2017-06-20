@@ -1,3 +1,8 @@
+*   Fix destroying existing object does not work well when optimistic locking enabled and
+    `locking column` is null in the database.
+
+    *bogdanvlviv*
+
 *   Use bulk INSERT to insert fixtures for better performance.
 
     *Kir Shatrov*
