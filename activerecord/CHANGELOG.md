@@ -1,3 +1,8 @@
+*   Open a connection for each environment's specification using a
+    3-level database configuration.
+
+    *Robin Dupret*
+
 *   Prevent making bind param if casted value is nil.
 
     *Ryuta Kamizono*
