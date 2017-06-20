@@ -1,3 +1,8 @@
+*   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
+    `locking_column`, without default value, is null in the database.
+
+    *bogdanvlviv*
+
 *   Fix destroying existing object does not work well when optimistic locking enabled and
     `locking column` is null in the database.
 
