@@ -67,7 +67,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
+            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'".dup
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql
