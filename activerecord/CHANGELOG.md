@@ -1,3 +1,7 @@
+*   Use bulk INSERT to insert fixtures for better performance.
+
+    *Kir Shatrov*
+
 *   Prevent making bind param if casted value is nil.
 
     *Ryuta Kamizono*

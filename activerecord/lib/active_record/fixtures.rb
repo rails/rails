@@ -567,9 +567,7 @@ module ActiveRecord
               end
 
               table_rows.each do |fixture_set_name, rows|
-                rows.each do |row|
-                  conn.insert_fixture(row, fixture_set_name)
-                end
+                conn.insert_fixtures(rows, fixture_set_name)
               end
 
               # Cap primary key sequences to max(pk).

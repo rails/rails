@@ -526,7 +526,24 @@ module ActiveRecord
         index.using == :btree || super
       end
 
+      def insert_fixtures(*)
+        without_sql_mode("NO_AUTO_VALUE_ON_ZERO") { super }
+      end
+
       private
+
+        def without_sql_mode(mode)
+          result = execute("SELECT @@SESSION.sql_mode")
+          current_mode = result.first[0]
+          return yield unless current_mode.include?(mode)
+
+          sql_mode = "REPLACE(@@sql_mode, '#{mode}', '')"
+          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+          yield
+        ensure
+          sql_mode = "CONCAT(@@sql_mode, ',#{mode}')"
+          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+        end
 
         def initialize_type_map(m)
           super
