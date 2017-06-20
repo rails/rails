@@ -167,6 +167,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
   end
 
+  def test_lock_new_when_explicitly_passing_value
+    p1 = Person.new(first_name: "Douglas Adams", lock_version: 42)
+    p1.save!
+    assert_equal 42, p1.lock_version
+  end
+
   def test_touch_existing_lock
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
@@ -183,6 +189,19 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
+    end
+  end
+
+  def test_explicit_update_lock_column_raise_error
+    person = Person.find(1)
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      person.first_name = "Douglas Adams"
+      person.lock_version = 42
+
+      assert person.lock_version_changed?
+
+      person.save
     end
   end
 

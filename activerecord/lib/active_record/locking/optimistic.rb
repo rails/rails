@@ -62,8 +62,8 @@ module ActiveRecord
 
         def increment_lock
           lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col).to_i
-          send(lock_col + "=", previous_lock_value + 1)
+          previous_lock_value = send(lock_col)
+          send("#{lock_col}=", previous_lock_value + 1)
         end
 
         def _create_record(attribute_names = self.attribute_names, *)
@@ -107,7 +107,8 @@ module ActiveRecord
 
           # If something went wrong, revert the locking_column value.
           rescue Exception
-            send(lock_col + "=", previous_lock_value.to_i)
+            send("#{lock_col}=", previous_lock_value.to_i)
+
             raise
           end
         end
