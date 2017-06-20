@@ -14,7 +14,7 @@ module ActionDispatch
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
           encoding = path.encoding
-          path = "/#{path}"
+          path = "/#{path}".dup
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
