@@ -382,9 +382,9 @@ Rails 5.1 introduced rails-ujs and dropped jQuery as a dependency.
 As a result the Unobtrusive JavaScript (UJS) driver has been rewritten to operate without jQuery.
 These introductions cause small changes to `custom events` fired during the request:
 
-NOTE: Signature of calls to UJS’s event handlers have changed.
-Unlike the version with jqeury, all custom events return only one parameter: `event`.
-In this parameter, there is an additional attribute `details` which contains an array of extra parameters.
+NOTE: Signature of calls to UJS’s event handlers has changed.
+Unlike the version with jQuery, all custom events return only one parameter: `event`.
+In this parameter, there is an additional attribute `detail` which contains an array of extra parameters.
 
 | Event name          | Extra parameters (event.detail) | Fired                                                       |
 |---------------------|---------------------------------|-------------------------------------------------------------|
