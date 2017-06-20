@@ -29,7 +29,7 @@ module ActionView
     initializer "action_view.form_with_generates_ids" do |app|
       ActiveSupport.on_load(:action_view) do
         form_with_generates_ids = app.config.action_view.delete(:form_with_generates_ids)
-        unless form_with_generates_ids.blank?
+        unless form_with_generates_ids.nil?
           ActionView::Helpers::FormHelper.form_with_generates_ids = form_with_generates_ids
         end
       end
