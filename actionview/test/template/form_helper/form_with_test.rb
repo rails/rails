@@ -339,7 +339,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     expected = whole_form("/posts/123", "create-post", method: "patch") do
-      "<label for='post_title'>The Title</label>" \
+      "<label>The Title</label>" \
       "<input name='post[title]' type='text' value='Hello World' />" \
       "<textarea name='post[body]'>\nBack to the hill and over it again!</textarea>" \
       "<input name='post[secret]' type='hidden' value='0' />" \
