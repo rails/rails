@@ -297,7 +297,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_load
         filename = "awesome-file.sql"
-        expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+        expected_command = ["(echo 'SET FOREIGN_KEY_CHECKS = 0;' ; cat #{filename} ; echo 'SET FOREIGN_KEY_CHECKS = 1;' ) | mysql", "--noop", "--database", "test-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do

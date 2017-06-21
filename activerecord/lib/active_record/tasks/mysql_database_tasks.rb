@@ -59,11 +59,10 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         args = prepare_command_options
-        args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", args, "loading")
+        run_cmd("(echo 'SET FOREIGN_KEY_CHECKS = 0;' ; cat #{filename} ; echo 'SET FOREIGN_KEY_CHECKS = 1;' ) | mysql", args, "loading")
       end
 
       private

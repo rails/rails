@@ -55,7 +55,7 @@ module ActiveRecord
       def structure_load(filename, extra_flags)
         dbfile = configuration["database"]
         flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{dbfile} < "#{filename}"`
+        `cat "#{filename}" | sqlite3 #{flags} #{dbfile}`
       end
 
       private

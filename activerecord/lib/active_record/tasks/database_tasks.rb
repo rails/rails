@@ -273,7 +273,7 @@ module ActiveRecord
       end
 
       def check_schema_file(filename)
-        unless File.exist?(filename)
+        unless filename == "-" || File.exist?(filename)
           message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}.dup
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
