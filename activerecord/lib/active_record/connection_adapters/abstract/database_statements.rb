@@ -425,12 +425,11 @@ module ActiveRecord
         # are not quotable. In this case we want to convert
         # the column value to YAML.
         def with_yaml_fallback(value)
-          begin
-            quote(value)
-          rescue TypeError
-            value = YAML.dump(value)
+          if value.is_a?(Hash) || value.is_a?(Array)
+            YAML.dump(value)
+          else
+            value
           end
-          value
         end
     end
   end
