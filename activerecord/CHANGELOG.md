@@ -1,3 +1,19 @@
+*   Merging two relations representing nested joins no longer transforms the joins of
+    the merged relation into LEFT OUTER JOIN. Example to clarify:
+
+    ```
+    Author.joins(:posts).merge(Post.joins(:comments))
+    # Before the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... LEFT OUTER JOIN comments ON...
+
+    # After the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
+    ```
+
+    TODO: Add to the Rails 5.2 upgrade guide
+
+    *Maxime Handfield Lapointe*
+
 *   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
     `locking_column`, without default value, is null in the database.
 
