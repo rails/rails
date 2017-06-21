@@ -147,7 +147,7 @@ module ActionController #:nodoc:
         def handle_unverified_request
           request = @controller.request
           request.session = NullSessionHash.new(request)
-          request.flash = nil
+          request.flash = nil if request.respond_to?(:flash)
           request.session_options = { skip: true }
           request.cookie_jar = NullCookieJar.build(request, {})
         end
