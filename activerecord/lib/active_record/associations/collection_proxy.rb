@@ -1088,7 +1088,6 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
-        @offsets = {}
         reset_scope
       end
 
@@ -1111,11 +1110,11 @@ module ActiveRecord
       def reset
         proxy_association.reset
         proxy_association.reset_scope
-        @offsets = {}
         reset_scope
       end
 
       def reset_scope # :nodoc:
+        @offsets = {}
         @scope = nil
         self
       end
