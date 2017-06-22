@@ -3,7 +3,8 @@
 Caching with Rails: An Overview
 ===============================
 
-This guide is an introduction to speeding up your Rails application with caching.
+This guide is an introduction to speeding up your Rails application with caching,
+by stopping your application needing to do the same thing multiple times.
 
 Caching means to store content generated during the request-response cycle and
 to reuse it when responding to similar requests.
