@@ -513,8 +513,6 @@ Article.where(author: author)
 Author.joins(:articles).where(articles: { author: author })
 ```
 
-NOTE: The values cannot be symbols. For example, you cannot do `Client.where(status: :active)`.
-
 #### Range Conditions
 
 ```ruby
