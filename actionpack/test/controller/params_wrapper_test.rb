@@ -170,6 +170,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_no_double_wrap_if_key_exists_and_value_is_nil
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      post :parse, params: { "user" => nil }
+      assert_parameters("user" => nil)
+    end
+  end
+
   def test_nested_params
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
