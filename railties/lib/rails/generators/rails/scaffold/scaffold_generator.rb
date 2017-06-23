@@ -12,16 +12,20 @@ module Rails
       class_option :assets, type: :boolean
       class_option :resource_route, type: :boolean
       class_option :scaffold_stylesheet, type: :boolean
+      class_option :skip_system_test, type: :boolean, default: false,
+                                      desc: "Skip system test files"
 
       def handle_skip
         @options = @options.merge(stylesheets: false) unless options[:assets]
         @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets] && options[:scaffold_stylesheet]
-        @options = @options.merge(system_tests: false) if options[:api]
+        @options = @options.merge(skip_system_test: true) if options[:api]
       end
 
       hook_for :scaffold_controller, required: true
 
-      hook_for :system_tests, as: :system
+      hook_for :system_tests, as: :system do |system_test|
+        invoke system_test unless options[:skip_system_test]
+      end
 
       hook_for :assets do |assets|
         invoke assets, [controller_name]

@@ -37,7 +37,7 @@ module <%= app_const_base %>
 <%- elsif !depends_on_system_test? -%>
 
     # Don't generate system test files.
-    config.generators.system_tests = nil
+    config.generators.skip_system_test = true
 <%- end -%>
   end
 end
