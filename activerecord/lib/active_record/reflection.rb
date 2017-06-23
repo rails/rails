@@ -33,7 +33,10 @@ module ActiveRecord
 
     def self.add_reflection(ar, name, reflection)
       ar.clear_reflections_cache
-      ar._reflections = ar._reflections.merge(name.to_s => reflection)
+
+      ar._reflections = ar._reflections
+        .without(name.to_s)
+        .merge(name.to_s => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
