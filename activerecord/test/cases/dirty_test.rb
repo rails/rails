@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 require "models/topic"    # For booleans
 require "models/pirate"   # For timestamps

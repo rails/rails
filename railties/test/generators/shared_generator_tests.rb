@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Tests, setup, and teardown common to the application and plugin generator suites.
 #

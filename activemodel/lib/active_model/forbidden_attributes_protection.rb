@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveModel
   # Raised when forbidden attributes are used for mass assignment.
   #

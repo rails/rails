@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Topic < ActiveRecord::Base
   scope :base, -> { all }
   scope :written_before, lambda { |time|

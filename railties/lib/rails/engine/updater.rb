@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rails/generators"
 require "rails/generators/rails/plugin/plugin_generator"
 

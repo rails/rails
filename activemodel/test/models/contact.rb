@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Contact
   extend ActiveModel::Naming
   include ActiveModel::Conversion

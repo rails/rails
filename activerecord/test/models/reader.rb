@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Reader < ActiveRecord::Base
   belongs_to :post
   belongs_to :person, inverse_of: :readers

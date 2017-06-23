@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/core_ext/string/strip" # for strip_heredoc
 require "active_support/core_ext/time/calculations"
 require "concurrent/map"

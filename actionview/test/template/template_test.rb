@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # encoding: US-ASCII
 require "abstract_unit"
 require "logger"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 namespace :cache_digests do
   desc "Lookup nested dependencies for TEMPLATE (like messages/show or comments/_comment.html)"
   task nested_dependencies: :environment do

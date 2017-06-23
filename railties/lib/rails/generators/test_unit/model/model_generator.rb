@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:

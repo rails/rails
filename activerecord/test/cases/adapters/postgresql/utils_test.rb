@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 require "active_record/connection_adapters/postgresql/utils"
 

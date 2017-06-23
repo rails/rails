@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #--
 # Copyright (c) 2014-2017 David Heinemeier Hansson
 #

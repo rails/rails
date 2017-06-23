@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Shop
   class Collection < ActiveRecord::Base
     has_many :products, dependent: :nullify

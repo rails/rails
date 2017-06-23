@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   class TableMetadata # :nodoc:
     delegate :foreign_type, :foreign_key, to: :association, prefix: true

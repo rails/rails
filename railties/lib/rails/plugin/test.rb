@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rails/test_unit/minitest_plugin"
 
 Rails::TestUnitReporter.executable = "bin/test"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ParamsMailer < ActionMailer::Base
   before_action { @inviter, @invitee = params[:inviter], params[:invitee] }
 

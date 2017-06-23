@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Face < ActiveRecord::Base
   belongs_to :man, inverse_of: :face
   belongs_to :polymorphic_man, polymorphic: true, inverse_of: :polymorphic_face

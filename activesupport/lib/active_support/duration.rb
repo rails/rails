@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"

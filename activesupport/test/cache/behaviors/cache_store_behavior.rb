@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
   def test_should_read_and_write_strings

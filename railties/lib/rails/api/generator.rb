@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "sdoc"
 
 class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:

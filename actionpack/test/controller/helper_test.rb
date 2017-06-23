@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 
 ActionController::Base.helpers_path = File.expand_path("../fixtures/helpers", __dir__)

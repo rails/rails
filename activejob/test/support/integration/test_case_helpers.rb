@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/core_ext/string/inflections"
 require "support/integration/jobs_manager"
 

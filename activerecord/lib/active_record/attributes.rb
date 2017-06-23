@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_record/attribute/user_provided_default"
 
 module ActiveRecord

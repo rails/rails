@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cgi"
 require "erb"
 require "action_view/helpers/form_helper"

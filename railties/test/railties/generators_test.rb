@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 RAILS_ISOLATED_ENGINE = true
 require "isolation/abstract_unit"
 

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   class Attribute # :nodoc:
     class << self
