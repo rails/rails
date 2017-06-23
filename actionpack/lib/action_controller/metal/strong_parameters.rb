@@ -245,7 +245,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_h
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
@@ -265,7 +265,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_hash
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_hash # => {"name"=>"Senjougahara Hitagi"}
