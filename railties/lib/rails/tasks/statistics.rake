@@ -1,29 +1,44 @@
 # While global constants are bad, many 3rd party tools depend on this one (e.g
-# rspec-rails & cucumber-rails). So a deprecation warning is needed if we want
-# to remove it.
-STATS_DIRECTORIES = [
-  %w(Controllers        app/controllers),
-  %w(Helpers            app/helpers),
-  %w(Jobs               app/jobs),
-  %w(Models             app/models),
-  %w(Mailers            app/mailers),
-  %w(Channels           app/channels),
-  %w(JavaScripts        app/assets/javascripts),
-  %w(Libraries          lib/),
-  %w(APIs               app/apis),
-  %w(Controller\ tests  test/controllers),
-  %w(Helper\ tests      test/helpers),
-  %w(Model\ tests       test/models),
-  %w(Mailer\ tests      test/mailers),
-  %w(Job\ tests         test/jobs),
-  %w(Integration\ tests test/integration),
-  %w(System\ tests      test/system),
-].collect do |name, dir|
-  [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
-end.select { |name, dir| File.directory?(dir) }
+# rspec-rails & cucumber-rails). It's deprecated and will be removed in Rails 6.0.
+STATS_DIRECTORIES = []
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
-task :stats do
+task stats: :environment do
   require_relative "../code_statistics"
-  CodeStatistics.new(*STATS_DIRECTORIES).to_s
+  require_relative "../code_statistics/helpers"
+  require_relative "../code_statistics/registry"
+
+  CodeStatistics::Helpers.eager_loaded_paths.each do |dir|
+    CodeStatistics.registry.add(CodeStatistics::Helpers.dir_label(dir), dir) unless dir == "app/assets"
+  end
+
+  CodeStatistics.registry.add("JavaScripts", "app/assets/javascripts")
+  CodeStatistics.registry.add_tests("Controller tests", "test/controllers")
+  CodeStatistics.registry.add_tests("Helper tests", "test/helpers")
+  CodeStatistics.registry.add_tests("Model tests", "test/models")
+  CodeStatistics.registry.add_tests("Mailer tests", "test/mailers")
+  CodeStatistics.registry.add_tests("Job tests", "test/jobs")
+  CodeStatistics.registry.add_tests("Integration tests", "test/integration")
+  CodeStatistics.registry.add_tests("System tests", "test/system")
+
+  if STATS_DIRECTORIES.any?
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      Mutating ::STATS_DIRECTORIES and CodeStatistics::TEST_TYPES
+      to add custom directories to `rails stats` output is deprecated
+      and will be removed in Rails 6.0.
+
+      Please use `CodeStatistics.registry.add` and
+      `CodeStatistics.registry.add_tests` instead.
+    MSG
+
+    STATS_DIRECTORIES.each do |label, dir|
+      if CodeStatistics::TEST_TYPES.include?(label)
+        CodeStatistics.registry.add_tests(label, dir)
+      else
+        CodeStatistics.registry.add(label, dir)
+      end
+    end
+  end
+
+  CodeStatistics.new.to_s
 end

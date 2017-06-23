@@ -1,26 +1,29 @@
 require_relative "code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
-class CodeStatistics #:nodoc:
-  TEST_TYPES = ["Controller tests",
-                "Helper tests",
-                "Model tests",
-                "Mailer tests",
-                "Job tests",
-                "Integration tests",
-                "System tests"]
+class CodeStatistics
+  # Public interface to access and modify the code statistics registry.
+  # Examples:
+  #   CodeStatistics.registry.add("Nginx configs", "config/nginx")
+  #   CodeStatistics.registry.add_tests("Controller specs", "spec/controllers")
+  def self.registry
+    @registry ||= Registry.new
+  end
+
+  # Deprecated, left for backward compatibility with gems like rspec-rails
+  # that hook into this constant to add new test types. To be removed in Rails 6.0.
+  TEST_TYPES = []
 
   HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
-  def initialize(*pairs)
-    @pairs      = pairs
-    @statistics = calculate_statistics
-    @total      = calculate_total if pairs.length > 1
+  def initialize(registry = self.class.registry) #:nodoc:
+    @statistics = calculate_statistics(registry)
+    @total      = calculate_total if registry.entities.any?
   end
 
-  def to_s
+  def to_s #:nodoc:
     print_header
-    @pairs.each { |pair| print_line(pair.first, @statistics[pair.first]) }
+    @statistics.each { |entity, stats| print_line(entity.label, stats) }
     print_splitter
 
     if @total
@@ -32,8 +35,10 @@ class CodeStatistics #:nodoc:
   end
 
   private
-    def calculate_statistics
-      Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
+    def calculate_statistics(registry)
+      registry.entities.map do |entity|
+        [entity, calculate_directory_statistics(entity.dir)]
+      end
     end
 
     def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|coffee|rake)$/)
@@ -60,18 +65,18 @@ class CodeStatistics #:nodoc:
 
     def calculate_code
       code_loc = 0
-      @statistics.each { |k, v| code_loc += v.code_lines unless TEST_TYPES.include? k }
+      @statistics.each { |k, v| code_loc += v.code_lines unless k.tests? }
       code_loc
     end
 
     def calculate_tests
       test_loc = 0
-      @statistics.each { |k, v| test_loc += v.code_lines if TEST_TYPES.include? k }
+      @statistics.each { |k, v| test_loc += v.code_lines if k.tests? }
       test_loc
     end
 
     def width_for(label)
-      [@statistics.values.sum { |s| s.send(label) }.to_s.size, HEADERS[label].length].max
+      [@statistics.map(&:last).sum { |s| s.send(label) }.to_s.size, HEADERS[label].length].max
     end
 
     def print_header

@@ -1,11 +1,13 @@
 require "abstract_unit"
 require "rails/code_statistics"
+require "rails/code_statistics/registry"
 
 class CodeStatisticsTest < ActiveSupport::TestCase
   def setup
     @tmp_path = File.expand_path("fixtures/tmp", __dir__)
     @dir_js   = File.join(@tmp_path, "lib.js")
     FileUtils.mkdir_p(@dir_js)
+    @registry = CodeStatistics::Registry.new
   end
 
   def teardown
@@ -14,7 +16,8 @@ class CodeStatisticsTest < ActiveSupport::TestCase
 
   test "ignores directories that happen to have source files extensions" do
     assert_nothing_raised do
-      @code_statistics = CodeStatistics.new(["tmp dir", @tmp_path])
+      @registry.add("tmp dir", @tmp_path)
+      @code_statistics = CodeStatistics.new(@registry)
     end
   end
 
@@ -26,7 +29,7 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     CODE
 
     assert_nothing_raised do
-      CodeStatistics.new(["hidden file", @tmp_path])
+      CodeStatistics.new(@registry)
     end
   end
 end
