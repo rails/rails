@@ -10,8 +10,6 @@
 
     *Mario Chavez*
 
-*   AEAD encrypted cookies and sessions with GCM
-
 ## Rails 5.1.1 (May 12, 2017) ##
 
 *   No changes.
