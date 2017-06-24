@@ -238,6 +238,66 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "does not eager load controller actions in development" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads controller actions in production" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(index show).to_set, PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "does not eager load mailer actions in development" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsMailer.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads mailer actions in production" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
