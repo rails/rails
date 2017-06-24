@@ -147,8 +147,7 @@ module ActiveRecord
     def last(limit = nil)
       return find_last(limit) if loaded? || limit_value
 
-      result = limit(limit)
-      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = ordered_relation.limit(limit)
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
@@ -535,11 +534,7 @@ module ActiveRecord
         if loaded?
           records[index, limit] || []
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           if limit_value.nil? || index < limit_value
             relation = relation.offset(offset_index + index) unless index.zero?
@@ -554,11 +549,7 @@ module ActiveRecord
         if loaded?
           records[-index]
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           relation.to_a[-index]
           # TODO: can be made more performant on large result sets by
@@ -571,6 +562,14 @@ module ActiveRecord
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def ordered_relation
+        if order_values.empty? && primary_key
+          order(arel_attribute(primary_key).asc)
+        else
+          self
+        end
       end
   end
 end
