@@ -42,6 +42,8 @@ module ActionDispatch
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
+      ActionDispatch::Cookies.cookies_have_purpose = app.config.action_dispatch.cookies_have_purpose
+
       ActionDispatch.test_app = app
     end
   end

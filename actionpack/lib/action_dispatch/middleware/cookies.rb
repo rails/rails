@@ -283,6 +283,8 @@ module ActionDispatch
         end
     end
 
+    mattr_accessor :cookies_have_purpose, default: false
+
     class CookieJar #:nodoc:
       include Enumerable, ChainedCookieJars
 
@@ -467,15 +469,29 @@ module ActionDispatch
 
       def [](name)
         if data = @parent_jar[name.to_s]
-          parse name, data
+          value = parse name, data
+          if Cookies.cookies_have_purpose
+            if value["purpose"].eql?(name.to_s)
+              value["value"]
+            else
+              nil
+            end
+          else 
+            value
+          end
         end
       end
 
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
+          options[:value] = { value: options[:value], purpose: name } if Cookies.cookies_have_purpose
         else
-          options = { value: options }
+          if Cookies.cookies_have_purpose
+            options = { value: { value: options, purpose: name } }
+          else
+            options = { value: options }
+          end
         end
 
         commit(options)
