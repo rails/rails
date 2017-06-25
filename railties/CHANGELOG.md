@@ -1,3 +1,10 @@
+*   Skip unused components when running `bin/rails app:update`.
+
+    If the initial app generation skipped Action Cable, Active Record etc.,
+    the update task honors those skips too.
+
+    *Yuji Yaginuma*
+
 *   Make Rails' test runner work better with minitest plugins.
 
     By demoting the Rails test runner to just another minitest plugin —
