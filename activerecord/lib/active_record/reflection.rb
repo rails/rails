@@ -187,6 +187,14 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
+      def join_scope(table)
+        predicate_builder = predicate_builder(table)
+        scope_chain_items = join_scopes(table, predicate_builder)
+        klass_scope       = klass_join_scope(table, predicate_builder)
+
+        scope_chain_items.inject(klass_scope || scope_chain_items.shift, &:merge!)
+      end
+
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
           [ActiveRecord::Relation.create(klass, table, predicate_builder)
@@ -279,7 +287,14 @@ module ActiveRecord
         JoinKeys.new(join_pk(association_klass), join_fk)
       end
 
+      def build_scope(table, predicate_builder = predicate_builder(table))
+        Relation.create(klass, table, predicate_builder)
+      end
+
       private
+        def predicate_builder(table)
+          PredicateBuilder.new(TableMetadata.new(klass, table))
+        end
 
         def join_pk(_)
           foreign_key
