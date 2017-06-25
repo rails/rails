@@ -185,6 +185,14 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
+      def join_scope(table)
+        predicate_builder = predicate_builder(table)
+        scope_chain_items = join_scopes(table, predicate_builder)
+        klass_scope       = klass_join_scope(table, predicate_builder)
+
+        scope_chain_items.inject(klass_scope || scope_chain_items.shift, &:merge!)
+      end
+
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
           [build_scope(table, predicate_builder).instance_exec(&scope)]
@@ -286,16 +294,15 @@ module ActiveRecord
         Relation.create(klass, table, predicate_builder)
       end
 
-      def predicate_builder(table)
-        PredicateBuilder.new(TableMetadata.new(klass, table))
-      end
-
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
         end
 
       private
+        def predicate_builder(table)
+          PredicateBuilder.new(TableMetadata.new(klass, table))
+        end
 
         def join_pk(_)
           foreign_key
