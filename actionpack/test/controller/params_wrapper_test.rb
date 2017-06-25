@@ -226,6 +226,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_preserves_query_string_params_in_filtered_params
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      get :parse, params: { "user" => { "username" => "nixon" } }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "user" => { "username" => "nixon" } }, @request.filtered_parameters)
+    end
+  end
+
   def test_empty_parameter_set
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
