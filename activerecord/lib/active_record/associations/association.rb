@@ -94,7 +94,7 @@ module ActiveRecord
       # actually gets built.
       def association_scope
         if klass
-          @association_scope ||= AssociationScope.scope(self, klass.connection)
+          @association_scope ||= AssociationScope.scope(self)
         end
       end
 
