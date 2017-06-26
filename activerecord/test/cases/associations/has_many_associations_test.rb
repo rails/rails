@@ -741,6 +741,41 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = :type", { type: "Client" }], order: "id").first
   end
 
+  def test_find_first_after_reset_scope
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object_id = collection.first.object_id
+    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_equal original_object_id, firm.clients.first.object_id, "Expected #first to return a new object"
+  end
+
+  def test_find_first_after_reset
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object_id = collection.first.object_id
+    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
+    collection.reset
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_equal original_object_id, collection.first.object_id, "Expected #first after #reload to return a new object"
+  end
+
+  def test_find_first_after_reload
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object_id = collection.first.object_id
+    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
+    collection.reset
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_equal original_object_id, collection.first.object_id, "Expected #first after #reload to return a new object"
+  end
+
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
       Developer.all.merge!(joins: :audit_logs, where: { "audit_logs.message" => nil, :name => "Smith" }).to_a
