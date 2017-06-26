@@ -1,11 +1,8 @@
-## Rails 4.2.9.rc2 (June 19, 2017) ##
+## Rails 4.2.9 (June 26, 2017) ##
 
 *   Fix regression caused by `collection_singular_ids=` ignoring different primary key on relationship.
 
     *Nick Pezza*
-
-
-## Rails 4.2.9.rc1 (June 13, 2017) ##
 
 *   Fix `rake db:schema:load` with subdirectories.
 
