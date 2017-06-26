@@ -1,3 +1,7 @@
+*   Add `railtie.rb` to the plugin generator
+
+    *Tsukuru Tanimichi*
+
 *   Deprecate `capify!` method in generators and templates.
 
     *Yuji Yaginuma*
