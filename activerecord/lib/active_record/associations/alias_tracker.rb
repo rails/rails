@@ -4,21 +4,21 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      def self.create(connection, initial_table, type_caster)
+      def self.create(connection, initial_table)
         aliases = Hash.new(0)
         aliases[initial_table] = 1
-        new connection, aliases, type_caster
+        new(connection, aliases)
       end
 
-      def self.create_with_joins(connection, initial_table, joins, type_caster)
+      def self.create_with_joins(connection, initial_table, joins)
         if joins.empty?
-          create(connection, initial_table, type_caster)
+          create(connection, initial_table)
         else
           aliases = Hash.new { |h, k|
             h[k] = initial_count_for(connection, k, joins)
           }
           aliases[initial_table] = 1
-          new connection, aliases, type_caster
+          new(connection, aliases)
         end
       end
 
@@ -51,17 +51,16 @@ module ActiveRecord
       end
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection, aliases, type_caster)
+      def initialize(connection, aliases)
         @aliases    = aliases
         @connection = connection
-        @type_caster = type_caster
       end
 
-      def aliased_table_for(table_name, aliased_name)
+      def aliased_table_for(table_name, aliased_name, type_caster)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
-          Arel::Table.new(table_name, type_caster: @type_caster)
+          Arel::Table.new(table_name, type_caster: type_caster)
         else
           # Otherwise, we need to use an alias
           aliased_name = @connection.table_alias_for(aliased_name)
@@ -74,7 +73,7 @@ module ActiveRecord
           else
             aliased_name
           end
-          Arel::Table.new(table_name, type_caster: @type_caster).alias(table_alias)
+          Arel::Table.new(table_name, type_caster: type_caster).alias(table_alias)
         end
       end
 
