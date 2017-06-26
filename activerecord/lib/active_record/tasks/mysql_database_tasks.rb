@@ -59,8 +59,8 @@ module ActiveRecord
         args.concat(["--no-data"])
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
-        args.concat(Array(extra_flags)) if extra_flags
         args.concat(["#{configuration['database']}"])
+        args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysqldump", args, "dumping")
       end
@@ -69,7 +69,7 @@ module ActiveRecord
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
-        args.concat(Array(extra_flags)) if extra_flags
+        args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysql", args, "loading")
       end
