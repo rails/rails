@@ -1,4 +1,4 @@
-## Rails 5.1.2.rc1 (June 20, 2017) ##
+## Rails 5.1.2 (June 26, 2017) ##
 
 *   Fix regression in numericality validator when comparing Decimal and Float input 
     values with more scale than the schema.
