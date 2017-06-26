@@ -95,8 +95,11 @@ Game = Struct.new(:name, :id) do
   end
 end
 
+class ApplicationController < ActionController::Base
+end
+
 module Fun
-  class NestedController < ActionController::Base
+  class NestedController < ApplicationController
     def render_with_record_in_nested_controller
       render partial: Game.new("Pong")
     end
@@ -107,7 +110,34 @@ module Fun
   end
 
   module Serious
-    class NestedDeeperController < ActionController::Base
+    class NestedDeeperController < ApplicationController
+      def render_with_record_in_deeper_nested_controller
+        render partial: Game.new("Chess")
+      end
+
+      def render_with_record_collection_in_deeper_nested_controller
+        render partial: [ Game.new("Chess"), Game.new("Sudoku"), Game.new("Solitaire") ]
+      end
+    end
+  end
+end
+
+class GamesController < ApplicationController
+end
+
+module Fun
+  class InheritedNestedController < GamesController
+    def render_with_record_in_nested_controller
+      render partial: Game.new("Pong")
+    end
+
+    def render_with_record_collection_in_nested_controller
+      render partial: [ Game.new("Pong"), Game.new("Tank") ]
+    end
+  end
+
+  module Serious
+    class InheritedNestedDeeperController < GamesController
       def render_with_record_in_deeper_nested_controller
         render partial: Game.new("Chess")
       end
@@ -173,6 +203,82 @@ end
 
 class RenderPartialWithRecordIdentificationAndNestedDeeperControllersWithoutPrefixTest < ActiveRecordTestCase
   tests Fun::Serious::NestedDeeperController
+
+  def test_render_with_record_in_deeper_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_in_deeper_nested_controller
+    assert_equal "Just Chess\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+
+  def test_render_with_record_collection_in_deeper_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_collection_in_deeper_nested_controller
+    assert_equal "Just Chess\nJust Sudoku\nJust Solitaire\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndInheritedNestedControllersTest < ActiveRecordTestCase
+  tests Fun::InheritedNestedController
+
+  def test_render_with_record_in_nested_controller
+    get :render_with_record_in_nested_controller
+    assert_equal "Just Pong\n", @response.body
+  end
+
+  def test_render_with_record_collection_in_nested_controller
+    get :render_with_record_collection_in_nested_controller
+    assert_equal "Just Pong\nJust Tank\n", @response.body
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndInheritedNestedControllersWithoutPrefixTest < ActiveRecordTestCase
+  tests Fun::InheritedNestedController
+
+  def test_render_with_record_in_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_in_nested_controller
+    assert_equal "Just Pong\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+
+  def test_render_with_record_collection_in_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_collection_in_nested_controller
+    assert_equal "Just Pong\nJust Tank\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndInheritedNestedDeeperControllersTest < ActiveRecordTestCase
+  tests Fun::Serious::InheritedNestedDeeperController
+
+  def test_render_with_record_in_deeper_nested_controller
+    get :render_with_record_in_deeper_nested_controller
+    assert_equal "Just Chess\n", @response.body
+  end
+
+  def test_render_with_record_collection_in_deeper_nested_controller
+    get :render_with_record_collection_in_deeper_nested_controller
+    assert_equal "Just Chess\nJust Sudoku\nJust Solitaire\n", @response.body
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndInheritedNestedDeeperControllersWithoutPrefixTest < ActiveRecordTestCase
+  tests Fun::Serious::InheritedNestedDeeperController
 
   def test_render_with_record_in_deeper_nested_controller
     old_config = ActionView::Base.prefix_partial_path_with_controller_namespace

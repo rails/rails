@@ -481,11 +481,16 @@ module ActionView
           raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
         end
 
-        if @view.prefix_partial_path_with_controller_namespace
+        if @view.prefix_partial_path_with_controller_namespace && !nested_controller(path)
           prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
         else
           path
         end
+      end
+
+      # Check if controller nested from the object controller
+      def nested_controller(path)
+        @lookup_context.prefixes.size > 2 && path.include?(@lookup_context.prefixes[1])
       end
 
       def prefixed_partial_names

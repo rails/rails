@@ -1,3 +1,9 @@
+*   Fix issues with inherited controller and model related partial render. 
+    
+    Fixes #29468.
+    
+    *Nikita Savrov*
+    
 *   Fix issues with scopes and engine on `current_page?` method. 
     
     Fixes #29401.
