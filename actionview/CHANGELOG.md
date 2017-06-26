@@ -1,4 +1,4 @@
-## Rails 5.1.2.rc1 (June 20, 2017) ##
+## Rails 5.1.2 (June 26, 2017) ##
 
 *   Fix issues with scopes and engine on `current_page?` method. 
     
