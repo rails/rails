@@ -1,4 +1,4 @@
-## Rails 4.2.9.rc1 (June 13, 2017) ##
+## Rails 4.2.9 (June 26, 2017) ##
 
 *   Use more specific check for :format in route path
 

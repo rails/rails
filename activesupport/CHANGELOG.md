@@ -1,4 +1,4 @@
-## Rails 4.2.9.rc1 (June 13, 2017) ##
+## Rails 4.2.9 (June 26, 2017) ##
 
 *   Fixed bug in `DateAndTime::Compatibility#to_time` that caused it to
     raise `RuntimeError: can't modify frozen Time` when called on any frozen `Time`.
