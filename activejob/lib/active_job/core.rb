@@ -74,12 +74,13 @@ module ActiveJob
     # queueing adapter.
     def serialize
       {
-        'job_class'  => self.class.name,
-        'job_id'     => job_id,
-        'queue_name' => queue_name,
-        'priority'   => priority,
-        'arguments'  => serialize_arguments(arguments),
-        'locale'     => I18n.locale.to_s
+        "job_class"  => self.class.name,
+        "job_id"     => job_id,
+        "provider_job_id" => provider_job_id,
+        "queue_name" => queue_name,
+        "priority"   => priority,
+        "arguments"  => serialize_arguments(arguments),
+        "locale"     => I18n.locale.to_s
       }
     end
 
