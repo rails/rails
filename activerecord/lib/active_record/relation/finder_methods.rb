@@ -126,7 +126,7 @@ module ActiveRecord
     # Same as #first but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #first! accepts no arguments.
     def first!
-      first || raise_record_not_found_exception!
+      first || raise_exception_with_conditions
     end
 
     # Find the last record (or last N records if a parameter is supplied).
@@ -157,7 +157,7 @@ module ActiveRecord
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
     # is found. Note that #last! accepts no arguments.
     def last!
-      last || raise_record_not_found_exception!
+      last || raise_exception_with_conditions
     end
 
     # Find the second record.
@@ -173,7 +173,7 @@ module ActiveRecord
     # Same as #second but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def second!
-      second || raise_record_not_found_exception!
+      second || raise_exception_with_conditions
     end
 
     # Find the third record.
@@ -189,7 +189,7 @@ module ActiveRecord
     # Same as #third but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def third!
-      third || raise_record_not_found_exception!
+      third || raise_exception_with_conditions
     end
 
     # Find the fourth record.
@@ -205,7 +205,7 @@ module ActiveRecord
     # Same as #fourth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fourth!
-      fourth || raise_record_not_found_exception!
+      fourth || raise_exception_with_conditions
     end
 
     # Find the fifth record.
@@ -221,7 +221,7 @@ module ActiveRecord
     # Same as #fifth but raises ActiveRecord::RecordNotFound if no record
     # is found.
     def fifth!
-      fifth || raise_record_not_found_exception!
+      fifth || raise_exception_with_conditions
     end
 
     # Find the forty-second record. Also known as accessing "the reddit".
@@ -571,6 +571,17 @@ module ActiveRecord
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def raise_exception_with_conditions
+        conditions = arel.where_sql(@klass.arel_engine)
+        if conditions
+          raise_record_not_found_exception!
+        else
+          order = caller_locations.first.label.delete("!")
+          error = "Couldn't find #{order} #{@klass.name} with '#{primary_key}'"
+          raise RecordNotFound.new(error, @klass.name, primary_key)
+        end
       end
   end
 end
