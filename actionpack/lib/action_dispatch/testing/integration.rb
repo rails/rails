@@ -432,7 +432,7 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns
-         xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
+         xml_http_request xhr get_via_redirect post_via_redirect follow_redirect!).each do |method|
         define_method(method) do |*args|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == 'cookies' || method == 'assigns'
