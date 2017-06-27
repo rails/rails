@@ -18,5 +18,10 @@ Gem::Specification.new do |s|
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
   s.require_path = "lib"
 
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activemodel",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activemodel/CHANGELOG.md"
+  }
+
   s.add_dependency "activesupport", version
 end
