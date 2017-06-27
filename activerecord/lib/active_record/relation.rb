@@ -157,14 +157,69 @@ module ActiveRecord
       scoping { @klass.create!(*args, &block) }
     end
 
+    # Finds the first record on the relation, or creates a record
+    # with the specified attributes if none is found:
+    #
+    # ==== Examples
+    #
+    #   # Find the first user named "Penélope" or create a new one.
+    #   User.where(first_name: 'Penélope').first_or_create
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
+    #
+    #   # Find the first user named "Penélope" or create a new one.
+    #   # We already have one so the existing record will be returned.
+    #   User.where(first_name: 'Penélope').first_or_create
+    #   # => #<User id: 1, first_name: "Penélope", last_name: nil>
+    #
+    #   # Find the first user named "Scarlett" or create a new one with
+    #   # a particular last name.
+    #   User.where(first_name: 'Scarlett').first_or_create(last_name: "Johansson")
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
+    #
+    # This method accepts a block, which is passed down to #create. The last example
+    # above can be alternatively written this way:
+    #
+    #   # Find the first user named "Scarlett" or create a new one with a
+    #   # different last name.
+    #   User.where(first_name: 'Scarlett').first_or_create do |user|
+    #     user.last_name = 'Johansson'
+    #   end
+    #   # => #<User id: 2, first_name: "Scarlett", last_name: "Johansson">
+    #
+    # This method always returns a record, but if creation was attempted and
+    # failed due to validation errors it won't be persisted, you get what
+    # #create returns in such situation.
+    #
+    # Please note *this method is not atomic*, it runs first a SELECT, and if
+    # there are no results an INSERT is attempted. If there are other threads
+    # or processes there is a race condition between both calls and it could
+    # be the case that you end up with two similar records.
+    #
+    # Whether that is a problem or not depends on the logic of the
+    # application, but in the particular case in which rows have a UNIQUE
+    # constraint an exception may be raised, just retry:
+    #
+    #  begin
+    #    CreditAccount.transaction(requires_new: true) do
+    #      CreditAccount.where(user_id: user.id).first_or_create
+    #    end
+    #  rescue ActiveRecord::RecordNotUnique
+    #    retry
+    #  end
+    #
     def first_or_create(attributes = nil, &block) # :nodoc:
       first || create(attributes, &block)
     end
 
+    # Like #first_or_create, but calls
+    # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
+    # is raised if the created record is invalid.
     def first_or_create!(attributes = nil, &block) # :nodoc:
       first || create!(attributes, &block)
     end
 
+    # Like #first_or_create, but calls {new}[rdoc-ref:Core#new]
+    # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def first_or_initialize(attributes = nil, &block) # :nodoc:
       first || new(attributes, &block)
     end
