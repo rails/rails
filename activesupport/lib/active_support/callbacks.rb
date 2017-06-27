@@ -664,7 +664,7 @@ module ActiveSupport
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
               Passing string to be evaluated in :if and :unless conditional
               options is deprecated and will be removed in Rails 5.2 without
-              replacement. Pass a symbol for an instance method, or a lamdba,
+              replacement. Pass a symbol for an instance method, or a lambda,
               proc or block, instead.
             MSG
           end
