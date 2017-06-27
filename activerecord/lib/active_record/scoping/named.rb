@@ -29,8 +29,7 @@ module ActiveRecord
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = relation
+        def default_scoped(scope = relation) # :nodoc:
           build_default_scope(scope) || scope
         end
 

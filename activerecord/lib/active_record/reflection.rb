@@ -171,7 +171,7 @@ module ActiveRecord
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
       def join_keys
-        get_join_keys klass
+        @join_keys ||= get_join_keys(klass)
       end
 
       # Returns a list of scopes that should be applied for this Reflection
@@ -185,12 +185,25 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
-      def join_scope(table)
+      def join_scope(table, foreign_table, foreign_klass)
         predicate_builder = predicate_builder(table)
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
-        scope_chain_items.inject(klass_scope || scope_chain_items.shift, &:merge!)
+        key         = join_keys.key
+        foreign_key = join_keys.foreign_key
+
+        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
+
+        if klass.finder_needs_type_condition?
+          klass_scope.where!(klass.send(:type_condition, table))
+        end
+
+        if type
+          klass_scope.where!(type => foreign_klass.base_class.name)
+        end
+
+        scope_chain_items.inject(klass_scope, &:merge!)
       end
 
       def join_scopes(table, predicate_builder) # :nodoc:
@@ -207,8 +220,7 @@ module ActiveRecord
             scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
-          relation = build_scope(table, predicate_builder)
-          klass.send(:build_default_scope, relation)
+          klass.default_scoped(build_scope(table, predicate_builder))
         end
       end
 
