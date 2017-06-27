@@ -19,6 +19,11 @@ Gem::Specification.new do |s|
   s.require_path = "lib"
   s.requirements << "none"
 
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionview",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionview/CHANGELOG.md"
+  }
+
   s.add_dependency "activesupport", version
 
   s.add_dependency "builder",       "~> 3.1"
