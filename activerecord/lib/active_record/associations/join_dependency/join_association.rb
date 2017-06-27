@@ -40,19 +40,11 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            rel = reflection.join_scope(table)
+            rel = reflection.join_scope(table, foreign_klass)
 
-            if rel && !rel.arel.constraints.empty?
+            if rel.arel.constraints.any?
               binds += rel.bound_attributes
               constraint = constraint.and rel.arel.constraints
-            end
-
-            if reflection.type
-              value = foreign_klass.base_class.name
-              column = klass.columns_hash[reflection.type.to_s]
-
-              binds << Relation::QueryAttribute.new(column.name, value, klass.type_for_attribute(column.name))
-              constraint = constraint.and klass.arel_attribute(reflection.type, table).eq(Arel::Nodes::BindParam.new)
             end
 
             joins << table.create_join(table, table.create_on(constraint), join_type)
