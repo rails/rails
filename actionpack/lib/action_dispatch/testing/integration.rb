@@ -338,7 +338,7 @@ module ActionDispatch
         @integration_session = nil
       end
 
-      %w(get post patch put head delete cookies assigns).each do |method|
+      %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
         define_method(method) do |*args|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == "cookies" || method == "assigns"

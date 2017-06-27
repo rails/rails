@@ -335,6 +335,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_reset_html_document
+    with_test_route_set do
+      get "/redirect"
+      previous_html_document = html_document
+
+      follow_redirect!
+
+      assert_response :ok
+      refute_same previous_html_document, html_document
+    end
+  end
+
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true
