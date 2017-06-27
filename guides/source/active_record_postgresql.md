@@ -114,15 +114,20 @@ Profile.where("settings->'color' = ?", "yellow")
 # => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
-### JSON
+### JSON and JSONB
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-json.html)
 * [functions and operators](http://www.postgresql.org/docs/current/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
+# ... for json datatype:
 create_table :events do |t|
   t.json 'payload'
+end
+# ... or for jsonb datatype:
+create_table :events do |t|
+  t.jsonb 'payload'
 end
 
 # app/models/event.rb
