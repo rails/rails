@@ -102,6 +102,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         lib
         lib/tasks
         log
+        public/favicon.ico
         test/fixtures
         test/controllers
         test/integration
@@ -128,7 +129,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          public/500.html
          public/apple-touch-icon-precomposed.png
          public/apple-touch-icon.png
-         public/favicon.icon
          package.json
       )
     end

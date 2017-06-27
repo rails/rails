@@ -1,3 +1,9 @@
+*   Stop removing favicon.ico file when generating a new --api project.
+
+    Fixes #29578.
+
+    *David Ramirez*
+
 *   Add `railtie.rb` to the plugin generator
 
     *Tsukuru Tanimichi*
