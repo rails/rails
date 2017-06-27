@@ -596,7 +596,7 @@ module ActiveSupport
             Proc.new do |target, result_lambda|
               terminate = true
               catch(:abort) do
-                result_lambda.call if result_lambda.is_a?(Proc)
+                result_lambda.call
                 terminate = false
               end
               terminate
