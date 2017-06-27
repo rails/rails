@@ -662,8 +662,10 @@ module ActiveSupport
 
           if options[:if].is_a?(String) || options[:unless].is_a?(String)
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to :if and :unless conditional options is deprecated
-              and will be removed in Rails 5.2 without replacement.
+              Passing string to be evaluated in :if and :unless conditional
+              options is deprecated and will be removed in Rails 5.2 without
+              replacement. Pass a symbol for an instance method, or a lamdba,
+              proc or block, instead.
             MSG
           end
 
