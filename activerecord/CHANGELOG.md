@@ -1,3 +1,11 @@
+*   Previously, when building records using a `has_many :through` association,
+    if the child records were deleted before the parent was saved, they would
+    still be persisted. Now, if child records are deleted before the parent is saved
+    on a `has_many :through` association, the child records will not be persisted.
+
+    *Tobias Kraze*
+
+
 ## Rails 5.1.2 (June 26, 2017) ##
 
 *   Restore previous behavior of collection proxies: their values can have
