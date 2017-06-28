@@ -1,3 +1,8 @@
+*   Query cache was unavailable when entering the ActiveRecord::Base.cache block
+    without being connected.
+
+    *Tsukasa Oishi*
+
 *   Previously, when building records using a `has_many :through` association,
     if the child records were deleted before the parent was saved, they would
     still be persisted. Now, if child records are deleted before the parent is saved
