@@ -315,7 +315,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+      connection.select_value(relation.arel, "#{name} Exists", relation.bound_attributes) ? true : false
     rescue ::RangeError
       false
     end
@@ -376,8 +376,7 @@ module ActiveRecord
           if ActiveRecord::NullRelation === relation
             []
           else
-            arel = relation.arel
-            rows = connection.select_all(arel, "SQL", relation.bound_attributes)
+            rows = connection.select_all(relation.arel, "SQL", relation.bound_attributes)
             join_dependency.instantiate(rows, aliases)
           end
         end
@@ -424,9 +423,8 @@ module ActiveRecord
           "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
         relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
 
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
+        id_rows = @klass.connection.select_all(relation.arel, "SQL", relation.bound_attributes)
         id_rows.map { |row| row[primary_key] }
       end
 

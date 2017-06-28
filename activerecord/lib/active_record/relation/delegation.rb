@@ -44,8 +44,6 @@ module ActiveRecord
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, to: :klass
 
-    delegate :ast, :locked, to: :arel
-
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
 
