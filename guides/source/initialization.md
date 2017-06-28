@@ -155,7 +155,7 @@ defined here to find the matching command.
 ### `rails/command.rb`
 
 When one types a Rails command, `invoke` tries to lookup a command for the given
-namespace and executing the command if found.
+namespace and executes the command if found.
 
 If Rails doesn't recognize the command, it hands the reins over to Rake
 to run a task of the same name.
