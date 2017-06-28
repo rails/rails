@@ -279,6 +279,8 @@ module ActionDispatch
               if args.size < path_params_size
                 path_params -= controller_options.keys
                 path_params -= result.keys
+              else
+                path_params = path_params.dup
               end
               inner_options.each_key do |key|
                 path_params.delete(key)
