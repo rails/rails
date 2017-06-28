@@ -1,3 +1,9 @@
+*   Fix preloading polymorphic association with scope.
+
+    Fixes #27724.
+
+    *Ryuta Kamizono*
+
 *   Merging two relations representing nested joins no longer transforms the joins of
     the merged relation into LEFT OUTER JOIN. Example to clarify:
 
