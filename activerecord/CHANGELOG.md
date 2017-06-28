@@ -1,3 +1,8 @@
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
+    without being connected.
+
+    *Tsukasa Oishi*
+
 *   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
     ar_internal_metadata's data for a test database.
 
