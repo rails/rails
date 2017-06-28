@@ -221,7 +221,7 @@ service requests that are expecting something other than proper HTML.
 
 NOTE: By default, if you use the `:plain` option, the text is rendered without
 using the current layout. If you want Rails to put the text into the current
-layout, you need to add the `layout: true` option and use the `.txt.erb`
+layout, you need to add the `layout: true` option and use the `.text.erb`
 extension for the layout file.
 
 #### Rendering HTML
