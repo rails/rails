@@ -42,7 +42,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Task.find 1
       Task.find 1
-      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
