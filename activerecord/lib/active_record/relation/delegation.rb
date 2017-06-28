@@ -113,15 +113,5 @@ module ActiveRecord
       def respond_to_missing?(method, _)
         super || @klass.respond_to?(method) || arel.respond_to?(method)
       end
-
-      def method_missing(method, *args, &block)
-        if @klass.respond_to?(method)
-          scoping { @klass.public_send(method, *args, &block) }
-        elsif arel.respond_to?(method)
-          arel.public_send(method, *args, &block)
-        else
-          super
-        end
-      end
   end
 end
