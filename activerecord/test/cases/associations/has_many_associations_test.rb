@@ -2354,8 +2354,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create!
     bulb = Bulb.create! name: "other", car: car
 
-    assert_equal bulb, Car.find(car.id).all_bulbs.first
-    assert_equal bulb, Car.includes(:all_bulbs).find(car.id).all_bulbs.first
+    assert_equal [bulb], Car.find(car.id).all_bulbs
+    assert_equal [bulb], Car.includes(:all_bulbs).find(car.id).all_bulbs
+    assert_equal [bulb], Car.eager_load(:all_bulbs).find(car.id).all_bulbs
   end
 
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do
