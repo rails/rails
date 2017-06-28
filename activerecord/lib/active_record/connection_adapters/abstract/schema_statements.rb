@@ -1097,7 +1097,14 @@ module ActiveRecord
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
       #
       def columns_for_distinct(columns, orders) # :nodoc:
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          #columns_for_distinct is deprecated use relation_for_distinct.
+        MSG
         columns
+      end
+
+      def relation_for_distinct(primary_key, relation)
+        relation.except(:select).select("#{primary_key}").distinct!
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.

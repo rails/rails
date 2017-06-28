@@ -503,19 +503,28 @@ module ActiveRecord
       end
       private :can_perform_case_insensitive_comparison_for?
 
-      # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
-      # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
-      # distinct queries, and requires that the ORDER BY include the distinct column.
+      # handle ONLY_FULL_GROUP_BY
       # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
-      def columns_for_distinct(columns, orders) # :nodoc:
-        order_columns = orders.reject(&:blank?).map { |s|
-          # Convert Arel node to string
+      def relation_for_distinct(primary_key, relation)
+        order_values = Array.new
+        relation.order_values.map do |s|
           s = s.to_sql unless s.is_a?(String)
-          # Remove any ASC/DESC modifiers
-          s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-        }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+          next if s.blank?
+          s = s.split(/,(?![^()]*+\))/)
+          order_values.concat(s)
+        end.flatten
 
-        [super, *order_columns].join(", ")
+        order_values = order_values.map do |str|
+          str = str.strip
+          str.match(/\s+((?:ASC|DESC))\b/i)
+          if $1
+            "MIN(#{str.sub($1, '')}) #{$1}"
+          else
+            "MIN(#{str})"
+          end
+        end
+
+        relation.except(:select, :group, :order).select(primary_key).group(primary_key).order(order_values)
       end
 
       def strict_mode?

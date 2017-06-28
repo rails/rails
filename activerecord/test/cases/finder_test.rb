@@ -1212,6 +1212,17 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  test "ordering with a primary key does return the same count" do
+    scope = Post.eager_load(:comments).order("comments.id, comments.body").limit(15)
+    assert_equal Post.limit(15).count, scope.count
+  end
+
+  test "ordering with parentheses" do
+    assert_nothing_raised do
+      Post.eager_load(:comments).order("COALESCE(comments.body, '')").limit(15).to_a
+    end
+  end
+
   test "find on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)

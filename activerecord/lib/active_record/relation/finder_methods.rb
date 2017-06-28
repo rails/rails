@@ -420,14 +420,9 @@ module ActiveRecord
       end
 
       def limited_ids_for(relation)
-        values = @klass.connection.columns_for_distinct(
-          "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
-
-        relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
-
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
-        id_rows.map { |row| row[primary_key] }
+        primary_key = "#{quoted_table_name}.#{quoted_primary_key}"
+        relation = @klass.connection.relation_for_distinct(primary_key, relation)
+        @klass.connection.select_values(relation.arel, "SQL", relation.bound_attributes)
       end
 
       def using_limitable_reflections?(reflections)

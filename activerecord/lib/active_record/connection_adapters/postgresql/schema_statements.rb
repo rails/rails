@@ -572,18 +572,9 @@ module ActiveRecord
           sql
         end
 
-        # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
-        # requires that the ORDER BY include the distinct column.
-        def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.reject(&:blank?).map { |s|
-              # Convert Arel node to string
-              s = s.to_sql unless s.is_a?(String)
-              # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
-
-          [super, *order_columns].join(", ")
+        def relation_for_distinct(primary_key, relation)
+          # ??? TODO
+          #relation.except(:select).select("DISTINCT ON (#{primary_key}) #{primary_key}")
         end
 
         private
