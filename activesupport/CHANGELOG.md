@@ -1,3 +1,19 @@
+*   Fix broken Modulo operation on Duration objects
+
+    Before:
+
+        5.minutes % 2.minutes
+        => -18000 minutes and 300 seconds
+
+    Now:
+
+        5.minutes % 2.minutes
+        => 60 seconds
+
+    Fixes #29603 and #29743
+
+    *Sayan Chakraborty*
+
 *   Fix division where a duration is the denominator
 
     PR #29163 introduced a change in behavior when a duration was the denominator

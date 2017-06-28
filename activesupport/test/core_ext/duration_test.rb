@@ -114,6 +114,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 1, 1.day / 1.day
   end
 
+  def test_modulo_operation
+    assert_equal 60.seconds, 5.minutes % 2
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 2
+    assert_equal 60.seconds, 5.minutes % 2.minutes
+
+    assert_equal 900.seconds , 1501022700 % 30.minutes
+    assert_instance_of ActiveSupport::Duration, 1501022700 % 30.minutes
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
   end
