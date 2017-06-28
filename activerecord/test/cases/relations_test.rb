@@ -2002,7 +2002,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_locked_should_not_build_arel
-    posts = Post.lock
+    posts = Post.locked
     assert posts.locked?
     assert_nothing_raised { posts.lock!(false) }
   end
