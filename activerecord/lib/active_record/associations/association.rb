@@ -30,14 +30,6 @@ module ActiveRecord
         reset_scope
       end
 
-      # Returns the name of the table of the associated class:
-      #
-      #   post.comments.aliased_table_name # => "comments"
-      #
-      def aliased_table_name
-        klass.table_name
-      end
-
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
