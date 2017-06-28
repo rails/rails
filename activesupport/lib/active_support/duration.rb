@@ -82,6 +82,14 @@ module ActiveSupport
         end
       end
 
+      def %(other)
+        if Duration === other
+          Duration.build(value % other.value)
+        else
+          calculate(:%, other)
+        end
+      end
+
       private
         def calculate(op, other)
           if Scalar === other
@@ -114,6 +122,8 @@ module ActiveSupport
       months:  SECONDS_PER_MONTH,
       years:   SECONDS_PER_YEAR
     }.freeze
+
+    PARTS = [:years, :months, :weeks, :days, :hours, :minutes, :seconds].freeze
 
     attr_accessor :value, :parts
 
@@ -163,6 +173,30 @@ module ActiveSupport
 
       def years(value) #:nodoc:
         new(value * SECONDS_PER_YEAR, [[:years, value]])
+      end
+
+      # Creates a new Duration from a seconds value that is converted
+      # to the individual parts:
+      #
+      #   ActiveSupport::Duration.build(31556952).parts # => {:years=>1}
+      #   ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
+      #
+      def build(value)
+        parts = {}
+        remainder = value.to_f
+
+        PARTS.each do |part|
+          unless part == :seconds
+            part_in_seconds = PARTS_IN_SECONDS[part]
+            parts[part] = remainder.div(part_in_seconds)
+            remainder = (remainder % part_in_seconds).round(9)
+          end
+        end
+
+        parts[:seconds] = remainder
+        parts.reject! { |k, v| v.zero? }
+
+        new(value, parts)
       end
 
       private
@@ -237,6 +271,18 @@ module ActiveSupport
         value / other.value
       elsif Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+      else
+        raise_type_error(other)
+      end
+    end
+
+    # Returns the modulo of this Duration by another Duration or Numeric.
+    # Numeric values are treated as seconds.
+    def %(other)
+      if Duration === other || Scalar === other
+        Duration.build(value % other.value)
+      elsif Numeric === other
+        Duration.build(value % other)
       else
         raise_type_error(other)
       end
@@ -326,7 +372,7 @@ module ActiveSupport
     def inspect #:nodoc:
       parts.
         reduce(::Hash.new(0)) { |h, (l, r)| h[l] += r; h }.
-        sort_by { |unit,  _ | [:years, :months, :weeks, :days, :hours, :minutes, :seconds].index(unit) }.
+        sort_by { |unit,  _ | PARTS.index(unit) }.
         map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
     end
