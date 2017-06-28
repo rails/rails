@@ -1,3 +1,7 @@
+*   Fix eager loading to respect `store_full_sti_class` setting.
+
+    *Ryuta Kamizono*
+
 *   Previously, when building records using a `has_many :through` association,
     if the child records were deleted before the parent was saved, they would
     still be persisted. Now, if child records are deleted before the parent is saved
