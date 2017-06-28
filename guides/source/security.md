@@ -1061,6 +1061,6 @@ Additional Resources
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
 * Subscribe to the Rails security [mailing list.](http://groups.google.com/group/rubyonrails-security)
-* [Brakeman - Rails Security Scanner](http://brakemanscanner.org/)- To perform static security analysis for Rails applications.
+* [Brakeman - Rails Security Scanner](http://brakemanscanner.org/) - To perform static security analysis for Rails applications.
 * [Keep up to date on the other application layers.](http://secunia.com/) (they have a weekly newsletter, too)
 * A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet.](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet)

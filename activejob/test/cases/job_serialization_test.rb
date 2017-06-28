@@ -44,4 +44,12 @@ class JobSerializationTest < ActiveSupport::TestCase
     job.deserialize({})
     assert_equal "en", job.locale
   end
+
+  test "serialize stores provider_job_id" do
+    job = HelloJob.new
+    assert_nil job.serialize["provider_job_id"]
+
+    job.provider_job_id = "some value set by adapter"
+    assert_equal job.provider_job_id, job.serialize["provider_job_id"]
+  end
 end

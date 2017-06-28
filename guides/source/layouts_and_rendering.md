@@ -1171,7 +1171,7 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 
 This way it is possible to use the partial without the need to declare all local variables.
 
-Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the `:object` option:
+Every partial also has a local variable with the same name as the partial (minus the leading underscore). You can pass an object in to this local variable via the `:object` option:
 
 ```erb
 <%= render partial: "customer", object: @new_customer %>

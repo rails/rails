@@ -1114,6 +1114,7 @@ module ActiveRecord
       end
 
       def reset_scope # :nodoc:
+        @offsets = {}
         @scope = nil
         self
       end

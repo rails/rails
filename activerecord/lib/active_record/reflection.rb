@@ -171,7 +171,7 @@ module ActiveRecord
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
       def join_keys
-        get_join_keys klass
+        @join_keys ||= get_join_keys(klass)
       end
 
       # Returns a list of scopes that should be applied for this Reflection
@@ -185,10 +185,30 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
+      def join_scope(table, foreign_table, foreign_klass)
+        predicate_builder = predicate_builder(table)
+        scope_chain_items = join_scopes(table, predicate_builder)
+        klass_scope       = klass_join_scope(table, predicate_builder)
+
+        key         = join_keys.key
+        foreign_key = join_keys.foreign_key
+
+        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
+
+        if klass.finder_needs_type_condition?
+          klass_scope.where!(klass.send(:type_condition, table))
+        end
+
+        if type
+          klass_scope.where!(type => foreign_klass.base_class.name)
+        end
+
+        scope_chain_items.inject(klass_scope, &:merge!)
+      end
+
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
-          [ActiveRecord::Relation.create(klass, table, predicate_builder)
-            .instance_exec(&scope)]
+          [build_scope(table, predicate_builder).instance_exec(&scope)]
         else
           []
         end
@@ -200,12 +220,7 @@ module ActiveRecord
             scope.joins_values = scope.left_outer_joins_values = [].freeze
           }
         else
-          relation = ActiveRecord::Relation.create(
-            klass,
-            table,
-            predicate_builder,
-          )
-          klass.send(:build_default_scope, relation)
+          klass.default_scoped(build_scope(table, predicate_builder))
         end
       end
 
@@ -287,12 +302,19 @@ module ActiveRecord
         JoinKeys.new(join_pk(association_klass), join_fk)
       end
 
+      def build_scope(table, predicate_builder = predicate_builder(table))
+        Relation.create(klass, table, predicate_builder)
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
         end
 
       private
+        def predicate_builder(table)
+          PredicateBuilder.new(TableMetadata.new(klass, table))
+        end
 
         def join_pk(_)
           foreign_key

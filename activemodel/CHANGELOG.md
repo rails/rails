@@ -1,4 +1,4 @@
-*   Fix regression in numericality validator when comparing Decimal and Float input 
+*   Fix regression in numericality validator when comparing Decimal and Float input
     values with more scale than the schema.
 
     *Bradley Priest*

@@ -1,3 +1,10 @@
+*   Previously, when building records using a `has_many :through` association,
+    if the child records were deleted before the parent was saved, they would
+    still be persisted. Now, if child records are deleted before the parent is saved
+    on a `has_many :through` association, the child records will not be persisted.
+
+    *Tobias Kraze*
+
 *   Merging two relations representing nested joins no longer transforms the joins of
     the merged relation into LEFT OUTER JOIN. Example to clarify:
 

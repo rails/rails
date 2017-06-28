@@ -147,7 +147,7 @@ module ActiveRecord
         def preloaders_for_one(association, records, scope)
           grouped_records(association, records).flat_map do |reflection, klasses|
             klasses.map do |rhs_klass, rs|
-              loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
+              loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
               loader.run self
               loader
             end
@@ -159,6 +159,7 @@ module ActiveRecord
           records.each do |record|
             next unless record
             assoc = record.association(association)
+            next unless assoc.klass
             klasses = h[assoc.reflection] ||= {}
             (klasses[assoc.klass] ||= []) << record
           end
@@ -180,20 +181,11 @@ module ActiveRecord
           end
         end
 
-        class NullPreloader # :nodoc:
-          def self.new(klass, owners, reflection, preload_scope); self; end
-          def self.run(preloader); end
-          def self.preloaded_records; []; end
-          def self.owners; []; end
-        end
-
         # Returns a class containing the logic needed to load preload the data
         # and attach it to a relation. For example +Preloader::Association+ or
         # +Preloader::HasManyThrough+. The class returned implements a `run` method
         # that accepts a preloader.
-        def preloader_for(reflection, owners, rhs_klass)
-          return NullPreloader unless rhs_klass
-
+        def preloader_for(reflection, owners)
           if owners.first.association(reflection.name).loaded?
             return AlreadyLoaded
           end

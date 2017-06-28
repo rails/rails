@@ -1122,7 +1122,7 @@ module ActiveRecord
         validate_order_args(order_args)
 
         references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name

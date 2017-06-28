@@ -21,7 +21,7 @@ module ActiveRecord
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        alias_tracker = AliasTracker.create connection, association.klass.table_name, klass.type_caster
+        alias_tracker = AliasTracker.create connection, association.klass.table_name
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! reflection.extensions
@@ -112,7 +112,11 @@ module ActiveRecord
           runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
           previous_reflection = runtime_reflection
           reflection.chain.drop(1).each do |refl|
-            alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
+            alias_name = tracker.aliased_table_for(
+              refl.table_name,
+              refl.alias_candidate(name),
+              refl.klass.type_caster
+            )
             proxy = ReflectionProxy.new(refl, alias_name)
             previous_reflection.next = proxy
             previous_reflection = proxy
@@ -138,7 +142,7 @@ module ActiveRecord
             # Exclude the scope of the association itself, because that
             # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
-              item = eval_scope(reflection.klass, table, scope_chain_item, owner)
+              item = eval_scope(reflection, table, scope_chain_item, owner)
 
               if scope_chain_item == refl.scope
                 scope.merge! item.except(:where, :includes)
@@ -159,9 +163,8 @@ module ActiveRecord
           scope
         end
 
-        def eval_scope(klass, table, scope, owner)
-          predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-          ActiveRecord::Relation.create(klass, table, predicate_builder).instance_exec(owner, &scope)
+        def eval_scope(reflection, table, scope, owner)
+          reflection.build_scope(table).instance_exec(owner, &scope)
         end
     end
   end

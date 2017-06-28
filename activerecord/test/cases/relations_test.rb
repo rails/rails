@@ -1717,6 +1717,9 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
+    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
+
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
 
@@ -1734,6 +1737,9 @@ class RelationTest < ActiveRecord::TestCase
   def test_automatically_added_reorder_references
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values

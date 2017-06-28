@@ -228,7 +228,7 @@ module ActiveRecord
     end
 
     def test_relation_merging_with_merged_symbol_joins_keeps_inner_joins
-      queries = capture_sql { authors_with_commented_posts = Author.joins(:posts).merge(Post.joins(:comments)).to_a }
+      queries = capture_sql { Author.joins(:posts).merge(Post.joins(:comments)).to_a }
 
       nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
       assert_equal 2, nb_inner_join, "Wrong amount of INNER JOIN in query"
