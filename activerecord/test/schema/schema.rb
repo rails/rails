@@ -107,7 +107,7 @@ ActiveRecord::Schema.define do
     t.boolean :has_fun, null: false, default: false
   end
 
-  create_table :bulbs, force: true do |t|
+  create_table :bulbs, primary_key: "ID", force: true do |t|
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome, default: false
