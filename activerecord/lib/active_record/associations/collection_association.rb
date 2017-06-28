@@ -44,10 +44,7 @@ module ActiveRecord
         if loaded?
           target.pluck(reflection.association_primary_key)
         else
-          @association_ids ||= (
-            column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-            scope.pluck(column)
-          )
+          @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
       end
 
