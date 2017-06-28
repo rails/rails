@@ -74,8 +74,8 @@ module ActiveSupport
 
       def /(other)
         if Duration === other
-          new_parts = other.parts.map { |part, other_value| [part, value / other_value] }.to_h
-          new_value = new_parts.inject(0) { |total, (part, value)| total + value * Duration::PARTS_IN_SECONDS[part] }
+          new_parts = other.parts.map { |part, other_value| [part, value / (Duration::PARTS_IN_SECONDS[part] * other_value)] }.to_h
+          new_value = new_parts.inject(0) { |total, (part, value)| total + value }
 
           Duration.new(new_value, new_parts)
         else
