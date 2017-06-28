@@ -432,11 +432,11 @@ class DurationTest < ActiveSupport::TestCase
     rental_end = DateTime.parse("01-01-2017 12:45:00").utc.in_time_zone("Europe/Berlin")
     rental_start = DateTime.parse("01-01-2017 12:00:00").utc.in_time_zone("Europe/Berlin")
     assert 0.75, (rental_end - rental_start) / 1.hour
- 
+
     assert_equal 2, 7200 / 1.hour
     assert_equal 1, 3600 / 1.hour
   end
-  
+
   def test_twelve_months_equals_one_year
     assert_equal 12.months, 1.year
   end
