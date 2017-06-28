@@ -694,7 +694,7 @@ module ActiveRecord
             auto_increment: column.auto_increment?
           }
 
-          current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", "SCHEMA")["Type"]
+          current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA")["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
