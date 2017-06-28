@@ -200,7 +200,7 @@ module ActiveRecord
         end
 
         if type
-          klass_scope.where!(type => foreign_klass.base_class.name)
+          klass_scope.where!(type => foreign_klass.base_class.sti_name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
