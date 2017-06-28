@@ -1,3 +1,25 @@
+*   Fix modulo operations involving durations
+
+    Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper
+    around a numeric value as a way of ensuring a duration was the outcome of
+    an expression. However the implementation was missing support for modulo
+    operations. This support has now been added and should result in a duration
+    being returned from expressions involving modulo operations.
+
+    Prior to Rails 5.1:
+
+        5.minutes % 2.minutes
+        => 60
+
+    Now:
+
+        5.minutes % 2.minutes
+        => 1 minute
+
+    Fixes #29603 and #29743.
+
+    *Sayan Chakraborty*, *Andrew White*
+
 *   Fix division where a duration is the denominator
 
     PR #29163 introduced a change in behavior when a duration was the denominator
