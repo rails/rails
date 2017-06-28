@@ -63,11 +63,8 @@ module ActiveRecord
               else
                 klass.send(:build_default_scope, relation)
               end
-            scope_chain_items.concat [klass_scope].compact
 
-            rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
-              left.merge right
-            end
+            rel = scope_chain_items.inject(klass_scope || scope_chain_items.shift, &:merge!)
 
             if rel && !rel.arel.constraints.empty?
               binds += rel.bound_attributes
