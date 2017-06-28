@@ -745,35 +745,35 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.all.merge!(order: "id").first
     collection = firm.clients
 
-    original_object_id = collection.first.object_id
-    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
 
     # It should return a different object, since the association has been reloaded
-    assert_not_equal original_object_id, firm.clients.first.object_id, "Expected #first to return a new object"
+    assert_not_same original_object, firm.clients.first, "Expected #first to return a new object"
   end
 
   def test_find_first_after_reset
     firm = Firm.all.merge!(order: "id").first
     collection = firm.clients
 
-    original_object_id = collection.first.object_id
-    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
     collection.reset
 
     # It should return a different object, since the association has been reloaded
-    assert_not_equal original_object_id, collection.first.object_id, "Expected #first after #reload to return a new object"
+    assert_not_same original_object, collection.first, "Expected #first after #reset to return a new object"
   end
 
   def test_find_first_after_reload
     firm = Firm.all.merge!(order: "id").first
     collection = firm.clients
 
-    original_object_id = collection.first.object_id
-    assert_equal original_object_id, collection.first.object_id, "Expected second call to #first to cache the same object"
-    collection.reset
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
+    collection.reload
 
     # It should return a different object, since the association has been reloaded
-    assert_not_equal original_object_id, collection.first.object_id, "Expected #first after #reload to return a new object"
+    assert_not_same original_object, collection.first, "Expected #first after #reload to return a new object"
   end
 
   def test_find_all_with_include_and_conditions
@@ -2354,8 +2354,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create!
     bulb = Bulb.create! name: "other", car: car
 
-    assert_equal bulb, Car.find(car.id).all_bulbs.first
-    assert_equal bulb, Car.includes(:all_bulbs).find(car.id).all_bulbs.first
+    assert_equal [bulb], Car.find(car.id).all_bulbs
+    assert_equal [bulb], Car.includes(:all_bulbs).find(car.id).all_bulbs
+    assert_equal [bulb], Car.eager_load(:all_bulbs).find(car.id).all_bulbs
   end
 
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do

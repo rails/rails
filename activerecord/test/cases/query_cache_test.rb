@@ -42,7 +42,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Task.find 1
       Task.find 1
-      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
@@ -320,18 +321,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  def test_cache_is_available_when_connection_is_connected
-    conf = ActiveRecord::Base.configurations
-
-    ActiveRecord::Base.configurations = {}
-    Task.cache do
-      assert_queries(1) { Task.find(1); Task.find(1) }
-    end
-  ensure
-    ActiveRecord::Base.configurations = conf
-  end
-
-  def test_cache_is_not_available_when_using_a_not_connected_connection
+  def test_cache_is_available_when_using_a_not_connected_connection
     with_temporary_connection_pool do
       spec_name = Task.connection_specification_name
       conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
@@ -348,8 +338,7 @@ class QueryCacheTest < ActiveRecord::TestCase
             end
             ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
           end
-          Task.connection # warmup postgresql connection setup queries
-          assert_queries(2) { Task.find(1); Task.find(1) }
+          assert_queries(1) { Task.find(1); Task.find(1) }
         ensure
           ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
           Task.connection_specification_name = spec_name
