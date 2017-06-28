@@ -304,7 +304,7 @@ module ActiveRecord
           sc = reflection.association_scope_cache(conn, owner) do
             StatementCache.create(conn) { |params|
               as = AssociationScope.create { params.bind }
-              target_scope.merge as.scope(self, conn)
+              target_scope.merge!(as.scope(self))
             }
           end
 
