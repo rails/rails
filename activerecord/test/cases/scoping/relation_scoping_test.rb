@@ -229,6 +229,15 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoping_is_correctly_restored
+    Comment.unscoped do
+      SpecialComment.unscoped.created
+    end
+
+    assert_nil Comment.current_scope
+    assert_nil SpecialComment.current_scope
+  end
+
   def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
       Post.first(10)
