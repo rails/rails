@@ -180,6 +180,13 @@ module ActionController
     # Returns a new array of the keys of the parameters.
 
     ##
+    # :method: to_s
+    #
+    # :call-seq:
+    #   to_s()
+    # Returns the content of the parameters as a string.
+
+    ##
     # :method: value?
     #
     # :call-seq:
@@ -195,7 +202,7 @@ module ActionController
     #
     # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
-      :as_json, to: :@parameters
+      :as_json, :to_s, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
