@@ -108,6 +108,7 @@ module ActiveRecord
                   "sql.active_record",
                   sql: sql,
                   binds: binds,
+                  type_casted_binds: -> { type_casted_binds(binds) },
                   name: name,
                   connection_id: object_id,
                   cached: true,
