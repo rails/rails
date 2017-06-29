@@ -266,3 +266,12 @@ class DeveloperWithIncorrectlyOrderedHasManyThrough < ActiveRecord::Base
   has_many :companies, through: :contracts
   has_many :contracts, foreign_key: :developer_id
 end
+
+class DeveloperWithRedefinedHasManyThroughAssociation < ActiveRecord::Base
+  self.table_name = "developers"
+
+  has_many :companies
+
+  has_many :contracts, foreign_key: :developer_id
+  has_many :companies, through: :contracts
+end

@@ -1246,6 +1246,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_correctly_ordered_through_association_for_redefined_association
+    assert_nothing_raised do
+      DeveloperWithRedefinedHasManyThroughAssociation.create(
+        companies: [Company.create]
+      )
+    end
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
