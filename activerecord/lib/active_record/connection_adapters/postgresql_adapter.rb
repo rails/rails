@@ -326,14 +326,14 @@ module ActiveRecord
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
         end
-        select_value("SELECT pg_try_advisory_lock(#{lock_id});")
+        query_value("SELECT pg_try_advisory_lock(#{lock_id})")
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
         end
-        select_value("SELECT pg_advisory_unlock(#{lock_id})")
+        query_value("SELECT pg_advisory_unlock(#{lock_id})")
       end
 
       def enable_extension(name)
@@ -350,15 +350,14 @@ module ActiveRecord
 
       def extension_enabled?(name)
         if supports_extensions?
-          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
-            "SCHEMA"
+          res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
           res.cast_values.first
         end
       end
 
       def extensions
         if supports_extensions?
-          exec_query("SELECT extname from pg_extension", "SCHEMA").cast_values
+          exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
         else
           super
         end
@@ -366,14 +365,14 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @max_identifier_length ||= select_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
       alias index_name_length table_alias_length
 
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        exec_query "SET SESSION AUTHORIZATION #{user}"
+        execute("SET SESSION AUTHORIZATION #{user}")
       end
 
       def use_insert_returning?
@@ -382,11 +381,6 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first["oid"].to_i
-        super(oid)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
