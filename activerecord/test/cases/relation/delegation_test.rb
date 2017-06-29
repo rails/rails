@@ -21,8 +21,22 @@ module ActiveRecord
     end
   end
 
+  module DeprecatedArelDelegationTests
+    AREL_METHODS = [
+      :with, :orders, :froms, :project, :projections, :taken, :constraints, :exists, :locked, :where_sql,
+      :ast, :source, :join_sources, :to_dot, :bind_values, :create_insert, :create_true, :create_false
+    ]
+
+    def test_deprecate_arel_delegation
+      AREL_METHODS.each do |method|
+        assert_deprecated { target.public_send(method) }
+      end
+    end
+  end
+
   class DelegationAssociationTest < ActiveRecord::TestCase
     include DelegationWhitelistTests
+    include DeprecatedArelDelegationTests
 
     fixtures :posts
 
@@ -33,6 +47,7 @@ module ActiveRecord
 
   class DelegationRelationTest < ActiveRecord::TestCase
     include DelegationWhitelistTests
+    include DeprecatedArelDelegationTests
 
     fixtures :comments
 
