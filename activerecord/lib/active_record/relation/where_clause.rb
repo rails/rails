@@ -96,9 +96,13 @@ module ActiveRecord
 
       private
 
+        def node_referenced_by_other?(node, other)
+          equality_node?(node) && other.referenced_columns.include?(node.left)
+        end
+
         def predicates_unreferenced_by(other)
           predicates.reject do |n|
-            equality_node?(n) && other.referenced_columns.include?(n.left)
+            node_referenced_by_other?(n, other)
           end
         end
 
@@ -107,9 +111,12 @@ module ActiveRecord
         end
 
         def non_conflicting_binds(other)
-          conflicts = referenced_columns & other.referenced_columns
-          conflicts.map! { |node| node.name.to_s }
-          binds.reject { |attr| conflicts.include?(attr.name) }
+          # Choose all predicates that had bound params to work with them based on index
+          predicates_with_binds = predicates.select { |predicate| equality_node?(predicate) && predicate.right.is_a?(Arel::Nodes::BindParam) }
+          binds.reject.with_index do |_bind, idx|
+            predicate = predicates_with_binds[idx]
+            node_referenced_by_other?(predicate, other)
+          end
         end
 
         def inverted_predicates
