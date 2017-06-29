@@ -542,7 +542,7 @@ test:
 
 production:
   adapter: redis
-  url: redis://10.10.3.153:6381
+  url: redis://:secret@10.10.3.153:6381/12
   channel_prefix: appname_production
 ```
 #### Adapter Configuration
@@ -556,9 +556,15 @@ The async adapter is intended for development/testing and should not be used in 
 ##### Redis Adapter
 
 Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
-of the adapters require users to provide a URL pointing to the Redis server.
+of the adapters require users to provide a `redis://` URL pointing to the Redis server.
+See [Redis Scheme Syntax](https://www.iana.org/assignments/uri-schemes/prov/redis) to look into
+what you can pass within URL.
+
 Additionally, a channel_prefix may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
+
+In the case of "normal" Redis, you can choose to pass `:host`, `:port`, `:db`, `:password` instead,
+as seen in the [redis gem](https://github.com/redis/redis-rb#getting-started).
 
 ##### PostgreSQL Adapter
 
