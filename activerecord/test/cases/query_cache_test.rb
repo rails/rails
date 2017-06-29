@@ -323,6 +323,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_is_available_when_using_a_not_connected_connection
+    skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
       spec_name = Task.connection_specification_name
       conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
@@ -332,13 +333,6 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       Task.cache do
         begin
-          if in_memory_db?
-            Task.connection.create_table :tasks do |t|
-              t.datetime :starting
-              t.datetime :ending
-            end
-            ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
-          end
           assert_queries(1) { Task.find(1); Task.find(1) }
         ensure
           ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
