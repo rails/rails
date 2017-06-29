@@ -47,7 +47,7 @@ module ActiveRecord
           def schema_collation(column)
             if column.collation && table_name = column.table_name
               @table_collation_cache ||= {}
-              @table_collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE #{quote(table_name)}")["Collation"]
+              @table_collation_cache[table_name] ||= exec_query("SHOW TABLE STATUS LIKE #{quote(table_name)}", "SCHEMA").first["Collation"]
               column.collation.inspect if column.collation != @table_collation_cache[table_name]
             end
           end
@@ -64,7 +64,7 @@ module ActiveRecord
                     " WHERE table_schema = #{scope[:schema]}" \
                     "   AND table_name = #{scope[:name]}" \
                     "   AND column_name = #{quote(column.name)}"
-              select_value(sql, "SCHEMA").inspect
+              query_value(sql, "SCHEMA").inspect
             end
           end
       end

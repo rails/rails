@@ -11,7 +11,7 @@ module ActiveRecord
           end
 
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
-            index_sql = select_value(<<-SQL, "SCHEMA")
+            index_sql = query_value(<<-SQL, "SCHEMA")
               SELECT sql
               FROM sqlite_master
               WHERE name = #{quote(row['name'])} AND type = 'index'
