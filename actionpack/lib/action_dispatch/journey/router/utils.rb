@@ -13,6 +13,8 @@ module ActionDispatch
         #   normalize_path("")      # => "/"
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
+          path = path.dup || ""
+          path.force_encoding(Encoding::UTF_8)
           path = "/#{path}"
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
