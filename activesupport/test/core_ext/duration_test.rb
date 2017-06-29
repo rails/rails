@@ -410,7 +410,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 10, 100.seconds / scalar
     assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
     assert_equal 5, scalar / 2.seconds
-    assert_instance_of ActiveSupport::Duration, scalar / 2.seconds
+    assert_instance_of Float, scalar / 2.seconds
 
     exception = assert_raises(TypeError) do
       scalar / "foo"
@@ -420,12 +420,12 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_scalar_divide_parts
-    scalar = ActiveSupport::Duration::Scalar.new(10)
+    scalar = ActiveSupport::Duration::Scalar.new(10 * 24 * 60 * 60)
 
-    assert_equal({ days: 2 }, (scalar / 5.days).parts)
-    assert_equal(172800, (scalar / 5.days).value)
-    assert_equal({ days: -2 }, (scalar / -5.days).parts)
-    assert_equal(-172800, (scalar / -5.days).value)
+    assert_instance_of(Float, (scalar / 5.days))
+    assert_equal(2, (scalar / 5.days))
+    assert_instance_of(Float, (scalar / -5.days))
+    assert_equal(-2, (scalar / -5.days))
   end
 
   def test_divide_by_duration
