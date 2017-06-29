@@ -9,7 +9,7 @@
     After:
         rental_end = DateTime.parse('01-01-2017 12:45:00').utc.in_time_zone('Europe/Berlin')
         rental_start = DateTime.parse('01-01-2017 12:00:00').utc.in_time_zone('Europe/Berlin')
-        (rental_end.to_f - rental_start.to_f) / 1.hour.to_f
+        (rental_end - rental_start) / 1.hour
         => 0.75
         
     *Stuart Swindells*
