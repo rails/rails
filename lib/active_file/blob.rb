@@ -1,9 +1,9 @@
-# Schema: id, token, filename, content_type, metadata, byte_size, digest, created_at
+# Schema: id, key, filename, content_type, metadata, byte_size, digest, created_at
 class ActiveFile::Blob < ActiveRecord::Base
   self.table_name = "rails_active_file_blobs"
 
+  has_secure_token :key
   store :metadata, coder: JSON
-  has_secure_token
 
   class_attribute :verifier, default: -> { Rails.application.message_verifier('ActiveFile') }
   class_attribute :storage
