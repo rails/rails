@@ -1,4 +1,4 @@
-require "active_model/type/immutable_string"
+require_relative "immutable_string"
 
 module ActiveModel
   module Type

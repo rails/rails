@@ -23,7 +23,7 @@
 
 require "active_support"
 require "active_support/rails"
-require "active_model/version"
+require_relative "active_model/version"
 
 module ActiveModel
   extend ActiveSupport::Autoload
