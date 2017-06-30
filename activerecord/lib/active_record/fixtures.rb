@@ -4,8 +4,8 @@ require "zlib"
 require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
-require "active_record/fixture_set/file"
-require "active_record/errors"
+require_relative "fixture_set/file"
+require_relative "errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
