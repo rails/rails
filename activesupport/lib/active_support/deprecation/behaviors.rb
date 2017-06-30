@@ -1,4 +1,4 @@
-require "active_support/notifications"
+require_relative "../notifications"
 
 module ActiveSupport
   # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
@@ -25,7 +25,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require "active_support/logger"
+              require_relative "../logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message

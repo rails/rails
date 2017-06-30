@@ -1,6 +1,6 @@
-require "active_support/log_subscriber"
-require "active_support/logger"
-require "active_support/notifications"
+require_relative "../log_subscriber"
+require_relative "../logger"
+require_relative "../notifications"
 
 module ActiveSupport
   class LogSubscriber

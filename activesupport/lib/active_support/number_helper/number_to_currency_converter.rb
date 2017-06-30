@@ -1,4 +1,4 @@
-require "active_support/core_ext/numeric/inquiry"
+require_relative "../core_ext/numeric/inquiry"
 
 module ActiveSupport
   module NumberHelper

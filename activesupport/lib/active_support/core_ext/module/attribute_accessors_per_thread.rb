@@ -1,5 +1,5 @@
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
+require_relative "../array/extract_options"
+require_relative "../regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance

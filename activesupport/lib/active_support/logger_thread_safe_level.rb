@@ -1,4 +1,4 @@
-require "active_support/concern"
+require_relative "concern"
 
 module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:

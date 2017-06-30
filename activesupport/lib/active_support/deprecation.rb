@@ -12,13 +12,13 @@ module ActiveSupport
     # a circular require warning for active_support/deprecation.rb.
     #
     # So, we define the constant first, and load dependencies later.
-    require "active_support/deprecation/instance_delegator"
-    require "active_support/deprecation/behaviors"
-    require "active_support/deprecation/reporting"
-    require "active_support/deprecation/constant_accessor"
-    require "active_support/deprecation/method_wrappers"
-    require "active_support/deprecation/proxy_wrappers"
-    require "active_support/core_ext/module/deprecation"
+    require_relative "deprecation/instance_delegator"
+    require_relative "deprecation/behaviors"
+    require_relative "deprecation/reporting"
+    require_relative "deprecation/constant_accessor"
+    require_relative "deprecation/method_wrappers"
+    require_relative "deprecation/proxy_wrappers"
+    require_relative "core_ext/module/deprecation"
 
     include Singleton
     include InstanceDelegator

@@ -1,4 +1,4 @@
-require "active_support/callbacks"
+require_relative "callbacks"
 
 module ActiveSupport
   class ExecutionWrapper

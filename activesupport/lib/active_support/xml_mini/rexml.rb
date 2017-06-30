@@ -1,5 +1,5 @@
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/kernel/reporting"
+require_relative "../core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
