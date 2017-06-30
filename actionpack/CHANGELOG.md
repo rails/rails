@@ -1,4 +1,4 @@
-*   Fallback `ActionParameters#to_s` to `Hash#to_s`.
+*   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
 
     *Kir Shatrov*
 
