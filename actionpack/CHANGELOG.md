@@ -1,3 +1,8 @@
+*   Fallback `ActionParameters#to_s` to `Hash#to_s`.
+
+    *Kir Shatrov*
+
+
 ## Rails 5.0.4 (June 19, 2017) ##
 
 *   No changes.
