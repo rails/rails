@@ -27,7 +27,6 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
 
   def delete(key)
     File.delete(path_for(key))
-    true
   end
 
   def size(key)
