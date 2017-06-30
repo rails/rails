@@ -1,5 +1,5 @@
-require "rails/command"
-require "rails/test_unit/minitest_plugin"
+require_relative "../../command"
+require_relative "../../test_unit/minitest_plugin"
 
 module Rails
   module Command

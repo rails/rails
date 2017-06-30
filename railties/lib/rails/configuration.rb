@@ -1,7 +1,7 @@
 require "active_support/ordered_options"
 require "active_support/core_ext/object"
-require "rails/paths"
-require "rails/rack"
+require_relative "paths"
+require_relative "rack"
 
 module Rails
   module Configuration

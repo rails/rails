@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/introspection"
-require "rails/generators/base"
-require "rails/generators/generated_attribute"
+require_relative "base"
+require_relative "generated_attribute"
 
 module Rails
   module Generators

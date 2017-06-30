@@ -1,5 +1,5 @@
 require "active_support"
-require "rails/secrets"
+require_relative "../../secrets"
 
 module Rails
   module Command
@@ -50,8 +50,8 @@ module Rails
 
       private
         def generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
+          require_relative "../../generators"
+          require_relative "../../generators/rails/encrypted_secrets/encrypted_secrets_generator"
 
           Rails::Generators::EncryptedSecretsGenerator
         end
