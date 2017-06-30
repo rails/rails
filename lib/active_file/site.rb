@@ -26,5 +26,7 @@ class ActiveFile::Site
 
   def move(from_key:, to_key:)
   end
+end
 
+module ActiveFile::Sites
 end

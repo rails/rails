@@ -1,3 +1,8 @@
+require "active_file/site"
+
+require "fileutils"
+require "pathname"
+
 class ActiveFile::Sites::DiskSite < ActiveFile::Site
   attr_reader :root
 
