@@ -1,5 +1,5 @@
-require "action_dispatch/http/request"
-require "action_dispatch/middleware/exception_wrapper"
+require_relative "../http/request"
+require_relative "exception_wrapper"
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application

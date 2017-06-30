@@ -1,4 +1,4 @@
-require "action_dispatch/journey/nfa/dot"
+require_relative "dot"
 
 module ActionDispatch
   module Journey # :nodoc:
