@@ -33,7 +33,7 @@ class ActiveFile::Blob < ActiveRecord::Base
   end
 
   def delete
-    site.delete token
+    site.delete(key)
   end
 
   def purge
