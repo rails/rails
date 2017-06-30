@@ -35,6 +35,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert @params.as_json.key? "person"
   end
 
+  test "to_s returns the string representation of the parameters hash" do
+    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
+      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
+  end
+
   test "each carries permitted status" do
     @params.permit!
     @params.each { |key, value| assert(value.permitted?) if key == "person" }

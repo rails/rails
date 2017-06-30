@@ -345,6 +345,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_field_tag_with_ac_parameters
+    actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
+    expected = %(<input id="title" name="title" type="text" value="{&quot;key&quot;=&gt;&quot;value&quot;}" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag_size_string
     actual = text_field_tag "title", "Hello!", "size" => "75"
     expected = %(<input id="title" name="title" size="75" type="text" value="Hello!" />)
