@@ -437,7 +437,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_if_skip_system_test_is_given
-    run_generator [destination_root, "--skip_system_test"]
+    run_generator [destination_root, "--skip-system-test"]
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
@@ -445,7 +445,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_does_not_generate_system_test_files_if_skip_system_test_is_given
-    run_generator [destination_root, "--skip_system_test"]
+    run_generator [destination_root, "--skip-system-test"]
 
     Dir.chdir(destination_root) do
       quietly { `./bin/rails g scaffold User` }
