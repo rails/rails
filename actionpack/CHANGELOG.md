@@ -1,5 +1,9 @@
 ## Rails 5.1.2 (June 26, 2017) ##
 
+*   Fallback `ActionParameters#to_s` to `Hash#to_s`.
+
+    *Kir Shatrov*
+
 *   `driven_by` now registers poltergeist and capybara-webkit
 
     If driver poltergeist or capybara-webkit is set for System Tests,
