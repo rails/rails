@@ -40,7 +40,7 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
 
   private
     def path_for(key)
-      File.join(root, folder_for(key), normalize(key))
+      File.join(root, folder_for(key), key)
     end
 
     def folder_for(key)
