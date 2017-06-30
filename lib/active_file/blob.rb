@@ -1,3 +1,5 @@
+require "active_file/site"
+
 # Schema: id, key, filename, content_type, metadata, byte_size, digest, created_at
 class ActiveFile::Blob < ActiveRecord::Base
   self.table_name = "active_file_blobs"
@@ -6,7 +8,7 @@ class ActiveFile::Blob < ActiveRecord::Base
   store :metadata, coder: JSON
 
   class_attribute :verifier, default: -> { Rails.application.message_verifier('ActiveFile') }
-  class_attribute :storage
+  class_attribute :site
 
   class << self
     def find_verified(signed_id)
@@ -31,7 +33,7 @@ class ActiveFile::Blob < ActiveRecord::Base
   end
 
   def delete
-    storage.delete token
+    site.delete token
   end
 
   def purge

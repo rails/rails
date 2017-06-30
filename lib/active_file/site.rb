@@ -1,4 +1,7 @@
-class ActiveFile::Store
+class ActiveFile::Site
+  def initialize
+  end
+
   def upload(key, data)
   end
 
@@ -23,4 +26,11 @@ class ActiveFile::Store
 
   def move(from_key:, to_key:)
   end
+
+
+  private
+    def normalize_key(key)
+      # disallow "." and ".." segments in the key
+      key.split(%r[/]).reject { |s| s == "." || s == ".." }
+    end
 end
