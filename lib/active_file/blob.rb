@@ -28,9 +28,11 @@ class ActiveFile::Blob < ActiveRecord::Base
     end
   end
 
+
   def filename
     Filename.new(filename)
   end
+
 
   def delete
     site.delete(key)
