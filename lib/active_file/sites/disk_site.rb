@@ -15,13 +15,13 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
 
   def download(key)
     if block_given?
-      open(key) do |file|
+      open(path_for(key)) do |file|
         while data = file.read(65536)
           yield data
         end
       end
     else
-      open(key, &:read)
+      open(path_for(key), &:read)
     end
   end
 
