@@ -22,7 +22,7 @@ module ActiveRecord
         private
 
           def visit_AlterTable(o)
-            sql = "ALTER TABLE #{quote_table_name(o.name)} "
+            sql = "ALTER TABLE #{quote_table_name(o.name)} ".dup
             sql << o.adds.map { |col| accept col }.join(" ")
             sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
             sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
@@ -30,17 +30,17 @@ module ActiveRecord
 
           def visit_ColumnDefinition(o)
             o.sql_type = type_to_sql(o.type, o.options)
-            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}".dup
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
           def visit_AddColumnDefinition(o)
-            "ADD #{accept(o.column)}"
+            "ADD #{accept(o.column)}".dup
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} ".dup
 
             statements = o.columns.map { |c| accept c }
             statements << accept(o.primary_keys) if o.primary_keys

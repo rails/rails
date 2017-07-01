@@ -406,7 +406,7 @@ module ActiveRecord
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
           sql_type = type_to_sql(type, options)
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
           if options[:collation]
             sql << " COLLATE \"#{options[:collation]}\""
           end
@@ -566,7 +566,7 @@ module ActiveRecord
               super
             end
 
-          sql << "[]" if array && type != :primary_key
+          sql = "#{sql}[]" if array && type != :primary_key
           sql
         end
 
@@ -635,7 +635,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
 
-            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"

@@ -16,7 +16,7 @@ module ActiveRecord
           end
 
           def visit_ChangeColumnDefinition(o)
-            change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}"
+            change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}".dup
             add_column_position!(change_column_sql, column_options(o.column))
           end
 
@@ -63,7 +63,7 @@ module ActiveRecord
 
           def index_in_create(table_name, column_name, options)
             index_name, index_type, index_columns, _, _, index_using, comment = @conn.add_index_options(table_name, column_name, options)
-            add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})", comment)
+            add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})".dup, comment)
           end
       end
     end
