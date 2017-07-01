@@ -74,7 +74,7 @@ module ActiveRecord
       CODE
     end
 
-    def bound_attributes
+    def bound_attributes # :nodoc:
       if limit_value
         limit_bind = Attribute.with_cast_value(
           "LIMIT".freeze,
