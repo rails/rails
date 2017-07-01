@@ -245,8 +245,8 @@ module ActionView
         end
 
         if options[:srcset] && !options[:srcset].is_a?(String)
-          options[:srcset] = options[:srcset].map do |src, size|
-            src_path = path_to_image(src, skip_pipeline: skip_pipeline)
+          options[:srcset] = options[:srcset].map do |src_path, size|
+            src_path = path_to_image(src_path, skip_pipeline: skip_pipeline)
             "#{src_path} #{size}"
           end.join(", ")
         end
