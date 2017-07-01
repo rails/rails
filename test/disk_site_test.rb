@@ -34,7 +34,7 @@ class ActiveFile::DiskSiteTest < ActiveSupport::TestCase
   end
 
   test "sizing" do
-    assert_equal FIXTURE_FILE.size, @site.size(FIXTURE_KEY)
+    assert_equal FIXTURE_FILE.size, @site.byte_size(FIXTURE_KEY)
   end
   
   test "checksumming" do

@@ -36,7 +36,8 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
     File.exist? path_for(key)
   end
 
-  def size(key)
+
+  def byte_size(key)
     File.size path_for(key)
   end
 
