@@ -73,7 +73,6 @@ module ActionDispatch
           @routes = {}
           @path_helpers = Set.new
           @url_helpers = Set.new
-          @custom_helpers = Set.new
           @url_helpers_module  = Module.new
           @path_helpers_module = Module.new
         end
@@ -96,23 +95,9 @@ module ActionDispatch
             @url_helpers_module.send  :remove_method, helper
           end
 
-          @custom_helpers.each do |helper|
-            path_name = :"#{helper}_path"
-            url_name = :"#{helper}_url"
-
-            if @path_helpers_module.method_defined?(path_name)
-              @path_helpers_module.send :remove_method, path_name
-            end
-
-            if @url_helpers_module.method_defined?(url_name)
-              @url_helpers_module.send :remove_method, url_name
-            end
-          end
-
           @routes.clear
           @path_helpers.clear
           @url_helpers.clear
-          @custom_helpers.clear
         end
 
         def add(name, route)
@@ -158,21 +143,29 @@ module ActionDispatch
           routes.length
         end
 
+        # Given a +name+, defines name_path and name_url helpers.
+        # Used by 'direct', 'resolve', and 'polymorphic' route helpers.
         def add_url_helper(name, defaults, &block)
-          @custom_helpers << name
           helper = CustomUrlHelper.new(name, defaults, &block)
+          path_name = :"#{name}_path"
+          url_name = :"#{name}_url"
 
           @path_helpers_module.module_eval do
-            define_method(:"#{name}_path") do |*args|
+            define_method(path_name) do |*args|
               helper.call(self, args, true)
             end
           end
 
           @url_helpers_module.module_eval do
-            define_method(:"#{name}_url") do |*args|
+            define_method(url_name) do |*args|
               helper.call(self, args, false)
             end
           end
+
+          @path_helpers << path_name
+          @url_helpers << url_name
+
+          self
         end
 
         class UrlHelper

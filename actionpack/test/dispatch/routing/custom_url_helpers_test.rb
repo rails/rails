@@ -322,4 +322,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  def test_defining_direct_url_registers_helper_method
+    assert_equal "http://www.example.com/basket", Routes.url_helpers.symbol_url
+    assert_equal true, Routes.named_routes.route_defined?(:symbol_url), "'symbol_url' named helper not found"
+    assert_equal true, Routes.named_routes.route_defined?(:symbol_path), "'symbol_path' named helper not found"
+  end
 end
