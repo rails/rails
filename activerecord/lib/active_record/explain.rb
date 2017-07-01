@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_record/explain_registry"
 
 module ActiveRecord

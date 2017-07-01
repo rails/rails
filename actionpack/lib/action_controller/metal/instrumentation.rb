@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "benchmark"
 require "abstract_controller/logger"
 

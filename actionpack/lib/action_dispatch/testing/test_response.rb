@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch

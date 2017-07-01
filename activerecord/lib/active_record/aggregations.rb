@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   # See ActiveRecord::Aggregations::ClassMethods for documentation
   module Aggregations

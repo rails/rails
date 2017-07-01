@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Pet < ActiveRecord::Base
   attr_accessor :current_user
 

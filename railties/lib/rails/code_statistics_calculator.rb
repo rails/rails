@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class CodeStatisticsCalculator #:nodoc:
   attr_reader :lines, :code_lines, :classes, :methods
 

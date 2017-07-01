@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   class AssociationRelation < Relation
     def initialize(klass, table, predicate_builder, association)

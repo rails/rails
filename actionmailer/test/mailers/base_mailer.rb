@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class BaseMailer < ActionMailer::Base
   self.mailer_name = "base_mailer"
 

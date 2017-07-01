@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "set"
 require "active_support/core_ext/regexp"
 

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rake"
 
 # Load Rails Rakefile extensions

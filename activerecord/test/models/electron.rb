@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Electron < ActiveRecord::Base
   belongs_to :molecule
 

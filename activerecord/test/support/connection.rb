@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/logger"
 require "models/college"
 require "models/course"

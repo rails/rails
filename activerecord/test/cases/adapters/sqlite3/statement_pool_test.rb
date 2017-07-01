@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 
 class SQLite3StatementPoolTest < ActiveRecord::SQLite3TestCase

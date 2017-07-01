@@ -97,6 +97,10 @@ Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
 
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
 # Detect hard tabs, no hard tabs.
 Layout/Tab:
   Enabled: true

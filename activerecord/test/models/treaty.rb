@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Treaty < ActiveRecord::Base
   self.primary_key = :treaty_id
 

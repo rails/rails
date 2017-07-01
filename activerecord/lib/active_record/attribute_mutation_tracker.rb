@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new

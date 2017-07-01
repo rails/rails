@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # -*- frozen-string-literal: true -*-
 
 require "singleton"

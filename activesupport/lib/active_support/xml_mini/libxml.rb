@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "libxml"
 require "active_support/core_ext/object/blank"
 require "stringio"

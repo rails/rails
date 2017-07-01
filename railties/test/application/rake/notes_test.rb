@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "isolation/abstract_unit"
 require "rails/source_annotation_extractor"
 

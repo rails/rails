@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 
 # The exhaustive tests are in the rails-html-sanitizer gem.

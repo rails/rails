@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_record/type_caster/map"
 require "active_record/type_caster/connection"
 

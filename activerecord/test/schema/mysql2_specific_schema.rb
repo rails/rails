@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 ActiveRecord::Schema.define do
 
   if ActiveRecord::Base.connection.version >= "5.6.0"

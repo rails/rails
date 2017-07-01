@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/rails"
 require "abstract_controller"
 require "action_dispatch"

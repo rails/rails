@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 require "active_model"
 require "controller/fake_models"

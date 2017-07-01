@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "cases/helper"
 require "models/reply"
 require "models/topic"

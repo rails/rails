@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveRecord #:nodoc:
   # = Active Record \Serialization
   module Serialization

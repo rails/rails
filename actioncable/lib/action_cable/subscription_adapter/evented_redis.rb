@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "thread"
 
 gem "em-hiredis", "~> 0.3.0"

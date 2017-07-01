@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "generators/generators_test_helper"
 require "rails/generators/generated_attribute"
 

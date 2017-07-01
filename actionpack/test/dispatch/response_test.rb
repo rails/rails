@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 require "timeout"
 require "rack/content_length"
