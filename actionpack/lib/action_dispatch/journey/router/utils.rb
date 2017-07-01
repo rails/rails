@@ -13,13 +13,13 @@ module ActionDispatch
         #   normalize_path("")      # => "/"
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
-          encoding = path.encoding
+          path = path.dup || ""
+          path.force_encoding(Encoding::UTF_8)
           path = "/#{path}"
           path.squeeze!("/".freeze)
           path.sub!(%r{/+\Z}, "".freeze)
           path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
           path = "/" if path == "".freeze
-          path.force_encoding(encoding)
           path
         end
 

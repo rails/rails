@@ -32,9 +32,9 @@ module ActionDispatch
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
 
-        def test_normalize_path_maintains_string_encoding
+        def test_normalize_path_force_encoding_to_utf8
           path = "/foo%AAbar%AAbaz".b
-          assert_equal Encoding::ASCII_8BIT, Utils.normalize_path(path).encoding
+          assert_equal Encoding::UTF_8, Utils.normalize_path(path).encoding
         end
       end
     end
