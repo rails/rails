@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/log_subscriber"
 
 module ActionView
@@ -83,7 +84,7 @@ module ActionView
 
     def log_rendering_start(payload)
       info do
-        message = "  Rendering #{from_rails_root(payload[:identifier])}"
+        message = "  Rendering #{from_rails_root(payload[:identifier])}".dup
         message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
         message
       end

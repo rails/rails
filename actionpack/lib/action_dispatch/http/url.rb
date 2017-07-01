@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -155,7 +156,7 @@ module ActionDispatch
           subdomain  = options.fetch :subdomain, true
           domain     = options[:domain]
 
-          host = ""
+          host = "".dup
           if subdomain == true
             return _host if domain.nil?
 
