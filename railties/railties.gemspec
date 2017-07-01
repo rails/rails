@@ -23,6 +23,11 @@ Gem::Specification.new do |s|
 
   s.rdoc_options << "--exclude" << "."
 
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/railties",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/railties/CHANGELOG.md"
+  }
+
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
 
