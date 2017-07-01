@@ -19,6 +19,14 @@ class ActiveFile::DiskSiteTest < ActiveSupport::TestCase
     FIXTURE_FILE.rewind
   end
 
+  test "uploading" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+    @site.upload(key, StringIO.new(data))
+
+    assert_equal data, @site.download(key)
+  end
+
   test "downloading" do
     assert_equal FIXTURE_FILE.read, @site.download(FIXTURE_KEY)
   end
