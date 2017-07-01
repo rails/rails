@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Essay < ActiveRecord::Base
   belongs_to :author
   belongs_to :writer, primary_key: :name, polymorphic: true

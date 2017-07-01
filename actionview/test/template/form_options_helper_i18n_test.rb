@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "abstract_unit"
 
 class FormOptionsHelperI18nTests < ActionView::TestCase

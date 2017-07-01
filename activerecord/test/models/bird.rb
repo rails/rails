@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Bird < ActiveRecord::Base
   belongs_to :pirate
   validates_presence_of :name

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"

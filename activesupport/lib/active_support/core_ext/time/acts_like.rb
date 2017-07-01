@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_support/core_ext/object/acts_like"
 
 class Time

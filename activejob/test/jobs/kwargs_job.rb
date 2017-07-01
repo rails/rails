@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require_relative "../support/job_buffer"
 
 class KwargsJob < ActiveJob::Base

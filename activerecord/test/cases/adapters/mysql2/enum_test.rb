@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 
 class Mysql2EnumTest < ActiveRecord::Mysql2TestCase

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_support/benchmarkable"
 
 module ActionView #:nodoc:

@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# frozen_string_literal: true
 # Profile require calls giving information about the time and the files that are called
 # when loading the provided file.
 #

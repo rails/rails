@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"

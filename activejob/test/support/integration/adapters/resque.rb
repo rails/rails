@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ResqueJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :resque

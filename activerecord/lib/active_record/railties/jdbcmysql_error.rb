@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #FIXME Remove if ArJdbcMysql will give.
 module ArJdbcMySQL #:nodoc:
   class Error < StandardError #:nodoc:

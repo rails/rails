@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module InflectorTestCases
   SingularToPlural = {
     "search"      => "searches",

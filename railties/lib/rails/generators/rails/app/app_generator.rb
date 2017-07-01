@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/generators/app_base"
 
 module Rails

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "abstract_unit"
 require "fixtures/session_autoload_test/session_autoload_test/foo"
 

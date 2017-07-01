@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 require "models/company_in_module"
 require "models/shop"

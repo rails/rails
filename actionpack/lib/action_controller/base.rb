@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "action_view"
 require "action_controller/log_subscriber"
 require "action_controller/metal/params_wrapper"

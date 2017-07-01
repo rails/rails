@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "isolation/abstract_unit"
 require "rails/command"
 require "rails/commands/secrets/secrets_command"

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 $:.unshift __dir__
 
 as_lib = File.expand_path("../activesupport/lib", __dir__)

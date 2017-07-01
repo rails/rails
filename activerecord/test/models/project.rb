@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Project < ActiveRecord::Base
   belongs_to :mentor
   has_and_belongs_to_many :developers, -> { distinct.order "developers.name desc, developers.id desc" }

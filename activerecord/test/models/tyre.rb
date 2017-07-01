@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Tyre < ActiveRecord::Base
   belongs_to :car
 

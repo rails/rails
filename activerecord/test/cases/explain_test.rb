@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 require "models/car"
 require "active_support/core_ext/string/strip"

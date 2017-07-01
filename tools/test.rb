@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 $: << File.expand_path("test", COMPONENT_ROOT)
 
 require "bundler"

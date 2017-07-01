@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 if ENV["AJ_ADAPTER"] == "delayed_job"
   generate "delayed_job:active_record", "--quiet"
 end

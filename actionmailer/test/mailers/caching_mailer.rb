@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class CachingMailer < ActionMailer::Base
   self.mailer_name = "caching_mailer"
 

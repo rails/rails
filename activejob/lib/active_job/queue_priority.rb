@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveJob
   module QueuePriority
     extend ActiveSupport::Concern

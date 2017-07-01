@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module Querying
     delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?, to: :all

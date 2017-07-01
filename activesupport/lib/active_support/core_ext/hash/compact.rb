@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Hash
   unless Hash.instance_methods(false).include?(:compact)
     # Returns a hash with non +nil+ values.

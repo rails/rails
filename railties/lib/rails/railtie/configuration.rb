@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/configuration"
 
 module Rails

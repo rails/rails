@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "backburner"
 
 Backburner::Worker.class_eval do

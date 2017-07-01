@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "yaml"
 require "active_support/message_encryptor"
 require "active_support/core_ext/string/strip"

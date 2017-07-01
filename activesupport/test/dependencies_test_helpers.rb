@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module DependenciesTestHelpers
   def with_loading(*from)
     old_mechanism, ActiveSupport::Dependencies.mechanism = ActiveSupport::Dependencies.mechanism, :load

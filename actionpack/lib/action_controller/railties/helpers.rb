@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActionController
   module Railties
     module Helpers

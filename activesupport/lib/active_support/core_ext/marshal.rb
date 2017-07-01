@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveSupport
   module MarshalWithAutoloading # :nodoc:
     def load(source, proc = nil)

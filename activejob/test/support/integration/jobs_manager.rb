@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class JobsManager
   @@managers = {}
   attr :adapter_name

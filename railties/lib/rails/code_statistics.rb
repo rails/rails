@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 

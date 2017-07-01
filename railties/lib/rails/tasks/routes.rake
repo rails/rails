@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "optparse"
 
 desc "Print out all defined routes in match order, with names. Target specific controller with -c option, or grep routes using -g option"

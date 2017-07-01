@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module CacheDeleteMatchedBehavior
   def test_delete_matched
     @cache.write("foo", "bar")

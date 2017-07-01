@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_job"
 require "support/job_buffer"
 

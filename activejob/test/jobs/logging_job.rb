@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class LoggingJob < ActiveJob::Base
   def perform(dummy)
     logger.info "Dummy, here is it: #{dummy}"

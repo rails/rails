@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 ActiveRecord::Schema.define do
 
   execute "drop table test_oracle_defaults" rescue nil

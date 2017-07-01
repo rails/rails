@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module TimeZoneTestHelpers
   def with_tz_default(tz = nil)
     old_tz = Time.zone

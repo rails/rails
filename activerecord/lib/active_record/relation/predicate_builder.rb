@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     delegate :resolve_column_aliases, to: :table

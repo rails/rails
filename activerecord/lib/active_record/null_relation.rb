@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module NullRelation # :nodoc:
     def pluck(*column_names)

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module Rails
   module Command
     class HelpCommand < Base # :nodoc:

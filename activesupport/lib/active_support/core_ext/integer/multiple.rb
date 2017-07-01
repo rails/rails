@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Integer
   # Check whether the integer is evenly divisible by the argument.
   #

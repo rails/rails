@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveSupport #:nodoc:
   module Multibyte
     autoload :Chars, "active_support/multibyte/chars"

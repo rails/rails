@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/core_ext/module/delegation"

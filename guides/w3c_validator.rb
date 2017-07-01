@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 # ---------------------------------------------------------------------------
 #
 # This script validates the generated guides against the W3C Validator.

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 
 # Without using prepared statements, it makes no sense to test

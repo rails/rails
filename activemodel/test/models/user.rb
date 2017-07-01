@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class User
   extend ActiveModel::Callbacks
   include ActiveModel::SecurePassword

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module AbstractController
   # = Abstract Controller Callbacks
   #

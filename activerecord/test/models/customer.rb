@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Customer < ActiveRecord::Base
   cattr_accessor :gps_conversion_was_run
 

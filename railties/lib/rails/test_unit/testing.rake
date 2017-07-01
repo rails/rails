@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 gem "minitest"
 require "minitest"
 require "rails/test_unit/minitest_plugin"

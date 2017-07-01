@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module CollectionCacheKey
     def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:

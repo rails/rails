@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 
 if ActiveRecord::Base.connection.supports_foreign_keys_in_create?

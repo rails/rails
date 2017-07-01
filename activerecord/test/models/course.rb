@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require_dependency "models/arunit2_model"
 
 class Course < ARUnit2Model

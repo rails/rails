@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 # This is the parent Association class which defines the variables
 # used by all associations.
 #

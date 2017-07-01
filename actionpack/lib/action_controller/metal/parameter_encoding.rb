@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActionController
   # Specify binary encoding for parameters for a given action.
   module ParameterEncoding

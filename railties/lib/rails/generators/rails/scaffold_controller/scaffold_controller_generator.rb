@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/generators/resource_helpers"
 
 module Rails

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/generators/test_unit"
 require "rails/generators/resource_helpers"
 

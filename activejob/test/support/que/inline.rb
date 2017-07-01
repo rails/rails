@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "que"
 
 Que::Job.class_eval do

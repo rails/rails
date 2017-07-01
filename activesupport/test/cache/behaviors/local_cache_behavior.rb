@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module LocalCacheBehavior
   def test_local_writes_are_persistent_on_the_remote_cache
     retval = @cache.with_local_cache do

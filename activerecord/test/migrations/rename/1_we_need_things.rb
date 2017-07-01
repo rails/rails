@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class WeNeedThings < ActiveRecord::Migration::Current
   def self.up
     create_table("things") do |t|

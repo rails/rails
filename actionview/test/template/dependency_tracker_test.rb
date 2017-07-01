@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "abstract_unit"
 require "action_view/dependency_tracker"
 

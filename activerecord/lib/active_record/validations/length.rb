@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module Validations
     class LengthValidator < ActiveModel::Validations::LengthValidator # :nodoc:

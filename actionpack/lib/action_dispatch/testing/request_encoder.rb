@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActionDispatch
   class RequestEncoder # :nodoc:
     class IdentityEncoder

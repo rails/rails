@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module CacheIncrementDecrementBehavior
   def test_increment
     @cache.write("foo", 1, raw: true)

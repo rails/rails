@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Job < ActiveRecord::Base
   has_many :references
   has_many :people, through: :references

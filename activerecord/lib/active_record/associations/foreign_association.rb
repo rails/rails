@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord::Associations
   module ForeignAssociation # :nodoc:
     def foreign_key_present?

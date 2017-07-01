@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module AttributeDecorators # :nodoc:
     extend ActiveSupport::Concern

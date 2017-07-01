@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "action_dispatch/middleware/session/abstract_store"
 begin
   require "rack/session/dalli"

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "action_dispatch/journey/scanner"
 require "action_dispatch/journey/nodes/node"
 

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "abstract_unit"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "capybara/dsl"

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rails/application_controller"
 require "action_dispatch/routing/inspector"
 

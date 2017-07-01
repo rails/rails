@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_model/type"
 
 require "active_record/type/internal/timezone"

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "active_job/railtie"
 require "action_mailer"
 require "rails"

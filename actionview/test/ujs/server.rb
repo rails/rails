@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "rack"
 require "rails"
 require "action_controller/railtie"

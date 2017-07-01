@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveModel
   module Validations
     class PresenceValidator < EachValidator # :nodoc:

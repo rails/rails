@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveModel
   module Type
     class Time < Value # :nodoc:

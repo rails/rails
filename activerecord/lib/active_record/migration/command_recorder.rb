@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during

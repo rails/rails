@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveSupport
   module EachTimeWithZone #:nodoc:
     def each(&block)

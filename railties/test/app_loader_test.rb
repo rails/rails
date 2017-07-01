@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "tmpdir"
 require "abstract_unit"
 require "rails/app_loader"

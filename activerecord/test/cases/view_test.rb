@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "cases/helper"
 require "models/book"
 require "support/schema_dumping_helper"

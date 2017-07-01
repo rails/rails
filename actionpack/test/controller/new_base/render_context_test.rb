@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "abstract_unit"
 
 # This is testing the decoupling of view renderer and view context

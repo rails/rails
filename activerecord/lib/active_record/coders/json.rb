@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   module Coders # :nodoc:
     class JSON # :nodoc:

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module Rails
   module ConsoleMethods
     # Gets the helper methods available to the controller.

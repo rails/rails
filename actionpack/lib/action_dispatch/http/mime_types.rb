@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 # Build list of Mime types for HTTP responses
 # http://www.iana.org/assignments/media-types/
 

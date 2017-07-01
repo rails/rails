@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "thread"
 require "concurrent/map"
 require "monitor"

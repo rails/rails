@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code

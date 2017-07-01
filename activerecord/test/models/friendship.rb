@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class Friendship < ActiveRecord::Base
   belongs_to :friend, class_name: "Person"
   # friend_too exists to test a bug, and probably shouldn't be used elsewhere

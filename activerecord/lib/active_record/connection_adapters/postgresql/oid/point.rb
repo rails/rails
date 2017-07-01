@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 module ActiveRecord
   Point = Struct.new(:x, :y)
 

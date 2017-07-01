@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 require "test_helper"
 require "stubs/test_server"
 
