@@ -120,11 +120,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        select_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        select_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
       end
 
       def native_database_types
@@ -152,7 +152,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity #:nodoc:
-        old = select_value("SELECT @@FOREIGN_KEY_CHECKS")
+        old = query_value("SELECT @@FOREIGN_KEY_CHECKS")
 
         begin
           update("SET FOREIGN_KEY_CHECKS = 0")
@@ -267,7 +267,7 @@ module ActiveRecord
       end
 
       def current_database
-        select_value "SELECT DATABASE() as db"
+        query_value("SELECT database()", "SCHEMA")
       end
 
       # Returns the database character set.
@@ -287,7 +287,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        select_value(<<-SQL.strip_heredoc, "SCHEMA")
+        query_value(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -393,7 +393,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
+        fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -470,7 +470,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        select_value("SELECT @@#{name}", "SCHEMA")
+        query_value("SELECT @@#{name}", "SCHEMA")
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -480,7 +480,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        select_values(<<-SQL.strip_heredoc, "SCHEMA")
+        query_values(<<-SQL.strip_heredoc, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
@@ -694,7 +694,7 @@ module ActiveRecord
             auto_increment: column.auto_increment?
           }
 
-          current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA")["Type"]
+          current_type = exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -804,7 +804,7 @@ module ActiveRecord
         end
 
         def create_table_info(table_name) # :nodoc:
-          select_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
+          exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]
         end
 
         def arel_visitor
