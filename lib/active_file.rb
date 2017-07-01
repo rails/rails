@@ -5,4 +5,5 @@ module ActiveFile
   extend ActiveSupport::Autoload
 
   autoload :Blob
+  autoload :Site
 end
