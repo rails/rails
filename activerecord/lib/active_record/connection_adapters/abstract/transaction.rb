@@ -1,8 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      VALID_STATES = Set.new([:committed, :rolledback, nil])
-
       def initialize(state = nil)
         @state = state
       end
@@ -24,10 +22,33 @@ module ActiveRecord
       end
 
       def set_state(state)
-        unless VALID_STATES.include?(state)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The set_state method is deprecated and will be removed in
+          Rails 5.2. Please use rollback! or commit! to set transaction
+          state directly.
+        MSG
+        case state
+        when :rolledback
+          rollback!
+        when :committed
+          commit!
+        when nil
+          nullify!
+        else
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
-        @state = state
+      end
+
+      def rollback!
+        @state = :rolledback
+      end
+
+      def commit!
+        @state = :committed
+      end
+
+      def nullify!
+        @state = nil
       end
     end
 
@@ -57,7 +78,7 @@ module ActiveRecord
       end
 
       def rollback
-        @state.set_state(:rolledback)
+        @state.rollback!
       end
 
       def rollback_records
@@ -72,7 +93,7 @@ module ActiveRecord
       end
 
       def commit
-        @state.set_state(:committed)
+        @state.commit!
       end
 
       def before_commit_records

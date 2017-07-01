@@ -725,6 +725,44 @@ class TransactionTest < ActiveRecord::TestCase
     assert transaction.state.committed?
   end
 
+  def test_set_state_method_is_deprecated
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_deprecated do
+      transaction.state.set_state(:rolledback)
+    end
+  end
+
+  def test_mark_transaction_state_as_committed
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.rollback
+
+    assert_equal :committed, transaction.state.commit!
+  end
+
+  def test_mark_transaction_state_as_rolledback
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_equal :rolledback, transaction.state.rollback!
+  end
+
+  def test_mark_transaction_state_as_nil
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_equal nil, transaction.state.nullify!
+  end
+
   def test_transaction_rollback_with_primarykeyless_tables
     connection = ActiveRecord::Base.connection
     connection.create_table(:transaction_without_primary_keys, force: true, id: false) do |t|

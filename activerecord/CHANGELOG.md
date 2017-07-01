@@ -1,3 +1,11 @@
+*   Deprecate `set_state` method in `TransactionState`
+
+    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
+    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
+    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Deprecate delegating to `arel` in `Relation`.
 
     *Ryuta Kamizono*
