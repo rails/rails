@@ -119,6 +119,14 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal author.changes, dumped.changes
   end
 
+  def test_yaml_encoding_keeps_false_values
+    topic = Topic.first
+    topic.approved = false
+    dumped = YAML.load(YAML.dump(topic))
+
+    assert_equal false, dumped.approved
+  end
+
   private
 
     def yaml_fixture(file_name)
