@@ -18,8 +18,8 @@ class ActiveFile::Blob < ActiveRecord::Base
     def build_after_upload(data:, filename:, content_type: nil, metadata: nil)
       new.tap do |blob|
         blob.filename = name
-        blob.content_type = Marcel::MimeType.for(data, name: name, declared_type: content_type)
-        blob.data = data
+        blob.content_type = content_type # Marcel::MimeType.for(data, name: name, declared_type: content_type)
+        blob.upload data
       end
     end
 
@@ -28,14 +28,27 @@ class ActiveFile::Blob < ActiveRecord::Base
     end
   end
 
+  # We can't wait until the record is first saved to have a key for it
+  def key
+    self[:key] ||= self.class.generate_unique_secure_token
+  end
 
   def filename
     Filename.new(filename)
   end
 
 
+  def upload(data)
+    site.upload key, data
+  end
+
+  def download
+    site.download key
+  end
+
+
   def delete
-    site.delete(key)
+    site.delete key
   end
 
   def purge

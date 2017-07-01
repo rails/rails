@@ -1,7 +1,7 @@
-class ActiveFile::CreateBlobs < ActiveRecord::Migration[5.2]
+class ActiveFile::CreateBlobs < ActiveRecord::Migration[5.1]
   def change
     create_table :active_file_blobs do |t|
-      t.string :token
+      t.string :key
       t.string :filename
       t.string :content_type
       t.integer :byte_size

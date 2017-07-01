@@ -4,3 +4,4 @@ gemspec
 
 gem 'rake'
 gem 'byebug'
+gem 'sqlite3'
