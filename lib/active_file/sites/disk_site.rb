@@ -8,6 +8,7 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
     @root = root
   end
 
+
   def upload(key, data)
     File.open(make_path_for(key), "wb") do |file|
       while chunk = data.read(65536)
@@ -44,6 +45,7 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
   def checksum(key)
     Digest::MD5.file(path_for(key)).hexdigest
   end
+
 
   private
     def path_for(key)
