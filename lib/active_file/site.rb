@@ -28,11 +28,11 @@ class ActiveFile::Site
   end
 
 
-  def copy(from_key:, to_key:)
+  def copy(from:, to:)
     raise NotImplementedError
   end
 
-  def move(from_key:, to_key:)
+  def move(from:, to:)
     raise NotImplementedError
   end
 end
