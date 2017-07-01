@@ -4,6 +4,7 @@
 
 ## Example
 
+```ruby
 class Person < ApplicationRecord
   has_one :avatar
 end
@@ -39,6 +40,7 @@ class ProfilesController < ApplicationController
     @person.update! avatar: @person.avatar.update!(image: )
   end
 end
+```
 
 ## License
 
