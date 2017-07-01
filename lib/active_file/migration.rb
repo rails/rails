@@ -5,7 +5,7 @@ class ActiveFile::CreateBlobs < ActiveRecord::Migration[5.1]
       t.string :filename
       t.string :content_type
       t.integer :byte_size
-      t.string :digest
+      t.string :checksum
       t.time :created_at
 
       t.index [ :token ], unique: true
