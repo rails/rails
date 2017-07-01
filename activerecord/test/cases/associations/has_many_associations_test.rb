@@ -2558,6 +2558,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [bulb.id], car.bulb_ids
     assert_no_queries { car.bulb_ids }
+
+    bulb2 = car.bulbs.create!
+
+    assert_equal [bulb.id, bulb2.id], car.bulb_ids
+    assert_no_queries { car.bulb_ids }
   end
 
   def test_loading_association_in_validate_callback_doesnt_affect_persistence
