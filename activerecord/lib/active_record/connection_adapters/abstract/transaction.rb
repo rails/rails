@@ -3,6 +3,11 @@ module ActiveRecord
     class TransactionState
       def initialize(state = nil)
         @state = state
+        @children = []
+      end
+
+      def add_child(state)
+        @children << state
       end
 
       def finalized?
@@ -15,6 +20,10 @@ module ActiveRecord
 
       def rolledback?
         @state == :rolledback
+      end
+
+      def fully_completed?
+        completed?
       end
 
       def completed?
@@ -40,6 +49,7 @@ module ActiveRecord
       end
 
       def rollback!
+        @children.each { |c| c.rollback! }
         @state = :rolledback
       end
 
@@ -121,8 +131,11 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-      def initialize(connection, savepoint_name, options, *args)
+      def initialize(connection, savepoint_name, parent_transaction, options, *args)
         super(connection, options, *args)
+
+        parent_transaction.state.add_child(@state)
+
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
@@ -176,7 +189,7 @@ module ActiveRecord
             if @stack.empty?
               RealTransaction.new(@connection, options, run_commit_callbacks: run_commit_callbacks)
             else
-              SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options,
+              SavepointTransaction.new(@connection, "active_record_#{@stack.size}", @stack.last, options,
                                        run_commit_callbacks: run_commit_callbacks)
             end
 
