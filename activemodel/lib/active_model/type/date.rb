@@ -17,6 +17,18 @@ module ActiveModel
         value.to_s(:db).inspect
       end
 
+      def is_utc?
+        ::Time.zone_default.nil? || ::Time.zone_default =~ "UTC"
+      end
+
+      def default_timezone
+        if is_utc?
+          :utc
+        else
+          :local
+        end
+      end
+
       private
 
         def cast_value(value)
@@ -49,7 +61,7 @@ module ActiveModel
 
         def value_from_multiparameter_assignment(*)
           time = super
-          time && time.to_date
+          time && new_date(time.year, time.mon, time.mday)
         end
     end
   end

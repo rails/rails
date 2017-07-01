@@ -15,6 +15,17 @@ module ActiveModel
         date_string = ::Time.now.utc.strftime("%F")
         assert_equal date_string, type.cast(date_string).strftime("%F")
       end
+
+      def test_returns_correct_year
+        type = Type::Date.new
+
+        time = ::Time.utc(1, 1, 1)
+        date = ::Date.new(time.year, time.mon, time.mday)
+
+        values_hash_for_multiparameter_assignment = { 1 => 1, 2 => 1, 3 => 1 }
+
+        assert_equal date, type.cast(values_hash_for_multiparameter_assignment)
+      end
     end
   end
 end

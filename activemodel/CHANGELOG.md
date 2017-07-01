@@ -1,6 +1,21 @@
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
-*   No changes.
+*  Return correct date while converting parameters in `value_from_multiparameter_assignment`
+    for `ActiveModel::Type::Date`
+
+    Before:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-03", created_at: nil, updated_at: nil>
+
+    After:
+
+        Day.new({"day(1i)"=>"1", "day(2i)"=>"1", "day(3i)"=>"1"})
+        => #<Day id: nil, day: "0001-01-01", created_at: nil, updated_at: nil>
+
+    Fixes #28521
+
+    *Sayan Chakraborty*
 
 
 ## Rails 5.2.0.beta1 (November 27, 2017) ##
