@@ -184,6 +184,7 @@ module ActionController
     #
     # :call-seq:
     #   to_s()
+    #
     # Returns the content of the parameters as a string.
 
     ##
