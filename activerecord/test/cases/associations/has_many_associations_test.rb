@@ -241,6 +241,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "defaulty", bulb.name
   end
 
+  def test_build_from_association_sets_inverse_instance
+    car = Car.new(name: "honda")
+
+    bulb = car.bulbs.build
+    assert_equal car, bulb.car
+  end
+
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(name: "honda")
     car.funky_bulbs.create!
@@ -2173,6 +2180,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal welcome.id, tagging.taggable_id
     assert_equal "Post", tagging.taggable_type
+  end
+
+  def test_build_from_polymorphic_association_sets_inverse_instance
+    post = Post.new
+    tagging = post.taggings.build
+
+    assert_equal post, tagging.taggable
   end
 
   def test_dont_call_save_callbacks_twice_on_has_many
