@@ -1,5 +1,3 @@
-require "active_file/site"
-
 require "fileutils"
 require "pathname"
 

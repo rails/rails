@@ -39,3 +39,5 @@ end
 
 module ActiveFile::Sites
 end
+
+require "active_file/sites/disk_site"

@@ -2,7 +2,7 @@ require "test_helper"
 require "fileutils"
 require "tmpdir"
 require "active_support/core_ext/securerandom"
-require "active_file/sites/disk_site"
+require "active_file/site"
 
 class ActiveFile::DiskSiteTest < ActiveSupport::TestCase
   FIXTURE_KEY  = SecureRandom.base58(24)
