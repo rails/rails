@@ -31,6 +31,13 @@ module ApplicationTests
           assert_not File.exist?("tmp/screenshots/fail.png")
         end
       end
+
+      test "tmp:clear should work if folder missing" do
+        FileUtils.remove_dir("#{app_path}/tmp")
+        errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
+        assert_predicate $?, :success?
+        assert_empty errormsg
+      end
     end
   end
 end
