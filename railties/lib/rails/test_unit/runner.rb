@@ -6,7 +6,7 @@ require "active_support/core_ext/module/attribute_accessors"
 module Rails
   module TestUnit
     class Runner
-      mattr_reader :filters, default: []
+      mattr_reader(:filters) { [] }
 
       class << self
         def options(opts)
@@ -43,8 +43,6 @@ module Rails
           patterns = extract_filters(argv)
 
           tests = Rake::FileList[patterns.any? ? patterns : "test/**/*_test.rb"]
-          tests.exclude("test/system/**/*") if patterns.empty?
-
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 

@@ -1,10 +1,8 @@
 $: << File.expand_path(File.expand_path('../../test', __FILE__))
 
 require 'bundler/setup'
-require 'rails/test_unit/minitest_plugin'
+require 'rails/test_unit/runner'
 
 Rails::TestUnitReporter.executable = 'bin/test'
 
-Minitest.run_via = :rails
-
-require "active_support/testing/autorun"
+Rails::TestUnit::Runner.run(ARGV)
