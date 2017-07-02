@@ -33,6 +33,10 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
+  def test_has_one_through_with_through_scope
+    assert_equal clubs(:boring_club), @member.general_club
+  end
+
   def test_creating_association_creates_through_record
     new_member = Member.create(name: "Chris")
     new_member.club = Club.create(name: "LRUG")

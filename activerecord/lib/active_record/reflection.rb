@@ -1066,6 +1066,10 @@ module ActiveRecord
         end
       end
 
+      def class_name
+        @reflection.class_name
+      end
+
       def klass
         @reflection.klass
       end
