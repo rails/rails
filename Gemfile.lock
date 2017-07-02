@@ -24,11 +24,20 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     arel (8.0.0)
+    aws-sdk (2.10.7)
+      aws-sdk-resources (= 2.10.7)
+    aws-sdk-core (2.10.7)
+      aws-sigv4 (~> 1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.10.7)
+      aws-sdk-core (= 2.10.7)
+    aws-sigv4 (1.0.0)
     byebug (9.0.6)
     concurrent-ruby (1.0.5)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
     i18n (0.8.4)
+    jmespath (1.3.1)
     minitest (5.10.2)
     rake (12.0.0)
     sqlite3 (1.3.13)
@@ -41,6 +50,7 @@ PLATFORMS
 
 DEPENDENCIES
   activefile!
+  aws-sdk
   bundler (~> 1.15)
   byebug
   rake
