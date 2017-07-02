@@ -157,7 +157,7 @@ module ActiveRecord
 
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
     def initialize(env = "production")
-      msg = "You are attempting to run a destructive action against your '#{env}' database.\n"
+      msg = "You are attempting to run a destructive action against your '#{env}' database.\n".dup
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
       msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       super(msg)
@@ -166,7 +166,7 @@ module ActiveRecord
 
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
-      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
+      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n".dup
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
       msg << "        bin/rails db:environment:set"
@@ -1239,7 +1239,7 @@ module ActiveRecord
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
-        msg = "An error has occurred, "
+        msg = "An error has occurred, ".dup
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace

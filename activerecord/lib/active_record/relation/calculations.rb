@@ -41,7 +41,7 @@ module ActiveRecord
         unless column_name.nil?
           ActiveSupport::Deprecation.warn \
             "When `count' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
         end
 
         return super()
@@ -86,7 +86,7 @@ module ActiveRecord
         unless column_name.nil?
           ActiveSupport::Deprecation.warn \
             "When `sum' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
         end
 
         return super()
@@ -311,7 +311,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
+        calculated_data = @klass.connection.select_all(relation.arel, nil, relation.bound_attributes)
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

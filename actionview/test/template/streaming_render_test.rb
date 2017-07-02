@@ -17,7 +17,7 @@ class FiberedTest < ActiveSupport::TestCase
 
   def buffered_render(options)
     body = render_body(options)
-    string = ""
+    string = "".dup
     body.each do |piece|
       string << piece
     end

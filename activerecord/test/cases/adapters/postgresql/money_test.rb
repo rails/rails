@@ -47,10 +47,10 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
 
   def test_money_type_cast
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert_equal(12345678.12, type.cast("$12,345,678.12"))
-    assert_equal(12345678.12, type.cast("$12.345.678,12"))
-    assert_equal(-1.15, type.cast("-$1.15"))
-    assert_equal(-2.25, type.cast("($2.25)"))
+    assert_equal(12345678.12, type.cast("$12,345,678.12".dup))
+    assert_equal(12345678.12, type.cast("$12.345.678,12".dup))
+    assert_equal(-1.15, type.cast("-$1.15".dup))
+    assert_equal(-2.25, type.cast("($2.25)".dup))
   end
 
   def test_schema_dumping
@@ -60,7 +60,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_create_and_update_money
-    money = PostgresqlMoney.create(wealth: "987.65")
+    money = PostgresqlMoney.create(wealth: "987.65".dup)
     assert_equal 987.65, money.wealth
 
     new_value = BigDecimal.new("123.45")

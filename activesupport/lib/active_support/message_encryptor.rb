@@ -114,7 +114,7 @@ module ActiveSupport
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-        blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+        blob = "#{blob}--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
         blob
       end
 

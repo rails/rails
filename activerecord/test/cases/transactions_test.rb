@@ -304,6 +304,76 @@ class TransactionTest < ActiveRecord::TestCase
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
 
+  def test_nested_transaction_with_new_transaction_applies_parent_state_on_rollback
+    topic_one = Topic.new(title: "A new topic")
+    topic_two = Topic.new(title: "Another new topic")
+
+    Topic.transaction do
+      topic_one.save
+
+      Topic.transaction(requires_new: true) do
+        topic_two.save
+
+        assert_predicate topic_one, :persisted?
+        assert_predicate topic_two, :persisted?
+      end
+
+      raise ActiveRecord::Rollback
+    end
+
+    refute_predicate topic_one, :persisted?
+    refute_predicate topic_two, :persisted?
+  end
+
+  def test_nested_transaction_without_new_transaction_applies_parent_state_on_rollback
+    topic_one = Topic.new(title: "A new topic")
+    topic_two = Topic.new(title: "Another new topic")
+
+    Topic.transaction do
+      topic_one.save
+
+      Topic.transaction do
+        topic_two.save
+
+        assert_predicate topic_one, :persisted?
+        assert_predicate topic_two, :persisted?
+      end
+
+      raise ActiveRecord::Rollback
+    end
+
+    refute_predicate topic_one, :persisted?
+    refute_predicate topic_two, :persisted?
+  end
+
+  def test_double_nested_transaction_applies_parent_state_on_rollback
+    topic_one = Topic.new(title: "A new topic")
+    topic_two = Topic.new(title: "Another new topic")
+    topic_three = Topic.new(title: "Another new topic of course")
+
+    Topic.transaction do
+      topic_one.save
+
+      Topic.transaction do
+        topic_two.save
+
+        Topic.transaction do
+          topic_three.save
+        end
+      end
+
+      assert_predicate topic_one, :persisted?
+      assert_predicate topic_two, :persisted?
+      assert_predicate topic_three, :persisted?
+
+      raise ActiveRecord::Rollback
+    end
+
+    refute_predicate topic_one, :persisted?
+    refute_predicate topic_two, :persisted?
+    refute_predicate topic_three, :persisted?
+  end
+
   def test_manually_rolling_back_a_transaction
     Topic.transaction do
       @first.approved  = true
@@ -723,6 +793,44 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert !transaction.state.rolledback?
     assert transaction.state.committed?
+  end
+
+  def test_set_state_method_is_deprecated
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_deprecated do
+      transaction.state.set_state(:rolledback)
+    end
+  end
+
+  def test_mark_transaction_state_as_committed
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.rollback
+
+    assert_equal :committed, transaction.state.commit!
+  end
+
+  def test_mark_transaction_state_as_rolledback
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_equal :rolledback, transaction.state.rollback!
+  end
+
+  def test_mark_transaction_state_as_nil
+    connection = Topic.connection
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
+
+    transaction.commit
+
+    assert_equal nil, transaction.state.nullify!
   end
 
   def test_transaction_rollback_with_primarykeyless_tables

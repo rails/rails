@@ -11,6 +11,8 @@ module ActiveRecord
         end
 
         def associated_records_by_owner(preloader)
+          through_scope = through_scope()
+
           preloader.preload(owners,
                             through_reflection.name,
                             through_scope)
@@ -20,7 +22,7 @@ module ActiveRecord
             [owner, Array(center)]
           end
 
-          reset_association owners, through_reflection.name
+          reset_association(owners, through_reflection.name, through_scope)
 
           middle_records = through_records.flat_map(&:last)
 
@@ -63,7 +65,7 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name)
+          def reset_association(owners, association_name, through_scope)
             should_reset = (through_scope != through_reflection.klass.unscoped) ||
                (options[:source_type] && through_reflection.collection?)
 

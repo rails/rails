@@ -1,10 +1,13 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      VALID_STATES = Set.new([:committed, :rolledback, nil])
-
       def initialize(state = nil)
         @state = state
+        @children = []
+      end
+
+      def add_child(state)
+        @children << state
       end
 
       def finalized?
@@ -19,15 +22,43 @@ module ActiveRecord
         @state == :rolledback
       end
 
+      def fully_completed?
+        completed?
+      end
+
       def completed?
         committed? || rolledback?
       end
 
       def set_state(state)
-        unless VALID_STATES.include?(state)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The set_state method is deprecated and will be removed in
+          Rails 5.2. Please use rollback! or commit! to set transaction
+          state directly.
+        MSG
+        case state
+        when :rolledback
+          rollback!
+        when :committed
+          commit!
+        when nil
+          nullify!
+        else
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
-        @state = state
+      end
+
+      def rollback!
+        @children.each { |c| c.rollback! }
+        @state = :rolledback
+      end
+
+      def commit!
+        @state = :committed
+      end
+
+      def nullify!
+        @state = nil
       end
     end
 
@@ -57,7 +88,7 @@ module ActiveRecord
       end
 
       def rollback
-        @state.set_state(:rolledback)
+        @state.rollback!
       end
 
       def rollback_records
@@ -72,7 +103,7 @@ module ActiveRecord
       end
 
       def commit
-        @state.set_state(:committed)
+        @state.commit!
       end
 
       def before_commit_records
@@ -100,8 +131,11 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-      def initialize(connection, savepoint_name, options, *args)
+      def initialize(connection, savepoint_name, parent_transaction, options, *args)
         super(connection, options, *args)
+
+        parent_transaction.state.add_child(@state)
+
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
@@ -155,7 +189,7 @@ module ActiveRecord
             if @stack.empty?
               RealTransaction.new(@connection, options, run_commit_callbacks: run_commit_callbacks)
             else
-              SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options,
+              SavepointTransaction.new(@connection, "active_record_#{@stack.size}", @stack.last, options,
                                        run_commit_callbacks: run_commit_callbacks)
             end
 

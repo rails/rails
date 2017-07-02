@@ -66,6 +66,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @association_ids = nil
       end
 
       def find(*args)
@@ -355,7 +356,10 @@ module ActiveRecord
             transaction do
               add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
-                insert_record(record, true, raise) { @_was_loaded = loaded? }
+                insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
               end
             end
           end
@@ -428,7 +432,12 @@ module ActiveRecord
           records.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do
-              result &&= insert_record(record, true, raise) { @_was_loaded = loaded? } unless owner.new_record?
+              unless owner.new_record?
+                result &&= insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
+              end
             end
           end
 
