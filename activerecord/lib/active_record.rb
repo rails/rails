@@ -26,8 +26,8 @@ require "active_support/rails"
 require "active_model"
 require "arel"
 
-require "active_record/version"
-require "active_record/attribute_set"
+require_relative "active_record/version"
+require_relative "active_record/attribute_set"
 
 module ActiveRecord
   extend ActiveSupport::Autoload

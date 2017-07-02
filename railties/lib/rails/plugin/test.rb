@@ -1,4 +1,4 @@
-require "rails/test_unit/minitest_plugin"
+require_relative "../test_unit/minitest_plugin"
 
 Rails::TestUnitReporter.executable = "bin/test"
 

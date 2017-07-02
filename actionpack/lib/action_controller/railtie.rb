@@ -2,7 +2,7 @@ require "rails"
 require "action_controller"
 require "action_dispatch/railtie"
 require "abstract_controller/railties/routes_helpers"
-require "action_controller/railties/helpers"
+require_relative "railties/helpers"
 require "action_view/railtie"
 
 module ActionController

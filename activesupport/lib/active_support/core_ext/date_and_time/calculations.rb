@@ -1,4 +1,4 @@
-require "active_support/core_ext/object/try"
+require_relative "../object/try"
 
 module DateAndTime
   module Calculations

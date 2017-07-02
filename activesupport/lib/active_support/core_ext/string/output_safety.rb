@@ -1,6 +1,6 @@
 require "erb"
-require "active_support/core_ext/kernel/singleton_class"
-require "active_support/multibyte/unicode"
+require_relative "../kernel/singleton_class"
+require_relative "../../multibyte/unicode"
 
 class ERB
   module Util

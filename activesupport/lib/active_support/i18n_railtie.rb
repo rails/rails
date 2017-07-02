@@ -1,6 +1,6 @@
 require "active_support"
-require "active_support/file_update_checker"
-require "active_support/core_ext/array/wrap"
+require_relative "file_update_checker"
+require_relative "core_ext/array/wrap"
 
 # :enddoc:
 

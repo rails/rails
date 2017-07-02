@@ -1,5 +1,5 @@
 require "cgi"
-require "action_view/helpers/tag_helper"
+require_relative "tag_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/module/attribute_accessors"
 

@@ -7,8 +7,8 @@ namespace :app do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
-    require "rails/generators"
-    require "rails/generators/rails/app/app_generator"
+    require_relative "../generators"
+    require_relative "../generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
     generator.apply template, verbose: false
   end
@@ -43,8 +43,8 @@ namespace :app do
 
       def self.app_generator
         @app_generator ||= begin
-          require "rails/generators"
-          require "rails/generators/rails/app/app_generator"
+          require_relative "../generators"
+          require_relative "../generators/rails/app/app_generator"
           gen = Rails::Generators::AppGenerator.new ["rails"],
                                                     { api: !!Rails.application.config.api_only, update: true },
                                                     destination_root: Rails.root

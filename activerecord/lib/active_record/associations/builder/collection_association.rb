@@ -1,4 +1,4 @@
-require "active_record/associations"
+require_relative "../../associations"
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class CollectionAssociation < Association #:nodoc:

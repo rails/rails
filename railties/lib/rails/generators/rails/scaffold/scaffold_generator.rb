@@ -1,4 +1,4 @@
-require "rails/generators/rails/resource/resource_generator"
+require_relative "../resource/resource_generator"
 
 module Rails
   module Generators

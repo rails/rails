@@ -1,5 +1,5 @@
-require "rails/generators/base"
-require "rails/secrets"
+require_relative "../../base"
+require_relative "../../../secrets"
 
 module Rails
   module Generators

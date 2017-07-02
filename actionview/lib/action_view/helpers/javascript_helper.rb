@@ -1,4 +1,4 @@
-require "action_view/helpers/tag_helper"
+require_relative "tag_helper"
 
 module ActionView
   module Helpers

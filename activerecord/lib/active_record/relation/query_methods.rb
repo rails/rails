@@ -1,7 +1,7 @@
-require "active_record/relation/from_clause"
-require "active_record/relation/query_attribute"
-require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
+require_relative "from_clause"
+require_relative "query_attribute"
+require_relative "where_clause"
+require_relative "where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord

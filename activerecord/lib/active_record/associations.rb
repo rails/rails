@@ -1,7 +1,7 @@
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
+require_relative "errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:

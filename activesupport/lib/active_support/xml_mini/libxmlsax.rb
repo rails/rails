@@ -1,5 +1,5 @@
 require "libxml"
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport

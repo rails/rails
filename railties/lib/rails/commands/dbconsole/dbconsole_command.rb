@@ -1,4 +1,4 @@
-require "rails/command/environment_argument"
+require_relative "../../command/environment_argument"
 
 module Rails
   class DBConsole
