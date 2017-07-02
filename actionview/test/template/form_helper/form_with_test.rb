@@ -16,7 +16,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
     method = options[:method]
     skip_enforcing_utf8 = options.fetch(:skip_enforcing_utf8, false)
 
-    "".tap do |txt|
+    "".dup.tap do |txt|
       unless skip_enforcing_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -32,7 +32,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} unless local
     txt << %{ class="#{html_class}"} if html_class
@@ -1642,7 +1642,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       expected = 0
       @post.comments.each do |comment|
         f.fields(:comments, model: comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -1656,7 +1656,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       expected = 0
       @post.comments.each do |comment|
         f.fields(:comments, model: comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -1669,7 +1669,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post) do |f|
       expected = 0
       f.fields(:comments, model: @post.comments) { |cf|
-        assert_equal cf.index, expected
+        assert_equal expected, cf.index
         expected += 1
       }
     end
@@ -1680,7 +1680,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post) do |f|
       f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
-        assert_equal cf.index, "abc"
+        assert_equal "abc", cf.index
       }
     end
   end
@@ -2194,9 +2194,9 @@ class FormWithActsLikeFormForTest < FormWithTest
       method = options[:method]
 
       if options.fetch(:skip_enforcing_utf8, false)
-        txt = ""
+        txt = "".dup
       else
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -2207,7 +2207,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     def form_text(action = "/", id = nil, html_class = nil, local = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} unless local
       txt << %{ class="#{html_class}"} if html_class

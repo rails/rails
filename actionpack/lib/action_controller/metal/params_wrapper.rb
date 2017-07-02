@@ -232,12 +232,7 @@ module ActionController
     # by the metal call stack.
     def process_action(*args)
       if _wrapper_enabled?
-        if request.parameters[_wrapper_key].present?
-          wrapped_hash = _extract_parameters(request.parameters)
-        else
-          wrapped_hash = _wrap_parameters request.request_parameters
-        end
-
+        wrapped_hash = _wrap_parameters request.request_parameters
         wrapped_keys = request.request_parameters.keys
         wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
@@ -282,7 +277,7 @@ module ActionController
         return false unless request.has_content_type?
 
         ref = request.content_mime_type.ref
-        _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters.key?(_wrapper_key)
+        _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
       end
   end
 end

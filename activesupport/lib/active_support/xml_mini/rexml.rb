@@ -74,7 +74,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = ""
+          texts = "".dup
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end

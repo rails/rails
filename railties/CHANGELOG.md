@@ -1,3 +1,7 @@
+*   Clear screenshot files in `tmp:clear` task.
+
+    *Yuji Yaginuma*
+
 *   Add `railtie.rb` to the plugin generator
 
     *Tsukuru Tanimichi*

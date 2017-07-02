@@ -78,7 +78,7 @@ module ActiveRecord
 
         private
           def lookup_cast_type(sql_type)
-            super(select_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
           end
 
           def _quote(value)

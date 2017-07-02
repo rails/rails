@@ -203,13 +203,15 @@ module ActionView
       # ==== Options
       #
       # You can add HTML attributes using the +options+. The +options+ supports
-      # two additional keys for convenience and conformance:
+      # additional keys for convenience and conformance:
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
       #   +source+ is used (capitalized and without the extension)
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
+      # * <tt>:srcset</tt> - If supplied as a hash or array of <tt>[source, descriptor]</tt>
+      #   pairs, each image path will be expanded before the list is formatted as a string.
       #
       # ==== Examples
       #
@@ -227,14 +229,26 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
+      #   image_tag("icon.png", srcset: { "icon_2x.png" => "2x", "icon_4x.png" => "4x" })
+      #   # => <img src="/assets/icon.png" srcset="/assets/icon_2x.png 2x, /assets/icon_4x.png 4x">
+      #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
+      #   # => <img src="/assets/pic.jpg" srcset="/assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw">
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
+        skip_pipeline = options.delete(:skip_pipeline)
 
-        src = options[:src] = path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
+        src = options[:src] = path_to_image(source, skip_pipeline: skip_pipeline)
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
+        end
+
+        if options[:srcset] && !options[:srcset].is_a?(String)
+          options[:srcset] = options[:srcset].map do |src_path, size|
+            src_path = path_to_image(src_path, skip_pipeline: skip_pipeline)
+            "#{src_path} #{size}"
+          end.join(", ")
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]

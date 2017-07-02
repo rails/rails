@@ -5,6 +5,7 @@ require_relative "system_testing/driver"
 require_relative "system_testing/server"
 require_relative "system_testing/test_helpers/screenshot_helper"
 require_relative "system_testing/test_helpers/setup_and_teardown"
+require_relative "system_testing/test_helpers/undef_methods"
 
 module ActionDispatch
   # = System Testing
@@ -88,6 +89,7 @@ module ActionDispatch
     include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
+    include SystemTesting::TestHelpers::UndefMethods
 
     def initialize(*) # :nodoc:
       super

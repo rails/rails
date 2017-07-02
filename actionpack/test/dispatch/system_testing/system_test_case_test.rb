@@ -31,3 +31,35 @@ class SetHostTest < DrivenByRackTest
     assert_equal "http://example.com", Capybara.app_host
   end
 end
+
+class UndefMethodsTest < DrivenBySeleniumWithChrome
+  test "get" do
+    assert_raise NoMethodError do
+      get "http://example.com"
+    end
+  end
+
+  test "post" do
+    assert_raise NoMethodError do
+      post "http://example.com"
+    end
+  end
+
+  test "put" do
+    assert_raise NoMethodError do
+      put "http://example.com"
+    end
+  end
+
+  test "patch" do
+    assert_raise NoMethodError do
+      patch "http://example.com"
+    end
+  end
+
+  test "delete" do
+    assert_raise NoMethodError do
+      delete "http://example.com"
+    end
+  end
+end

@@ -51,9 +51,7 @@ module ActiveRecord
 
       # Returns a single value from a record
       def select_value(arel, name = nil, binds = [])
-        if result = select_rows(arel, name, binds).first
-          result.first
-        end
+        single_value_from_rows(select_rows(arel, name, binds))
       end
 
       # Returns an array of the values of the first column in a select:
@@ -66,6 +64,18 @@ module ActiveRecord
       # Order is the same as that returned by +columns+.
       def select_rows(arel, name = nil, binds = [])
         select_all(arel, name, binds).rows
+      end
+
+      def query_value(sql, name = nil) # :nodoc:
+        single_value_from_rows(query(sql, name))
+      end
+
+      def query_values(sql, name = nil) # :nodoc:
+        query(sql, name).map(&:first)
+      end
+
+      def query(sql, name = nil) # :nodoc:
+        exec_query(sql, name).rows
       end
 
       # Executes the SQL statement in the context of this connection and returns
@@ -410,7 +420,11 @@ module ActiveRecord
         end
 
         def last_inserted_id(result)
-          row = result.rows.first
+          single_value_from_rows(result.rows)
+        end
+
+        def single_value_from_rows(rows)
+          row = rows.first
           row && row.first
         end
 

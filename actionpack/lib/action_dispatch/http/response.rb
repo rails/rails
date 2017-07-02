@@ -103,7 +103,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = ""
+          buf = "".dup
           each { |chunk| buf << chunk }
           buf
         end

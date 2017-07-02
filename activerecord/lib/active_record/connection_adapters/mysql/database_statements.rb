@@ -13,6 +13,10 @@ module ActiveRecord
           result
         end
 
+        def query(sql, name = nil) # :nodoc:
+          execute(sql, name).to_a
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been

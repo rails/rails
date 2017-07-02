@@ -96,7 +96,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam")
+    @model.instance_variable_set("@name", "Yam".dup)
     assert !@model.name_changed?
     @model.name.replace("Hadad")
     assert !@model.name_changed?

@@ -1,3 +1,21 @@
+*   Fix transactions to apply state to child transactions
+
+    Previously if you had a nested transaction and the outer transaction was rolledback the record from the
+    inner transaction would still be marked as persisted.
+
+    This change fixes that by applying the state of the parent transaction to the child transaction when the
+    parent transaction is rolledback. This will correctly mark records from the inner transaction as not persisted.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate `set_state` method in `TransactionState`
+
+    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
+    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
+    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Deprecate delegating to `arel` in `Relation`.
 
     *Ryuta Kamizono*

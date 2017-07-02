@@ -60,7 +60,7 @@ module ActiveRecord
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          select_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA").to_i > 0
+          query_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA").to_i > 0
         end
 
         # Verifies existence of an index with a given name.
@@ -73,7 +73,7 @@ module ActiveRecord
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
-          select_value(<<-SQL, "SCHEMA").to_i > 0
+          query_value(<<-SQL, "SCHEMA").to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -163,7 +163,7 @@ module ActiveRecord
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
           if scope[:name]
-            select_value(<<-SQL.strip_heredoc, "SCHEMA")
+            query_value(<<-SQL.strip_heredoc, "SCHEMA")
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -176,32 +176,32 @@ module ActiveRecord
 
         # Returns the current database name.
         def current_database
-          select_value("SELECT current_database()", "SCHEMA")
+          query_value("SELECT current_database()", "SCHEMA")
         end
 
         # Returns the current schema name.
         def current_schema
-          select_value("SELECT current_schema", "SCHEMA")
+          query_value("SELECT current_schema", "SCHEMA")
         end
 
         # Returns the current database encoding format.
         def encoding
-          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database collation.
         def collation
-          select_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns the current database ctype.
         def ctype
-          select_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
         end
 
         # Returns an array of schema names.
         def schema_names
-          select_values(<<-SQL, "SCHEMA")
+          query_values(<<-SQL, "SCHEMA")
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -234,12 +234,12 @@ module ActiveRecord
 
         # Returns the active schema search path.
         def schema_search_path
-          @schema_search_path ||= select_value("SHOW search_path", "SCHEMA")
+          @schema_search_path ||= query_value("SHOW search_path", "SCHEMA")
         end
 
         # Returns the current client message level.
         def client_min_messages
-          select_value("SHOW client_min_messages", "SCHEMA")
+          query_value("SHOW client_min_messages", "SCHEMA")
         end
 
         # Set the client message level.
@@ -257,7 +257,7 @@ module ActiveRecord
         end
 
         def serial_sequence(table, column)
-          select_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
+          query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
         end
 
         # Sets the sequence of a table's primary key to the specified value.
@@ -268,7 +268,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              select_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              query_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -290,18 +290,16 @@ module ActiveRecord
 
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
-            max_pk = select_value("select MAX(#{quote_column_name pk}) from #{quote_table_name(table)}")
+            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
             if max_pk.nil?
               if postgresql_version >= 100000
-                minvalue = select_value("SELECT seqmin from pg_sequence where seqrelid = #{quote(quoted_sequence)}::regclass")
+                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
               else
-                minvalue = select_value("SELECT min_value FROM #{quoted_sequence}")
+                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
               end
             end
 
-            select_value(<<-end_sql, "SCHEMA")
-              SELECT setval(#{quote(quoted_sequence)}, #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})
-            end_sql
+            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 
@@ -360,7 +358,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          select_values(<<-SQL.strip_heredoc, "SCHEMA")
+          query_values(<<-SQL.strip_heredoc, "SCHEMA")
             SELECT a.attname
               FROM (
                      SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
@@ -408,7 +406,7 @@ module ActiveRecord
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
           sql_type = type_to_sql(type, options)
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
           if options[:collation]
             sql << " COLLATE \"#{options[:collation]}\""
           end
@@ -511,7 +509,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = select_all(<<-SQL.strip_heredoc, "SCHEMA")
+          fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
@@ -568,7 +566,7 @@ module ActiveRecord
               super
             end
 
-          sql << "[]" if array && type != :primary_key
+          sql = "#{sql}[]" if array && type != :primary_key
           sql
         end
 
@@ -637,7 +635,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
 
-            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"

@@ -1,3 +1,7 @@
+*   Add `srcset` option to `image_tag` helper.
+
+    *Roberto Miranda*
+
 *   Fix issues with scopes and engine on `current_page?` method.
 
     Fixes #29401.
