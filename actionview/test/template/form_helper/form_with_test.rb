@@ -1642,7 +1642,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       expected = 0
       @post.comments.each do |comment|
         f.fields(:comments, model: comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -1656,7 +1656,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       expected = 0
       @post.comments.each do |comment|
         f.fields(:comments, model: comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -1669,7 +1669,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post) do |f|
       expected = 0
       f.fields(:comments, model: @post.comments) { |cf|
-        assert_equal cf.index, expected
+        assert_equal expected, cf.index
         expected += 1
       }
     end
@@ -1680,7 +1680,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     form_with(model: @post) do |f|
       f.fields(:comments, model: Comment.new(321), child_index: "abc") { |cf|
-        assert_equal cf.index, "abc"
+        assert_equal "abc", cf.index
       }
     end
   end

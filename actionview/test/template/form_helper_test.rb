@@ -2893,7 +2893,7 @@ class FormHelperTest < ActionView::TestCase
       expected = 0
       @post.comments.each do |comment|
         f.fields_for(:comments, comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -2907,7 +2907,7 @@ class FormHelperTest < ActionView::TestCase
       expected = 0
       @post.comments.each do |comment|
         f.fields_for(:comments, comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -2920,7 +2920,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post) do |f|
       expected = 0
       f.fields_for(:comments, @post.comments) { |cf|
-        assert_equal cf.index, expected
+        assert_equal expected, cf.index
         expected += 1
       }
     end
@@ -2931,7 +2931,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        assert_equal cf.index, "abc"
+        assert_equal "abc", cf.index
       }
     end
   end
