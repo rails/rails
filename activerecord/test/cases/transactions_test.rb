@@ -830,7 +830,7 @@ class TransactionTest < ActiveRecord::TestCase
 
     transaction.commit
 
-    assert_equal nil, transaction.state.nullify!
+    assert_nil transaction.state.nullify!
   end
 
   def test_transaction_rollback_with_primarykeyless_tables
