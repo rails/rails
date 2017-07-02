@@ -391,12 +391,5 @@ module ApplicationTests
 
       assert_match(/Hello, World!/, output)
     end
-
-    def test_tmp_clear_should_work_if_folder_missing
-      FileUtils.remove_dir("#{app_path}/tmp")
-      errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
-      assert_predicate $?, :success?
-      assert_empty errormsg
-    end
   end
 end
