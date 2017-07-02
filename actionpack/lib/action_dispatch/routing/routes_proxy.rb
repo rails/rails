@@ -8,9 +8,10 @@ module ActionDispatch
       attr_accessor :scope, :routes
       alias :_routes :routes
 
-      def initialize(routes, scope, helpers)
+      def initialize(routes, scope, helpers, script_namer = nil)
         @routes, @scope = routes, scope
         @helpers = helpers
+        @script_namer = script_namer
       end
 
       def url_options
@@ -29,7 +30,9 @@ module ActionDispatch
           self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{method}(*args)
               options = args.extract_options!
-              args << url_options.merge((options || {}).symbolize_keys)
+              options = url_options.merge((options || {}).symbolize_keys)
+              options.reverse_merge!(script_name: @script_namer.call(options)) if @script_namer
+              args << options
               @helpers.#{method}(*args)
             end
           RUBY
