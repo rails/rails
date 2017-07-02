@@ -176,13 +176,11 @@ module ApplicationTests
 
     test "Rails.application responds to all instance methods" do
       app "development"
-      assert_respond_to Rails.application, :routes_reloader
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
       app "development"
-      assert_respond_to AppTemplate::Application, :paths
       assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
     end
 
@@ -1220,7 +1218,6 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_respond_to app, :env_config
       assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
       assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
