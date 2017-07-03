@@ -4,7 +4,7 @@ require "pathname"
 class ActiveFile::Sites::DiskSite < ActiveFile::Site
   attr_reader :root
 
-  def initialize(root)
+  def initialize(root:)
     @root = root
   end
 

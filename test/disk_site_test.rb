@@ -9,7 +9,7 @@ class ActiveFile::DiskSiteTest < ActiveSupport::TestCase
   FIXTURE_FILE = StringIO.new("Hello world!")
 
   setup do
-    @site = ActiveFile::Sites::DiskSite.new(File.join(Dir.tmpdir, "active_file"))
+    @site = ActiveFile::Sites::DiskSite.new(root: File.join(Dir.tmpdir, "active_file"))
     @site.upload FIXTURE_KEY, FIXTURE_FILE
     FIXTURE_FILE.rewind
   end

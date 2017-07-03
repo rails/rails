@@ -2,7 +2,7 @@ require "test_helper"
 require "database/setup"
 require "active_file/blob"
 
-ActiveFile::Blob.site = ActiveFile::Sites::DiskSite.new(File.join(Dir.tmpdir, "active_file"))
+ActiveFile::Blob.site = ActiveFile::Sites::DiskSite.new(root: File.join(Dir.tmpdir, "active_file"))
 
 class ActiveFile::BlobTest < ActiveSupport::TestCase
   test "create after upload sets byte size and checksum" do
