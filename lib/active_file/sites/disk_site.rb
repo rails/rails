@@ -58,10 +58,6 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
 
 
   private
-    def verifiable_key_with_expiration(key, expires_in: nil)
-      verifier.generate key: key, expires_at: Time.now.utc.advance(sec: expires_in)
-    end
-
     def path_for(key)
       File.join root, folder_for(key), key
     end
