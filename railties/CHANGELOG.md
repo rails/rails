@@ -16,7 +16,7 @@
 
     *Yuji Yaginuma*
 
-*   Added a shared section to config/database.yml that will be loaded for all environments.
+*   Added a shared section to `config/database.yml` that will be loaded for all environments.
 
     *Pierre Schambacher*
 
