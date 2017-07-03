@@ -29,4 +29,5 @@ Gem::Specification.new do |s|
   s.add_dependency "tzinfo",     "~> 1.1"
   s.add_dependency "minitest",   "~> 5.1"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
+  s.add_dependency "listen",     "~> 3.1"
 end
