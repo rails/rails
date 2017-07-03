@@ -2,7 +2,7 @@ require "active_file/site"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveFile::Blob < ActiveRecord::Base
-  self.table_name = "active_file_blobs"
+  self.table_name = "rails_blobs"
 
   has_secure_token :key
   store :metadata, coder: JSON
