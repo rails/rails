@@ -1,6 +1,4 @@
 require "test_helper"
-require "fileutils"
-require "tmpdir"
 require "active_support/core_ext/securerandom"
 require "active_file/site"
 

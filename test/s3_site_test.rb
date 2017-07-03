@@ -1,6 +1,4 @@
 require "test_helper"
-require "fileutils"
-require "tmpdir"
 require "active_support/core_ext/securerandom"
 require "active_file/site"
 
@@ -55,7 +53,7 @@ if ENV["AWS_ACCESS_KEY_ID"] && ENV["AWS_SECRET_ACCESS_KEY"] && ENV["AWS_REGION"]
     test "sizing" do
       assert_equal FIXTURE_FILE.size, @site.byte_size(FIXTURE_KEY)
     end
-  
+
     test "checksumming" do
       assert_equal Digest::MD5.hexdigest(FIXTURE_FILE.read), @site.checksum(FIXTURE_KEY)
     end
