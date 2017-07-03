@@ -8,7 +8,7 @@ class ActiveFile::CreateBlobs < ActiveRecord::Migration[5.1]
       t.string :checksum
       t.time :created_at
 
-      t.index [ :token ], unique: true
+      t.index [ :key ], unique: true
     end
   end
 end
