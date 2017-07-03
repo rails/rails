@@ -41,3 +41,4 @@ module ActiveFile::Sites
 end
 
 require "active_file/sites/disk_site"
+require "active_file/sites/s3_site"

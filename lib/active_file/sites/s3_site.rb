@@ -16,7 +16,7 @@ class ActiveFile::Sites::S3Site < ActiveFile::Site
     if block_given?
       stream(key, &block)
     else
-      object_for(key).read
+      object_for(key).get.body.read
     end
   end
 
@@ -25,27 +25,20 @@ class ActiveFile::Sites::S3Site < ActiveFile::Site
   end
 
   def exist?(key)
-    object_for(key).exist?
+    object_for(key).exists?
   end
 
 
+  def url(key, disposition: :inline, expires_in: nil)
+    object_for(key).presigned_url(:get, expires_in: expires_in)
+  end
+
   def byte_size(key)
-    object_for(key).head[:size]
+    object_for(key).size
   end
 
   def checksum(key)
-    head = object_for(key).head
-
-    # If the etag has no dashes, it's the MD5
-    if !head.etag.include?("-")
-      head.etag.gsub('"', '')
-    # Check for md5 in metadata if it was uploaded via multipart
-    elsif md5sum = head.meta["md5sum"]
-      md5sum
-    # Otherwise, we don't have a digest yet for this key
-    else
-      nil
-    end
+    object_for(key).etag.remove(/"/)
   end
 
 
