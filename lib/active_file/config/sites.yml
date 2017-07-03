@@ -1,0 +1,25 @@
+# Configuration should be something like this:
+#
+# config/environments/development.rb
+#   config.active_file.site = :local
+#
+# config/environments/production.rb
+#   config.active_file.site = :amazon
+local:
+  site: Disk
+  root: <%%= File.join(Dir.tmpdir, "active_file") %>
+
+amazon:
+  site: S3
+  access_key_id: <%%= Rails.application.secrets.aws[:access_key_id] %>
+  secret_access_key: <%%= Rails.application.secrets.aws[:secret_access_key] %>
+  region: us-east-1
+  bucket: <%= Rails.application.class.name.remove(/::Application$/).underscore %>
+
+google:
+  site: GCS
+
+mirror:
+  site: Mirror
+  primary: amazon
+  secondaries: google
