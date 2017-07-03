@@ -1,4 +1,5 @@
 require "active_file/site"
+require "active_file/filename"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveFile::Blob < ActiveRecord::Base
@@ -29,7 +30,8 @@ class ActiveFile::Blob < ActiveRecord::Base
   end
 
   def filename
-    Filename.new(filename)
+    ActiveFile::Filename.new(self[:filename])
+  end
   end
 
 
