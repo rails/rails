@@ -2,8 +2,6 @@ require "test_helper"
 require "database/setup"
 require "active_file/blob"
 
-ActiveFile::Blob.site = ActiveFile::Sites::DiskSite.new(root: File.join(Dir.tmpdir, "active_file"))
-
 class ActiveFile::BlobTest < ActiveSupport::TestCase
   test "create after upload sets byte size and checksum" do
     data = "Hello world!"
@@ -14,9 +12,12 @@ class ActiveFile::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.hexdigest(data), blob.checksum
   end
 
-  test "url" do
+  test "url expiring in 5 minutes" do
     blob = create_blob
-    assert_equal "/rails/blobs/#{blob.key}", blob.url
+
+    travel_to Time.now do
+      assert_equal "/rails/blobs/#{ActiveFile::VerifiedKeyWithExpiration.encode(blob.key, expires_in: 5.minutes)}", blob.url
+    end
   end
 
   private

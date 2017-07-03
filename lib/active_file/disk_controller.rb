@@ -1,17 +1,16 @@
-# FIXME: To be used by DiskSite#url
 class ActiveFile::DiskController < ActionController::Base
   def show
-    if verified_key.expired?
-      head :gone
-    else
-      blob = ActiveFile::Blob.find_by!(key: verified_key.to_s)
+    if key = decode_verified_key
+      blob = ActiveFile::Blob.find_by!(key: key)
       send_data blob.download, filename: blob.filename, type: blob.content_type, disposition: disposition_param
+    else
+      head :not_found
     end
   end
 
   private
-    def verified_key
-      ActiveFile::Sites::DiskSite::VerifiedKeyWithExpiration.new(params[:id])
+    def decode_verified_key
+      ActiveFile::Sites::DiskSite::VerifiedKeyWithExpiration.decode(params[:id])
     end
 
     def disposition_param

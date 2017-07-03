@@ -2,42 +2,6 @@ require "fileutils"
 require "pathname"
 
 class ActiveFile::Sites::DiskSite < ActiveFile::Site
-  class_attribute :verifier, default: -> { Rails.application.message_verifier('ActiveFile::DiskSite') }
-
-  class << self
-    def generate_verifiable_key(key, expires_in:)
-      VerifiedKeyWithExpiration
-    end
-  end
-
-  class VerifiableKeyWithExpiration
-    def initialize(verifiable_key_with_expiration)
-      verified_key_with_expiration = ActiveFile::Sites::DiskSite.verify(verifiable_key_with_expiration)
-
-      @key        = verified_key_with_expiration[:key]
-      @expires_at = verified_key_with_expiration[:expires_at]
-    end
-
-    def expired?
-      @expires_at && Time.now.utc > @expires_at
-    end
-
-    def decoded
-      key
-    end
-  end
-
-  class VerifiedKeyWithExpiration
-    def initialize(key, expires_in: nil)
-      @key = key
-      @expires_at = Time.now.utc.advance(sec: expires_in)
-    end
-
-    def encoded
-      ActiveFile::Sites::DiskSite.verify.generate({ key: @key, expires_at: @expires_at })
-    end
-  end
-
   attr_reader :root
 
   def initialize(root:)
@@ -75,10 +39,12 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
 
 
   def url(key, disposition:, expires_in: nil)
+    verified_key_with_expiration = ActiveFile::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
+
     if defined?(Rails)
-      Rails.application.routes.url_helpers.rails_disk_blob_path(key)
+      Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration)
     else
-      "/rails/blobs/#{key}"
+      "/rails/blobs/#{verified_key_with_expiration}"
     end
   end
 
