@@ -15,7 +15,7 @@ class ActiveFile::Site
     raise NotImplementedError
   end
 
-  def exists?(key)
+  def exist?(key)
     raise NotImplementedError
   end
 

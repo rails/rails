@@ -32,13 +32,13 @@ class ActiveFile::DiskSiteTest < ActiveSupport::TestCase
   end
 
   test "existing" do
-    assert @site.exists?(FIXTURE_KEY)
-    assert_not @site.exists?(FIXTURE_KEY + "nonsense")
+    assert @site.exist?(FIXTURE_KEY)
+    assert_not @site.exist?(FIXTURE_KEY + "nonsense")
   end
 
   test "deleting" do
     @site.delete FIXTURE_KEY
-    assert_not @site.exists?(FIXTURE_KEY)
+    assert_not @site.exist?(FIXTURE_KEY)
   end
 
   test "sizing" do

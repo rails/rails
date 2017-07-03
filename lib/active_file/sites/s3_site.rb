@@ -24,8 +24,8 @@ class ActiveFile::Sites::S3Site < ActiveFile::Site
     object_for(key).delete
   end
 
-  def exists?(key)
-    object_for(key).exists?
+  def exist?(key)
+    object_for(key).exist?
   end
 
 

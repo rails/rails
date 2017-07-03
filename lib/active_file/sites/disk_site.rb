@@ -33,7 +33,7 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
     File.delete path_for(key)
   end
 
-  def exists?(key)
+  def exist?(key)
     File.exist? path_for(key)
   end
 

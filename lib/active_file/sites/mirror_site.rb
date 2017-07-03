@@ -17,8 +17,8 @@ class ActiveFile::Sites::MirrorSite < ActiveFile::Site
     perform_across_sites :delete, key
   end
 
-  def exists?(key)
-    perform_across_sites(:exists?, key).any?
+  def exist?(key)
+    perform_across_sites(:exist?, key).any?
   end
 
 
