@@ -7,14 +7,9 @@ class ActiveFile::Blob < ActiveRecord::Base
   has_secure_token :key
   store :metadata, coder: JSON
 
-  class_attribute :verifier, default: -> { Rails.application.message_verifier('ActiveFile') }
   class_attribute :site
 
   class << self
-    def find_verified(signed_id)
-      find(verifier.verify(signed_id))
-    end
-
     def build_after_upload(data:, filename:, content_type: nil, metadata: nil)
       new.tap do |blob|
         blob.filename = name
