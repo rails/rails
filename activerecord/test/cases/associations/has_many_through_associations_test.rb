@@ -1193,9 +1193,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_scope_that_should_not_be_fully_merged
-    Club.has_many :distinct_memberships, -> { distinct }, class_name: "Membership"
-    Club.has_many :special_favourites, through: :distinct_memberships, source: :member
-
     assert_nil Club.new.special_favourites.distinct_value
   end
 

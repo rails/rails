@@ -8,6 +8,9 @@ class Club < ActiveRecord::Base
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
+  has_many :distinct_memberships, -> { distinct }, class_name: "Membership"
+  has_many :special_favourites, through: :distinct_memberships, source: :member
+
   scope :general, -> { left_joins(:category).where(categories: { name: "General" }) }
 
   private
