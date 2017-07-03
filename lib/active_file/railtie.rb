@@ -1,6 +1,19 @@
 require "rails/railtie"
 
 module ActiveFile
-  class Engine < ::Rails::Engine
+  class Railtie < Rails::Railtie # :nodoc:
+    config.action_cable = ActiveSupport::OrderedOptions.new
+
+    config.eager_load_namespaces << ActiveFile
+
+    initializer "action_cable.routes" do
+      require "active_file/disk_controller"
+
+      config.after_initialize do |app|
+        app.routes.prepend do
+          get "/rails/blobs/:id" => "active_file/disk#show", as: :rails_disk_blob
+        end
+      end
+    end
   end
 end
