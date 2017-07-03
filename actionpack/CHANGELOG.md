@@ -1,3 +1,7 @@
+*   Modify the encoding of `path_parameters` to UTF-8
+
+    *Tsukuru Tanimichi*
+
 *   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
 
     *Kir Shatrov*
