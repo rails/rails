@@ -7,3 +7,4 @@ gem 'byebug'
 
 gem 'sqlite3'
 gem 'aws-sdk'
+gem 'google-cloud'
