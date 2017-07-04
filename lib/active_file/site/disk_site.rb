@@ -8,7 +8,6 @@ class ActiveFile::Site::DiskSite < ActiveFile::Site
     @root = root
   end
 
-
   def upload(key, io)
     File.open(make_path_for(key), "wb") do |file|
       while chunk = io.read(65536)
