@@ -27,7 +27,7 @@ class ActiveFile::Site
   end
 
 
-  def url(key, expires_in: nil)
+  def url(key, expires_in:, disposition:, filename:)
     raise NotImplementedError
   end
 

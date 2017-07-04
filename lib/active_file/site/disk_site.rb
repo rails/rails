@@ -37,13 +37,13 @@ class ActiveFile::Site::DiskSite < ActiveFile::Site
   end
 
 
-  def url(key, expires_in: nil)
+  def url(key, expires_in:, disposition:, filename:)
     verified_key_with_expiration = ActiveFile::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
     if defined?(Rails)
-      Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration)
+      Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration, disposition: disposition)
     else
-      "/rails/blobs/#{verified_key_with_expiration}"
+      "/rails/blobs/#{verified_key_with_expiration}?disposition=#{disposition}"
     end
   end
 
