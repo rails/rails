@@ -27,6 +27,11 @@ class ActiveFile::Site::GCSSite < ActiveFile::Site
   end
 
 
+  def url(key, expires_in:, disposition:, filename:)
+    file_for(key).signed_url(expires: expires_in) + "&" +
+      { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }.to_query
+  end
+
   def byte_size(key)
     file_for(key).size
   end
