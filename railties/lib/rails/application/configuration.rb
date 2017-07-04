@@ -237,6 +237,29 @@ module Rails
           true
         end
       end
+
+      # Some configurations should be defined in `config/application.rb` because
+      # they are referred before initialization process.
+      # For example, `config.time_zone` is assigned before initialization by ActiveSupport.
+      # See https://github.com/rails/rails/blob/d66e7835bea9505f7003e5038aa19b6ea95ceea1/activesupport/lib/active_support/railtie.rb#L25
+      module AttributeWarning # :nodoc:
+        WARNED_ATTRIBUTES = %w(autoload_paths time_zone)
+
+        WARNED_ATTRIBUTES.each do |attribute|
+          define_method "#{attribute}=" do |*args|
+            if caller_locations.first.path =~ /^#{root}\/config\/initializers/
+              warn <<-WARNING.strip_heredoc
+                [WARNING] `config.#{attribute}` defined under `config/initializers` isn't work
+                          correctly because some objects refer it before initialization.
+                          It should go in `config/application.rb`.
+              WARNING
+            end
+            super(*args)
+          end
+        end
+      end
+
+      prepend AttributeWarning if Rails.env.development?
     end
   end
 end
