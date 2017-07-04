@@ -1479,6 +1479,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome), post
   end
 
+  test "preloading of non-relations" do
+    class SpecialPostPreloader < ActiveRecord::Associations::Preloader::HasMany
+      def initialize(authors)
+        super(Post, authors, Author.reflect_on_association(:posts), ActiveRecord::Relation.new(nil, nil, nil))
+      end
+
+      def records_for(author_ids)
+        # to_a on an actual relation is called to simulate a real case
+        Post.where(author_id: author_ids).to_a
+      end
+    end
+
+    SpecialPostPreloader.new(Author.first(10)).run(nil)
+  end
+
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
   test "preloading has_many_through association avoids calling association.reader" do
     ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never

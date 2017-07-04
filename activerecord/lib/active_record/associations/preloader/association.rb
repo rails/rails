@@ -114,7 +114,16 @@ module ActiveRecord
             # Make several smaller queries if necessary or make one query if the adapter supports it
             slices = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
             @preloaded_records = slices.flat_map do |slice|
-              records_for(slice).load(&block)
+              records = records_for(slice)
+              if records.respond_to?(:load)
+                # Prefer using #load to set owner association before callbacks when possible
+                # (block supplied to internal #find_by_sql which runs before callbacks).
+                records.load(&block)
+              else
+                # Non-relation supplied by preloader, using #each.
+                records.each(&block)
+              end
+              records
             end
             @preloaded_records.group_by do |record|
               convert_key(record[association_key_name])
