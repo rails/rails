@@ -32,12 +32,16 @@ class ActiveFile::Sites::GCSSite < ActiveFile::Site
   end
 
   def checksum(key)
-    file_for(key).md5.unpack("m0").first.unpack("H*").first
+    convert_to_hex base64: file_for(key).md5
   end
 
 
   private
     def file_for(key)
       bucket.file(key)
+    end
+
+    def convert_to_hex(base64:)
+      base64.unpack("m0").first.unpack("H*").first
     end
 end
