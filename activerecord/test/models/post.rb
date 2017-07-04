@@ -116,10 +116,10 @@ class Post < ActiveRecord::Base
   has_many :tags_with_primary_key, through: :taggings, source: :tag_with_primary_key
   has_one :tagging, as: :taggable
 
-  has_many :first_taggings, -> { where taggings: { comment: "first" } }, as: :taggable, class_name: "Tagging"
-  has_many :first_blue_tags, -> { where tags: { name: "Blue" } }, through: :first_taggings, source: :tag
+  has_many :first_taggings, -> { where comment: "first" }, as: :taggable, class_name: "Tagging"
+  has_many :first_blue_tags, -> { where name: "Blue" }, through: :first_taggings, source: :tag
 
-  has_many :first_blue_tags_2, -> { where taggings: { comment: "first" } }, through: :taggings, source: :blue_tag
+  has_many :first_blue_tags_2, -> { joins(:taggings).where(taggings: { comment: "first" }) }, through: :taggings, source: :blue_tag
 
   has_many :invalid_taggings, -> { where "taggings.id < 0" }, as: :taggable, class_name: "Tagging"
   has_many :invalid_tags, through: :invalid_taggings, source: :tag
