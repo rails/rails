@@ -9,9 +9,9 @@ class ActiveFile::Sites::DiskSite < ActiveFile::Site
   end
 
 
-  def upload(key, data)
+  def upload(key, io)
     File.open(make_path_for(key), "wb") do |file|
-      while chunk = data.read(65536)
+      while chunk = io.read(65536)
         file.write(chunk)
       end
     end

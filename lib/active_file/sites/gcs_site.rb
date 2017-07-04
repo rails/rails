@@ -8,8 +8,8 @@ class ActiveFile::Sites::GCSSite < ActiveFile::Site
     @bucket = @client.bucket(bucket)
   end
 
-  def upload(key, data)
-    bucket.create_file(data, key)
+  def upload(key, io)
+    bucket.create_file(io, key)
   end
 
   def download(key)

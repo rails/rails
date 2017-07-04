@@ -5,8 +5,8 @@ class ActiveFile::Sites::MirrorSite < ActiveFile::Site
     @sites = sites
   end
 
-  def upload(key, data)
-    perform_across_sites :upload, key, data
+  def upload(key, io)
+    perform_across_sites :upload, key, io
   end
 
   def download(key)

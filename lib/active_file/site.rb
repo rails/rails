@@ -3,7 +3,7 @@ class ActiveFile::Site
   def initialize
   end
 
-  def upload(key, data)
+  def upload(key, io)
     raise NotImplementedError
   end
 
