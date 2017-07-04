@@ -1,9 +1,16 @@
 require "test_helper"
 require "active_support/core_ext/securerandom"
+require "yaml"
+
+SITE_CONFIGURATIONS = begin
+  YAML.load_file(File.expand_path("../configurations.yml", __FILE__)).deep_symbolize_keys 
+rescue Errno::ENOENT
+  puts "Missing site configuration file in test/sites/configurations.yml"
+end
 
 module ActiveFile::Sites::SharedSiteTests
   extend ActiveSupport::Concern
-  
+
   FIXTURE_KEY  = SecureRandom.base58(24)
   FIXTURE_FILE = StringIO.new("Hello world!")
 

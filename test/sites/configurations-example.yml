@@ -1,0 +1,11 @@
+# Copy this file to configurations.yml and edit the credentials to match your IAM test account and bucket
+s3:
+  access_key_id:
+  secret_access_key:
+  region:
+  bucket:
+
+gcs:
+  project:
+  keyfile:
+  bucket:
