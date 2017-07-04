@@ -133,10 +133,10 @@ class Author < ActiveRecord::Base
 
   has_many :category_post_comments, through: :categories, source: :post_comments
 
-  has_many :misc_posts, -> { where(posts: { title: ["misc post by bob", "misc post by mary"] }) }, class_name: "Post"
+  has_many :misc_posts, -> { where(title: ["misc post by bob", "misc post by mary"]) }, class_name: "Post"
   has_many :misc_post_first_blue_tags, through: :misc_posts, source: :first_blue_tags
 
-  has_many :misc_post_first_blue_tags_2, -> { where(posts: { title: ["misc post by bob", "misc post by mary"] }) },
+  has_many :misc_post_first_blue_tags_2, -> { where(posts: { title: ["misc post by bob", "misc post by mary"] }).distinct },
            through: :posts, source: :first_blue_tags_2
 
   has_many :posts_with_default_include, class_name: "PostWithDefaultInclude"

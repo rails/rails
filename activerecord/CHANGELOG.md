@@ -1,3 +1,14 @@
+*   Stop applying parts of the association scope into the through model when
+    preloading through associations
+
+    Previously, `has_many :blue_tags, ->{ where(name: "blue") }, through: :taggings, source: :tag`
+    would fail when preloaded because it would try to apply the
+    `where(name: 'blue')` scope to Tagging as it preloaded it. Tests previously
+    'got around' this by prefixing the table name in the scope like:
+    `->{ where(tags: { name: "blue" }) }`.
+
+    *Mike Campbell*
+
 *   Fix transactions to apply state to child transactions
 
     Previously if you had a nested transaction and the outer transaction was rolledback the record from the
