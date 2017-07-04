@@ -854,9 +854,6 @@ module ActiveRecord
           end
         end
 
-        class MysqlJson < Type::Json # :nodoc:
-        end
-
         class MysqlString < Type::String # :nodoc:
           def serialize(value)
             case value
