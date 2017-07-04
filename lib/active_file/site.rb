@@ -4,8 +4,8 @@ class ActiveFile::Site
     begin
       require "active_file/site/#{site.to_s.downcase}_site"
       ActiveFile::Site.const_get(:"#{site}Site").new(**options)
-    rescue LoadError
-      puts "Couldn't configure unknow site: #{site}"
+    rescue LoadError => e
+      puts "Couldn't configure site: #{site} (#{e.message})"
     end
   end
 
