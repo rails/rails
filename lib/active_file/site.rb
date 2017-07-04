@@ -1,5 +1,12 @@
 # Abstract class serving as an interface for concrete sites.
 class ActiveFile::Site
+  def self.configure(site, **options)
+    begin
+      require "active_file/site/#{site.to_s.downcase}_site"
+      ActiveFile::Site.const_get(:"#{site}Site").new(**options)
+    end
+  end
+
   def initialize
   end
 
@@ -36,10 +43,3 @@ class ActiveFile::Site
     raise NotImplementedError
   end
 end
-
-module ActiveFile::Sites
-end
-
-require "active_file/sites/disk_site"
-require "active_file/sites/gcs_site"
-require "active_file/sites/s3_site"

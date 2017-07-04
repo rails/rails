@@ -8,7 +8,7 @@ rescue Errno::ENOENT
   puts "Missing site configuration file in test/sites/configurations.yml"
 end
 
-module ActiveFile::Sites::SharedSiteTests
+module ActiveFile::Site::SharedSiteTests
   extend ActiveSupport::Concern
 
   FIXTURE_KEY  = SecureRandom.base58(24)
