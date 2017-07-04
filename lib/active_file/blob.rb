@@ -33,8 +33,8 @@ class ActiveFile::Blob < ActiveRecord::Base
     ActiveFile::Filename.new(self[:filename])
   end
 
-  def url(disposition: :inline, expires_in: 5.minutes)
-    site.url key, disposition: disposition, expires_in: expires_in
+  def url(expires_in: 5.minutes)
+    site.url key, expires_in: expires_in
   end
 
 

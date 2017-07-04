@@ -29,7 +29,7 @@ class ActiveFile::Site::S3Site < ActiveFile::Site
   end
 
 
-  def url(key, disposition: :inline, expires_in: nil)
+  def url(key, expires_in: nil)
     object_for(key).presigned_url(:get, expires_in: expires_in)
   end
 

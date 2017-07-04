@@ -38,7 +38,7 @@ class ActiveFile::Site::DiskSite < ActiveFile::Site
   end
 
 
-  def url(key, disposition:, expires_in: nil)
+  def url(key, expires_in: nil)
     verified_key_with_expiration = ActiveFile::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
     if defined?(Rails)
