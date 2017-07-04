@@ -2,11 +2,11 @@ require "rails/railtie"
 
 module ActiveFile
   class Railtie < Rails::Railtie # :nodoc:
-    config.action_cable = ActiveSupport::OrderedOptions.new
+    config.action_file = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveFile
 
-    initializer "action_cable.routes" do
+    initializer "action_file.routes" do
       require "active_file/disk_controller"
 
       config.after_initialize do |app|
