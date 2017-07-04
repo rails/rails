@@ -83,6 +83,10 @@ module ActiveRecord
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
+      def relation_without_type_condition #:nodoc:
+        Relation.create(self, arel_table, predicate_builder)
+      end
+
       # Returns the class descending directly from ActiveRecord::Base, or
       # an abstract class, if any, in the inheritance hierarchy.
       #
