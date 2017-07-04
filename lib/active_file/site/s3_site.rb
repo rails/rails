@@ -31,7 +31,7 @@ class ActiveFile::Site::S3Site < ActiveFile::Site
 
   def url(key, expires_in:, disposition:, filename:)
     object_for(key).presigned_url :get, expires_in: expires_in,
-      response_content_disposition: "#{disposition}; filename=#{filename}"
+      response_content_disposition: "#{disposition}; filename=\"#{filename}\""
   end
 
   def byte_size(key)
