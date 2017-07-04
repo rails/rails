@@ -64,7 +64,7 @@ PATH
       activemodel (= 5.1.2)
       activerecord (= 5.1.2)
       activesupport (= 5.1.2)
-      bundler (>= 1.3.0, < 2.0)
+      bundler (>= 1.3.0)
       railties (= 5.1.2)
       sprockets-rails (>= 2.0.0)
     railties (5.1.2)
