@@ -30,6 +30,7 @@ module ActionController
         end
         ActionController::Parameters.action_on_unpermitted_parameters = options.delete(:action_on_unpermitted_parameters) do
           (Rails.env.test? || Rails.env.development?) ? :log : false
+        end
       end
     end
 
