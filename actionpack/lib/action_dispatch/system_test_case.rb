@@ -101,7 +101,7 @@ module ActionDispatch
         map "/" do
           run Rails.application
         end
-      end
+      end.to_app
 
       SystemTesting::Server.new.run
     end
