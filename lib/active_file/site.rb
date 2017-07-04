@@ -7,8 +7,6 @@ class ActiveFile::Site
     end
   end
 
-  def initialize
-  end
 
   def upload(key, io)
     raise NotImplementedError
@@ -26,20 +24,16 @@ class ActiveFile::Site
     raise NotImplementedError
   end
 
-  def url(key)
+
+  def url(key, expires_in: nil)
+    raise NotImplementedError
+  end
+
+  def bytesize(key)
     raise NotImplementedError
   end
 
   def checksum(key)
-    raise NotImplementedError
-  end
-
-
-  def copy(from:, to:)
-    raise NotImplementedError
-  end
-
-  def move(from:, to:)
     raise NotImplementedError
   end
 end
