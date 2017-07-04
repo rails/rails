@@ -10,7 +10,7 @@ class ActiveFile::DiskController < ActionController::Base
 
   private
     def decode_verified_key
-      ActiveFile::Site::DiskSite::VerifiedKeyWithExpiration.decode(params[:id])
+      ActiveFile::Site::DiskSite::VerifiedKeyWithExpiration.decode(params[:encoded_key])
     end
 
     def disposition_param

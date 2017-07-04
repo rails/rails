@@ -11,7 +11,7 @@ module ActiveFile
 
       config.after_initialize do |app|
         app.routes.prepend do
-          get "/rails/blobs/:id" => "active_file/disk#show", as: :rails_disk_blob
+          get "/rails/blobs/:encoded_key" => "active_file/disk#show", as: :rails_disk_blob
         end
       end
     end
