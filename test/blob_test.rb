@@ -21,12 +21,7 @@ class ActiveFile::BlobTest < ActiveSupport::TestCase
     end
   end
 
-
   private
-    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
-      ActiveFile::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
-    end
-
     def expected_url_for(blob, disposition: :inline)
       "/rails/blobs/#{ActiveFile::VerifiedKeyWithExpiration.encode(blob.key, expires_in: 5.minutes)}?disposition=#{disposition}"
     end
