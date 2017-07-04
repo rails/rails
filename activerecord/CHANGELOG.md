@@ -1,3 +1,9 @@
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
+
+    *Ryuta Kamizono*
+
 *   Fix transactions to apply state to child transactions
 
     Previously if you had a nested transaction and the outer transaction was rolledback the record from the
