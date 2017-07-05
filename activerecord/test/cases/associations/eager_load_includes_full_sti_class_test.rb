@@ -8,10 +8,6 @@ module Namespaced
   class Post < ActiveRecord::Base
     self.table_name = "posts"
     has_one :tagging, as: :taggable, class_name: "Tagging"
-
-    def self.polymorphic_name
-      sti_name
-    end
   end
 end
 
