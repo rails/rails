@@ -1130,6 +1130,8 @@ module ApplicationTests
 
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }
@@ -1147,6 +1149,8 @@ module ApplicationTests
       RUBY
 
       app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1170,6 +1174,8 @@ module ApplicationTests
 
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }, format: "json"
@@ -1179,17 +1185,23 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       app "test"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
       app "production"
+
+      ActionController::Base.object_id # force lazy load hooks to run
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
