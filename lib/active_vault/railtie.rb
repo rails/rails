@@ -2,11 +2,11 @@ require "rails/railtie"
 
 module ActiveVault
   class Railtie < Rails::Railtie # :nodoc:
-    config.action_file = ActiveSupport::OrderedOptions.new
+    config.active_vault = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveVault
 
-    initializer "action_file.routes" do
+    initializer "active_vault.routes" do
       require "active_vault/disk_controller"
 
       config.after_initialize do |app|
@@ -16,7 +16,7 @@ module ActiveVault
       end
     end
 
-    initializer "action_file.attached" do
+    initializer "active_vault.attached" do
       require "active_vault/attached"
 
       ActiveSupport.on_load(:active_record) do
