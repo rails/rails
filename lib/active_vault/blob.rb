@@ -15,6 +15,7 @@ class ActiveVault::Blob < ActiveRecord::Base
       new.tap do |blob|
         blob.filename     = filename
         blob.content_type = content_type
+        blob.metadata     = metadata
 
         blob.upload io
       end
