@@ -359,7 +359,7 @@ module ActiveSupport
     #   Time.zone.iso8601('1999-12-31') # => Fri, 31 Dec 1999 00:00:00 HST -10:00
     #
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
-    # which returns +nil+ when given an invalid date string.
+    # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
       parts = Date._iso8601(str)
 
@@ -398,6 +398,8 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
+    #
+    # If the string is invalid then an +ArgumentError+ could be raised.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end
