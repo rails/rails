@@ -1140,6 +1140,9 @@ module ApplicationTests
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1204,6 +1207,39 @@ module ApplicationTests
       ActionController::Base.object_id # force lazy load hooks to run
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.permit_all_parameters can be configured in an initializer" do
+      app_file "config/initializers/permit_all_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.permit_all_parameters = true
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal true, ActionController::Parameters.permit_all_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/always_permitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.always_permitted_parameters = []
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal [], ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/action_on_unpermitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_dispatch.ignore_accept_header" do
