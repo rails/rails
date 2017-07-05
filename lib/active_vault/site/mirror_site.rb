@@ -9,7 +9,7 @@ class ActiveVault::Site::MirrorSite < ActiveVault::Site
     sites.collect do |site|
       site.upload key, io
       io.rewind
-    end   
+    end
   end
 
   def download(key)
@@ -24,6 +24,10 @@ class ActiveVault::Site::MirrorSite < ActiveVault::Site
     perform_across_sites(:exist?, key).any?
   end
 
+
+  def url(key, **options)
+    primary_site.url(key, **options)
+  end
 
   def byte_size(key)
     primary_site.byte_size(key)
@@ -42,6 +46,6 @@ class ActiveVault::Site::MirrorSite < ActiveVault::Site
       # FIXME: Convert to be threaded
       sites.collect do |site|
         site.public_send method, *args
-      end   
+      end
     end
 end
