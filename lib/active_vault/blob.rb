@@ -1,8 +1,8 @@
-require "active_file/site"
-require "active_file/filename"
+require "active_vault/site"
+require "active_vault/filename"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
-class ActiveFile::Blob < ActiveRecord::Base
+class ActiveVault::Blob < ActiveRecord::Base
   self.table_name = "rails_blobs"
 
   has_secure_token :key
@@ -31,7 +31,7 @@ class ActiveFile::Blob < ActiveRecord::Base
   end
 
   def filename
-    ActiveFile::Filename.new(self[:filename])
+    ActiveVault::Filename.new(self[:filename])
   end
 
   def url(expires_in: 5.minutes, disposition: :inline)
@@ -61,6 +61,6 @@ class ActiveFile::Blob < ActiveRecord::Base
   end
 
   def purge_later
-    ActiveFile::PurgeJob.perform_later(self)
+    ActiveVault::PurgeJob.perform_later(self)
   end
 end

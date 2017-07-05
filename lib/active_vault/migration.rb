@@ -1,4 +1,4 @@
-class ActiveFile::CreateBlobs < ActiveRecord::Migration[5.1]
+class ActiveVault::CreateBlobs < ActiveRecord::Migration[5.1]
   def change
     create_table :rails_blobs do |t|
       t.string :key

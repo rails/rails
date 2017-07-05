@@ -1,6 +1,6 @@
 require "aws-sdk"
 
-class ActiveFile::Site::S3Site < ActiveFile::Site
+class ActiveVault::Site::S3Site < ActiveVault::Site
   attr_reader :client, :bucket
 
   def initialize(access_key_id:, secret_access_key:, region:, bucket:)

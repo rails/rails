@@ -1,8 +1,8 @@
 require "tmpdir"
 require "site/shared_site_tests"
 
-class ActiveFile::Site::DiskSiteTest < ActiveSupport::TestCase
-  SITE = ActiveFile::Site.configure(:Disk, root: File.join(Dir.tmpdir, "active_file"))
+class ActiveVault::Site::DiskSiteTest < ActiveSupport::TestCase
+  SITE = ActiveVault::Site.configure(:Disk, root: File.join(Dir.tmpdir, "active_vault"))
 
-  include ActiveFile::Site::SharedSiteTests
+  include ActiveVault::Site::SharedSiteTests
 end

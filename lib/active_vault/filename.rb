@@ -1,4 +1,4 @@
-class ActiveFile::Filename
+class ActiveVault::Filename
   include Comparable
 
   def initialize(filename)

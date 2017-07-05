@@ -1,17 +1,17 @@
 require "rails/railtie"
 
-module ActiveFile
+module ActiveVault
   class Railtie < Rails::Railtie # :nodoc:
     config.action_file = ActiveSupport::OrderedOptions.new
 
-    config.eager_load_namespaces << ActiveFile
+    config.eager_load_namespaces << ActiveVault
 
     initializer "action_file.routes" do
-      require "active_file/disk_controller"
+      require "active_vault/disk_controller"
 
       config.after_initialize do |app|
         app.routes.prepend do
-          get "/rails/blobs/:encoded_key" => "active_file/disk#show", as: :rails_disk_blob
+          get "/rails/blobs/:encoded_key" => "active_vault/disk#show", as: :rails_disk_blob
         end
       end
     end

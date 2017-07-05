@@ -11,7 +11,7 @@ end
 
 class Avatar < ApplicationRecord
   belongs_to :person
-  belongs_to :image, class_name: 'ActiveFile::Blob'
+  belongs_to :image, class_name: 'ActiveVault::Blob'
 
   has_file :image
 end
@@ -19,9 +19,9 @@ end
 avatar.image.url(expires_in: 5.minutes)
 
 
-class ActiveFile::DownloadsController < ActionController::Base
+class ActiveVault::DownloadsController < ActionController::Base
   def show
-    head :ok, ActiveFile::Blob.locate(params[:id]).download_headers
+    head :ok, ActiveVault::Blob.locate(params[:id]).download_headers
   end
 end
 
@@ -29,7 +29,7 @@ end
 class AvatarsController < ApplicationController
   def create
     # @avatar = Avatar.create \
-    #   image: ActiveFile::Blob.save!(file_name: params.require(:name), content_type: request.content_type, data: request.body)
+    #   image: ActiveVault::Blob.save!(file_name: params.require(:name), content_type: request.content_type, data: request.body)
     @avatar = Avatar.create! image: Avatar.image.extract_from(request)
   end
 end

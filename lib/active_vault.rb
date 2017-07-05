@@ -1,7 +1,7 @@
 require "active_record"
-require "active_file/railtie" if defined?(Rails)
+require "active_vault/railtie" if defined?(Rails)
 
-module ActiveFile
+module ActiveVault
   extend ActiveSupport::Autoload
 
   autoload :Blob

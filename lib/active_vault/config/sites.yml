@@ -1,13 +1,13 @@
 # Configuration should be something like this:
 #
 # config/environments/development.rb
-#   config.active_file.site = :local
+#   config.active_vault.site = :local
 #
 # config/environments/production.rb
-#   config.active_file.site = :amazon
+#   config.active_vault.site = :amazon
 local:
   site: Disk
-  root: <%%= File.join(Dir.tmpdir, "active_file") %>
+  root: <%%= File.join(Dir.tmpdir, "active_vault") %>
 
 amazon:
   site: S3

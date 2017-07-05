@@ -1,7 +1,7 @@
 require "fileutils"
 require "pathname"
 
-class ActiveFile::Site::DiskSite < ActiveFile::Site
+class ActiveVault::Site::DiskSite < ActiveVault::Site
   attr_reader :root
 
   def initialize(root:)
@@ -38,7 +38,7 @@ class ActiveFile::Site::DiskSite < ActiveFile::Site
 
 
   def url(key, expires_in:, disposition:, filename:)
-    verified_key_with_expiration = ActiveFile::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
+    verified_key_with_expiration = ActiveVault::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
     if defined?(Rails) && defined?(Rails.application)
       Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration, disposition: disposition)

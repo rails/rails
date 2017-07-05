@@ -1,5 +1,5 @@
-class ActiveFile::VerifiedKeyWithExpiration
-  class_attribute :verifier, default: defined?(Rails) ? Rails.application.message_verifier('ActiveFile') : nil
+class ActiveVault::VerifiedKeyWithExpiration
+  class_attribute :verifier, default: defined?(Rails) ? Rails.application.message_verifier('ActiveVault') : nil
 
   class << self
     def encode(key, expires_in: nil)

@@ -1,4 +1,4 @@
-class ActiveFile::Site::MirrorSite < ActiveFile::Site
+class ActiveVault::Site::MirrorSite < ActiveVault::Site
   attr_reader :sites
 
   def initialize(sites:)

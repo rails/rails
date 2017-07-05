@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activefile (0.1)
+    activevault (0.1)
       actionpack (>= 5.1)
       activejob (>= 5.1)
       activerecord (>= 5.1)
@@ -223,7 +223,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activefile!
+  activevault!
   aws-sdk
   bundler (~> 1.15)
   byebug
