@@ -1,3 +1,10 @@
+*   Allow mounting the same engine several times in different locations.
+
+    Fixes #20204.
+
+    *David Rodríguez*
+
+
 ## Rails 5.1.2 (June 26, 2017) ##
 
 *   Add Windows support to `rails secrets:edit`.
