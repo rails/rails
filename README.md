@@ -1,8 +1,12 @@
 # Active Vault
 
-...
+Active Vault makes it simple to upload and reference files in cloud sites, like Amazon S3 or Google Cloud Storage,
+and attach those files to Active Records. It also provides a disk site for testing or local deployments, but the
+focus is on cloud storage.
 
 ## Example
+
+One attachment:
 
 ```ruby
 class User < ApplicationRecord
@@ -23,6 +27,38 @@ class AvatarsController < ApplicationController
     redirect_to Current.user
   end
 end
+```
+
+Many attachments:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images
+end
+
+<%= form_with model: @message do |form| %>
+  <%= form.text_field :title, placeholder: "Title" %><br>
+  <%= form.text_area :content %><br><br>
+  
+  <%= form.file_field :images, multiple: true %><br>
+  <%= form.submit %>
+<% end %>
+
+class MessagesController < ApplicationController
+  def create
+    message = Message.create! params.require(:message).permit(:title, :content)
+    message.images.attach(params[:message][:images])
+    redirect_to message
+  end
+end
+```
+
+## Configuration
+
+Add `require "active_vault"` to config/application.rb and create a `config/initializers/active_vault_sites.rb` with the following:
+
+```ruby
+  
 ```
 
 ## License
