@@ -1,3 +1,9 @@
+*   Allow mounting the same engine several times in different locations.
+
+    Fixes #20204.
+
+    *David Rodríguez*
+
 *   Clear screenshot files in `tmp:clear` task.
 
     *Yuji Yaginuma*
