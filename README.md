@@ -6,25 +6,10 @@
 
 ```ruby
 class Person < ApplicationRecord
-  has_one :avatar
-end
-
-class Avatar < ApplicationRecord
-  belongs_to :person
-  belongs_to :image, class_name: 'ActiveVault::Blob'
-
-  has_file :image
+  has_file :avatar
 end
 
 avatar.image.url(expires_in: 5.minutes)
-
-
-class ActiveVault::DownloadsController < ActionController::Base
-  def show
-    head :ok, ActiveVault::Blob.locate(params[:id]).download_headers
-  end
-end
-
 
 class AvatarsController < ApplicationController
   def create

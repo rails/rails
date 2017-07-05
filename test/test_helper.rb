@@ -18,3 +18,11 @@ class ActiveSupport::TestCase
       ActiveVault::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
     end
 end
+
+
+require "active_vault/attachments"
+ActiveRecord::Base.send :extend, ActiveVault::Attachments
+
+require "global_id"
+GlobalID.app = "ActiveVaultExampleApp"
+ActiveRecord::Base.send :include, GlobalID::Identification
