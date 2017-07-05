@@ -23,4 +23,8 @@ class ActiveVault::Attachment < ActiveRecord::Base
     blob.purge
     destroy
   end
+
+  def purge_later
+    ActiveVault::PurgeJob.perform_later(self)
+  end
 end

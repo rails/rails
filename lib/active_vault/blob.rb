@@ -1,5 +1,6 @@
 require "active_vault/site"
 require "active_vault/filename"
+require "active_vault/purge_job"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveVault::Blob < ActiveRecord::Base

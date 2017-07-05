@@ -1,7 +1,10 @@
-class ActiveVault::PurgeJob < ActiveJob::Base
-  retry_on ActiveVault::StorageException
+require "active_job"
 
-  def perform(blob)
-    blob.purge
+class ActiveVault::PurgeJob < ActiveJob::Base
+  # FIXME: Limit this to a custom ActiveVault error
+  retry_on StandardError
+
+  def perform(attachment_or_blob)
+    attachment_or_blob.purge
   end
 end
