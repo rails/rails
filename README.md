@@ -1,4 +1,4 @@
-# Active File
+# Active Vault
 
 ...
 
@@ -44,4 +44,4 @@ end
 
 ## License
 
-Active File is released under the [MIT License](https://opensource.org/licenses/MIT).
+Active Vault is released under the [MIT License](https://opensource.org/licenses/MIT).
