@@ -20,8 +20,8 @@ class ActiveSupport::TestCase
 end
 
 
-require "active_vault/attachments"
-ActiveRecord::Base.send :extend, ActiveVault::Attachments
+require "active_vault/attached"
+ActiveRecord::Base.send :extend, ActiveVault::Attached::Macros
 
 require "global_id"
 GlobalID.app = "ActiveVaultExampleApp"

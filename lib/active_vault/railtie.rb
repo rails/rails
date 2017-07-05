@@ -16,11 +16,11 @@ module ActiveVault
       end
     end
 
-    initializer "action_file.attachments" do
-      require "active_vault/attachments"
+    initializer "action_file.attached" do
+      require "active_vault/attached"
 
       ActiveSupport.on_load(:active_record) do
-        extend ActiveVault::Attachments
+        extend ActiveVault::Attached::Macros
       end
     end
   end
