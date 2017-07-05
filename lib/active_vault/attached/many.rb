@@ -6,7 +6,7 @@ class ActiveVault::Attached::Many < ActiveVault::Attached
   end
 
   def attach(*attachables)
-    @attachments = attachments + Array(attachables).flatten.collect do |attachable|
+    @attachments = attachments | Array(attachables).flatten.collect do |attachable|
       ActiveVault::Attachment.create!(record_gid: record.to_gid.to_s, name: name, blob: create_blob_from(attachable))
     end
   end
