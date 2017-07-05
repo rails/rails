@@ -154,12 +154,12 @@ if current_adapter?(:Mysql2Adapter)
         ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
 
-      def test_sends_output_to_stderr_when_other_errors
+      def test_sends_output_to_stderr_and_raise_error_when_other_errors
         @error.stubs(:errno).returns(42)
 
         $stderr.expects(:puts).at_least_once.returns(nil)
 
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
+        assert_raises(Mysql2::Error) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
       end
 
       private
