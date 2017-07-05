@@ -6,7 +6,10 @@ class ActiveVault::Site::MirrorSite < ActiveVault::Site
   end
 
   def upload(key, io)
-    perform_across_sites :upload, key, io
+    sites.collect do |site|
+      site.upload key, io
+      io.rewind
+    end   
   end
 
   def download(key)
@@ -35,10 +38,10 @@ class ActiveVault::Site::MirrorSite < ActiveVault::Site
       sites.first
     end
 
-    def perform_across_sites(method, **args)
+    def perform_across_sites(method, *args)
       # FIXME: Convert to be threaded
       sites.collect do |site|
-        site.send method, **args
+        site.public_send method, *args
       end   
     end
 end

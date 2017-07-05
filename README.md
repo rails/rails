@@ -65,7 +65,7 @@ Add `require "active_vault"` to config/application.rb and create a `config/initi
 
 - Strip Download of its resposibilities and delete class
 - Proper logging
-- MirrorSite
+- Convert MirrorSite to use threading
 - Read metadata via Marcel?
 - Copy over migration to app via rake task
 - Add Migrator to copy/move between sites
