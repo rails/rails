@@ -2,13 +2,11 @@ script: 'ci/travis.rb'
 before_install:
   - gem install bundler
 rvm:
-  - 1.9.3
   - 2.0.0
   - 2.1
+  - 2.1.6
   - 2.2
-  - ruby-head
-  - rbx-2
-  - jruby
+  - 2.3
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as"
