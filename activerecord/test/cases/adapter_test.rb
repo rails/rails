@@ -211,6 +211,28 @@ module ActiveRecord
       end
     end
 
+    def test_exceptions_from_notifications_are_not_translated
+      original_error = RuntimeError.new("This RuntimeError shouldn't get translated")
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
+      actual_error = assert_raises(RuntimeError) do
+        @connection.execute("SELECT * FROM posts")
+      end
+
+      assert_equal original_error, actual_error
+
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_other_exceptions_are_translated_to_statement_invalid
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.execute("This is a syntax error")
+      end
+
+      assert_instance_of ActiveRecord::StatementInvalid, error
+      assert_instance_of syntax_error_exception_class, error.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
@@ -260,6 +282,14 @@ module ActiveRecord
 
         assert_not_nil error.message
       end
+    end
+
+    private
+
+    def syntax_error_exception_class
+      return Mysql2::Error if defined?(Mysql2)
+      return PG::SyntaxError if defined?(PG)
+      return SQLite3::SQLException if defined?(SQLite3)
     end
   end
 

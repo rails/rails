@@ -1,3 +1,8 @@
+*   Prevent AbstractAdapter from converting exceptions from ActiveSupport::Notification
+    callbacks into ActiveRecord::StatementInvalids.
+
+    *Dennis Taylor*
+
 *   Fix eager loading/preloading association with scope including joins.
 
     Fixes #28324.
