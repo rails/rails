@@ -3,7 +3,7 @@ require "active_vault/filename"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveVault::Blob < ActiveRecord::Base
-  self.table_name = "rails_blobs"
+  self.table_name = "active_vault_blobs"
 
   has_secure_token :key
   store :metadata, coder: JSON
