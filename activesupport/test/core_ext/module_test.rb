@@ -399,7 +399,7 @@ class ModuleTest < ActiveSupport::TestCase
         @place = place
       end
 
-      private *delegate(:street, :city, to: :@place)
+      private(*delegate(:street, :city, to: :@place))
     end
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
@@ -417,7 +417,7 @@ class ModuleTest < ActiveSupport::TestCase
         @place = place
       end
 
-      private *delegate(:street, :city, to: :@place, prefix: :the)
+      private(*delegate(:street, :city, to: :@place, prefix: :the))
     end
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
