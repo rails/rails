@@ -48,7 +48,7 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
       offset = 0
 
       while offset < object.content_length
-        yield object.read(options.merge(:range => "bytes=#{offset}-#{offset + chunk_size - 1}"))
+        yield object.read(options.merge(range: "bytes=#{offset}-#{offset + chunk_size - 1}"))
         offset += chunk_size
       end
     end
