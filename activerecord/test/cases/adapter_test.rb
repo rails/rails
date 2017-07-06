@@ -212,9 +212,9 @@ module ActiveRecord
     end
 
     def test_exceptions_from_notifications_are_not_translated
-      original_error = RuntimeError.new("This RuntimeError shouldn't get translated")
+      original_error = StandardError.new("This StandardError shouldn't get translated")
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
-      actual_error = assert_raises(RuntimeError) do
+      actual_error = assert_raises(StandardError) do
         @connection.execute("SELECT * FROM posts")
       end
 
