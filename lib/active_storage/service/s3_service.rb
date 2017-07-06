@@ -52,7 +52,7 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     def stream(key, options = {}, &block)
       object = object_for(key)
 
-      chunk_size = 5242880 # 5 megabytes
+      chunk_size = 5.megabytes
       offset = 0
 
       while offset < object.content_length
