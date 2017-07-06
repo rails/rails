@@ -1,11 +1,11 @@
-require "active_support/xml_mini"
-require "active_support/time"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/object/to_query"
-require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/hash/reverse_merge"
-require "active_support/core_ext/string/inflections"
+require_relative "../../xml_mini"
+require_relative "../../time"
+require_relative "../object/blank"
+require_relative "../object/to_param"
+require_relative "../object/to_query"
+require_relative "../array/wrap"
+require_relative "reverse_merge"
+require_relative "../string/inflections"
 
 class Hash
   # Returns a string containing an XML representation of its receiver:
@@ -71,7 +71,7 @@ class Hash
   # configure your own builder with the <tt>:builder</tt> option. The method also accepts
   # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
   def to_xml(options = {})
-    require "active_support/builder" unless defined?(Builder)
+    require_relative "../../builder" unless defined?(Builder)
 
     options = options.dup
     options[:indent]  ||= 2

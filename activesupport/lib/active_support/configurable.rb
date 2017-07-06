@@ -1,7 +1,7 @@
-require "active_support/concern"
-require "active_support/ordered_options"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
+require_relative "concern"
+require_relative "ordered_options"
+require_relative "core_ext/array/extract_options"
+require_relative "core_ext/regexp"
 
 module ActiveSupport
   # Configurable provides a <tt>config</tt> method to store and retrieve

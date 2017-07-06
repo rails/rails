@@ -1,4 +1,4 @@
-require "active_model/type/helpers/accepts_multiparameter_time"
-require "active_model/type/helpers/numeric"
-require "active_model/type/helpers/mutable"
-require "active_model/type/helpers/time_value"
+require_relative "helpers/accepts_multiparameter_time"
+require_relative "helpers/numeric"
+require_relative "helpers/mutable"
+require_relative "helpers/time_value"

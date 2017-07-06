@@ -1,3 +1,9 @@
+*   Allow mounting the same engine several times in different locations.
+
+    Fixes #20204.
+
+    *David Rodríguez*
+
 *   Clear screenshot files in `tmp:clear` task.
 
     *Yuji Yaginuma*
@@ -16,7 +22,7 @@
 
     *Yuji Yaginuma*
 
-*   Added a shared section to config/database.yml that will be loaded for all environments.
+*   Added a shared section to `config/database.yml` that will be loaded for all environments.
 
     *Pierre Schambacher*
 

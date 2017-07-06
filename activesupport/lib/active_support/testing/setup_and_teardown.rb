@@ -1,5 +1,5 @@
-require "active_support/concern"
-require "active_support/callbacks"
+require_relative "../concern"
+require_relative "../callbacks"
 
 module ActiveSupport
   module Testing

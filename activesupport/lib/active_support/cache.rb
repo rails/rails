@@ -1,11 +1,11 @@
 require "zlib"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/numeric/time"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/string/inflections"
+require_relative "core_ext/array/extract_options"
+require_relative "core_ext/array/wrap"
+require_relative "core_ext/module/attribute_accessors"
+require_relative "core_ext/numeric/bytes"
+require_relative "core_ext/numeric/time"
+require_relative "core_ext/object/to_param"
+require_relative "core_ext/string/inflections"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -99,7 +99,7 @@ module ActiveSupport
         # Obtains the specified cache store class, given the name of the +store+.
         # Raises an error when the store class cannot be found.
         def retrieve_store_class(store)
-          require "active_support/cache/#{store}"
+          require_relative "cache/#{store}"
         rescue LoadError => e
           raise "Could not find cache store adapter for #{store} (#{e})"
         else

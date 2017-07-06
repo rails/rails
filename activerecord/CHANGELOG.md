@@ -1,3 +1,9 @@
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
+
+    *Ryuta Kamizono*
+
 *   Fix transactions to apply state to child transactions
 
     Previously if you had a nested transaction and the outer transaction was rolledback the record from the
@@ -24,7 +30,7 @@
 
     *Ryuta Kamizono*
 
-*   Query cache was unavailable when entering the ActiveRecord::Base.cache block
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
     without being connected.
 
     *Tsukasa Oishi*
@@ -58,7 +64,7 @@
     *bogdanvlviv*
 
 *   Fix destroying existing object does not work well when optimistic locking enabled and
-    `locking column` is null in the database.
+    `locking_column` is null in the database.
 
     *bogdanvlviv*
 

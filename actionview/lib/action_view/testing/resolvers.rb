@@ -1,4 +1,4 @@
-require "action_view/template/resolver"
+require_relative "../template/resolver"
 
 module ActionView #:nodoc:
   # Use FixtureResolver in your tests to simulate the presence of files on the

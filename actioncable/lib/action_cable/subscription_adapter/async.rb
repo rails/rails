@@ -1,4 +1,4 @@
-require "action_cable/subscription_adapter/inline"
+require_relative "inline"
 
 module ActionCable
   module SubscriptionAdapter

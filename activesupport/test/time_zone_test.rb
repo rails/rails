@@ -403,6 +403,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parse_with_invalid_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("9000")
+    end
+
+    assert_equal "argument out of range", exception.message
+  end
+
   def test_rfc3339
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.rfc3339("1999-12-31T14:00:00-10:00")

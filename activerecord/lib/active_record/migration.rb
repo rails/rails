@@ -863,15 +863,17 @@ module ActiveRecord
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
           inserted_comment = "# This migration comes from #{scope} (originally #{migration.version})\n"
-          if /\A#.*\b(?:en)?coding:\s*\S+/ =~ source
+          magic_comments = "".dup
+          loop do
             # If we have a magic comment in the original migration,
             # insert our comment after the first newline(end of the magic comment line)
             # so the magic keep working.
             # Note that magic comments must be at the first line(except sh-bang).
-            source[/\n/] = "\n#{inserted_comment}"
-          else
-            source = "#{inserted_comment}#{source}"
+            source.sub!(/\A(?:#.*\b(?:en)?coding:\s*\S+|#\s*frozen_string_literal:\s*(?:true|false)).*\n/) do |magic_comment|
+              magic_comments << magic_comment; ""
+            end || break
           end
+          source = "#{magic_comments}#{inserted_comment}#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
             if options[:on_skip] && duplicate.scope != scope.to_s

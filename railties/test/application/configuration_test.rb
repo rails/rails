@@ -176,13 +176,11 @@ module ApplicationTests
 
     test "Rails.application responds to all instance methods" do
       app "development"
-      assert_respond_to Rails.application, :routes_reloader
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
       app "development"
-      assert_respond_to AppTemplate::Application, :paths
       assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
     end
 
@@ -1132,6 +1130,8 @@ module ApplicationTests
 
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }
@@ -1140,6 +1140,9 @@ module ApplicationTests
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1149,6 +1152,8 @@ module ApplicationTests
       RUBY
 
       app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1172,6 +1177,8 @@ module ApplicationTests
 
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }, format: "json"
@@ -1181,11 +1188,15 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       app "development"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       app "test"
+
+      ActionController::Base.object_id # force lazy load hooks to run
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1193,7 +1204,42 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
       app "production"
 
+      ActionController::Base.object_id # force lazy load hooks to run
+
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.permit_all_parameters can be configured in an initializer" do
+      app_file "config/initializers/permit_all_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.permit_all_parameters = true
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal true, ActionController::Parameters.permit_all_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/always_permitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.always_permitted_parameters = []
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal [], ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/action_on_unpermitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      ActionController::Base.object_id # force lazy load hooks to run
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_dispatch.ignore_accept_header" do
@@ -1220,7 +1266,6 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_respond_to app, :env_config
       assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
       assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger

@@ -2,7 +2,7 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
-require "rails/secrets"
+require_relative "../secrets"
 
 module Rails
   class Application

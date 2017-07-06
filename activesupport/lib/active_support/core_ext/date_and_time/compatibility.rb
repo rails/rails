@@ -1,4 +1,4 @@
-require "active_support/core_ext/module/attribute_accessors"
+require_relative "../module/attribute_accessors"
 
 module DateAndTime
   module Compatibility

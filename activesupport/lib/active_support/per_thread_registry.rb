@@ -1,4 +1,4 @@
-require "active_support/core_ext/module/delegation"
+require_relative "core_ext/module/delegation"
 
 module ActiveSupport
   # NOTE: This approach has been deprecated for end-user code in favor of {thread_mattr_accessor}[rdoc-ref:Module#thread_mattr_accessor] and friends.

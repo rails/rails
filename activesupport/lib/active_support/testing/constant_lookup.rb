@@ -1,5 +1,5 @@
-require "active_support/concern"
-require "active_support/inflector"
+require_relative "../concern"
+require_relative "../inflector"
 
 module ActiveSupport
   module Testing

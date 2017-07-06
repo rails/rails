@@ -24,11 +24,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
     man_reflection = Man.reflect_on_association(:mixed_case_monkey)
 
-    assert_respond_to monkey_reflection, :has_inverse?
     assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
     assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
 
-    assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?, "The man reflection should have an inverse"
     assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
   end
@@ -37,7 +35,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     account_reflection = Admin::Account.reflect_on_association(:users)
     user_reflection = Admin::User.reflect_on_association(:account)
 
-    assert_respond_to account_reflection, :has_inverse?
     assert account_reflection.has_inverse?, "The Admin::Account reflection should have an inverse"
     assert_equal user_reflection, account_reflection.inverse_of, "The Admin::Account reflection's inverse should be the Admin::User reflection"
   end
@@ -46,11 +43,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     car_reflection = Car.reflect_on_association(:bulb)
     bulb_reflection = Bulb.reflect_on_association(:car)
 
-    assert_respond_to car_reflection, :has_inverse?
     assert car_reflection.has_inverse?, "The Car reflection should have an inverse"
     assert_equal bulb_reflection, car_reflection.inverse_of, "The Car reflection's inverse should be the Bulb reflection"
 
-    assert_respond_to bulb_reflection, :has_inverse?
     assert bulb_reflection.has_inverse?, "The Bulb reflection should have an inverse"
     assert_equal car_reflection, bulb_reflection.inverse_of, "The Bulb reflection's inverse should be the Car reflection"
   end
@@ -59,7 +54,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     comment_reflection = Comment.reflect_on_association(:ratings)
     rating_reflection = Rating.reflect_on_association(:comment)
 
-    assert_respond_to comment_reflection, :has_inverse?
     assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
     assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
   end
@@ -107,19 +101,16 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
-    assert_respond_to sponsor_reflection, :has_inverse?
     assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
 
     club_reflection = Club.reflect_on_association(:members)
 
-    assert_respond_to club_reflection, :has_inverse?
     assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
   def test_polymorphic_has_one_should_find_inverse_automatically
     man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
 
-    assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?
   end
 end
@@ -141,39 +132,22 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
     has_one_with_inverse_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_with_inverse_ref, :has_inverse?
     assert has_one_with_inverse_ref.has_inverse?
 
     has_many_with_inverse_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_with_inverse_ref, :has_inverse?
     assert has_many_with_inverse_ref.has_inverse?
 
     belongs_to_with_inverse_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_with_inverse_ref, :has_inverse?
     assert belongs_to_with_inverse_ref.has_inverse?
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
-    assert_respond_to has_one_without_inverse_ref, :has_inverse?
     assert !has_one_without_inverse_ref.has_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
-    assert_respond_to has_many_without_inverse_ref, :has_inverse?
     assert !has_many_without_inverse_ref.has_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
     assert !belongs_to_without_inverse_ref.has_inverse?
-  end
-
-  def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of
-    has_one_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_ref, :inverse_of
-
-    has_many_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_ref, :inverse_of
-
-    belongs_to_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_ref, :inverse_of
   end
 
   def test_inverse_of_method_should_supply_the_actual_reflection_instance_it_is_the_inverse_of

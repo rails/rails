@@ -1,4 +1,4 @@
-require "active_support/concurrency/share_lock"
+require_relative "../concurrency/share_lock"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:

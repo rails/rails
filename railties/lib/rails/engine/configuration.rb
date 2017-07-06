@@ -1,4 +1,4 @@
-require "rails/railtie/configuration"
+require_relative "../railtie/configuration"
 
 module Rails
   class Engine

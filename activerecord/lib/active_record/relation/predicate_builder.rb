@@ -175,11 +175,11 @@ module ActiveRecord
   end
 end
 
-require "active_record/relation/predicate_builder/array_handler"
-require "active_record/relation/predicate_builder/base_handler"
-require "active_record/relation/predicate_builder/basic_object_handler"
-require "active_record/relation/predicate_builder/range_handler"
-require "active_record/relation/predicate_builder/relation_handler"
+require_relative "predicate_builder/array_handler"
+require_relative "predicate_builder/base_handler"
+require_relative "predicate_builder/basic_object_handler"
+require_relative "predicate_builder/range_handler"
+require_relative "predicate_builder/relation_handler"
 
-require "active_record/relation/predicate_builder/association_query_value"
-require "active_record/relation/predicate_builder/polymorphic_array_value"
+require_relative "predicate_builder/association_query_value"
+require_relative "predicate_builder/polymorphic_array_value"

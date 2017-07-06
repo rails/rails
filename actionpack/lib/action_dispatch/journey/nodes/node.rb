@@ -1,4 +1,4 @@
-require "action_dispatch/journey/visitors"
+require_relative "../visitors"
 
 module ActionDispatch
   module Journey # :nodoc:

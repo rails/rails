@@ -1,5 +1,5 @@
-require "rails/generators/active_model"
-require "rails/generators/model_helpers"
+require_relative "active_model"
+require_relative "model_helpers"
 
 module Rails
   module Generators

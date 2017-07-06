@@ -1,8 +1,8 @@
 require "active_support/rails"
 require "abstract_controller"
 require "action_dispatch"
-require "action_controller/metal/live"
-require "action_controller/metal/strong_parameters"
+require_relative "action_controller/metal/live"
+require_relative "action_controller/metal/strong_parameters"
 
 module ActionController
   extend ActiveSupport::Autoload

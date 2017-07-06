@@ -1,5 +1,5 @@
-require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/module/reachable"
+require_relative "../module/anonymous"
+require_relative "../module/reachable"
 
 class Class
   begin

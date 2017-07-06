@@ -1,9 +1,9 @@
-require "action_dispatch/http/request"
+require_relative "../http/request"
 require "active_support/core_ext/uri"
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"
-require "action_dispatch/routing/endpoint"
+require_relative "endpoint"
 
 module ActionDispatch
   module Routing

@@ -1,1 +1,1 @@
-require "active_support/core_ext/file/atomic"
+require_relative "file/atomic"

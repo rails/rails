@@ -1,4 +1,4 @@
-require "active_support/multibyte"
+require_relative "../../multibyte"
 
 class String
   # == Multibyte proxy

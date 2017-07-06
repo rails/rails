@@ -1,11 +1,11 @@
-require "action_dispatch/journey"
+require_relative "../journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
-require "action_dispatch/http/request"
-require "action_dispatch/routing/endpoint"
+require_relative "../http/request"
+require_relative "endpoint"
 
 module ActionDispatch
   module Routing
@@ -449,7 +449,7 @@ module ActionDispatch
         MountedHelpers
       end
 
-      def define_mounted_helper(name)
+      def define_mounted_helper(name, script_namer = nil)
         return if MountedHelpers.method_defined?(name)
 
         routes = self
@@ -457,7 +457,7 @@ module ActionDispatch
 
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context, helpers)
+            RoutesProxy.new(routes, _routes_context, helpers, script_namer)
           end
         end
 

@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/attribute_accessors"
-require "action_dispatch/http/filter_redirect"
-require "action_dispatch/http/cache"
+require_relative "filter_redirect"
+require_relative "cache"
 require "monitor"
 
 module ActionDispatch # :nodoc:
