@@ -4,6 +4,7 @@ require "openssl"
 require "base64"
 require_relative "core_ext/array/extract_options"
 require_relative "message_verifier"
+require_relative "messages/metadata"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -87,14 +88,15 @@ module ActiveSupport
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def encrypt_and_sign(value)
-      verifier.generate(_encrypt(value))
+    def encrypt_and_sign(value, expires_at: nil, expires_in: nil, purpose: nil)
+      data = Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)
+      verifier.generate(_encrypt(data))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def decrypt_and_verify(value)
-      _decrypt(verifier.verify(value))
+    def decrypt_and_verify(data, purpose: nil)
+      Messages::Metadata.verify(_decrypt(verifier.verify(data)), purpose)
     end
 
     # Given a cipher, returns the key length of the cipher to help generate the key of desired size
@@ -103,7 +105,6 @@ module ActiveSupport
     end
 
     private
-
       def _encrypt(value)
         cipher = new_cipher
         cipher.encrypt
