@@ -1,6 +1,6 @@
-# Active Vault
+# Active Storage
 
-Active Vault makes it simple to upload and reference files in cloud sites, like Amazon S3 or Google Cloud Storage,
+Active Storage makes it simple to upload and reference files in cloud sites, like Amazon S3 or Google Cloud Storage,
 and attach those files to Active Records. It also provides a disk site for testing or local deployments, but the
 focus is on cloud storage.
 
@@ -74,4 +74,4 @@ Add `require "active_storage"` to config/application.rb and create a `config/ini
 
 ## License
 
-Active Vault is released under the [MIT License](https://opensource.org/licenses/MIT).
+Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
