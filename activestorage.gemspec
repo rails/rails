@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.version  = "0.1"
   s.authors  = "David Heinemeier Hansson"
   s.email    = "david@basecamp.com"
-  s.summary  = "Store files in Rails applications"
+  s.summary  = "Attach cloud and local files in Rails applications"
   s.homepage = "https://github.com/rails/activestorage"
   s.license  = "MIT"
 
