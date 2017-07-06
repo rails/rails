@@ -26,13 +26,26 @@ module ActiveStorage::Service::SharedServiceTests
       FIXTURE_FILE.rewind
     end
 
-    test "uploading" do
+    test "uploading with integrity" do
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        @service.upload(key, StringIO.new(data))
+        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
 
         assert_equal data, @service.download(key)
+      ensure
+        @service.delete key
+      end
+    end
+
+    test "upload without integrity" do
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+
+        assert_raises(ActiveStorage::IntegrityError) do
+          @service.upload(key, StringIO.new(data), checksum: "BAD_CHECKSUM")
+        end
       ensure
         @service.delete key
       end

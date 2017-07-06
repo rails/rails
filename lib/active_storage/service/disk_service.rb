@@ -9,12 +9,14 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
     @root = root
   end
 
-  def upload(key, io)
+  def upload(key, io, checksum: nil)
     File.open(make_path_for(key), "wb") do |file|
       while chunk = io.read(64.kilobytes)
         file.write(chunk)
       end
     end
+
+    ensure_integrity_of(key, checksum) if checksum
   end
 
   def download(key)
@@ -58,5 +60,11 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
     def make_path_for(key)
       path_for(key).tap { |path| FileUtils.mkdir_p File.dirname(path) }
+    end
+
+    def ensure_integrity_of(key, checksum)
+      unless Digest::MD5.file(path_for(key)).base64digest == checksum
+        raise ActiveStorage::IntegrityError
+      end
     end
 end

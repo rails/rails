@@ -45,7 +45,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self.checksum  = compute_checksum_in_chunks(io)
     self.byte_size = io.size
 
-    service.upload(key, io)
+    service.upload(key, io, checksum: checksum)
   end
 
   def download

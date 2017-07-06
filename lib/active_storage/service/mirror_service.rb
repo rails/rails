@@ -9,9 +9,9 @@ class ActiveStorage::Service::MirrorService < ActiveStorage::Service
     @services = services
   end
 
-  def upload(key, io)
+  def upload(key, io, checksum: nil)
     services.collect do |service|
-      service.upload key, io
+      service.upload key, io, checksum: checksum
       io.rewind
     end
   end

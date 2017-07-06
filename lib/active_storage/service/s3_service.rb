@@ -9,7 +9,8 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     @bucket = @client.bucket(bucket)
   end
 
-  def upload(key, io)
+  def upload(key, io, checksum: nil)
+    # FIXME: Ensure integrity by sending the checksum for service side verification
     object_for(key).put(body: io)
   end
 

@@ -1,5 +1,7 @@
 # Abstract class serving as an interface for concrete services.
 class ActiveStorage::Service
+  class ActiveStorage::IntegrityError < StandardError; end
+
   def self.configure(service, **options)
     begin
       require "active_storage/service/#{service.to_s.downcase}_service"
@@ -10,7 +12,7 @@ class ActiveStorage::Service
   end
 
 
-  def upload(key, io)
+  def upload(key, io, checksum: nil)
     raise NotImplementedError
   end
 
