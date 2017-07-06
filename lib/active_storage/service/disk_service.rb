@@ -36,7 +36,6 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
     File.exist? path_for(key)
   end
 
-
   def url(key, expires_in:, disposition:, filename:)
     verified_key_with_expiration = ActiveStorage::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
@@ -46,15 +45,6 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
       "/rails/blobs/#{verified_key_with_expiration}?disposition=#{disposition}"
     end
   end
-
-  def byte_size(key)
-    File.size path_for(key)
-  end
-
-  def checksum(key)
-    Digest::MD5.file(path_for(key)).hexdigest
-  end
-
 
   private
     def path_for(key)

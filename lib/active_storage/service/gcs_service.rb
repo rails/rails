@@ -28,27 +28,13 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
     file_for(key).present?
   end
 
-
   def url(key, expires_in:, disposition:, filename:)
     file_for(key).signed_url(expires: expires_in) + "&" +
       { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }.to_query
   end
 
-  def byte_size(key)
-    file_for(key).size
-  end
-
-  def checksum(key)
-    convert_to_hex base64: file_for(key).md5
-  end
-
-
   private
     def file_for(key)
       bucket.file(key)
-    end
-
-    def convert_to_hex(base64:)
-      base64.unpack("m0").first.unpack("H*").first
     end
 end

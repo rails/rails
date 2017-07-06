@@ -51,13 +51,5 @@ module ActiveStorage::Service::SharedServiceTests
       @service.delete FIXTURE_KEY
       assert_not @service.exist?(FIXTURE_KEY)
     end
-
-    test "sizing" do
-      assert_equal FIXTURE_FILE.size, @service.byte_size(FIXTURE_KEY)
-    end
-  
-    test "checksumming" do
-      assert_equal Digest::MD5.hexdigest(FIXTURE_FILE.read), @service.checksum(FIXTURE_KEY)
-    end
   end
 end
