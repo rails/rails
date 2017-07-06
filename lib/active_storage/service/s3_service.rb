@@ -11,6 +11,8 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
 
   def upload(key, io, checksum: nil)
     object_for(key).put(body: io, content_md5: checksum)
+  rescue Aws::S3::Errors::BadDigest
+    raise ActiveStorage::IntegrityError
   end
 
   def download(key)
