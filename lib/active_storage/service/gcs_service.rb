@@ -10,8 +10,9 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
   end
 
   def upload(key, io, checksum: nil)
-    # FIXME: Ensure integrity by sending the checksum for service side verification
-    bucket.create_file(io, key)
+    bucket.create_file(io, key, md5: checksum)
+  rescue Google::Cloud::InvalidArgumentError
+    raise ActiveStorage::IntegrityError
   end
 
   # FIXME: Add streaming when given a block
