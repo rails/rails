@@ -27,8 +27,21 @@ class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "show secrets" do
+    run_setup_command
+    assert_match(/external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289/, run_show_command)
+  end
+
   private
     def run_edit_command(editor: "cat")
       Dir.chdir(app_path) { `EDITOR="#{editor}" bin/rails secrets:edit` }
+    end
+
+    def run_show_command
+      Dir.chdir(app_path) { `bin/rails secrets:show` }
+    end
+
+    def run_setup_command
+      Dir.chdir(app_path) { `bin/rails secrets:setup` }
     end
 end
