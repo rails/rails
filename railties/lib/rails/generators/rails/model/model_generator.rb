@@ -1,4 +1,4 @@
-require "rails/generators/model_helpers"
+require_relative "../../model_helpers"
 
 module Rails
   module Generators

@@ -1,4 +1,4 @@
-require "active_support/inflector/methods"
+require_relative "../inflector/methods"
 
 module ActiveSupport
   class Deprecation

@@ -1,5 +1,5 @@
 require "active_support/core_ext/module"
-require "action_view/model_naming"
+require_relative "model_naming"
 
 module ActionView
   # RecordIdentifier encapsulates methods used by various ActionView helpers

@@ -126,7 +126,7 @@ module ActiveRecord
       self.class.send(:current_time_from_proper_timezone)
     end
 
-    def max_updated_column_timestamp(timestamp_names = self.class.send(:timestamp_attributes_for_update))
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)
       timestamp_names
         .map { |attr| self[attr] }
         .compact

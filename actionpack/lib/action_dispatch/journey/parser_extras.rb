@@ -1,5 +1,5 @@
-require "action_dispatch/journey/scanner"
-require "action_dispatch/journey/nodes/node"
+require_relative "scanner"
+require_relative "nodes/node"
 
 module ActionDispatch
   # :stopdoc:

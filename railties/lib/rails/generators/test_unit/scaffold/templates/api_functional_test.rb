@@ -17,7 +17,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
 
   test "should create <%= singular_table_name %>" do
     assert_difference('<%= class_name %>.count') do
-      post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_hash} }" %> }, as: :json
+      post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }, as: :json
     end
 
     assert_response 201
@@ -29,7 +29,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
   end
 
   test "should update <%= singular_table_name %>" do
-    patch <%= show_helper %>, params: { <%= "#{singular_table_name}: { #{attributes_hash} }" %> }, as: :json
+    patch <%= show_helper %>, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }, as: :json
     assert_response 200
   end
 

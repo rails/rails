@@ -1546,8 +1546,8 @@ You'll learn a little about associations in the next section of this guide.
 
 The (`:references`) keyword used in the bash command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
-that can hold integer values. You can get a better understanding after analyzing the
-`db/schema.rb` file below.
+that can hold integer values. To get a better understanding, analyze the
+`db/schema.rb` file after running the migration.
 
 In addition to the model, Rails has also made a migration to create the
 corresponding database table:

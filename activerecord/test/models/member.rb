@@ -22,6 +22,7 @@ class Member < ActiveRecord::Base
   has_many :organization_member_details_2, through: :organization, source: :member_details
 
   has_one :club_category, through: :club, source: :category
+  has_one :general_club, -> { general }, through: :current_membership, source: :club
 
   has_many :current_memberships, -> { where favourite: true }
   has_many :clubs, through: :current_memberships

@@ -1,4 +1,4 @@
-require "rails/generators"
+require_relative "../../generators"
 
 module Rails
   module Command

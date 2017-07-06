@@ -18,7 +18,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
-    alias :locked? :locked
+    alias :locked? :lock_value
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -333,7 +333,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope, self
+      previous, klass.current_scope = klass.current_scope(true), self
       yield
     ensure
       klass.current_scope = previous

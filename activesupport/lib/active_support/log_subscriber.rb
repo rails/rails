@@ -1,6 +1,6 @@
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/class/attribute"
-require "active_support/subscriber"
+require_relative "core_ext/module/attribute_accessors"
+require_relative "core_ext/class/attribute"
+require_relative "subscriber"
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume

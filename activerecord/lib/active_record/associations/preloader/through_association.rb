@@ -11,6 +11,8 @@ module ActiveRecord
         end
 
         def associated_records_by_owner(preloader)
+          through_scope = through_scope()
+
           preloader.preload(owners,
                             through_reflection.name,
                             through_scope)
@@ -20,7 +22,7 @@ module ActiveRecord
             [owner, Array(center)]
           end
 
-          reset_association owners, through_reflection.name
+          reset_association(owners, through_reflection.name, through_scope)
 
           middle_records = through_records.flat_map(&:last)
 
@@ -63,7 +65,7 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name)
+          def reset_association(owners, association_name, through_scope)
             should_reset = (through_scope != through_reflection.klass.unscoped) ||
                (options[:source_type] && through_reflection.collection?)
 
@@ -77,17 +79,24 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
+            values = reflection_scope.values
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
             else
               unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+                scope.includes_values = Array(values[:includes] || options[:source])
                 scope.where_clause = reflection_scope.where_clause
+                if joins = values[:joins]
+                  scope.joins!(source_reflection.name => joins)
+                end
+                if left_outer_joins = values[:left_outer_joins]
+                  scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+                end
               end
 
-              scope.references! reflection_scope.values[:references]
-              if scope.eager_loading? && order_values = reflection_scope.values[:order]
+              scope.references! values[:references]
+              if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end
             end

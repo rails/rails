@@ -1,5 +1,5 @@
 require "libxml"
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
@@ -53,7 +53,7 @@ module LibXML #:nodoc:
           if c.element?
             c.to_hash(node_hash)
           elsif c.text? || c.cdata?
-            node_hash[CONTENT_ROOT] ||= ""
+            node_hash[CONTENT_ROOT] ||= "".dup
             node_hash[CONTENT_ROOT] << c.content
           end
         end

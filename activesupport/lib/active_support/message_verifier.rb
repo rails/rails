@@ -1,6 +1,6 @@
 require "base64"
-require "active_support/core_ext/object/blank"
-require "active_support/security_utils"
+require_relative "core_ext/object/blank"
+require_relative "security_utils"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are

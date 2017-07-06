@@ -2007,6 +2007,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal binds, merged.bound_attributes
   end
 
+  def test_locked_should_not_build_arel
+    posts = Post.locked
+    assert posts.locked?
+    assert_nothing_raised { posts.lock!(false) }
+  end
+
   def test_relation_join_method
     assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
   end

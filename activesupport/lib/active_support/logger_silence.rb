@@ -1,5 +1,5 @@
-require "active_support/concern"
-require "active_support/core_ext/module/attribute_accessors"
+require_relative "concern"
+require_relative "core_ext/module/attribute_accessors"
 require "concurrent"
 
 module LoggerSilence

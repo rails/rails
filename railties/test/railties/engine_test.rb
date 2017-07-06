@@ -1341,6 +1341,92 @@ YAML
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
+    test "isolated engine can be mounted under multiple static locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          scope "/fruits" do
+            mount Bukkits::Engine => "/bukkits", as: :fruit_bukkits
+          end
+
+          scope "/vegetables" do
+            mount Bukkits::Engine => "/bukkits", as: :vegetable_bukkits
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/bukkits/posts", last_response.body
+    end
+
+    test "isolated engine can be mounted under multiple dynamic locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path(fruit_id: 1)
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path(vegetable_id: 1)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :fruits do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          resources :vegetables do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/1/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/1/bukkits/posts", last_response.body
+    end
+
   private
     def app
       Rails.application

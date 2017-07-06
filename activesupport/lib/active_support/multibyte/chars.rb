@@ -1,8 +1,8 @@
-require "active_support/json"
-require "active_support/core_ext/string/access"
-require "active_support/core_ext/string/behavior"
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/regexp"
+require_relative "../json"
+require_relative "../core_ext/string/access"
+require_relative "../core_ext/string/behavior"
+require_relative "../core_ext/module/delegation"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:

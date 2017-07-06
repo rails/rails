@@ -70,7 +70,7 @@ PATH
       activemodel (= 5.2.0.alpha)
       activerecord (= 5.2.0.alpha)
       activesupport (= 5.2.0.alpha)
-      bundler (>= 1.3.0, < 2.0)
+      bundler (>= 1.3.0)
       railties (= 5.2.0.alpha)
       sprockets-rails (>= 2.0.0)
     railties (5.2.0.alpha)

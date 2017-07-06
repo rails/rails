@@ -315,7 +315,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+      connection.select_value(relation.arel, "#{name} Exists", relation.bound_attributes) ? true : false
     rescue ::RangeError
       false
     end
@@ -334,14 +334,14 @@ module ActiveRecord
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}"
+        error = "Couldn't find #{name}".dup
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': "
+        error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
 
         raise RecordNotFound.new(error, name, primary_key, ids)
@@ -376,8 +376,7 @@ module ActiveRecord
           if ActiveRecord::NullRelation === relation
             []
           else
-            arel = relation.arel
-            rows = connection.select_all(arel, "SQL", relation.bound_attributes)
+            rows = connection.select_all(relation.arel, "SQL", relation.bound_attributes)
             join_dependency.instantiate(rows, aliases)
           end
         end
@@ -424,9 +423,8 @@ module ActiveRecord
           "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
         relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
 
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
+        id_rows = @klass.connection.select_all(relation.arel, "SQL", relation.bound_attributes)
         id_rows.map { |row| row[primary_key] }
       end
 

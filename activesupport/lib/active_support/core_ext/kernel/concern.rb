@@ -1,4 +1,4 @@
-require "active_support/core_ext/module/concerning"
+require_relative "../module/concerning"
 
 module Kernel
   module_function

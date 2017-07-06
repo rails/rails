@@ -185,22 +185,26 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
-      def join_scope(table, foreign_table, foreign_klass)
+      def build_join_constraint(table, foreign_table)
+        key         = join_keys.key
+        foreign_key = join_keys.foreign_key
+
+        constraint = table[key].eq(foreign_table[foreign_key])
+
+        if klass.finder_needs_type_condition?
+          table.create_and([constraint, klass.send(:type_condition, table)])
+        else
+          constraint
+        end
+      end
+
+      def join_scope(table, foreign_klass)
         predicate_builder = predicate_builder(table)
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
-        key         = join_keys.key
-        foreign_key = join_keys.foreign_key
-
-        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
-
-        if klass.finder_needs_type_condition?
-          klass_scope.where!(klass.send(:type_condition, table))
-        end
-
         if type
-          klass_scope.where!(type => foreign_klass.base_class.name)
+          klass_scope.where!(type => foreign_klass.base_class.sti_name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
@@ -592,7 +596,7 @@ module ActiveRecord
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
-      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :polymorphic, :foreign_key]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :foreign_key]
 
       def add_as_source(seed)
         seed
@@ -663,9 +667,8 @@ module ActiveRecord
         # us from being able to guess the inverse automatically. First, the
         # <tt>inverse_of</tt> option cannot be set to false. Second, we must
         # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
-        # Third, we must not have options such as <tt>:polymorphic</tt> or
-        # <tt>:foreign_key</tt> which prevent us from correctly guessing the
-        # inverse association.
+        # Third, we must not have options such as <tt>:foreign_key</tt>
+        # which prevent us from correctly guessing the inverse association.
         #
         # Anything with a scope can additionally ruin our attempt at finding an
         # inverse, so we exclude reflections with scopes.
@@ -768,10 +771,6 @@ module ActiveRecord
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:
-      def initialize(name, scope, options, active_record)
-        super
-      end
-
       def macro; :has_and_belongs_to_many; end
 
       def collection?

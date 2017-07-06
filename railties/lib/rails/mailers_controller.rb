@@ -1,4 +1,4 @@
-require "rails/application_controller"
+require_relative "application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH

@@ -1,9 +1,9 @@
-require "active_record/type"
-require "active_record/connection_adapters/determine_if_preparable_visitor"
-require "active_record/connection_adapters/schema_cache"
-require "active_record/connection_adapters/sql_type_metadata"
-require "active_record/connection_adapters/abstract/schema_dumper"
-require "active_record/connection_adapters/abstract/schema_creation"
+require_relative "../type"
+require_relative "determine_if_preparable_visitor"
+require_relative "schema_cache"
+require_relative "sql_type_metadata"
+require_relative "abstract/schema_dumper"
+require_relative "abstract/schema_creation"
 require "arel/collectors/bind"
 require "arel/collectors/sql_string"
 
@@ -147,7 +147,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, "
+          msg = "Cannot lease connection, ".dup
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else

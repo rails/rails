@@ -1,5 +1,5 @@
 require "concurrent/map"
-require "action_view/renderer/partial_renderer/collection_caching"
+require_relative "partial_renderer/collection_caching"
 
 module ActionView
   class PartialIteration

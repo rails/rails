@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require "active_support/core_ext/module/attribute_accessors"
-require "active_record/attribute_mutation_tracker"
+require_relative "../attribute_mutation_tracker"
 
 module ActiveRecord
   module AttributeMethods

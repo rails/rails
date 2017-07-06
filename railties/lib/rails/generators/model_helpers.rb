@@ -1,4 +1,4 @@
-require "rails/generators/active_model"
+require_relative "active_model"
 
 module Rails
   module Generators
