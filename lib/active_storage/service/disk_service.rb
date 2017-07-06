@@ -2,8 +2,6 @@ require "fileutils"
 require "pathname"
 
 class ActiveStorage::Service::DiskService < ActiveStorage::Service
-  CHUNK_SIZE = 65536
-
   attr_reader :root
 
   def initialize(root:)
@@ -12,7 +10,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
   def upload(key, io)
     File.open(make_path_for(key), "wb") do |file|
-      while chunk = io.read(CHUNK_SIZE)
+      while chunk = io.read(64.kilobytes)
         file.write(chunk)
       end
     end
@@ -21,7 +19,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
   def download(key)
     if block_given?
       File.open(path_for(key)) do |file|
-        while data = file.read(CHUNK_SIZE)
+        while data = file.read(64.kilobytes)
           yield data
         end
       end
