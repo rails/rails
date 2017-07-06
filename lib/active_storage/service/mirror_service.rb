@@ -1,5 +1,9 @@
+require "active_support/core_ext/module/delegation"
+
 class ActiveStorage::Service::MirrorService < ActiveStorage::Service
   attr_reader :services
+
+  delegate :download, :exist?, :url, :byte_size, :checksum, to: :primary_service
 
   def initialize(services:)
     @services = services
@@ -12,29 +16,8 @@ class ActiveStorage::Service::MirrorService < ActiveStorage::Service
     end
   end
 
-  def download(key)
-    services.detect { |service| service.exist?(key) }.download(key)
-  end
-
   def delete(key)
     perform_across_services :delete, key
-  end
-
-  def exist?(key)
-    perform_across_services(:exist?, key).any?
-  end
-
-
-  def url(key, **options)
-    primary_service.url(key, **options)
-  end
-
-  def byte_size(key)
-    primary_service.byte_size(key)
-  end
-
-  def checksum(key)
-    primary_service.checksum(key)
   end
 
   private
