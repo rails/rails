@@ -171,16 +171,24 @@ module ApplicationTests
 
       def db_structure_dump_and_load(expected_database)
         Dir.chdir(app_path) do
-          `bin/rails generate model book title:string;
-           bin/rails db:migrate db:structure:dump`
-          structure_dump = File.read("db/structure.sql")
-          assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
-          `bin/rails environment db:drop db:structure:load`
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
-          require "#{app_path}/app/models/book"
-          #if structure is not loaded correctly, exception would be raised
-          assert_equal 0, Book.count
+          db_structure_dump
+          db_structure_load(expected_database)
         end
+      end
+
+      def db_structure_dump
+        `bin/rails generate model book title:string;
+         bin/rails db:migrate db:structure:dump`
+        structure_dump = File.read("db/structure.sql")
+        assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
+      end
+
+      def db_structure_load(expected_database)
+        `bin/rails environment db:drop db:structure:load`
+        assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+        require "#{app_path}/app/models/book"
+        #if structure is not loaded correctly, exception would be raised
+        assert_equal 0, Book.count
       end
 
       test "db:structure:dump and db:structure:load without database_url" do
@@ -300,10 +308,35 @@ module ApplicationTests
           Dir.chdir(app_path) do
             database_path = `bin/rails db:setup`
             assert_equal "development.sqlite3", File.basename(database_path.strip)
+            p File.basename(database_path.strip)
           end
         ensure
           ENV["RAILS_ENV"] = @old_rails_env
           ENV["RACK_ENV"] = @old_rack_env
+        end
+      end
+
+      test "db:load_schema_or_structure loads structure if schema_format is sql" do
+        add_to_config "config.active_record.schema_format = :sql"
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          db_structure_dump
+          `bin/rails environment db:drop`
+          `bin/rails db:load_schema_or_structure`
+          require "#{app_path}/app/models/book"
+          assert_equal 0, Book.count
+        end
+      end
+
+      test "db:load_schema_or_structure loads schema if schema_format is ruby" do
+        add_to_config "config.active_record.schema_format = :ruby"
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          db_schema_dump
+          `bin/rails environment db:drop`
+          `bin/rails db:schema:load`
+          require "#{app_path}/app/models/book"
+          assert_equal 0, Book.count
         end
       end
     end

@@ -1,3 +1,9 @@
+*   Add db:load_schema_or_structure task which loads the database schema from the file format specified by config.active_record.schema_format.
+
+    Fixes #29128.
+
+    *Boris Beginin*
+
 *   Fix eager loading/preloading association with scope including joins.
 
     Fixes #28324.

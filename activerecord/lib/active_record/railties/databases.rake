@@ -176,7 +176,7 @@ db_namespace = namespace :db do
   end
 
   desc "Creates the database, loads the schema, and initializes with the seed data (use db:reset to also drop the database first)"
-  task setup: ["db:schema:load_if_ruby", "db:structure:load_if_sql", :seed]
+  task setup: [:create, :load_schema_or_structure, :seed]
 
   desc "Loads the seed data from db/seeds.rb"
   task :seed do
@@ -232,6 +232,11 @@ db_namespace = namespace :db do
     end
   end
 
+  desc "Loads a schema.rb file into database or recreates the databases from the structure.sql file, based on your current schema format"
+  task load_schema_or_structure: [:environment, :load_config, :check_protected_environments] do
+    ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord::Base.schema_format, ENV["SCHEMA"])
+  end
+
   namespace :schema do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: [:environment, :load_config] do
@@ -246,10 +251,6 @@ db_namespace = namespace :db do
     desc "Loads a schema.rb file into the database"
     task load: [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV["SCHEMA"])
-    end
-
-    task load_if_ruby: ["db:create", :environment] do
-      db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
     namespace :cache do
@@ -288,10 +289,6 @@ db_namespace = namespace :db do
     desc "Recreates the databases from the structure.sql file"
     task load: [:environment, :load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV["SCHEMA"])
-    end
-
-    task load_if_sql: ["db:create", :environment] do
-      db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
   end
 
