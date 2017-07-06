@@ -53,13 +53,12 @@ class MessagesController < ApplicationController
 end
 ```
 
-## Configuration
+## Installation
 
-Add `require "active_storage"` to config/application.rb and create a `config/initializers/active_storage_services.rb` with the following:
-
-```ruby
-  
-```
+1. Add `require "active_storage"` to config/application.rb.
+2. Run rails activestorage:install to create needed directories, migrations, and configuration.
+3. Configure the storage service in config/environments/* with `config.active_storage.service = :local`
+   that references the services configured in config/storage_services.yml.
 
 ## Todos
 
