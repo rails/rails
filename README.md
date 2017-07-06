@@ -67,7 +67,6 @@ Add `require "active_storage"` to config/application.rb and create a `config/ini
 - Proper logging
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
-- Copy over migration to app via rake task
 - Add Migrator to copy/move between services
 - Explore direct uploads to cloud
 - Extract VerifiedKeyWithExpiration into Rails as a feature of MessageVerifier
