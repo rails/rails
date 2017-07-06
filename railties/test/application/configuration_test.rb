@@ -1585,6 +1585,34 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.my_custom_config)
     end
 
+    test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_top_of_config <<-RUBY
+        config.load_defaults 5.1
+      RUBY
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      Post.object_id # force lazy load hooks to run
+
+      assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
+    test "default SQLite3Adapter.represent_boolean_as_integer for new installs is true" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      Post.object_id # force lazy load hooks to run
+
+      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
     test "config_for containing ERB tags should evaluate" do
       app_file "config/custom.yml", <<-RUBY
       development:

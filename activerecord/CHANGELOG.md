@@ -1,3 +1,14 @@
+*   Change sqlite3 boolean serialization to use 1 and 0
+
+    SQLite natively recognizes 1 and 0 as true and false, but does not natively
+    recognize 't' and 'f' as was previously serialized.
+
+    This change in serialization requires a migration of stored boolean data
+    for SQLite databases, so it's implemented behind a configuration flag
+    whose default false value is deprecated.
+
+    *Lisa Ugray*
+
 *   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
     `in_batches`).
 
