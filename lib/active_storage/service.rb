@@ -1,11 +1,11 @@
-# Abstract class serving as an interface for concrete sites.
-class ActiveStorage::Site
-  def self.configure(site, **options)
+# Abstract class serving as an interface for concrete services.
+class ActiveStorage::Service
+  def self.configure(service, **options)
     begin
-      require "active_storage/site/#{site.to_s.downcase}_site"
-      ActiveStorage::Site.const_get(:"#{site}Site").new(**options)
+      require "active_storage/service/#{service.to_s.downcase}_service"
+      ActiveStorage::Service.const_get(:"#{service}Service").new(**options)
     rescue LoadError => e
-      puts "Couldn't configure site: #{site} (#{e.message})"
+      puts "Couldn't configure service: #{service} (#{e.message})"
     end
   end
 

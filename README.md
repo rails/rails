@@ -1,7 +1,7 @@
 # Active Storage
 
-Active Storage makes it simple to upload and reference files in cloud sites, like Amazon S3 or Google Cloud Storage,
-and attach those files to Active Records. It also provides a disk site for testing or local deployments, but the
+Active Storage makes it simple to upload and reference files in cloud services, like Amazon S3 or Google Cloud Storage,
+and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the
 focus is on cloud storage.
 
 ## Example
@@ -55,7 +55,7 @@ end
 
 ## Configuration
 
-Add `require "active_storage"` to config/application.rb and create a `config/initializers/active_storage_sites.rb` with the following:
+Add `require "active_storage"` to config/application.rb and create a `config/initializers/active_storage_services.rb` with the following:
 
 ```ruby
   
@@ -65,10 +65,10 @@ Add `require "active_storage"` to config/application.rb and create a `config/ini
 
 - Strip Download of its resposibilities and delete class
 - Proper logging
-- Convert MirrorSite to use threading
+- Convert MirrorService to use threading
 - Read metadata via Marcel?
 - Copy over migration to app via rake task
-- Add Migrator to copy/move between sites
+- Add Migrator to copy/move between services
 - Explore direct uploads to cloud
 - Extract VerifiedKeyWithExpiration into Rails as a feature of MessageVerifier
 

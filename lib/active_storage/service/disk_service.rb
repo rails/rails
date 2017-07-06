@@ -1,7 +1,7 @@
 require "fileutils"
 require "pathname"
 
-class ActiveStorage::Site::DiskSite < ActiveStorage::Site
+class ActiveStorage::Service::DiskService < ActiveStorage::Service
   attr_reader :root
 
   def initialize(root:)

@@ -1,25 +1,25 @@
 # Configuration should be something like this:
 #
 # config/environments/development.rb
-#   config.active_storage.site = :local
+#   config.active_storage.service = :local
 #
 # config/environments/production.rb
-#   config.active_storage.site = :amazon
+#   config.active_storage.service = :amazon
 local:
-  site: Disk
+  service: Disk
   root: <%%= File.join(Dir.tmpdir, "active_storage") %>
 
 amazon:
-  site: S3
+  service: S3
   access_key_id: <%%= Rails.application.secrets.aws[:access_key_id] %>
   secret_access_key: <%%= Rails.application.secrets.aws[:secret_access_key] %>
   region: us-east-1
   bucket: <%= Rails.application.class.name.remove(/::Application$/).underscore %>
 
 google:
-  site: GCS
+  service: GCS
 
 mirror:
-  site: Mirror
+  service: Mirror
   primary: amazon
   secondaries: google

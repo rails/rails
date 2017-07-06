@@ -36,7 +36,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     @user.avatar.purge
     assert_not @user.avatar.attached?
-    assert_not ActiveStorage::Blob.site.exist?(avatar_key)
+    assert_not ActiveStorage::Blob.service.exist?(avatar_key)
   end
 
   test "purge attached blob later when the record is destroyed" do
@@ -47,7 +47,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: avatar_key)
-      assert_not ActiveStorage::Blob.site.exist?(avatar_key)
+      assert_not ActiveStorage::Blob.service.exist?(avatar_key)
     end
   end
 
@@ -74,8 +74,8 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     
     @user.highlights.purge
     assert_not @user.highlights.attached?
-    assert_not ActiveStorage::Blob.site.exist?(highlight_keys.first)
-    assert_not ActiveStorage::Blob.site.exist?(highlight_keys.second)
+    assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
+    assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
   end
 
   test "purge attached blobs later when the record is destroyed" do
@@ -86,10 +86,10 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.first)
-      assert_not ActiveStorage::Blob.site.exist?(highlight_keys.first)
+      assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
 
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.second)
-      assert_not ActiveStorage::Blob.site.exist?(highlight_keys.second)
+      assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
     end
   end
 end

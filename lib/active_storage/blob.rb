@@ -1,4 +1,4 @@
-require "active_storage/site"
+require "active_storage/service"
 require "active_storage/filename"
 require "active_storage/purge_job"
 
@@ -9,7 +9,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   has_secure_token :key
   store :metadata, coder: JSON
 
-  class_attribute :site
+  class_attribute :service
 
   class << self
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
@@ -37,24 +37,24 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   def url(expires_in: 5.minutes, disposition: :inline)
-    site.url key, expires_in: expires_in, disposition: disposition, filename: filename
+    service.url key, expires_in: expires_in, disposition: disposition, filename: filename
   end
 
 
   def upload(io)
-    site.upload(key, io)
+    service.upload(key, io)
 
-    self.checksum  = site.checksum(key)
-    self.byte_size = site.byte_size(key)
+    self.checksum  = service.checksum(key)
+    self.byte_size = service.byte_size(key)
   end
 
   def download
-    site.download key
+    service.download key
   end
 
 
   def delete
-    site.delete key
+    service.delete key
   end
 
   def purge
