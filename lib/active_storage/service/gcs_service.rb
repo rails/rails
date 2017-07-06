@@ -23,7 +23,7 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
   end
 
   def delete(key)
-    file_for(key).try(:delete)
+    file_for(key)&.delete
   end
 
   def exist?(key)
