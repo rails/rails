@@ -35,15 +35,19 @@ Many attachments:
 class Message < ApplicationRecord
   has_many_attached :images
 end
+```
 
+```erb
 <%= form_with model: @message do |form| %>
   <%= form.text_field :title, placeholder: "Title" %><br>
   <%= form.text_area :content %><br><br>
-  
+
   <%= form.file_field :images, multiple: true %><br>
   <%= form.submit %>
 <% end %>
+```
 
+```ruby
 class MessagesController < ApplicationController
   def create
     message = Message.create! params.require(:message).permit(:title, :content)
