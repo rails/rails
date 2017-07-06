@@ -9,7 +9,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_equal data, blob.download
     assert_equal data.length, blob.byte_size
-    assert_equal Digest::MD5.hexdigest(data), blob.checksum
+    assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
   test "urls expiring in 5 minutes" do
