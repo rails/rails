@@ -64,5 +64,11 @@ module ActiveStorage::Service::SharedServiceTests
       @service.delete FIXTURE_KEY
       assert_not @service.exist?(FIXTURE_KEY)
     end
+  
+    test "deleting nonexistent key" do
+      assert_nothing_raised do
+        @service.delete SecureRandom.base58(24)
+      end
+    end
   end
 end
