@@ -5,7 +5,7 @@ require "yaml"
 SERVICE_CONFIGURATIONS = begin
   YAML.load_file(File.expand_path("../configurations.yml", __FILE__)).deep_symbolize_keys
 rescue Errno::ENOENT
-  puts "Missing service configuration file in test/services/configurations.yml"
+  puts "Missing service configuration file in test/service/configurations.yml"
 end
 
 module ActiveStorage::Service::SharedServiceTests
