@@ -1,6 +1,6 @@
 require "test_helper"
 require "database/setup"
-require "active_vault/blob"
+require "active_storage/blob"
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
@@ -13,12 +13,12 @@ class User < ActiveRecord::Base
   has_many_attached :highlights
 end
 
-class ActiveVault::AttachmentsTest < ActiveSupport::TestCase
+class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   setup { @user = User.create!(name: "DHH") }
 
-  teardown { ActiveVault::Blob.all.each(&:purge) }
+  teardown { ActiveStorage::Blob.all.each(&:purge) }
 
   test "attach existing blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
@@ -36,7 +36,7 @@ class ActiveVault::AttachmentsTest < ActiveSupport::TestCase
 
     @user.avatar.purge
     assert_not @user.avatar.attached?
-    assert_not ActiveVault::Blob.site.exist?(avatar_key)
+    assert_not ActiveStorage::Blob.site.exist?(avatar_key)
   end
 
   test "purge attached blob later when the record is destroyed" do
@@ -46,8 +46,8 @@ class ActiveVault::AttachmentsTest < ActiveSupport::TestCase
     perform_enqueued_jobs do
       @user.destroy
 
-      assert_nil ActiveVault::Blob.find_by(key: avatar_key)
-      assert_not ActiveVault::Blob.site.exist?(avatar_key)
+      assert_nil ActiveStorage::Blob.find_by(key: avatar_key)
+      assert_not ActiveStorage::Blob.site.exist?(avatar_key)
     end
   end
 
@@ -74,8 +74,8 @@ class ActiveVault::AttachmentsTest < ActiveSupport::TestCase
     
     @user.highlights.purge
     assert_not @user.highlights.attached?
-    assert_not ActiveVault::Blob.site.exist?(highlight_keys.first)
-    assert_not ActiveVault::Blob.site.exist?(highlight_keys.second)
+    assert_not ActiveStorage::Blob.site.exist?(highlight_keys.first)
+    assert_not ActiveStorage::Blob.site.exist?(highlight_keys.second)
   end
 
   test "purge attached blobs later when the record is destroyed" do
@@ -85,11 +85,11 @@ class ActiveVault::AttachmentsTest < ActiveSupport::TestCase
     perform_enqueued_jobs do
       @user.destroy
 
-      assert_nil ActiveVault::Blob.find_by(key: highlight_keys.first)
-      assert_not ActiveVault::Blob.site.exist?(highlight_keys.first)
+      assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.first)
+      assert_not ActiveStorage::Blob.site.exist?(highlight_keys.first)
 
-      assert_nil ActiveVault::Blob.find_by(key: highlight_keys.second)
-      assert_not ActiveVault::Blob.site.exist?(highlight_keys.second)
+      assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.second)
+      assert_not ActiveStorage::Blob.site.exist?(highlight_keys.second)
     end
   end
 end

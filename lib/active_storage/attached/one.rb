@@ -1,12 +1,12 @@
-class ActiveVault::Attached::One < ActiveVault::Attached
+class ActiveStorage::Attached::One < ActiveStorage::Attached
   delegate_missing_to :attachment
 
   def attachment
-    @attachment ||= ActiveVault::Attachment.find_by(record_gid: record.to_gid.to_s, name: name)
+    @attachment ||= ActiveStorage::Attachment.find_by(record_gid: record.to_gid.to_s, name: name)
   end
 
   def attach(attachable)
-    @attachment = ActiveVault::Attachment.create!(record_gid: record.to_gid.to_s, name: name, blob: create_blob_from(attachable))
+    @attachment = ActiveStorage::Attachment.create!(record_gid: record.to_gid.to_s, name: name, blob: create_blob_from(attachable))
   end
 
   def attached?

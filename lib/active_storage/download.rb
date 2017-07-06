@@ -1,4 +1,4 @@
-class ActiveVault::Download
+class ActiveStorage::Download
   # Sending .ai files as application/postscript to Safari opens them in a blank, grey screen.
   # Downloading .ai as application/postscript files in Safari appends .ps to the extension.
   # Sending HTML, SVG, XML and SWF files as binary closes XSS vulnerabilities.

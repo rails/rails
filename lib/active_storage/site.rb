@@ -1,9 +1,9 @@
 # Abstract class serving as an interface for concrete sites.
-class ActiveVault::Site
+class ActiveStorage::Site
   def self.configure(site, **options)
     begin
-      require "active_vault/site/#{site.to_s.downcase}_site"
-      ActiveVault::Site.const_get(:"#{site}Site").new(**options)
+      require "active_storage/site/#{site.to_s.downcase}_site"
+      ActiveStorage::Site.const_get(:"#{site}Site").new(**options)
     rescue LoadError => e
       puts "Couldn't configure site: #{site} (#{e.message})"
     end

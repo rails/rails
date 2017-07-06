@@ -1,12 +1,12 @@
-require "active_vault/blob"
+require "active_storage/blob"
 require "global_id"
 require "active_support/core_ext/module/delegation"
 
 # Schema: id, record_gid, blob_id, created_at
-class ActiveVault::Attachment < ActiveRecord::Base
-  self.table_name = "active_vault_attachments"
+class ActiveStorage::Attachment < ActiveRecord::Base
+  self.table_name = "active_storage_attachments"
 
-  belongs_to :blob, class_name: "ActiveVault::Blob"
+  belongs_to :blob, class_name: "ActiveStorage::Blob"
 
   delegate_missing_to :blob
 
@@ -25,6 +25,6 @@ class ActiveVault::Attachment < ActiveRecord::Base
   end
 
   def purge_later
-    ActiveVault::PurgeJob.perform_later(self)
+    ActiveStorage::PurgeJob.perform_later(self)
   end
 end

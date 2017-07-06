@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activevault (0.1)
+    activestorage (0.1)
       actionpack (>= 5.1)
       activejob (>= 5.1)
       activerecord (>= 5.1)
@@ -223,7 +223,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activevault!
+  activestorage!
   aws-sdk
   bundler (~> 1.15)
   byebug

@@ -1,9 +1,9 @@
 require "test_helper"
 
-class ActiveVault::FilenameTest < ActiveSupport::TestCase
+class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   test "sanitize" do
     "%$|:;/\t\r\n\\".each_char do |character|
-      filename = ActiveVault::Filename.new("foo#{character}bar.pdf")
+      filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")
       assert_equal 'foo-bar.pdf', filename.sanitized
       assert_equal 'foo-bar.pdf', filename.to_s
     end
@@ -16,21 +16,21 @@ class ActiveVault::FilenameTest < ActiveSupport::TestCase
       "\xCF" => "�",
       "\x00" => "",
     }.each do |actual, expected|
-      assert_equal expected, ActiveVault::Filename.new(actual).sanitized
+      assert_equal expected, ActiveStorage::Filename.new(actual).sanitized
     end
   end
 
   test "strips RTL override chars used to spoof unsafe executables as docs" do
     # Would be displayed in Windows as "evilexe.pdf" due to the right-to-left
     # (RTL) override char!
-    assert_equal 'evil-fdp.exe', ActiveVault::Filename.new("evil\u{202E}fdp.exe").sanitized
+    assert_equal 'evil-fdp.exe', ActiveStorage::Filename.new("evil\u{202E}fdp.exe").sanitized
   end
 
   test "compare case-insensitively" do
-    assert_operator ActiveVault::Filename.new('foobar.pdf'), :==, ActiveVault::Filename.new('FooBar.PDF')
+    assert_operator ActiveStorage::Filename.new('foobar.pdf'), :==, ActiveStorage::Filename.new('FooBar.PDF')
   end
 
   test "compare sanitized" do
-    assert_operator ActiveVault::Filename.new('foo-bar.pdf'), :==, ActiveVault::Filename.new("foo\tbar.pdf")
+    assert_operator ActiveStorage::Filename.new('foo-bar.pdf'), :==, ActiveStorage::Filename.new("foo\tbar.pdf")
   end
 end

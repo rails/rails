@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
-  s.name     = "activevault"
+  s.name     = "activestorage"
   s.version  = "0.1"
   s.authors  = "David Heinemeier Hansson"
   s.email    = "david@basecamp.com"
   s.summary  = "Store files in Rails applications"
-  s.homepage = "https://github.com/rails/activevault"
+  s.homepage = "https://github.com/rails/activestorage"
   s.license  = "MIT"
 
   s.required_ruby_version = ">= 1.9.3"

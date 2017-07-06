@@ -1,6 +1,6 @@
-class ActiveVault::CreateTables < ActiveRecord::Migration[5.1]
+class ActiveStorage::CreateTables < ActiveRecord::Migration[5.1]
   def change
-    create_table :active_vault_blobs do |t|
+    create_table :active_storage_blobs do |t|
       t.string  :key
       t.string  :filename
       t.string  :content_type
@@ -12,7 +12,7 @@ class ActiveVault::CreateTables < ActiveRecord::Migration[5.1]
       t.index [ :key ], unique: true
     end
 
-    create_table :active_vault_attachments do |t|
+    create_table :active_storage_attachments do |t|
       t.string  :name
       t.string  :record_gid
       t.integer :blob_id

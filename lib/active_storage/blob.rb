@@ -1,10 +1,10 @@
-require "active_vault/site"
-require "active_vault/filename"
-require "active_vault/purge_job"
+require "active_storage/site"
+require "active_storage/filename"
+require "active_storage/purge_job"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
-class ActiveVault::Blob < ActiveRecord::Base
-  self.table_name = "active_vault_blobs"
+class ActiveStorage::Blob < ActiveRecord::Base
+  self.table_name = "active_storage_blobs"
 
   has_secure_token :key
   store :metadata, coder: JSON
@@ -33,7 +33,7 @@ class ActiveVault::Blob < ActiveRecord::Base
   end
 
   def filename
-    ActiveVault::Filename.new(self[:filename])
+    ActiveStorage::Filename.new(self[:filename])
   end
 
   def url(expires_in: 5.minutes, disposition: :inline)
@@ -63,6 +63,6 @@ class ActiveVault::Blob < ActiveRecord::Base
   end
 
   def purge_later
-    ActiveVault::PurgeJob.perform_later(self)
+    ActiveStorage::PurgeJob.perform_later(self)
   end
 end

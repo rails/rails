@@ -1,10 +1,10 @@
 require "site/shared_site_tests"
 
 if SITE_CONFIGURATIONS[:gcs]
-  class ActiveVault::Site::GCSSiteTest < ActiveSupport::TestCase
-    SITE = ActiveVault::Site.configure(:GCS, SITE_CONFIGURATIONS[:gcs])
+  class ActiveStorage::Site::GCSSiteTest < ActiveSupport::TestCase
+    SITE = ActiveStorage::Site.configure(:GCS, SITE_CONFIGURATIONS[:gcs])
 
-    include ActiveVault::Site::SharedSiteTests
+    include ActiveStorage::Site::SharedSiteTests
 
     test "signed URL generation" do
       travel_to Time.now do

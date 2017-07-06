@@ -1,10 +1,10 @@
-require "active_vault/blob"
-require "active_vault/attachment"
+require "active_storage/blob"
+require "active_storage/attachment"
 
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"
 
-class ActiveVault::Attached
+class ActiveStorage::Attached
   attr_reader :name, :record
 
   def initialize(name, record)
@@ -14,21 +14,21 @@ class ActiveVault::Attached
   private
     def create_blob_from(attachable)
       case attachable
-      when ActiveVault::Blob
+      when ActiveStorage::Blob
         attachable
       when ActionDispatch::Http::UploadedFile
-        ActiveVault::Blob.create_after_upload! \
+        ActiveStorage::Blob.create_after_upload! \
           io: attachable.open,
           filename: attachable.original_filename,
           content_type: attachable.content_type
       when Hash
-        ActiveVault::Blob.create_after_upload!(attachable)
+        ActiveStorage::Blob.create_after_upload!(attachable)
       else
         nil
       end
     end
 end
 
-require "active_vault/attached/one"
-require "active_vault/attached/many"
-require "active_vault/attached/macros"
+require "active_storage/attached/one"
+require "active_storage/attached/many"
+require "active_storage/attached/macros"
