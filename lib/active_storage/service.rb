@@ -26,16 +26,7 @@ class ActiveStorage::Service
     raise NotImplementedError
   end
 
-
   def url(key, expires_in:, disposition:, filename:)
-    raise NotImplementedError
-  end
-
-  def bytesize(key)
-    raise NotImplementedError
-  end
-
-  def checksum(key)
     raise NotImplementedError
   end
 end
