@@ -39,12 +39,6 @@ module ActiveRecord
         _write_attribute(name, value)
       end
 
-      def raw_write_attribute(attr_name, value) # :nodoc:
-        name = attr_name.to_s
-        @attributes.write_cast_value(name, value)
-        value
-      end
-
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
@@ -53,6 +47,12 @@ module ActiveRecord
       end
 
       private
+        def write_attribute_without_type_cast(attr_name, value)
+          name = attr_name.to_s
+          @attributes.write_cast_value(name, value)
+          value
+        end
+
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)
           _write_attribute(attribute_name, value)
