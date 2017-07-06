@@ -286,11 +286,11 @@ module ActiveRecord
 
     private
 
-    def syntax_error_exception_class
-      return Mysql2::Error if defined?(Mysql2)
-      return PG::SyntaxError if defined?(PG)
-      return SQLite3::SQLException if defined?(SQLite3)
-    end
+      def syntax_error_exception_class
+        return Mysql2::Error if defined?(Mysql2)
+        return PG::SyntaxError if defined?(PG)
+        return SQLite3::SQLException if defined?(SQLite3)
+      end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
