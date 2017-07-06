@@ -10,8 +10,7 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
   end
 
   def upload(key, io, checksum: nil)
-    # FIXME: Ensure integrity by sending the checksum for service side verification
-    object_for(key).put(body: io)
+    object_for(key).put(body: io, content_md5: checksum)
   end
 
   def download(key)
