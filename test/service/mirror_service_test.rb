@@ -41,9 +41,10 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     end
   end
 
-  def upload(data, to:)
-    SecureRandom.base58(24).tap do |key|
-      @service.upload key, StringIO.new(data)
+  private
+    def upload(data, to:)
+      SecureRandom.base58(24).tap do |key|
+        @service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+      end
     end
-  end
 end
