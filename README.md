@@ -4,7 +4,7 @@ Active Storage makes it simple to upload and reference files in cloud services, 
 and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the
 focus is on cloud storage.
 
-## Example
+## Examples
 
 One attachment:
 
