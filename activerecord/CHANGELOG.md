@@ -1,5 +1,5 @@
-*   Prevent AbstractAdapter from converting exceptions from ActiveSupport::Notification
-    callbacks into ActiveRecord::StatementInvalids.
+*   Prevent errors raised by sql.active_record notification subscribers from being converted into
+    ActiveRecord::StatementInvalid exceptions.
 
     *Dennis Taylor*
 
