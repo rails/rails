@@ -13,7 +13,6 @@ module ActiveRecord
         @pending = Class.new(CheckPending) {
           define_method(:connection) { conn }
         }.new(@app)
-        @pending.instance_variable_set :@last_check, -1 # Force checking
       end
 
       def teardown
