@@ -375,6 +375,18 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [:name], person.errors.details.keys
   end
 
+  test "merge errors" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+
+    person = Person.new
+    person.errors.add(:name, :blank)
+    person.errors.merge!(errors)
+
+    assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
+    assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
+  end
+
   test "errors are marshalable" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
