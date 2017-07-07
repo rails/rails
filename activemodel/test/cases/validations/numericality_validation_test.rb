@@ -2,6 +2,7 @@ require "cases/helper"
 
 require "models/topic"
 require "models/person"
+require "models/number_range"
 
 require "bigdecimal"
 require "active_support/core_ext/big_decimal"
@@ -275,6 +276,12 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, greater_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, less_than: "foo" }
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
+  end
+
+  def test_validates_numericality_greater_than_or_equal_for_two_big_decimals
+    assert NumberRange.new(low: '65.6', high: '65.6').valid?
+    assert NumberRange.new(low: '65.6', high: '75.6').valid?
+    assert !NumberRange.new(low: '65.6', high: '55.6').valid?
   end
 
   private
