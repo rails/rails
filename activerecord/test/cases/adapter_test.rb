@@ -224,7 +224,7 @@ module ActiveRecord
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
 
-    def test_other_exceptions_are_translated_to_statement_invalid
+    def test_database_related_exceptions_are_translated_to_statement_invalid
       error = assert_raises(ActiveRecord::StatementInvalid) do
         @connection.execute("This is a syntax error")
       end
