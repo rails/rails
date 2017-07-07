@@ -233,6 +233,7 @@ module ActionController
     def initialize(parameters = {})
       @parameters = parameters.with_indifferent_access
       @permitted = self.class.permit_all_parameters
+      @action_on_unpermitted_parameters = self.class.action_on_unpermitted_parameters
     end
 
     # Returns true if another +Parameters+ object contains the same content and
@@ -523,7 +524,14 @@ module ActionController
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
     #   # => <ActionController::Parameters {"contact"=><ActionController::Parameters {"email"=>"none@test.com", "phone"=>"555-1234"} permitted: true>} permitted: true>
-    def permit(*filters)
+    #
+    # You can override the default behavior for unpermitted parameters. This
+    # will override the global and the instance's behavior. For example, given
+    # that the global behavior is +:log+ (and by default the instance's) and
+    # you want to +:raise+ for a specific case:
+    #
+    #   params.permit(:name, action_on_unpermitted_parameters: :raise)
+    def permit(*filters, action_on_unpermitted_parameters: @action_on_unpermitted_parameters)
       params = self.class.new
 
       filters.flatten.each do |filter|
@@ -535,7 +543,7 @@ module ActionController
         end
       end
 
-      unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
+      unpermitted_parameters!(params, action_on_unpermitted_parameters) if action_on_unpermitted_parameters
 
       params.permit!
     end
@@ -790,6 +798,42 @@ module ActionController
       end
     end
 
+    # By default, the instance adopts the global strategy regarding what to do
+    # on unpermitted parameters. Having the ability to override the strategy
+    # on an instance level allows the developer to handle specific scenarios
+    # per permit or per controller without compromising the global state.
+    #
+
+    # Sets the instance's strategy on unpermitted parameters.
+    #
+    #   params = ActionController::Parameters.new(a: 1)
+    #   params.action_on_unpermitted_parameters = :raise
+    def action_on_unpermitted_parameters=(value)
+      @action_on_unpermitted_parameters = value
+    end
+
+    # Resets the instance's strategy on unpermitted parameters to the global
+    # state.
+    #
+    #   params = ActionController::Parameters.new(a: 1)
+    #   params.reset_action_on_unpermitted_parameters
+    def reset_action_on_unpermitted_parameters
+      @action_on_unpermitted_parameters = self.class.action_on_unpermitted_parameters
+    end
+
+    # Temporarilly override the instance's strategy on unpermitted parameters.
+    #
+    #   params = ActionController::Parameters.new(a: 1)
+    #   user_params = params.override_action_on_unpermitted_parameters(:raise) do
+    #     params.require(:user).permit(:username, :email)
+    #   end
+    def override_action_on_unpermitted_parameters(value)
+      action_on_unpermitted_parameters = value
+      ret = yield
+      reset_action_on_unpermitted_parameters
+      ret
+    end
+
     protected
       attr_reader :parameters
 
@@ -858,10 +902,10 @@ module ActionController
         end
       end
 
-      def unpermitted_parameters!(params)
+      def unpermitted_parameters!(params, action_on_unpermitted_parameters)
         unpermitted_keys = unpermitted_keys(params)
         if unpermitted_keys.any?
-          case self.class.action_on_unpermitted_parameters
+          case action_on_unpermitted_parameters
           when :log
             name = "unpermitted_parameters.action_controller"
             ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
