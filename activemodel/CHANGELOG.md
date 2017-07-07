@@ -1,3 +1,8 @@
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+
+    *Gannon McGibbon*
+
 *   Fix numericality validator to still use value before type cast except Active Record.
 
     Fixes #33651, #33686.
