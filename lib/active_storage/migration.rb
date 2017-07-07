@@ -1,13 +1,13 @@
 class ActiveStorageCreateTables < ActiveRecord::Migration[5.1]
   def change
     create_table :active_storage_blobs do |t|
-      t.string  :key
-      t.string  :filename
-      t.string  :content_type
-      t.text    :metadata
-      t.integer :byte_size
-      t.string  :checksum
-      t.time    :created_at
+      t.string   :key
+      t.string   :filename
+      t.string   :content_type
+      t.text     :metadata
+      t.integer  :byte_size
+      t.string   :checksum
+      t.datetime :created_at
 
       t.index [ :key ], unique: true
     end
@@ -17,7 +17,7 @@ class ActiveStorageCreateTables < ActiveRecord::Migration[5.1]
       t.string  :record_gid
       t.integer :blob_id
 
-      t.time :created_at
+      t.datetime :created_at
 
       t.index :record_gid
       t.index :blob_id
