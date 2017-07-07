@@ -1,3 +1,7 @@
+*   Add method `#merge!` for `ActiveModel::Errors`.
+
+    *Jahfer Husain*
+
 *   Fix regression in numericality validator when comparing Decimal and Float input
     values with more scale than the schema.
 
