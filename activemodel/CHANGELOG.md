@@ -1,3 +1,8 @@
+*   Fix numericality equality validation of `BigDecimal` and `Float`
+    by casting to `BigDecimal` on both ends of the validation.
+
+    *Gannon McGibbon*
+
 *   Add `#slice!` method to `ActiveModel::Errors`.
 
     *Daniel López Prat*

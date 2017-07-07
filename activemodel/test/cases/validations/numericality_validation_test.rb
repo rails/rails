@@ -289,6 +289,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
+  def test_validates_numericality_equality_for_float_and_big_decimal
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal("65.6")
+
+    invalid!([Float("65.5"), BigDecimal("65.7")], "must be equal to 65.6")
+    valid!([Float("65.6"), BigDecimal("65.6")])
+  end
+
   private
 
     def invalid!(values, error = nil)
