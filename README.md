@@ -73,7 +73,7 @@ end
 ## Todos
 
 - Document all the classes
-- Strip Download of its resposibilities and delete class
+- Strip Download of its responsibilities and delete class
 - Proper logging
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
