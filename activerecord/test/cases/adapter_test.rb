@@ -230,7 +230,7 @@ module ActiveRecord
       end
 
       assert_instance_of ActiveRecord::StatementInvalid, error
-      assert_instance_of syntax_error_exception_class, error.cause
+      assert_kind_of Exception, error.cause
     end
 
     def test_select_all_always_return_activerecord_result
@@ -283,14 +283,6 @@ module ActiveRecord
         assert_not_nil error.message
       end
     end
-
-    private
-
-      def syntax_error_exception_class
-        return Mysql2::Error if defined?(Mysql2)
-        return PG::SyntaxError if defined?(PG)
-        return SQLite3::SQLException if defined?(SQLite3)
-      end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
