@@ -8,4 +8,4 @@ gem 'byebug'
 gem 'sqlite3'
 
 gem 'aws-sdk', require: false
-gem 'google-cloud', require: false
+gem 'google-cloud-storage', require: false
