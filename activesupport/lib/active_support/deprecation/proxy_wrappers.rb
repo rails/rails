@@ -1,5 +1,5 @@
-require "active_support/inflector/methods"
-require "active_support/core_ext/regexp"
+require_relative "../inflector/methods"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport
   class Deprecation

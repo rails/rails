@@ -1,5 +1,5 @@
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/kernel/reporting"
+require_relative "../core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
@@ -74,7 +74,7 @@ module ActiveSupport
           hash
         else
           # must use value to prevent double-escaping
-          texts = ""
+          texts = "".dup
           element.texts.each { |t| texts << t.value }
           merge!(hash, CONTENT_KEY, texts)
         end

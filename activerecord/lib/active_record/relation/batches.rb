@@ -1,4 +1,4 @@
-require "active_record/relation/batches/batch_enumerator"
+require_relative "batches/batch_enumerator"
 
 module ActiveRecord
   module Batches

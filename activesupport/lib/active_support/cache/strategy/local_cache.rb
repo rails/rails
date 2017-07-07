@@ -1,6 +1,6 @@
-require "active_support/core_ext/object/duplicable"
-require "active_support/core_ext/string/inflections"
-require "active_support/per_thread_registry"
+require_relative "../../core_ext/object/duplicable"
+require_relative "../../core_ext/string/inflections"
+require_relative "../../per_thread_registry"
 
 module ActiveSupport
   module Cache

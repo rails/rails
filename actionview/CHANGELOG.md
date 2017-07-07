@@ -1,9 +1,13 @@
-*   Fix issues with scopes and engine on `current_page?` method. 
-    
+*   Add `srcset` option to `image_tag` helper.
+
+    *Roberto Miranda*
+
+*   Fix issues with scopes and engine on `current_page?` method.
+
     Fixes #29401.
-    
+
     *Nikita Savrov*
-    
+
 *   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
 
     This makes sure that the labels are linked up with the fields.

@@ -196,7 +196,7 @@ module CacheStoreBehavior
   end
 
   def test_original_store_objects_should_not_be_immutable
-    bar = "bar"
+    bar = "bar".dup
     @cache.write("foo", bar)
     assert_nothing_raised { bar.gsub!(/.*/, "baz") }
   end
@@ -285,7 +285,7 @@ module CacheStoreBehavior
   end
 
   def test_really_long_keys
-    key = ""
+    key = "".dup
     900.times { key << "x" }
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)

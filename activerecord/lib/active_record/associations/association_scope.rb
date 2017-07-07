@@ -1,8 +1,8 @@
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      def self.scope(association, connection)
-        INSTANCE.scope(association, connection)
+      def self.scope(association)
+        INSTANCE.scope(association)
       end
 
       def self.create(&block)
@@ -16,12 +16,12 @@ module ActiveRecord
 
       INSTANCE = create
 
-      def scope(association, connection)
+      def scope(association)
         klass = association.klass
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        alias_tracker = AliasTracker.create connection, association.klass.table_name
+        alias_tracker = AliasTracker.create(klass.connection, klass.table_name)
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! reflection.extensions

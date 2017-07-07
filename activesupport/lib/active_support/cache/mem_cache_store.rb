@@ -6,8 +6,8 @@ rescue LoadError => e
 end
 
 require "digest/md5"
-require "active_support/core_ext/marshal"
-require "active_support/core_ext/array/extract_options"
+require_relative "../core_ext/marshal"
+require_relative "../core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache

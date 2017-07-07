@@ -392,4 +392,42 @@ class ModuleTest < ActiveSupport::TestCase
     event = Event.new(Tester.new)
     assert_equal 1, event.foo
   end
+
+  def test_private_delegate
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      private(*delegate(:street, :city, to: :@place))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not place.respond_to?(:street)
+    assert_not place.respond_to?(:city)
+
+    assert place.respond_to?(:street, true) # Asking for private method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_private_delegate_prefixed
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      private(*delegate(:street, :city, to: :@place, prefix: :the))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not place.respond_to?(:street)
+    assert_not place.respond_to?(:city)
+
+    assert_not place.respond_to?(:the_street)
+    assert place.respond_to?(:the_street, true)
+    assert_not place.respond_to?(:the_city)
+    assert place.respond_to?(:the_city, true)
+  end
 end

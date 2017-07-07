@@ -122,7 +122,7 @@ module ActiveRecord
 
     def encode_with(coder)
       coder["name"] = name
-      coder["value_before_type_cast"] = value_before_type_cast if value_before_type_cast
+      coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
       coder["type"] = type if type
       coder["original_attribute"] = original_attribute if original_attribute
       coder["value"] = value if defined?(@value)

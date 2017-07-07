@@ -1,6 +1,6 @@
 require "action_view"
-require "action_controller/log_subscriber"
-require "action_controller/metal/params_wrapper"
+require_relative "log_subscriber"
+require_relative "metal/params_wrapper"
 
 module ActionController
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed

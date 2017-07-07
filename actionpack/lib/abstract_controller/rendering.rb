@@ -1,4 +1,4 @@
-require "abstract_controller/error"
+require_relative "error"
 require "action_view"
 require "action_view/view_paths"
 require "set"

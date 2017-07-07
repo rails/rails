@@ -1,2 +1,2 @@
-require "active_support/json/decoding"
-require "active_support/json/encoding"
+require_relative "json/decoding"
+require_relative "json/encoding"

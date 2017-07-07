@@ -23,7 +23,7 @@
 
 require "active_support"
 require "active_support/rails"
-require "action_cable/version"
+require_relative "action_cable/version"
 
 module ActionCable
   extend ActiveSupport::Autoload

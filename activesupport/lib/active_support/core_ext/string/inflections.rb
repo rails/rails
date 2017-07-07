@@ -1,5 +1,5 @@
-require "active_support/inflector/methods"
-require "active_support/inflector/transliterate"
+require_relative "../../inflector/methods"
+require_relative "../../inflector/transliterate"
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.

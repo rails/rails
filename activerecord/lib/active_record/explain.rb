@@ -1,4 +1,4 @@
-require "active_record/explain_registry"
+require_relative "explain_registry"
 
 module ActiveRecord
   module Explain
@@ -16,7 +16,7 @@ module ActiveRecord
     # Returns a formatted string ready to be logged.
     def exec_explain(queries) # :nodoc:
       str = queries.map do |sql, binds|
-        msg = "EXPLAIN for: #{sql}"
+        msg = "EXPLAIN for: #{sql}".dup
         unless binds.empty?
           msg << " "
           msg << binds.map { |attr| render_bind(attr) }.inspect

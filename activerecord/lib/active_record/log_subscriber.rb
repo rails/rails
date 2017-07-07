@@ -29,7 +29,7 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        casted_params = type_casted_binds(payload[:binds], payload[:type_casted_binds])
+        casted_params = type_casted_binds(payload[:type_casted_binds])
         binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
           render_bind(attr, value)
         }.inspect
@@ -42,9 +42,8 @@ module ActiveRecord
     end
 
     private
-
-      def type_casted_binds(binds, casted_binds)
-        casted_binds || ActiveRecord::Base.connection.type_casted_binds(binds)
+      def type_casted_binds(casted_binds)
+        casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
       end
 
       def render_bind(attr, value)

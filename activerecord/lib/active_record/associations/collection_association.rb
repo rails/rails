@@ -44,10 +44,7 @@ module ActiveRecord
         if loaded?
           target.pluck(reflection.association_primary_key)
         else
-          @association_ids ||= (
-            column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-            scope.pluck(column)
-          )
+          @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
       end
 
@@ -69,6 +66,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @association_ids = nil
       end
 
       def find(*args)
@@ -307,7 +305,7 @@ module ActiveRecord
           sc = reflection.association_scope_cache(conn, owner) do
             StatementCache.create(conn) { |params|
               as = AssociationScope.create { params.bind }
-              target_scope.merge as.scope(self, conn)
+              target_scope.merge!(as.scope(self))
             }
           end
 
@@ -358,7 +356,10 @@ module ActiveRecord
             transaction do
               add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
-                insert_record(record, true, raise) { @_was_loaded = loaded? }
+                insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
               end
             end
           end
@@ -431,7 +432,12 @@ module ActiveRecord
           records.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do
-              result &&= insert_record(record, true, raise) { @_was_loaded = loaded? } unless owner.new_record?
+              unless owner.new_record?
+                result &&= insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
+              end
             end
           end
 

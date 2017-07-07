@@ -6,8 +6,7 @@ module ActiveRecord
   module Associations
     class AssociationScopeTest < ActiveRecord::TestCase
       test "does not duplicate conditions" do
-        scope = AssociationScope.scope(Author.new.association(:welcome_posts),
-                                        Author.connection)
+        scope = AssociationScope.scope(Author.new.association(:welcome_posts))
         binds = scope.where_clause.binds.map(&:value)
         assert_equal binds.uniq, binds
       end

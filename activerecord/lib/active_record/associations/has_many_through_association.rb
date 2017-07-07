@@ -109,6 +109,11 @@ module ActiveRecord
           record
         end
 
+        def remove_records(existing_records, records, method)
+          super
+          delete_through_records(records)
+        end
+
         def target_reflection_has_associated_record?
           !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
         end

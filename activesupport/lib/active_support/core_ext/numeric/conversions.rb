@@ -1,6 +1,6 @@
-require "active_support/core_ext/big_decimal/conversions"
-require "active_support/number_helper"
-require "active_support/core_ext/module/deprecation"
+require_relative "../big_decimal/conversions"
+require_relative "../../number_helper"
+require_relative "../module/deprecation"
 
 module ActiveSupport::NumericWithFormat
   # Provides options for converting numbers into formatted strings.

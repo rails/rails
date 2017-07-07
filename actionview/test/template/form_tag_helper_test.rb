@@ -14,7 +14,7 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    "".tap do |txt|
+    "".dup.tap do |txt|
       if enforce_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -30,7 +30,7 @@ class FormTagHelperTest < ActionView::TestCase
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -342,6 +342,12 @@ class FormTagHelperTest < ActionView::TestCase
   def test_text_field_tag_size_symbol
     actual = text_field_tag "title", "Hello!", size: 75
     expected = %(<input id="title" name="title" size="75" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_text_field_tag_with_ac_parameters
+    actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
+    expected = %(<input id="title" name="title" type="text" value="{&quot;key&quot;=&gt;&quot;value&quot;}" />)
     assert_dom_equal expected, actual
   end
 

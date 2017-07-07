@@ -198,8 +198,7 @@ module ActiveRecord
 
         def table_alias_for(reflection, parent, join)
           name = "#{reflection.plural_name}_#{parent.table_name}"
-          name << "_join" if join
-          name
+          join ? "#{name}_join" : name
         end
 
         def walk(left, right)

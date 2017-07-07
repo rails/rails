@@ -1,11 +1,11 @@
-require "active_support/concern"
-require "active_support/descendants_tracker"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
+require_relative "concern"
+require_relative "descendants_tracker"
+require_relative "core_ext/array/extract_options"
+require_relative "core_ext/class/attribute"
+require_relative "core_ext/kernel/reporting"
+require_relative "core_ext/kernel/singleton_class"
+require_relative "core_ext/string/filters"
+require_relative "deprecation"
 require "thread"
 
 module ActiveSupport
@@ -596,7 +596,7 @@ module ActiveSupport
             Proc.new do |target, result_lambda|
               terminate = true
               catch(:abort) do
-                result_lambda.call if result_lambda.is_a?(Proc)
+                result_lambda.call
                 terminate = false
               end
               terminate

@@ -44,8 +44,6 @@ module ActiveRecord
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, to: :klass
 
-    delegate :ast, :locked, to: :arel
-
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
 
@@ -91,6 +89,8 @@ module ActiveRecord
             self.class.delegate_to_scoped_klass(method)
             scoping { @klass.public_send(method, *args, &block) }
           elsif arel.respond_to?(method)
+            ActiveSupport::Deprecation.warn \
+              "Delegating #{method} to arel is deprecated and will be removed in Rails 6.0."
             self.class.delegate method, to: :arel
             arel.public_send(method, *args, &block)
           else
@@ -114,16 +114,6 @@ module ActiveRecord
     private
       def respond_to_missing?(method, _)
         super || @klass.respond_to?(method) || arel.respond_to?(method)
-      end
-
-      def method_missing(method, *args, &block)
-        if @klass.respond_to?(method)
-          scoping { @klass.public_send(method, *args, &block) }
-        elsif arel.respond_to?(method)
-          arel.public_send(method, *args, &block)
-        else
-          super
-        end
       end
   end
 end

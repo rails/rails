@@ -1,7 +1,7 @@
 require "openssl"
 require "base64"
-require "active_support/core_ext/array/extract_options"
-require "active_support/message_verifier"
+require_relative "core_ext/array/extract_options"
+require_relative "message_verifier"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -114,7 +114,7 @@ module ActiveSupport
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-        blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+        blob = "#{blob}--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
         blob
       end
 

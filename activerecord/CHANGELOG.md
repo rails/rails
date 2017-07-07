@@ -1,3 +1,47 @@
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
+
+    *Ryuta Kamizono*
+
+*   Fix transactions to apply state to child transactions
+
+    Previously if you had a nested transaction and the outer transaction was rolledback the record from the
+    inner transaction would still be marked as persisted.
+
+    This change fixes that by applying the state of the parent transaction to the child transaction when the
+    parent transaction is rolledback. This will correctly mark records from the inner transaction as not persisted.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate `set_state` method in `TransactionState`
+
+    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
+    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
+    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate delegating to `arel` in `Relation`.
+
+    *Ryuta Kamizono*
+
+*   Fix eager loading to respect `store_full_sti_class` setting.
+
+    *Ryuta Kamizono*
+
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
+    without being connected.
+
+    *Tsukasa Oishi*
+
+*   Previously, when building records using a `has_many :through` association,
+    if the child records were deleted before the parent was saved, they would
+    still be persisted. Now, if child records are deleted before the parent is saved
+    on a `has_many :through` association, the child records will not be persisted.
+
+    *Tobias Kraze*
+
 *   Merging two relations representing nested joins no longer transforms the joins of
     the merged relation into LEFT OUTER JOIN. Example to clarify:
 
@@ -20,7 +64,7 @@
     *bogdanvlviv*
 
 *   Fix destroying existing object does not work well when optimistic locking enabled and
-    `locking column` is null in the database.
+    `locking_column` is null in the database.
 
     *bogdanvlviv*
 

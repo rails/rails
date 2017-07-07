@@ -1,6 +1,6 @@
-require "active_support/core_ext/marshal"
-require "active_support/core_ext/file/atomic"
-require "active_support/core_ext/string/conversions"
+require_relative "../core_ext/marshal"
+require_relative "../core_ext/file/atomic"
+require_relative "../core_ext/string/conversions"
 require "uri/common"
 
 module ActiveSupport

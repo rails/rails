@@ -58,7 +58,7 @@ class ToSentenceTest < ActiveSupport::TestCase
       ["one", "two"].to_sentence(passing: "invalid option")
     end
 
-    assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale"
+    assert_equal "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale", exception.message
   end
 
   def test_always_returns_string

@@ -1,4 +1,4 @@
-require "active_support/inflector/methods"
+require_relative "../inflector/methods"
 
 module ActiveSupport
   # Autoload and eager load conveniences for your library.
