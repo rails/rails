@@ -313,6 +313,8 @@ module ActiveRecord
           sc.execute(binds, klass, conn) do |record|
             set_inverse_instance(record)
           end
+        rescue ::RangeError
+          []
         end
 
         # We have some records loaded from the database (persisted) and some that are
