@@ -174,6 +174,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
+            action_dispatch.cookies_tld_length_excludes_domain = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

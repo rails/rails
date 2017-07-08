@@ -1014,6 +1014,14 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=.lvh.me; path=/; SameSite=Lax"
   end
 
+  def test_cookie_with_all_domain_option_and_excludes_domain
+    request.env["action_dispatch.cookies_tld_length_excludes_domain"] = true
+    @request.host = "www.doorkeeper.co.jp"
+    get :set_cookie_with_domain_and_tld
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=.doorkeeper.co.jp; path=/; SameSite=Lax"
+  end
+
   def test_cookie_with_all_domain_option_using_host_with_port_and_tld_length
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain_and_tld

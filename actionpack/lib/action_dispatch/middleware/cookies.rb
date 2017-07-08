@@ -85,6 +85,10 @@ module ActionDispatch
       get_header Cookies::USE_COOKIES_WITH_METADATA
     end
 
+    def cookies_tld_length_excludes_domain
+      get_header Cookies::COOKIES_TLD_LENGTH_EXCLUDES_DOMAIN
+    end
+
     # :startdoc:
   end
 
@@ -187,6 +191,7 @@ module ActionDispatch
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
     COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
     USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
+    COOKIES_TLD_LENGTH_EXCLUDES_DOMAIN = "action_dispatch.cookies_tld_length_excludes_domain"
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -441,17 +446,24 @@ module ActionDispatch
           options[:same_site] = false if options[:same_site] == :none # TODO: Remove when rack 2.1.0 is out.
 
           if options[:domain] == :all || options[:domain] == "all"
-            # If there is a provided tld length then we use it otherwise default domain regexp.
-            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
-
             # If host is not ip and matches domain regexp.
             # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
+            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp(options[:tld_length]))
               ".#{$&}"
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains without a dot in front of it.
             options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
+          end
+        end
+
+        def domain_regexp(tld_length)
+          # If there is a provided tld length then we use it otherwise default domain regexp.
+          if tld_length
+            tld_length += 1 if request.cookies_tld_length_excludes_domain
+            /([^.]+\.?){#{tld_length}}$/
+          else
+            DOMAIN_REGEXP
           end
         end
     end
