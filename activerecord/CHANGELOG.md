@@ -1,3 +1,8 @@
+*   Prevent errors raised by sql.active_record notification subscribers from being converted into
+    ActiveRecord::StatementInvalid exceptions.
+
+    *Dennis Taylor*
+
 *   Fix eager loading/preloading association with scope including joins.
 
     Fixes #28324.

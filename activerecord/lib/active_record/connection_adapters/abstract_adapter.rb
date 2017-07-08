@@ -576,12 +576,14 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             connection_id:     object_id) do
+            begin
               @lock.synchronize do
                 yield
               end
+            rescue => e
+              raise translate_exception_class(e, sql)
             end
-        rescue => e
-          raise translate_exception_class(e, sql)
+          end
         end
 
         def translate_exception(exception, message)
