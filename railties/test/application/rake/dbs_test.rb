@@ -334,7 +334,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           db_schema_dump
           `bin/rails environment db:drop`
-          `bin/rails db:schema:load`
+          `bin/rails db:load_schema_or_structure`
           require "#{app_path}/app/models/book"
           assert_equal 0, Book.count
         end
