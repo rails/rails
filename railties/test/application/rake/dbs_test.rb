@@ -308,7 +308,7 @@ module ApplicationTests
           Dir.chdir(app_path) do
             database_path = `bin/rails db:setup`
             assert_equal "development.sqlite3", File.basename(database_path.strip)
-            p File.basename(database_path.strip)
+            File.basename(database_path.strip)
           end
         ensure
           ENV["RAILS_ENV"] = @old_rails_env
