@@ -48,6 +48,10 @@ module Rails
         end
       end
 
+      def show
+        say Rails::Secrets.read
+      end
+
       private
         def generator
           require_relative "../../generators"

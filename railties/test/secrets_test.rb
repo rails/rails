@@ -111,6 +111,24 @@ class Rails::SecretsTest < ActiveSupport::TestCase
     end
   end
 
+  test "do not update secrets.yml.enc when secretes do not change" do
+    run_secrets_generator do
+      Dir.chdir(app_path) do
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        FileUtils.cp("config/secrets.yml.enc", "config/secrets.yml.enc.bk")
+
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        assert_equal File.read("config/secrets.yml.enc.bk"), File.read("config/secrets.yml.enc")
+      end
+    end
+  end
+
   private
     def run_secrets_generator
       Dir.chdir(app_path) do

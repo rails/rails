@@ -17,7 +17,7 @@ module ActiveRecord
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def __temp__#{safe_name}=(value)
                 name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                write_attribute(name, value)
+                _write_attribute(name, value)
               end
               alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
               undef_method :__temp__#{safe_name}=
@@ -36,20 +36,26 @@ module ActiveRecord
         end
 
         name = self.class.primary_key if name == "id".freeze && self.class.primary_key
-        @attributes.write_from_user(name, value)
-        value
+        _write_attribute(name, value)
       end
 
-      def raw_write_attribute(attr_name, value) # :nodoc:
-        name = attr_name.to_s
-        @attributes.write_cast_value(name, value)
+      # This method exists to avoid the expensive primary_key check internally, without
+      # breaking compatibility with the write_attribute API
+      def _write_attribute(attr_name, value) # :nodoc:
+        @attributes.write_from_user(attr_name.to_s, value)
         value
       end
 
       private
+        def write_attribute_without_type_cast(attr_name, value)
+          name = attr_name.to_s
+          @attributes.write_cast_value(name, value)
+          value
+        end
+
         # Handle *= for method_missing.
         def attribute=(attribute_name, value)
-          write_attribute(attribute_name, value)
+          _write_attribute(attribute_name, value)
         end
     end
   end

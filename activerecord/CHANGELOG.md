@@ -3,6 +3,19 @@
     Fixes #29128.
 
     *Boris Beginin*
+    
+*   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
+    `in_batches`).
+
+    Previously, records would be fetched in batches, but all records would be retained in memory
+    until the end of the request or job.
+
+    *Eugene Kenny*
+
+*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
+    `ActiveRecord::StatementInvalid` exceptions.
+
+    *Dennis Taylor*
 
 *   Fix eager loading/preloading association with scope including joins.
 

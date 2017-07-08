@@ -211,6 +211,28 @@ module ActiveRecord
       end
     end
 
+    def test_exceptions_from_notifications_are_not_translated
+      original_error = StandardError.new("This StandardError shouldn't get translated")
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
+      actual_error = assert_raises(StandardError) do
+        @connection.execute("SELECT * FROM posts")
+      end
+
+      assert_equal original_error, actual_error
+
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_database_related_exceptions_are_translated_to_statement_invalid
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.execute("This is a syntax error")
+      end
+
+      assert_instance_of ActiveRecord::StatementInvalid, error
+      assert_kind_of Exception, error.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)

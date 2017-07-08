@@ -6,7 +6,7 @@ module ActiveRecord
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
@@ -657,20 +657,32 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
-        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
+        skip_query_cache_if_necessary do
+          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
 
-        preload = preload_values
-        preload += includes_values unless eager_loading?
-        preloader = nil
-        preload.each do |associations|
-          preloader ||= build_preloader
-          preloader.preload @records, associations
+          preload = preload_values
+          preload += includes_values unless eager_loading?
+          preloader = nil
+          preload.each do |associations|
+            preloader ||= build_preloader
+            preloader.preload @records, associations
+          end
+
+          @records.each(&:readonly!) if readonly_value
+
+          @loaded = true
+          @records
         end
+      end
 
-        @records.each(&:readonly!) if readonly_value
-
-        @loaded = true
-        @records
+      def skip_query_cache_if_necessary
+        if skip_query_cache_value
+          uncached do
+            yield
+          end
+        else
+          yield
+        end
       end
 
       def build_preloader
