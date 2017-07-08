@@ -29,7 +29,7 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ skip_image_loading: true }), driver.instance_variable_get(:@options)
   end
 
-  test "rack_test? returns false if driver is poltergeist" do
-    assert_not ActionDispatch::SystemTesting::Driver.new(:poltergeist).send(:rack_test?)
+  test "registerable? returns false if driver is rack_test" do
+    assert_not ActionDispatch::SystemTesting::Driver.new(:rack_test).send(:registerable?)
   end
 end
