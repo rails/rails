@@ -1,5 +1,6 @@
 require "fileutils"
 require "pathname"
+require "digest/md5"
 require "active_support/core_ext/numeric/bytes"
 
 class ActiveStorage::Service::DiskService < ActiveStorage::Service
@@ -10,24 +11,19 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
   end
 
   def upload(key, io, checksum: nil)
-    File.open(make_path_for(key), "wb") do |file|
-      while chunk = io.read(64.kilobytes)
-        file.write(chunk)
-      end
-    end
-
+    IO.copy_stream(io, make_path_for(key))
     ensure_integrity_of(key, checksum) if checksum
   end
 
   def download(key)
     if block_given?
       File.open(path_for(key)) do |file|
-        while data = file.read(64.kilobytes)
+        while data = file.binread(64.kilobytes)
           yield data
         end
       end
     else
-      File.open path_for(key), &:read
+      File.binread path_for(key)
     end
   end
 
