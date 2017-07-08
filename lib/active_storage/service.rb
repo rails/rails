@@ -32,13 +32,15 @@
 class ActiveStorage::Service
   class ActiveStorage::IntegrityError < StandardError; end
 
-  def self.configure(service, **options)
-    begin
-      require "active_storage/service/#{service.to_s.downcase}_service"
-      ActiveStorage::Service.const_get(:"#{service}Service").new(**options)
-    rescue LoadError => e
-      puts "Couldn't configure service: #{service} (#{e.message})"
-    end
+  def self.configure(service_name, configurations)
+    require 'active_storage/service/configurator'
+    Configurator.new(service_name, configurations).build
+  end
+
+  # Override in subclasses that stitch together multiple services and hence
+  # need to do additional lookups from configurations. See MirrorService.
+  def self.build(config, configurations) #:nodoc:
+    new(config)
   end
 
   def upload(key, io, checksum: nil)

@@ -24,4 +24,4 @@ google:
 mirror:
   service: Mirror
   primary: local
-  secondaries: [ amazon, google ]
+  mirrors: [ amazon, google ]

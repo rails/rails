@@ -2,7 +2,7 @@ require "service/shared_service_tests"
 
 if SERVICE_CONFIGURATIONS[:gcs]
   class ActiveStorage::Service::GCSServiceTest < ActiveSupport::TestCase
-    SERVICE = ActiveStorage::Service.configure(:GCS, SERVICE_CONFIGURATIONS[:gcs])
+    SERVICE = ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS)
 
     include ActiveStorage::Service::SharedServiceTests
 
