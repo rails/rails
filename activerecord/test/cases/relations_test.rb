@@ -2034,4 +2034,46 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal 2, posts.to_a.length
   end
+
+  test "#skip_query_cache!" do
+    Post.cache do
+      assert_queries(1) do
+        Post.all.load
+        Post.all.load
+      end
+
+      assert_queries(2) do
+        Post.all.skip_query_cache!.load
+        Post.all.skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with an eager load" do
+    Post.cache do
+      assert_queries(1) do
+        Post.eager_load(:comments).load
+        Post.eager_load(:comments).load
+      end
+
+      assert_queries(2) do
+        Post.eager_load(:comments).skip_query_cache!.load
+        Post.eager_load(:comments).skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with a preload" do
+    Post.cache do
+      assert_queries(2) do
+        Post.preload(:comments).load
+        Post.preload(:comments).load
+      end
+
+      assert_queries(4) do
+        Post.preload(:comments).skip_query_cache!.load
+        Post.preload(:comments).skip_query_cache!.load
+      end
+    end
+  end
 end

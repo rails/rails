@@ -913,6 +913,11 @@ module ActiveRecord
       self
     end
 
+    def skip_query_cache! # :nodoc:
+      self.skip_query_cache_value = true
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel # :nodoc:
       @arel ||= build_arel
