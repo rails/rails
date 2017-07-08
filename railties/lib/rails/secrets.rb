@@ -105,7 +105,9 @@ module Rails
 
           yield tmp_path
 
-          write(File.read(tmp_path))
+          updated_contents = File.read(tmp_path)
+
+          write(updated_contents) if updated_contents != contents
         ensure
           FileUtils.rm(tmp_path) if File.exist?(tmp_path)
         end
