@@ -78,8 +78,12 @@ end
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
 - Add Migrator to copy/move between services
-- Explore direct uploads to cloud
+- [Explore direct uploads to cloud](https://github.com/rails/activestorage/pull/19)
 - Extract VerifiedKeyWithExpiration into Rails as a feature of MessageVerifier
+
+## Roadmap
+
+This separate repository is a staging ground for eventual inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository. Compatibility with prior versions of Rails is not a development priority either. 
 
 ## License
 
