@@ -245,7 +245,7 @@ module ActiveRecord
       def ensure_proper_type
         klass = self.class
         if klass.finder_needs_type_condition?
-          write_attribute(klass.inheritance_column, klass.sti_name)
+          _write_attribute(klass.inheritance_column, klass.sti_name)
         end
       end
   end

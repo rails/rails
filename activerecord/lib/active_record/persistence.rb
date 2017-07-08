@@ -333,7 +333,7 @@ module ActiveRecord
       updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
 
       attributes.each do |k, v|
-        raw_write_attribute(k, v)
+        write_attribute_without_type_cast(k, v)
       end
 
       updated_count == 1
