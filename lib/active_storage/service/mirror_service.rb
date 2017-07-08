@@ -1,18 +1,17 @@
 require "active_support/core_ext/module/delegation"
 
 class ActiveStorage::Service::MirrorService < ActiveStorage::Service
-  attr_reader :services
+  attr_reader :primary, :mirrors
 
-  delegate :download, :exist?, :url, to: :primary_service
+  delegate :download, :exist?, :url, to: :primary
 
-  def initialize(services:)
-    @services = services
+  def initialize(primary:, mirrors:)
+    @primary, @mirrors = primary, mirrors
   end
 
   def upload(key, io, checksum: nil)
-    services.collect do |service|
-      service.upload key, io, checksum: checksum
-      io.rewind
+    each_service.collect do |service|
+      service.upload key, io.tap(&:rewind), checksum: checksum
     end
   end
 
@@ -21,13 +20,13 @@ class ActiveStorage::Service::MirrorService < ActiveStorage::Service
   end
 
   private
-    def primary_service
-      services.first
+    def each_service(&block)
+      [ primary, *mirrors ].each(&block)
     end
 
     def perform_across_services(method, *args)
       # FIXME: Convert to be threaded
-      services.collect do |service|
+      each_service.collect do |service|
         service.public_send method, *args
       end
     end
