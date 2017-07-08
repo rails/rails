@@ -6,8 +6,8 @@
 
     *Eugene Kenny*
 
-*   Prevent errors raised by sql.active_record notification subscribers from being converted into
-    ActiveRecord::StatementInvalid exceptions.
+*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
+    `ActiveRecord::StatementInvalid` exceptions.
 
     *Dennis Taylor*
 
