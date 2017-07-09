@@ -114,8 +114,18 @@ module ActiveRecord
             @reflection_scope ||= reflection.scope_for(klass)
           end
 
+          def klass_scope
+            if klass.current_scope
+              klass.current_scope.clone.tap { |scope|
+                scope.preload_values = scope.includes_values = [].freeze
+              }
+            else
+              klass.default_scoped
+            end
+          end
+
           def build_scope
-            scope = klass.default_scoped
+            scope = klass_scope
 
             if reflection.type
               scope.where!(reflection.type => model.base_class.sti_name)

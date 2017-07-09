@@ -1291,6 +1291,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
   end
 
+  def test_eager_loading_with_scoping_behave_consistently
+    Comment.where(id: 1).scoping do
+      expected = Post.find(1).comments.to_a
+      assert_equal expected, Post.preload(:comments).find(1).comments
+      assert_equal expected, Post.includes(:comments).find(1).comments
+      assert_equal expected, Post.eager_load(:comments).find(1).comments
+    end
+  end
+
+  test "scoping with a circular includes" do
+    assert_equal Comment.find(1), Comment.includes(post: :comments).scoping { Comment.find(1) }
+  end
+
   test "scoping with a circular preload" do
     assert_equal Comment.find(1), Comment.preload(post: :comments).scoping { Comment.find(1) }
   end
@@ -1299,13 +1312,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     expected = FirstPost.unscoped.find(2)
     FirstPost.preload(comments: :first_post).find(1)
     assert_equal expected, FirstPost.unscoped.find(2)
-  end
-
-  test "preload ignores the scoping" do
-    assert_equal(
-      Comment.find(1).post,
-      Post.where("1 = 0").scoping { Comment.preload(:post).find(1).post }
-    )
   end
 
   test "deep preload" do
