@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "base64"
 require_relative "core_ext/object/blank"
 require_relative "security_utils"

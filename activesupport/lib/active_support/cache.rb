@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "zlib"
 require_relative "core_ext/array/extract_options"
 require_relative "core_ext/array/wrap"

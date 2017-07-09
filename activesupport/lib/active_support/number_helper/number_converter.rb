@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../core_ext/big_decimal/conversions"
 require_relative "../core_ext/object/blank"
 require_relative "../core_ext/hash/keys"

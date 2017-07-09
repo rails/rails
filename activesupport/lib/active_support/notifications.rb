@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "notifications/instrumenter"
 require_relative "notifications/fanout"
 require_relative "per_thread_registry"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveSupport
   # A typical module looks like this:
   #

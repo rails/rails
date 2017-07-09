@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../../core_ext/object/duplicable"
 require_relative "../../core_ext/string/inflections"
 require_relative "../../per_thread_registry"

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../date_and_time/compatibility"
 require_relative "../module/remove_method"
 

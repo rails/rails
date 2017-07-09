@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "core_ext/hash/deep_merge"
 require_relative "core_ext/hash/except"
 require_relative "core_ext/hash/slice"

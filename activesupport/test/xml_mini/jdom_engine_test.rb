@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "xml_mini_engine_test"
 
 XMLMiniEngineTest.run_with_platform("java") do

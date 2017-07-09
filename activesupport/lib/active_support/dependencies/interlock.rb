@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../concurrency/share_lock"
 
 module ActiveSupport #:nodoc:

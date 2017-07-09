@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../../duration"
 require_relative "conversions"
 require_relative "../../time_with_zone"
