@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "date"
 require_relative "../../inflector/methods"
 require_relative "../time/conversions"

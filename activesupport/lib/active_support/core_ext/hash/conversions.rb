@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../../xml_mini"
 require_relative "../../time"
 require_relative "../object/blank"

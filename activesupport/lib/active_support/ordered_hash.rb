@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "yaml"
 
 YAML.add_builtin_type("omap") do |type, val|

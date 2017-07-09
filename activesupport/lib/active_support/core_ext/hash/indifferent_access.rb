@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../../hash_with_indifferent_access"
 
 class Hash

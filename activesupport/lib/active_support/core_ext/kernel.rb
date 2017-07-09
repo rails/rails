@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "kernel/agnostics"
 require_relative "kernel/concern"
 require_relative "kernel/reporting"

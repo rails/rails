@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "module/aliasing"
 require_relative "module/introspection"
 require_relative "module/anonymous"

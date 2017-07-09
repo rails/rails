@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "concurrent/map"
 require_relative "../core_ext/array/prepend_and_append"
 require_relative "../core_ext/regexp"

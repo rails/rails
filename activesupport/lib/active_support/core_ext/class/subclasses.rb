@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../module/anonymous"
 require_relative "../module/reachable"
 

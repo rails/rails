@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 gem "minitest" # make sure we get the gem, not stdlib
 require "minitest"
 require_relative "testing/tagged_logging"
