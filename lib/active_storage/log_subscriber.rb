@@ -1,7 +1,5 @@
 require "active_support/log_subscriber"
 
-# Implements the ActiveSupport::LogSubscriber for logging notifications when
-# email is delivered or received.
 class ActiveStorage::LogSubscriber < ActiveSupport::LogSubscriber
   def service_upload(event)
     message = color("Uploaded file to key: #{key_in(event)}", GREEN)
@@ -25,7 +23,6 @@ class ActiveStorage::LogSubscriber < ActiveSupport::LogSubscriber
     debug event, color("Generated URL for file at key: #{key_in(event)} (#{event.payload[:url]})", BLUE)
   end
 
-  # Use the logger configured for ActiveStorage::Base.logger
   def logger
     ActiveStorage::Service.logger
   end
