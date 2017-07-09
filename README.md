@@ -74,7 +74,6 @@ end
 
 - Document all the classes
 - Strip Download of its responsibilities and delete class
-- Proper logging
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
 - Add Migrator to copy/move between services
