@@ -1,31 +1,28 @@
 class ActiveStorage::Service::Configurator #:nodoc:
-  def initialize(service_name, configurations)
-    @service_name, @configurations = service_name.to_sym, configurations.symbolize_keys
+  attr_reader :configurations
+
+  def self.build(service_name, configurations)
+    new(configurations).build(service_name)
   end
 
-  def build
-    service_class.build(service_config.except(:service), @configurations)
+  def initialize(configurations)
+    @configurations = configurations.symbolize_keys
+  end
+
+  def build(service_name)
+    config = config_for(service_name.to_sym)
+    resolve(config.fetch(:service)).build(**config, configurator: self)
   end
 
   private
-    def service_class
-      resolve service_class_name
-    end
-
-    def service_class_name
-      service_config.fetch :service do
-        raise "Missing Active Storage `service: …` configuration for #{service_config.inspect}"
+    def config_for(name)
+      configurations.fetch name do
+        raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
       end
     end
 
-    def service_config
-      @configurations.fetch @service_name do
-        raise "Missing configuration for the #{@service_name.inspect} Active Storage service. Configurations available for #{@configurations.keys.inspect}"
-      end
-    end
-
-    def resolve(service_class_name)
-      require "active_storage/service/#{service_class_name.to_s.downcase}_service"
-      ActiveStorage::Service.const_get(:"#{service_class_name}Service")
+    def resolve(class_name)
+      require "active_storage/service/#{class_name.to_s.downcase}_service"
+      ActiveStorage::Service.const_get(:"#{class_name}Service")
     end
 end
