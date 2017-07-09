@@ -11,37 +11,60 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
   end
 
   def upload(key, io, checksum: nil)
-    IO.copy_stream(io, make_path_for(key))
-    ensure_integrity_of(key, checksum) if checksum
+    instrument :upload, key, checksum: checksum do
+      IO.copy_stream(io, make_path_for(key))
+      ensure_integrity_of(key, checksum) if checksum
+    end
   end
 
   def download(key)
     if block_given?
-      File.open(path_for(key)) do |file|
-        while data = file.binread(64.kilobytes)
-          yield data
+      instrument :streaming_download, key do
+        File.open(path_for(key)) do |file|
+          while data = file.binread(64.kilobytes)
+            yield data
+          end
         end
       end
     else
-      File.binread path_for(key)
+      instrument :download, key do
+        File.binread path_for(key)
+      end
     end
   end
 
   def delete(key)
-    File.delete path_for(key) rescue Errno::ENOENT # Ignore files already deleted
+    instrument :delete, key do
+      begin
+        File.delete path_for(key)
+      rescue Errno::ENOENT
+        # Ignore files already deleted
+      end
+    end
   end
 
   def exist?(key)
-    File.exist? path_for(key)
+    instrument :exist, key do |payload|
+      answer = File.exist? path_for(key)
+      payload[:exist] = answer
+      answer
+    end
   end
 
   def url(key, expires_in:, disposition:, filename:)
-    verified_key_with_expiration = ActiveStorage::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
+    instrument :url, key do |payload|
+      verified_key_with_expiration = ActiveStorage::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
-    if defined?(Rails) && defined?(Rails.application)
-      Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration, disposition: disposition, filename: filename)
-    else
-      "/rails/blobs/#{verified_key_with_expiration}/#{filename}?disposition=#{disposition}"
+      generated_url = 
+        if defined?(Rails) && defined?(Rails.application)
+          Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration, disposition: disposition, filename: filename)
+        else
+          "/rails/blobs/#{verified_key_with_expiration}/#{filename}?disposition=#{disposition}"
+        end
+
+      payload[:url] = generated_url
+      
+      generated_url
     end
   end
 

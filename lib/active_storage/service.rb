@@ -1,3 +1,5 @@
+require_relative "log_subscriber"
+
 # Abstract class serving as an interface for concrete services.
 #
 # The available services are:
@@ -34,6 +36,8 @@ class ActiveStorage::Service
 
   extend ActiveSupport::Autoload
   autoload :Configurator
+
+  class_attribute :logger
 
   class << self
     # Configure an Active Storage service by name from a set of configurations,
@@ -73,4 +77,16 @@ class ActiveStorage::Service
   def url(key, expires_in:, disposition:, filename:)
     raise NotImplementedError
   end
+
+  private
+    def instrument(operation, key, payload = {}, &block)
+      ActiveSupport::Notifications.instrument(
+        "service_#{operation}.active_storage", 
+        payload.merge(key: key, service: service_name), &block)
+    end
+
+    def service_name
+      # ActiveStorage::Service::DiskService => Disk
+      self.class.name.split("::").third.remove("Service")
+    end
 end
