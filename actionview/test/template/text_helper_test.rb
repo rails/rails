@@ -186,6 +186,8 @@ class TextHelperTest < ActionView::TestCase
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
     )
+
+    assert_raise(ArgumentError) { highlight("This is a beautiful morning", "beautiful", invalid_option: true) }
   end
 
   def test_highlight_pending

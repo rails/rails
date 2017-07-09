@@ -1,3 +1,7 @@
+*   Add assertions of options.
+
+    *Tsukuru Tanimichi*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*

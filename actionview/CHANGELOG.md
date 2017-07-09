@@ -1,3 +1,7 @@
+*   Add assertions of options.
+
+    *Tsukuru Tanimichi*
+
 *   Add `srcset` option to `image_tag` helper.
 
     *Roberto Miranda*
