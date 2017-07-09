@@ -1,0 +1,15 @@
+language: ruby
+sudo: false
+bundler: true
+
+script: bundle exec rake
+
+rvm:
+  - 2.3
+  - 2.4
+  - ruby-head
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+  fast_finish: true
