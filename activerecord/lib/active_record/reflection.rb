@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "active_support/core_ext/string/filters"
 require "active_support/deprecation"

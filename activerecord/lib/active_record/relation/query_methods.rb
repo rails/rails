@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "from_clause"
 require_relative "query_attribute"
 require_relative "where_clause"

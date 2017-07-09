@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "join_part"
 
 module ActiveRecord

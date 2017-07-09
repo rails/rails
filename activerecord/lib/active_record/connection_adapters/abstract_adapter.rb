@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../type"
 require_relative "determine_if_preparable_visitor"
 require_relative "schema_cache"
