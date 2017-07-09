@@ -111,6 +111,58 @@ class Rails::SecretsTest < ActiveSupport::TestCase
     end
   end
 
+  test "do not update secrets.yml.enc when secretes do not change" do
+    run_secrets_generator do
+      Dir.chdir(app_path) do
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        FileUtils.cp("config/secrets.yml.enc", "config/secrets.yml.enc.bk")
+
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        assert_equal File.read("config/secrets.yml.enc.bk"), File.read("config/secrets.yml.enc")
+      end
+    end
+  end
+
+  test "can read secrets written in binary" do
+    run_secrets_generator do
+      secrets = <<-end_of_secrets
+        production:
+          api_key: 00112233445566778899aabbccddeeff…
+      end_of_secrets
+
+      Rails::Secrets.write(secrets.force_encoding(Encoding::ASCII_8BIT))
+
+      Rails::Secrets.read_for_editing do |tmp_path|
+        assert_match(/production:\n\s*api_key: 00112233445566778899aabbccddeeff…\n/, File.read(tmp_path))
+      end
+
+      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
+    end
+  end
+
+  test "can read secrets written in non-binary" do
+    run_secrets_generator do
+      secrets = <<-end_of_secrets
+        production:
+          api_key: 00112233445566778899aabbccddeeff…
+      end_of_secrets
+
+      Rails::Secrets.write(secrets)
+
+      Rails::Secrets.read_for_editing do |tmp_path|
+        assert_equal(secrets.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
+      end
+
+      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
+    end
+  end
+
   private
     def run_secrets_generator
       Dir.chdir(app_path) do
