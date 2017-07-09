@@ -35,21 +35,23 @@ class ActiveStorage::Service
   extend ActiveSupport::Autoload
   autoload :Configurator
 
-  # Configure an Active Storage service by name from a set of configurations,
-  # typically loaded from a YAML file. The Active Storage engine uses this
-  # to set the global Active Storage service when the app boots.
-  def self.configure(service_name, configurations)
-    Configurator.build(service_name, configurations)
-  end
+  class << self
+    # Configure an Active Storage service by name from a set of configurations,
+    # typically loaded from a YAML file. The Active Storage engine uses this
+    # to set the global Active Storage service when the app boots.
+    def configure(service_name, configurations)
+      Configurator.build(service_name, configurations)
+    end
 
-  # Override in subclasses that stitch together multiple services and hence
-  # need to build additional services using the configurator.
-  #
-  # Passes the configurator and all of the service's config as keyword args.
-  #
-  # See MirrorService for an example.
-  def self.build(configurator:, service: nil, **service_config) #:nodoc:
-    new(**service_config)
+    # Override in subclasses that stitch together multiple services and hence
+    # need to build additional services using the configurator.
+    #
+    # Passes the configurator and all of the service's config as keyword args.
+    #
+    # See MirrorService for an example.
+    def build(configurator:, service: nil, **service_config) #:nodoc:
+      new(**service_config)
+    end
   end
 
   def upload(key, io, checksum: nil)
