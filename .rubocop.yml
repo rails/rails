@@ -82,6 +82,7 @@ Style/FrozenStringLiteralComment:
   EnforcedStyle: always
   Include:
     - 'activesupport/**/*'
+    - 'activejob/**/*'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:

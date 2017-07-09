@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "helper"
 require "jobs/hello_job"
 
