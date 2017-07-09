@@ -4,6 +4,8 @@ require "active_storage/attachment"
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"
 
+require "global_id/locator"
+
 class ActiveStorage::Attached
   attr_reader :name, :record
 
@@ -23,6 +25,8 @@ class ActiveStorage::Attached
           content_type: attachable.content_type
       when Hash
         ActiveStorage::Blob.create_after_upload!(attachable)
+      when String
+        GlobalID::Locator.locate_signed(attachable)
       else
         nil
       end

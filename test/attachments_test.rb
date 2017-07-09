@@ -25,6 +25,11 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
+  test "attach existing sgid blob" do
+    @user.avatar.attach create_blob(filename: "funky.jpg").to_sgid.to_s
+    assert_equal "funky.jpg", @user.avatar.filename.to_s
+  end
+
   test "attach new blob" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
