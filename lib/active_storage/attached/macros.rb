@@ -16,6 +16,9 @@ module ActiveStorage::Attached::Macros
         instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::One.new(name, self))
     end
 
+    has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record
+    has_one :"#{name}_blob", through: :"#{name}_attachment"
+
     if dependent == :purge_later
       before_destroy { public_send(name).purge_later }
     end
@@ -37,6 +40,9 @@ module ActiveStorage::Attached::Macros
       instance_variable_get("@active_storage_attached_#{name}") ||
         instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::Many.new(name, self))
     end
+
+    has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment"
+    has_many :"#{name}_blobs", through: :"#{name}_attachments"
 
     if dependent == :purge_later
       before_destroy { public_send(name).purge_later }

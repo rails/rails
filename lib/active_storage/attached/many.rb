@@ -7,14 +7,14 @@ class ActiveStorage::Attached::Many < ActiveStorage::Attached
   # You don't have to call this method to access the attachments' methods as
   # they are all available at the model level.
   def attachments
-    @attachments ||= ActiveStorage::Attachment.where(record_gid: record.to_gid.to_s, name: name)
+    @attachments ||= record.public_send("#{name}_attachments")
   end
 
   # Associates one or several attachments with the current record, saving
   # them to the database.
   def attach(*attachables)
     @attachments = attachments | Array(attachables).flatten.collect do |attachable|
-      ActiveStorage::Attachment.create!(record_gid: record.to_gid.to_s, name: name, blob: create_blob_from(attachable))
+      ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
     end
   end
 

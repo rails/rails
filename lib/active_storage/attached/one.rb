@@ -7,13 +7,13 @@ class ActiveStorage::Attached::One < ActiveStorage::Attached
   # You don't have to call this method to access the attachment's methods as
   # they are all available at the model level.
   def attachment
-    @attachment ||= ActiveStorage::Attachment.find_by(record_gid: record.to_gid.to_s, name: name)
+    @attachment ||= record.public_send("#{name}_attachment")
   end
 
   # Associates a given attachment with the current record, saving it to the
   # database.
   def attach(attachable)
-    @attachment = ActiveStorage::Attachment.create!(record_gid: record.to_gid.to_s, name: name, blob: create_blob_from(attachable))
+    @attachment = ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
   end
 
   # Checks the presence of the attachment.
