@@ -128,6 +128,8 @@ module ActionView
       #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
       #   # => "<a>ruby</a> on <mark>rails</mark>"
       def highlight(text, phrases, options = {})
+        options.assert_valid_keys(:sanitize, :highlighter)
+
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?

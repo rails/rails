@@ -51,6 +51,8 @@ module ActiveModel
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(options = {})
+        options.assert_valid_keys(:validations)
+
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
