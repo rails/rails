@@ -56,6 +56,17 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     end
   end
 
+  def url_for_direct_upload(key, expires_in:, content_type:, content_length:)
+    instrument :url, key do |payload|
+      generated_url = object_for(key).presigned_url :put, expires_in: expires_in,
+        content_type: content_type, content_length: content_length
+      
+      payload[:url] = generated_url
+      
+      generated_url
+    end
+  end
+
   private
     def object_for(key)
       bucket.object(key)

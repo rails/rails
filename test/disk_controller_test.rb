@@ -1,19 +1,10 @@
 require "test_helper"
 require "database/setup"
 
-require "action_controller"
-require "action_controller/test_case"
-
 require "active_storage/disk_controller"
 require "active_storage/verified_key_with_expiration"
 
 class ActiveStorage::DiskControllerTest < ActionController::TestCase
-  Routes = ActionDispatch::Routing::RouteSet.new.tap do |routes|
-    routes.draw do
-      get "/rails/blobs/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_blob
-    end
-  end
-
   setup do
     @blob = create_blob
     @routes = Routes

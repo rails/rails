@@ -78,6 +78,10 @@ class ActiveStorage::Service
     raise NotImplementedError
   end
 
+  def url_for_direct_upload(key, expires_in:, content_type:, content_length:)
+    raise NotImplementedError
+  end
+
   private
     def instrument(operation, key, payload = {}, &block)
       ActiveSupport::Notifications.instrument(

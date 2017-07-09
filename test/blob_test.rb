@@ -23,6 +23,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   private
     def expected_url_for(blob, disposition: :inline)
-      "/rails/blobs/#{ActiveStorage::VerifiedKeyWithExpiration.encode(blob.key, expires_in: 5.minutes)}/#{blob.filename}?disposition=#{disposition}"
+      "/rails/active_storage/disk/#{ActiveStorage::VerifiedKeyWithExpiration.encode(blob.key, expires_in: 5.minutes)}/#{blob.filename}?disposition=#{disposition}"
     end
 end

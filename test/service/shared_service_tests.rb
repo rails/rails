@@ -1,13 +1,5 @@
 require "test_helper"
 require "active_support/core_ext/securerandom"
-require "yaml"
-
-SERVICE_CONFIGURATIONS = begin
-  YAML.load_file(File.expand_path("../configurations.yml", __FILE__)).deep_symbolize_keys
-rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
-  {}
-end
 
 module ActiveStorage::Service::SharedServiceTests
   extend ActiveSupport::Concern

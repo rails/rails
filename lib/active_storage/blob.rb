@@ -25,6 +25,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
       build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
     end
+
+    def create_before_direct_upload!(filename:, byte_size:, checksum:, content_type: nil, metadata: nil)
+      create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
+    end
   end
 
   # We can't wait until the record is first saved to have a key for it
@@ -38,6 +42,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   def url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename
+  end
+
+  def url_for_direct_upload(expires_in: 5.minutes)
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size
   end
 
 
