@@ -17,7 +17,8 @@ end
 
 
 require "active_storage/service/disk_service"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: File.join(Dir.tmpdir, "active_storage"))
+require "tmpdir"
+ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
 ActiveStorage::Service.logger = ActiveSupport::Logger.new(STDOUT)
 
 require "active_storage/verified_key_with_expiration"

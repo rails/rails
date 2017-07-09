@@ -1,4 +1,3 @@
-require "tmpdir"
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
