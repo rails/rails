@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActionDispatch
   # This middleware is added to the stack when `config.force_ssl = true`, and is passed
   # the options set in `config.ssl_options`. It does three jobs to enforce secure HTTP
@@ -94,7 +95,7 @@ module ActionDispatch
 
       # http://tools.ietf.org/html/rfc6797#section-6.1
       def build_hsts_header(hsts)
-        value = "max-age=#{hsts[:expires].to_i}"
+        value = "max-age=#{hsts[:expires].to_i}".dup
         value << "; includeSubDomains" if hsts[:subdomains]
         value << "; preload" if hsts[:preload]
         value
@@ -133,7 +134,7 @@ module ActionDispatch
         host = @redirect[:host] || request.host
         port = @redirect[:port] || request.port
 
-        location = "https://#{host}"
+        location = "https://#{host}".dup
         location << ":#{port}" if port != 80 && port != 443
         location << request.fullpath
         location

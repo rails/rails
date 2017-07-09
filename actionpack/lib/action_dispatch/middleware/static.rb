@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rack/utils"
 require "active_support/core_ext/uri"
 
@@ -33,7 +34,7 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p.force_encoding(Encoding::UTF_8))
+        path = File.join(@root, p.dup.force_encoding(Encoding::UTF_8))
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError

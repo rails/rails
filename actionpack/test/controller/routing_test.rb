@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
@@ -656,7 +657,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "/page/foo", url_for(rs, controller: "content", action: "show_page", id: "foo")
     assert_equal({ controller: "content", action: "show_page", id: "foo" }, rs.recognize_path("/page/foo"))
 
-    token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
+    token = "\321\202\320\265\320\272\321\201\321\202".dup # 'text' in Russian
     token.force_encoding(Encoding::BINARY)
     escaped_token = CGI::escape(token)
 
