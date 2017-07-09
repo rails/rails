@@ -5,15 +5,11 @@ class ActiveStorage::Service::MirrorService < ActiveStorage::Service
 
   delegate :download, :exist?, :url, to: :primary
 
-  # Stitch together from named configuration.
-  def self.build(service_config, all_configurations) #:nodoc:
-    primary = ActiveStorage::Service.configure(service_config.fetch(:primary), all_configurations)
-
-    mirrors = service_config.fetch(:mirrors).collect do |service_name|
-      ActiveStorage::Service.configure(service_name.to_sym, all_configurations)
-    end
-
-    new primary: primary, mirrors: mirrors
+  # Stitch together from named services.
+  def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:
+    new \
+      primary: configurator.build(primary),
+      mirrors: mirrors.collect { |name| configurator.build name }
   end
 
   def initialize(primary:, mirrors:)
