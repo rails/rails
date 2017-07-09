@@ -6,7 +6,7 @@ class ActiveStorage::Service::Configurator #:nodoc:
   end
 
   def initialize(configurations)
-    @configurations = configurations.symbolize_keys
+    @configurations = configurations.deep_symbolize_keys
   end
 
   def build(service_name)
