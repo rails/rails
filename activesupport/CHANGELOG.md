@@ -1,3 +1,19 @@
+*   Fix a regression with division by a Duration object
+
+    Before:
+        rental_end = DateTime.parse('01-01-2017 12:45:00').utc.in_time_zone('Europe/Berlin')
+        rental_start = DateTime.parse('01-01-2017 12:00:00').utc.in_time_zone('Europe/Berlin')
+        (rental_end - rental_start) / 1.hour
+        => 2700.0 hours
+    
+    After:
+        rental_end = DateTime.parse('01-01-2017 12:45:00').utc.in_time_zone('Europe/Berlin')
+        rental_start = DateTime.parse('01-01-2017 12:00:00').utc.in_time_zone('Europe/Berlin')
+        (rental_end - rental_start) / 1.hour
+        => 0.75
+        
+    *Stuart Swindells*
+        
 *   Default `ActiveSupport::MessageEncryptor` to use AES 256 GCM encryption.
 
     On for new Rails 5.2 apps. Upgrading apps can find the config as a new
