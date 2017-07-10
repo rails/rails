@@ -1,18 +1,18 @@
-gem 'minitest'
-require 'minitest'
-require 'rails/test_unit/minitest_plugin'
+gem "minitest"
+require "minitest"
+require_relative "runner"
 
 task default: :test
 
 desc "Runs all tests in test folder"
 task :test do
   $: << "test"
-  pattern = if ENV.key?('TEST')
-               ENV['TEST']
-             else
-               "test"
-             end
-  Minitest.rake_run([pattern])
+
+  if ENV.key?("TEST")
+    Rails::TestUnit::Runner.rake_run([ENV["TEST"]])
+  else
+    Rails::TestUnit::Runner.rake_run
+  end
 end
 
 namespace :test do
@@ -29,22 +29,22 @@ namespace :test do
   ["models", "helpers", "controllers", "mailers", "integration", "jobs"].each do |name|
     task name => "test:prepare" do
       $: << "test"
-      Minitest.rake_run(["test/#{name}"])
+      Rails::TestUnit::Runner.rake_run(["test/#{name}"])
     end
   end
 
   task :generators => "test:prepare" do
     $: << "test"
-    Minitest.rake_run(["test/lib/generators"])
+    Rails::TestUnit::Runner.rake_run(["test/lib/generators"])
   end
 
   task :units => "test:prepare" do
     $: << "test"
-    Minitest.rake_run(["test/models", "test/helpers", "test/unit"])
+    Rails::TestUnit::Runner.rake_run(["test/models", "test/helpers", "test/unit"])
   end
 
   task :functionals => "test:prepare" do
     $: << "test"
-    Minitest.rake_run(["test/controllers", "test/mailers", "test/functional"])
+    Rails::TestUnit::Runner.rake_run(["test/controllers", "test/mailers", "test/functional"])
   end
 end
