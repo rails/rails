@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActiveJob
   module QueueAdapters
     # == Test adapter for Active Job
