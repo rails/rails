@@ -8,24 +8,6 @@ module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
-    FakeKlass = Struct.new(:table_name, :name) do
-      extend ActiveRecord::Delegation::DelegateCache
-
-      inherited self
-
-      def self.connection
-        Post.connection
-      end
-
-      def self.table_name
-        "fake_table"
-      end
-
-      def self.sanitize_sql_for_order(sql)
-        sql
-      end
-    end
-
     def test_construction
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal FakeKlass, relation.klass
@@ -90,7 +72,7 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass.new("posts"), :b, Post.predicate_builder)
+      relation = Relation.new(FakeKlass, :b, Post.predicate_builder)
       assert_equal "posts", relation.table_name
     end
 
