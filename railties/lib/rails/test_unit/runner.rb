@@ -6,7 +6,7 @@ require "active_support/core_ext/module/attribute_accessors"
 module Rails
   module TestUnit
     class Runner
-      mattr_reader :filters, default: []
+      mattr_reader(:filters) { [] }
 
       class << self
         def options(opts)

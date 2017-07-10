@@ -45,5 +45,5 @@ module Minitest
   end
 
   # Backwardscompatibility with Rails 5.0 generated plugin test scripts
-  mattr_reader :run_via, default: {}
+  mattr_reader(:run_via) { Hash.new }
 end
