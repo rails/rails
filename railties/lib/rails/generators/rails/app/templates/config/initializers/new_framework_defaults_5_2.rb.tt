@@ -20,4 +20,4 @@
 
 # Add default protection from forgery to ActionController::Base instead of in
 # ApplicationController.
-# Rails.applocation.config.action_controller.default_protect_from_forgery = true
+# Rails.application.config.action_controller.default_protect_from_forgery = true
