@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../kernel/singleton_class"
 require_relative "../module/remove_method"
 require_relative "../array/extract_options"

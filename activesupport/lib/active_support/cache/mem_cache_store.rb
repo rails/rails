@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 begin
   require "dalli"
 rescue LoadError => e

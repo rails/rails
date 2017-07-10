@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "date"
 require "abstract_unit"
 require "timeout"

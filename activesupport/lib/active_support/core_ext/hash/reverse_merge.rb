@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Hash
   # Merges the caller into +other_hash+. For example,
   #

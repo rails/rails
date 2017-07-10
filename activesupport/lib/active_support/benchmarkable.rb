@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "core_ext/benchmark"
 require_relative "core_ext/hash/keys"
 

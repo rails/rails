@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../core_ext/object/json"
 require_relative "../core_ext/module/delegation"
 

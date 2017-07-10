@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "dependencies_test_helpers"
 
 module Ace

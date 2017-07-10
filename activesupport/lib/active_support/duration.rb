@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "core_ext/array/conversions"
 require_relative "core_ext/module/delegation"
 require_relative "core_ext/object/acts_like"

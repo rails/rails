@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 require "stringio"
 require "active_support/logger"

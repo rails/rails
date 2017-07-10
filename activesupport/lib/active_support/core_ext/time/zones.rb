@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../../time_with_zone"
 require_relative "acts_like"
 require_relative "../date_and_time/zones"

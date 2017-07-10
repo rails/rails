@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
