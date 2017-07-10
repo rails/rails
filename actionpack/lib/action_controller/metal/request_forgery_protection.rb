@@ -85,6 +85,10 @@ module ActionController #:nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
+      # Controls whether forgery protection is enabled by default.
+      config_accessor :default_protect_from_forgery
+      self.default_protect_from_forgery = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -126,6 +130,15 @@ module ActionController #:nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
+      end
+
+      # Turn off request forgery protection. This is a wrapper for:
+      #
+      #   skip_before_action :verify_authenticity_token
+      #
+      # See +skip_before_action+ for allowed options.
+      def skip_forgery_protection(options = {})
+        skip_before_action :verify_authenticity_token, options
       end
 
       private
