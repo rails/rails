@@ -138,7 +138,7 @@ PLATFORMS
 
 DEPENDENCIES
   activestorage!
-  aws-sdk
+  aws-sdk (~> 2)
   bundler (~> 1.15)
   byebug
   google-cloud-storage
