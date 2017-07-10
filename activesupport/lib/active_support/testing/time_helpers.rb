@@ -177,7 +177,6 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
-
       def freeze_time(&block)
         travel_to Time.now, &block
       end
