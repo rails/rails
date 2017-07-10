@@ -12,6 +12,19 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
+  test "download yields chunks" do
+    blob   = create_blob data: 'a' * 75.kilobytes
+    chunks = []
+
+    blob.download do |chunk|
+      chunks << chunk
+    end
+
+    assert_equal 2, chunks.size
+    assert_equal 'a' * 64.kilobytes, chunks.first
+    assert_equal 'a' * 11.kilobytes, chunks.second
+  end
+
   test "urls expiring in 5 minutes" do
     blob = create_blob
 

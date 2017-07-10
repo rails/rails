@@ -20,8 +20,8 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
   def download(key)
     if block_given?
       instrument :streaming_download, key do
-        File.open(path_for(key)) do |file|
-          while data = file.binread(64.kilobytes)
+        File.open(path_for(key), 'rb') do |file|
+          while data = file.read(64.kilobytes)
             yield data
           end
         end
@@ -55,7 +55,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
     instrument :url, key do |payload|
       verified_key_with_expiration = ActiveStorage::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
 
-      generated_url = 
+      generated_url =
         if defined?(Rails) && defined?(Rails.application)
           Rails.application.routes.url_helpers.rails_disk_blob_path(verified_key_with_expiration, disposition: disposition, filename: filename)
         else
@@ -63,7 +63,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
         end
 
       payload[:url] = generated_url
-      
+
       generated_url
     end
   end

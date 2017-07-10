@@ -56,8 +56,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.upload(key, io, checksum: checksum)
   end
 
-  def download
-    service.download key
+  def download(&block)
+    service.download key, &block
   end
 
 
