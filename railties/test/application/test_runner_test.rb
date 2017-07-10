@@ -16,13 +16,13 @@ module ApplicationTests
     end
 
     def test_run_via_backwardscompatibility
-      require "rails/test_unit/minitest_plugin"
+      require "minitest/rails_plugin"
 
       assert_nothing_raised do
         Minitest.run_via[:ruby] = true
       end
 
-      assert_predicate Minitest.run_via, :ruby?
+      assert Minitest.run_via[:ruby]
     end
 
     def test_run_single_file
