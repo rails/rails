@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require_relative "../attribute_mutation_tracker"
 
