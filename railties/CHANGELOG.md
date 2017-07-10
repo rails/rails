@@ -1,3 +1,11 @@
+*   Make Rails' test runner work better with minitest plugins.
+
+    By demoting the Rails test runner to just another minitest plugin —
+    and thereby not eager loading it — we can co-exist much better with
+    other minitest plugins such as pride and minitest-focus.
+
+    *Kasper Timm Hansen*
+
 *   Load environment file in `dbconsole` command.
 
     Fixes #29717
