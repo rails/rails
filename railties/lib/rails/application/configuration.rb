@@ -90,6 +90,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_authenticated_cookie_encryption = true
+            action_dispatch.cookies_have_purpose = true
           end
 
           if respond_to?(:active_support)

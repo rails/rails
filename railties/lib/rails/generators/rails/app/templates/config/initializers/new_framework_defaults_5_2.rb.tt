@@ -17,3 +17,7 @@
 # Use AES-256-GCM authenticated encryption as default cipher for encrypting messages
 # instead of AES-256-CBC, when use_authenticated_message_encryption is set to true.
 # Rails.application.config.active_support.use_authenticated_message_encryption = true
+
+# Allow cookies to have a purpose, preventing cookies from being used for something it
+# wasn't meant to be used for.
+# Rails.application.config.action_dispatch.cookies_have_purpose = true
