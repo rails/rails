@@ -132,6 +132,15 @@ module ActionController #:nodoc:
         append_after_action :verify_same_origin_request
       end
 
+      # Turn off request forgery protection. This is a wrapper for:
+      #
+      #   skip_before_action :verify_authenticity_token
+      #
+      # See +skip_before_action+ for allowed options.
+      def skip_forgery_protection(options = {})
+        skip_before_action :verify_authenticity_token, options
+      end
+
       private
 
         def protection_method_class(name)
