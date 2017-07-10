@@ -25,6 +25,9 @@ Layout/CaseIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
 # No extra empty lines.
 Layout/EmptyLines:
   Enabled: true
