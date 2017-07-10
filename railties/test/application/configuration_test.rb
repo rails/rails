@@ -1209,6 +1209,13 @@ module ApplicationTests
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
+    test "config.action_controller.default_protect_from_forgery is true by default" do
+      app "development"
+
+      assert_equal true, ActionController::Base.default_protect_from_forgery
+      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
+    end
+
     test "config.action_controller.permit_all_parameters can be configured in an initializer" do
       app_file "config/initializers/permit_all_parameters.rb", <<-RUBY
         Rails.application.config.action_controller.permit_all_parameters = true

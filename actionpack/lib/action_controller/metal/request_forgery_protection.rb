@@ -85,6 +85,10 @@ module ActionController #:nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
+      # Controls whether forgery protection is enabled by default.
+      config_accessor :default_protect_from_forgery
+      self.default_protect_from_forgery = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end

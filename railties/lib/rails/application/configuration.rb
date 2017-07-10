@@ -96,6 +96,10 @@ module Rails
             active_support.use_authenticated_message_encryption = true
           end
 
+          if respond_to?(:action_controller)
+            action_controller.default_protect_from_forgery = true
+          end
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
