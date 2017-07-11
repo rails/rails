@@ -76,16 +76,6 @@ module ActiveSupport
       end
     end
 
-    def default(*args)
-      arg_key = args.first
-
-      if include?(key = convert_key(arg_key))
-        self[key]
-      else
-        super
-      end
-    end
-
     def self.[](*args)
       new.merge!(Hash[*args])
     end
@@ -185,6 +175,36 @@ module ActiveSupport
     #   counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
     def fetch(key, *extras)
       super(convert_key(key), *extras)
+    end
+
+    if Hash.new.respond_to?(:dig)
+      # Same as <tt>Hash#dig</tt> where the key passed as argument can be
+      # either a string or a symbol:
+      #
+      #   counters = ActiveSupport::HashWithIndifferentAccess.new
+      #   counters[:foo] = { bar: 1 }
+      #
+      #   counters.dig('foo', 'bar')     # => 1
+      #   counters.dig(:foo, :bar)       # => 1
+      #   counters.dig(:zoo)             # => nil
+      def dig(*args)
+        args[0] = convert_key(args[0]) if args.size > 0
+        super(*args)
+      end
+    end
+
+    # Same as <tt>Hash#default</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new(1)
+    #   hash.default                   # => 1
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+    #   hash.default                   # => nil
+    #   hash.default('foo')            # => 'foo'
+    #   hash.default(:foo)             # => 'foo'
+    def default(*args)
+      super(*args.map { |arg| convert_key(arg) })
     end
 
     # Returns an array of the values at the specified indices:
