@@ -10,3 +10,4 @@ gem 'httparty'
 
 gem 'aws-sdk', '~> 2', require: false
 gem 'google-cloud-storage', require: false
+gem 'mini_magick'

@@ -1,5 +1,5 @@
 class ActiveStorage::VerifiedKeyWithExpiration
-  class_attribute :verifier, default: defined?(Rails) ? Rails.application.message_verifier('ActiveStorage') : nil
+  class_attribute :verifier
 
   class << self
     def encode(key, expires_in: nil)
