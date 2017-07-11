@@ -70,7 +70,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    \n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
