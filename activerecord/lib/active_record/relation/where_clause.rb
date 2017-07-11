@@ -111,8 +111,21 @@ module ActiveRecord
         end
 
         def non_conflicting_binds(other)
-          # Choose all predicates that had bound params to work with them based on index
-          predicates_with_binds = predicates.select { |predicate| equality_node?(predicate) && predicate.right.is_a?(Arel::Nodes::BindParam) }
+          # Store all predicates that had bound params in the order of their traversal
+          # to work with them based on index
+          predicates_with_binds = []
+          predicates.each do |predicate|
+            if predicate.is_a?(Arel::Nodes::Node)
+              predicate.right.each do |node|
+                if node.is_a?(Arel::Nodes::BindParam)
+                  predicates_with_binds << predicate
+                end
+              end
+            end
+          end
+
+          # Reject the binds for Equality nodes if they have been
+          # referenced in one of the Equality predicates of 'other'
           binds.reject.with_index do |_bind, idx|
             predicate = predicates_with_binds[idx]
             node_referenced_by_other?(predicate, other)

@@ -63,17 +63,17 @@ class ActiveRecord::Relation
 
     test "merge allows for columns with the same name from different tables" do
       a = WhereClause.new(
-        [table("TestTable")["id"].eq(bind_param), table("TestTable")["name"].eq(bind_param)],
-        [bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+        [table("TestTable")["created_at"].between(bind_param..bind_param), table("TestTable")["id"].eq(bind_param), table("TestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-10"), bind_attribute("created_at", "2017-07-11"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
       )
       b = WhereClause.new(
-        [table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
-        [bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+        [table("TestTable")["created_at"].eq(bind_param), table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-09"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
       )
 
       expected = WhereClause.new(
-        [table("TestTable")["name"].eq(bind_param), table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
-        [bind_attribute("name", "TestAttribute"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+        [table("TestTable")["created_at"].between(bind_param..bind_param), table("TestTable")["name"].eq(bind_param), table("TestTable")["created_at"].eq(bind_param), table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-10"), bind_attribute("created_at", "2017-07-11"), bind_attribute("name", "TestAttribute"), bind_attribute("created_at", "2017-07-09"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
       )
 
       assert_equal expected, a.merge(b)
