@@ -1186,7 +1186,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
+WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause serious side-effects as it prevents Rails from handling exceptions properly. As such, it is not recommended to do so unless there is a strong reason.
 
 NOTE: When running in the production environment, all
 `ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
