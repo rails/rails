@@ -52,26 +52,34 @@ module ActionDispatch
     end
 
     def serve(request)
-      path      = request.path_info
-      gzip_path = gzip_file_path(path)
+      path       = request.path_info
+      asset_path = asset_file_path(path, request)
 
-      if gzip_path && gzip_encoding_accepted?(request)
-        request.path_info           = gzip_path
-        status, headers, body       = @file_server.call(request.env)
+      if asset_path.is_a?(Array)
+        request.path_info = asset_path.last
+        status, headers, body = @file_server.call(request.env)
         if status == 304
           return [status, headers, body]
         end
-        headers["Content-Encoding"] = "gzip"
-        headers["Content-Type"]     = content_type(path)
+        headers["Content-Encoding"] = asset_path.first
+        headers["Content-Type"] = content_type(path)
       else
         status, headers, body = @file_server.call(request.env)
       end
 
-      headers["Vary"] = "Accept-Encoding" if gzip_path
+      headers["Vary"] = "Accept-Encoding" if asset_path
 
       return [status, headers, body]
     ensure
       request.path_info = path
+    end
+
+    def brotli_encoding_accepted?(request)
+      request.accept_encoding.any? { |enc, quality| enc =~ /\bbr\b/i }
+    end
+
+    def gzip_encoding_accepted?(request)
+      request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
     end
 
     private
@@ -83,18 +91,14 @@ module ActionDispatch
         ::Rack::Mime.mime_type(::File.extname(path), "text/plain".freeze)
       end
 
-      def gzip_encoding_accepted?(request)
-        request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
-      end
-
-      def gzip_file_path(path)
-        can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
-        gzip_path     = "#{path}.gz"
-        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
-          gzip_path
-        else
-          false
-        end
+      def asset_file_path(path, request)
+        can_compress_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
+        return false unless can_compress_mime
+        brotli_path = "#{path}.br"
+        gzip_path   = "#{path}.gz"
+        return ["br", brotli_path ] if brotli_encoding_accepted?(request) && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(brotli_path)))
+        return ["gzip", gzip_path ] if gzip_encoding_accepted?(request) && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
+        return false
       end
   end
 
