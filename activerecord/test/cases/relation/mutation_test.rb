@@ -3,39 +3,6 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    FakeKlass = Struct.new(:table_name, :name) do
-      extend ActiveRecord::Delegation::DelegateCache
-      inherited self
-
-      def connection
-        Post.connection
-      end
-
-      def relation_delegate_class(klass)
-        self.class.relation_delegate_class(klass)
-      end
-
-      def attribute_alias?(name)
-        false
-      end
-
-      def sanitize_sql(sql)
-        sql
-      end
-
-      def sanitize_sql_for_order(sql)
-        sql
-      end
-
-      def arel_attribute(name, table)
-        table[name]
-      end
-    end
-
-    def relation
-      @relation ||= Relation.new FakeKlass.new("posts"), Post.arel_table, Post.predicate_builder
-    end
-
     (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
@@ -167,5 +134,10 @@ module ActiveRecord
       relation.skip_query_cache!
       assert relation.skip_query_cache_value
     end
+
+    private
+      def relation
+        @relation ||= Relation.new(FakeKlass, Post.arel_table, Post.predicate_builder)
+      end
   end
 end
