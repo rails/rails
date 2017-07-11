@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "core"
 require_relative "queue_adapter"
 require_relative "queue_name"

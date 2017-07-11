@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActiveJob
   module QueueAdapters
     # == Active Job Inline adapter

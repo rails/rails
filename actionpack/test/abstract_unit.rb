@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 $:.unshift File.expand_path("lib", __dir__)
 $:.unshift File.expand_path("fixtures/helpers", __dir__)
 $:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../core_ext/kernel/reporting"
 require_relative "../core_ext/object/blank"
 require "stringio"

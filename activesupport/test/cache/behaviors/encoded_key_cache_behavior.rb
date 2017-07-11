@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
 # The error is caused by character encodings that can't be compared with ASCII-8BIT regular expressions and by special
 # characters like the umlaut in UTF-8.

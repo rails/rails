@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "tzinfo"
 require "concurrent/map"
 require_relative "../core_ext/object/blank"

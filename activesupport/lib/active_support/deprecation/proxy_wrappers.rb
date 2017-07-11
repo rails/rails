@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../inflector/methods"
 require_relative "../core_ext/regexp"
 

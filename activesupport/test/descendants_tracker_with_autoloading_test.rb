@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/descendants_tracker"
 require "active_support/dependencies"

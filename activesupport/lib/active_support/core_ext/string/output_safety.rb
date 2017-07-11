@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "erb"
 require_relative "../kernel/singleton_class"
 require_relative "../../multibyte/unicode"

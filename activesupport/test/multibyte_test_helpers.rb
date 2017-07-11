@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module MultibyteTestHelpers
   class Downloader
     def self.download(from, to)

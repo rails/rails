@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "delayed_job"
 require "delayed_job_active_record"
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 
 class WraithAttack < StandardError

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "hash/compact"
 require_relative "hash/conversions"
 require_relative "hash/deep_merge"

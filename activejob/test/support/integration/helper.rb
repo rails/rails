@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 puts "\n\n*** rake aj:integration:#{ENV['AJ_ADAPTER']} ***\n"
 
 ENV["RAILS_ENV"] = "test"

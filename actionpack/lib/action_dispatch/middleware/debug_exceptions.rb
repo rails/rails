@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../http/request"
 require_relative "exception_wrapper"
 require_relative "../routing/inspector"
