@@ -46,26 +46,45 @@ module ActionDispatch
     end
 
     def serve(request)
-      path      = request.path_info
-      gzip_path = gzip_file_path(path)
+      path = request.path_info
+      compressed_assets = asset_paths(path)
+      asset_path = asset_file_path(compressed_assets, request)
 
-      if gzip_path && gzip_encoding_accepted?(request)
-        request.path_info           = gzip_path
-        status, headers, body       = @file_server.call(request.env)
+      if asset_path.is_a?(Array)
+        request.path_info = asset_path.last
+        status, headers, body = @file_server.call(request.env)
         if status == 304
           return [status, headers, body]
         end
-        headers["Content-Encoding"] = "gzip"
-        headers["Content-Type"]     = content_type(path)
+        headers["Content-Encoding"] = asset_path.first
+        headers["Content-Type"] = content_type(path)
       else
         status, headers, body = @file_server.call(request.env)
       end
 
-      headers["Vary"] = "Accept-Encoding" if gzip_path
-
-      [status, headers, body]
+      headers["Vary"] = "Accept-Encoding" unless compressed_assets[:compressed].empty?
+      return [status, headers, body]
     ensure
       request.path_info = path
+    end
+
+    def brotli_encoding_accepted?(request)
+      request.accept_encoding.any? { |enc, quality| enc =~ /\bbr\b/i }
+    end
+
+    def gzip_encoding_accepted?(request)
+      request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
+    end
+
+    def have_compressed_asset?(path)
+      File.exist?(File.join(@root, ::Rack::Utils.unescape_path(path)))
+    end
+
+    def asset_paths(path)
+      paths = { original: path, compressed: {} }
+      paths[:compressed][:br_path] = "#{path}.br" if have_compressed_asset?("#{path}.br")
+      paths[:compressed][:gz_path] = "#{path}.gz" if have_compressed_asset?("#{path}.gz")
+      paths
     end
 
     private
@@ -77,18 +96,12 @@ module ActionDispatch
         ::Rack::Mime.mime_type(::File.extname(path), "text/plain")
       end
 
-      def gzip_encoding_accepted?(request)
-        request.accept_encoding.any? { |enc, quality| /\bgzip\b/i.match?(enc) }
-      end
-
-      def gzip_file_path(path)
-        can_gzip_mime = /\A(?:text\/|application\/javascript)/.match?(content_type(path))
-        gzip_path     = "#{path}.gz"
-        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
-          gzip_path
-        else
-          false
-        end
+      def asset_file_path(paths, request)
+        can_compress_mime = content_type(paths[:original]) =~ /\A(?:text\/|application\/javascript)/
+        return false unless can_compress_mime
+        return ["br", paths[:compressed][:br_path]] if paths[:compressed][:br_path].present? && brotli_encoding_accepted?(request)
+        return ["gzip", paths[:compressed][:gz_path]] if paths[:compressed][:gz_path].present? && gzip_encoding_accepted?(request)
+        false
       end
 
       def file_readable?(path)

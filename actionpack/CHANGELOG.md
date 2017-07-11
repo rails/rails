@@ -1,3 +1,9 @@
+*   Allow ActionDispatch::FileHandler to respond with brotli encoded files
+
+    Add support for Rails applications to serve brotli (.br) compressed static assets when incoming requests have the "Accept-Encoding" header set (contains "br") and the asset exists on the file system. Will prioritize brotli encoding over gzip due to the better compression ratio.
+
+    *Ryan Edward Hall*
+
 *   Add raise_on_missing_translations support for controllers.
 
     This configuration determines whether an error should be raised for missing translations.
