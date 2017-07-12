@@ -187,7 +187,7 @@ serialization) before setting this flag to true. Conversion can be accomplished
 by setting up a rake task which runs
 
   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+  ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
 
 for all models and all boolean columns, after which the flag must be set to
 true by adding the following to your application.rb file:

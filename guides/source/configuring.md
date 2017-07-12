@@ -387,7 +387,7 @@ by setting up a rake task which runs
 
     ```ruby
     ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+    ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
     ```
 
   for all models and all boolean columns, after which the flag must be set to true
