@@ -342,6 +342,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal "Aaron", aaron.name
   end
 
+  def test_create_with_using_both_string_and_symbol
+    jamis = PoorDeveloperCalledJamis.create_with(name: "foo").create_with("name" => "Aaron").new
+    assert_equal "Aaron", jamis.name
+  end
+
   def test_create_with_reset
     jamis = PoorDeveloperCalledJamis.create_with(name: "Aaron").create_with(nil).new
     assert_equal "Jamis", jamis.name

@@ -797,7 +797,7 @@ module ActiveRecord
         value = sanitize_forbidden_attributes(value)
         self.create_with_value = create_with_value.merge(value)
       else
-        self.create_with_value = {}
+        self.create_with_value = FROZEN_EMPTY_HASH
       end
 
       self

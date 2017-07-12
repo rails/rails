@@ -591,7 +591,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      @scope_for_create ||= where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.

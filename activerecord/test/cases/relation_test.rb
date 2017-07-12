@@ -83,16 +83,15 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      hash = { hello: "world" }
-      relation.create_with_value = hash
-      assert_equal hash, relation.scope_for_create
+      relation.create_with_value = { hello: "world" }
+      assert_equal({ "hello" => "world" }, relation.scope_for_create)
     end
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       relation.where!(id: 10)
       relation.create_with_value = { hello: "world" }
-      assert_equal({ hello: "world", "id" => 10 }, relation.scope_for_create)
+      assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
     end
 
     # FIXME: is this really wanted or expected behavior?
