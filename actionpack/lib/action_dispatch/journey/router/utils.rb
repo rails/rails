@@ -13,6 +13,7 @@ module ActionDispatch
         #   normalize_path("")      # => "/"
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
+          path ||= ''
           encoding = path.encoding
           path = "/#{path}".dup
           path.squeeze!("/".freeze)

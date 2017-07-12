@@ -38,6 +38,10 @@ module ActionDispatch
           path = "/foo%AAbar%AAbaz".b
           assert_equal Encoding::ASCII_8BIT, Utils.normalize_path(path).encoding
         end
+
+        def test_normalize_path_with_nil
+          assert_equal '/', Utils.normalize_path(nil)
+        end
       end
     end
   end
