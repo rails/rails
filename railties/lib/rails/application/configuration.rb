@@ -86,6 +86,10 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
+            # Remove the temporary load hook from SQLite3Adapter when this is removed
+            ActiveSupport.on_load(:active_record_sqlite3adapter) do
+              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+            end
           end
 
           if respond_to?(:action_dispatch)

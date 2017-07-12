@@ -8,11 +8,11 @@ module ActiveRecord
       end
 
       def test_quoted_true
-        assert_equal "'t'", @quoter.quoted_true
+        assert_equal "TRUE", @quoter.quoted_true
       end
 
       def test_quoted_false
-        assert_equal "'f'", @quoter.quoted_false
+        assert_equal "FALSE", @quoter.quoted_false
       end
 
       def test_quote_column_name

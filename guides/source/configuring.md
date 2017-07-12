@@ -375,6 +375,28 @@ The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
+The SQLite3Adapter adapter adds one additional configuration option:
+
+* `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
+'t' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
+boolean values and must have old data converted to 1 and 0 (its native boolean
+serialization) before setting this flag to true. Conversion can be accomplished
+by setting up a rake task which runs
+
+    ```ruby
+    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+    ```
+
+  for all models and all boolean columns, after which the flag must be set to true
+by adding the following to your application.rb file:
+
+    ```ruby
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    ```
+
 The schema dumper adds one additional configuration option:
 
 * `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless `config.active_record.schema_format == :ruby`.

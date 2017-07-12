@@ -174,5 +174,29 @@ end_warning
         end
       end
     end
+
+    initializer "active_record.check_represent_sqlite3_boolean_as_integer" do
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          unless ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+            ActiveSupport::Deprecation.warn <<-MSG
+Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
+boolean values and must have old data converted to 1 and 0 (its native boolean
+serialization) before setting this flag to true. Conversion can be accomplished
+by setting up a rake task which runs
+
+  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+  ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+
+for all models and all boolean columns, after which the flag must be set to
+true by adding the following to your application.rb file:
+
+  ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+MSG
+          end
+        end
+      end
+    end
   end
 end

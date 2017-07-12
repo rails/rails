@@ -72,6 +72,23 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your application.rb file:
+      #
+      #   ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
+
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
@@ -512,5 +529,6 @@ module ActiveRecord
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end
