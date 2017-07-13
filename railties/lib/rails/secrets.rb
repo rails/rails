@@ -100,7 +100,8 @@ module Rails
         end
 
         def writing(contents)
-          tmp_path = File.join(Dir.tmpdir, File.basename(path))
+          tmp_file = "#{File.basename(path)}.#{Process.pid}"
+          tmp_path = File.join(Dir.tmpdir, tmp_file)
           IO.binwrite(tmp_path, contents)
 
           yield tmp_path
