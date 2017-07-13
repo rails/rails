@@ -5,14 +5,13 @@ require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
 require "rails/secrets"
 
 class Rails::SecretsTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation
-
   def setup
     build_app
   end
 
   def teardown
     teardown_app
+    Rails::Secrets.instance_variable_set(:@encryptor, nil)
   end
 
   test "setting read to false skips parsing" do
@@ -22,6 +21,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
           yeah_yeah: lets-walk-in-the-cool-evening-light
       end_of_secrets
 
+      Rails.application.config.root = app_path
       Rails.application.config.read_encrypted_secrets = false
       Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
       assert_not Rails.application.secrets.yeah_yeah
