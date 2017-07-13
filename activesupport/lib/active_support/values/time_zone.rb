@@ -30,7 +30,7 @@ module ActiveSupport
   class TimeZone
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
-      "International Date Line West" => "Pacific/Midway",
+      "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
