@@ -1,3 +1,19 @@
+*   Fix `unscoped(where: [columns])` removing the wrong bind values
+
+    When the `where` is called on a relation after a `or`, unscoping the column of that later `where`, it removed
+    bind values used by the `or` instead.
+
+    ```
+    Post.where(id: 1).or(Post.where(id: 2)).where(foo: 3).unscope(where: :foo).to_sql
+    # Currently:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 2 OR "posts"."id" = 3)
+    # With fix:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 1 OR "posts"."id" = 2)
+    ```
+
+    *Maxime Handfield Lapointe*
+
+
 ## Rails 5.1.3.rc1 (July 19, 2017) ##
 
 *   `Relation#joins` is no longer affected by the target model's
