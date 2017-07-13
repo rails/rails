@@ -114,8 +114,8 @@ module ActionMailer
           end
         end
 
-        def respond_to_missing?(method, include_all = false)
-          @mailer.respond_to?(method, include_all)
+        def respond_to_missing?(method_name, include_all = false)
+          @mailer.respond_to?(method_name, include_all)
         end
     end
 
