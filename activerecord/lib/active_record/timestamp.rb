@@ -75,8 +75,14 @@ module ActiveRecord
         end
 
         def current_time_from_proper_timezone
-          default_timezone == :utc ? Time.now.utc : Time.now
+          ActiveRecord::Timestamp.current_time
         end
+    end
+
+    class << self
+      def current_time
+        ActiveRecord::Base.default_timezone == :utc ? Time.now.utc : Time.now
+      end
     end
 
   private
@@ -124,7 +130,7 @@ module ActiveRecord
     end
 
     def current_time_from_proper_timezone
-      self.class.send(:current_time_from_proper_timezone)
+      ActiveRecord::Timestamp.current_time
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)

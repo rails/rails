@@ -455,6 +455,11 @@ class TimestampTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.connection.drop_table(:foos)
   end
+
+  def test_public_current_time_method_exists_and_is_used_for_timestamps
+    ActiveRecord::Timestamp.expects(:current_time).returns(Time.current.utc)
+    Car.create!
+  end
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
