@@ -259,7 +259,7 @@ module ActionDispatch # :nodoc:
     def charset=(charset)
       header_info = parsed_content_type_header
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type
+        set_content_type header_info.mime_type, nil
       else
         content_type = header_info.mime_type
         set_content_type content_type, charset || self.class.default_charset
