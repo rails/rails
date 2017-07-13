@@ -85,7 +85,7 @@ class ActiveStorage::Service
   private
     def instrument(operation, key, payload = {}, &block)
       ActiveSupport::Notifications.instrument(
-        "service_#{operation}.active_storage", 
+        "service_#{operation}.active_storage",
         payload.merge(key: key, service: service_name), &block)
     end
 

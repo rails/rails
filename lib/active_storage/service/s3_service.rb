@@ -49,9 +49,9 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     instrument :url, key do |payload|
       generated_url = object_for(key).presigned_url :get, expires_in: expires_in,
         response_content_disposition: "#{disposition}; filename=\"#{filename}\""
-      
+
       payload[:url] = generated_url
-      
+
       generated_url
     end
   end
@@ -60,9 +60,9 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     instrument :url, key do |payload|
       generated_url = object_for(key).presigned_url :put, expires_in: expires_in,
         content_type: content_type, content_length: content_length
-      
+
       payload[:url] = generated_url
-      
+
       generated_url
     end
   end

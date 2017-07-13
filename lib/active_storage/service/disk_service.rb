@@ -20,7 +20,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
   def download(key)
     if block_given?
       instrument :streaming_download, key do
-        File.open(path_for(key), 'rb') do |file|
+        File.open(path_for(key), "rb") do |file|
           while data = file.read(64.kilobytes)
             yield data
           end

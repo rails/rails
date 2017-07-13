@@ -14,7 +14,7 @@ class ActiveStorage::Download
     application/xhtml+xml
   )
 
-  BINARY_CONTENT_TYPE = 'application/octet-stream'
+  BINARY_CONTENT_TYPE = "application/octet-stream"
 
   def initialize(stored_file)
     @stored_file = stored_file
@@ -22,11 +22,11 @@ class ActiveStorage::Download
 
   def headers(force_attachment: false)
     {
-      x_accel_redirect:    '/reproxy',
+      x_accel_redirect:    "/reproxy",
       x_reproxy_url:       reproxy_url,
       content_type:        content_type,
       content_disposition: content_disposition(force_attachment),
-      x_frame_options:     'SAMEORIGIN'
+      x_frame_options:     "SAMEORIGIN"
     }
   end
 
