@@ -394,7 +394,7 @@ by setting up a rake task which runs
 by adding the following to your application.rb file:
 
     ```ruby
-    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
     ```
 
 The schema dumper adds one additional configuration option:

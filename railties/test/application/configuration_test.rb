@@ -1613,6 +1613,24 @@ module ApplicationTests
       assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
 
+    test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      Post.object_id # force lazy load hooks to run
+
+      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
     test "config_for containing ERB tags should evaluate" do
       app_file "config/custom.yml", <<-RUBY
       development:

@@ -26,6 +26,9 @@ module ActiveRecord
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
 
+    config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
+    config.active_record.sqlite3.represent_boolean_as_integer = nil
+
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
@@ -108,7 +111,9 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        app.config.active_record.each do |k, v|
+        configs = app.config.active_record.dup
+        configs.delete(:sqlite3)
+        configs.each do |k, v|
           send "#{k}=", v
         end
       end
@@ -178,6 +183,11 @@ end_warning
     initializer "active_record.check_represent_sqlite3_boolean_as_integer" do
       config.after_initialize do
         ActiveSupport.on_load(:active_record_sqlite3adapter) do
+          represent_boolean_as_integer = Rails.application.config.active_record.sqlite3.delete(:represent_boolean_as_integer)
+          unless represent_boolean_as_integer.nil?
+            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
+          end
+
           unless ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
             ActiveSupport::Deprecation.warn <<-MSG
 Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
@@ -192,7 +202,7 @@ by setting up a rake task which runs
 for all models and all boolean columns, after which the flag must be set to
 true by adding the following to your application.rb file:
 
-  ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+  Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
 MSG
           end
         end
