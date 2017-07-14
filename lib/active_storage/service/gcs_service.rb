@@ -36,14 +36,20 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
 
   def exist?(key)
     instrument :exist, key do |payload|
-      payload[:exist] = file_for(key).present?
+      answer = file_for(key).present?
+      payload[:exist] = answer
+      answer
     end
   end
 
   def url(key, expires_in:, disposition:, filename:)
     instrument :url, key do |payload|
       query = { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }
-      payload[:url] = file_for(key).signed_url(expires: expires_in, query: query)
+      generated_url = file_for(key).signed_url(expires: expires_in, query: query)
+
+      payload[:url] = generated_url
+
+      generated_url
     end
   end
 
