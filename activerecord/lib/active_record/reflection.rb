@@ -222,6 +222,7 @@ module ActiveRecord
         if klass.current_scope
           klass.current_scope.clone.tap { |scope|
             scope.joins_values = scope.left_outer_joins_values = [].freeze
+            scope.limit_value = scope.offset_value = nil
           }
         else
           klass.default_scoped(build_scope(table, predicate_builder))
