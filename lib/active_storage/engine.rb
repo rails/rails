@@ -56,6 +56,9 @@ module ActiveStorage
           rescue => e
             raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
           end
+      else
+        raise "No storage service specified for current env (#{Rails.env}). " \
+              "Add config.active_storage.service = :local into your config/environments/#{Rails.env}.rb."
       end
     end
   end
