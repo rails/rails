@@ -1915,11 +1915,11 @@ class RelationTest < ActiveRecord::TestCase
 
     table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
     predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
-    relation = ActiveRecord::Relation.new(Post, table_alias, predicate_builder)
-    relation.where!(foo: "bar")
+    relation = ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
 
-    node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first
-    assert_equal table_alias, node.relation
+    post = posts(:welcome)
+
+    assert_equal post, relation.where!(title: post.title).take
   end
 
   test "#load" do
