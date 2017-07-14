@@ -464,25 +464,6 @@ Returns an HTML script tag for each of the sources provided. You can pass in the
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
 ```
 
-If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass `:defaults` as the source. When using `:defaults`, if an `application.js` file exists in your `app/assets/javascripts` directory, it will be included as well.
-
-```ruby
-javascript_include_tag :defaults
-```
-
-You can also include all JavaScript files in the `app/assets/javascripts` directory using `:all` as the source.
-
-```ruby
-javascript_include_tag :all
-```
-
-You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-javascript_include_tag :all, cache: true # =>
-  <script src="/javascripts/all.js"></script>
-```
-
 #### javascript_path
 
 Computes the path to a JavaScript asset in the `app/assets/javascripts` directory. If the source filename has no extension, `.js` will be appended. Full paths from the document root will be passed through. Used internally by `javascript_include_tag` to build the script path.
@@ -505,19 +486,6 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 ```ruby
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
-```
-
-You can also include all styles in the stylesheet directory using `:all` as the source:
-
-```ruby
-stylesheet_link_tag :all
-```
-
-You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-stylesheet_link_tag :all, cache: true
-# => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 ```
 
 #### stylesheet_path
