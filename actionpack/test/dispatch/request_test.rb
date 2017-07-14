@@ -1024,7 +1024,8 @@ class RequestParameters < BaseRequestTest
       request.path_parameters = { foo: "\xBE" }
     end
 
-    assert_equal "Invalid path parameters: Non UTF-8 value: \xBE", err.message
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid path parameters: Invalid encoding for parameter: �", err.message
   end
 
   test "parameters not accessible after rack parse error of invalid UTF8 character" do
