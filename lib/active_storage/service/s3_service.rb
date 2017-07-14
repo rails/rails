@@ -4,8 +4,24 @@ require "active_support/core_ext/numeric/bytes"
 class ActiveStorage::Service::S3Service < ActiveStorage::Service
   attr_reader :client, :bucket
 
-  def initialize(access_key_id:, secret_access_key:, region:, bucket:)
-    @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region)
+  def initialize(access_key_id:, secret_access_key:, region:, bucket:, endpoint: nil)
+    @client = if endpoint
+      Aws::S3::Resource.new(
+        access_key_id:     access_key_id,
+        secret_access_key: secret_access_key,
+        region:            region,
+        bucket:            bucket
+      )
+    else
+      Aws::S3::Resource.new(
+        access_key_id:     access_key_id,
+        secret_access_key: secret_access_key,
+        region:            region,
+        bucket:            bucket,
+        endpoint:          endpoint
+      )
+    end
+
     @bucket = @client.bucket(bucket)
   end
 
