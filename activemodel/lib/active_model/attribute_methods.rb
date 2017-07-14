@@ -1,5 +1,4 @@
 require "concurrent/map"
-require "mutex_m"
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -328,9 +327,7 @@ module ActiveModel
       end
 
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= Module.new {
-          extend Mutex_m
-        }.tap { |mod| include mod }
+        @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
       end
 
       private
