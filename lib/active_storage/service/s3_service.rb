@@ -10,15 +10,15 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
         access_key_id:     access_key_id,
         secret_access_key: secret_access_key,
         region:            region,
-        bucket:            bucket
+        bucket:            bucket,
+        endpoint:          endpoint
       )
     else
       Aws::S3::Resource.new(
         access_key_id:     access_key_id,
         secret_access_key: secret_access_key,
         region:            region,
-        bucket:            bucket,
-        endpoint:          endpoint
+        bucket:            bucket
       )
     end
 
