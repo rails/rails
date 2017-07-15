@@ -6,7 +6,6 @@ require "models/rating"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-
     fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
     FakeKlass = Struct.new(:table_name, :name) do
