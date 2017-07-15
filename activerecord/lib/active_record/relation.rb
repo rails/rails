@@ -36,67 +36,6 @@ module ActiveRecord
       reset
     end
 
-    def insert(values) # :nodoc:
-      primary_key_value = nil
-
-      if primary_key && Hash === values
-        primary_key_value = values[values.keys.find { |k|
-          k.name == primary_key
-        }]
-
-        if !primary_key_value && klass.prefetch_primary_key?
-          primary_key_value = klass.next_sequence_value
-          values[arel_attribute(klass.primary_key)] = primary_key_value
-        end
-      end
-
-      im = arel.create_insert
-      im.into @table
-
-      substitutes = substitute_values values
-
-      if values.empty? # empty insert
-        im.values = Arel.sql(connection.empty_insert_statement_value)
-      else
-        im.insert substitutes
-      end
-
-      @klass.connection.insert(
-        im,
-        "#{@klass} Create",
-        primary_key || false,
-        primary_key_value,
-        nil,
-      )
-    end
-
-    def _update_record(values, id, id_was) # :nodoc:
-      substitutes = substitute_values values
-
-      scope = @klass.unscoped
-
-      if @klass.finder_needs_type_condition?
-        scope.unscope!(where: @klass.inheritance_column)
-      end
-
-      relation = scope.where(@klass.primary_key => (id_was || id))
-      um = relation
-        .arel
-        .compile_update(substitutes, @klass.primary_key)
-
-      @klass.connection.update(
-        um,
-        "#{@klass} Update",
-      )
-    end
-
-    def substitute_values(values) # :nodoc:
-      values.map do |arel_attr, value|
-        bind = predicate_builder.build_bind_attribute(arel_attr.name, value)
-        [arel_attr, bind]
-      end
-    end
-
     def arel_attribute(name) # :nodoc:
       klass.arel_attribute(name, table)
     end

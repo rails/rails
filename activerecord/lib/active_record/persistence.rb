@@ -165,6 +165,38 @@ module ActiveRecord
         where(primary_key => id_or_array).delete_all
       end
 
+      def _insert_record(values) # :nodoc:
+        primary_key_value = nil
+
+        if primary_key && Hash === values
+          arel_primary_key = arel_attribute(primary_key)
+          primary_key_value = values[arel_primary_key]
+
+          if !primary_key_value && prefetch_primary_key?
+            primary_key_value = next_sequence_value
+            values[arel_primary_key] = primary_key_value
+          end
+        end
+
+        if values.empty?
+          im = arel_table.compile_insert(connection.empty_insert_statement_value)
+          im.into arel_table
+        else
+          im = arel_table.compile_insert(_substitute_values(values))
+        end
+
+        connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
+      end
+
+      def _update_record(values, id, id_was) # :nodoc:
+        bind = predicate_builder.build_bind_attribute(primary_key, id_was || id)
+        um = arel_table.where(
+          arel_attribute(primary_key).eq(bind)
+        ).compile_update(_substitute_values(values), primary_key)
+
+        connection.update(um, "#{self} Update")
+      end
+
       private
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
@@ -173,6 +205,13 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
+        end
+
+        def _substitute_values(values)
+          values.map do |attr, value|
+            bind = predicate_builder.build_bind_attribute(attr.name, value)
+            [attr, bind]
+          end
         end
     end
 
@@ -671,7 +710,7 @@ module ActiveRecord
         rows_affected = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        rows_affected = self.class._update_record(attributes_values, id, id_in_database)
         @_trigger_update_callback = rows_affected > 0
       end
 
@@ -685,7 +724,7 @@ module ActiveRecord
     def _create_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
-      new_id = self.class.unscoped.insert attributes_values
+      new_id = self.class._insert_record(attributes_values)
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false
