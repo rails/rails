@@ -2,9 +2,9 @@ require "active_support/log_subscriber"
 
 class ActiveStorage::LogSubscriber < ActiveSupport::LogSubscriber
   def service_upload(event)
-    message = color("Uploaded file to key: #{key_in(event)}", GREEN)
-    message << color(" (checksum: #{event.payload[:checksum]})", GREEN) if event.payload[:checksum]
-    info event, message
+    message = "Uploaded file to key: #{key_in(event)}"
+    message << " (checksum: #{event.payload[:checksum]})"
+    info event, color(message, GREEN) if event.payload[:checksum]
   end
 
   def service_download(event)
