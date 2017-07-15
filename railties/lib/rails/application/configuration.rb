@@ -1,7 +1,7 @@
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
-require "rails/engine/configuration"
-require "rails/source_annotation_extractor"
+require_relative "../engine/configuration"
+require_relative "../source_annotation_extractor"
 
 module Rails
   class Application
@@ -90,6 +90,10 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_authenticated_cookie_encryption = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.use_authenticated_message_encryption = true
           end
 
         else

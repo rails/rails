@@ -409,7 +409,7 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../config/environment', __dir__)
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server

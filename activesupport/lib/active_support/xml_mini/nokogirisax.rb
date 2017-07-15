@@ -1,10 +1,11 @@
+# frozen_string_literal: true
 begin
   require "nokogiri"
 rescue LoadError => e
   $stderr.puts "You don't have nokogiri installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport
@@ -37,7 +38,7 @@ module ActiveSupport
       end
 
       def start_element(name, attrs = [])
-        new_hash = { CONTENT_KEY => "" }.merge!(Hash[attrs])
+        new_hash = { CONTENT_KEY => "".dup }.merge!(Hash[attrs])
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]

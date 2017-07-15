@@ -34,18 +34,12 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
-    assert_nothing_raised do
-      Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
-    end
     authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
     assert_equal 1, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
 
   def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
-    assert_nothing_raised do
-      Person.eager_load(primary_contact: :primary_contact).where("primary_contacts_people_2.first_name = ?", "Susan").order("people.id").to_a
-    end
     assert_equal people(:michael), Person.eager_load(primary_contact: :primary_contact).where("primary_contacts_people_2.first_name = ?", "Susan").order("people.id").first
   end
 

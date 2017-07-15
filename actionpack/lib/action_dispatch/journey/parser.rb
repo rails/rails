@@ -8,7 +8,7 @@ require 'racc/parser.rb'
 
 # :stopdoc:
 
-require "action_dispatch/journey/parser_extras"
+require_relative "parser_extras"
 module ActionDispatch
   module Journey
     class Parser < Racc::Parser

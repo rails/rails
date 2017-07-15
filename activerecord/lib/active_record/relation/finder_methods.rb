@@ -147,8 +147,7 @@ module ActiveRecord
     def last(limit = nil)
       return find_last(limit) if loaded? || limit_value
 
-      result = limit(limit)
-      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = ordered_relation.limit(limit)
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
@@ -316,7 +315,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists", relation.bound_attributes) } ? true : false
     rescue ::RangeError
       false
     end
@@ -335,14 +334,14 @@ module ActiveRecord
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}"
+        error = "Couldn't find #{name}".dup
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': "
+        error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
 
         raise RecordNotFound.new(error, name, primary_key, ids)
@@ -377,8 +376,7 @@ module ActiveRecord
           if ActiveRecord::NullRelation === relation
             []
           else
-            arel = relation.arel
-            rows = connection.select_all(arel, "SQL", relation.bound_attributes)
+            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
             join_dependency.instantiate(rows, aliases)
           end
         end
@@ -425,9 +423,8 @@ module ActiveRecord
           "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
 
         relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
 
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
         id_rows.map { |row| row[primary_key] }
       end
 
@@ -535,11 +532,7 @@ module ActiveRecord
         if loaded?
           records[index, limit] || []
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           if limit_value.nil? || index < limit_value
             relation = relation.offset(offset_index + index) unless index.zero?
@@ -554,11 +547,7 @@ module ActiveRecord
         if loaded?
           records[-index]
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           relation.to_a[-index]
           # TODO: can be made more performant on large result sets by
@@ -571,6 +560,14 @@ module ActiveRecord
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def ordered_relation
+        if order_values.empty? && primary_key
+          order(arel_attribute(primary_key).asc)
+        else
+          self
+        end
       end
   end
 end

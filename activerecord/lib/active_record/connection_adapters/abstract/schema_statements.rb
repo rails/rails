@@ -1,4 +1,4 @@
-require "active_record/migration/join_table"
+require_relative "../../migration/join_table"
 require "active_support/core_ext/string/access"
 require "digest"
 
@@ -31,7 +31,7 @@ module ActiveRecord
       # Returns the relation names useable to back Active Record models.
       # For most adapters this means all #tables and #views.
       def data_sources
-        select_values(data_source_sql, "SCHEMA")
+        query_values(data_source_sql, "SCHEMA")
       rescue NotImplementedError
         tables | views
       end
@@ -41,14 +41,14 @@ module ActiveRecord
       #   data_source_exists?(:ebooks)
       #
       def data_source_exists?(name)
-        select_values(data_source_sql(name), "SCHEMA").any? if name.present?
+        query_values(data_source_sql(name), "SCHEMA").any? if name.present?
       rescue NotImplementedError
         data_sources.include?(name.to_s)
       end
 
       # Returns an array of table names defined in the database.
       def tables
-        select_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
+        query_values(data_source_sql(type: "BASE TABLE"), "SCHEMA")
       end
 
       # Checks to see if the table +table_name+ exists on the database.
@@ -56,14 +56,14 @@ module ActiveRecord
       #   table_exists?(:developers)
       #
       def table_exists?(table_name)
-        select_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
+        query_values(data_source_sql(table_name, type: "BASE TABLE"), "SCHEMA").any? if table_name.present?
       rescue NotImplementedError
         tables.include?(table_name.to_s)
       end
 
       # Returns an array of view names defined in the database.
       def views
-        select_values(data_source_sql(type: "VIEW"), "SCHEMA")
+        query_values(data_source_sql(type: "VIEW"), "SCHEMA")
       end
 
       # Checks to see if the view +view_name+ exists on the database.
@@ -71,7 +71,7 @@ module ActiveRecord
       #   view_exists?(:ebooks)
       #
       def view_exists?(view_name)
-        select_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
+        query_values(data_source_sql(view_name, type: "VIEW"), "SCHEMA").any? if view_name.present?
       rescue NotImplementedError
         views.include?(view_name.to_s)
       end
@@ -188,6 +188,8 @@ module ActiveRecord
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
       #
+      #   If an array is passed, a composite primary key will be created.
+      #
       #   Note that Active Record models will automatically detect their
       #   primary key. This can be avoided by using
       #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
@@ -240,6 +242,23 @@ module ActiveRecord
       #     id varchar PRIMARY KEY,
       #     label varchar
       #   )
+      #
+      # ====== Create a composite primary key
+      #
+      #   create_table(:orders, primary_key: [:product_id, :client_id]) do |t|
+      #     t.belongs_to :product
+      #     t.belongs_to :client
+      #   end
+      #
+      # generates:
+      #
+      #   CREATE TABLE order (
+      #       product_id integer NOT NULL,
+      #       client_id integer NOT NULL
+      #   );
+      #
+      #   ALTER TABLE ONLY "orders"
+      #     ADD CONSTRAINT orders_pkey PRIMARY KEY (product_id, client_id);
       #
       # ====== Do not add a primary key column
       #
@@ -493,8 +512,7 @@ module ActiveRecord
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column. This option could
-      #   have been named <tt>:null_allowed</tt>.
+      #   Allows or disallows +NULL+ values in the column.
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
@@ -992,7 +1010,7 @@ module ActiveRecord
 
       def dump_schema_information #:nodoc:
         versions = ActiveRecord::SchemaMigration.all_versions
-        insert_versions_sql(versions)
+        insert_versions_sql(versions) if versions.any?
       end
 
       def initialize_schema_migrations_table # :nodoc:
@@ -1330,7 +1348,7 @@ module ActiveRecord
           sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
           if versions.is_a?(Array)
-            sql = "INSERT INTO #{sm_table} (version) VALUES\n"
+            sql = "INSERT INTO #{sm_table} (version) VALUES\n".dup
             sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql

@@ -93,7 +93,7 @@ module ActiveRecord
       #    joins # =>  []
       #
       def initialize(base, associations, joins, eager_loading: true)
-        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins, base.type_caster)
+        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins)
         @eager_loading = eager_loading
         tree = self.class.make_tree associations
         @join_root = JoinBase.new base, build(tree, base)
@@ -104,17 +104,17 @@ module ActiveRecord
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(outer_joins, join_type)
+      def join_constraints(joins_to_add, join_type)
         joins = join_root.children.flat_map { |child|
           make_join_constraints(join_root, child, join_type)
         }
 
-        joins.concat outer_joins.flat_map { |oj|
+        joins.concat joins_to_add.flat_map { |oj|
           if join_root.match? oj.join_root
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_outer_joins oj.join_root, child
+              make_join_constraints(oj.join_root, child, join_type)
             }
           end
         }
@@ -185,7 +185,8 @@ module ActiveRecord
           node.reflection.chain.map { |reflection|
             alias_tracker.aliased_table_for(
               reflection.table_name,
-              table_alias_for(reflection, parent, reflection != node.reflection)
+              table_alias_for(reflection, parent, reflection != node.reflection),
+              reflection.klass.type_caster
             )
           }
         end
@@ -197,8 +198,7 @@ module ActiveRecord
 
         def table_alias_for(reflection, parent, join)
           name = "#{reflection.plural_name}_#{parent.table_name}"
-          name << "_join" if join
-          name
+          join ? "#{name}_join" : name
         end
 
         def walk(left, right)

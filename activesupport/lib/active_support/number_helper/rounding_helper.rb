@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveSupport
   module NumberHelper
     class RoundingHelper # :nodoc:
@@ -40,11 +41,11 @@ module ActiveSupport
         def convert_to_decimal(number)
           case number
           when Float, String
-            number = BigDecimal(number.to_s)
+            BigDecimal(number.to_s)
           when Rational
-            number = BigDecimal(number, digit_count(number.to_i) + precision)
+            BigDecimal(number, digit_count(number.to_i) + precision)
           else
-            number = number.to_d
+            number.to_d
           end
         end
 

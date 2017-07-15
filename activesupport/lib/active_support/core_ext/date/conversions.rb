@@ -1,7 +1,8 @@
+# frozen_string_literal: true
 require "date"
-require "active_support/inflector/methods"
-require "active_support/core_ext/date/zones"
-require "active_support/core_ext/module/remove_method"
+require_relative "../../inflector/methods"
+require_relative "zones"
+require_relative "../module/remove_method"
 
 class Date
   DATE_FORMATS = {

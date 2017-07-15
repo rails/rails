@@ -41,7 +41,7 @@ module ActiveRecord
         unless column_name.nil?
           ActiveSupport::Deprecation.warn \
             "When `count' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
         end
 
         return super()
@@ -86,7 +86,7 @@ module ActiveRecord
         unless column_name.nil?
           ActiveSupport::Deprecation.warn \
             "When `sum' is called with a block, it ignores other arguments. " \
-            "This behavior is now deprecated and will result in an ArgumentError in Rails 5.3."
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
         end
 
         return super()
@@ -184,7 +184,7 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
-        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
+        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil, bound_attributes) }
         result.cast_values(klass.attribute_types)
       end
     end
@@ -260,7 +260,7 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        result = @klass.connection.select_all(query_builder, nil, bound_attributes)
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil, bound_attributes) }
         row    = result.first
         value  = row && row.values.first
         type   = result.column_types.fetch(column_alias) do
@@ -311,7 +311,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
+        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil, relation.bound_attributes) }
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

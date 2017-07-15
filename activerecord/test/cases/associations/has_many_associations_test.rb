@@ -241,6 +241,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "defaulty", bulb.name
   end
 
+  def test_build_from_association_sets_inverse_instance
+    car = Car.new(name: "honda")
+
+    bulb = car.bulbs.build
+    assert_equal car, bulb.car
+  end
+
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(name: "honda")
     car.funky_bulbs.create!
@@ -742,6 +749,41 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client2 = Client.find(2)
     assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = ?", "Client"], order: "id").first
     assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = :type", { type: "Client" }], order: "id").first
+  end
+
+  def test_find_first_after_reset_scope
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_same original_object, firm.clients.first, "Expected #first to return a new object"
+  end
+
+  def test_find_first_after_reset
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
+    collection.reset
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_same original_object, collection.first, "Expected #first after #reset to return a new object"
+  end
+
+  def test_find_first_after_reload
+    firm = Firm.all.merge!(order: "id").first
+    collection = firm.clients
+
+    original_object = collection.first
+    assert_same original_object, collection.first, "Expected second call to #first to cache the same object"
+    collection.reload
+
+    # It should return a different object, since the association has been reloaded
+    assert_not_same original_object, collection.first, "Expected #first after #reload to return a new object"
   end
 
   def test_find_all_with_include_and_conditions
@@ -2143,6 +2185,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Post", tagging.taggable_type
   end
 
+  def test_build_from_polymorphic_association_sets_inverse_instance
+    post = Post.new
+    tagging = post.taggings.build
+
+    assert_equal post, tagging.taggable
+  end
+
   def test_dont_call_save_callbacks_twice_on_has_many
     firm = companies(:first_firm)
     contract = firm.contracts.create!
@@ -2322,8 +2371,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create!
     bulb = Bulb.create! name: "other", car: car
 
-    assert_equal bulb, Car.find(car.id).all_bulbs.first
-    assert_equal bulb, Car.includes(:all_bulbs).find(car.id).all_bulbs.first
+    assert_equal [bulb], Car.find(car.id).all_bulbs
+    assert_equal [bulb], Car.includes(:all_bulbs).find(car.id).all_bulbs
+    assert_equal [bulb], Car.eager_load(:all_bulbs).find(car.id).all_bulbs
   end
 
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do
@@ -2510,6 +2560,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = Bulb.create!(car: car)
 
     assert_equal [bulb.id], car.bulb_ids
+    assert_no_queries { car.bulb_ids }
+
+    bulb2 = car.bulbs.create!
+
+    assert_equal [bulb.id, bulb2.id], car.bulb_ids
     assert_no_queries { car.bulb_ids }
   end
 

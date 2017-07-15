@@ -5,7 +5,7 @@ require "active_support/core_ext/object/try"
 require "rack/test"
 require "minitest"
 
-require "action_dispatch/testing/request_encoder"
+require_relative "request_encoder"
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -338,8 +338,7 @@ module ActionDispatch
         @integration_session = nil
       end
 
-      %w(get post patch put head delete cookies assigns
-         xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
+      %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
         define_method(method) do |*args|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == "cookies" || method == "assigns"

@@ -1,4 +1,4 @@
-require "rails/generators/app_base"
+require_relative "../../app_base"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -515,7 +515,7 @@ module Rails
 
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
-            require "rails/version"
+            require_relative "../../../version"
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end

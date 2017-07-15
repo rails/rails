@@ -37,7 +37,7 @@ end
 
 group :development do
 <%- unless options.api? -%>
-  # Access an IRB console on exception pages or by using <%%= console %> anywhere in the code.
+  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
   <%- if options.dev? || options.edge? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>

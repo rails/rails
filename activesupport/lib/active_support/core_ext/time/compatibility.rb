@@ -1,5 +1,6 @@
-require "active_support/core_ext/date_and_time/compatibility"
-require "active_support/core_ext/module/remove_method"
+# frozen_string_literal: true
+require_relative "../date_and_time/compatibility"
+require_relative "../module/remove_method"
 
 class Time
   include DateAndTime::Compatibility

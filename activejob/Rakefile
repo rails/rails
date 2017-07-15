@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "rake/testtask"
 
 #TODO: add qu back to the list after it support Rails 5.1

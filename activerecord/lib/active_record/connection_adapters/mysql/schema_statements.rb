@@ -45,6 +45,13 @@ module ActiveRecord
           indexes
         end
 
+        def remove_column(table_name, column_name, type = nil, options = {})
+          if foreign_key_exists?(table_name, column: column_name)
+            remove_foreign_key(table_name, column: column_name)
+          end
+          super
+        end
+
         def internal_string_options_for_primary_key
           super.tap do |options|
             if CHARSETS_OF_4BYTES_MAXLEN.include?(charset) && (mariadb? || version < "8.0.0")
@@ -66,8 +73,8 @@ module ActiveRecord
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-              default, default_function = nil, field[:Default]
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\(\))?\z/i.match?(field[:Default])
+              default, default_function = nil, "CURRENT_TIMESTAMP"
             else
               default, default_function = field[:Default], nil
             end
@@ -95,7 +102,7 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = "SELECT table_name FROM information_schema.tables"
+            sql = "SELECT table_name FROM information_schema.tables".dup
             sql << " WHERE table_schema = #{scope[:schema]}"
             sql << " AND table_name = #{scope[:name]}" if scope[:name]
             sql << " AND table_type = #{scope[:type]}" if scope[:type]

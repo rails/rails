@@ -1,5 +1,6 @@
-require "active_support/inflections"
-require "active_support/core_ext/regexp"
+# frozen_string_literal: true
+require_relative "../inflections"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table

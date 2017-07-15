@@ -10,7 +10,7 @@ module Rails
       end
 
       def build_stack
-        ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        ActionDispatch::MiddlewareStack.new do |middleware|
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end

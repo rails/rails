@@ -29,8 +29,7 @@ module ActiveRecord
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = relation
+        def default_scoped(scope = relation) # :nodoc:
           build_default_scope(scope) || scope
         end
 
@@ -160,7 +159,7 @@ module ActiveRecord
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
               scope = all
-              scope = scope.scoping { instance_exec(*args, &body) || scope }
+              scope = scope.instance_exec(*args, &body) || scope
               scope = scope.extending(extension) if extension
               scope
             end

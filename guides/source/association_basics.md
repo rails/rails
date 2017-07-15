@@ -960,7 +960,7 @@ class Author < ApplicationRecord
 end
 ```
 
-NOTE: You only need to specify the :counter_cache option on the `belongs_to`
+NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
@@ -1831,7 +1831,7 @@ The `limit` method lets you restrict the total number of objects that will be fe
 class Author < ApplicationRecord
   has_many :recent_books,
     -> { order('published_at desc').limit(100) },
-    class_name: "Book",
+    class_name: "Book"
 end
 ```
 

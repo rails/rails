@@ -1,4 +1,5 @@
-require "active_support/inflector"
+# frozen_string_literal: true
+require_relative "../../inflector"
 
 class Module
   # Returns the name of the module containing this one.

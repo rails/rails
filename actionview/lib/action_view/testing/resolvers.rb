@@ -1,4 +1,4 @@
-require "action_view/template/resolver"
+require_relative "../template/resolver"
 
 module ActionView #:nodoc:
   # Use FixtureResolver in your tests to simulate the presence of files on the
@@ -20,7 +20,7 @@ module ActionView #:nodoc:
     private
 
       def query(path, exts, _, _)
-        query = ""
+        query = "".dup
         EXTENSIONS.each_key do |ext|
           query << "(" << exts[ext].map { |e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
         end

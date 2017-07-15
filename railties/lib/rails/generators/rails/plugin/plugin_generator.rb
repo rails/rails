@@ -1,5 +1,5 @@
 require "active_support/core_ext/hash/slice"
-require "rails/generators/rails/app/app_generator"
+require_relative "../app/app_generator"
 require "date"
 
 module Rails
@@ -60,7 +60,12 @@ module Rails
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
       template "lib/%namespaced_name%/version.rb"
-      template "lib/%namespaced_name%/engine.rb" if engine?
+
+      if engine?
+        template "lib/%namespaced_name%/engine.rb"
+      else
+        template "lib/%namespaced_name%/railtie.rb"
+      end
     end
 
     def config

@@ -34,8 +34,8 @@ module Rails
 
       private
         def run_plugin_generator(plugin_args)
-          require "rails/generators"
-          require "rails/generators/rails/plugin/plugin_generator"
+          require_relative "../../generators"
+          require_relative "../../generators/rails/plugin/plugin_generator"
           Rails::Generators::PluginGenerator.start plugin_args
         end
     end

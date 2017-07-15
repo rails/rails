@@ -755,6 +755,8 @@ NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
 ### Method Delegation
 
+#### `delegate`
+
 The macro `delegate` offers an easy way to forward methods.
 
 Let's imagine that users in some application have login information in the `User` model but name and other data in a separate `Profile` model:
@@ -837,13 +839,32 @@ In the previous example the macro generates `avatar_size` rather than `size`.
 
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
+#### `delegate_missing_to`
+
+Imagine you would like to delegate everything missing from the `User` object,
+to the `Profile` one. The `delegate_missing_to` macro lets you implement this
+in a breeze:
+
+```ruby
+class User < ApplicationRecord
+  has_one :profile
+
+  delegate_missing_to :profile
+end
+```
+
+The target can be anything callable within the object, e.g. instance variables,
+methods, constants, etc. Only the public methods of the target are delegated.
+
+NOTE: Defined in `active_support/core_ext/module/delegation.rb`.
+
 ### Redefining Methods
 
 There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
 The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
+NOTE: Defined in `active_support/core_ext/module/remove_method.rb`.
 
 Extensions to `Class`
 ---------------------
@@ -931,7 +952,7 @@ When `:instance_reader` is `false`, the instance predicate returns a `NoMethodEr
 
 If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
-NOTE: Defined in `active_support/core_ext/class/attribute.rb`
+NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
 
 #### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
@@ -940,8 +961,7 @@ The macros `cattr_reader`, `cattr_writer`, and `cattr_accessor` are analogous to
 ```ruby
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans.
-  cattr_accessor :emulate_booleans
-  self.emulate_booleans = true
+  cattr_accessor :emulate_booleans, default: true
 end
 ```
 
@@ -950,8 +970,7 @@ Instance methods are created as well for convenience, they are just proxies to t
 ```ruby
 module ActionView
   class Base
-    cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ ... }
+    cattr_accessor :field_error_proc, default: Proc.new { ... }
   end
 end
 ```
@@ -963,7 +982,7 @@ Also, you can pass a block to `cattr_*` to set up the attribute with a default v
 ```ruby
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans with default value of true.
-  cattr_accessor(:emulate_booleans) { true }
+  cattr_accessor :emulate_booleans, default: true
 end
 ```
 
@@ -1829,7 +1848,7 @@ as well as adding or subtracting their results from a Time object. For example:
 (4.months + 5.years).from_now
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
 ### Formatting
 

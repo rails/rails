@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 $:.unshift File.expand_path("lib", __dir__)
 $:.unshift File.expand_path("fixtures/helpers", __dir__)
 $:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
@@ -175,7 +176,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
     else
       @testing
     end

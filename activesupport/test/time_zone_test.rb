@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -401,6 +402,16 @@ class TimeZoneTest < ActiveSupport::TestCase
       twz = zone.parse("2013-03-10 02:00:00")
       assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
     end
+  end
+
+  def test_parse_with_invalid_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("9000")
+    end
+
+    assert_equal "argument out of range", exception.message
   end
 
   def test_rfc3339

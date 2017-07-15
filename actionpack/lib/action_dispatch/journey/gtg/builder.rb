@@ -1,4 +1,4 @@
-require "action_dispatch/journey/gtg/transition_table"
+require_relative "transition_table"
 
 module ActionDispatch
   module Journey # :nodoc:

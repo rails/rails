@@ -1,4 +1,5 @@
-require "active_support/core_ext/object/try"
+# frozen_string_literal: true
+require_relative "../object/try"
 
 module DateAndTime
   module Calculations

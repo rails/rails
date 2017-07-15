@@ -1,4 +1,5 @@
-require "active_support/callbacks"
+# frozen_string_literal: true
+require_relative "callbacks"
 
 module ActiveSupport
   class ExecutionWrapper

@@ -167,6 +167,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
   end
 
+  def test_lock_new_when_explicitly_passing_value
+    p1 = Person.new(first_name: "Douglas Adams", lock_version: 42)
+    p1.save!
+    assert_equal 42, p1.lock_version
+  end
+
   def test_touch_existing_lock
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
@@ -183,6 +189,19 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
+    end
+  end
+
+  def test_explicit_update_lock_column_raise_error
+    person = Person.find(1)
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      person.first_name = "Douglas Adams"
+      person.lock_version = 42
+
+      assert person.lock_version_changed?
+
+      person.save
     end
   end
 
@@ -225,10 +244,33 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version_before_type_cast
   end
 
+  def test_touch_existing_lock_without_default_should_work_with_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.touch
+
+    assert_equal 1, t1.lock_version
+  end
+
+  def test_touch_stale_object_with_lock_without_default
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.touch
+    end
+  end
+
   def test_lock_without_default_should_work_with_null_in_the_database
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
-    t2 = LockWithoutDefault.last
+    t2 = LockWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
@@ -285,7 +327,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
 
     t1 = LockWithCustomColumnWithoutDefault.last
-    t2 = LockWithCustomColumnWithoutDefault.last
+    t2 = LockWithCustomColumnWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.custom_lock_version
     assert_nil t1.custom_lock_version_before_type_cast
@@ -432,6 +474,31 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   ensure
     remove_counter_column_from(Person, "personal_legacy_things_count")
     PersonalLegacyThing.reset_column_information
+  end
+
+  def test_destroy_existing_object_with_locking_column_value_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.destroy
+
+    assert t1.destroyed?
+  end
+
+  def test_destroy_stale_object
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.destroy!
+    end
+
+    refute stale_object.destroyed?
   end
 
   private

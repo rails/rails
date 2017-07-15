@@ -580,8 +580,11 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_without_column_names
-    assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]],
-      Company.order(:id).limit(1).pluck
+    if current_adapter?(:OracleAdapter)
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+    else
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+    end
   end
 
   def test_pluck_type_cast
@@ -818,6 +821,48 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_deprecate_sum_with_block_and_column_name
     assert_deprecated do
       assert_equal 6, Account.sum(:firm_id) { 1 }
+    end
+  end
+
+  test "#skip_query_cache! for #pluck" do
+    Account.cache do
+      assert_queries(1) do
+        Account.pluck(:credit_limit)
+        Account.pluck(:credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.pluck(:credit_limit)
+        Account.all.skip_query_cache!.pluck(:credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for a simple calculation" do
+    Account.cache do
+      assert_queries(1) do
+        Account.calculate(:sum, :credit_limit)
+        Account.calculate(:sum, :credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.calculate(:sum, :credit_limit)
+        Account.all.skip_query_cache!.calculate(:sum, :credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for a grouped calculation" do
+    Account.cache do
+      assert_queries(1) do
+        Account.group(:firm_id).calculate(:sum, :credit_limit)
+        Account.group(:firm_id).calculate(:sum, :credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
+        Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
+      end
     end
   end
 end

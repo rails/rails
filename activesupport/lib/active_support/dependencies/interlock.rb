@@ -1,4 +1,5 @@
-require "active_support/concurrency/share_lock"
+# frozen_string_literal: true
+require_relative "../concurrency/share_lock"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:

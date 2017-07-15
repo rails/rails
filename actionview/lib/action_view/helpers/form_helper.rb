@@ -1,10 +1,10 @@
 require "cgi"
-require "action_view/helpers/date_helper"
-require "action_view/helpers/tag_helper"
-require "action_view/helpers/form_tag_helper"
-require "action_view/helpers/active_model_helper"
-require "action_view/model_naming"
-require "action_view/record_identifier"
+require_relative "date_helper"
+require_relative "tag_helper"
+require_relative "form_tag_helper"
+require_relative "active_model_helper"
+require_relative "../model_naming"
+require_relative "../record_identifier"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
@@ -474,7 +474,7 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      mattr_accessor(:form_with_generates_remote_forms) { true }
+      mattr_accessor :form_with_generates_remote_forms, default: true
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
@@ -2318,8 +2318,6 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    cattr_accessor(:default_form_builder, instance_writer: false, instance_reader: false) do
-      ::ActionView::Helpers::FormBuilder
-    end
+    cattr_accessor :default_form_builder, instance_writer: false, instance_reader: false, default: ::ActionView::Helpers::FormBuilder
   end
 end

@@ -59,7 +59,6 @@ module ActiveRecord
         args.concat(["--no-data"])
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
-        args.concat(Array(extra_flags)) if extra_flags
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
@@ -67,6 +66,7 @@ module ActiveRecord
         end
 
         args.concat(["#{configuration['database']}"])
+        args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysqldump", args, "dumping")
       end
@@ -75,7 +75,7 @@ module ActiveRecord
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", "#{configuration['database']}"])
-        args.concat(Array(extra_flags)) if extra_flags
+        args.unshift(*extra_flags) if extra_flags
 
         run_cmd("mysql", args, "loading")
       end
@@ -99,7 +99,7 @@ module ActiveRecord
 
         def error_class
           if configuration["adapter"].include?("jdbc")
-            require "active_record/railties/jdbcmysql_error"
+            require_relative "../railties/jdbcmysql_error"
             ArJdbcMySQL::Error
           elsif defined?(Mysql2)
             Mysql2::Error
@@ -151,7 +151,7 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         end
 
         def run_cmd_error(cmd, args, action)
-          msg = "failed to execute: `#{cmd}`\n"
+          msg = "failed to execute: `#{cmd}`\n".dup
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
         end

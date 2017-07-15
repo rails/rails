@@ -502,11 +502,10 @@ class MigrationTest < ActiveRecord::TestCase
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -514,11 +513,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+      Person.connection.create_table :table_from_query_testings, as: Person.select(:id).where(id: 1)
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -1017,8 +1015,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
-    expected = "# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
+    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..2].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")

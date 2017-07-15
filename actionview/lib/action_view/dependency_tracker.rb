@@ -1,5 +1,5 @@
 require "concurrent/map"
-require "action_view/path_set"
+require_relative "path_set"
 
 module ActionView
   class DependencyTracker # :nodoc:

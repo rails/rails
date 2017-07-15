@@ -1,5 +1,5 @@
 require "active_support"
-require "rails/secrets"
+require_relative "../../secrets"
 
 module Rails
   module Command
@@ -31,7 +31,7 @@ module Rails
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
         say "New secrets encrypted and saved."
@@ -43,15 +43,19 @@ module Rails
         raise unless error.message =~ /secrets\.yml\.enc/
 
         Rails::Secrets.read_template_for_editing do |tmp_path|
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
           generator.skip_secrets_file { setup }
         end
       end
 
+      def show
+        say Rails::Secrets.read
+      end
+
       private
         def generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
+          require_relative "../../generators"
+          require_relative "../../generators/rails/encrypted_secrets/encrypted_secrets_generator"
 
           Rails::Generators::EncryptedSecretsGenerator
         end

@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/attribute_accessors"
-require "action_dispatch/http/filter_redirect"
-require "action_dispatch/http/cache"
+require_relative "filter_redirect"
+require_relative "cache"
 require "monitor"
 
 module ActionDispatch # :nodoc:
@@ -81,8 +81,8 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
-    cattr_accessor(:default_charset) { "utf-8" }
-    cattr_accessor(:default_headers)
+    cattr_accessor :default_charset, default: "utf-8"
+    cattr_accessor :default_headers
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -103,7 +103,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = ""
+          buf = "".dup
           each { |chunk| buf << chunk }
           buf
         end

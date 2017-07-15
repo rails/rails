@@ -333,7 +333,7 @@ module ActiveRecord
       updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
 
       attributes.each do |k, v|
-        raw_write_attribute(k, v)
+        write_attribute_without_type_cast(k, v)
       end
 
       updated_count == 1
@@ -526,7 +526,7 @@ module ActiveRecord
 
         if locking_enabled?
           locking_column = self.class.locking_column
-          scope = scope.where(locking_column => _read_attribute(locking_column))
+          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
           changes[locking_column] = increment_lock
         end
 

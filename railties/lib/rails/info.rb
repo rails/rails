@@ -5,8 +5,9 @@ module Rails
   # Rails::InfoController responses. These include the active Rails version,
   # Ruby version, Rack version, and so on.
   module Info
-    mattr_accessor :properties
-    class << (@@properties = [])
+    mattr_accessor :properties, default: []
+
+    class << @@properties
       def names
         map(&:first)
       end

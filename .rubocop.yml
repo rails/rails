@@ -77,6 +77,13 @@ Layout/SpaceBeforeFirstArg:
 Style/MethodDefParentheses:
   Enabled: true
 
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+  Include:
+    - 'activesupport/**/*'
+    - 'activejob/**/*'
+
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
   Enabled: true

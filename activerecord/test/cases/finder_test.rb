@@ -1023,16 +1023,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end
 
-  def test_find_all_with_join
-    developers_on_project_one = Developer.
-      joins("LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id").
-      where("project_id=1").to_a
-    assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map(&:name)
-    assert_includes developer_names, "David"
-    assert_includes developer_names, "Jamis"
-  end
-
   def test_joins_dont_clobber_id
     first = Firm.
       joins("INNER JOIN companies clients ON clients.firm_id = companies.id").
@@ -1240,6 +1230,34 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  test "#skip_query_cache! for #exists?" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.exists?
+        Topic.exists?
+      end
+
+      assert_queries(2) do
+        Topic.all.skip_query_cache!.exists?
+        Topic.all.skip_query_cache!.exists?
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #exists? with a limited eager load" do
+    Topic.cache do
+      assert_queries(2) do
+        Topic.eager_load(:replies).limit(1).exists?
+        Topic.eager_load(:replies).limit(1).exists?
+      end
+
+      assert_queries(4) do
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+      end
+    end
   end
 
   private

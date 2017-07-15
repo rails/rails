@@ -1,3 +1,94 @@
+*   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
+    `in_batches`).
+
+    Previously, records would be fetched in batches, but all records would be retained in memory
+    until the end of the request or job.
+
+    *Eugene Kenny*
+
+*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
+    `ActiveRecord::StatementInvalid` exceptions.
+
+    *Dennis Taylor*
+
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
+
+    *Ryuta Kamizono*
+
+*   Fix transactions to apply state to child transactions
+
+    Previously if you had a nested transaction and the outer transaction was rolledback the record from the
+    inner transaction would still be marked as persisted.
+
+    This change fixes that by applying the state of the parent transaction to the child transaction when the
+    parent transaction is rolledback. This will correctly mark records from the inner transaction as not persisted.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate `set_state` method in `TransactionState`
+
+    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
+    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
+    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate delegating to `arel` in `Relation`.
+
+    *Ryuta Kamizono*
+
+*   Fix eager loading to respect `store_full_sti_class` setting.
+
+    *Ryuta Kamizono*
+
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
+    without being connected.
+
+    *Tsukasa Oishi*
+
+*   Previously, when building records using a `has_many :through` association,
+    if the child records were deleted before the parent was saved, they would
+    still be persisted. Now, if child records are deleted before the parent is saved
+    on a `has_many :through` association, the child records will not be persisted.
+
+    *Tobias Kraze*
+
+*   Merging two relations representing nested joins no longer transforms the joins of
+    the merged relation into LEFT OUTER JOIN. Example to clarify:
+
+    ```
+    Author.joins(:posts).merge(Post.joins(:comments))
+    # Before the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... LEFT OUTER JOIN comments ON...
+
+    # After the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
+    ```
+
+    TODO: Add to the Rails 5.2 upgrade guide
+
+    *Maxime Handfield Lapointe*
+
+*   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
+    `locking_column`, without default value, is null in the database.
+
+    *bogdanvlviv*
+
+*   Fix destroying existing object does not work well when optimistic locking enabled and
+    `locking_column` is null in the database.
+
+    *bogdanvlviv*
+
+*   Use bulk INSERT to insert fixtures for better performance.
+
+    *Kir Shatrov*
+
+*   Prevent making bind param if casted value is nil.
+
+    *Ryuta Kamizono*
+
 *   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
 
     *Ryuta Kamizono*

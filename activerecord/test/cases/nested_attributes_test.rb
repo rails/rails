@@ -117,7 +117,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| true }
-    pirate = Pirate.new(catchphrase: "Stop wastin' me time")
+    pirate = Pirate.create(catchphrase: "Stop wastin' me time")
     ship = pirate.create_ship(name: "s1")
     pirate.update(ship_attributes: { name: "s2", id: ship.id })
     assert_equal "s1", ship.reload.name

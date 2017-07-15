@@ -20,8 +20,7 @@ module ActionMailer
       mattr_accessor :show_previews, instance_writer: false
 
       # :nodoc:
-      mattr_accessor :preview_interceptors, instance_writer: false
-      self.preview_interceptors = [ActionMailer::InlinePreviewInterceptor]
+      mattr_accessor :preview_interceptors, instance_writer: false, default: [ActionMailer::InlinePreviewInterceptor]
     end
 
     module ClassMethods

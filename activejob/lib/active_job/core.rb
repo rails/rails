@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveJob
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
@@ -80,6 +81,7 @@ module ActiveJob
       {
         "job_class"  => self.class.name,
         "job_id"     => job_id,
+        "provider_job_id" => provider_job_id,
         "queue_name" => queue_name,
         "priority"   => priority,
         "arguments"  => serialize_arguments(arguments),

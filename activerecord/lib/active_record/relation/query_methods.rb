@@ -1,7 +1,7 @@
-require "active_record/relation/from_clause"
-require "active_record/relation/query_attribute"
-require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
+require_relative "from_clause"
+require_relative "query_attribute"
+require_relative "where_clause"
+require_relative "where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
@@ -913,6 +913,11 @@ module ActiveRecord
       self
     end
 
+    def skip_query_cache! # :nodoc:
+      self.skip_query_cache_value = true
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel # :nodoc:
       @arel ||= build_arel
@@ -1122,7 +1127,7 @@ module ActiveRecord
         validate_order_args(order_args)
 
         references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name
@@ -1167,7 +1172,7 @@ module ActiveRecord
         end
       end
 
-      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having]
+      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope]
       def structurally_incompatible_values_for_or(other)
         STRUCTURAL_OR_METHODS.reject do |method|
           get_value(method) == other.get_value(method)

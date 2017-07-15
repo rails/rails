@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 COMPONENT_ROOT = File.expand_path("..", __dir__)
-require File.expand_path("../tools/test", COMPONENT_ROOT)
+require_relative "../../tools/test"
 
 module Minitest
   def self.plugin_active_record_options(opts, options)

@@ -1,3 +1,17 @@
+*   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
+
+    *Kir Shatrov*
+
+*   `driven_by` now registers poltergeist and capybara-webkit
+
+    If driver poltergeist or capybara-webkit is set for System Tests,
+    `driven_by` will register the driver and set additional options passed via
+    `:options` param.
+
+    Refer to drivers documentation to learn what options can be passed.
+
+    *Mario Chavez*
+
 *   AEAD encrypted cookies and sessions with GCM
 
     Encrypted cookies now use AES-GCM which couples authentication and

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #--
 # Copyright (c) 2014-2017 David Heinemeier Hansson
 #
@@ -23,7 +24,7 @@
 
 require "active_support"
 require "active_support/rails"
-require "active_job/version"
+require_relative "active_job/version"
 require "global_id"
 
 module ActiveJob

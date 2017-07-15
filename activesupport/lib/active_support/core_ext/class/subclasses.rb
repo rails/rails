@@ -1,5 +1,6 @@
-require "active_support/core_ext/module/anonymous"
-require "active_support/core_ext/module/reachable"
+# frozen_string_literal: true
+require_relative "../module/anonymous"
+require_relative "../module/reachable"
 
 class Class
   begin

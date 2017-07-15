@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative "../support/job_buffer"
 
 class ProviderJidJob < ActiveJob::Base

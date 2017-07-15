@@ -1,4 +1,5 @@
-require "active_support/concern"
+# frozen_string_literal: true
+require_relative "concern"
 
 module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:

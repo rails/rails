@@ -1,5 +1,5 @@
-require "rails/command"
-require "rails/test_unit/minitest_plugin"
+require_relative "../../command"
+require_relative "../../test_unit/minitest_plugin"
 
 module Rails
   module Command
@@ -11,7 +11,7 @@ module Rails
       end
 
       def perform(*)
-        $LOAD_PATH << Rails::Command.root.join("test")
+        $LOAD_PATH << Rails::Command.root.join("test").to_s
 
         Minitest.run_via = :rails
 

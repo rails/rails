@@ -1,11 +1,11 @@
-require "active_record/connection_adapters/abstract_adapter"
-require "active_record/connection_adapters/statement_pool"
-require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
-require "active_record/connection_adapters/sqlite3/quoting"
-require "active_record/connection_adapters/sqlite3/schema_creation"
-require "active_record/connection_adapters/sqlite3/schema_definitions"
-require "active_record/connection_adapters/sqlite3/schema_dumper"
-require "active_record/connection_adapters/sqlite3/schema_statements"
+require_relative "abstract_adapter"
+require_relative "statement_pool"
+require_relative "sqlite3/explain_pretty_printer"
+require_relative "sqlite3/quoting"
+require_relative "sqlite3/schema_creation"
+require_relative "sqlite3/schema_definitions"
+require_relative "sqlite3/schema_dumper"
+require_relative "sqlite3/schema_statements"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -169,7 +169,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = select_value("PRAGMA foreign_keys")
+        old = query_value("PRAGMA foreign_keys")
 
         begin
           execute("PRAGMA foreign_keys = OFF")
@@ -337,7 +337,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -346,6 +346,12 @@ module ActiveRecord
             on_update: extract_foreign_key_action(row["on_update"])
           }
           ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
+      end
+
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
         end
       end
 
@@ -437,7 +443,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)

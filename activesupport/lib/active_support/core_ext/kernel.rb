@@ -1,4 +1,5 @@
-require "active_support/core_ext/kernel/agnostics"
-require "active_support/core_ext/kernel/concern"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/kernel/singleton_class"
+# frozen_string_literal: true
+require_relative "kernel/agnostics"
+require_relative "kernel/concern"
+require_relative "kernel/reporting"
+require_relative "kernel/singleton_class"

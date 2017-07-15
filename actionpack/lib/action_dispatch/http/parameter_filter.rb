@@ -54,7 +54,7 @@ module ActionDispatch
         end
 
         def call(original_params, parents = [])
-          filtered_params = {}
+          filtered_params = original_params.class.new
 
           original_params.each do |key, value|
             parents.push(key) if deep_regexps

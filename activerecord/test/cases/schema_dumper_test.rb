@@ -17,6 +17,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     dump_all_table_schema []
   end
 
+  def test_dump_schema_information_with_empty_versions
+    ActiveRecord::SchemaMigration.delete_all
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_no_match(/INSERT INTO/, schema_info)
+  end
+
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.reverse_each do |v|
@@ -320,7 +326,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
     output = standard_dump
-    assert_match %r{create_table "subscribers", id: false}, output
+    assert_match %r{create_table "string_key_objects", id: false}, output
   end
 
   if ActiveRecord::Base.connection.supports_foreign_keys?

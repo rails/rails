@@ -107,7 +107,7 @@ ActiveRecord::Schema.define do
     t.boolean :has_fun, null: false, default: false
   end
 
-  create_table :bulbs, force: true do |t|
+  create_table :bulbs, primary_key: "ID", force: true do |t|
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome, default: false
@@ -453,11 +453,13 @@ ActiveRecord::Schema.define do
   create_table :lock_without_defaults, force: true do |t|
     t.column :title, :string
     t.column :lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
     t.column :title, :string
     t.column :custom_lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :magazines, force: true do |t|
@@ -489,7 +491,7 @@ ActiveRecord::Schema.define do
     t.datetime :joined_on
     t.integer :club_id, :member_id
     t.boolean :favourite, default: false
-    t.string :type
+    t.integer :type
   end
 
   create_table :member_types, force: true do |t|
@@ -807,16 +809,19 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
-  create_table :string_key_objects, id: false, primary_key: :id, force: true do |t|
-    t.string     :id
-    t.string     :name
-    t.integer    :lock_version, null: false, default: 0
+  create_table :string_key_objects, id: false, force: true do |t|
+    t.string :id, null: false
+    t.string :name
+    t.integer :lock_version, null: false, default: 0
+    t.index :id, unique: true
   end
 
-  create_table :subscribers, force: true, id: false do |t|
+  create_table :subscribers, id: false, force: true do |t|
     t.string :nick, null: false
     t.string :name
-    t.column :books_count, :integer, null: false, default: 0
+    t.integer :id
+    t.integer :books_count, null: false, default: 0
+    t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
   end
 

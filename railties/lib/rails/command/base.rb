@@ -4,7 +4,7 @@ require "erb"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/string/inflections"
 
-require "rails/command/actions"
+require_relative "actions"
 
 module Rails
   module Command

@@ -47,7 +47,7 @@ module ActiveModel
     # :method: <=>
     #
     # :call-seq:
-    #   ==(other)
+    #   <=>(other)
     #
     # Equivalent to <tt>String#<=></tt>.
     #

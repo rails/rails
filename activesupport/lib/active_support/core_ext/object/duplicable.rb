@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #--
 # Most objects are cloneable, but not all. For example you can't dup methods:
 #

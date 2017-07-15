@@ -1,4 +1,4 @@
-require "active_model/type/integer"
+require_relative "integer"
 
 module ActiveModel
   module Type

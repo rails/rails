@@ -695,16 +695,6 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_default_scope_with_conditions_string
-    assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_nil DeveloperCalledDavid.create!.name
-  end
-
-  def test_default_scope_with_conditions_hash
-    assert_equal Developer.where(name: "Jamis").map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
-    assert_equal "Jamis", DeveloperCalledJamis.create!.name
-  end
-
   def test_default_scoping_finder_methods
     developers = DeveloperCalledDavid.order("id").map(&:id).sort
     assert_equal Developer.where(name: "David").map(&:id).sort, developers
@@ -1727,6 +1717,9 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
+    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
+
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
 
@@ -1744,6 +1737,9 @@ class RelationTest < ActiveRecord::TestCase
   def test_automatically_added_reorder_references
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values
@@ -2011,6 +2007,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal binds, merged.bound_attributes
   end
 
+  def test_locked_should_not_build_arel
+    posts = Post.locked
+    assert posts.locked?
+    assert_nothing_raised { posts.lock!(false) }
+  end
+
   def test_relation_join_method
     assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
   end
@@ -2031,5 +2033,47 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, posts.to_a.length
+  end
+
+  test "#skip_query_cache!" do
+    Post.cache do
+      assert_queries(1) do
+        Post.all.load
+        Post.all.load
+      end
+
+      assert_queries(2) do
+        Post.all.skip_query_cache!.load
+        Post.all.skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with an eager load" do
+    Post.cache do
+      assert_queries(1) do
+        Post.eager_load(:comments).load
+        Post.eager_load(:comments).load
+      end
+
+      assert_queries(2) do
+        Post.eager_load(:comments).skip_query_cache!.load
+        Post.eager_load(:comments).skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with a preload" do
+    Post.cache do
+      assert_queries(2) do
+        Post.preload(:comments).load
+        Post.preload(:comments).load
+      end
+
+      assert_queries(4) do
+        Post.preload(:comments).skip_query_cache!.load
+        Post.preload(:comments).skip_query_cache!.load
+      end
+    end
   end
 end

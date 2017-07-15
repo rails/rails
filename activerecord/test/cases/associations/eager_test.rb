@@ -68,6 +68,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
       "expected to find only david's posts"
   end
 
+  def test_loading_with_scope_including_joins
+    assert_equal clubs(:boring_club), Member.preload(:general_club).find(1).general_club
+    assert_equal clubs(:boring_club), Member.eager_load(:general_club).find(1).general_club
+  end
+
   def test_with_ordering
     list = Post.all.merge!(includes: :comments, order: "posts.id DESC").to_a
     [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
@@ -271,9 +276,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert_nothing_raised do
-      Author.all.merge!(includes: :hello_posts_with_hash_conditions).to_a
-    end
     assert !Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 

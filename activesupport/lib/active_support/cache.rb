@@ -1,11 +1,12 @@
+# frozen_string_literal: true
 require "zlib"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/array/wrap"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/numeric/bytes"
-require "active_support/core_ext/numeric/time"
-require "active_support/core_ext/object/to_param"
-require "active_support/core_ext/string/inflections"
+require_relative "core_ext/array/extract_options"
+require_relative "core_ext/array/wrap"
+require_relative "core_ext/module/attribute_accessors"
+require_relative "core_ext/numeric/bytes"
+require_relative "core_ext/numeric/time"
+require_relative "core_ext/object/to_param"
+require_relative "core_ext/string/inflections"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -75,7 +76,7 @@ module ActiveSupport
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
-        expanded_cache_key = namespace ? "#{namespace}/" : ""
+        expanded_cache_key = (namespace ? "#{namespace}/" : "").dup
 
         if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
@@ -99,7 +100,7 @@ module ActiveSupport
         # Obtains the specified cache store class, given the name of the +store+.
         # Raises an error when the store class cannot be found.
         def retrieve_store_class(store)
-          require "active_support/cache/#{store}"
+          require_relative "cache/#{store}"
         rescue LoadError => e
           raise "Could not find cache store adapter for #{store} (#{e})"
         else
@@ -373,6 +374,19 @@ module ActiveSupport
         results
       end
 
+      # Cache Storage API to write multiple values at once.
+      def write_multi(hash, options = nil)
+        options = merged_options(options)
+
+        instrument :write_multi, hash, options do |payload|
+          entries = hash.each_with_object({}) do |(name, value), memo|
+            memo[normalize_key(name, options)] = Entry.new(value, options.merge(version: normalize_version(name, options)))
+          end
+
+          write_multi_entries entries, options
+        end
+      end
+
       # Fetches data from the cache, using the given keys. If there is data in
       # the cache with the given keys, then that data is returned. Otherwise,
       # the supplied block is called for each key for which there was no data,
@@ -397,14 +411,15 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-        results = read_multi(*names, options)
 
-        names.each_with_object({}) do |name, memo|
-          memo[name] = results.fetch(name) do
-            value = yield name
-            write(name, value, options)
-            value
+        read_multi(*names, options).tap do |results|
+          writes = {}
+
+          (names - results.keys).each do |name|
+            results[name] = writes[name] = yield(name)
           end
+
+          write_multi writes, options
         end
       end
 
@@ -485,7 +500,7 @@ module ActiveSupport
       # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def clear
+      def clear(options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
@@ -519,6 +534,14 @@ module ActiveSupport
         # this method.
         def write_entry(key, entry, options)
           raise NotImplementedError.new
+        end
+
+        # Writes multiple entries to the cache implementation. Subclasses MAY
+        # implement this method.
+        def write_multi_entries(hash, options)
+          hash.each do |key, entry|
+            write_entry key, entry, options
+          end
         end
 
         # Deletes an entry from the cache implementation. Subclasses must

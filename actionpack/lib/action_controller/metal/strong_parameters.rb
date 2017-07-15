@@ -119,8 +119,7 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters
-    cattr_accessor :permit_all_parameters, instance_accessor: false
-    self.permit_all_parameters = false
+    cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
 
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
@@ -181,6 +180,14 @@ module ActionController
     # Returns a new array of the keys of the parameters.
 
     ##
+    # :method: to_s
+    #
+    # :call-seq:
+    #   to_s()
+    #
+    # Returns the content of the parameters as a string.
+
+    ##
     # :method: value?
     #
     # :call-seq:
@@ -196,7 +203,7 @@ module ActionController
     #
     # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
-      :as_json, to: :@parameters
+      :as_json, :to_s, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -205,8 +212,7 @@ module ActionController
     # config. For instance:
     #
     #    config.always_permitted_parameters = %w( controller action format )
-    cattr_accessor :always_permitted_parameters
-    self.always_permitted_parameters = %w( controller action )
+    cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -247,7 +253,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_h
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
@@ -267,7 +273,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_hash
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_hash # => {"name"=>"Senjougahara Hitagi"}
@@ -283,6 +289,10 @@ module ActionController
     #     nationality: "Danish"
     #   })
     #   params.to_query
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
+    #
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query
     #   # => "name=David&nationality=Danish"
     #
     # An optional namespace can be passed to enclose key names:
@@ -291,7 +301,8 @@ module ActionController
     #     name: "David",
     #     nationality: "Danish"
     #   })
-    #   params.to_query("user")
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query("user")
     #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
     #
     # The string pairs "key=value" that conform the query string

@@ -48,8 +48,8 @@ module ActiveRecord
     # to avoid cross references when loading a constant for the
     # first time. Also, make it output to STDERR.
     console do |app|
-      require "active_record/railties/console_sandbox" if app.sandbox?
-      require "active_record/base"
+      require_relative "railties/console_sandbox" if app.sandbox?
+      require_relative "base"
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
         Rails.logger.extend ActiveSupport::Logger.broadcast console
@@ -57,7 +57,7 @@ module ActiveRecord
     end
 
     runner do
-      require "active_record/base"
+      require_relative "base"
     end
 
     initializer "active_record.initialize_timezone" do
@@ -101,7 +101,7 @@ module ActiveRecord
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
-          require "active_record/relation/record_fetch_warning"
+          require_relative "relation/record_fetch_warning"
         end
       end
     end
@@ -139,7 +139,7 @@ end_warning
 
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do
-      require "active_record/railties/controller_runtime"
+      require_relative "railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
       end

@@ -11,6 +11,7 @@ gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
+gem "thor", github: "erikhuda/thor"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
@@ -32,9 +33,6 @@ gem "bcrypt", "~> 3.1.11", require: false
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
-
-# FIXME: Pending rb-inotify 0.9.9 release
-gem "rb-inotify", github: "guard/rb-inotify", branch: "master", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"

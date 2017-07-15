@@ -1,4 +1,4 @@
-require "rails/command/environment_argument"
+require_relative "../../command/environment_argument"
 
 module Rails
   class DBConsole
@@ -148,6 +148,7 @@ module Rails
       def perform
         extract_environment_option_from_argument
 
+        require_application_and_environment!
         Rails::DBConsole.start(options)
       end
     end

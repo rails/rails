@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/comment"
 require "models/post"
 require "models/subscriber"
 
@@ -152,7 +153,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = "not a post"
+    not_a_post = "not a post".dup
     def not_a_post.id; end
     not_a_post.stub(:id, -> { raise StandardError.new("not_a_post had #id called on it") }) do
       assert_nothing_raised do
@@ -417,7 +418,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = "not a post"
+    not_a_post = "not a post".dup
     def not_a_post.id
       raise StandardError.new("not_a_post had #id called on it")
     end
@@ -609,5 +610,65 @@ class EachTest < ActiveRecord::TestCase
       Post.new.error_on_ignored_order_or_limit
     end
     assert_equal expected, actual
+  end
+
+  test ".find_each bypasses the query cache for its own queries" do
+    Post.cache do
+      assert_queries(2) do
+        Post.find_each {}
+        Post.find_each {}
+      end
+    end
+  end
+
+  test ".find_each does not disable the query cache inside the given block" do
+    Post.cache do
+      Post.find_each(start: 1, finish: 1) do |post|
+        assert_queries(1) do
+          post.comments.count
+          post.comments.count
+        end
+      end
+    end
+  end
+
+  test ".find_in_batches bypasses the query cache for its own queries" do
+    Post.cache do
+      assert_queries(2) do
+        Post.find_in_batches {}
+        Post.find_in_batches {}
+      end
+    end
+  end
+
+  test ".find_in_batches does not disable the query cache inside the given block" do
+    Post.cache do
+      Post.find_in_batches(start: 1, finish: 1) do |batch|
+        assert_queries(1) do
+          batch.first.comments.count
+          batch.first.comments.count
+        end
+      end
+    end
+  end
+
+  test ".in_batches bypasses the query cache for its own queries" do
+    Post.cache do
+      assert_queries(2) do
+        Post.in_batches {}
+        Post.in_batches {}
+      end
+    end
+  end
+
+  test ".in_batches does not disable the query cache inside the given block" do
+    Post.cache do
+      Post.in_batches(start: 1, finish: 1) do |relation|
+        assert_queries(1) do
+          relation.count
+          relation.count
+        end
+      end
+    end
   end
 end

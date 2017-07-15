@@ -140,8 +140,7 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
-      mattr_accessor :index_nested_attribute_errors, instance_writer: false
-      self.index_nested_attribute_errors = false
+      mattr_accessor :index_nested_attribute_errors, instance_writer: false, default: false
     end
 
     module ClassMethods # :nodoc:

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Array
   # Returns the tail of the array from +position+.
   #
