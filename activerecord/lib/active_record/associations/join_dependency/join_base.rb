@@ -12,10 +12,6 @@ module ActiveRecord
         def table
           base_klass.arel_table
         end
-
-        def aliased_table_name
-          base_klass.table_name
-        end
       end
     end
   end
