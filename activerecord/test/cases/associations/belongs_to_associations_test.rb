@@ -647,8 +647,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_new_record_with_foreign_key_but_no_object
     client = Client.new("firm_id" => 1)
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.all.merge!(order: "id").first, client.firm_with_basic_id
+    assert_equal Firm.first, client.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
