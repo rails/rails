@@ -57,10 +57,6 @@ module ActiveRecord
         def table
           tables.first
         end
-
-        def aliased_table_name
-          table.table_alias || table.name
-        end
       end
     end
   end
