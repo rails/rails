@@ -165,6 +165,51 @@ class ActiveRecord::Relation
       assert_equal WhereClause.empty, WhereClause.empty.or(where_clause)
     end
 
+    test "or places common conditions before the OR" do
+      wcs = (0..7).map do |i|
+        WhereClause.new([table["id#{i}"].eq(bind_param)], [bind_attribute("id#{i}", i)])
+      end
+
+      wcs += (8..9).map do |i|
+        WhereClause.new(["id#{i} = #{i}"], [])
+      end
+
+      # 0 AND (1 or 2)
+      wc = (wcs[0] + wcs[1]).or(wcs[0] + wcs[2])
+      # 0 AND (1 or 2) AND (3 and 4 OR 5 and 6)
+      wc = (wc + wcs[3] + wcs[4]).or(wc + wcs[5] + wcs[6])
+      # 0 AND (1 or 2) AND (3 and 4 OR 5 and 6) AND 7
+      wc = wc + wcs[7]
+      # 0 AND (1 or 2) AND (3 and 4 OR 5 and 6) AND 7 AND (8 OR 9)
+      actual = (wc + wcs[8]).or(wc + wcs[9])
+
+      expected = wcs[0] + wcs[1].or(wcs[2]) + (wcs[3] + wcs[4]).or(wcs[5] + wcs[6]) + wcs[7] + wcs[8].or(wcs[9])
+
+      # Easier to read than the inspect of where_clause
+      assert_equal expected.ast.to_sql, actual.ast.to_sql
+      assert_equal expected.binds.map(&:value), actual.binds.map(&:value)
+      assert_equal expected, actual
+    end
+
+    test "or will not use OR if one side only has common conditions" do
+      wcs = (0..2).map do |i|
+        WhereClause.new([table["id#{i}"].eq(bind_param)], [bind_attribute("id#{i}", i)])
+      end
+      wcs << WhereClause.new(["id3 = 3"], [])
+
+      actual1 = (wcs[0] + wcs[1] + wcs[2] + wcs[3]).or(wcs[0] + wcs[1] + wcs[3])
+      actual2 = (wcs[0] + wcs[1] + wcs[3]).or(wcs[0] + wcs[1] + wcs[2] + wcs[3])
+      expected = wcs[0] + wcs[1] + wcs[3]
+
+      assert_equal expected.ast.to_sql, actual1.ast.to_sql
+      assert_equal expected.binds.map(&:value), actual1.binds.map(&:value)
+      assert_equal expected, actual1
+
+      assert_equal expected.ast.to_sql, actual2.ast.to_sql
+      assert_equal expected.binds.map(&:value), actual2.binds.map(&:value)
+      assert_equal expected, actual2
+    end
+
     private
 
       def table

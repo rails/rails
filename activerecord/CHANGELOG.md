@@ -1,3 +1,7 @@
+*   When using #or, extract the common conditions and put them before the OR condition.
+
+    *Maxime Handfield Lapointe*
+
 *   Change sqlite3 boolean serialization to use 1 and 0
 
     SQLite natively recognizes 1 and 0 as true and false, but does not natively
