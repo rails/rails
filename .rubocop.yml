@@ -85,6 +85,7 @@ Style/FrozenStringLiteralComment:
   EnforcedStyle: always
   Include:
     - 'activesupport/**/*'
+    - 'activemodel/**/*'
     - 'activejob/**/*'
 
 # Use `foo {}` not `foo{}`.

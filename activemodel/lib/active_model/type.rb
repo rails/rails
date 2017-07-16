@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "type/helpers"
 require_relative "type/value"
 
