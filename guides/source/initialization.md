@@ -109,7 +109,7 @@ A standard Rails application depends on several gems, specifically:
 * arel
 * builder
 * bundler
-* erubis
+* erubi
 * i18n
 * mail
 * mime-types
