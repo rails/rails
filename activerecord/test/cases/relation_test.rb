@@ -89,21 +89,13 @@ module ActiveRecord
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      assert_equal({}, relation.scope_for_create)
+
       relation.where!(id: 10)
+      assert_equal({ "id" => 10 }, relation.scope_for_create)
+
       relation.create_with_value = { hello: "world" }
       assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
-    end
-
-    # FIXME: is this really wanted or expected behavior?
-    def test_scope_for_create_is_cached
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      assert_equal({}, relation.scope_for_create)
-
-      relation.where!(id: 10)
-      assert_equal({}, relation.scope_for_create)
-
-      relation.create_with_value = { hello: "world" }
-      assert_equal({}, relation.scope_for_create)
     end
 
     def test_bad_constants_raise_errors

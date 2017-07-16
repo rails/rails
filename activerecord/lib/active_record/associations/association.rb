@@ -171,7 +171,7 @@ module ActiveRecord
         skip_assign = [reflection.foreign_key, reflection.type].compact
         assigned_keys = record.changed_attribute_names_to_save
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
-        attributes = scope_for_create.except(*(assigned_keys - skip_assign))
+        attributes = scope_for_create.except!(*(assigned_keys - skip_assign))
         record.send(:_assign_attributes, attributes) if attributes.any?
         set_inverse_instance(record)
       end

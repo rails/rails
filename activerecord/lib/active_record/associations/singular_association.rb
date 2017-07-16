@@ -31,7 +31,7 @@ module ActiveRecord
 
       private
         def scope_for_create
-          super.except(klass.primary_key)
+          super.except!(klass.primary_key)
         end
 
         def find_target
