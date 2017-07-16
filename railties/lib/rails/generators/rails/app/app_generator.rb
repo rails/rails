@@ -128,7 +128,7 @@ module Rails
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
       end
 
-      unless action_cable_config_exist
+      if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
       end
 
