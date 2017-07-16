@@ -24,4 +24,4 @@
 
 # Store boolean values are in sqlite3 databases as 1 and 0 instead of 't' and
 # 'f' after migrating old data.
-# ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+# Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true

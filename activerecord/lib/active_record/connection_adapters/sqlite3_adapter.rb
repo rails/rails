@@ -86,7 +86,7 @@ module ActiveRecord
       # for all models and all boolean columns, after which the flag must be set
       # to true by adding the following to your application.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       class_attribute :represent_boolean_as_integer, default: false
 
       class StatementPool < ConnectionAdapters::StatementPool

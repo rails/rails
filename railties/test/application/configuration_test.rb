@@ -1130,7 +1130,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1141,7 +1141,7 @@ module ApplicationTests
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1153,7 +1153,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1177,7 +1177,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1188,7 +1188,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1196,7 +1196,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       app "test"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1204,7 +1204,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
       app "production"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1223,7 +1223,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1234,7 +1234,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1245,7 +1245,7 @@ module ApplicationTests
 
       app "development"
 
-      ActionController::Base.object_id # force lazy load hooks to run
+      lazy_load { ActionController::Base }
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
@@ -1596,7 +1596,7 @@ module ApplicationTests
       RUBY
 
       app "development"
-      Post.object_id # force lazy load hooks to run
+      lazy_load { Post }
 
       assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
@@ -1608,7 +1608,25 @@ module ApplicationTests
       RUBY
 
       app "development"
-      Post.object_id # force lazy load hooks to run
+      lazy_load { Post }
+
+      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
+    test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      lazy_load { Post }
 
       assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
@@ -1719,5 +1737,10 @@ module ApplicationTests
       assert_equal 301, last_response.status
       assert_equal "https://example.org/", last_response.location
     end
+
+    private
+      def lazy_load
+        yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
+      end
   end
 end
