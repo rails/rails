@@ -39,21 +39,26 @@ module Rails
 
         # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
         # when declaring options curly brackets should be used
-        def parse_type_and_options(type)
+        def parse_type_and_options(type_and_options)
+          type, *provided_options = type_and_options.to_s.split(/[{},.-]/)
+          return type, {} unless provided_options
+
+          options = {}
           case type
-          when /(string|text|binary|integer)\{(\d+)\}/
-            return $1, limit: $2.to_i
-          when /decimal\{(\d+)[,.-](\d+)\}/
-            return :decimal, precision: $1.to_i, scale: $2.to_i
-          when /(references|belongs_to)\{(.+)\}/
-            type = $1
-            provided_options = $2.split(/[,.-]/)
-            valid_options = provided_options & %w(index foreign_key polymorphic null required)
-            options = Hash[valid_options.map { |opt| [opt.to_sym, true] }]
-            return type, options
-          else
-            return type, {}
+          when "string", "text", "binary", "integer"
+            limit = provided_options.grep(/\d+/).first
+            options[:limit] = limit.to_i if limit
+          when "decimal"
+            precision, scale = provided_options.grep(/\d+/).first(2)
+            options.merge!(precision: precision.to_i, scale: scale.to_i) if precision && scale
+          when "references", "belongs_to"
+            %i[index foreign_key polymorphic].each do |opt|
+              options[opt] = true if provided_options.include?(opt.to_s)
+            end
           end
+          options[:null] = provided_options.any? { |opt| %w[null optional].include?(opt) }
+
+          return type, options
         end
       end
 
@@ -131,8 +136,8 @@ module Rails
         attr_options[:polymorphic]
       end
 
-      def required?
-        attr_options[:required]
+      def optional?
+        attr_options[:null]
       end
 
       def has_index?
@@ -161,11 +166,6 @@ module Rails
 
       def options_for_migration
         @attr_options.dup.tap do |options|
-          if required?
-            options.delete(:required)
-            options[:null] = false
-          end
-
           if reference? && !polymorphic?
             options[:foreign_key] = true
           end

@@ -1,3 +1,8 @@
+*   Add an `optional` option to the model generator and remove a `required` option.
+    The generator creates `null: false` option by default.
+
+    *Takumi Shotoku*
+
 *   Support `-` as a platform-agnostic way to run a script from stdin with
     `rails runner`
 

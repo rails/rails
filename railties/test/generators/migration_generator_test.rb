@@ -172,14 +172,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_migration_with_required_references
+  def test_add_migration_with_optional_attributes
     migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to{required}", "distributor:references{polymorphic,required}"]
+    run_generator [migration, "author:belongs_to{optional}", "distributor:references{polymorphic,optional}", "title:string{optional}", "price:integer{optional}"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_reference :books, :author, null: false/, change)
-        assert_match(/add_reference :books, :distributor, polymorphic: true, null: false/, change)
+        assert_match(/add_reference :books, :author, null: true/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, null: true/, change)
+        assert_match(/add_column :books, :title, :string, null: true/, change)
+        assert_match(/add_column :books, :price, :integer, null: true/, change)
       end
     end
   end

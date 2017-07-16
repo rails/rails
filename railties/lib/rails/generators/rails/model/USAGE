@@ -67,16 +67,20 @@ Available field types:
 
         `rails generate model product 'price:decimal{10,2}'`
 
+    You can set a `null` or `optional` in curly braces to add a `null: true` option in the migration:
+
+        `rails generate model user pseudo:string{optional}`
+
     You can add a `:uniq` or `:index` suffix for unique or standard indexes
     respectively:
 
         `rails generate model user pseudo:string:uniq`
         `rails generate model user pseudo:string:index`
 
-    You can combine any single curly brace option with the index options:
+    You can combine any curly brace option with the index options:
 
-        `rails generate model user username:string{30}:uniq`
-        `rails generate model product supplier:references{polymorphic}:index`
+        `rails generate model user 'username:string{30,optional}:uniq'`
+        `rails generate model product 'supplier:references{polymorphic,optional}:index'`
 
     If you require a `password_digest` string column for use with
     has_secure_password, you can specify `password:digest`:

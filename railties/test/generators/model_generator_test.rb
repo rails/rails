@@ -393,45 +393,45 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_required_belongs_to_adds_required_association
-    run_generator ["account", "supplier:references{required}"]
+  def test_optional_belongs_to_adds_optional_association
+    run_generator ["account", "supplier:references{optional}"]
 
     expected_file = <<-FILE.strip_heredoc
     class Account < ApplicationRecord
-      belongs_to :supplier, required: true
+      belongs_to :supplier, optional: true
     end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
 
-  def test_required_polymorphic_belongs_to_generages_correct_model
-    run_generator ["account", "supplier:references{required,polymorphic}"]
+  def test_optional_polymorphic_belongs_to_generages_correct_model
+    run_generator ["account", "supplier:references{optional,polymorphic}"]
 
     expected_file = <<-FILE.strip_heredoc
     class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
+      belongs_to :supplier, polymorphic: true, optional: true
     end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
 
-  def test_required_and_polymorphic_are_order_independent
-    run_generator ["account", "supplier:references{polymorphic.required}"]
+  def test_optional_and_polymorphic_are_order_independent
+    run_generator ["account", "supplier:references{polymorphic.optional}"]
 
     expected_file = <<-FILE.strip_heredoc
     class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
+      belongs_to :supplier, polymorphic: true, optional: true
     end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
 
-  def test_required_adds_null_false_to_column
-    run_generator ["account", "supplier:references{required}"]
+  def test_optional_adds_null_false_to_column
+    run_generator ["account", "supplier:references{optional}"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/t\.references :supplier,.*\snull: false/, up)
+        assert_match(/t\.references :supplier,.*\snull: true/, up)
       end
     end
   end
