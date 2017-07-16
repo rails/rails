@@ -1482,7 +1482,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
   end
 
-  def test_explicit_create_scope
+  def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
 
