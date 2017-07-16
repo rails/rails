@@ -48,7 +48,8 @@ module Rails
           when /(references|belongs_to)\{(.+)\}/
             type = $1
             provided_options = $2.split(/[,.-]/)
-            options = Hash[provided_options.map { |opt| [opt.to_sym, true] }]
+            valid_options = provided_options & %w(index foreign_key polymorphic null required)
+            options = Hash[valid_options.map { |opt| [opt.to_sym, true] }]
             return type, options
           else
             return type, {}

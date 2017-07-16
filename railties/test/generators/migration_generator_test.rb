@@ -320,6 +320,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.paths["db/migrate"] = old_paths
   end
 
+  def test_add_migration_with_wrong_attribute_options
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to{polymorphik}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author/, change)
+      end
+      assert_no_match(/polymorphik/, content)
+    end
+  end
+
   private
 
     def with_singular_table_name
