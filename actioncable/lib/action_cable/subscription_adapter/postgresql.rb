@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 gem "pg", "~> 0.18"
 require "pg"
 require "thread"

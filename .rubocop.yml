@@ -89,6 +89,7 @@ Style/FrozenStringLiteralComment:
   Include:
     - 'activesupport/**/*'
     - 'activemodel/**/*'
+    - 'actioncable/**/*'
     - 'activejob/**/*'
     - 'activerecord/**/*'
     - 'actionmailer/**/*'
