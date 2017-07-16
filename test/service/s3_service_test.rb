@@ -9,25 +9,15 @@ if SERVICE_CONFIGURATIONS[:s3]
     include ActiveStorage::Service::SharedServiceTests
 
     test "direct upload" do
-      # FIXME: This test is failing because of a mismatched request signature, but it works in the browser.
-      skip
-
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        direct_upload_url = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size)
+        url  = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size)
 
-        url   = URI.parse(direct_upload_url).to_s.split("?").first
-        query = CGI::parse(URI.parse(direct_upload_url).query).collect { |(k, v)| [ k, v.first ] }.to_h
-
-        HTTParty.post(
+        HTTParty.put(
           url,
-          query: query,
           body: data,
-          headers: {
-            "Content-Type": "text/plain",
-            "Origin": "http://localhost:3000"
-          },
+          headers: { "Content-Type" => "text/plain" },
           debug_output: STDOUT
         )
 
