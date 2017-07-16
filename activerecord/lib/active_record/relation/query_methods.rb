@@ -202,12 +202,13 @@ module ActiveRecord
 
     # Works in two unique ways.
     #
-    # First: takes a block so it can be used just like +Array#select+.
+    # First: takes a block so it can be used just like <tt>Array#select</tt>.
     #
     #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
-    # converting them into an array and iterating through them using +Array#select+.
+    # converting them into an array and iterating through them using
+    # <tt>Array#select</tt>.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
     # fields are retrieved:
