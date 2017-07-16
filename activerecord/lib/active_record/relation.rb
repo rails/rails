@@ -556,8 +556,7 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
+      @to_sql = @scope_for_create = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
