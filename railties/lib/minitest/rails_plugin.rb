@@ -10,6 +10,8 @@ module Minitest
   end
 
   def self.plugin_rails_options(opts, options)
+    return unless rails_app?
+
     opts.on("-b", "--backtrace", "Show the complete backtrace") do
       options[:full_backtrace] = true
     end
@@ -33,6 +35,8 @@ module Minitest
   # Owes great inspiration to test runner trailblazers like RSpec,
   # minitest-reporters, maxitest and others.
   def self.plugin_rails_init(options)
+    return unless rails_app?
+
     unless options[:full_backtrace] || ENV["BACKTRACE"]
       # Plugin can run without Rails loaded, check before filtering.
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
@@ -42,6 +46,10 @@ module Minitest
     reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
     reporter << SuppressedSummaryReporter.new(options[:io], options)
     reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+  end
+
+  def self.rails_app?
+    Rails.respond_to?(:application)
   end
 
   # Backwardscompatibility with Rails 5.0 generated plugin test scripts
