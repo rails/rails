@@ -7,6 +7,9 @@ module Rails
 
       included do
         argument :environment, optional: true, banner: "environment"
+
+        class_option :environment, aliases: "-e", type: :string,
+          desc: "Specifies the environment to run this console under (test/development/production)."
       end
 
       private
@@ -19,7 +22,9 @@ module Rails
                                             "will be removed in the next Rails "   \
                                             "version. Please, use the -e option "  \
                                             "instead."
-          elsif !options[:environment]
+          elsif options[:environment]
+            self.options = options.merge(environment: acceptable_environment(options[:environment]))
+          else
             self.options = options.merge(environment: Rails::Command.environment)
           end
         end

@@ -1,3 +1,8 @@
+*   Properly expand shortcuts for environment's name running the `console`
+    and `dbconsole` commands.
+
+    *Robin Dupret*
+
 *   Passing the environment's name as a regular argument to the
     `rails dbconsole` and `rails console` commands is deprecated.
     The `-e` option should be used instead.

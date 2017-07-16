@@ -151,9 +151,6 @@ module Rails
 
       class_option :header, type: :boolean
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
-
       class_option :connection, aliases: "-c", type: :string,
         desc: "Specifies the connection to use."
 

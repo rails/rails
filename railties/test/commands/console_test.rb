@@ -82,6 +82,11 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sspecial-production\s/, output)
   end
 
+  def test_e_option_is_properly_expanded
+    start ["-e", "prod"]
+    assert_match(/\sproduction\s/, output)
+  end
+
   def test_environment_option
     start ["--environment=special-production"]
     assert_match(/\sspecial-production\s/, output)
