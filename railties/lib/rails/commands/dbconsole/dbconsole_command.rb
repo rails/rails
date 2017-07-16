@@ -87,16 +87,25 @@ module Rails
 
     def config
       @config ||= begin
-        if configurations[environment].blank?
+        # We need to check whether the user passed the connection the
+        # first time around to show a consistent error message to people
+        # relying on 2-level database configuration.
+        if @options["connection"] && configurations[connection].blank?
+          raise ActiveRecord::AdapterNotSpecified, "'#{connection}' connection is not configured. Available configuration: #{configurations.inspect}"
+        elsif configurations[environment].blank? && configurations[connection].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations[environment]
+          configurations[environment].presence || configurations[connection]
         end
       end
     end
 
     def environment
       Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
+    end
+
+    def connection
+      @options.fetch(:connection, "primary")
     end
 
     private
@@ -142,8 +151,8 @@ module Rails
 
       class_option :header, type: :boolean
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
+      class_option :connection, aliases: "-c", type: :string,
+        desc: "Specifies the connection to use."
 
       def perform
         extract_environment_option_from_argument
