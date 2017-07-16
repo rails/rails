@@ -101,6 +101,8 @@ module ActiveSupport
         # Obtains the specified cache store class, given the name of the +store+.
         # Raises an error when the store class cannot be found.
         def retrieve_store_class(store)
+          # require_relative cannot be used here because the class might be
+          # provided by another gem, like redis-activesupport for example.
           require "active_support/cache/#{store}"
         rescue LoadError => e
           raise "Could not find cache store adapter for #{store} (#{e})"
