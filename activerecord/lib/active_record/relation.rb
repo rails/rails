@@ -556,7 +556,7 @@ module ActiveRecord
     end
 
     def reset
-      @to_sql = @scope_for_create = @arel = @loaded = @should_eager_load = nil
+      @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
@@ -590,7 +590,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge!(create_with_value.stringify_keys)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
