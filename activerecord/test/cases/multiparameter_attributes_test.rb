@@ -271,6 +271,12 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     ensure
       Topic.reset_column_information
     end
+
+    def test_multiparameter_attributes_setting_time_attribute
+      topic = Topic.new("bonus_time(4i)" => "01", "bonus_time(5i)" => "05")
+      assert_equal 1, topic.bonus_time.hour
+      assert_equal 5, topic.bonus_time.min
+    end
   end
 
   def test_multiparameter_attributes_on_time_with_empty_seconds
@@ -285,14 +291,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter? :OracleAdapter
-    def test_multiparameter_attributes_setting_time_attribute
-      topic = Topic.new("bonus_time(4i)" => "01", "bonus_time(5i)" => "05")
-      assert_equal 1, topic.bonus_time.hour
-      assert_equal 5, topic.bonus_time.min
-    end
-  end
-
   def test_multiparameter_attributes_setting_date_attribute
     topic = Topic.new("written_on(1i)" => "1952", "written_on(2i)" => "3", "written_on(3i)" => "11")
     assert_equal 1952, topic.written_on.year
@@ -300,13 +298,34 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     assert_equal 11, topic.written_on.day
   end
 
+  def test_create_with_multiparameter_attributes_setting_date_attribute
+    topic = Topic.create_with("written_on(1i)" => "1952", "written_on(2i)" => "3", "written_on(3i)" => "11").new
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+  end
+
   def test_multiparameter_attributes_setting_date_and_time_attribute
     topic = Topic.new(
-        "written_on(1i)" => "1952",
-        "written_on(2i)" => "3",
-        "written_on(3i)" => "11",
-        "written_on(4i)" => "13",
-        "written_on(5i)" => "55")
+      "written_on(1i)" => "1952",
+      "written_on(2i)" => "3",
+      "written_on(3i)" => "11",
+      "written_on(4i)" => "13",
+      "written_on(5i)" => "55")
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+    assert_equal 13, topic.written_on.hour
+    assert_equal 55, topic.written_on.min
+  end
+
+  def test_create_with_multiparameter_attributes_setting_date_and_time_attribute
+    topic = Topic.create_with(
+      "written_on(1i)" => "1952",
+      "written_on(2i)" => "3",
+      "written_on(3i)" => "11",
+      "written_on(4i)" => "13",
+      "written_on(5i)" => "55").new
     assert_equal 1952, topic.written_on.year
     assert_equal 3, topic.written_on.month
     assert_equal 11, topic.written_on.day
