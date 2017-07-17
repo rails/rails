@@ -11,7 +11,7 @@ module Rails
     end
 
     def start
-      ENV["RAILS_ENV"] = @options[:environment] || environment
+      ENV["RAILS_ENV"] ||= @options[:environment] || environment
 
       case config["adapter"]
       when /^(jdbc)?mysql/
@@ -156,6 +156,9 @@ module Rails
 
       def perform
         extract_environment_option_from_argument
+
+        # RAILS_ENV needs to be set before config/application is required.
+        ENV["RAILS_ENV"] = options[:environment]
 
         require_application_and_environment!
         Rails::DBConsole.start(options)
