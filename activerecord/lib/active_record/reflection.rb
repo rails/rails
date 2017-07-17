@@ -219,10 +219,8 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        if klass.current_scope
-          klass.current_scope.clone.tap { |scope|
-            scope.joins_values = scope.left_outer_joins_values = [].freeze
-          }
+        if klass.current_scope && klass.current_scope.values.empty?
+          klass.unscoped
         else
           klass.default_scoped(build_scope(table, predicate_builder))
         end
