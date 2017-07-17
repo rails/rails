@@ -5,7 +5,7 @@ require_relative "../attribute_mutation_tracker"
 
 module ActiveRecord
   module AttributeMethods
-    module Dirty # :nodoc:
+    module Dirty
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
@@ -29,6 +29,8 @@ module ActiveRecord
         attribute_method_affix(prefix: "will_save_change_to_", suffix: "?")
         attribute_method_suffix("_change_to_be_saved", "_in_database")
       end
+
+      # :nodoc:
 
       # Attempts to +save+ the record and clears changed attributes if successful.
       def save(*)
@@ -54,7 +56,7 @@ module ActiveRecord
         end
       end
 
-      def initialize_dup(other) # :nodoc:
+      def initialize_dup(other)
         super
         @attributes = self.class._default_attributes.map do |attr|
           attr.with_value_from_user(@attributes.fetch_value(attr.name))
@@ -62,7 +64,7 @@ module ActiveRecord
         clear_mutation_trackers
       end
 
-      def changes_internally_applied # :nodoc:
+      def changes_internally_applied
         @mutations_before_last_save = mutation_tracker
         forget_attribute_assignments
         @mutations_from_database = AttributeMutationTracker.new(@attributes)
@@ -128,6 +130,8 @@ module ActiveRecord
         mutation_tracker.changed_in_place?(attr_name)
       end
 
+      # :doc:
+
       # Did this attribute change when we last saved? This method can be invoked
       # as `saved_change_to_name?` instead of `saved_change_to_attribute?("name")`.
       # Behaves similarly to +attribute_changed?+. This method is useful in
@@ -175,6 +179,8 @@ module ActiveRecord
       def saved_changes
         mutations_before_last_save.changes
       end
+
+      # :nodoc:
 
       # Alias for `attribute_changed?`
       def will_save_change_to_attribute?(attr_name, **options)
