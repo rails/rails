@@ -269,8 +269,8 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_preselected_value_as_string_and_option_value_is_integer
     albums = [ Album.new(1, "first", "rap"), Album.new(2, "second", "pop")]
     assert_dom_equal(
-    %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", selected: "1")
+      %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", selected: "1")
     )
   end
 
@@ -278,8 +278,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new("1", "first", "rap"), Album.new("2", "second", "pop")]
 
     assert_dom_equal(
-    %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", selected: 1)
+      %(<option selected="selected" value="1">rap</option>\n<option value="2">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", selected: 1)
     )
   end
 
@@ -287,8 +287,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
-    %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", selected: "2.0")
+      %(<option value="1.0">rap</option>\n<option value="2.0" selected="selected">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", selected: "2.0")
     )
   end
 
@@ -296,8 +296,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
-    %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", selected: nil)
+      %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", selected: nil)
     )
   end
 
@@ -305,8 +305,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
-    %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", disabled: nil)
+      %(<option value="1.0">rap</option>\n<option value="2.0">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", disabled: nil)
     )
   end
 
@@ -314,8 +314,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop")]
 
     assert_dom_equal(
-    %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
-    options_from_collection_for_select(albums, "id", "genre", disabled: ["1.0", 2.0])
+      %(<option disabled="disabled" value="1.0">rap</option>\n<option disabled="disabled" value="2.0">pop</option>),
+      options_from_collection_for_select(albums, "id", "genre", disabled: ["1.0", 2.0])
     )
   end
 
@@ -323,8 +323,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     albums = [ Album.new(1.0, "first", "rap"), Album.new(2.0, "second", "pop"), Album.new(3.0, "third", "country") ]
 
     assert_dom_equal(
-    %(<option value="1.0" selected="selected">rap</option>\n<option value="2.0">pop</option>\n<option value="3.0" selected="selected">country</option>),
-    options_from_collection_for_select(albums, "id", "genre", ["1.0", "3.0"])
+      %(<option value="1.0" selected="selected">rap</option>\n<option value="2.0">pop</option>\n<option value="3.0" selected="selected">country</option>),
+      options_from_collection_for_select(albums, "id", "genre", ["1.0", "3.0"])
     )
   end
 
@@ -371,15 +371,15 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_grouped_options_for_select_with_selected_and_prompt
     assert_dom_equal(
-        "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: "Choose a product...")
+      "<option value=\"\">Choose a product...</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+      grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: "Choose a product...")
     )
   end
 
   def test_grouped_options_for_select_with_selected_and_prompt_true
     assert_dom_equal(
-        "<option value=\"\">Please select</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
-        grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: true)
+      "<option value=\"\">Please select</option><optgroup label=\"Hats\"><option value=\"Baseball Cap\">Baseball Cap</option>\n<option selected=\"selected\" value=\"Cowboy Hat\">Cowboy Hat</option></optgroup>",
+      grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]], "Cowboy Hat", prompt: true)
     )
   end
 
@@ -395,8 +395,8 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
-       "<optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup>",
-       grouped_options_for_select("North America" => ["United States", "Canada"], "Europe" => ["Denmark", "Germany"])
+      "<optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+      grouped_options_for_select("North America" => ["United States", "Canada"], "Europe" => ["Denmark", "Germany"])
     )
   end
 
@@ -759,8 +759,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = ""
     assert_dom_equal(
-        "<select class=\"disabled\" disabled=\"disabled\" name=\"post[category]\" id=\"post_category\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
-        select("post", "category", [], { prompt: true, include_blank: true }, class: "disabled", disabled: true)
+      "<select class=\"disabled\" disabled=\"disabled\" name=\"post[category]\" id=\"post_category\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n</select>",
+      select("post", "category", [], { prompt: true, include_blank: true }, class: "disabled", disabled: true)
     )
   end
 
