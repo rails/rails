@@ -437,6 +437,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil Topic.find(2)
   end
 
+  def test_delete_isnt_affected_by_scoping
+    topic = Topic.find(1)
+    assert_difference("Topic.count", -1) do
+      Topic.where("1=0").scoping { topic.delete }
+    end
+  end
+
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, "topic.destroy did not return self"
