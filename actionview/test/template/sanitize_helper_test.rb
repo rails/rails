@@ -38,4 +38,30 @@ class SanitizeHelperTest < ActionView::TestCase
   def test_sanitize_is_marked_safe
     assert sanitize("<html><script></script></html>").html_safe?
   end
+
+  def test_custom_sanitizer
+    custom_sanitizer = Class.new do
+      def sanitize(html, options = {})
+        "foobar"
+      end
+    end
+
+    default_full_sanitizer = ActionView::Base.full_sanitizer
+    default_link_sanitizer = ActionView::Base.link_sanitizer
+    default_white_list_sanitizer = ActionView::Base.white_list_sanitizer
+
+    ActionView::Base.full_sanitizer = custom_sanitizer.new
+    ActionView::Base.link_sanitizer = custom_sanitizer.new
+    ActionView::Base.white_list_sanitizer = custom_sanitizer.new
+
+    view_context_class = Class.new(ActionView::Base)
+
+    assert_equal "foobar", view_context_class.new.strip_links("<a>test</a>")
+    assert_equal "foobar", view_context_class.new.strip_tags("<a>test</a>")
+    assert_equal "foobar", view_context_class.new.sanitize("<a>test</a>")
+
+    ActionView::Base.full_sanitizer = default_full_sanitizer
+    ActionView::Base.link_sanitizer = default_link_sanitizer
+    ActionView::Base.white_list_sanitizer = default_white_list_sanitizer
+  end
 end
