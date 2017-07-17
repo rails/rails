@@ -729,6 +729,32 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1234, data.dig(:this, :views)
   end
 
+  def test_argless_default_with_existing_nil_key
+    h = Hash.new(:default).merge(nil => "defined").with_indifferent_access
+
+    assert_equal :default, h.default
+  end
+
+  def test_default_with_argument
+    h = Hash.new { 5 }.merge(1 => 2).with_indifferent_access
+
+    assert_equal 5, h.default(1)
+  end
+
+  def test_default_proc
+    h = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+
+    assert_nil h.default
+    assert_equal "foo", h.default("foo")
+    assert_equal "foo", h.default(:foo)
+  end
+
+  def test_double_conversion_with_nil_key
+    h = { nil => "defined" }.with_indifferent_access.with_indifferent_access
+
+    assert_equal nil, h[:undefined_key]
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { failure: "stuff", funny: "business" }.assert_valid_keys([ :failure, :funny ])
