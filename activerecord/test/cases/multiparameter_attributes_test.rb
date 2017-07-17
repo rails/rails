@@ -383,4 +383,16 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
 
     assert_equal("address", ex.errors[0].attribute)
   end
+
+  def test_multiparameter_attributes_should_not_be_converted_into_hash
+    with_timezone_config default: :utc do
+      attributes = {
+        "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on_before_type_cast
+    end
+  end
 end
