@@ -175,7 +175,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      self.class.unscoped.delete(id) if persisted?
       @destroyed = true
       freeze
     end

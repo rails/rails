@@ -486,6 +486,31 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match vegetarian_pattern, Lion.all.to_sql
     assert_match gender_pattern, Lion.female.to_sql
   end
+
+  def test_delete_record_that_is_not_in_default_scope
+    comment_id = CommentWithDefaultScopePostId.create!(post_id: 2, body: "Test").id
+    comment = CommentWithDefaultScopePostId.unscoped.find(comment_id)
+    comment.delete
+
+    assert_not comment.persisted?
+    assert_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id)
+  end
+
+  def test_delete_single_record_by_id_that_is_not_in_default_scope
+    comment_id = CommentWithDefaultScopePostId.create!(post_id: 2, body: "Test").id
+    CommentWithDefaultScopePostId.delete(comment_id)
+    assert_not_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id)
+  end
+
+  def test_delete_multiple_records_by_ids_that_are_not_in_default_scope
+    comment_id1 = CommentWithDefaultScopePostId.create!(post_id: 2, body: "Test1").id
+    comment_id2 = CommentWithDefaultScopePostId.create!(post_id: 2, body: "Test2").id
+
+    CommentWithDefaultScopePostId.delete([comment_id1, comment_id2])
+
+    assert_not_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id1)
+    assert_not_nil CommentWithDefaultScopePostId.unscoped.find_by(id: comment_id2)
+  end
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase
