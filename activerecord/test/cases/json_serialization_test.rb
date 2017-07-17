@@ -160,10 +160,8 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_serializable_hash_should_not_modify_options_in_argument
-    options = { only: :name }
-    @contact.serializable_hash(options)
-
-    assert_nil options[:except]
+    options = { only: :name }.freeze
+    assert_nothing_raised { @contact.serializable_hash(options) }
   end
 end
 
