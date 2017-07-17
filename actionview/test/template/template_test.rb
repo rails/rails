@@ -1,4 +1,5 @@
 # encoding: US-ASCII
+
 require "abstract_unit"
 require "logger"
 
@@ -53,7 +54,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def new_template(body = "<%= hello %>", details = { format: :html })
-    ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
+    ActionView::Template.new(body.dup, "hello template", details.fetch(:handler) { ERBHandler }, { virtual_path: "hello" }.merge!(details))
   end
 
   def render(locals = {})

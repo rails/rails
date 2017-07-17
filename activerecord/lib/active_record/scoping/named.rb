@@ -29,13 +29,15 @@ module ActiveRecord
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = build_default_scope
+        def default_scoped(scope = relation) # :nodoc:
+          build_default_scope(scope) || scope
+        end
 
-          if scope
-            relation.spawn.merge!(scope)
+        def default_extensions # :nodoc:
+          if scope = current_scope || build_default_scope
+            scope.extensions
           else
-            relation
+            []
           end
         end
 
@@ -156,17 +158,17 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+              scope = all
+              scope = scope.instance_exec(*args, &body) || scope
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           else
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
+              scope = all
+              scope = scope.scoping { body.call(*args) || scope }
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           end
         end

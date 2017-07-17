@@ -84,7 +84,7 @@ Book.where("array_length(ratings, 1) >= 3")
 ### Hstore
 
 * [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN167712)
+* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN179902)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
@@ -114,15 +114,20 @@ Profile.where("settings->'color' = ?", "yellow")
 # => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
-### JSON
+### JSON and JSONB
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-json.html)
 * [functions and operators](http://www.postgresql.org/docs/current/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
+# ... for json datatype:
 create_table :events do |t|
   t.json 'payload'
+end
+# ... or for jsonb datatype:
+create_table :events do |t|
+  t.jsonb 'payload'
 end
 
 # app/models/event.rb
@@ -285,7 +290,7 @@ SELECT n.nspname AS enum_schema,
 ### UUID
 
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
+* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN182570)
 * [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`

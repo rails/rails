@@ -167,7 +167,7 @@ if current_adapter?(:Mysql2Adapter)
         def assert_permissions_granted_for(db_user)
           db_name = @configuration["database"]
           db_password = @configuration["password"]
-          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
+          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON `#{db_name}`.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
         end
     end
 
@@ -296,13 +296,22 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump_with_extra_flags
         filename = "awesome-file.sql"
-        expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--noop", "test-db"]
+        expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
           end
         end
+      end
+
+      def test_structure_dump_with_ignore_tables
+        filename = "awesome-file.sql"
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
       end
 
       def test_warn_when_external_structure_dump_command_execution_fails
@@ -355,7 +364,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_load
         filename = "awesome-file.sql"
-        expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", "--noop"]
+        expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do

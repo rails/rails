@@ -32,7 +32,7 @@ Configuring Rails Components
 
 In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file `config/application.rb` and environment-specific configuration files (such as `config/environments/production.rb`) allow you to specify the various settings that you want to pass down to all of the components.
 
-For example, the `config/application.rb` file includes this setting:
+For example, you could add this setting to `config/application.rb` file:
 
 ```ruby
 config.time_zone = 'Central Time (US & Canada)'
@@ -156,8 +156,6 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.assets.enabled` a flag that controls whether the asset
 pipeline is enabled. It is set to `true` by default.
-
-* `config.assets.raise_runtime_errors` Set this flag to `true` to enable additional runtime error checking. Recommended in `config/environments/development.rb` to minimize unexpected behavior when deploying to `production`.
 
 * `config.assets.css_compressor` defines the CSS compressor to use. It is set by default by `sass-rails`. The unique alternative value at the moment is `:yui`, which uses the `yui-compressor` gem.
 
@@ -377,6 +375,28 @@ The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
 
+The SQLite3Adapter adapter adds one additional configuration option:
+
+* `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
+'t' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
+boolean values and must have old data converted to 1 and 0 (its native boolean
+serialization) before setting this flag to true. Conversion can be accomplished
+by setting up a rake task which runs
+
+    ```ruby
+    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+    ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+    ```
+
+  for all models and all boolean columns, after which the flag must be set to true
+by adding the following to your application.rb file:
+
+    ```ruby
+    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+    ```
+
 The schema dumper adds one additional configuration option:
 
 * `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless `config.active_record.schema_format == :ruby`.
@@ -402,6 +422,8 @@ The schema dumper adds one additional configuration option:
 * `config.action_controller.forgery_protection_origin_check` configures whether the HTTP `Origin` header should be checked against the site's origin as an additional CSRF defense.
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
+
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`.  This is false by default, but enabled when loading defaults for Rails 5.2.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -456,10 +478,14 @@ to `'http authentication'`.
 Defaults to `'signed cookie'`.
 
 * `config.action_dispatch.encrypted_cookie_salt` sets the encrypted cookies salt
-value. Defaults to `'encrypted cookie'`.
+  value. Defaults to `'encrypted cookie'`.
 
 * `config.action_dispatch.encrypted_signed_cookie_salt` sets the signed
-encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+  encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
+
+* `config.action_dispatch.authenticated_encrypted_cookie_salt` sets the
+  authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
+  cookie'`.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
@@ -492,8 +518,6 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
-
-* `ActionDispatch::Callbacks.to_prepare` takes a block to run after `ActionDispatch::Callbacks.before`, but before the request. Runs for every request in `development` mode, but only once for `production` or environments with `cache_classes` set to `true`.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
 
@@ -542,6 +566,8 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
   submit_tag should automatically disable on click, this defaults to `true`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
+
+* `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
 
 ### Configuring Action Mailer
 
@@ -1186,7 +1212,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties and engines.
 
-* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActionDispatch::Callbacks.to_prepare`.
+* `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActiveSupport::Callbacks.to_run`.
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 

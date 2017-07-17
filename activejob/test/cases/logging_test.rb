@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
@@ -5,6 +7,7 @@ require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
+require "jobs/rescue_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
@@ -123,5 +126,12 @@ class LoggingTest < ActiveSupport::TestCase
   def test_for_tagged_logger_support_is_consistent
     set_logger ::Logger.new(nil)
     OverriddenLoggingJob.perform_later "Dummy"
+  end
+
+  def test_job_error_logging
+    RescueJob.perform_later "other"
+  rescue RescueJob::OtherError
+    assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
+    assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
   end
 end

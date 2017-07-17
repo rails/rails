@@ -139,6 +139,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           end
         end
 
+        test "removing column removes foreign key" do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, index: true, foreign_key: true
+          end
+
+          assert_difference "@connection.foreign_keys('testings').size", -1 do
+            @connection.remove_column :testings, :testing_parent_id
+          end
+        end
+
         test "foreign key methods respect pluralize_table_names" do
           begin
             original_pluralize_table_names = ActiveRecord::Base.pluralize_table_names

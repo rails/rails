@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "active_support/core_ext/time"
 require "active_support/core_ext/date"
@@ -53,17 +55,6 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later("aaron")
       HelloJob.perform_later("matthew")
       assert_enqueued_jobs 3
-    end
-  end
-
-  def test_assert_enqueued_jobs_when_performing_with_only_option
-    assert_nothing_raised do
-      assert_enqueued_jobs 1, only: HelloJob do
-        perform_enqueued_jobs only: LoggingJob do
-          HelloJob.perform_later("sean")
-          LoggingJob.perform_later("yves")
-        end
-      end
     end
   end
 

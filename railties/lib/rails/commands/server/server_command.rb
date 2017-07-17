@@ -2,7 +2,7 @@ require "fileutils"
 require "optparse"
 require "action_dispatch"
 require "rails"
-require "rails/dev_caching"
+require_relative "../../dev_caching"
 
 module Rails
   class Server < ::Rack::Server
@@ -95,10 +95,11 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
+      DEFAULT_PORT = 3000
       DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
 
       class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port.", banner: :port, default: 3000
+        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
         desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
@@ -154,9 +155,16 @@ module Rails
         def user_supplied_options
           @user_supplied_options ||= begin
             # Convert incoming options array to a hash of flags
-            #   ["-p", "3001", "-c", "foo"] # => {"-p" => true, "-c" => true}
+            #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
-            @original_options.each_with_index { |command, i| user_flag[command] = true if i.even? }
+            @original_options.each do |command|
+              if command.to_s.start_with?("--")
+                option = command.split("=")[0]
+                user_flag[option] = true
+              elsif command =~ /\A(-.)/
+                user_flag[Regexp.last_match[0]] = true
+              end
+            end
 
             # Collect all options that the user has explicitly defined so we can
             # differentiate them from defaults
@@ -184,14 +192,16 @@ module Rails
         end
 
         def port
-          ENV.fetch("PORT", options[:port]).to_i
+          options[:port] || ENV.fetch("PORT", DEFAULT_PORT).to_i
         end
 
         def host
-          unless (default_host = options[:binding])
+          if options[:binding]
+            options[:binding]
+          else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
+            ENV.fetch("HOST", default_host)
           end
-          ENV.fetch("HOST", default_host)
         end
 
         def environment

@@ -278,9 +278,12 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_capify_should_run_the_capify_command
-    assert_called_with(generator, :run, ["capify .", verbose: false]) do
-      action :capify!
+    content = capture(:stderr) do
+      assert_called_with(generator, :run, ["capify .", verbose: false]) do
+        action :capify!
+      end
     end
+    assert_match(/DEPRECATION WARNING: `capify!` is deprecated/, content)
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes

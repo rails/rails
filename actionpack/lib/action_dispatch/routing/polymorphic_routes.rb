@@ -40,7 +40,7 @@ module ActionDispatch
     #
     # Example usage:
     #
-    #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
+    #   edit_polymorphic_path(@post)           # => "/posts/1/edit"
     #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
     # == Usage with mounted engines
@@ -104,7 +104,7 @@ module ActionDispatch
         end
 
         if mapping = polymorphic_mapping(record_or_hash_or_array)
-          return mapping.call(self, [record_or_hash_or_array, options])
+          return mapping.call(self, [record_or_hash_or_array, options], false)
         end
 
         opts   = options.dup
@@ -128,7 +128,7 @@ module ActionDispatch
         end
 
         if mapping = polymorphic_mapping(record_or_hash_or_array)
-          return mapping.call(self, [record_or_hash_or_array, options], only_path: true)
+          return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
         opts   = options.dup
@@ -273,7 +273,7 @@ module ActionDispatch
 
           def handle_model_call(target, record)
             if mapping = polymorphic_mapping(target, record)
-              mapping.call(target, [record], only_path: suffix == "path")
+              mapping.call(target, [record], suffix == "path")
             else
               method, args = handle_model(record)
               target.send(method, *args)

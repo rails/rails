@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/inflector"
 
@@ -116,6 +118,13 @@ class InflectorTest < ActiveSupport::TestCase
     define_method "test_titleize_mixture_to_title_case_#{index}" do
       assert_equal(titleized, ActiveSupport::Inflector.titleize(before), "mixture \
         to TitleCase failed for #{before}")
+    end
+  end
+
+  MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
+    define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
+        "mixture to TitleCase with keep_id_suffix failed for #{before}")
     end
   end
 
@@ -324,6 +333,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
+    end
+  end
+
   def test_humanize_by_rule
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.human(/_cnt$/i, '\1_count')
@@ -407,6 +422,8 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/es$/, "")
 
       inflect.irregular("el", "los")
+
+      inflect.uncountable("agua")
     end
 
     assert_equal("hijos", "hijo".pluralize(:es))
@@ -419,12 +436,17 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("los", "el".pluralize(:es))
     assert_equal("els", "el".pluralize)
 
+    assert_equal("agua", "agua".pluralize(:es))
+    assert_equal("aguas", "agua".pluralize)
+
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
     assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
+    assert ActiveSupport::Inflector.inflections(:es).uncountables.empty?
     assert !ActiveSupport::Inflector.inflections.plurals.empty?
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
+    assert !ActiveSupport::Inflector.inflections.uncountables.empty?
   end
 
   def test_clear_all

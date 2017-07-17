@@ -62,7 +62,7 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 If you are on Fedora or CentOS, you're done with
 
 ```bash
-$ sudo yum install sqlite3 sqlite3-devel
+$ sudo yum install libsqlite3x libsqlite3x-devel 
 ```
 
 If you are on Arch Linux, you will need to run:

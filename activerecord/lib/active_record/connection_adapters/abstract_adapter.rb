@@ -1,9 +1,9 @@
-require "active_record/type"
-require "active_record/connection_adapters/determine_if_preparable_visitor"
-require "active_record/connection_adapters/schema_cache"
-require "active_record/connection_adapters/sql_type_metadata"
-require "active_record/connection_adapters/abstract/schema_dumper"
-require "active_record/connection_adapters/abstract/schema_creation"
+require_relative "../type"
+require_relative "determine_if_preparable_visitor"
+require_relative "schema_cache"
+require_relative "sql_type_metadata"
+require_relative "abstract/schema_dumper"
+require_relative "abstract/schema_creation"
 require "arel/collectors/bind"
 require "arel/collectors/sql_string"
 
@@ -74,7 +74,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :owner, :logger
+      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
@@ -92,8 +92,6 @@ module ActiveRecord
           config
         end
       end
-
-      attr_reader :prepared_statements
 
       def initialize(connection, logger = nil, config = {}) # :nodoc:
         super()
@@ -142,38 +140,14 @@ module ActiveRecord
         end
       end
 
-      def collector
-        if prepared_statements
-          SQLString.new
-        else
-          BindCollector.new
-        end
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::ToSql.new(self)
-      end
-
       def valid_type?(type) # :nodoc:
         !native_database_types[type].nil?
-      end
-
-      def schema_creation
-        SchemaCreation.new self
-      end
-
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) # :nodoc:
-        table_name = table_name.to_s
-        column_definitions(table_name).map do |field|
-          new_column_from_field(table_name, field)
-        end
       end
 
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, "
+          msg = "Cannot lease connection, ".dup
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
@@ -447,7 +421,7 @@ module ActiveRecord
 
       # Provides access to the underlying database driver for this adapter. For
       # example, this method returns a Mysql2::Client object in case of Mysql2Adapter,
-      # and a PGconn object in case of PostgreSQLAdapter.
+      # and a PG::Connection object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
@@ -481,14 +455,6 @@ module ActiveRecord
         @type_map ||= Type::TypeMap.new.tap do |mapping|
           initialize_type_map(mapping)
         end
-      end
-
-      def new_column(name, default, sql_type_metadata, null, table_name, default_function = nil, collation = nil) # :nodoc:
-        Column.new(name, default, sql_type_metadata, null, table_name, default_function, collation)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
@@ -610,12 +576,14 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             connection_id:     object_id) do
+            begin
               @lock.synchronize do
                 yield
               end
+            rescue => e
+              raise translate_exception_class(e, sql)
             end
-        rescue => e
-          raise translate_exception_class(e, sql)
+          end
         end
 
         def translate_exception(exception, message)
@@ -636,6 +604,18 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def collector
+          if prepared_statements
+            SQLString.new
+          else
+            BindCollector.new
+          end
+        end
+
+        def arel_visitor
+          Arel::Visitors::ToSql.new(self)
         end
     end
   end

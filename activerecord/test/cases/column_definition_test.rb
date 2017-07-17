@@ -8,7 +8,7 @@ module ActiveRecord
         def @adapter.native_database_types
           { string: "varchar" }
         end
-        @viz = @adapter.schema_creation
+        @viz = @adapter.send(:schema_creation)
       end
 
       # Avoid column definitions in create table statements like:

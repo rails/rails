@@ -1,20 +1,19 @@
 require "active_support"
-require "rails/secrets"
+require_relative "../../secrets"
 
 module Rails
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
-      def help
-        say "Usage:\n  #{self.class.banner}"
-        say ""
-        say self.class.desc
+      no_commands do
+        def help
+          say "Usage:\n  #{self.class.banner}"
+          say ""
+          say self.class.desc
+        end
       end
 
       def setup
-        require "rails/generators"
-        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
-
-        Rails::Generators::EncryptedSecretsGenerator.start
+        generator.start
       end
 
       def edit
@@ -32,8 +31,7 @@ module Rails
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          say "Waiting for secrets file to be saved. Abort with Ctrl-C."
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
         say "New secrets encrypted and saved."
@@ -41,7 +39,26 @@ module Rails
         say "Aborted changing encrypted secrets: nothing saved."
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
+      rescue Errno::ENOENT => error
+        raise unless error.message =~ /secrets\.yml\.enc/
+
+        Rails::Secrets.read_template_for_editing do |tmp_path|
+          system("#{ENV["EDITOR"]} #{tmp_path}")
+          generator.skip_secrets_file { setup }
+        end
       end
+
+      def show
+        say Rails::Secrets.read
+      end
+
+      private
+        def generator
+          require_relative "../../generators"
+          require_relative "../../generators/rails/encrypted_secrets/encrypted_secrets_generator"
+
+          Rails::Generators::EncryptedSecretsGenerator
+        end
     end
   end
 end

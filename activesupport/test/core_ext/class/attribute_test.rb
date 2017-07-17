@@ -1,15 +1,25 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/class/attribute"
 
 class ClassAttributeTest < ActiveSupport::TestCase
   def setup
-    @klass = Class.new { class_attribute :setting }
+    @klass = Class.new do
+      class_attribute :setting
+      class_attribute :timeout, default: 5
+    end
+
     @sub = Class.new(@klass)
   end
 
   test "defaults to nil" do
     assert_nil @klass.setting
     assert_nil @sub.setting
+  end
+
+  test "custom default" do
+    assert_equal 5, @klass.timeout
   end
 
   test "inheritable" do

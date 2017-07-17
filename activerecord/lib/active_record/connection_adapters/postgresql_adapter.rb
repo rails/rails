@@ -2,20 +2,20 @@
 gem "pg", "~> 0.18"
 require "pg"
 
-require "active_record/connection_adapters/abstract_adapter"
-require "active_record/connection_adapters/postgresql/column"
-require "active_record/connection_adapters/postgresql/database_statements"
-require "active_record/connection_adapters/postgresql/explain_pretty_printer"
-require "active_record/connection_adapters/postgresql/oid"
-require "active_record/connection_adapters/postgresql/quoting"
-require "active_record/connection_adapters/postgresql/referential_integrity"
-require "active_record/connection_adapters/postgresql/schema_creation"
-require "active_record/connection_adapters/postgresql/schema_definitions"
-require "active_record/connection_adapters/postgresql/schema_dumper"
-require "active_record/connection_adapters/postgresql/schema_statements"
-require "active_record/connection_adapters/postgresql/type_metadata"
-require "active_record/connection_adapters/postgresql/utils"
-require "active_record/connection_adapters/statement_pool"
+require_relative "abstract_adapter"
+require_relative "statement_pool"
+require_relative "postgresql/column"
+require_relative "postgresql/database_statements"
+require_relative "postgresql/explain_pretty_printer"
+require_relative "postgresql/oid"
+require_relative "postgresql/quoting"
+require_relative "postgresql/referential_integrity"
+require_relative "postgresql/schema_creation"
+require_relative "postgresql/schema_definitions"
+require_relative "postgresql/schema_dumper"
+require_relative "postgresql/schema_statements"
+require_relative "postgresql/type_metadata"
+require_relative "postgresql/utils"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
@@ -29,11 +29,11 @@ module ActiveRecord
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
       conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
-      # Forward only valid config params to PGconn.connect.
-      valid_conn_param_keys = PGconn.conndefaults_hash.keys + [:requiressl]
+      # Forward only valid config params to PG::Connection.connect.
+      valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
-      # The postgres drivers don't allow the creation of an unconnected PGconn object,
+      # The postgres drivers don't allow the creation of an unconnected PG::Connection object,
       # so just pass a nil connection object for the time being.
       ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
     end
@@ -121,20 +121,6 @@ module ActiveRecord
       include PostgreSQL::DatabaseStatements
       include PostgreSQL::ColumnDumper
 
-      def schema_creation # :nodoc:
-        PostgreSQL::SchemaCreation.new self
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::PostgreSQL.new(self)
-      end
-
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
       def supports_index_sort_order?
         true
       end
@@ -201,8 +187,8 @@ module ActiveRecord
           end
 
           def connection_active?
-            @connection.status == PGconn::CONNECTION_OK
-          rescue PGError
+            @connection.status == PG::CONNECTION_OK
+          rescue PG::Error
             false
           end
       end
@@ -247,34 +233,42 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.query "SELECT 1"
+        @lock.synchronize do
+          @connection.query "SELECT 1"
+        end
         true
-      rescue PGError
+      rescue PG::Error
         false
       end
 
       # Close then reopen the connection.
       def reconnect!
-        super
-        @connection.reset
-        configure_connection
+        @lock.synchronize do
+          super
+          @connection.reset
+          configure_connection
+        end
       end
 
       def reset!
-        clear_cache!
-        reset_transaction
-        unless @connection.transaction_status == ::PG::PQTRANS_IDLE
-          @connection.query "ROLLBACK"
+        @lock.synchronize do
+          clear_cache!
+          reset_transaction
+          unless @connection.transaction_status == ::PG::PQTRANS_IDLE
+            @connection.query "ROLLBACK"
+          end
+          @connection.query "DISCARD ALL"
+          configure_connection
         end
-        @connection.query "DISCARD ALL"
-        configure_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        super
-        @connection.close rescue nil
+        @lock.synchronize do
+          super
+          @connection.close rescue nil
+        end
       end
 
       def native_database_types #:nodoc:
@@ -301,8 +295,8 @@ module ActiveRecord
         true
       end
 
-      # Range datatypes weren't introduced until PostgreSQL 9.2
       def supports_ranges?
+        # Range datatypes weren't introduced until PostgreSQL 9.2
         postgresql_version >= 90200
       end
 
@@ -318,14 +312,14 @@ module ActiveRecord
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
         end
-        select_value("SELECT pg_try_advisory_lock(#{lock_id});")
+        query_value("SELECT pg_try_advisory_lock(#{lock_id})")
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "Postgres requires advisory lock ids to be a signed 64 bit integer")
         end
-        select_value("SELECT pg_advisory_unlock(#{lock_id})")
+        query_value("SELECT pg_advisory_unlock(#{lock_id})")
       end
 
       def enable_extension(name)
@@ -342,15 +336,14 @@ module ActiveRecord
 
       def extension_enabled?(name)
         if supports_extensions?
-          res = exec_query "SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled",
-            "SCHEMA"
+          res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
           res.cast_values.first
         end
       end
 
       def extensions
         if supports_extensions?
-          exec_query("SELECT extname from pg_extension", "SCHEMA").cast_values
+          exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
         else
           super
         end
@@ -358,14 +351,14 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @max_identifier_length ||= select_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
       alias index_name_length table_alias_length
 
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        exec_query "SET SESSION AUTHORIZATION #{user}"
+        execute("SET SESSION AUTHORIZATION #{user}")
       end
 
       def use_insert_returning?
@@ -374,11 +367,6 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) #:nodoc:
         PostgreSQL::Table.new(table_name, base)
-      end
-
-      def lookup_cast_type(sql_type) # :nodoc:
-        oid = execute("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").first["oid"].to_i
-        super(oid)
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
@@ -414,7 +402,7 @@ module ActiveRecord
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
 
-          case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
+          case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
             RecordNotUnique.new(message)
           when FOREIGN_KEY_VIOLATION
@@ -469,7 +457,7 @@ module ActiveRecord
           m.register_type "bytea", OID::Bytea.new
           m.register_type "point", OID::Point.new
           m.register_type "hstore", OID::Hstore.new
-          m.register_type "json", OID::Json.new
+          m.register_type "json", Type::Json.new
           m.register_type "jsonb", OID::Jsonb.new
           m.register_type "cidr", OID::Cidr.new
           m.register_type "inet", OID::Inet.new
@@ -560,7 +548,7 @@ module ActiveRecord
         end
 
         def has_default_function?(default_value, default)
-          !default_value && (%r{\w+\(.*\)|\(.*\)::\w+} === default)
+          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
         end
 
         def load_additional_types(type_map, oids = nil)
@@ -651,7 +639,7 @@ module ActiveRecord
         CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
         def is_cached_plan_failure?(e)
           pgerror = e.cause
-          code = pgerror.result.result_error_field(PGresult::PG_DIAG_SQLSTATE)
+          code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)
           code == FEATURE_NOT_SUPPORTED && pgerror.message.include?(CACHED_PLAN_HEURISTIC)
         rescue
           false
@@ -690,7 +678,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @connection = PGconn.connect(@connection_parameters)
+          @connection = PG.connect(@connection_parameters)
           configure_connection
         rescue ::PG::Error => error
           if error.message.include?("does not exist")
@@ -734,11 +722,6 @@ module ActiveRecord
           end
         end
 
-        # Returns the current ID of a table's sequence.
-        def last_insert_id_result(sequence_name)
-          exec_query("SELECT currval('#{sequence_name}')", "SQL")
-        end
-
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:
@@ -777,8 +760,8 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(*args)
-          PostgreSQL::TableDefinition.new(*args)
+        def arel_visitor
+          Arel::Visitors::PostgreSQL.new(self)
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
@@ -854,7 +837,6 @@ module ActiveRecord
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
         ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
         ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
-        ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
         ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
         ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
         ActiveRecord::Type.register(:point, OID::Point, adapter: :postgresql)

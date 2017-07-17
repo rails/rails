@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class AssertDifferenceTest < ActiveSupport::TestCase
@@ -235,9 +237,6 @@ class AssertDifferenceTest < ActiveSupport::TestCase
 
     assert_equal "@object.num should not change.\n\"@object.num\" did change to 1.\nExpected: 0\n  Actual: 1", error.message
   end
-end
-
-class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 
 # Setup and teardown callbacks.

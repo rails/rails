@@ -16,13 +16,13 @@ module ApplicationTests
     end
 
     def test_run_via_backwardscompatibility
-      require "rails/test_unit/minitest_plugin"
+      require "minitest/rails_plugin"
 
       assert_nothing_raised do
         Minitest.run_via[:ruby] = true
       end
 
-      assert_predicate Minitest.run_via, :ruby?
+      assert Minitest.run_via[:ruby]
     end
 
     def test_run_single_file
@@ -323,7 +323,7 @@ module ApplicationTests
             assert true
           end
 
-          test "test line filter does not run this" do
+          test "line filter does not run this" do
             assert true
           end
         end
@@ -469,7 +469,7 @@ module ApplicationTests
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
-        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
         require 'bundler/setup' # Set up gems listed in the Gemfile.
       RUBY

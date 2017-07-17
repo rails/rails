@@ -1,4 +1,4 @@
-require "action_dispatch/middleware/session/abstract_store"
+require_relative "abstract_store"
 begin
   require "rack/session/dalli"
 rescue LoadError => e

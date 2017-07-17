@@ -1,8 +1,8 @@
-$:.unshift(File.dirname(__FILE__) + "/lib")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
+$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path("fixtures/helpers", __dir__)
+$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
-ENV["TMPDIR"] = File.join(File.dirname(__FILE__), "tmp")
+ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -47,7 +47,7 @@ I18n.backend.store_translations "da", {}
 I18n.backend.store_translations "pt-BR", {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
+FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
 
 module RenderERBUtils
   def view
@@ -133,7 +133,7 @@ class BasicController
   def config
     @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
       # VIEW TODO: View tests should not require a controller
-      public_dir = File.expand_path("../fixtures/public", __FILE__)
+      public_dir = File.expand_path("fixtures/public", __dir__)
       config.assets_dir = public_dir
       config.javascripts_dir = "#{public_dir}/javascripts"
       config.stylesheets_dir = "#{public_dir}/stylesheets"
@@ -196,7 +196,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
+    path = File.join(File.expand_path("fixtures", __dir__), path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else

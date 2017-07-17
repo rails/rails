@@ -1,4 +1,4 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -17,6 +17,11 @@ Gem::Specification.new do |s|
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   s.require_path = "lib"
+
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actioncable",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actioncable/CHANGELOG.md"
+  }
 
   s.add_dependency "actionpack", version
 

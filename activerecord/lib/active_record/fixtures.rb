@@ -4,8 +4,8 @@ require "zlib"
 require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
-require "active_record/fixture_set/file"
-require "active_record/errors"
+require_relative "fixture_set/file"
+require_relative "errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -70,11 +70,30 @@ module ActiveRecord
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by
-  # using a special dynamic method, which has the same name as the model, and accepts the
-  # name of the fixture to instantiate:
+  # using a special dynamic method, which has the same name as the model.
   #
-  #   test "find" do
+  # Passing in a fixture name to this dynamic method returns the fixture matching this name:
+  #
+  #   test "find one" do
   #     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+  #   end
+  #
+  # Passing in multiple fixture names returns all fixtures matching these names:
+  #
+  #   test "find all by name" do
+  #     assert_equal 2, web_sites(:rubyonrails, :google).length
+  #   end
+  #
+  # Passing in no arguments returns all fixtures:
+  #
+  #   test "find all" do
+  #     assert_equal 2, web_sites.length
+  #   end
+  #
+  # Passing in any fixture name that does not exist will raise <tt>StandardError</tt>:
+  #
+  #   test "find by name that does not exist" do
+  #     assert_raise(StandardError) { web_sites(:reddit) }
   #   end
   #
   # Alternatively, you may enable auto-instantiation of the fixture data. For instance, take the
@@ -473,8 +492,7 @@ module ActiveRecord
       end
     end
 
-    cattr_accessor :all_loaded_fixtures
-    self.all_loaded_fixtures = {}
+    cattr_accessor :all_loaded_fixtures, default: {}
 
     class ClassCache
       def initialize(class_names, config)
@@ -549,9 +567,7 @@ module ActiveRecord
               end
 
               table_rows.each do |fixture_set_name, rows|
-                rows.each do |row|
-                  conn.insert_fixture(row, fixture_set_name)
-                end
+                conn.insert_fixtures(rows, fixture_set_name)
               end
 
               # Cap primary key sequences to max(pk).
@@ -859,20 +875,12 @@ module ActiveRecord
 
     included do
       class_attribute :fixture_path, instance_writer: false
-      class_attribute :fixture_table_names
-      class_attribute :fixture_class_names
-      class_attribute :use_transactional_tests
-      class_attribute :use_instantiated_fixtures # true, false, or :no_instances
-      class_attribute :pre_loaded_fixtures
-      class_attribute :config
-
-      self.fixture_table_names = []
-      self.use_instantiated_fixtures = false
-      self.pre_loaded_fixtures = false
-      self.config = ActiveRecord::Base
-
-      self.fixture_class_names = {}
-      self.use_transactional_tests = true
+      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_class_names, default: {}
+      class_attribute :use_transactional_tests, default: true
+      class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
+      class_attribute :pre_loaded_fixtures, default: false
+      class_attribute :config, default: ActiveRecord::Base
     end
 
     module ClassMethods
@@ -909,6 +917,8 @@ module ActiveRecord
 
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
+              return_single_record = fixture_names.size == 1
+              fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
 
               @fixture_cache[fs_name] ||= {}
 
@@ -923,7 +933,7 @@ module ActiveRecord
                 end
               end
 
-              instances.size == 1 ? instances.first : instances
+              return_single_record ? instances.first : instances
             end
             private accessor_name
           end

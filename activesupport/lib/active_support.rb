@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Copyright (c) 2005-2017 David Heinemeier Hansson
 #
@@ -22,16 +24,17 @@
 #++
 
 require "securerandom"
-require "active_support/dependencies/autoload"
-require "active_support/version"
-require "active_support/logger"
-require "active_support/lazy_load_hooks"
-require "active_support/core_ext/date_and_time/compatibility"
+require_relative "active_support/dependencies/autoload"
+require_relative "active_support/version"
+require_relative "active_support/logger"
+require_relative "active_support/lazy_load_hooks"
+require_relative "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :ExecutionWrapper

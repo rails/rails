@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/introspection"
-require "rails/generators/base"
-require "rails/generators/generated_attribute"
+require_relative "base"
+require_relative "generated_attribute"
 
 module Rails
   module Generators
@@ -147,6 +147,10 @@ module Rails
 
         def new_helper # :doc:
           "new_#{singular_table_name}_url"
+        end
+
+        def field_id(attribute_name)
+          [singular_table_name, attribute_name].join("_")
         end
 
         def singular_table_name # :doc:

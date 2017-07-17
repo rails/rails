@@ -1,14 +1,14 @@
-require "action_dispatch/journey/router/utils"
-require "action_dispatch/journey/routes"
-require "action_dispatch/journey/formatter"
+require_relative "router/utils"
+require_relative "routes"
+require_relative "formatter"
 
 before = $-w
 $-w = false
-require "action_dispatch/journey/parser"
+require_relative "parser"
 $-w = before
 
-require "action_dispatch/journey/route"
-require "action_dispatch/journey/path/pattern"
+require_relative "route"
+require_relative "path/pattern"
 
 module ActionDispatch
   module Journey # :nodoc:

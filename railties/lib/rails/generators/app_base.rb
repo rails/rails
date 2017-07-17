@@ -1,10 +1,10 @@
 require "fileutils"
 require "digest/md5"
 require "active_support/core_ext/string/strip"
-require "rails/version" unless defined?(Rails::VERSION)
+require_relative "../version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
-require "rails/generators"
+require_relative "../generators"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
@@ -29,12 +29,6 @@ module Rails
 
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :javascript,         type: :string, aliases: "-j",
-                                          desc: "Preconfigure for selected JavaScript library"
-
-        class_option :webpack,            type: :string, default: nil,
-                                          desc: "Preconfigure for app-like JavaScript with Webpack"
 
         class_option :skip_yarn,          type: :boolean, default: false,
                                           desc: "Don't use Yarn for managing JavaScript dependencies"
@@ -246,6 +240,7 @@ module Rails
 
       def rails_gemfile_entry
         dev_edge_common = [
+          GemfileEntry.github("arel", "rails/arel"),
         ]
         if options.dev?
           [
@@ -280,7 +275,7 @@ module Rails
         case options[:database]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
         when "postgresql"     then ["pg", ["~> 0.18"]]
-        when "oracle"         then ["ruby-oci8", nil]
+        when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
@@ -296,7 +291,6 @@ module Rails
           case options[:database]
           when "postgresql" then options[:database].replace "jdbcpostgresql"
           when "mysql"      then options[:database].replace "jdbcmysql"
-          when "oracle"     then options[:database].replace "jdbc"
           when "sqlite3"    then options[:database].replace "jdbcsqlite3"
           end
         end
@@ -306,7 +300,7 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        gems << GemfileEntry.github("sass-rails", "rails/sass-rails", nil,
+        gems << GemfileEntry.version("sass-rails", "~> 5.0",
                                      "Use SCSS for stylesheets")
 
         if !options[:skip_javascript]
@@ -341,11 +335,6 @@ module Rails
           gems = [javascript_runtime_gemfile_entry]
           gems << coffee_gemfile_entry unless options[:skip_coffee]
 
-          if options[:javascript]
-            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-              "Use #{options[:javascript]} as the JavaScript library")
-          end
-
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",
              "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
@@ -360,7 +349,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
         else
-          GemfileEntry.new "therubyracer", nil, comment, { platforms: :ruby }, true
+          GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
         end
       end
 
@@ -410,6 +399,10 @@ module Rails
 
       def spring_install?
         !options[:skip_spring] && !options.dev? && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
+      end
+
+      def depends_on_system_test?
+        !(options[:skip_system_test] || options[:skip_test] || options[:api])
       end
 
       def depend_on_listen?

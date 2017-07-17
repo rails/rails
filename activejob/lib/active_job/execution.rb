@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "active_support/rescuable"
-require "active_job/arguments"
+require_relative "arguments"
 
 module ActiveJob
   module Execution

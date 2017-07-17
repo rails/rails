@@ -1,11 +1,13 @@
-require "action_dispatch/journey"
+# frozen_string_literal: true
+
+require_relative "../journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
-require "action_dispatch/http/request"
-require "action_dispatch/routing/endpoint"
+require_relative "../http/request"
+require_relative "endpoint"
 
 module ActionDispatch
   module Routing
@@ -73,7 +75,6 @@ module ActionDispatch
           @routes = {}
           @path_helpers = Set.new
           @url_helpers = Set.new
-          @custom_helpers = Set.new
           @url_helpers_module  = Module.new
           @path_helpers_module = Module.new
         end
@@ -96,23 +97,9 @@ module ActionDispatch
             @url_helpers_module.send  :remove_method, helper
           end
 
-          @custom_helpers.each do |helper|
-            path_name = :"#{helper}_path"
-            url_name = :"#{helper}_url"
-
-            if @path_helpers_module.method_defined?(path_name)
-              @path_helpers_module.send :remove_method, path_name
-            end
-
-            if @url_helpers_module.method_defined?(url_name)
-              @url_helpers_module.send :remove_method, url_name
-            end
-          end
-
           @routes.clear
           @path_helpers.clear
           @url_helpers.clear
-          @custom_helpers.clear
         end
 
         def add(name, route)
@@ -158,21 +145,29 @@ module ActionDispatch
           routes.length
         end
 
+        # Given a +name+, defines name_path and name_url helpers.
+        # Used by 'direct', 'resolve', and 'polymorphic' route helpers.
         def add_url_helper(name, defaults, &block)
-          @custom_helpers << name
           helper = CustomUrlHelper.new(name, defaults, &block)
+          path_name = :"#{name}_path"
+          url_name = :"#{name}_url"
 
           @path_helpers_module.module_eval do
-            define_method(:"#{name}_path") do |*args|
-              helper.call(self, args, only_path: true)
+            define_method(path_name) do |*args|
+              helper.call(self, args, true)
             end
           end
 
           @url_helpers_module.module_eval do
-            define_method(:"#{name}_url") do |*args|
-              helper.call(self, args)
+            define_method(url_name) do |*args|
+              helper.call(self, args, false)
             end
           end
+
+          @path_helpers << path_name
+          @url_helpers << url_name
+
+          self
         end
 
         class UrlHelper
@@ -240,7 +235,7 @@ module ActionDispatch
                   missing_keys << missing_key
                 }
                 constraints = Hash[@route.requirements.merge(params).sort_by { |k, v| k.to_s }]
-                message = "No route matches #{constraints.inspect}"
+                message = "No route matches #{constraints.inspect}".dup
                 message << ", missing required keys: #{missing_keys.sort.inspect}"
 
                 raise ActionController::UrlGenerationError, message
@@ -279,6 +274,8 @@ module ActionDispatch
               if args.size < path_params_size
                 path_params -= controller_options.keys
                 path_params -= result.keys
+              else
+                path_params = path_params.dup
               end
               inner_options.each_key do |key|
                 path_params.delete(key)
@@ -295,7 +292,7 @@ module ActionDispatch
         end
 
         private
-          # Create a url helper allowing ordered parameters to be associated
+          # Create a URL helper allowing ordered parameters to be associated
           # with corresponding dynamic segments, so you can do:
           #
           #   foo_url(bar, baz, bang)
@@ -318,11 +315,7 @@ module ActionDispatch
                   when Hash
                     args.pop
                   when ActionController::Parameters
-                    if last.permitted?
-                      args.pop.to_h
-                    else
-                      raise ArgumentError, ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE
-                    end
+                    args.pop.to_h
                   end
                 helper.call self, args, options
               end
@@ -458,7 +451,7 @@ module ActionDispatch
         MountedHelpers
       end
 
-      def define_mounted_helper(name)
+      def define_mounted_helper(name, script_namer = nil)
         return if MountedHelpers.method_defined?(name)
 
         routes = self
@@ -466,7 +459,7 @@ module ActionDispatch
 
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context, helpers)
+            RoutesProxy.new(routes, _routes_context, helpers, script_namer)
           end
         end
 
@@ -507,6 +500,14 @@ module ActionDispatch
           class << self
             def url_for(options)
               @_proxy.url_for(options)
+            end
+
+            def full_url_for(options)
+              @_proxy.full_url_for(options)
+            end
+
+            def route_for(name, *args)
+              @_proxy.route_for(name, *args)
             end
 
             def optimize_routes_generation?
@@ -613,26 +614,14 @@ module ActionDispatch
           @block = block
         end
 
-        def call(t, args, outer_options = {})
+        def call(t, args, only_path = false)
           options = args.extract_options!
-          url_options = eval_block(t, args, options)
+          url = t.full_url_for(eval_block(t, args, options))
 
-          case url_options
-          when String
-            t.url_for(url_options)
-          when Hash
-            t.url_for(url_options.merge(outer_options))
-          when ActionController::Parameters
-            if url_options.permitted?
-              t.url_for(url_options.to_h.merge(outer_options))
-            else
-              raise ArgumentError, "Generating a URL from non sanitized request parameters is insecure!"
-            end
-          when Array
-            opts = url_options.extract_options!
-            t.url_for(url_options.push(opts.merge(outer_options)))
+          if only_path
+            "/" + url.partition(%r{(?<!/)/(?!/)}).last
           else
-            t.url_for([url_options, outer_options])
+            url
           end
         end
 
@@ -860,8 +849,7 @@ module ActionDispatch
               params[key] = URI.parser.unescape(value)
             end
           end
-          old_params = req.path_parameters
-          req.path_parameters = old_params.merge params
+          req.path_parameters = params
           app = route.app
           if app.matches?(req) && app.dispatcher?
             begin

@@ -71,9 +71,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
-      register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
-      register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
+      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first
@@ -162,9 +162,11 @@ module ActiveRecord
       end
 
       def migrate
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
+        raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
+
+        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-        scope   = ENV["SCOPE"]
+        scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
         Migrator.migrate(migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
@@ -258,7 +260,7 @@ module ActiveRecord
       def check_schema_file(filename)
         unless File.exist?(filename)
           message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
-          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
+          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
       end
@@ -286,11 +288,11 @@ module ActiveRecord
       private
 
         def class_for_adapter(adapter)
-          key = @tasks.keys.detect { |pattern| adapter[pattern] }
-          unless key
+          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
-          @tasks[key]
+          task.is_a?(String) ? task.constantize : task
         end
 
         def each_current_configuration(environment)

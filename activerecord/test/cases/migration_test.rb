@@ -402,33 +402,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.up(migrations_path)
   end
 
-  def test_migration_sets_internal_metadata_even_when_fully_migrated
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-    migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
-
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
-
-    original_rails_env  = ENV["RAILS_ENV"]
-    original_rack_env   = ENV["RACK_ENV"]
-    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-
-    refute_equal current_env, new_env
-
-    sleep 1 # mysql by default does not store fractional seconds in the database
-
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
-  ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
-    ENV["RAILS_ENV"] = original_rails_env
-    ENV["RACK_ENV"]  = original_rack_env
-    ActiveRecord::Migrator.up(migrations_path)
-  end
-
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
     ActiveRecord::InternalMetadata[:foo] = "bar"
@@ -529,11 +502,10 @@ class MigrationTest < ActiveRecord::TestCase
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -541,11 +513,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+      Person.connection.create_table :table_from_query_testings, as: Person.select(:id).where(id: 1)
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -1044,8 +1015,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
-    expected = "# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
+    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..2].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
@@ -1145,5 +1116,9 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_deprecate_supports_migrations
     assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
+  end
+
+  def test_deprecate_schema_migrations_table_name
+    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
   end
 end

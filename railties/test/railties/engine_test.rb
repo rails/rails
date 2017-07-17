@@ -89,16 +89,16 @@ module RailtiesTest
 
         assert File.exist?("#{app_path}/db/migrate/2_create_users.bukkits.rb")
         assert File.exist?("#{app_path}/db/migrate/3_add_last_name_to_users.bukkits.rb")
-        assert_match(/Copied migration 2_create_users.bukkits.rb from bukkits/, output)
-        assert_match(/Copied migration 3_add_last_name_to_users.bukkits.rb from bukkits/, output)
-        assert_match(/NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/, output)
+        assert_match(/Copied migration 2_create_users\.bukkits\.rb from bukkits/, output)
+        assert_match(/Copied migration 3_add_last_name_to_users\.bukkits\.rb from bukkits/, output)
+        assert_match(/NOTE: Migration 3_create_sessions\.rb from bukkits has been skipped/, output)
         assert_equal 3, Dir["#{app_path}/db/migrate/*.rb"].length
 
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_no_match(/2_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration 3_create_sessions.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration 3_create_sessions\.rb from bukkits has been skipped/ =~ o })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
 
         migrations_count = Dir["#{app_path}/db/migrate/*.rb"].length
@@ -135,8 +135,8 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert_match(/Copied migration \d+_create_users.bukkits.rb from bukkits/, output.first)
-        assert_match(/Copied migration \d+_create_blogs.blog_engine.rb from blog_engine/, output.last)
+        assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output.first)
+        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.last)
       end
     end
 
@@ -171,8 +171,8 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert_match(/Copied migration \d+_create_users.core_engine.rb from core_engine/, output.first)
-        assert_match(/Copied migration \d+_create_keys.api_engine.rb from api_engine/, output.last)
+        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
+        assert_match(/Copied migration \d+_create_keys\.api_engine\.rb from api_engine/, output.last)
       end
     end
 
@@ -202,7 +202,7 @@ module RailtiesTest
       Dir.chdir(@plugin.path) do
         output = `bundle exec rake app:bukkits:install:migrations`
         assert File.exist?("#{app_path}/db/migrate/0_add_first_name_to_users.bukkits.rb")
-        assert_match(/Copied migration 0_add_first_name_to_users.bukkits.rb from bukkits/, output)
+        assert_match(/Copied migration 0_add_first_name_to_users\.bukkits\.rb from bukkits/, output)
         assert_equal 1, Dir["#{app_path}/db/migrate/*.rb"].length
       end
     end
@@ -1339,6 +1339,92 @@ YAML
 
       get("/bar", {}, "SCRIPT_NAME" => "/foo")
       assert_equal "/foo/bukkits/bukkit", last_response.body
+    end
+
+    test "isolated engine can be mounted under multiple static locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          scope "/fruits" do
+            mount Bukkits::Engine => "/bukkits", as: :fruit_bukkits
+          end
+
+          scope "/vegetables" do
+            mount Bukkits::Engine => "/bukkits", as: :vegetable_bukkits
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/bukkits/posts", last_response.body
+    end
+
+    test "isolated engine can be mounted under multiple dynamic locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path(fruit_id: 1)
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path(vegetable_id: 1)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :fruits do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          resources :vegetables do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/1/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/1/bukkits/posts", last_response.body
     end
 
   private

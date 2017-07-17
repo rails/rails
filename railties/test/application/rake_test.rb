@@ -117,7 +117,7 @@ module ApplicationTests
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 26     Test LOC: 0     Code to Test Ratio: 1:0.0",
+      assert_match "Code LOC: 25     Test LOC: 0     Code to Test Ratio: 1:0.0",
         Dir.chdir(app_path) { `bin/rails stats` }
     end
 
@@ -390,13 +390,6 @@ module ApplicationTests
       end
 
       assert_match(/Hello, World!/, output)
-    end
-
-    def test_tmp_clear_should_work_if_folder_missing
-      FileUtils.remove_dir("#{app_path}/tmp")
-      errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
-      assert_predicate $?, :success?
-      assert_empty errormsg
     end
   end
 end

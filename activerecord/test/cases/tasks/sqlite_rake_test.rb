@@ -180,6 +180,9 @@ if current_adapter?(:SQLite3Adapter)
           "adapter"  => "sqlite3",
           "database" => @database
         }
+
+        `sqlite3 #{@database} 'CREATE TABLE bar(id INTEGER)'`
+        `sqlite3 #{@database} 'CREATE TABLE foo(id INTEGER)'`
       end
 
       def test_structure_dump
@@ -189,6 +192,23 @@ if current_adapter?(:SQLite3Adapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
         assert File.exist?(dbfile)
         assert File.exist?(filename)
+        assert_match(/CREATE TABLE foo/, File.read(filename))
+        assert_match(/CREATE TABLE bar/, File.read(filename))
+      ensure
+        FileUtils.rm_f(filename)
+        FileUtils.rm_f(dbfile)
+      end
+
+      def test_structure_dump_with_ignore_tables
+        dbfile   = @database
+        filename = "awesome-file.sql"
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo"])
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        assert File.exist?(dbfile)
+        assert File.exist?(filename)
+        assert_match(/bar/, File.read(filename))
+        assert_no_match(/foo/, File.read(filename))
       ensure
         FileUtils.rm_f(filename)
         FileUtils.rm_f(dbfile)

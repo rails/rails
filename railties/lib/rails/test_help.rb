@@ -2,17 +2,21 @@
 # so fixtures aren't loaded into that environment
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
-require "rails/test_unit/minitest_plugin"
 require "active_support/test_case"
 require "action_controller"
 require "action_controller/test_case"
 require "action_dispatch/testing/integration"
-require "rails/generators/test_case"
+require_relative "generators/test_case"
 
 require "active_support/testing/autorun"
 
 if defined?(ActiveRecord::Base)
-  ActiveRecord::Migration.maintain_test_schema!
+  begin
+    ActiveRecord::Migration.maintain_test_schema!
+  rescue ActiveRecord::PendingMigrationError => e
+    puts e.to_s.strip
+    exit 1
+  end
 
   module ActiveSupport
     class TestCase

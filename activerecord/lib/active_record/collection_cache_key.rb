@@ -7,17 +7,27 @@ module ActiveRecord
       if collection.loaded?
         size = collection.size
         if size > 0
-          timestamp = collection.max_by(&timestamp_column).public_send(timestamp_column)
+          timestamp = collection.max_by(&timestamp_column)._read_attribute(timestamp_column)
         end
       else
         column_type = type_for_attribute(timestamp_column.to_s)
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"
+        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        query = collection
-          .unscope(:select)
-          .select("COUNT(*) AS #{connection.quote_column_name("size")}", "MAX(#{column}) AS timestamp")
-          .unscope(:order)
-        result = connection.select_one(query)
+        if collection.limit_value || collection.offset_value
+          query = collection.spawn
+          query.select_values = [column]
+          subquery_alias = "subquery_for_cache_key"
+          subquery_column = "#{subquery_alias}.#{timestamp_column}"
+          subquery = query.arel.as(subquery_alias)
+          arel = Arel::SelectManager.new(subquery).project(select_values % subquery_column)
+        else
+          query = collection.unscope(:order)
+          query.select_values = [select_values % column]
+          arel = query.arel
+        end
+
+        result = connection.select_one(arel, nil, query.bound_attributes)
 
         if result.blank?
           size = 0

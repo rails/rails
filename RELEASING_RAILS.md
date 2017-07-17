@@ -58,7 +58,7 @@ lists:
 
 Implementors will love you and help you.
 
-### 3 Days before release
+## 3 Days before release
 
 This is when you should release the release candidate.  Here are your tasks
 for today:

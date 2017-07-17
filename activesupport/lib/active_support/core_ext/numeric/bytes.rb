@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Numeric
   KILOBYTE = 1024
   MEGABYTE = KILOBYTE * 1024

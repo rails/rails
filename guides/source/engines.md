@@ -14,6 +14,7 @@ After reading this guide, you will know:
 * How to build features for the engine.
 * How to hook the engine into an application.
 * How to override engine functionality in the application.
+* Avoid loading Rails frameworks with Load and Configuration Hooks
 
 --------------------------------------------------------------------------------
 
@@ -1410,3 +1411,114 @@ module MyEngine
   end
 end
 ```
+
+Active Support On Load Hooks
+----------------------------
+
+Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal utilities.
+
+Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
+
+On Load hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
+
+## What are `on_load` hooks?
+
+Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+This snippet means that when this file is loaded, it will encounter `ActiveRecord::Base`. This encounter causes Ruby to look for the definition of that constant and will require it. This causes the entire Active Record framework to be loaded on boot.
+
+`ActiveSupport.on_load` is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:
+
+```ruby
+ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper }
+```
+
+This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
+
+## How does it work?
+
+In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
+
+## Modifying code to use `on_load` hooks
+
+Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in an `on_load` hook.
+
+### Example 1
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper } # self refers to ActiveRecord::Base here, so we can simply #include
+```
+
+### Example 2
+
+```ruby
+ActionController::Base.prepend(MyActionControllerHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:action_controller_base) { prepend MyActionControllerHelper } # self refers to ActionController::Base here, so we can simply #prepend
+```
+
+### Example 3
+
+```ruby
+ActiveRecord::Base.include_root_in_json = true
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) { self.include_root_in_json = true } # self refers to ActiveRecord::Base here
+```
+
+## Available Hooks
+
+These are the hooks you can use in your own code.
+
+To hook into the initialization process of one of the following classes use the available hook.
+
+| Class                             | Available Hooks                      |
+| --------------------------------- | ------------------------------------ |
+| `ActionCable`                     | `action_cable`                       |
+| `ActionController::API`           | `action_controller_api`              |
+| `ActionController::API`           | `action_controller`                  |
+| `ActionController::Base`          | `action_controller_base`             |
+| `ActionController::Base`          | `action_controller`                  |
+| `ActionController::TestCase`      | `action_controller_test_case`        |
+| `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
+| `ActionMailer::Base`              | `action_mailer`                      |
+| `ActionMailer::TestCase`          | `action_mailer_test_case`            |
+| `ActionView::Base`                | `action_view`                        |
+| `ActionView::TestCase`            | `action_view_test_case`              |
+| `ActiveJob::Base`                 | `active_job`                         |
+| `ActiveJob::TestCase`             | `active_job_test_case`               |
+| `ActiveRecord::Base`              | `active_record`                      |
+| `ActiveSupport::TestCase`         | `active_support_test_case`           |
+| `i18n`                            | `i18n`                               |
+
+## Configuration hooks
+
+These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
+
+| Hook                   | Use Case                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `before_configuration` | First configurable block to run. Called before any initializers are run.              |
+| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.                |
+| `before_eager_load`    | Third configurable block to run. Does not run if `config.cache_classes` set to false. |
+| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                   |
+
+### Example
+
+`config.before_configuration { puts 'I am called before any initializers' }`

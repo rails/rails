@@ -12,11 +12,11 @@ class EncryptedSecretsGeneratorTest < Rails::Generators::TestCase
   def test_generates_key_file_and_encrypted_secrets_file
     run_generator
 
-    assert_file "config/secrets.yml.key", /[\w\d]+/
+    assert_file "config/secrets.yml.key", /\w+/
 
     assert File.exist?("config/secrets.yml.enc")
-    assert_no_match(/production:\n#  external_api_key: [\w\d]+/, IO.binread("config/secrets.yml.enc"))
-    assert_match(/production:\n#  external_api_key: [\w\d]+/, Rails::Secrets.read)
+    assert_no_match(/production:\n#  external_api_key: \w+/, IO.binread("config/secrets.yml.enc"))
+    assert_match(/production:\n#  external_api_key: \w+/, Rails::Secrets.read)
   end
 
   def test_appends_to_gitignore

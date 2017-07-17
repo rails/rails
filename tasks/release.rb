@@ -1,7 +1,7 @@
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
-root    = File.expand_path("../../", __FILE__)
+root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 gem_version = Gem::Version.new(version)
@@ -229,7 +229,7 @@ MSG
 To see the full list of changes, [check out all the commits on
 GitHub](https://github.com/rails/rails/compare/v#{previous_version}...v#{version}).
 
-## SHA-1
+## SHA-256
 
 If you'd like to verify that your gem is the same as the one I've uploaded,
 please use these SHA-256 hashes.

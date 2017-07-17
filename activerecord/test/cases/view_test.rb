@@ -154,7 +154,9 @@ if ActiveRecord::Base.connection.supports_views?
   end
 
   # sqlite dose not support CREATE, INSERT, and DELETE for VIEW
-  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)
+  if current_adapter?(:Mysql2Adapter, :SQLServerAdapter) ||
+      current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.connection.postgresql_version >= 90300
+
     class UpdateableViewTest < ActiveRecord::TestCase
       self.use_transactional_tests = false
       fixtures :books

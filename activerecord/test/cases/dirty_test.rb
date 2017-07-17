@@ -4,10 +4,7 @@ require "models/pirate"   # For timestamps
 require "models/parrot"
 require "models/person"   # For optimistic locking
 require "models/aircraft"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-end
+require "models/numeric_data"
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone
@@ -349,12 +346,13 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update_with_optimistic_locking
     person = Person.new(first_name: "foo")
-    old_lock_version = person.lock_version
 
     with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
+
+    old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
       assert_queries(0) { 2.times { person.save! } }
@@ -668,6 +666,47 @@ class DirtyTest < ActiveRecord::TestCase
     binary.data << "bar"
 
     assert binary.changed?
+  end
+
+  test "changes is correct for subclass" do
+    foo = Class.new(Pirate) do
+      def catchphrase
+        super.upcase
+      end
+    end
+
+    pirate = foo.create!(catchphrase: "arrrr")
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
+  end
+
+  test "changes is correct if override attribute reader" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    def pirate.catchphrase
+      super.upcase
+    end
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
   end
 
   test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do

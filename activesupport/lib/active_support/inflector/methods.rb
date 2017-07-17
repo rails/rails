@@ -1,5 +1,7 @@
-require "active_support/inflections"
-require "active_support/core_ext/regexp"
+# frozen_string_literal: true
+
+require_relative "../inflections"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -28,7 +30,7 @@ module ActiveSupport
     #   pluralize('CamelOctopus')     # => "CamelOctopi"
     #   pluralize('ley', :es)         # => "leyes"
     def pluralize(word, locale = :en)
-      apply_inflections(word, inflections(locale).plurals)
+      apply_inflections(word, inflections(locale).plurals, locale)
     end
 
     # The reverse of #pluralize, returns the singular form of a word in a
@@ -45,7 +47,7 @@ module ActiveSupport
     #   singularize('CamelOctopi')      # => "CamelOctopus"
     #   singularize('leyes', :es)       # => "ley"
     def singularize(word, locale = :en)
-      apply_inflections(word, inflections(locale).singulars)
+      apply_inflections(word, inflections(locale).singulars, locale)
     end
 
     # Converts strings to UpperCamelCase.
@@ -108,33 +110,38 @@ module ActiveSupport
     # * Replaces underscores with spaces, if any.
     # * Downcases all words except acronyms.
     # * Capitalizes the first word.
-    #
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    #   humanize('employee_salary')              # => "Employee salary"
-    #   humanize('author_id')                    # => "Author"
-    #   humanize('author_id', capitalize: false) # => "author"
-    #   humanize('_id')                          # => "Id"
+    # The trailing '_id' can be kept and capitalized by setting the
+    # optional parameter +keep_id_suffix+ to true (default is false).
+    #
+    #   humanize('employee_salary')                  # => "Employee salary"
+    #   humanize('author_id')                        # => "Author"
+    #   humanize('author_id', capitalize: false)     # => "author"
+    #   humanize('_id')                              # => "Id"
+    #   humanize('author_id', keep_id_suffix: true)  # => "Author Id"
     #
     # If "SSL" was defined to be an acronym:
     #
     #   humanize('ssl_error') # => "SSL error"
     #
-    def humanize(lower_case_and_underscored_word, options = {})
+    def humanize(lower_case_and_underscored_word, capitalize: true, keep_id_suffix: false)
       result = lower_case_and_underscored_word.to_s.dup
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
       result.sub!(/\A_+/, "".freeze)
-      result.sub!(/_id\z/, "".freeze)
+      unless keep_id_suffix
+        result.sub!(/_id\z/, "".freeze)
+      end
       result.tr!("_".freeze, " ".freeze)
 
       result.gsub!(/([a-z\d]*)/i) do |match|
         "#{inflections.acronyms[match] || match.downcase}"
       end
 
-      if options.fetch(:capitalize, true)
+      if capitalize
         result.sub!(/\A\w/) { |match| match.upcase }
       end
 
@@ -154,14 +161,21 @@ module ActiveSupport
     # create a nicer looking title. +titleize+ is meant for creating pretty
     # output. It is not used in the Rails internals.
     #
+    # The trailing '_id','Id'.. can be kept and capitalized by setting the
+    # optional parameter +keep_id_suffix+ to true.
+    # By default, this parameter is false.
+    #
     # +titleize+ is also aliased as +titlecase+.
     #
-    #   titleize('man from the boondocks')   # => "Man From The Boondocks"
-    #   titleize('x-men: the last stand')    # => "X Men: The Last Stand"
-    #   titleize('TheManWithoutAPast')       # => "The Man Without A Past"
-    #   titleize('raiders_of_the_lost_ark')  # => "Raiders Of The Lost Ark"
-    def titleize(word)
-      humanize(underscore(word)).gsub(/\b(?<!['’`])[a-z]/) { |match| match.capitalize }
+    #   titleize('man from the boondocks')                       # => "Man From The Boondocks"
+    #   titleize('x-men: the last stand')                        # => "X Men: The Last Stand"
+    #   titleize('TheManWithoutAPast')                           # => "The Man Without A Past"
+    #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
+    #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
+    def titleize(word, keep_id_suffix: false)
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`])[a-z]/) do |match|
+        match.capitalize
+      end
     end
 
     # Creates the name of a table like Rails does for models to table names.
@@ -375,12 +389,15 @@ module ActiveSupport
 
       # Applies inflection rules for +singularize+ and +pluralize+.
       #
-      #  apply_inflections('post', inflections.plurals)    # => "posts"
-      #  apply_inflections('posts', inflections.singulars) # => "post"
-      def apply_inflections(word, rules)
+      # If passed an optional +locale+ parameter, the uncountables will be
+      # found for that locale.
+      #
+      #  apply_inflections('post', inflections.plurals, :en)    # => "posts"
+      #  apply_inflections('posts', inflections.singulars, :en) # => "post"
+      def apply_inflections(word, rules, locale = :en)
         result = word.to_s.dup
 
-        if word.empty? || inflections.uncountables.uncountable?(result)
+        if word.empty? || inflections(locale).uncountables.uncountable?(result)
           result
         else
           rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }

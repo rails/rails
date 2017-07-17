@@ -45,14 +45,14 @@ module SharedGeneratorTests
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
       content = capture(:stderr) { run_generator [File.join(destination_root, reserved)] }
-      assert_match(/Invalid \w+ name #{reserved}. Please give a name which does not match one of the reserved rails words: application, destroy, plugin, runner, test\n/, content)
+      assert_match(/Invalid \w+ name #{reserved}\. Please give a name which does not match one of the reserved rails words: application, destroy, plugin, runner, test\n/, content)
     end
   end
 
   def test_name_raises_an_error_if_name_already_used_constant
     %w{ String Hash Class Module Set Symbol }.each do |ruby_class|
       content = capture(:stderr) { run_generator [File.join(destination_root, ruby_class)] }
-      assert_match(/Invalid \w+ name #{ruby_class}, constant #{ruby_class} is already in use. Please choose another \w+ name.\n/, content)
+      assert_match(/Invalid \w+ name #{ruby_class}, constant #{ruby_class} is already in use\. Please choose another \w+ name\.\n/, content)
     end
   end
 

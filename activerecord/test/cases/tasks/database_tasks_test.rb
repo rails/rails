@@ -343,11 +343,35 @@ module ActiveRecord
 
       ENV["VERBOSE"] = "false"
       ENV["VERSION"] = "4"
-
       ActiveRecord::Migrator.expects(:migrate).with("custom/path", 4)
+      ActiveRecord::Migration.expects(:verbose=).with(false)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      ENV.delete("VERBOSE")
+      ENV.delete("VERSION")
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", nil)
+      ActiveRecord::Migration.expects(:verbose=).with(true)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
+      ENV["VERBOSE"] = "yes"
+      ENV["VERSION"] = "unknown"
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", 0)
+      ActiveRecord::Migration.expects(:verbose=).with(true)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     ensure
       ENV["VERBOSE"], ENV["VERSION"] = verbose, version
+    end
+
+    def test_migrate_raise_error_on_empty_version
+      version = ENV["VERSION"]
+      ENV["VERSION"] = ""
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_equal "Empty VERSION provided", e.message
+    ensure
+      ENV["VERSION"] = version
     end
 
     def test_migrate_clears_schema_cache_afterward

@@ -1,5 +1,5 @@
-require "active_record/attribute_set/builder"
-require "active_record/attribute_set/yaml_encoder"
+require_relative "attribute_set/builder"
+require_relative "attribute_set/yaml_encoder"
 
 module ActiveRecord
   class AttributeSet # :nodoc:
@@ -64,7 +64,7 @@ module ActiveRecord
     end
 
     def deep_dup
-      dup.tap do |copy|
+      self.class.allocate.tap do |copy|
         copy.instance_variable_set(:@attributes, attributes.deep_dup)
       end
     end

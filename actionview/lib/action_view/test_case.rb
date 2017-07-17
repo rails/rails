@@ -71,7 +71,7 @@ module ActionView
         def helper_method(*methods)
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
-            _helpers.module_eval <<-end_eval
+            _helpers.module_eval <<-end_eval, __FILE__, __LINE__ + 1
               def #{method}(*args, &block)                    # def current_user(*args, &block)
                 _test_case.send(%(#{method}), *args, &block)  #   _test_case.send(%(current_user), *args, &block)
               end                                             # end
@@ -104,7 +104,7 @@ module ActionView
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
         @output_buffer = ActiveSupport::SafeBuffer.new ""
-        @rendered = ""
+        @rendered = "".dup
 
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!

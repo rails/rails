@@ -10,8 +10,15 @@ module ActiveRecord
         value = id_value_for_database(value) if value.is_a?(Base)
 
         if value.respond_to?(:quoted_id)
+          at = value.method(:quoted_id).source_location
+          at &&= " at %s:%d" % at
+
+          owner = value.method(:quoted_id).owner.to_s
+          klass = value.class.to_s
+          klass += "(#{owner})" unless owner == klass
+
           ActiveSupport::Deprecation.warn \
-            "Using #quoted_id is deprecated and will be removed in Rails 5.2."
+            "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
           return value.quoted_id
         end
 
@@ -61,17 +68,6 @@ module ActiveRecord
         lookup_cast_type(column.sql_type)
       end
 
-      def fetch_type_metadata(sql_type)
-        cast_type = lookup_cast_type(sql_type)
-        SqlTypeMetadata.new(
-          sql_type: sql_type,
-          type: cast_type.type,
-          limit: cast_type.limit,
-          precision: cast_type.precision,
-          scale: cast_type.scale,
-        )
-      end
-
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
@@ -110,19 +106,19 @@ module ActiveRecord
       end
 
       def quoted_true
-        "'t'".freeze
+        "TRUE".freeze
       end
 
       def unquoted_true
-        "t".freeze
+        true
       end
 
       def quoted_false
-        "'f'".freeze
+        "FALSE".freeze
       end
 
       def unquoted_false
-        "f".freeze
+        false
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -152,10 +148,17 @@ module ActiveRecord
         "'#{quote_string(value.to_s)}'"
       end
 
-      private
-
-        def type_casted_binds(binds)
+      def type_casted_binds(binds) # :nodoc:
+        if binds.first.is_a?(Array)
+          binds.map { |column, value| type_cast(value, column) }
+        else
           binds.map { |attr| type_cast(attr.value_for_database) }
+        end
+      end
+
+      private
+        def lookup_cast_type(sql_type)
+          type_map.lookup(sql_type)
         end
 
         def id_value_for_database(value)

@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require "tzinfo"
 require "concurrent/map"
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 146
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
@@ -59,6 +61,7 @@ module ActiveSupport
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
+      "Puerto Rico"                  => "America/Puerto_Rico",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
@@ -250,14 +253,21 @@ module ActiveSupport
       # for time zones in the country specified by its ISO 3166-1 Alpha2 code.
       def country_zones(country_code)
         code = country_code.to_s.upcase
-        @country_zones[code] ||=
-          TZInfo::Country.get(code).zone_identifiers.map do |tz_id|
-            name = MAPPING.key(tz_id)
-            name && self[name]
-          end.compact.sort!
+        @country_zones[code] ||= load_country_zones(code)
       end
 
       private
+        def load_country_zones(code)
+          country = TZInfo::Country.get(code)
+          country.zone_identifiers.map do |tz_id|
+            if MAPPING.value?(tz_id)
+              self[MAPPING.key(tz_id)]
+            else
+              create(tz_id, nil, TZInfo::Timezone.new(tz_id))
+            end
+          end.sort!
+        end
+
         def zones_map
           @zones_map ||= begin
             MAPPING.each_key { |place| self[place] } # load all the zones
@@ -351,7 +361,7 @@ module ActiveSupport
     #   Time.zone.iso8601('1999-12-31') # => Fri, 31 Dec 1999 00:00:00 HST -10:00
     #
     # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
-    # which returns +nil+ when given an invalid date string.
+    # which usually returns +nil+ when given an invalid date string.
     def iso8601(str)
       parts = Date._iso8601(str)
 
@@ -390,6 +400,8 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
+    #
+    # If the string is invalid then an +ArgumentError+ could be raised.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end

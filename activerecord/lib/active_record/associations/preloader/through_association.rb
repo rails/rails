@@ -11,20 +11,20 @@ module ActiveRecord
         end
 
         def associated_records_by_owner(preloader)
+          through_scope = through_scope()
+
           preloader.preload(owners,
                             through_reflection.name,
                             through_scope)
 
           through_records = owners.map do |owner|
-            association = owner.association through_reflection.name
-
-            center = target_records_from_association(association)
+            center = owner.association(through_reflection.name).target
             [owner, Array(center)]
           end
 
-          reset_association owners, through_reflection.name
+          reset_association(owners, through_reflection.name, through_scope)
 
-          middle_records = through_records.flat_map { |(_, rec)| rec }
+          middle_records = through_records.flat_map(&:last)
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -43,9 +43,7 @@ module ActiveRecord
 
             records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
               rhs_records = middles.flat_map { |r|
-                association = r.association source_reflection.name
-
-                target_records_from_association(association)
+                r.association(source_reflection.name).target
               }.compact
 
               # Respect the order on `reflection_scope` if it exists, else use the natural order.
@@ -67,9 +65,9 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name)
+          def reset_association(owners, association_name, through_scope)
             should_reset = (through_scope != through_reflection.klass.unscoped) ||
-               (reflection.options[:source_type] && through_reflection.collection?)
+               (options[:source_type] && through_reflection.collection?)
 
             # Don't cache the association - we would only be caching a subset
             if should_reset
@@ -81,26 +79,29 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
+            values = reflection_scope.values
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
             else
               unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+                scope.includes_values = Array(values[:includes] || options[:source])
                 scope.where_clause = reflection_scope.where_clause
+                if joins = values[:joins]
+                  scope.joins!(source_reflection.name => joins)
+                end
+                if left_outer_joins = values[:left_outer_joins]
+                  scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+                end
               end
 
-              scope.references! reflection_scope.values[:references]
-              if scope.eager_loading? && order_values = reflection_scope.values[:order]
+              scope.references! values[:references]
+              if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end
             end
 
             scope
-          end
-
-          def target_records_from_association(association)
-            association.loaded? ? association.target : association.reader
           end
       end
     end

@@ -196,7 +196,7 @@ module ActionDispatch
         @buffer << @view.render(partial: "routes/route", collection: routes)
       end
 
-      # the header is part of the HTML page, so we don't construct it here.
+      # The header is part of the HTML page, so we don't construct it here.
       def header(routes)
       end
 

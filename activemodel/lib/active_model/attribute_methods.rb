@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "mutex_m"
 
@@ -68,9 +70,8 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_aliases, :attribute_method_matchers, instance_writer: false
-      self.attribute_aliases = {}
-      self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
+      class_attribute :attribute_aliases, instance_writer: false, default: {}
+      class_attribute :attribute_method_matchers, instance_writer: false, default: [ ClassMethods::AttributeMethodMatcher.new ]
     end
 
     module ClassMethods
@@ -471,6 +472,10 @@ module ActiveModel
 
       def missing_attribute(attr_name, stack)
         raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+      end
+
+      def _read_attribute(attr)
+        __send__(attr)
       end
   end
 end

@@ -204,8 +204,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_join_table :artists, :musics/, change)
-        assert_match(/# t.index \[:artist_id, :music_id\]/, change)
-        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
+        assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
+        assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
       end
     end
   end
@@ -265,8 +265,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/create_join_table :artist, :music/, change)
-          assert_match(/# t.index \[:artist_id, :music_id\]/, change)
-          assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
+          assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
+          assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
         end
       end
     end

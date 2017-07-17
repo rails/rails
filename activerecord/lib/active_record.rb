@@ -26,8 +26,8 @@ require "active_support/rails"
 require "active_model"
 require "arel"
 
-require "active_record/version"
-require "active_record/attribute_set"
+require_relative "active_record/version"
+require_relative "active_record/attribute_set"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -177,5 +177,5 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + "/active_record/locale/en.yml"
+  I18n.load_path << File.expand_path("active_record/locale/en.yml", __dir__)
 end

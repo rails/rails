@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "openssl"
 require "base64"
-require "active_support/core_ext/array/extract_options"
-require "active_support/message_verifier"
+require_relative "core_ext/array/extract_options"
+require_relative "message_verifier"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -13,13 +15,24 @@ module ActiveSupport
   # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
   # where you don't want users to be able to determine the value of the payload.
   #
-  #   salt  = SecureRandom.random_bytes(64)
-  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt, 32) # => "\x89\xE0\x156\xAC..."
-  #   crypt = ActiveSupport::MessageEncryptor.new(key)                           # => #<ActiveSupport::MessageEncryptor ...>
-  #   encrypted_data = crypt.encrypt_and_sign('my secret data')                  # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
-  #   crypt.decrypt_and_verify(encrypted_data)                                   # => "my secret data"
+  #   len   = ActiveSupport::MessageEncryptor.key_len
+  #   salt  = SecureRandom.random_bytes(len)
+  #   key   = ActiveSupport::KeyGenerator.new('password').generate_key(salt, len) # => "\x89\xE0\x156\xAC..."
+  #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
+  #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
+  #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
   class MessageEncryptor
-    DEFAULT_CIPHER = "aes-256-cbc"
+    class << self
+      attr_accessor :use_authenticated_message_encryption #:nodoc:
+
+      def default_cipher #:nodoc:
+        if use_authenticated_message_encryption
+          "aes-256-gcm"
+        else
+          "aes-256-cbc"
+        end
+      end
+    end
 
     module NullSerializer #:nodoc:
       def self.load(value)
@@ -45,14 +58,19 @@ module ActiveSupport
     OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
-    # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
+    # the cipher key size. For the default 'aes-256-gcm' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
     # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
     # derivation function.
     #
+    # First additional parameter is used as the signature key for +MessageVerifier+.
+    # This allows you to specify keys to encrypt and sign data.
+    #
+    #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
+    #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
-    #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
+    #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
@@ -61,7 +79,7 @@ module ActiveSupport
       sign_secret = signature_key_or_options.first
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || DEFAULT_CIPHER
+      @cipher = options[:cipher] || self.class.default_cipher
       @digest = options[:digest] || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
       @serializer = options[:serializer] || Marshal
@@ -80,7 +98,7 @@ module ActiveSupport
     end
 
     # Given a cipher, returns the key length of the cipher to help generate the key of desired size
-    def self.key_len(cipher = DEFAULT_CIPHER)
+    def self.key_len(cipher = default_cipher)
       OpenSSL::Cipher.new(cipher).key_len
     end
 
@@ -99,7 +117,7 @@ module ActiveSupport
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-        blob << "--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
+        blob = "#{blob}--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
         blob
       end
 
@@ -110,7 +128,7 @@ module ActiveSupport
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && auth_tag.bytes.length != 16
+        raise InvalidMessage if aead_mode? && (auth_tag.nil? || auth_tag.bytes.length != 16)
 
         cipher.decrypt
         cipher.key = @secret

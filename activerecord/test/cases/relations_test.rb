@@ -22,7 +22,7 @@ require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
@@ -112,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal "The First Topic", topics.first.title
@@ -123,7 +123,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loaded_first_with_limit
     topics = Topic.all.order("id ASC")
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       assert_equal ["The First Topic",
@@ -136,7 +136,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_get_more_than_available
     topics = Topic.all.order("id ASC")
     unloaded_first = topics.first(10)
-    topics.to_a # force load
+    topics.load # force load
 
     assert_no_queries do
       loaded_first = topics.first(10)
@@ -218,14 +218,31 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
-  def test_finding_with_reverted_assoc_order
+  def test_finding_with_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :desc)
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_assoc_order
     topics = Topic.order(id: :asc).reverse_order
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
+  def test_finding_with_reversed_arel_assoc_order
+    topics = Topic.order(Arel.sql("id") => :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_function
     topics = Topic.order("length(title)").reverse_order
+    assert_equal topics(:second).title, topics.first.title
+  end
+
+  def test_reverse_arel_assoc_order_with_function
+    topics = Topic.order(Arel.sql("length(title)") => :asc).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -248,6 +265,12 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+    end
+  end
+
+  def test_reverse_arel_assoc_order_with_multiargument_function
+    assert_nothing_raised do
+      Topic.order(Arel.sql("REPLACE(title, '', '')") => :asc).reverse_order
     end
   end
 
@@ -571,7 +594,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_respond_to_delegates_to_relation
+  def test_respond_to_delegates_to_arel
     relation = Topic.all
     fake_arel = Struct.new(:responds) {
       def respond_to?(method, access = false)
@@ -584,10 +607,6 @@ class RelationTest < ActiveRecord::TestCase
 
     relation.respond_to?(:matching_attributes)
     assert_equal [:matching_attributes, false], fake_arel.responds.first
-
-    fake_arel.responds = []
-    relation.respond_to?(:matching_attributes, true)
-    assert_equal [:matching_attributes, true], fake_arel.responds.first
   end
 
   def test_respond_to_dynamic_finders
@@ -674,16 +693,6 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
       assert posts.first.comments.first
     end
-  end
-
-  def test_default_scope_with_conditions_string
-    assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
-    assert_nil DeveloperCalledDavid.create!.name
-  end
-
-  def test_default_scope_with_conditions_hash
-    assert_equal Developer.where(name: "Jamis").map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
-    assert_equal "Jamis", DeveloperCalledJamis.create!.name
   end
 
   def test_default_scoping_finder_methods
@@ -1132,7 +1141,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1143,7 +1152,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal 9, best_posts.size }
   end
 
@@ -1153,7 +1162,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal 0, posts.size }
     assert ! posts.loaded?
 
-    posts.to_a # force load
+    posts.load # force load
     assert_no_queries { assert_equal 0, posts.size }
   end
 
@@ -1182,7 +1191,7 @@ class RelationTest < ActiveRecord::TestCase
     assert ! no_posts.loaded?
 
     best_posts = posts.where(comments_count: 0)
-    best_posts.to_a # force load
+    best_posts.load # force load
     assert_no_queries { assert_equal false, best_posts.empty? }
   end
 
@@ -1473,7 +1482,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
   end
 
-  def test_explicit_create_scope
+  def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
 
@@ -1708,6 +1717,9 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
+    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
+
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
 
@@ -1725,6 +1737,9 @@ class RelationTest < ActiveRecord::TestCase
   def test_automatically_added_reorder_references
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
+
+    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values
@@ -1878,6 +1893,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
+  test "relations don't load all records in #inspect" do
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      Post.all.inspect
+    end
+  end
+
   test "already-loaded relations don't perform a new query in #inspect" do
     relation = Post.limit(2)
     relation.to_a
@@ -1947,25 +1968,37 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal p2.first.comments, comments
   end
 
-  def test_unscope_removes_binds
-    left = Post.where(id: Arel::Nodes::BindParam.new)
-    column = Post.columns_hash["id"]
-    left.bind_values += [[column, 20]]
+  def test_unscope_specific_where_value
+    posts = Post.where(title: "Welcome to the weblog", body: "Such a lovely day")
 
-    relation = left.unscope(where: :id)
-    assert_equal [], relation.bind_values
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+    assert_equal 1, posts.unscope(where: :body).count
   end
 
-  def test_merging_removes_rhs_bind_parameters
+  def test_unscope_removes_binds
+    left = Post.where(id: 20)
+
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
+
+    relation = left.unscope(where: :id)
+    assert_equal [], relation.bound_attributes
+  end
+
+  def test_merging_removes_rhs_binds
     left = Post.where(id: 20)
     right = Post.where(id: [1, 2, 3, 4])
 
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
+    assert_equal binds, left.bound_attributes
+
     merged = left.merge(right)
-    assert_equal [], merged.bind_values
+    assert_equal [], merged.bound_attributes
   end
 
-  def test_merging_keeps_lhs_bind_parameters
-    binds = [ActiveRecord::Relation::QueryAttribute.new("id", 20, Post.type_for_attribute("id"))]
+  def test_merging_keeps_lhs_binds
+    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
 
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)
@@ -1974,13 +2007,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal binds, merged.bound_attributes
   end
 
-  def test_merging_reorders_bind_params
-    post  = Post.first
-    right = Post.where(id: post.id)
-    left  = Post.where(title: post.title)
-
-    merged = left.merge(right)
-    assert_equal post, merged.first
+  def test_locked_should_not_build_arel
+    posts = Post.locked
+    assert posts.locked?
+    assert_nothing_raised { posts.lock!(false) }
   end
 
   def test_relation_join_method
@@ -2003,5 +2033,47 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, posts.to_a.length
+  end
+
+  test "#skip_query_cache!" do
+    Post.cache do
+      assert_queries(1) do
+        Post.all.load
+        Post.all.load
+      end
+
+      assert_queries(2) do
+        Post.all.skip_query_cache!.load
+        Post.all.skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with an eager load" do
+    Post.cache do
+      assert_queries(1) do
+        Post.eager_load(:comments).load
+        Post.eager_load(:comments).load
+      end
+
+      assert_queries(2) do
+        Post.eager_load(:comments).skip_query_cache!.load
+        Post.eager_load(:comments).skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with a preload" do
+    Post.cache do
+      assert_queries(2) do
+        Post.preload(:comments).load
+        Post.preload(:comments).load
+      end
+
+      assert_queries(4) do
+        Post.preload(:comments).skip_query_cache!.load
+        Post.preload(:comments).skip_query_cache!.load
+      end
+    end
   end
 end

@@ -2,6 +2,8 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class TypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
+        undef to_yaml if method_defined?(:to_yaml)
+
         attr_reader :extra
 
         def initialize(type_metadata, extra: "")

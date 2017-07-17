@@ -202,9 +202,27 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
-  # ensures +exists?+ runs valid SQL by excluding order value
-  def test_exists_with_order
+  # Ensure +exists?+ runs without an error by excluding distinct value.
+  # See https://github.com/rails/rails/pull/26981.
+  def test_exists_with_order_and_distinct
     assert_equal true, Topic.order(:id).distinct.exists?
+  end
+
+  # Ensure +exists?+ runs without an error by excluding order value.
+  def test_exists_with_order
+    assert_equal true, Topic.order("invalid sql here").exists?
+  end
+
+  def test_exists_with_joins
+    assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_left_joins
+    assert_equal true, Topic.left_joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_eager_load
+    assert_equal true, Topic.eager_load(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
@@ -236,9 +254,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
   def test_exists_does_not_instantiate_records
@@ -725,7 +743,6 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "HHC", replies_count: 1, approved: false).find(1) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
   end
 
   def test_condition_interpolation
@@ -1006,16 +1023,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end
 
-  def test_find_all_with_join
-    developers_on_project_one = Developer.
-      joins("LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id").
-      where("project_id=1").to_a
-    assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map(&:name)
-    assert_includes developer_names, "David"
-    assert_includes developer_names, "Jamis"
-  end
-
   def test_joins_dont_clobber_id
     first = Firm.
       joins("INNER JOIN companies clients ON clients.firm_id = companies.id").
@@ -1223,6 +1230,34 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  test "#skip_query_cache! for #exists?" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.exists?
+        Topic.exists?
+      end
+
+      assert_queries(2) do
+        Topic.all.skip_query_cache!.exists?
+        Topic.all.skip_query_cache!.exists?
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #exists? with a limited eager load" do
+    Topic.cache do
+      assert_queries(2) do
+        Topic.eager_load(:replies).limit(1).exists?
+        Topic.eager_load(:replies).limit(1).exists?
+      end
+
+      assert_queries(4) do
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+      end
+    end
   end
 
   private

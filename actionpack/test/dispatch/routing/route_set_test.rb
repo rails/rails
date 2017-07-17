@@ -138,6 +138,15 @@ module ActionDispatch
         assert_equal "/a/users/1", url_helpers.user_path(1, foo: "a")
       end
 
+      test "implicit path components consistently return the same result" do
+        draw do
+          resources :users, to: SimpleApp.new("foo#index")
+        end
+        assert_equal "/users/1.json", url_helpers.user_path(1, :json)
+        assert_equal "/users/1.json", url_helpers.user_path(1, format: :json)
+        assert_equal "/users/1.json", url_helpers.user_path(1, :json)
+      end
+
       private
         def draw(&block)
           @set.draw(&block)

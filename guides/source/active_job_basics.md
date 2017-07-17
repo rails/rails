@@ -114,7 +114,7 @@ For enqueuing and executing jobs in production you need to set up a queuing back
 that is to say you need to decide for a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
-default async back-end. This may be fine for smaller apps or non-critical jobs, but most
+default async backend. This may be fine for smaller apps or non-critical jobs, but most
 production apps will need to pick a persistent backend.
 
 ### Backends
@@ -309,6 +309,12 @@ UserMailer.welcome(@user).deliver_now
 # If you want to send the email through Active Job use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
+
+NOTE: Using the asynchronous queue from a Rake task (for example, to
+send an email using `.deliver_later`) will generally not work because Rake will
+likely end, causing the in-process thread pool to be deleted, before any/all
+of the `.deliver_later` emails are processed. To avoid this problem, use
+`.deliver_now` or run a persistent queue in development.
 
 
 Internationalization

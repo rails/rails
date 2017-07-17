@@ -1,4 +1,3 @@
-
 require "cases/helper"
 
 module ActiveRecord

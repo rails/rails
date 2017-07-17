@@ -6,11 +6,11 @@ module ActiveRecord
       end
 
       def call(attribute, value)
+        return attribute.in([]) if value.empty?
+        return queries_predicates(value) if value.all? { |v| v.is_a?(Hash) }
+
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
-
-        return attribute.in([]) if values.empty? && nils.empty?
-
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
         values_predicate =
@@ -26,7 +26,7 @@ module ActiveRecord
 
         array_predicates = ranges.map { |range| predicate_builder.build(attribute, range) }
         array_predicates.unshift(values_predicate)
-        array_predicates.inject { |composite, predicate| composite.or(predicate) }
+        array_predicates.inject(&:or)
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
@@ -38,6 +38,17 @@ module ActiveRecord
         module NullPredicate # :nodoc:
           def self.or(other)
             other
+          end
+        end
+
+      private
+        def queries_predicates(queries)
+          if queries.size > 1
+            queries.map do |query|
+              Arel::Nodes::And.new(predicate_builder.build_from_hash(query))
+            end.inject(&:or)
+          else
+            predicate_builder.build_from_hash(queries.first)
           end
         end
     end

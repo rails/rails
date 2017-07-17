@@ -1,4 +1,6 @@
-require "active_model/type/integer"
+# frozen_string_literal: true
+
+require_relative "integer"
 
 module ActiveModel
   module Type

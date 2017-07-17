@@ -3,7 +3,8 @@ Dir.chdir(VENDOR_PATH) do
   begin
     exec "yarnpkg #{ARGV.join(" ")}"
   rescue Errno::ENOENT
-    puts "Yarn executable was not detected in the system."
-    puts "Download Yarn at https://yarnpkg.com/en/docs/install"
+    $stderr.puts "Yarn executable was not detected in the system."
+    $stderr.puts "Download Yarn at https://yarnpkg.com/en/docs/install"
+    exit 1
   end
 end

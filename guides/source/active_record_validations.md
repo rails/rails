@@ -490,9 +490,6 @@ If you set `:only_integer` to `true`, then it will use the
 regular expression to validate the attribute's value. Otherwise, it will try to
 convert the value to a number using `Float`.
 
-WARNING. Note that the regular expression above allows a trailing newline
-character.
-
 ```ruby
 class Player < ApplicationRecord
   validates :points, numericality: true
@@ -956,7 +953,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?],
+                    if: [Proc.new  { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```

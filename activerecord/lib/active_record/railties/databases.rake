@@ -77,6 +77,8 @@ db_namespace = namespace :db do
   namespace :migrate do
     # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task redo: [:environment, :load_config] do
+      raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
+
       if ENV["VERSION"]
         db_namespace["migrate:down"].invoke
         db_namespace["migrate:up"].invoke
@@ -91,16 +93,17 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: [:environment, :load_config] do
+      raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      raise "VERSION is required" unless version
       ActiveRecord::Migrator.run(:up, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: [:environment, :load_config] do
+      raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
       version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      raise "VERSION is required - To go down one migration, run db:rollback" unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
       db_namespace["_dump"].invoke
     end
@@ -184,7 +187,7 @@ db_namespace = namespace :db do
   namespace :fixtures do
     desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task load: [:environment, :load_config] do
-      require "active_record/fixtures"
+      require_relative "../fixtures"
 
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
@@ -206,7 +209,7 @@ db_namespace = namespace :db do
 
     # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task identify: [:environment, :load_config] do
-      require "active_record/fixtures"
+      require_relative "../fixtures"
 
       label, id = ENV["LABEL"], ENV["ID"]
       raise "LABEL or ID required" if label.blank? && id.blank?
@@ -232,7 +235,7 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: [:environment, :load_config] do
-      require "active_record/schema_dumper"
+      require_relative "../schema_dumper"
       filename = ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema.rb")
       File.open(filename, "w:utf-8") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)

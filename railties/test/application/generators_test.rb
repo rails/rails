@@ -189,6 +189,9 @@ module ApplicationTests
       FileUtils.cd(rails_root) do
         output = `bin/rails generate --help`
         assert_no_match "active_record:migration", output
+
+        output = `bin/rails destroy --help`
+        assert_no_match "active_record:migration", output
       end
     end
   end

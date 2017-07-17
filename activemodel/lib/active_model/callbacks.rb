@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 
 module ActiveModel
@@ -56,6 +58,9 @@ module ActiveModel
   #
   # Would only create the +after_create+ and +before_create+ callback methods in
   # your class.
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  #
   module Callbacks
     def self.extended(base) #:nodoc:
       base.class_eval do

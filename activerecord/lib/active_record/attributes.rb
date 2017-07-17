@@ -1,4 +1,4 @@
-require "active_record/attribute/user_provided_default"
+require_relative "attribute/user_provided_default"
 
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
@@ -6,8 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
-      self.attributes_to_define_after_schema_loads = {}
+      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods

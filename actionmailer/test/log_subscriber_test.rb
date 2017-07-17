@@ -26,7 +26,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     wait
 
     assert_equal(1, @logger.logged(:info).size)
-    assert_match(/Sent mail to system@test.lindsaar.net/, @logger.logged(:info).first)
+    assert_match(/Sent mail to system@test\.lindsaar\.net/, @logger.logged(:info).first)
 
     assert_equal(2, @logger.logged(:debug).size)
     assert_match(/BaseMailer#welcome: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
@@ -36,7 +36,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
   end
 
   def test_receive_is_notified
-    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
+    fixture = File.read(File.expand_path("fixtures/raw_email", __dir__))
     TestMailer.receive(fixture)
     wait
     assert_equal(1, @logger.logged(:info).size)

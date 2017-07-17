@@ -123,7 +123,7 @@ module ActiveRecord
     #     # statement will cause a PostgreSQL error, even though the unique
     #     # constraint is no longer violated:
     #     Number.create(i: 1)
-    #     # => "PGError: ERROR:  current transaction is aborted, commands
+    #     # => "PG::Error: ERROR:  current transaction is aborted, commands
     #     #     ignored until end of transaction block"
     #   end
     #
@@ -490,7 +490,7 @@ module ActiveRecord
       def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
           restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
+          clear_transaction_record_state if transaction_state.fully_completed?
         end
       end
   end

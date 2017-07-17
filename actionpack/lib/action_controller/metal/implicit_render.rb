@@ -2,11 +2,11 @@ module ActionController
   # Handles implicit rendering for a controller action that does not
   # explicitly respond with +render+, +respond_to+, +redirect+, or +head+.
   #
-  # For API controllers, the implicit response is always 204 No Content.
+  # For API controllers, the implicit response is always <tt>204 No Content</tt>.
   #
   # For all other controllers, we use these heuristics to decide whether to
   # render a template, raise an error for a missing template, or respond with
-  # 204 No Content:
+  # <tt>204 No Content</tt>:
   #
   # First, if we DO find a template, it's rendered. Template lookup accounts
   # for the action name, locales, format, variant, template handlers, and more
@@ -23,7 +23,7 @@ module ActionController
   # <tt>ActionView::UnknownFormat</tt> with an explanation.
   #
   # Finally, if we DON'T find a template AND the request isn't a browser page
-  # load, then we implicitly respond with 204 No Content.
+  # load, then we implicitly respond with <tt>204 No Content</tt>.
   module ImplicitRender
     # :stopdoc:
     include BasicImplicitRender

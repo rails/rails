@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/gid_job"
 require "jobs/hello_job"
@@ -43,5 +45,13 @@ class JobSerializationTest < ActiveSupport::TestCase
     job = HelloJob.new
     job.deserialize({})
     assert_equal "en", job.locale
+  end
+
+  test "serialize stores provider_job_id" do
+    job = HelloJob.new
+    assert_nil job.serialize["provider_job_id"]
+
+    job.provider_job_id = "some value set by adapter"
+    assert_equal job.provider_job_id, job.serialize["provider_job_id"]
   end
 end

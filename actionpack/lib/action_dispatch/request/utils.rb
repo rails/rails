@@ -1,8 +1,7 @@
 module ActionDispatch
   class Request
     class Utils # :nodoc:
-      mattr_accessor :perform_deep_munge
-      self.perform_deep_munge = true
+      mattr_accessor :perform_deep_munge, default: true
 
       def self.each_param_value(params, &block)
         case params
@@ -40,7 +39,6 @@ module ActionDispatch
 
       class ParamEncoder # :nodoc:
         # Convert nested Hash to HashWithIndifferentAccess.
-        #
         def self.normalize_encode_params(params)
           case params
           when Array
@@ -63,7 +61,7 @@ module ActionDispatch
         end
       end
 
-      # Remove nils from the params hash
+      # Remove nils from the params hash.
       class NoNilParamEncoder < ParamEncoder # :nodoc:
         def self.handle_array(params)
           list = super

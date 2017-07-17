@@ -9,22 +9,22 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
   def setup
     build_app
-
-    @old_read_encrypted_secrets, Rails::Secrets.read_encrypted_secrets =
-      Rails::Secrets.read_encrypted_secrets, true
   end
 
   def teardown
-    Rails::Secrets.read_encrypted_secrets = @old_read_encrypted_secrets
-
     teardown_app
   end
 
   test "setting read to false skips parsing" do
-    Rails::Secrets.read_encrypted_secrets = false
+    run_secrets_generator do
+      Rails::Secrets.write(<<-end_of_secrets)
+        test:
+          yeah_yeah: lets-walk-in-the-cool-evening-light
+      end_of_secrets
 
-    Dir.chdir(app_path) do
-      assert_equal Hash.new, Rails::Secrets.parse(%w( config/secrets.yml.enc ), env: "production")
+      Rails.application.config.read_encrypted_secrets = false
+      Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
+      assert_not Rails.application.secrets.yeah_yeah
     end
   end
 
@@ -90,8 +90,76 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       end_of_secrets
 
       Rails.application.config.root = app_path
+      Rails.application.config.read_encrypted_secrets = true
       Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
       assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.secrets.yeah_yeah
+    end
+  end
+
+  test "refer secrets inside env config" do
+    run_secrets_generator do
+      Rails::Secrets.write(<<-end_of_yaml)
+        production:
+          some_secret: yeah yeah
+      end_of_yaml
+
+      add_to_env_config "production", <<-end_of_config
+        config.dereferenced_secret = Rails.application.secrets.some_secret
+      end_of_config
+
+      assert_equal "yeah yeah\n", `bin/rails runner -e production "puts Rails.application.config.dereferenced_secret"`
+    end
+  end
+
+  test "do not update secrets.yml.enc when secretes do not change" do
+    run_secrets_generator do
+      Dir.chdir(app_path) do
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        FileUtils.cp("config/secrets.yml.enc", "config/secrets.yml.enc.bk")
+
+        Rails::Secrets.read_for_editing do |tmp_path|
+          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+        end
+
+        assert_equal File.read("config/secrets.yml.enc.bk"), File.read("config/secrets.yml.enc")
+      end
+    end
+  end
+
+  test "can read secrets written in binary" do
+    run_secrets_generator do
+      secrets = <<-end_of_secrets
+        production:
+          api_key: 00112233445566778899aabbccddeeff…
+      end_of_secrets
+
+      Rails::Secrets.write(secrets.force_encoding(Encoding::ASCII_8BIT))
+
+      Rails::Secrets.read_for_editing do |tmp_path|
+        assert_match(/production:\n\s*api_key: 00112233445566778899aabbccddeeff…\n/, File.read(tmp_path))
+      end
+
+      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
+    end
+  end
+
+  test "can read secrets written in non-binary" do
+    run_secrets_generator do
+      secrets = <<-end_of_secrets
+        production:
+          api_key: 00112233445566778899aabbccddeeff…
+      end_of_secrets
+
+      Rails::Secrets.write(secrets)
+
+      Rails::Secrets.read_for_editing do |tmp_path|
+        assert_equal(secrets.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
+      end
+
+      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
     end
   end
 

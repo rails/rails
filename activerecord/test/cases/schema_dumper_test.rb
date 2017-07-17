@@ -17,6 +17,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     dump_all_table_schema []
   end
 
+  def test_dump_schema_information_with_empty_versions
+    ActiveRecord::SchemaMigration.delete_all
+    schema_info = ActiveRecord::Base.connection.dump_schema_information
+    assert_no_match(/INSERT INTO/, schema_info)
+  end
+
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.reverse_each do |v|
@@ -116,32 +122,22 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_includes_limit_constraint_for_integer_columns
     output = dump_all_table_schema([/^(?!integer_limits)/])
 
-    assert_match %r{c_int_without_limit}, output
+    assert_match %r{"c_int_without_limit"(?!.*limit)}, output
 
     if current_adapter?(:PostgreSQLAdapter)
-      assert_no_match %r{c_int_without_limit.*limit:}, output
-
       assert_match %r{c_int_1.*limit: 2}, output
       assert_match %r{c_int_2.*limit: 2}, output
 
       # int 3 is 4 bytes in postgresql
-      assert_match %r{c_int_3.*}, output
-      assert_no_match %r{c_int_3.*limit:}, output
-
-      assert_match %r{c_int_4.*}, output
-      assert_no_match %r{c_int_4.*limit:}, output
+      assert_match %r{"c_int_3"(?!.*limit)}, output
+      assert_match %r{"c_int_4"(?!.*limit)}, output
     elsif current_adapter?(:Mysql2Adapter)
-      assert_match %r{c_int_without_limit"$}, output
-
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
 
-      assert_match %r{c_int_4.*}, output
-      assert_no_match %r{c_int_4.*:limit}, output
+      assert_match %r{"c_int_4"(?!.*limit)}, output
     elsif current_adapter?(:SQLite3Adapter)
-      assert_no_match %r{c_int_without_limit.*limit:}, output
-
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -182,7 +178,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     elsif current_adapter?(:Mysql2Adapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
+      if ActiveRecord::Base.connection.supports_index_sort_order?
+        assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
+      else
+        assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
+      end
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
@@ -326,7 +326,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
     output = standard_dump
-    assert_match %r{create_table "subscribers", id: false}, output
+    assert_match %r{create_table "string_key_objects", id: false}, output
   end
 
   if ActiveRecord::Base.connection.supports_foreign_keys?

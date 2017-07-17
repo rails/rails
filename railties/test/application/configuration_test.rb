@@ -176,13 +176,11 @@ module ApplicationTests
 
     test "Rails.application responds to all instance methods" do
       app "development"
-      assert_respond_to Rails.application, :routes_reloader
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
     end
 
     test "Rails::Application responds to paths" do
       app "development"
-      assert_respond_to AppTemplate::Application, :paths
       assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
     end
 
@@ -693,6 +691,66 @@ module ApplicationTests
       assert_match(/label/, last_response.body)
     end
 
+    test "form_with can be configured with form_with_generates_remote_forms" do
+      app_file "config/initializers/form_builder.rb", <<-RUBY
+      Rails.configuration.action_view.form_with_generates_remote_forms = false
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_no_match(/data-remote/, last_response.body)
+    end
+
+    test "form_with generates remote forms by default" do
+      app_file "app/models/post.rb", <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_match(/data-remote/, last_response.body)
+    end
+
     test "default method for update can be changed" do
       app_file "app/models/post.rb", <<-RUBY
       class Post
@@ -1072,6 +1130,8 @@ module ApplicationTests
 
       app "development"
 
+      lazy_load { ActionController::Base }
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }
@@ -1080,6 +1140,9 @@ module ApplicationTests
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
+
+      lazy_load { ActionController::Base }
+
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1089,6 +1152,8 @@ module ApplicationTests
       RUBY
 
       app "development"
+
+      lazy_load { ActionController::Base }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1112,6 +1177,8 @@ module ApplicationTests
 
       app "development"
 
+      lazy_load { ActionController::Base }
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
       post "/posts", post: { "title" => "zomg" }, format: "json"
@@ -1121,11 +1188,15 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       app "development"
 
+      lazy_load { ActionController::Base }
+
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       app "test"
+
+      lazy_load { ActionController::Base }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1133,7 +1204,49 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
       app "production"
 
+      lazy_load { ActionController::Base }
+
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.default_protect_from_forgery is true by default" do
+      app "development"
+
+      assert_equal true, ActionController::Base.default_protect_from_forgery
+      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
+    end
+
+    test "config.action_controller.permit_all_parameters can be configured in an initializer" do
+      app_file "config/initializers/permit_all_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.permit_all_parameters = true
+      RUBY
+
+      app "development"
+
+      lazy_load { ActionController::Base }
+      assert_equal true, ActionController::Parameters.permit_all_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/always_permitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.always_permitted_parameters = []
+      RUBY
+
+      app "development"
+
+      lazy_load { ActionController::Base }
+      assert_equal [], ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters can be configured in an initializer" do
+      app_file "config/initializers/action_on_unpermitted_parameters.rb", <<-RUBY
+        Rails.application.config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      lazy_load { ActionController::Base }
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_dispatch.ignore_accept_header" do
@@ -1160,7 +1273,6 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_respond_to app, :env_config
       assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
       assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
@@ -1347,6 +1459,40 @@ module ApplicationTests
       assert_match "config/database", err.message
     end
 
+    test "loads database.yml using shared keys" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          username: bobby
+          adapter: sqlite3
+
+        development:
+          database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["adapter"]
+      assert_equal "bobby",   ar_config["development"]["username"]
+      assert_equal "dev_db",  ar_config["development"]["database"]
+    end
+
+    test "loads database.yml using shared keys for undefined environments" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          username: bobby
+          adapter: sqlite3
+          database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["adapter"]
+      assert_equal "bobby",   ar_config["development"]["username"]
+      assert_equal "dev_db",  ar_config["development"]["database"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
@@ -1437,6 +1583,52 @@ module ApplicationTests
       app "development"
 
       assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_top_of_config <<-RUBY
+        config.load_defaults 5.1
+      RUBY
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      lazy_load { Post }
+
+      assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
+    test "default SQLite3Adapter.represent_boolean_as_integer for new installs is true" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      lazy_load { Post }
+
+      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+    end
+
+    test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+      lazy_load { Post }
+
+      assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
 
     test "config_for containing ERB tags should evaluate" do
@@ -1545,5 +1737,10 @@ module ApplicationTests
       assert_equal 301, last_response.status
       assert_equal "https://example.org/", last_response.location
     end
+
+    private
+      def lazy_load
+        yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
+      end
   end
 end

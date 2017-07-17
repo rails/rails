@@ -84,8 +84,8 @@ module ActiveRecord
   end
 end
 
-require "active_record/validations/associated"
-require "active_record/validations/uniqueness"
-require "active_record/validations/presence"
-require "active_record/validations/absence"
-require "active_record/validations/length"
+require_relative "validations/associated"
+require_relative "validations/uniqueness"
+require_relative "validations/presence"
+require_relative "validations/absence"
+require_relative "validations/length"

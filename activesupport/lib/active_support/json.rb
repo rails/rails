@@ -1,2 +1,4 @@
-require "active_support/json/decoding"
-require "active_support/json/encoding"
+# frozen_string_literal: true
+
+require_relative "json/decoding"
+require_relative "json/encoding"

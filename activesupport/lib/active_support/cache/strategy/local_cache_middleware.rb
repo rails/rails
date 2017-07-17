@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/body_proxy"
 require "rack/utils"
 
@@ -28,13 +30,13 @@ module ActiveSupport
             response[2] = ::Rack::BodyProxy.new(response[2]) do
               LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             end
+            cleanup_on_body_close = true
             response
           rescue Rack::Utils::InvalidParameterError
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             [400, {}, []]
-          rescue Exception
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
-            raise
+          ensure
+            LocalCacheRegistry.set_cache_for(local_cache_key, nil) unless
+              cleanup_on_body_close
           end
         end
       end

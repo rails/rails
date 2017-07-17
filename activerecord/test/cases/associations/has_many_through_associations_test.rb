@@ -64,10 +64,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  club1.members.sort_by(&:id)
   end
 
-  def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
-  end
-
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
@@ -150,20 +146,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
     assert after_destroy_called, "after destroy should be called"
-  end
-
-  def make_no_pk_hm_t
-    lesson = make_model "Lesson"
-    student = make_model "Student"
-
-    lesson_student = make_model "LessonStudent"
-    lesson_student.table_name = "lessons_students"
-
-    lesson_student.belongs_to :lesson, anonymous_class: lesson
-    lesson_student.belongs_to :student, anonymous_class: student
-    lesson.has_many :lesson_students, anonymous_class: lesson_student
-    lesson.has_many :students, through: :lesson_students, anonymous_class: student
-    [lesson, lesson_student, student]
   end
 
   def test_pk_is_not_required_for_join
@@ -335,6 +317,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.reload
 
     assert_includes post.single_people, person
+  end
+
+  def test_build_then_remove_then_save
+    post = posts(:thinking)
+    post.people.build(first_name: "Bob")
+    ted = post.people.build(first_name: "Ted")
+    post.people.delete(ted)
+    post.save!
+    post.reload
+
+    assert_equal ["Bob"], post.people.collect(&:first_name)
   end
 
   def test_both_parent_ids_set_when_saving_new
@@ -953,6 +946,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_polymorphic_with_rewhere
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    tag = post.tags.create!(name: "Tag")
+    assert_equal [tag], TaggedPost.preload(:tags).last.tags
+    assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
+  end
+
   def test_has_many_through_polymorphic_with_primary_key_option
     assert_equal [categories(:general)], authors(:david).essay_categories
 
@@ -1252,4 +1252,23 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       )
     end
   end
+
+  private
+    def make_model(name)
+      Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    end
+
+    def make_no_pk_hm_t
+      lesson = make_model "Lesson"
+      student = make_model "Student"
+
+      lesson_student = make_model "LessonStudent"
+      lesson_student.table_name = "lessons_students"
+
+      lesson_student.belongs_to :lesson, anonymous_class: lesson
+      lesson_student.belongs_to :student, anonymous_class: student
+      lesson.has_many :lesson_students, anonymous_class: lesson_student
+      lesson.has_many :students, through: :lesson_students, anonymous_class: student
+      [lesson, lesson_student, student]
+    end
 end

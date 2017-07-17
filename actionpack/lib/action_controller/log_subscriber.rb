@@ -24,7 +24,7 @@ module ActionController
           exception_class_name = payload[:exception].first
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
-        message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
+        message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms".dup
         message << " (#{additions.join(" | ".freeze)})" unless additions.empty?
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
@@ -60,9 +60,9 @@ module ActionController
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{method}(event)
           return unless logger.info? && ActionController::Base.enable_fragment_cache_logging
-          key_or_path = event.payload[:key] || event.payload[:path]
+          key         = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
           human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key_or_path} (\#{event.duration.round(1)}ms)")
+          info("\#{human_name} \#{key} (\#{event.duration.round(1)}ms)")
         end
       METHOD
     end

@@ -6,9 +6,9 @@ module ActionMailer
 
   module VERSION
     MAJOR = 5
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
-    PRE   = "beta1"
+    PRE   = "alpha"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

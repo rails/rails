@@ -2,8 +2,33 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
-    # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    IndexDefinition = Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
+    # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
+    class IndexDefinition # :nodoc:
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment
+
+      def initialize(
+        table, name,
+        unique = false,
+        columns = [],
+        lengths: {},
+        orders: {},
+        where: nil,
+        type: nil,
+        using: nil,
+        comment: nil
+      )
+        @table = table
+        @name = name
+        @unique = unique
+        @columns = columns
+        @lengths = lengths
+        @orders = orders
+        @where = where
+        @type = type
+        @using = using
+        @comment = comment
+      end
+    end
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
@@ -121,7 +146,7 @@ module ActiveRecord
         end
 
         def polymorphic_options
-          as_options(polymorphic)
+          as_options(polymorphic).merge(null: options[:null])
         end
 
         def index_options

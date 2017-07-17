@@ -1,3 +1,17 @@
+(function() {
+
+function buildSelect(attrs) {
+  attrs = $.extend({
+    'name': 'user_data', 'data-remote': 'true', 'data-url': '/echo', 'data-params': 'data1=value1'
+  }, attrs)
+
+  $('#qunit-fixture').append(
+    $('<select />', attrs)
+      .append($('<option />', {value: 'optionValue1', text: 'option1'}))
+      .append($('<option />', {value: 'optionValue2', text: 'option2'}))
+  )
+}
+
 module('data-remote', {
   setup: function() {
     $('#qunit-fixture')
@@ -135,17 +149,7 @@ asyncTest('clicking on a button with data-remote attribute', 5, function() {
 })
 
 asyncTest('changing a select option with data-remote attribute', 5, function() {
-  $('form')
-    .append(
-      $('<select />', {
-        'name': 'user_data',
-        'data-remote': 'true',
-        'data-params': 'data1=value1',
-        'data-url': '/echo'
-      })
-      .append($('<option />', {value: 'optionValue1', text: 'option1'}))
-      .append($('<option />', {value: 'optionValue2', text: 'option2'}))
-    )
+  buildSelect()
 
   $('select[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
@@ -350,17 +354,7 @@ asyncTest('submitting a form with falsy "data-remote" attribute', 0, function() 
 })
 
 asyncTest('changing a select option with falsy "data-remote" attribute', 0, function() {
-  $('form')
-    .append(
-      $('<select />', {
-        'name': 'user_data',
-        'data-remote': 'false',
-        'data-params': 'data1=value1',
-        'data-url': '/echo'
-      })
-      .append($('<option />', {value: 'optionValue1', text: 'option1'}))
-      .append($('<option />', {value: 'optionValue2', text: 'option2'}))
-    )
+  buildSelect({'data-remote': 'false'})
 
   $('select[data-remote=false]:first')
     .bindNative('ajax:beforeSend', function() {
@@ -413,3 +407,32 @@ asyncTest('form buttons should only be serialized when clicked', 4, function() {
     })
     .find('[name=submit2]').triggerNative('click')
 })
+
+asyncTest('changing a select option without "data-url" attribute still fires ajax request to current location', 1, function() {
+  var currentLocation, ajaxLocation
+
+  buildSelect({'data-url': ''});
+
+  $('select[data-remote]')
+    .bindNative('ajax:beforeSend', function(e, xhr, settings) {
+      // Get current location (the same way jQuery does)
+      try {
+        currentLocation = location.href
+      } catch(err) {
+        currentLocation = document.createElement( 'a' )
+        currentLocation.href = ''
+        currentLocation = currentLocation.href
+      }
+
+      ajaxLocation = settings.url.replace(settings.data, '').replace(/&$/, '').replace(/\?$/, '')
+      equal(ajaxLocation, currentLocation, 'URL should be current page by default')
+
+      return false
+    })
+    .val('optionValue2')
+    .triggerNative('change')
+
+  setTimeout(function() { start() }, 20)
+})
+
+})()

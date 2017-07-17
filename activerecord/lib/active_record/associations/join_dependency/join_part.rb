@@ -22,10 +22,6 @@ module ActiveRecord
           @children = children
         end
 
-        def name
-          reflection.name
-        end
-
         def match?(other)
           self.class == other.class
         end
@@ -37,11 +33,6 @@ module ActiveRecord
 
         # An Arel::Table for the active_record
         def table
-          raise NotImplementedError
-        end
-
-        # The alias for the active_record's table
-        def aliased_table_name
           raise NotImplementedError
         end
 

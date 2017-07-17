@@ -91,6 +91,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
+    @connection.execute "CREATE TABLE #{SCHEMA2_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
     @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
@@ -168,17 +169,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.exec_query "select * from developers where id = ?", "sql", [bind_param(1)]
+      @connection.exec_query "select * from developers where id = ?", "sql", [bind_attribute("id", 1)]
     end
   end
 
   if ActiveRecord::Base.connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
       @connection.exec_query "alter table developers add column zomg int", "sql", []
       altered = true
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
     ensure
       # We are not using DROP COLUMN IF EXISTS because that syntax is only
       # supported by pg 9.X
@@ -361,7 +362,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_primary_key_assuming_schema_search_path
-    with_schema_search_path(SCHEMA_NAME) do
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
       assert_equal "id", @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
     end
   end
@@ -465,10 +466,6 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal 1, this_index.columns.size
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
-    end
-
-    def bind_param(value)
-      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
     end
 end
 

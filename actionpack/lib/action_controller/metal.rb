@@ -129,7 +129,7 @@ module ActionController
     end
 
     def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
+      ActionDispatch::Response.new.tap do |res|
         res.request = request
       end
     end
@@ -138,7 +138,7 @@ module ActionController
       false
     end
 
-    # Delegates to the class' <tt>controller_name</tt>
+    # Delegates to the class' <tt>controller_name</tt>.
     def controller_name
       self.class.controller_name
     end
@@ -208,8 +208,7 @@ module ActionController
       @_request.reset_session
     end
 
-    class_attribute :middleware_stack
-    self.middleware_stack = ActionController::MiddlewareStack.new
+    class_attribute :middleware_stack, default: ActionController::MiddlewareStack.new
 
     def self.inherited(base) # :nodoc:
       base.middleware_stack = middleware_stack.dup
@@ -244,7 +243,7 @@ module ActionController
       end
     end
 
-    # Direct dispatch to the controller.  Instantiates the controller, then
+    # Direct dispatch to the controller. Instantiates the controller, then
     # executes the action named +name+.
     def self.dispatch(name, req, res)
       if middleware_stack.any?

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     module Assertions
@@ -167,7 +169,7 @@ module ActiveSupport
         retval
       end
 
-      # Assertion that the result of evaluating an expression is changed before
+      # Assertion that the result of evaluating an expression is not changed before
       # and after invoking the passed in block.
       #
       #   assert_no_changes 'Status.all_good?' do

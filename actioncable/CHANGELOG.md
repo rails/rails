@@ -1,45 +1,26 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
+*   Hash long stream identifiers when using Postgres adapter.
 
-*   Redis subscription adapters now support `channel_prefix` option in `cable.yml`
+    PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
+    Provided fix minifies identifiers longer than 63 chars by hashing them with SHA1.
 
-    Avoids channel name collisions when multiple apps use the same Redis server.
-
-    *Chad Ingram*
-
-*   Permit same-origin connections by default.
-
-    Added new option `config.action_cable.allow_same_origin_as_host = false`
-    to disable this behaviour.
-
-    *Dávid Halász*, *Matthew Draper*
-
-*   Prevent race where the client could receive and act upon a
-    subscription confirmation before the channel's `subscribed` method
-    completed.
-
-    Fixes #25381.
+    Fixes #28751.
 
     *Vladimir Dementyev*
 
-*   Buffer now writes to WebSocket connections, to avoid blocking threads
-    that could be doing more useful things.
+*   ActionCable's `redis` adapter allows for other common redis-rb options (`host`, `port`, `db`, `password`) in cable.yml.
 
-    *Matthew Draper*, *Tinco Andringa*
+    Previously, it accepts only a [redis:// url](https://www.iana.org/assignments/uri-schemes/prov/redis) as an option.
+    While we can add all of these options to the `url` itself, it is not explicitly documented. This alternative setup
+    is shown as the first example in the [Redis rubygem](https://github.com/redis/redis-rb#getting-started), which
+    makes this set of options as sensible as using just the `url`.
 
-*   Protect against concurrent writes to a WebSocket connection from
-    multiple threads; the underlying OS write is not always threadsafe.
+    *Marc Rendl Ignacio*
 
-    *Tinco Andringa*
+*   ActionCable socket errors are now logged to the console
 
-*   Add `ActiveSupport::Notifications` hook to `Broadcaster#broadcast`.
+    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
 
-    *Matthew Wear*
-
-*   Close hijacked socket when connection is shut down.
-
-    Fixes #25613.
-
-    *Tinco Andringa*
+    *Edward Poot*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.

@@ -1,11 +1,11 @@
 require "mail"
-require "action_mailer/collector"
+require_relative "collector"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
 
-require "action_mailer/log_subscriber"
-require "action_mailer/rescuable"
+require_relative "log_subscriber"
+require_relative "rescuable"
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
@@ -132,6 +132,9 @@ module ActionMailer
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
+  #
+  # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
+  # default settings per-mailer.
   #
   # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
   #
@@ -456,8 +459,8 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :default_params
-    self.default_params = {
+    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
       content_type: "text/plain",

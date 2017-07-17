@@ -53,6 +53,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:json)) => %(<link href="http://www.example.com" rel="alternate" title="JSON" type="application/json" />),
     %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "http://localhost/feed")) => %(<link href="http://localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "//localhost/feed")) => %(<link href="//localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
@@ -196,7 +197,10 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />),
     %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :alt => nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
     %(image_tag("")) => %(<img src="" />),
-    %(image_tag("gold.png", data: { title: 'Rails Application' })) => %(<img data-title="Rails Application" src="/images/gold.png" alt="Gold" />)
+    %(image_tag("gold.png", data: { title: 'Rails Application' })) => %(<img data-title="Rails Application" src="/images/gold.png" alt="Gold" />),
+    %(image_tag("rss.gif", srcset: "/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w")) => %(<img srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />),
+    %(image_tag("rss.gif", srcset: { "pic_640.jpg" => "640w", "pic_1024.jpg" => "1024w" })) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />),
+    %(image_tag("rss.gif", srcset: [["pic_640.jpg", "640w"], ["pic_1024.jpg", "1024w"]])) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />)
   }
 
   FaviconLinkToTag = {
@@ -709,13 +713,13 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_wildcard_asset_host
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com), compute_asset_host("foo"))
+    assert_match(%r(http://a[0123]\.example\.com), compute_asset_host("foo"))
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four
     @controller.config.asset_host = "http://a%d.example.com"
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
-    assert_match(%r(http://a[0123].example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_path("xml.png"))
+    assert_match(%r(http://a[0123]\.example\.com/collaboration/hieraki/images/xml\.png), image_url("xml.png"))
   end
 
   def test_asset_host_without_protocol_should_be_protocol_relative

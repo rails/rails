@@ -1,11 +1,13 @@
-require "active_support/concern"
-require "active_support/descendants_tracker"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
+# frozen_string_literal: true
+
+require_relative "concern"
+require_relative "descendants_tracker"
+require_relative "core_ext/array/extract_options"
+require_relative "core_ext/class/attribute"
+require_relative "core_ext/kernel/reporting"
+require_relative "core_ext/kernel/singleton_class"
+require_relative "core_ext/string/filters"
+require_relative "deprecation"
 require "thread"
 
 module ActiveSupport
@@ -62,8 +64,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false
-      self.__callbacks ||= {}
+      class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
@@ -512,7 +513,6 @@ module ActiveSupport
         end
       end
 
-      # An Array with a compile method.
       class CallbackChain #:nodoc:#
         include Enumerable
 
@@ -598,7 +598,7 @@ module ActiveSupport
             Proc.new do |target, result_lambda|
               terminate = true
               catch(:abort) do
-                result_lambda.call if result_lambda.is_a?(Proc)
+                result_lambda.call
                 terminate = false
               end
               terminate
@@ -664,8 +664,10 @@ module ActiveSupport
 
           if options[:if].is_a?(String) || options[:unless].is_a?(String)
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to :if and :unless conditional options is deprecated
-              and will be removed in Rails 5.2 without replacement.
+              Passing string to be evaluated in :if and :unless conditional
+              options is deprecated and will be removed in Rails 5.2 without
+              replacement. Pass a symbol for an instance method, or a lambda,
+              proc or block, instead.
             MSG
           end
 

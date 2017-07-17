@@ -30,19 +30,19 @@ module ActiveRecord
       end
 
       private
-
-        def create_scope
-          scope.scope_for_create.stringify_keys.except(klass.primary_key)
+        def scope_for_create
+          super.except!(klass.primary_key)
         end
 
         def find_target
-          return scope.take if skip_statement_cache?
+          scope = self.scope
+          return scope.take if skip_statement_cache?(scope)
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do
             StatementCache.create(conn) { |params|
               as = AssociationScope.create { params.bind }
-              target_scope.merge(as.scope(self, conn)).limit(1)
+              target_scope.merge!(as.scope(self)).limit(1)
             }
           end
 
@@ -63,6 +63,10 @@ module ActiveRecord
         end
 
         def _create_record(attributes, raise_error = false)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
           record = build_record(attributes)
           yield(record) if block_given?
           saved = record.save

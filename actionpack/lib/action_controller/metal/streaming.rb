@@ -3,7 +3,7 @@ require "rack/chunked"
 module ActionController #:nodoc:
   # Allows views to be streamed back to the client as they are rendered.
   #
-  # The default way Rails renders views is by first rendering the template
+  # By default, Rails renders views by first rendering the template
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #

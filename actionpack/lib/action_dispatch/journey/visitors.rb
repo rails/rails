@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -154,7 +156,7 @@ module ActionDispatch
         end
       end
 
-      # Loop through the requirements AST
+      # Loop through the requirements AST.
       class Each < FunctionalVisitor # :nodoc:
         def visit(node, block)
           block.call(node)
@@ -175,7 +177,7 @@ module ActionDispatch
             last_child = node.children.last
             node.children.inject(seed) { |s, c|
               string = visit(c, s)
-              string << "|".freeze unless last_child == c
+              string << "|" unless last_child == c
               string
             }
           end
@@ -185,7 +187,7 @@ module ActionDispatch
           end
 
           def visit_GROUP(node, seed)
-            visit(node.left, seed << "(".freeze) << ")".freeze
+            visit(node.left, seed.dup << "(") << ")"
           end
 
           INSTANCE = new

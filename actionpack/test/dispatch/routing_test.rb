@@ -3633,7 +3633,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
     params = ActionController::Parameters.new(id: "1")
 
-    assert_raises ArgumentError do
+    assert_raises ActionController::UnfilteredParameters do
       root_path(params)
     end
   end
@@ -3704,6 +3704,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/foo", foo_root_path
     assert_equal "/", root_path
     assert_equal "/bar", bar_root_path
+  end
+
+  def test_nested_routes_under_format_resource
+    draw do
+      resources :formats do
+        resources :items
+      end
+    end
+
+    get "/formats/1/items.json"
+    assert_equal 200, @response.status
+    assert_equal "items#index", @response.body
+    assert_equal "/formats/1/items.json", format_items_path(1, :json)
+
+    get "/formats/1/items/2.json"
+    assert_equal 200, @response.status
+    assert_equal "items#show", @response.body
+    assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
   end
 
 private
@@ -4401,7 +4419,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 
-  test "invalid UTF-8 encoding returns a 400 Bad Request" do
+  test "invalid UTF-8 encoding is treated as ASCII 8BIT encode" do
     with_routing do |set|
       set.draw do
         get "/bar/:id", to: redirect("/foo/show/%{id}")
@@ -4417,19 +4435,19 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       end
 
       get "/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :not_found
 
       get "/foo/show/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
 
       get "/bar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :redirect
 
       get "/foobar/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
+      assert_response :ok
     end
   end
 end
@@ -4961,4 +4979,65 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_equal "bar", response.body
   end
+end
+
+class TestRecognizePath < ActionDispatch::IntegrationTest
+  class PageConstraint
+    attr_reader :key, :pattern
+
+    def initialize(key, pattern)
+      @key = key
+      @pattern = pattern
+    end
+
+    def matches?(request)
+      request.path_parameters[key] =~ pattern
+    end
+  end
+
+  stub_controllers do |routes|
+    Routes = routes
+    routes.draw do
+      get "/hash/:foo", to: "pages#show", constraints: { foo: /foo/ }
+      get "/hash/:bar", to: "pages#show", constraints: { bar: /bar/ }
+
+      get "/proc/:foo", to: "pages#show", constraints: proc { |r| r.path_parameters[:foo] =~ /foo/ }
+      get "/proc/:bar", to: "pages#show", constraints: proc { |r| r.path_parameters[:bar] =~ /bar/ }
+
+      get "/class/:foo", to: "pages#show", constraints: PageConstraint.new(:foo, /foo/)
+      get "/class/:bar", to: "pages#show", constraints: PageConstraint.new(:bar, /bar/)
+    end
+  end
+
+  APP = build_app Routes
+  def app
+    APP
+  end
+
+  def test_hash_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/hash/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_proc_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/proc/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  def test_class_constraints_dont_leak_between_routes
+    expected_params = { controller: "pages", action: "show", bar: "bar" }
+    actual_params = recognize_path("/class/bar")
+
+    assert_equal expected_params, actual_params
+  end
+
+  private
+
+    def recognize_path(*args)
+      Routes.recognize_path(*args)
+    end
 end

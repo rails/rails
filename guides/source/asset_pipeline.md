@@ -335,7 +335,7 @@ an asset has been updated and if so loads it into the page:
 <%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
 ```
 
-In regular views you can access images in the `public/assets/images` directory
+In regular views you can access images in the `app/assets/images` directory
 like this:
 
 ```erb
@@ -447,15 +447,15 @@ For example, a new Rails application includes a default
 
 ```js
 // ...
-//= require jquery
-//= require jquery_ujs
+//= require rails-ujs
+//= require turbolinks
 //= require_tree .
 ```
 
 In JavaScript files, Sprockets directives begin with `//=`. In the above case,
 the file is using the `require` and the `require_tree` directives. The `require`
 directive is used to tell Sprockets the files you wish to require. Here, you are
-requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere
+requiring the files `rails-ujs.js` and `turbolinks.js` that are available somewhere
 in the search path for Sprockets. You need not supply the extensions explicitly.
 Sprockets assumes you are requiring a `.js` file when done from within a `.js`
 file.
@@ -571,20 +571,6 @@ would generate this HTML:
 ```
 
 The `body` param is required by Sprockets.
-
-### Runtime Error Checking
-
-By default the asset pipeline will check for potential errors in development mode during
-runtime. To disable this behavior you can set:
-
-```ruby
-config.assets.raise_runtime_errors = false
-```
-
-When this option is true, the asset pipeline will check if all the assets loaded
-in your application are included in the `config.assets.precompile` list.
-If `config.assets.digest` is also true, the asset pipeline will require that
-all requests for assets include digests.
 
 ### Raise an Error When an Asset is Not Found
 
@@ -868,7 +854,7 @@ pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
 group :production do
-  gem 'therubyracer'
+  gem 'mini_racer'
 end
 ```
 

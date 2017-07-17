@@ -6,25 +6,7 @@ require "models/rating"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors
-
-    FakeKlass = Struct.new(:table_name, :name) do
-      extend ActiveRecord::Delegation::DelegateCache
-
-      inherited self
-
-      def self.connection
-        Post.connection
-      end
-
-      def self.table_name
-        "fake_table"
-      end
-
-      def self.sanitize_sql_for_order(sql)
-        sql
-      end
-    end
+    fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
     def test_construction
       relation = Relation.new(FakeKlass, :b, nil)
@@ -70,8 +52,8 @@ module ActiveRecord
 
     def test_has_values
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! relation.table[:id].eq(10)
-      assert_equal({ id: 10 }, relation.where_values_hash)
+      relation.where!(id: 10)
+      assert_equal({ "id" => 10 }, relation.where_values_hash)
     end
 
     def test_values_wrong_table
@@ -90,7 +72,7 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass.new("posts"), :b, Post.predicate_builder)
+      relation = Relation.new(FakeKlass, :b, Post.predicate_builder)
       assert_equal "posts", relation.table_name
     end
 
@@ -101,28 +83,19 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      hash = { hello: "world" }
-      relation.create_with_value = hash
-      assert_equal hash, relation.scope_for_create
+      relation.create_with_value = { hello: "world" }
+      assert_equal({ "hello" => "world" }, relation.scope_for_create)
     end
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! relation.table[:id].eq(10)
-      relation.create_with_value = { hello: "world" }
-      assert_equal({ hello: "world", id: 10 }, relation.scope_for_create)
-    end
-
-    # FIXME: is this really wanted or expected behavior?
-    def test_scope_for_create_is_cached
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       assert_equal({}, relation.scope_for_create)
 
-      relation.where! relation.table[:id].eq(10)
-      assert_equal({}, relation.scope_for_create)
+      relation.where!(id: 10)
+      assert_equal({ "id" => 10 }, relation.scope_for_create)
 
       relation.create_with_value = { hello: "world" }
-      assert_equal({}, relation.scope_for_create)
+      assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
     end
 
     def test_bad_constants_raise_errors
@@ -224,7 +197,26 @@ module ActiveRecord
     def test_relation_merging_with_merged_joins_as_symbols
       special_comments_with_ratings = SpecialComment.joins(:ratings)
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
-      assert_equal({ 2 => 1, 4 => 3, 5 => 1 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
+      assert_equal({ 4 => 2 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
+    end
+
+    def test_relation_merging_with_merged_symbol_joins_keeps_inner_joins
+      queries = capture_sql { Author.joins(:posts).merge(Post.joins(:comments)).to_a }
+
+      nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
+      assert_equal 2, nb_inner_join, "Wrong amount of INNER JOIN in query"
+      assert queries.none? { |sql| /LEFT\s+(OUTER)?\s+JOIN/i.match?(sql) }, "Shouldn't have any LEFT JOIN in query"
+    end
+
+    def test_relation_merging_with_merged_symbol_joins_has_correct_size_and_count
+      # Has one entry per comment
+      merged_authors_with_commented_posts_relation = Author.joins(:posts).merge(Post.joins(:comments))
+
+      post_ids_with_author = Post.joins(:author).pluck(:id)
+      manual_comments_on_post_that_have_author = Comment.where(post_id: post_ids_with_author).pluck(:id)
+
+      assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.count
+      assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.to_a.size
     end
 
     def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent

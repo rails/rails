@@ -1,7 +1,10 @@
-require "active_support/core_ext/array/conversions"
-require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
+# frozen_string_literal: true
+
+require_relative "core_ext/array/conversions"
+require_relative "core_ext/module/delegation"
+require_relative "core_ext/object/acts_like"
+require_relative "core_ext/string/filters"
+require_relative "deprecation"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
@@ -9,6 +12,95 @@ module ActiveSupport
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
   class Duration
+    class Scalar < Numeric #:nodoc:
+      attr_reader :value
+      delegate :to_i, :to_f, :to_s, to: :value
+
+      def initialize(value)
+        @value = value
+      end
+
+      def coerce(other)
+        [Scalar.new(other), self]
+      end
+
+      def -@
+        Scalar.new(-value)
+      end
+
+      def <=>(other)
+        if Scalar === other || Duration === other
+          value <=> other.value
+        elsif Numeric === other
+          value <=> other
+        else
+          nil
+        end
+      end
+
+      def +(other)
+        if Duration === other
+          seconds   = value + other.parts[:seconds]
+          new_parts = other.parts.merge(seconds: seconds)
+          new_value = value + other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:+, other)
+        end
+      end
+
+      def -(other)
+        if Duration === other
+          seconds   = value - other.parts[:seconds]
+          new_parts = other.parts.map { |part, other_value| [part, -other_value] }.to_h
+          new_parts = new_parts.merge(seconds: seconds)
+          new_value = value - other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:-, other)
+        end
+      end
+
+      def *(other)
+        if Duration === other
+          new_parts = other.parts.map { |part, other_value| [part, value * other_value] }.to_h
+          new_value = value * other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:*, other)
+        end
+      end
+
+      def /(other)
+        if Duration === other
+          new_parts = other.parts.map { |part, other_value| [part, value / other_value] }.to_h
+          new_value = new_parts.inject(0) { |total, (part, value)| total + value * Duration::PARTS_IN_SECONDS[part] }
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:/, other)
+        end
+      end
+
+      private
+        def calculate(op, other)
+          if Scalar === other
+            Scalar.new(value.public_send(op, other.value))
+          elsif Numeric === other
+            Scalar.new(value.public_send(op, other))
+          else
+            raise_type_error(other)
+          end
+        end
+
+        def raise_type_error(other)
+          raise TypeError, "no implicit conversion of #{other.class} into #{self.class}"
+        end
+    end
+
     SECONDS_PER_MINUTE = 60
     SECONDS_PER_HOUR   = 3600
     SECONDS_PER_DAY    = 86400
@@ -91,12 +183,11 @@ module ActiveSupport
     end
 
     def coerce(other) #:nodoc:
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Implicit coercion of ActiveSupport::Duration to a Numeric
-        is deprecated and will raise a TypeError in Rails 5.2.
-      MSG
-
-      [other, value]
+      if Scalar === other
+        [other, self]
+      else
+        [Scalar.new(other), self]
+      end
     end
 
     # Compares one Duration with another or a Numeric to this Duration.
@@ -132,19 +223,23 @@ module ActiveSupport
 
     # Multiplies this Duration by a Numeric and returns a new Duration.
     def *(other)
-      if Numeric === other
+      if Scalar === other || Duration === other
+        Duration.new(value * other.value, parts.map { |type, number| [type, number * other.value] })
+      elsif Numeric === other
         Duration.new(value * other, parts.map { |type, number| [type, number * other] })
       else
-        value * other
+        raise_type_error(other)
       end
     end
 
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
-      if Numeric === other
+      if Scalar === other || Duration === other
+        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value] })
+      elsif Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
       else
-        value / other
+        raise_type_error(other)
       end
     end
 
@@ -241,10 +336,6 @@ module ActiveSupport
       to_i
     end
 
-    def respond_to_missing?(method, include_private = false) #:nodoc:
-      @value.respond_to?(method, include_private)
-    end
-
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
@@ -271,8 +362,16 @@ module ActiveSupport
         end
       end
 
+      def respond_to_missing?(method, _)
+        value.respond_to?(method)
+      end
+
       def method_missing(method, *args, &block)
-        value.send(method, *args, &block)
+        value.public_send(method, *args, &block)
+      end
+
+      def raise_type_error(other)
+        raise TypeError, "no implicit conversion of #{other.class} into #{self.class}"
       end
   end
 end

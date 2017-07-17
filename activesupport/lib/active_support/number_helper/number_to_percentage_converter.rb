@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     class NumberToPercentageConverter < NumberConverter # :nodoc:

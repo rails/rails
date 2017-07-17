@@ -1,7 +1,7 @@
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
+require_relative "errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -342,7 +342,7 @@ module ActiveRecord
       #                                     |            |  belongs_to  |
       #   generated methods                 | belongs_to | :polymorphic | has_one
       #   ----------------------------------+------------+--------------+---------
-      #   other(force_reload=false)         |     X      |      X       |    X
+      #   other                             |     X      |      X       |    X
       #   other=(other)                     |     X      |      X       |    X
       #   build_other(attributes={})        |     X      |              |    X
       #   create_other(attributes={})       |     X      |              |    X
@@ -352,7 +352,7 @@ module ActiveRecord
       #                                     |       |          | has_many
       #   generated methods                 | habtm | has_many | :through
       #   ----------------------------------+-------+----------+----------
-      #   others(force_reload=false)        |   X   |    X     |    X
+      #   others                            |   X   |    X     |    X
       #   others=(other,other,...)          |   X   |    X     |    X
       #   other_ids                         |   X   |    X     |    X
       #   other_ids=(id,id,...)             |   X   |    X     |    X
@@ -1187,7 +1187,7 @@ module ActiveRecord
         # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
         #
-        # [collection(force_reload = false)]
+        # [collection]
         #   Returns an array of all the associated objects.
         #   An empty array is returned if none are found.
         # [collection<<(object, ...)]
@@ -1276,7 +1276,7 @@ module ActiveRecord
         # Scope examples:
         #   has_many :comments, -> { where(author_id: 1) }
         #   has_many :employees, -> { joins(:address) }
-        #   has_many :posts, ->(post) { where("max_post_length > ?", post.length) }
+        #   has_many :posts, ->(blog) { where("max_post_length > ?", blog.max_post_length) }
         #
         # === Extensions
         #
@@ -1407,7 +1407,7 @@ module ActiveRecord
         # +association+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
         #
-        # [association(force_reload = false)]
+        # [association]
         #   Returns the associated object. +nil+ is returned if none is found.
         # [association=(associate)]
         #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
@@ -1443,7 +1443,7 @@ module ActiveRecord
         # Scope examples:
         #   has_one :author, -> { where(comment_id: 1) }
         #   has_one :employer, -> { joins(:company) }
-        #   has_one :dob, ->(dob) { where("Date.new(2000, 01, 01) > ?", dob) }
+        #   has_one :latest_post, ->(blog) { where("created_at > ?", blog.enabled_at) }
         #
         # === Options
         #
@@ -1539,7 +1539,7 @@ module ActiveRecord
         # +association+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
         #
-        # [association(force_reload = false)]
+        # [association]
         #   Returns the associated object. +nil+ is returned if none is found.
         # [association=(associate)]
         #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
@@ -1573,7 +1573,7 @@ module ActiveRecord
         # Scope examples:
         #   belongs_to :firm, -> { where(id: 2) }
         #   belongs_to :user, -> { joins(:friends) }
-        #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
+        #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
         # === Options
         #
@@ -1647,6 +1647,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        # [:default]
+        #   Provide a callable (i.e. proc or lambda) to specify that the association should
+        #   be initialized with a particular record before validation.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1660,6 +1663,7 @@ module ActiveRecord
         #   belongs_to :comment, touch: true
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
+        #   belongs_to :account, default: -> { company.account }
         def belongs_to(name, scope = nil, options = {})
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1697,7 +1701,7 @@ module ActiveRecord
         # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
         # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
         #
-        # [collection(force_reload = false)]
+        # [collection]
         #   Returns an array of all the associated objects.
         #   An empty array is returned if none are found.
         # [collection<<(object, ...)]
@@ -1765,9 +1769,8 @@ module ActiveRecord
         #
         # Scope examples:
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
-        #   has_and_belongs_to_many :categories, ->(category) {
-        #     where("default_category = ?", category.name)
-        #   }
+        #   has_and_belongs_to_many :categories, ->(post) {
+        #     where("default_category = ?", post.default_category)
         #
         # === Extensions
         #

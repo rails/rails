@@ -11,7 +11,6 @@ cache:
 
 services:
   - memcached
-  - redis
 
 addons:
   postgresql: "9.4"
@@ -34,6 +33,7 @@ before_script:
   # Decodes to e.g. `export VARIABLE=VALUE`
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
+  - redis-server --bind 127.0.0.1 --port 6379 --requirepass 'password' --daemonize yes
 
 script: 'ci/travis.rb'
 
@@ -52,58 +52,59 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.6
-  - 2.3.3
-  - 2.4.0
+  - 2.2.7
+  - 2.3.4
+  - 2.4.1
   - ruby-head
 
 matrix:
   include:
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: "GEM=av:ujs"
-    - rvm: 2.2.6
+    - rvm: 2.2.7
       env: "GEM=aj:integration"
       services:
         - memcached
-        - redis
         - rabbitmq
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env: "GEM=aj:integration"
       services:
         - memcached
-        - redis
         - rabbitmq
-    - rvm: 2.4.0
+    - rvm: 2.4.1
       env: "GEM=aj:integration"
       services:
         - memcached
-        - redis
         - rabbitmq
     - rvm: ruby-head
       env: "GEM=aj:integration"
       services:
         - memcached
-        - redis
         - rabbitmq
-    - rvm: 2.3.3
+    - rvm: 2.3.4
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.0
-    - rvm: 2.4.0
+    - rvm: 2.3.4
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: jruby-9.1.7.0
+    - rvm: 2.3.4
+      env:
+        - "GEM=ar:postgresql POSTGRES=9.2"
+      addons:
+        postgresql: "9.2"
+    - rvm: jruby-9.1.12.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.12.0
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.12.0
     - env: "GEM=ac:integration"
   fast_finish: true
 

@@ -8,7 +8,7 @@ require "models/project"
 require "models/rating"
 
 class RelationMergingTest < ActiveRecord::TestCase
-  fixtures :developers, :comments, :authors, :posts
+  fixtures :developers, :comments, :authors, :author_addresses, :posts
 
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
@@ -21,7 +21,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_relation_to_sql
     post = Post.first
     sql = post.comments.to_sql
-    assert_match(/.?post_id.? = #{post.id}\Z/i, sql)
+    assert_match(/.?post_id.? = #{post.id}\z/i, sql)
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
@@ -56,7 +56,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked.present?
+    assert devs.locked?
   end
 
   def test_relation_merging_with_preload
@@ -114,7 +114,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :developers
+  fixtures :posts, :authors, :author_addresses, :developers
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
@@ -143,7 +143,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
   end
 
-  test "relation merging (using a proc  argument)" do
+  test "relation merging (using a proc argument)" do
     dev = Developer.where(name: "Jamis").first
 
     comment_1 = dev.comments.create!(body: "I'm Jamis", post: Post.first)

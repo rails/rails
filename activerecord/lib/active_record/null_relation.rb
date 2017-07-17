@@ -4,7 +4,7 @@ module ActiveRecord
       []
     end
 
-    def delete_all(_conditions = nil)
+    def delete_all
       0
     end
 

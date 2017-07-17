@@ -75,6 +75,14 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
+
+    def bind_param
+      Arel::Nodes::BindParam.new
+    end
+
+    def bind_attribute(name, value, type = ActiveRecord::Type.default_value)
+      ActiveRecord::Relation::QueryAttribute.new(name, value, type)
+    end
   end
 
   class PostgreSQLTestCase < TestCase

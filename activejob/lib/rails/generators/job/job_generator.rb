@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/named_base"
 
 module Rails # :nodoc:
@@ -12,7 +14,7 @@ module Rails # :nodoc:
       hook_for :test_framework
 
       def self.default_generator_root
-        File.dirname(__FILE__)
+        __dir__
       end
 
       def create_job_file

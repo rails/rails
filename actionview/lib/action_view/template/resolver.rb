@@ -1,7 +1,7 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
-require "action_view/template"
+require_relative "../template"
 require "thread"
 require "concurrent/map"
 
@@ -14,7 +14,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = ""
+        virtual = "".dup
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -125,8 +125,7 @@ module ActionView
         end
     end
 
-    cattr_accessor :caching
-    self.caching = true
+    cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching

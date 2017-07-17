@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -403,6 +405,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parse_with_invalid_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("9000")
+    end
+
+    assert_equal "argument out of range", exception.message
+  end
+
   def test_rfc3339
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.rfc3339("1999-12-31T14:00:00-10:00")
@@ -712,6 +724,10 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_country_zones
     assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
+  end
+
+  def test_country_zones_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones(:sv), ActiveSupport::TimeZone["America/El_Salvador"]
   end
 
   def test_to_yaml

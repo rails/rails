@@ -1,4 +1,6 @@
-require "active_model/validations/clusivity"
+# frozen_string_literal: true
+
+require_relative "clusivity"
 
 module ActiveModel
   module Validations

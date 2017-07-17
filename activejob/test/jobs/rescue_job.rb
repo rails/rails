@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../support/job_buffer"
 
 class RescueJob < ActiveJob::Base
@@ -19,7 +21,7 @@ class RescueJob < ActiveJob::Base
     when "david"
       raise ArgumentError, "Hair too good"
     when "other"
-      raise OtherError
+      raise OtherError, "Bad hair"
     else
       JobBuffer.add("performed beautifully")
     end

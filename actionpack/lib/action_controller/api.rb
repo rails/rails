@@ -1,6 +1,6 @@
 require "action_view"
 require "action_controller"
-require "action_controller/log_subscriber"
+require_relative "log_subscriber"
 
 module ActionController
   # API Controller is a lightweight version of <tt>ActionController::Base</tt>,
@@ -81,10 +81,9 @@ module ActionController
   #     end
   #   end
   #
-  # Quite straightforward. Make sure to check the modules included in
-  # <tt>ActionController::Base</tt> if you want to use any other
-  # functionality that is not provided by <tt>ActionController::API</tt>
-  # out of the box.
+  # Make sure to check the modules included in <tt>ActionController::Base</tt>
+  # if you want to use any other functionality that is not provided
+  # by <tt>ActionController::API</tt> out of the box.
   class API < Metal
     abstract!
 
@@ -142,6 +141,7 @@ module ActionController
       include mod
     end
 
+    ActiveSupport.run_load_hooks(:action_controller_api, self)
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

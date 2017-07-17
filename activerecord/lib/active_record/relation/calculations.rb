@@ -38,10 +38,16 @@ module ActiveRecord
     # between databases. In invalid cases, an error from the database is thrown.
     def count(column_name = nil)
       if block_given?
-        to_a.count { |*block_args| yield(*block_args) }
-      else
-        calculate(:count, column_name)
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `count' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+        end
+
+        return super()
       end
+
+      calculate(:count, column_name)
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -75,8 +81,17 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(column_name = nil, &block)
-      return super(&block) if block_given?
+    def sum(column_name = nil)
+      if block_given?
+        unless column_name.nil?
+          ActiveSupport::Deprecation.warn \
+            "When `sum' is called with a block, it ignores other arguments. " \
+            "This behavior is now deprecated and will result in an ArgumentError in Rails 6.0."
+        end
+
+        return super()
+      end
+
       calculate(:sum, column_name)
     end
 
@@ -169,7 +184,7 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
-        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
+        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil, bound_attributes) }
         result.cast_values(klass.attribute_types)
       end
     end
@@ -245,7 +260,7 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        result = @klass.connection.select_all(query_builder, nil, bound_attributes)
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil, bound_attributes) }
         row    = result.first
         value  = row && row.values.first
         type   = result.column_types.fetch(column_alias) do
@@ -296,7 +311,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
+        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil, relation.bound_attributes) }
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
@@ -371,9 +386,8 @@ module ActiveRecord
         relation.select_values = [aliased_column]
         subquery = relation.arel.as(subquery_alias)
 
-        sm = Arel::SelectManager.new relation.engine
         select_value = operation_over_aggregate_column(column_alias, "count", distinct)
-        sm.project(select_value).from(subquery)
+        Arel::SelectManager.new(subquery).project(select_value)
       end
   end
 end

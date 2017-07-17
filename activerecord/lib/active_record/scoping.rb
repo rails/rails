@@ -10,8 +10,8 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def current_scope #:nodoc:
-        ScopeRegistry.value_for(:current_scope, self)
+      def current_scope(skip_inherited_scope = false) # :nodoc:
+        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
       end
 
       def current_scope=(scope) #:nodoc:
@@ -33,9 +33,8 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att, value|
-        send("#{att}=", value) if respond_to?("#{att}=")
-      end
+      attributes = self.class.scope_attributes
+      _assign_attributes(attributes) if attributes.any?
     end
 
     def initialize_internals_callback # :nodoc:
@@ -75,8 +74,9 @@ module ActiveRecord
       end
 
       # Obtains the value for a given +scope_type+ and +model+.
-      def value_for(scope_type, model)
+      def value_for(scope_type, model, skip_inherited_scope = false)
         raise_invalid_scope_type!(scope_type)
+        return @registry[scope_type][model.name] if skip_inherited_scope
         klass = model
         base = model.base_class
         while klass <= base

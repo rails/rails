@@ -16,10 +16,10 @@ namespace :test do
       dash_i = [
         "test",
         "lib",
-        "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib",
-        "#{File.dirname(__FILE__)}/../actionview/lib",
-        "#{File.dirname(__FILE__)}/../activemodel/lib"
+        "#{__dir__}/../activesupport/lib",
+        "#{__dir__}/../actionpack/lib",
+        "#{__dir__}/../actionview/lib",
+        "#{__dir__}/../activemodel/lib"
       ]
       ruby "-w", "-I#{dash_i.join ':'}", file
     end
@@ -27,7 +27,7 @@ namespace :test do
 end
 
 Rake::TestTask.new("test:regular") do |t|
-  t.libs << "test" << "#{File.dirname(__FILE__)}/../activesupport/lib"
+  t.libs << "test" << "#{__dir__}/../activesupport/lib"
   t.pattern = "test/**/*_test.rb"
   t.warning = false
   t.verbose = true

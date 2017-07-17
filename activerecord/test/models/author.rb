@@ -106,6 +106,7 @@ class Author < ActiveRecord::Base
   has_many :tags_with_primary_key, through: :posts
 
   has_many :books
+  has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber

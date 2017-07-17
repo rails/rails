@@ -10,11 +10,11 @@ module ActionDispatch
       module VerbMatchers
         VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
         VERBS.each do |v|
-          class_eval <<-eoc
-          class #{v}
-            def self.verb; name.split("::").last; end
-            def self.call(req); req.#{v.downcase}?; end
-          end
+          class_eval <<-eoc, __FILE__, __LINE__ + 1
+            class #{v}
+              def self.verb; name.split("::").last; end
+              def self.call(req); req.#{v.downcase}?; end
+            end
           eoc
         end
 
@@ -89,8 +89,15 @@ module ActionDispatch
         end
       end
 
+      # Needed for `rails routes`. Picks up succinctly defined requirements
+      # for a route, for example route
+      #
+      #   get 'photo/:id', :controller => 'photos', :action => 'show',
+      #     :id => /[A-Z]\d{5}/
+      #
+      # will have {:controller=>"photos", :action=>"show", :id=>/[A-Z]\d{5}/}
+      # as requirements.
       def requirements
-        # needed for rails `rails routes`
         @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/ == v
         }

@@ -1,7 +1,4 @@
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/filters"
 require "mutex_m"
-require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -62,7 +59,6 @@ module ActiveRecord
           super(attribute_names)
           @attribute_methods_generated = true
         end
-        true
       end
 
       def undefine_attribute_methods # :nodoc:

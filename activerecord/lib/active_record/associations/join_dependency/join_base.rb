@@ -1,4 +1,4 @@
-require "active_record/associations/join_dependency/join_part"
+require_relative "join_part"
 
 module ActiveRecord
   module Associations
@@ -11,10 +11,6 @@ module ActiveRecord
 
         def table
           base_klass.arel_table
-        end
-
-        def aliased_table_name
-          base_klass.table_name
         end
       end
     end

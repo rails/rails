@@ -26,6 +26,7 @@ module ActiveRecord
     end
 
     def change_to_attribute(attr_name)
+      attr_name = attr_name.to_s
       if changed?(attr_name)
         [attributes[attr_name].original_value, attributes.fetch_value(attr_name)]
       end
@@ -44,7 +45,7 @@ module ActiveRecord
     end
 
     def changed_in_place?(attr_name)
-      attributes[attr_name].changed_in_place?
+      attributes[attr_name.to_s].changed_in_place?
     end
 
     def forget_change(attr_name)
@@ -54,7 +55,7 @@ module ActiveRecord
     end
 
     def original_value(attr_name)
-      attributes[attr_name].original_value
+      attributes[attr_name.to_s].original_value
     end
 
     def force_change(attr_name)

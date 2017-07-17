@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "core_ext/date_and_time_behavior"
@@ -431,6 +433,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 10, Time.new(2005, 2, 22, 15, 15, 0, "-08:00").change(nsec: 10).nsec
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(usec: 1000000) }
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(nsec: 1000000000) }
+  end
+
+  def test_change_offset
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, "-08:00"), Time.new(2006, 2, 22, 15, 15, 10, "+01:00").change(offset: "-08:00")
+    assert_equal Time.new(2006, 2, 22, 15, 15, 10, -28800), Time.new(2006, 2, 22, 15, 15, 10, 3600).change(offset: -28800)
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(usec: 1000000, offset: "-08:00") }
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(nsec: 1000000000, offset: -28800) }
   end
 
   def test_advance

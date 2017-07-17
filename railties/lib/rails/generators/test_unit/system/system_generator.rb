@@ -1,4 +1,4 @@
-require "rails/generators/test_unit"
+require_relative "../../test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -10,7 +10,7 @@ module TestUnit # :nodoc:
           template "application_system_test_case.rb", File.join("test", "application_system_test_case.rb")
         end
 
-        template "system_test.rb", File.join("test/system", "#{file_name.pluralize}_test.rb")
+        template "system_test.rb", File.join("test/system", class_path, "#{file_name.pluralize}_test.rb")
       end
     end
   end

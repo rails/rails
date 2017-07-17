@@ -52,8 +52,8 @@ module ActiveRecord
         binds = self.binds.map { |attr| [attr.name, attr.value] }.to_h
 
         equalities.map { |node|
-          name = node.left.name
-          [name, binds.fetch(name.to_s) {
+          name = node.left.name.to_s
+          [name, binds.fetch(name) {
             case node.right
             when Array then node.right.map(&:val)
             when Arel::Nodes::Casted, Arel::Nodes::Quoted
@@ -148,9 +148,9 @@ module ActiveRecord
               (binds_index...(binds_index + binds_contains)).each do |i|
                 except_binds[i] = true
               end
-
-              binds_index += binds_contains
             end
+
+            binds_index += binds_contains if binds_contains
 
             except
           end

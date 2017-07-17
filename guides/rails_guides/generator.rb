@@ -73,7 +73,7 @@ module RailsGuides
 
         @output_dir  = "#{@guides_dir}/output"
         @output_dir += "/kindle"       if @kindle
-        @source_dir += "/#{@language}" if @language
+        @output_dir += "/#{@language}" if @language
       end
 
       def create_output_dir_if_needed

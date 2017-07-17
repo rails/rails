@@ -239,8 +239,8 @@ module ActionController
 
       error = nil
       # This processes the action in a child thread. It lets us return the
-      # response code and headers back up the rack stack, and still process
-      # the body in parallel with sending data to the client
+      # response code and headers back up the Rack stack, and still process
+      # the body in parallel with sending data to the client.
       new_controller_thread {
         ActiveSupport::Dependencies.interlock.running do
           t2 = Thread.current
@@ -278,9 +278,9 @@ module ActionController
       raise error if error
     end
 
-    # Spawn a new thread to serve up the controller in.  This is to get
+    # Spawn a new thread to serve up the controller in. This is to get
     # around the fact that Rack isn't based around IOs and we need to use
-    # a thread to stream data from the response bodies.  Nobody should call
+    # a thread to stream data from the response bodies. Nobody should call
     # this method except in Rails internals. Seriously!
     def new_controller_thread # :nodoc:
       Thread.new {

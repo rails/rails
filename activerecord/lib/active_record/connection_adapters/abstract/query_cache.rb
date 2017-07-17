@@ -108,6 +108,7 @@ module ActiveRecord
                   "sql.active_record",
                   sql: sql,
                   binds: binds,
+                  type_casted_binds: -> { type_casted_binds(binds) },
                   name: name,
                   connection_id: object_id,
                   cached: true,
@@ -123,6 +124,7 @@ module ActiveRecord
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
         # queries should not be cached.
         def locked?(arel)
+          arel = arel.arel if arel.is_a?(Relation)
           arel.respond_to?(:locked) && arel.locked
         end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class WraithAttack < StandardError
@@ -43,7 +45,9 @@ class Stargate
   def dispatch(method)
     send(method)
   rescue Exception => e
-    rescue_with_handler(e)
+    unless rescue_with_handler(e)
+      @result = "unhandled"
+    end
   end
 
   def attack
@@ -56,6 +60,26 @@ class Stargate
 
   def ronanize
     raise MadRonon.new("dex")
+  end
+
+  def crash
+    raise "unhandled RuntimeError"
+  end
+
+  def looped_crash
+    ex1 = StandardError.new("error 1")
+    ex2 = StandardError.new("error 2")
+    begin
+      begin
+        raise ex1
+      rescue
+        # sets the cause on ex2 to be ex1
+        raise ex2
+      end
+    rescue
+      # sets the cause on ex1 to be ex2
+      raise ex1
+    end
   end
 
   def fall_back_to_cause
@@ -138,5 +162,15 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_falls_back_to_exception_cause
     @stargate.dispatch :fall_back_to_cause
     assert_equal "dex", @stargate.result
+  end
+
+  def test_unhandled_exceptions
+    @stargate.dispatch(:crash)
+    assert_equal "unhandled", @stargate.result
+  end
+
+  def test_rescue_handles_loops_in_exception_cause_chain
+    @stargate.dispatch :looped_crash
+    assert_equal "unhandled", @stargate.result
   end
 end

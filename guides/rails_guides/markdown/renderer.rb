@@ -93,16 +93,16 @@ HTML
         def github_file_url(file_path)
           tree = version || edge
 
-          root = file_path[%r{(.+)/}, 1]
-          path = case root
-                 when "abstract_controller", "action_controller", "action_dispatch"
-                   "actionpack/lib/#{file_path}"
-                 when /\A(action|active)_/
-                   "#{root.sub("_", "")}/lib/#{file_path}"
-                 else
-                   file_path
-                 end
-
+          root = file_path[%r{(\w+)/}, 1]
+          path = \
+            case root
+            when "abstract_controller", "action_controller", "action_dispatch"
+              "actionpack/lib/#{file_path}"
+            when /\A(action|active)_/
+              "#{root.sub("_", "")}/lib/#{file_path}"
+            else
+              file_path
+            end
 
           "https://github.com/rails/rails/tree/#{tree}/#{path}"
         end

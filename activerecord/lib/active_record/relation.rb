@@ -2,11 +2,11 @@ module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
@@ -18,6 +18,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
+    alias :locked? :lock_value
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -261,10 +262,6 @@ module ActiveRecord
       coder.represent_seq(nil, records)
     end
 
-    def as_json(options = nil) #:nodoc:
-      records.as_json(options)
-    end
-
     # Returns size of the records.
     def size
       loaded? ? @records.length : count(:all)
@@ -273,8 +270,7 @@ module ActiveRecord
     # Returns true if there are no records.
     def empty?
       return @records.empty? if loaded?
-
-      limit_value == 0 || !exists?
+      !exists?
     end
 
     # Returns true if there are no records.
@@ -337,7 +333,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope, self
+      previous, klass.current_scope = klass.current_scope(true), self
       yield
     ensure
       klass.current_scope = previous
@@ -408,9 +404,9 @@ module ActiveRecord
     #
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
+    # issue. When running callbacks is not needed for each record update,
+    # it is preferred to use #update_all for updating all records
+    # in a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
@@ -560,8 +556,7 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
+      @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
@@ -595,7 +590,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -639,7 +634,9 @@ module ActiveRecord
     end
 
     def inspect
-      entries = records.take([limit_value, 11].compact.min).map!(&:inspect)
+      subject = loaded? ? records : self
+      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
@@ -659,20 +656,32 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
-        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
+        skip_query_cache_if_necessary do
+          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
 
-        preload = preload_values
-        preload += includes_values unless eager_loading?
-        preloader = nil
-        preload.each do |associations|
-          preloader ||= build_preloader
-          preloader.preload @records, associations
+          preload = preload_values
+          preload += includes_values unless eager_loading?
+          preloader = nil
+          preload.each do |associations|
+            preloader ||= build_preloader
+            preloader.preload @records, associations
+          end
+
+          @records.each(&:readonly!) if readonly_value
+
+          @loaded = true
+          @records
         end
+      end
 
-        @records.each(&:readonly!) if readonly_value
-
-        @loaded = true
-        @records
+      def skip_query_cache_if_necessary
+        if skip_query_cache_value
+          uncached do
+            yield
+          end
+        else
+          yield
+        end
       end
 
       def build_preloader

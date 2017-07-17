@@ -1,7 +1,7 @@
-require "active_record/relation/from_clause"
-require "active_record/relation/query_attribute"
-require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
+require_relative "from_clause"
+require_relative "query_attribute"
+require_relative "where_clause"
+require_relative "where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
@@ -202,12 +202,13 @@ module ActiveRecord
 
     # Works in two unique ways.
     #
-    # First: takes a block so it can be used just like +Array#select+.
+    # First: takes a block so it can be used just like <tt>Array#select</tt>.
     #
     #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
-    # converting them into an array and iterating through them using +Array#select+.
+    # converting them into an array and iterating through them using
+    # <tt>Array#select</tt>.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
     # fields are retrieved:
@@ -248,7 +249,7 @@ module ActiveRecord
         return super()
       end
 
-      raise ArgumentError, "Call this with at least one field" if fields.empty?
+      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
 
@@ -797,7 +798,7 @@ module ActiveRecord
         value = sanitize_forbidden_attributes(value)
         self.create_with_value = create_with_value.merge(value)
       else
-        self.create_with_value = {}
+        self.create_with_value = FROZEN_EMPTY_HASH
       end
 
       self
@@ -910,6 +911,11 @@ module ActiveRecord
       orders = order_values.uniq
       orders.reject!(&:blank?)
       self.order_values = reverse_sql_order(orders)
+      self
+    end
+
+    def skip_query_cache! # :nodoc:
+      self.skip_query_cache_value = true
       self
     end
 
@@ -1100,14 +1106,16 @@ module ActiveRecord
       end
 
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"] # :nodoc:
+                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|
           next unless arg.is_a?(Hash)
           arg.each do |_key, value|
-            raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
-                                 "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
+            unless VALID_DIRECTIONS.include?(value)
+              raise ArgumentError,
+                "Direction \"#{value}\" is invalid. Valid directions are: #{VALID_DIRECTIONS.to_a.inspect}"
+            end
           end
         end
       end
@@ -1120,7 +1128,7 @@ module ActiveRecord
         validate_order_args(order_args)
 
         references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name
@@ -1130,7 +1138,12 @@ module ActiveRecord
             arel_attribute(arg).asc
           when Hash
             arg.map { |field, dir|
-              arel_attribute(field).send(dir.downcase)
+              case field
+              when Arel::Nodes::SqlLiteral
+                field.send(dir.downcase)
+              else
+                arel_attribute(field).send(dir.downcase)
+              end
             }
           else
             arg
@@ -1160,7 +1173,7 @@ module ActiveRecord
         end
       end
 
-      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having]
+      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope]
       def structurally_incompatible_values_for_or(other)
         STRUCTURAL_OR_METHODS.reject do |method|
           get_value(method) == other.get_value(method)

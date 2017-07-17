@@ -66,11 +66,11 @@ module ActiveRecord
 
       def test_exec_insert
         with_example_table do
-          vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
-          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
+          binds = [bind_attribute("number", 10)]
+          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", binds)
 
           result = @conn.exec_query(
-            "select number from ex where number = ?", "SQL", vals)
+            "select number from ex where number = ?", "SQL", binds)
 
           assert_equal 1, result.rows.length
           assert_equal 10, result.rows.first.first
@@ -134,7 +134,7 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
           result = @conn.exec_query(
-            "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new(nil, 1, Type::Value.new)])
+            "SELECT id, data FROM ex WHERE id = ?", nil, [bind_attribute("id", 1)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -148,7 +148,7 @@ module ActiveRecord
           @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
 
           result = @conn.exec_query(
-            "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)])
+            "SELECT id, data FROM ex WHERE id = ?", nil, [bind_attribute("id", "1-fuu", Type::Integer.new)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -165,7 +165,7 @@ module ActiveRecord
             data binary
           )
         eosql
-        str = "\x80".force_encoding("ASCII-8BIT")
+        str = "\x80".dup.force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
         assert_equal str, binary.data
@@ -174,7 +174,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name = "hello".force_encoding(Encoding::ASCII_8BIT)
+        name = "hello".dup.force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
@@ -260,8 +260,7 @@ module ActiveRecord
 
       def test_tables_logs_name
         sql = <<-SQL
-          SELECT name FROM sqlite_master
-          WHERE type = 'table' AND name <> 'sqlite_sequence'
+          SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
@@ -279,8 +278,7 @@ module ActiveRecord
       def test_table_exists_logs_name
         with_example_table do
           sql = <<-SQL
-            SELECT name FROM sqlite_master
-            WHERE type = 'table' AND name <> 'sqlite_sequence' AND name = 'ex'
+            SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
             assert @conn.table_exists?("ex")

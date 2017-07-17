@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/attribute_accessors"
-require "action_dispatch/http/filter_redirect"
-require "action_dispatch/http/cache"
+require_relative "filter_redirect"
+require_relative "cache"
 require "monitor"
 
 module ActionDispatch # :nodoc:
@@ -81,11 +81,11 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
-    cattr_accessor(:default_charset) { "utf-8" }
-    cattr_accessor(:default_headers)
+    cattr_accessor :default_charset, default: "utf-8"
+    cattr_accessor :default_headers
 
     include Rack::Response::Helpers
-    # Aliasing these off because AD::Http::Cache::Response defines them
+    # Aliasing these off because AD::Http::Cache::Response defines them.
     alias :_cache_control :cache_control
     alias :_cache_control= :cache_control=
 
@@ -103,7 +103,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = ""
+          buf = "".dup
           each { |chunk| buf << chunk }
           buf
         end
@@ -142,7 +142,7 @@ module ActionDispatch # :nodoc:
       private
 
         def each_chunk(&block)
-          @buf.each(&block) # extract into own method
+          @buf.each(&block)
         end
     end
 
@@ -252,7 +252,7 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP character set. In case of +nil+ parameter
-    # it sets the charset to utf-8.
+    # it sets the charset to +default_charset+.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
