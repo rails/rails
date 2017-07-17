@@ -1,3 +1,8 @@
+*   Support `-` as a platform-agnostic way to run a script from stdin with
+    `rails runner`
+
+    *Cody Cutrer*
+
 *   Add `bootsnap` to default `Gemfile`.
 
     *Burke Libbey*
