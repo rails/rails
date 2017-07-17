@@ -450,9 +450,9 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   test "a scope can remove the condition from the default scope" do
-    scope = DeveloperCalledJamis.david2
+    scope = DeveloperCalledJamis.jamis2
     assert_equal 1, scope.where_clause.ast.children.length
-    assert_equal Developer.where(name: "David"), scope
+    assert_equal DeveloperCalledJamis.where("salary < 10000").to_a, scope.to_a
   end
 
   def test_with_abstract_class_where_clause_should_not_be_duplicated
