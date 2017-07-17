@@ -329,7 +329,7 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
-      conditions = arel.where_sql(@klass.arel_engine)
+      conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 

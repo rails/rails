@@ -263,16 +263,6 @@ module ActiveRecord
         @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
       end
 
-      # Returns the Arel engine.
-      def arel_engine # :nodoc:
-        @arel_engine ||=
-          if Base == self || connection_handler.retrieve_connection_pool(connection_specification_name)
-            self
-          else
-            superclass.arel_engine
-          end
-      end
-
       def arel_attribute(name, table = arel_table) # :nodoc:
         name = attribute_alias(name) if attribute_alias?(name)
         table[name]
