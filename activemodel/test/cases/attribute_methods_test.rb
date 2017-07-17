@@ -118,7 +118,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
   test "#define_attribute_method does not generate attribute method if already defined in attribute module" do
     klass = Class.new(ModelWithAttributes)
-    klass.generated_attribute_methods.module_eval do
+    klass.send(:generated_attribute_methods).module_eval do
       def foo
         "<3"
       end

@@ -1005,7 +1005,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         class_eval(&block)
       end
 
-      assert_empty klass.generated_attribute_methods.instance_methods(false)
+      assert_empty klass.send(:generated_attribute_methods).instance_methods(false)
       klass
     end
 
