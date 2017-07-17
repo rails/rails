@@ -53,10 +53,8 @@ module ActiveRecord
             scope_chain_index += 1
 
             klass_scope =
-              if klass.current_scope
-                klass.current_scope.clone.tap { |scope|
-                  scope.joins_values = []
-                }
+              if klass.current_scope && klass.current_scope.values.blank?
+                klass.unscoped
               else
                 klass.send(:build_default_scope, ActiveRecord::Relation.create(klass, table))
               end
