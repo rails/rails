@@ -332,7 +332,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_create_with_merge
     aaron = PoorDeveloperCalledJamis.create_with(name: "foo", salary: 20).merge(
-              PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
+      PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
 
@@ -340,6 +340,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
                                      create_with(name: "Aaron").new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
+  end
+
+  def test_create_with_using_both_string_and_symbol
+    jamis = PoorDeveloperCalledJamis.create_with(name: "foo").create_with("name" => "Aaron").new
+    assert_equal "Aaron", jamis.name
   end
 
   def test_create_with_reset
@@ -370,6 +375,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
                  Comment.joins(:special_post_with_default_scope).count
     assert_equal Comment.where(post_id: Post.pluck(:id)).count,
                  Comment.joins(:post).count
+  end
+
+  def test_joins_not_affected_by_scope_other_than_default_or_unscoped
+    without_scope_on_post = Comment.joins(:post).to_a
+    with_scope_on_post = nil
+    Post.where(id: [1, 5, 6]).scoping do
+      with_scope_on_post = Comment.joins(:post).to_a
+    end
+
+    assert_equal with_scope_on_post, without_scope_on_post
   end
 
   def test_unscoped_with_joins_should_not_have_default_scope

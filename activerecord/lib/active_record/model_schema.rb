@@ -467,7 +467,6 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache
-          @arel_engine = nil
           @arel_table = nil
           @column_names = nil
           @attribute_types = nil

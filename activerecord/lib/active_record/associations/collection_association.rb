@@ -374,10 +374,6 @@ module ActiveRecord
           end
         end
 
-        def create_scope
-          scope.scope_for_create.stringify_keys
-        end
-
         def delete_or_destroy(records, method)
           records = records.flatten
           records.each { |record| raise_on_type_mismatch!(record) }

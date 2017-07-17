@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -306,7 +308,7 @@ module ActionDispatch
           def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems.".dup
                 message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
@@ -652,18 +654,25 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
-            app.routes.define_mounted_helper(name)
+
+            script_namer = ->(options) do
+              prefix_options = options.slice(*_route.segment_keys)
+              prefix_options[:relative_url_root] = "".freeze
+              # We must actually delete prefix segment keys to avoid passing them to next url_for.
+              _route.segment_keys.each { |k| options.delete(k) }
+              _routes.url_helpers.send("#{name}_path", prefix_options)
+            end
+
+            app.routes.define_mounted_helper(name, script_namer)
+
             app.routes.extend Module.new {
               def optimize_routes_generation?; false; end
+
               define_method :find_script_name do |options|
                 if options.key? :script_name
                   super(options)
                 else
-                  prefix_options = options.slice(*_route.segment_keys)
-                  prefix_options[:relative_url_root] = "".freeze
-                  # We must actually delete prefix segment keys to avoid passing them to next url_for.
-                  _route.segment_keys.each { |k| options.delete(k) }
-                  _routes.url_helpers.send("#{name}_path", prefix_options)
+                  script_namer.call(options)
                 end
               end
             }

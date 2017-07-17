@@ -1,3 +1,11 @@
+*   Make the order of `Hash#reverse_merge!` consistent with `HashWithIndifferentAccess`.
+
+    *Erol Fornoles*
+
+*   Add `freeze_time` helper which freezes time to `Time.now` in tests.
+
+    *Prathamesh Sonpatki*
+
 *   Default `ActiveSupport::MessageEncryptor` to use AES 256 GCM encryption.
 
     On for new Rails 5.2 apps. Upgrading apps can find the config as a new

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
@@ -161,5 +163,27 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_equal Date.today.to_s, DateSubclass.today.to_s
       assert_equal DateTime.now.to_s, DateTimeSubclass.now.to_s
     end
+  end
+
+  def test_time_helper_freeze_time
+    expected_time = Time.now
+    freeze_time
+    sleep(1)
+
+    assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+  ensure
+    travel_back
+  end
+
+  def test_time_helper_freeze_time_with_block
+    expected_time = Time.now
+
+    freeze_time do
+      sleep(1)
+
+      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
+    end
+
+    assert_operator expected_time.to_s(:db), :<, Time.now.to_s(:db)
   end
 end

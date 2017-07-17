@@ -185,19 +185,23 @@ module ActiveRecord
       end
       deprecate :scope_chain
 
-      def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = predicate_builder(table)
-        scope_chain_items = join_scopes(table, predicate_builder)
-        klass_scope       = klass_join_scope(table, predicate_builder)
-
+      def build_join_constraint(table, foreign_table)
         key         = join_keys.key
         foreign_key = join_keys.foreign_key
 
-        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
+        constraint = table[key].eq(foreign_table[foreign_key])
 
         if klass.finder_needs_type_condition?
-          klass_scope.where!(klass.send(:type_condition, table))
+          table.create_and([constraint, klass.send(:type_condition, table)])
+        else
+          constraint
         end
+      end
+
+      def join_scope(table, foreign_klass)
+        predicate_builder = predicate_builder(table)
+        scope_chain_items = join_scopes(table, predicate_builder)
+        klass_scope       = klass_join_scope(table, predicate_builder)
 
         if type
           klass_scope.where!(type => foreign_klass.base_class.sti_name)
@@ -215,10 +219,8 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        if klass.current_scope
-          klass.current_scope.clone.tap { |scope|
-            scope.joins_values = scope.left_outer_joins_values = [].freeze
-          }
+        if klass.current_scope && klass.current_scope.values.empty?
+          klass.unscoped
         else
           klass.default_scoped(build_scope(table, predicate_builder))
         end

@@ -1482,7 +1482,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
   end
 
-  def test_explicit_create_scope
+  def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
 
@@ -1915,11 +1915,11 @@ class RelationTest < ActiveRecord::TestCase
 
     table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
     predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
-    relation = ActiveRecord::Relation.new(Post, table_alias, predicate_builder)
-    relation.where!(foo: "bar")
+    relation = ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
 
-    node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first
-    assert_equal table_alias, node.relation
+    post = posts(:welcome)
+
+    assert_equal post, relation.where!(title: post.title).take
   end
 
   test "#load" do
@@ -2033,5 +2033,47 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, posts.to_a.length
+  end
+
+  test "#skip_query_cache!" do
+    Post.cache do
+      assert_queries(1) do
+        Post.all.load
+        Post.all.load
+      end
+
+      assert_queries(2) do
+        Post.all.skip_query_cache!.load
+        Post.all.skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with an eager load" do
+    Post.cache do
+      assert_queries(1) do
+        Post.eager_load(:comments).load
+        Post.eager_load(:comments).load
+      end
+
+      assert_queries(2) do
+        Post.eager_load(:comments).skip_query_cache!.load
+        Post.eager_load(:comments).skip_query_cache!.load
+      end
+    end
+  end
+
+  test "#skip_query_cache! with a preload" do
+    Post.cache do
+      assert_queries(2) do
+        Post.preload(:comments).load
+        Post.preload(:comments).load
+      end
+
+      assert_queries(4) do
+        Post.preload(:comments).skip_query_cache!.load
+        Post.preload(:comments).skip_query_cache!.load
+      end
+    end
   end
 end

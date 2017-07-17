@@ -18,7 +18,7 @@ Why Write Tests for your Rails Applications?
 
 Rails makes it super easy to write your tests. It starts by producing skeleton test code while you are creating your models and controllers.
 
-By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
+By running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
 
 Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
 
@@ -273,7 +273,7 @@ When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
 application. This eliminates the framework noise and helps to focus on your
 code. However there are situations when you want to see the full
-backtrace. Simply set the `-b` (or `--backtrace`) argument to enable this behavior:
+backtrace. Set the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
 $ bin/rails test -b test/models/article_test.rb
@@ -516,7 +516,7 @@ steve:
 
 Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank line. You can place comments in a fixture file by using the # character in the first column.
 
-If you are working with [associations](/association_basics.html), you can simply
+If you are working with [associations](/association_basics.html), you can
 define a reference node between two different fixtures. Here's an example with
 a `belongs_to`/`has_many` association:
 
@@ -641,7 +641,7 @@ When you generate a new application or scaffold, an `application_system_test_cas
 is created in the test directory. This is where all the configuration for your
 system tests should live.
 
-If you want to change the default settings you can simply change what the system
+If you want to change the default settings you can change what the system
 tests are "driven by". Say you want to change the driver from Selenium to
 Poltergeist. First add the `poltergeist` gem to your Gemfile. Then in your
 `application_system_test_case.rb` file do the following:

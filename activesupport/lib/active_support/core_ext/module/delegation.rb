@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require_relative "../regexp"
 
@@ -174,7 +176,7 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    methods.each do |method|
+    methods.map do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"

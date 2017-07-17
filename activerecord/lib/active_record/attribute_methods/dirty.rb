@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require_relative "../attribute_mutation_tracker"
 
@@ -80,7 +81,7 @@ module ActiveRecord
         clear_mutation_trackers
       end
 
-      def raw_write_attribute(attr_name, *)
+      def write_attribute_without_type_cast(attr_name, *)
         result = super
         clear_attribute_change(attr_name)
         result

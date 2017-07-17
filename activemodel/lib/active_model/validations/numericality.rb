@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:

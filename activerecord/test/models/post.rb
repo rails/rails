@@ -199,6 +199,11 @@ class FirstPost < ActiveRecord::Base
   has_one  :comment,  foreign_key: :post_id
 end
 
+class TaggedPost < Post
+  has_many :taggings, -> { rewhere(taggable_type: "TaggedPost") }, as: :taggable
+  has_many :tags, through: :taggings
+end
+
 class PostWithDefaultInclude < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
@@ -275,4 +280,36 @@ class ConditionalStiPost < Post
 end
 
 class SubConditionalStiPost < ConditionalStiPost
+end
+
+class FakeKlass
+  extend ActiveRecord::Delegation::DelegateCache
+
+  inherited self
+
+  class << self
+    def connection
+      Post.connection
+    end
+
+    def table_name
+      "posts"
+    end
+
+    def attribute_alias?(name)
+      false
+    end
+
+    def sanitize_sql(sql)
+      sql
+    end
+
+    def sanitize_sql_for_order(sql)
+      sql
+    end
+
+    def arel_attribute(name, table)
+      table[name]
+    end
+  end
 end

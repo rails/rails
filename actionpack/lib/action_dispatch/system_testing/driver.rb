@@ -9,14 +9,14 @@ module ActionDispatch
       end
 
       def use
-        register unless rack_test?
+        register if registerable?
 
         setup
       end
 
       private
-        def rack_test?
-          @name == :rack_test
+        def registerable?
+          [:selenium, :poltergeist, :webkit].include?(@name)
         end
 
         def register

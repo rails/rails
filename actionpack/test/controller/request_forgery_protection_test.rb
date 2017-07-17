@@ -163,6 +163,13 @@ class PerFormTokensController < ActionController::Base
   end
 end
 
+class SkipProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+  skip_forgery_protection if: :skip_requested
+  attr_accessor :skip_requested
+end
+
 # common test methods
 module RequestForgeryProtectionTests
   def setup
@@ -963,4 +970,27 @@ class PerFormTokensControllerTest < ActionController::TestCase
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
+end
+
+class SkipProtectionControllerTest < ActionController::TestCase
+  def test_should_not_allow_post_without_token_when_not_skipping
+    @controller.skip_requested = false
+    assert_blocked { post :index }
+  end
+
+  def test_should_allow_post_without_token_when_skipping
+    @controller.skip_requested = true
+    assert_not_blocked { post :index }
+  end
+
+  def assert_blocked
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      yield
+    end
+  end
+
+  def assert_not_blocked
+    assert_nothing_raised { yield }
+    assert_response :success
+  end
 end

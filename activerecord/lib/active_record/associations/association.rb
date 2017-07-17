@@ -171,8 +171,8 @@ module ActiveRecord
         skip_assign = [reflection.foreign_key, reflection.type].compact
         assigned_keys = record.changed_attribute_names_to_save
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
-        attributes = create_scope.except(*(assigned_keys - skip_assign))
-        record.assign_attributes(attributes)
+        attributes = scope_for_create.except!(*(assigned_keys - skip_assign))
+        record.send(:_assign_attributes, attributes) if attributes.any?
         set_inverse_instance(record)
       end
 
@@ -185,6 +185,9 @@ module ActiveRecord
       end
 
       private
+        def scope_for_create
+          scope.scope_for_create
+        end
 
         def find_target?
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass

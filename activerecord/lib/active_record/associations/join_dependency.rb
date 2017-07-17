@@ -33,12 +33,8 @@ module ActiveRecord
         end
 
         Table = Struct.new(:node, :columns) do # :nodoc:
-          def table
-            Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
-          end
-
           def column_aliases
-            t = table
+            t = node.table
             columns.map { |column| t[column.name].as Arel.sql column.alias }
           end
         end

@@ -379,6 +379,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 415              | :unsupported_media_type          |
 |                     | 416              | :range_not_satisfiable           |
 |                     | 417              | :expectation_failed              |
+|                     | 421              | :misdirected_request             |
 |                     | 422              | :unprocessable_entity            |
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
@@ -386,6 +387,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 428              | :precondition_required           |
 |                     | 429              | :too_many_requests               |
 |                     | 431              | :request_header_fields_too_large |
+|                     | 451              | :unavailable_for_legal_reasons   |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |

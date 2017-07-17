@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "stringio"
 
 require "active_support/inflector"

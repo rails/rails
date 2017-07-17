@@ -1,3 +1,45 @@
+*   Values constructed using multi-parameter assignment will now use the
+    post-type-cast value for rendering in single-field form inputs.
+
+    *Sean Griffin*
+
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
+
+    Fixes #29338.
+
+    *Sean Griffin*
+
+*   Change sqlite3 boolean serialization to use 1 and 0
+
+    SQLite natively recognizes 1 and 0 as true and false, but does not natively
+    recognize 't' and 'f' as was previously serialized.
+
+    This change in serialization requires a migration of stored boolean data
+    for SQLite databases, so it's implemented behind a configuration flag
+    whose default false value is deprecated.
+
+    *Lisa Ugray*
+
+*   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
+    `in_batches`).
+
+    Previously, records would be fetched in batches, but all records would be retained in memory
+    until the end of the request or job.
+
+    *Eugene Kenny*
+
+*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
+    `ActiveRecord::StatementInvalid` exceptions.
+
+    *Dennis Taylor*
+
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
+
+    *Ryuta Kamizono*
+
 *   Fix transactions to apply state to child transactions
 
     Previously if you had a nested transaction and the outer transaction was rolledback the record from the
@@ -24,7 +66,7 @@
 
     *Ryuta Kamizono*
 
-*   Query cache was unavailable when entering the ActiveRecord::Base.cache block
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
     without being connected.
 
     *Tsukasa Oishi*
@@ -58,7 +100,7 @@
     *bogdanvlviv*
 
 *   Fix destroying existing object does not work well when optimistic locking enabled and
-    `locking column` is null in the database.
+    `locking_column` is null in the database.
 
     *bogdanvlviv*
 

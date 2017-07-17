@@ -817,4 +817,46 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_equal 6, Account.sum(:firm_id) { 1 }
     end
   end
+
+  test "#skip_query_cache! for #pluck" do
+    Account.cache do
+      assert_queries(1) do
+        Account.pluck(:credit_limit)
+        Account.pluck(:credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.pluck(:credit_limit)
+        Account.all.skip_query_cache!.pluck(:credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for a simple calculation" do
+    Account.cache do
+      assert_queries(1) do
+        Account.calculate(:sum, :credit_limit)
+        Account.calculate(:sum, :credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.calculate(:sum, :credit_limit)
+        Account.all.skip_query_cache!.calculate(:sum, :credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for a grouped calculation" do
+    Account.cache do
+      assert_queries(1) do
+        Account.group(:firm_id).calculate(:sum, :credit_limit)
+        Account.group(:firm_id).calculate(:sum, :credit_limit)
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
+        Account.all.skip_query_cache!.group(:firm_id).calculate(:sum, :credit_limit)
+      end
+    end
+  end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "core_ext/hash/keys"
 require_relative "core_ext/hash/reverse_merge"
 
@@ -242,7 +244,7 @@ module ActiveSupport
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      replace(reverse_merge(other_hash))
+      super(self.class.new(other_hash))
     end
     alias_method :with_defaults!, :reverse_merge!
 

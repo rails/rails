@@ -8,24 +8,6 @@ module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
-    FakeKlass = Struct.new(:table_name, :name) do
-      extend ActiveRecord::Delegation::DelegateCache
-
-      inherited self
-
-      def self.connection
-        Post.connection
-      end
-
-      def self.table_name
-        "fake_table"
-      end
-
-      def self.sanitize_sql_for_order(sql)
-        sql
-      end
-    end
-
     def test_construction
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal FakeKlass, relation.klass
@@ -70,8 +52,8 @@ module ActiveRecord
 
     def test_has_values
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! relation.table[:id].eq(10)
-      assert_equal({ id: 10 }, relation.where_values_hash)
+      relation.where!(id: 10)
+      assert_equal({ "id" => 10 }, relation.where_values_hash)
     end
 
     def test_values_wrong_table
@@ -90,7 +72,7 @@ module ActiveRecord
     end
 
     def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass.new("posts"), :b, Post.predicate_builder)
+      relation = Relation.new(FakeKlass, :b, Post.predicate_builder)
       assert_equal "posts", relation.table_name
     end
 
@@ -101,28 +83,19 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      hash = { hello: "world" }
-      relation.create_with_value = hash
-      assert_equal hash, relation.scope_for_create
+      relation.create_with_value = { hello: "world" }
+      assert_equal({ "hello" => "world" }, relation.scope_for_create)
     end
 
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! relation.table[:id].eq(10)
-      relation.create_with_value = { hello: "world" }
-      assert_equal({ hello: "world", id: 10 }, relation.scope_for_create)
-    end
-
-    # FIXME: is this really wanted or expected behavior?
-    def test_scope_for_create_is_cached
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       assert_equal({}, relation.scope_for_create)
 
-      relation.where! relation.table[:id].eq(10)
-      assert_equal({}, relation.scope_for_create)
+      relation.where!(id: 10)
+      assert_equal({ "id" => 10 }, relation.scope_for_create)
 
       relation.create_with_value = { hello: "world" }
-      assert_equal({}, relation.scope_for_create)
+      assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
     end
 
     def test_bad_constants_raise_errors

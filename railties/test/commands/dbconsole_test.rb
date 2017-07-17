@@ -98,14 +98,24 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_development_when_argument_is_dev
+    assert_deprecated do
+      stub_available_environments([ "development", "test" ]) do
+        assert_match("development", parse_arguments([ "dev" ])[:environment])
+      end
+    end
+  end
+
+  def test_rails_env_is_development_when_environment_option_is_dev
     stub_available_environments([ "development", "test" ]) do
-      assert_match("development", parse_arguments([ "dev" ])[:environment])
+      assert_match("development", parse_arguments([ "-e", "dev" ])[:environment])
     end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    stub_available_environments([ "dev" ]) do
-      assert_match("dev", parse_arguments([ "dev" ])[:environment])
+    assert_deprecated do
+      stub_available_environments([ "dev" ]) do
+        assert_match("dev", parse_arguments([ "dev" ])[:environment])
+      end
     end
   end
 
@@ -198,6 +208,49 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     start(adapter: "unknown", database: "db")
     assert aborted
     assert_match(/Unknown command-line client for db/, output)
+  end
+
+  def test_primary_is_automatically_picked_with_3_level_configuration
+    sample_config = {
+      "test" => {
+        "primary" => {
+          "adapter" => "postgresql"
+        }
+      }
+    }
+
+    app_db_config(sample_config) do
+      assert_equal "postgresql", Rails::DBConsole.new.config["adapter"]
+    end
+  end
+
+  def test_specifying_a_custom_connection_and_environment
+    stub_available_environments(["development"]) do
+      dbconsole = parse_arguments(["-c", "custom", "-e", "development"])
+
+      assert_equal "development", dbconsole[:environment]
+      assert_equal "custom", dbconsole.connection
+    end
+  end
+
+  def test_specifying_a_missing_connection
+    app_db_config({}) do
+      e = assert_raises(ActiveRecord::AdapterNotSpecified) do
+        Rails::Command.invoke(:dbconsole, ["-c", "i_do_not_exist"])
+      end
+
+      assert_includes e.message, "'i_do_not_exist' connection is not configured."
+    end
+  end
+
+  def test_specifying_a_missing_environment
+    app_db_config({}) do
+      e = assert_raises(ActiveRecord::AdapterNotSpecified) do
+        Rails::Command.invoke(:dbconsole)
+      end
+
+      assert_includes e.message, "'test' database is not configured."
+    end
   end
 
   def test_print_help_short

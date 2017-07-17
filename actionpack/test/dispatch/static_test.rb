@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "zlib"
 
@@ -29,7 +31,7 @@ module StaticTests
   end
 
   def test_handles_urls_with_ascii_8bit
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_ascii_8bit_on_win_31j
@@ -37,7 +39,7 @@ module StaticTests
       Encoding.default_internal = "Windows-31J"
       Encoding.default_external = "Windows-31J"
     end
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_null_byte

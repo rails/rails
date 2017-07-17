@@ -21,7 +21,7 @@ module ActiveRecord
       # Sets the primary key value.
       def id=(value)
         sync_with_transaction_state
-        write_attribute(self.class.primary_key, value) if self.class.primary_key
+        _write_attribute(self.class.primary_key, value) if self.class.primary_key
       end
 
       # Queries the primary key value.

@@ -8,32 +8,70 @@ DEFAULT_APP_FILES = %w(
   Gemfile
   Rakefile
   config.ru
-  app/assets/javascripts
-  app/assets/stylesheets
+  app/assets/config/manifest.js
   app/assets/images
+  app/assets/javascripts
+  app/assets/javascripts/application.js
+  app/assets/javascripts/cable.js
+  app/assets/javascripts/channels
+  app/assets/stylesheets
+  app/assets/stylesheets/application.css
+  app/channels/application_cable/channel.rb
+  app/channels/application_cable/connection.rb
   app/controllers
+  app/controllers/application_controller.rb
   app/controllers/concerns
   app/helpers
+  app/helpers/application_helper.rb
   app/mailers
+  app/mailers/application_mailer.rb
   app/models
+  app/models/application_record.rb
   app/models/concerns
   app/jobs
+  app/jobs/application_job.rb
   app/views/layouts
+  app/views/layouts/application.html.erb
+  app/views/layouts/mailer.html.erb
+  app/views/layouts/mailer.text.erb
   bin/bundle
   bin/rails
   bin/rake
   bin/setup
-  config/environments
-  config/initializers
-  config/locales
+  bin/update
+  bin/yarn
+  config/application.rb
+  config/boot.rb
   config/cable.yml
+  config/environment.rb
+  config/environments
+  config/environments/development.rb
+  config/environments/production.rb
+  config/environments/test.rb
+  config/initializers
+  config/initializers/application_controller_renderer.rb
+  config/initializers/assets.rb
+  config/initializers/backtrace_silencers.rb
+  config/initializers/cookies_serializer.rb
+  config/initializers/filter_parameter_logging.rb
+  config/initializers/inflections.rb
+  config/initializers/mime_types.rb
+  config/initializers/wrap_parameters.rb
+  config/locales
+  config/locales/en.yml
   config/puma.rb
+  config/routes.rb
+  config/secrets.yml
   config/spring.rb
   db
+  db/seeds.rb
   lib
   lib/tasks
   lib/assets
   log
+  package.json
+  public
+  test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
   test/fixtures/files
@@ -237,6 +275,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
       assert_file "#{app_root}/config/initializers/cors.rb"
+    end
+  end
+
+  def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-action-cable"]
+
+    FileUtils.cd(app_root) do
+      # For avoid conflict file
+      FileUtils.rm("#{app_root}/config/secrets.yml")
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_no_file "#{app_root}/config/cable.yml"
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_cable/, content)
     end
   end
 

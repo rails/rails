@@ -68,6 +68,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
       "expected to find only david's posts"
   end
 
+  def test_loading_with_scope_including_joins
+    assert_equal clubs(:boring_club), Member.preload(:general_club).find(1).general_club
+    assert_equal clubs(:boring_club), Member.eager_load(:general_club).find(1).general_club
+  end
+
   def test_with_ordering
     list = Post.all.merge!(includes: :comments, order: "posts.id DESC").to_a
     [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,

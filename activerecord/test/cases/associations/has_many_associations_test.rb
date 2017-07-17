@@ -497,21 +497,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate person.references, :exists?
   end
 
-  # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
   def test_counting_with_counter_sql
-    assert_equal 3, Firm.all.merge!(order: "id").first.clients.count
+    assert_equal 3, Firm.first.clients.count
   end
 
   def test_counting
-    assert_equal 3, Firm.all.merge!(order: "id").first.plain_clients.count
+    assert_equal 3, Firm.first.plain_clients.count
   end
 
   def test_counting_with_single_hash
-    assert_equal 1, Firm.all.merge!(order: "id").first.plain_clients.where(name: "Microsoft").count
+    assert_equal 1, Firm.first.plain_clients.where(name: "Microsoft").count
   end
 
   def test_counting_with_column_name_and_hash
-    assert_equal 3, Firm.all.merge!(order: "id").first.plain_clients.count(:name)
+    assert_equal 3, Firm.first.plain_clients.count(:name)
   end
 
   def test_counting_with_association_limit
@@ -521,7 +520,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding
-    assert_equal 3, Firm.all.merge!(order: "id").first.clients.length
+    assert_equal 3, Firm.first.clients.length
   end
 
   def test_finding_array_compatibility
@@ -593,27 +592,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding_default_orders
-    assert_equal "Summit", Firm.all.merge!(order: "id").first.clients.first.name
+    assert_equal "Summit", Firm.first.clients.first.name
   end
 
   def test_finding_with_different_class_name_and_order
-    assert_equal "Apex", Firm.all.merge!(order: "id").first.clients_sorted_desc.first.name
+    assert_equal "Apex", Firm.first.clients_sorted_desc.first.name
   end
 
   def test_finding_with_foreign_key
-    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_of_firm.first.name
+    assert_equal "Microsoft", Firm.first.clients_of_firm.first.name
   end
 
   def test_finding_with_condition
-    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_like_ms.first.name
+    assert_equal "Microsoft", Firm.first.clients_like_ms.first.name
   end
 
   def test_finding_with_condition_hash
-    assert_equal "Microsoft", Firm.all.merge!(order: "id").first.clients_like_ms_with_hash_conditions.first.name
+    assert_equal "Microsoft", Firm.first.clients_like_ms_with_hash_conditions.first.name
   end
 
   def test_finding_using_primary_key
-    assert_equal "Summit", Firm.all.merge!(order: "id").first.clients_using_primary_key.first.name
+    assert_equal "Summit", Firm.first.clients_using_primary_key.first.name
   end
 
   def test_update_all_on_association_accessed_before_save
@@ -636,7 +635,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_ids
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
 
     assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find }
 
@@ -656,7 +655,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_one_message_on_primary_key
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
 
     e = assert_raises(ActiveRecord::RecordNotFound) do
       firm.clients.find(0)
@@ -682,7 +681,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_all
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     assert_equal 3, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
@@ -727,29 +726,28 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_all_sanitized
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     summit = firm.clients.where("name = 'Summit'").to_a
     assert_equal summit, firm.clients.where("name = ?", "Summit").to_a
     assert_equal summit, firm.clients.where("name = :name", name: "Summit").to_a
   end
 
   def test_find_first
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.order("id").first
     assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").order("id").first
   end
 
   def test_find_first_sanitized
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = ?", "Client"], order: "id").first
-    assert_equal client2, firm.clients.merge!(where: ["#{QUOTED_TYPE} = :type", { type: "Client" }], order: "id").first
+    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = ?", "Client").first
+    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = :type", type: "Client").first
   end
 
   def test_find_first_after_reset_scope
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     collection = firm.clients
 
     original_object = collection.first
@@ -760,7 +758,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_first_after_reset
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     collection = firm.clients
 
     original_object = collection.first
@@ -772,7 +770,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_first_after_reload
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     collection = firm.clients
 
     original_object = collection.first
@@ -875,7 +873,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
     assert_raise(ActiveRecord::RecordInvalid) do
-      firm = Firm.all.merge!(order: "id").first
+      firm = Firm.first
       firm.plain_clients.create!
     end
   end
@@ -1557,8 +1555,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_destroy_dependent_when_deleted_from_association
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     assert_equal 3, firm.clients.size
 
     client = firm.clients.first
@@ -1668,7 +1665,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_with_less
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     firm.clients = [companies(:first_client)]
     assert firm.save, "Could not save firm"
     firm.reload
@@ -1682,7 +1679,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_replace_with_new
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
     firm.save
     firm.reload
@@ -2080,7 +2077,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_creating_using_primary_key
-    firm = Firm.all.merge!(order: "id").first
+    firm = Firm.first
     client = firm.clients_using_primary_key.create!(name: "test")
     assert_equal firm.name, client.firm_name
   end

@@ -11,6 +11,7 @@ gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
+gem "thor", github: "erikhuda/thor"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
@@ -52,6 +53,9 @@ gem "libxml-ruby", platforms: :ruby
 
 # Action View. For testing Erubis handler deprecation.
 gem "erubis", "~> 2.7.0", require: false
+
+# for railties app_generator_test
+gem "bootsnap", ">= 1.1.0", require: false
 
 # Active Job.
 group :job do

@@ -1,3 +1,12 @@
+*   Hash long stream identifiers when using Postgres adapter.
+
+    PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
+    Provided fix minifies identifiers longer than 63 chars by hashing them with SHA1.
+
+    Fixes #28751.
+
+    *Vladimir Dementyev*
+
 *   ActionCable's `redis` adapter allows for other common redis-rb options (`host`, `port`, `db`, `password`) in cable.yml.
 
     Previously, it accepts only a [redis:// url](https://www.iana.org/assignments/uri-schemes/prov/redis) as an option.

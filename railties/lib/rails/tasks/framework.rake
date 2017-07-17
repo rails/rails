@@ -36,38 +36,21 @@ namespace :app do
   end
 
   namespace :update do
-    class RailsUpdate
-      def self.invoke_from_app_generator(method)
-        app_generator.send(method)
-      end
-
-      def self.app_generator
-        @app_generator ||= begin
-          require_relative "../generators"
-          require_relative "../generators/rails/app/app_generator"
-          gen = Rails::Generators::AppGenerator.new ["rails"],
-                                                    { api: !!Rails.application.config.api_only, update: true },
-                                                    destination_root: Rails.root
-          File.exist?(Rails.root.join("config", "application.rb")) ?
-            gen.send(:app_const) : gen.send(:valid_const?)
-          gen
-        end
-      end
-    end
+    require_relative "../app_updater"
 
     # desc "Update config/boot.rb from your current rails install"
     task :configs do
-      RailsUpdate.invoke_from_app_generator :create_boot_file
-      RailsUpdate.invoke_from_app_generator :update_config_files
+      Rails::AppUpdater.invoke_from_app_generator :create_boot_file
+      Rails::AppUpdater.invoke_from_app_generator :update_config_files
     end
 
     # desc "Adds new executables to the application bin/ directory"
     task :bin do
-      RailsUpdate.invoke_from_app_generator :update_bin_files
+      Rails::AppUpdater.invoke_from_app_generator :update_bin_files
     end
 
     task :upgrade_guide_info do
-      RailsUpdate.invoke_from_app_generator :display_upgrade_guide_info
+      Rails::AppUpdater.invoke_from_app_generator :display_upgrade_guide_info
     end
   end
 end
