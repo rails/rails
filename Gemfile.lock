@@ -163,7 +163,6 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.6.0)
-    erubis (2.7.0)
     event_emitter (0.2.5)
     eventmachine (1.2.1)
     eventmachine (1.2.1-x64-mingw32)
@@ -391,7 +390,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   em-hiredis
-  erubis (~> 2.7.0)
   hiredis
   jquery-rails
   json (>= 2.0.0)
