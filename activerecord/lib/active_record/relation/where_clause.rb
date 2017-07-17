@@ -10,11 +10,46 @@ module ActiveRecord
         @binds = binds
       end
 
+      # Useful to instantiate after using the #predicates_with_binds
+      # Recieves [[predicate1, [bind11, bind12...]], [predicate2, [bind21, bind22...]]...]
+      def self.from_zipped(predicates_and_binds)
+        predicates, binds = predicates_and_binds.transpose
+
+        WhereClause.new(
+            predicates || [],
+            (binds || []).flatten(1)
+        )
+      end
+
       def +(other)
         WhereClause.new(
           predicates + other.predicates,
           binds + other.binds,
         )
+      end
+
+      # Intersection
+      def &(other)
+        # Doing a poor man's array intersection since the predicates / binds don't define #hash
+        other_predicates_with_binds = other.predicates_with_binds
+        common_predicates_and_binds = self.predicates_with_binds.select { |pb| other_predicates_with_binds.include?(pb) }
+
+        WhereClause.from_zipped(common_predicates_and_binds)
+      end
+
+      # Union, avoids adding duplicates
+      # I wonder if this should be the behavior of #+
+      def |(other)
+        self + (other - self)
+      end
+
+      # Difference
+      def -(other)
+        # Doing a poor man's array difference since the predicates / binds don't define #hash
+        other_predicates_with_binds = other.predicates_with_binds
+        new_predicates_and_binds = self.predicates_with_binds.select { |pb| other_predicates_with_binds.exclude?(pb) }
+
+        WhereClause.from_zipped(new_predicates_and_binds)
       end
 
       def merge(other)
@@ -25,20 +60,21 @@ module ActiveRecord
       end
 
       def except(*columns)
-        WhereClause.new(*except_predicates_and_binds(columns))
+        WhereClause.from_zipped(predicates_with_binds_except(columns))
       end
 
       def or(other)
-        if empty?
-          self
-        elsif other.empty?
-          other
-        else
-          WhereClause.new(
-            [ast.or(other.ast)],
-            binds + other.binds
-          )
-        end
+        common, left, right = partition_common_left_right(other)
+
+        return common if left.empty? || right.empty?
+
+        added_or_clause = WhereClause.new(
+            [left.ast.or(right.ast)],
+            left.binds + right.binds
+        )
+
+        # Using union to avoid adding a clause that is already there
+        common | added_or_clause
       end
 
       def to_h(table_name = nil)
@@ -80,6 +116,47 @@ module ActiveRecord
       def self.empty
         @empty ||= new([], [])
       end
+
+      def partition_common_left_right(other)
+        # The simpler but possibly less efficient way. Thoughts?
+        # common = self & other
+        # left = self - common
+        # right = other - common
+        # return common, left, right
+
+        other_predicates_with_binds = other.predicates_with_binds
+        common, left = self.predicates_with_binds.partition { |pb| other_predicates_with_binds.include?(pb) }
+        right = other_predicates_with_binds.reject { |pb| common.include?(pb) }
+
+        [ WhereClause.from_zipped(common),
+          WhereClause.from_zipped(left),
+          WhereClause.from_zipped(right)]
+      end
+
+      protected
+
+        def predicates_with_bind_ranges
+          bind_index = 0
+          self.predicates.map do |node|
+            case node
+            when Arel::Nodes::Node
+              binds_contains = node.grep(Arel::Nodes::BindParam).size
+            else
+              binds_contains = 0
+            end
+
+            bind_range = bind_index...(bind_index + binds_contains)
+            bind_index += binds_contains
+
+            [node, bind_range]
+          end
+        end
+
+        def predicates_with_binds
+          self.predicates_with_bind_ranges.map do |node, bind_range|
+            [node, self.binds[bind_range]]
+          end
+        end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
       # Workaround for Ruby 2.2 "private attribute?" warning.
@@ -131,35 +208,14 @@ module ActiveRecord
           end
         end
 
-        def except_predicates_and_binds(columns)
-          except_binds = []
-          binds_index = 0
-
-          predicates = self.predicates.reject do |node|
-            except = \
-              case node
-              when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-                binds_contains = node.grep(Arel::Nodes::BindParam).size
-                subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
-                columns.include?(subrelation.name.to_s)
-              end
-
-            if except && binds_contains > 0
-              (binds_index...(binds_index + binds_contains)).each do |i|
-                except_binds[i] = true
-              end
+        def predicates_with_binds_except(columns)
+          self.predicates_with_binds.reject do |predicate, binds|
+            case predicate
+            when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
+              subrelation = (predicate.left.kind_of?(Arel::Attributes::Attribute) ? predicate.left : predicate.right)
+              columns.include?(subrelation.name.to_s)
             end
-
-            binds_index += binds_contains if binds_contains
-
-            except
           end
-
-          binds = self.binds.reject.with_index do |_, i|
-            except_binds[i]
-          end
-
-          [predicates, binds]
         end
 
         def predicates_with_wrapped_sql_literals
