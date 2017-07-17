@@ -1,6 +1,5 @@
 require "service/shared_service_tests"
 require "httparty"
-require "uri"
 
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
