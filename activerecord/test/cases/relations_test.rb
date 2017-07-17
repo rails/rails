@@ -586,14 +586,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_nothing_raised { Topic.reorder([]) }
   end
 
-  def test_scoped_responds_to_delegated_methods
-    relation = Topic.all
-
-    ["map", "uniq", "sort", "insert", "delete", "update"].each do |method|
-      assert_respond_to relation, method, "Topic.all should respond to #{method.inspect}"
-    end
-  end
-
   def test_respond_to_delegates_to_arel
     relation = Topic.all
     fake_arel = Struct.new(:responds) {
