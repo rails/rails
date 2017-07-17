@@ -1130,7 +1130,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1141,7 +1141,7 @@ module ApplicationTests
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1153,7 +1153,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1177,7 +1177,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1188,7 +1188,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1196,7 +1196,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
       app "test"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1204,7 +1204,7 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
       app "production"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1223,7 +1223,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1234,7 +1234,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1245,7 +1245,7 @@ module ApplicationTests
 
       app "development"
 
-      lazy_load { ActionController::Base }
+      force_lazy_load_hooks { ActionController::Base }
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
@@ -1596,7 +1596,7 @@ module ApplicationTests
       RUBY
 
       app "development"
-      lazy_load { Post }
+      force_lazy_load_hooks { Post }
 
       assert_not ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
@@ -1608,7 +1608,7 @@ module ApplicationTests
       RUBY
 
       app "development"
-      lazy_load { Post }
+      force_lazy_load_hooks { Post }
 
       assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
@@ -1626,7 +1626,7 @@ module ApplicationTests
       RUBY
 
       app "development"
-      lazy_load { Post }
+      force_lazy_load_hooks { Post }
 
       assert ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
     end
@@ -1739,7 +1739,7 @@ module ApplicationTests
     end
 
     private
-      def lazy_load
+      def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
       end
   end
