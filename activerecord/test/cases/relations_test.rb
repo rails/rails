@@ -1550,6 +1550,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "zyke", car2.name
   end
 
+  def test_scoping_limit_with_self_join
+    Comment.where(body: nil).joins(:children).limit(20).offset(0).scoping do
+      Comment.pluck(&:id)
+    end
+  end
+
   def test_unscoped_block_style
     assert_equal "honda", CoolCar.unscoped { CoolCar.order_using_new_style.limit(1).first.name }
     assert_equal "honda", FastCar.unscoped { FastCar.order_using_new_style.limit(1).first.name }
