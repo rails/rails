@@ -27,7 +27,7 @@ if SERVICE_CONFIGURATIONS[:s3]
 
       details = JSON.parse(@response.body)
 
-      assert_match /rails-activestorage\.s3.amazonaws\.com/, details["url"]
+      assert_match /#{SERVICE_CONFIGURATIONS[:s3][:bucket]}\.s3.(\S+)?amazonaws\.com/, details["url"]
       assert_equal "hello.txt", GlobalID::Locator.locate_signed(details["sgid"]).filename.to_s
     end
   end
