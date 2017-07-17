@@ -1048,7 +1048,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
         else
-          arel.project(@klass.arel_table[Arel.star])
+          arel.project(table[Arel.star])
         end
       end
 
