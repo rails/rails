@@ -1,3 +1,7 @@
+*   Remove deprecated argument `default` from `index_name_exists?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to `quoted_id` when typecasting an Active Record object.
 
     *Rafael Mendonça França*

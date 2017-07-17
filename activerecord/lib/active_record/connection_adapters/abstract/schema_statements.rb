@@ -806,12 +806,7 @@ module ActiveRecord
       end
 
       # Verifies the existence of an index with a given name.
-      def index_name_exists?(table_name, index_name, default = nil)
-        unless default.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing default to #index_name_exists? is deprecated without replacement.
-          MSG
-        end
+      def index_name_exists?(table_name, index_name)
         index_name = index_name.to_s
         indexes(table_name).detect { |i| i.name == index_name }
       end
