@@ -63,6 +63,7 @@ module ActiveRecord
       end
 
       def changes_internally_applied # :nodoc:
+        return if frozen?
         @mutations_before_last_save = mutation_tracker
         forget_attribute_assignments
         @mutations_from_database = AttributeMutationTracker.new(@attributes)

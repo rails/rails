@@ -87,6 +87,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
+  def test_frozen_save
+    p1 = Person.find(1)
+    p1.freeze
+    assert p1.frozen?
+
+    p1.save!
+
+    assert p1.frozen?
+  end
+
   # See Lighthouse ticket #1966
   def test_lock_destroy
     p1 = Person.find(1)
