@@ -302,9 +302,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_reverse_merge
-    defaults = { a: "x", b: "y", c: 10 }.freeze
+    defaults = { d: 0, a: "x", b: "y", c: 10 }.freeze
     options  = { a: 1, b: 2 }
-    expected = { a: 1, b: 2, c: 10 }
+    expected = { d: 0, a: 1, b: 2, c: 10 }
 
     # Should merge defaults into options, creating a new hash.
     assert_equal expected, options.reverse_merge(defaults)
@@ -314,6 +314,9 @@ class HashExtTest < ActiveSupport::TestCase
     merged = options.dup
     assert_equal expected, merged.reverse_merge!(defaults)
     assert_equal expected, merged
+
+    # Make the order consistent with the non-overwriting reverse merge.
+    assert_equal expected.keys, merged.keys
 
     # Should be an alias for reverse_merge!
     merged = options.dup
