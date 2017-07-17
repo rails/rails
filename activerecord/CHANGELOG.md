@@ -1,3 +1,10 @@
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
+
+    Fixes #29338.
+
+    *Sean Griffin*
+
 *   Previously, when building records using a `has_many :through` association,
     if the child records were deleted before the parent was saved, they would
     still be persisted. Now, if child records are deleted before the parent is saved
