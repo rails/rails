@@ -5,9 +5,9 @@ module ActiveRecord
         # Returns an ActiveRecord::Result instance.
         def select_all(arel, name = nil, binds = [], preparable: nil) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
-            unprepared_statement { super }
+            unprepared_statement { super(arel, name, binds, preparable: preparable) }
           else
-            super
+            super(arel, name, binds, preparable: preparable)
           end
           @connection.next_result while @connection.more_results?
           result
