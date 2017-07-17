@@ -1,3 +1,7 @@
+*   Remove deprecated support to `quoted_id` when typecasting an Active Record object.
+
+    *Rafael Mendonça França*
+
 *   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
     ar_internal_metadata's data for a test database.
 
