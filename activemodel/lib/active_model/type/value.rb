@@ -86,6 +86,10 @@ module ActiveModel
         false
       end
 
+      def value_constructed_by_mass_assignment?(_value) # :nodoc:
+        false
+      end
+
       def map(value) # :nodoc:
         yield value
       end

@@ -383,4 +383,15 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
 
     assert_equal("address", ex.errors[0].attribute)
   end
+
+  def test_multiparameter_assigned_attributes_did_not_come_from_user
+    topic = Topic.new(
+      "written_on(1i)" => "1952",
+      "written_on(2i)" => "3",
+      "written_on(3i)" => "11",
+      "written_on(4i)" => "13",
+      "written_on(5i)" => "55",
+    )
+    refute_predicate topic, :written_on_came_from_user?
+  end
 end

@@ -21,6 +21,10 @@ module ActiveModel
             end
           end
 
+          define_method(:value_constructed_by_mass_assignment?) do |value|
+            value.is_a?(Hash)
+          end
+
           define_method(:value_from_multiparameter_assignment) do |values_hash|
             defaults.each do |k, v|
               values_hash[k] ||= v

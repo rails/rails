@@ -1,3 +1,8 @@
+*   Values constructed using multi-parameter assignment will now use the
+    post-type-cast value for rendering in single-field form inputs.
+
+    *Sean Griffin*
+
 *   `Relation#joins` is no longer affected by the target model's
     `current_scope`, with the exception of `unscoped`.
 
