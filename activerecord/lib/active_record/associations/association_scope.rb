@@ -83,7 +83,7 @@ module ActiveRecord
 
       def column_for(table_name, column_name, alias_tracker)
         columns = alias_tracker.connection.schema_cache.columns_hash(table_name)
-        columns[column_name]
+        columns[column_name.to_s]
       end
 
       def bind_value(scope, column, value, alias_tracker)
@@ -100,7 +100,7 @@ module ActiveRecord
         key = join_keys.key
         foreign_key = join_keys.foreign_key
 
-        bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], tracker
+        bind_val = bind scope, table.table_name, key, owner[foreign_key], tracker
         scope    = scope.where(table[key].eq(bind_val))
 
         if reflection.type
