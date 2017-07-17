@@ -119,9 +119,10 @@ module ActiveRecord
               end
             end
 
-            join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
-                                                                             joins_dependency,
-                                                                             [])
+            join_dependency = ActiveRecord::Associations::JoinDependency.new(
+              other.klass, other.table, joins_dependency, []
+            )
+
             relation.joins! rest
 
             @relation = relation.joins join_dependency

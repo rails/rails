@@ -1785,15 +1785,15 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "using a custom table affects the wheres" do
-    table_alias = Post.arel_table.alias("omg_posts")
-
-    table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-    predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
-    relation = ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
-
     post = posts(:welcome)
 
-    assert_equal post, relation.where!(title: post.title).take
+    assert_equal post, custom_post_relation.where!(title: post.title).take
+  end
+
+  test "using a custom table with joins affects the joins" do
+    post = posts(:welcome)
+
+    assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).take
   end
 
   test "#load" do
@@ -1950,4 +1950,13 @@ class RelationTest < ActiveRecord::TestCase
       end
     end
   end
+
+  private
+    def custom_post_relation
+      table_alias = Post.arel_table.alias("omg_posts")
+      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
+
+      ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
+    end
 end
