@@ -1,7 +1,8 @@
-*   Raise ArgumentError on Parameter.new
+*  Raise `ArgumentError` when passing anything that doesn't respond to `with_indifferent_access` to
+   `ActionController::Parameter.new`
 
     When we pass a non-hash argument to `ActionController::Parameters.new`
-    it now raises an `ArgumentError`
+    it now raises an `ArgumentError`.
 
     *Philibert Dugas*
 
