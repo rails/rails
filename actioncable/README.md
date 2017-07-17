@@ -446,7 +446,7 @@ The WebSocket server doesn't have access to the session, but it has access to th
 
 ## Dependencies
 
-Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, evented Redis, and non-evented Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within Action Cable as example implementations.
+Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, and Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within Action Cable as example implementations.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
