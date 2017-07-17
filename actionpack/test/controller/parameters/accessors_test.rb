@@ -255,6 +255,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_match(/permitted: true/, @params.inspect)
   end
 
+  test "new fails when the parameter is not a hash" do
+    assert_raises ArgumentError, "invalid parameters given, the parameters should be a hash" do
+      ActionController::Parameters.new("Weee")
+    end
+  end
+
   if Hash.method_defined?(:dig)
     test "#dig delegates the dig method to its values" do
       assert_equal "David", @params.dig(:person, :name, :first)

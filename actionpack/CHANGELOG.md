@@ -1,3 +1,10 @@
+*   Raise ArgumentError on Parameter.new
+
+    When we pass a non-hash argument to `ActionController::Parameters.new`
+    it now raises an `ArgumentError`
+
+    *Philibert Dugas*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,
