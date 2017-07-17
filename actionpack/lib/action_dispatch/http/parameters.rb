@@ -123,9 +123,4 @@ module ActionDispatch
         end
     end
   end
-
-  module ParamsParser
-    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    deprecate_constant "ParseError", "ActionDispatch::Http::Parameters::ParseError"
-  end
 end
