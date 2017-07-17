@@ -51,9 +51,6 @@ gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 
-# Action View. For testing Erubis handler deprecation.
-gem "erubis", "~> 2.7.0", require: false
-
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
 

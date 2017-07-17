@@ -1,3 +1,7 @@
+*   Remove deprecated Erubis ERB handler.
+
+    *Rafael Mendonça França*
+
 *   Remove default `alt` text generation.
 
     Fixes #30096

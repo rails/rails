@@ -253,7 +253,6 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.6.1)
-    erubis (2.7.0)
     et-orbi (1.0.5)
       tzinfo
     event_emitter (0.2.6)
@@ -540,7 +539,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   em-hiredis
-  erubis (~> 2.7.0)
   google-cloud-storage (~> 1.3)
   hiredis
   json (>= 2.0.0)
