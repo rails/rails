@@ -53,6 +53,17 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
     end
   end
 
+  def url_for_direct_upload(key, expires_in:, content_type:, content_length:)
+    instrument :url, key do |payload|
+      generated_url = bucket.signed_url key, method: "PUT", expires: expires_in,
+        content_type: content_type
+
+      payload[:url] = generated_url
+
+      generated_url
+    end
+  end
+
   private
     def file_for(key)
       bucket.file(key)
