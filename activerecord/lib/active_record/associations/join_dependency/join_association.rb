@@ -55,8 +55,8 @@ module ActiveRecord
             scope_chain_index += 1
 
             klass_scope =
-              if klass.current_scope
-                klass.current_scope.clone
+              if klass.current_scope && klass.current_scope.values.empty?
+                klass.unscoped
               else
                 relation = ActiveRecord::Relation.create(
                   klass,

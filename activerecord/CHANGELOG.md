@@ -1,3 +1,11 @@
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
+
+    Fixes #29338.
+
+    *Sean Griffin*
+
+
 ## Rails 5.0.4 (June 19, 2017) ##
 
 *   Restore previous behavior of collection proxies: their values can have
