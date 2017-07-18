@@ -108,6 +108,19 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_do_not_call_after_commit_or_after_update_commit_after_transaction_commits_if_update_fails
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_commit_block(:update) { |r| r.history << :commit_on_update }
+    def @first.valid?(*args)
+      false
+    end
+    saved = TopicWithCallbacks.transaction do
+      @first.save
+    end
+    assert_equal false, saved
+    assert_equal [], @first.history
+  end
+
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record
     add_transaction_execution_blocks @first
 

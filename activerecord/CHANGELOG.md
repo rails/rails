@@ -1,3 +1,12 @@
+*   Do not call after_commit callbacks when underlying update fails.
+
+    Previously, after_commit callbacks were called during an update within an explicit transaction
+    block even when the actual update failed.
+
+    Fixes #29747.
+
+    *Nathan Wenneker*
+
 *   Values constructed using multi-parameter assignment will now use the
     post-type-cast value for rendering in single-field form inputs.
 
