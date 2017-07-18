@@ -36,11 +36,6 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # The alias for the active_record's table
-        def aliased_table_name
-          raise NotImplementedError
-        end
-
         def extract_record(row, column_names_with_alias)
           # This code is performance critical as it is called per row.
           # see: https://github.com/rails/rails/pull/12185

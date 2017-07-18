@@ -8,6 +8,16 @@ class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
   # Subclasses can change their own value and it will not impact parent class.
   #
+  # ==== Options
+  #
+  # * <tt>:instance_reader</tt> - Sets the instance reader method (defaults to true).
+  # * <tt>:instance_writer</tt> - Sets the instance writer method (defaults to true).
+  # * <tt>:instance_accessor</tt> - Sets both instance methods (defaults to true).
+  # * <tt>:instance_predicate</tt> - Sets a predicate method (defaults to true).
+  # * <tt>:default</tt> - Sets a default value for the attribute (defaults to nil).
+  #
+  # ==== Examples
+  #
   #   class Base
   #     class_attribute :setting
   #   end

@@ -13,7 +13,7 @@ module Rails
       end
 
       def self.banner(*)
-        "#{super} [<'Some.ruby(code)'> | <filename.rb>]"
+        "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
       def perform(code_or_file = nil, *command_argv)
@@ -29,7 +29,9 @@ module Rails
 
         ARGV.replace(command_argv)
 
-        if File.exist?(code_or_file)
+        if code_or_file == "-"
+          eval($stdin.read, binding, "stdin")
+        elsif File.exist?(code_or_file)
           $0 = code_or_file
           Kernel.load code_or_file
         else

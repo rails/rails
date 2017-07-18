@@ -329,7 +329,7 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
-      conditions = arel.where_sql(@klass.arel_engine)
+      conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
@@ -397,7 +397,7 @@ module ActiveRecord
 
       def construct_join_dependency(joins = [], eager_loading: true)
         including = eager_load_values + includes_values
-        ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
+        ActiveRecord::Associations::JoinDependency.new(klass, table, including, joins, eager_loading: eager_loading)
       end
 
       def construct_relation_for_association_calculations

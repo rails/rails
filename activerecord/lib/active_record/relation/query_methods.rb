@@ -202,12 +202,13 @@ module ActiveRecord
 
     # Works in two unique ways.
     #
-    # First: takes a block so it can be used just like +Array#select+.
+    # First: takes a block so it can be used just like <tt>Array#select</tt>.
     #
     #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
-    # converting them into an array and iterating through them using +Array#select+.
+    # converting them into an array and iterating through them using
+    # <tt>Array#select</tt>.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
     # fields are retrieved:
@@ -797,7 +798,7 @@ module ActiveRecord
         value = sanitize_forbidden_attributes(value)
         self.create_with_value = create_with_value.merge(value)
       else
-        self.create_with_value = {}
+        self.create_with_value = FROZEN_EMPTY_HASH
       end
 
       self
@@ -1019,9 +1020,7 @@ module ActiveRecord
         join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          @klass,
-          association_joins,
-          join_list
+          klass, table, association_joins, join_list
         )
 
         join_infos = join_dependency.join_constraints stashed_association_joins, join_type
@@ -1047,7 +1046,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
         else
-          arel.project(@klass.arel_table[Arel.star])
+          arel.project(table[Arel.star])
         end
       end
 

@@ -387,14 +387,14 @@ by setting up a rake task which runs
 
     ```ruby
     ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
-    ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 0)
+    ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
     ```
 
   for all models and all boolean columns, after which the flag must be set to true
 by adding the following to your application.rb file:
 
     ```ruby
-    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
     ```
 
 The schema dumper adds one additional configuration option:

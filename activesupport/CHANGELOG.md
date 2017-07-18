@@ -1,3 +1,7 @@
+*   Make the order of `Hash#reverse_merge!` consistent with `HashWithIndifferentAccess`.
+
+    *Erol Fornoles*
+
 *   Add `freeze_time` helper which freezes time to `Time.now` in tests.
 
     *Prathamesh Sonpatki*

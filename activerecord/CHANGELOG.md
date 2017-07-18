@@ -13,6 +13,18 @@
 
     *Maxime Handfield Lapointe*
 
+*   Values constructed using multi-parameter assignment will now use the
+    post-type-cast value for rendering in single-field form inputs.
+
+    *Sean Griffin*
+
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
+
+    Fixes #29338.
+
+    *Sean Griffin*
+
 *   Change sqlite3 boolean serialization to use 1 and 0
 
     SQLite natively recognizes 1 and 0 as true and false, but does not natively

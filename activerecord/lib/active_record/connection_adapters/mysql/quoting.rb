@@ -39,6 +39,14 @@ module ActiveRecord
         def quoted_binary(value)
           "x'#{value.hex}'"
         end
+
+        def _type_cast(value)
+          case value
+          when Type::Time::Value then value.__getobj__
+          when Date, Time then value
+          else super
+          end
+        end
       end
     end
   end

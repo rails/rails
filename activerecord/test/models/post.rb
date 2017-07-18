@@ -199,6 +199,11 @@ class FirstPost < ActiveRecord::Base
   has_one  :comment,  foreign_key: :post_id
 end
 
+class TaggedPost < Post
+  has_many :taggings, -> { rewhere(taggable_type: "TaggedPost") }, as: :taggable
+  has_many :tags, through: :taggings
+end
+
 class PostWithDefaultInclude < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"

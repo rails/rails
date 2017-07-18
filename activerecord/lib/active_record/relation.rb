@@ -556,8 +556,7 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
+      @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
@@ -591,7 +590,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -641,6 +640,10 @@ module ActiveRecord
       entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
+    end
+
+    def empty_scope? # :nodoc:
+      @values == klass.unscoped.values
     end
 
     protected

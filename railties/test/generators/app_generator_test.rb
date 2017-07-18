@@ -278,6 +278,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-action-cable"]
+
+    FileUtils.cd(app_root) do
+      # For avoid conflict file
+      FileUtils.rm("#{app_root}/config/secrets.yml")
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_no_file "#{app_root}/config/cable.yml"
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_cable/, content)
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
