@@ -103,6 +103,12 @@ module ActiveRecord
               binds.concat(bvs)
               attrs
             end
+          when value.is_a?(Array) && !table.type(column_name).respond_to?(:subtype)
+            if value.size == 1
+              attrs, bvs = create_binds_for_hash(column_name => value.first)
+              binds.concat(bvs)
+              result[column_name] = attrs[column_name]
+            end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
             last = value.end
@@ -119,6 +125,7 @@ module ActiveRecord
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
           else
+            value = value.id if value.is_a?(Base)
             if can_be_bound?(column_name, value)
               bind_attribute = build_bind_attribute(column_name, value)
               if value.is_a?(StatementCache::Substitute) || !bind_attribute.value_for_database.nil?
