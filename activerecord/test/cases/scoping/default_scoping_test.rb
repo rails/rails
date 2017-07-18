@@ -392,6 +392,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
                  Comment.joins(:post).to_a
   end
 
+  def test_sti_association_with_unscoped_not_affected_by_default_scope
+    post = posts(:thinking)
+    comments = [comments(:does_it_hurt)]
+
+    post.special_comments.update_all(deleted_at: Time.now)
+
+    assert_raises(ActiveRecord::RecordNotFound) { Post.joins(:special_comments).find(post.id) }
+    assert_equal [], post.special_comments
+
+    SpecialComment.unscoped do
+      assert_equal post, Post.joins(:special_comments).find(post.id)
+      assert_equal comments, Post.joins(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.eager_load(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.includes(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.preload(:special_comments).find(post.id).special_comments
+    end
+  end
+
   def test_default_scope_select_ignored_by_aggregations
     assert_equal DeveloperWithSelect.all.to_a.count, DeveloperWithSelect.count
   end

@@ -219,8 +219,10 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        if klass.current_scope && klass.current_scope.values.empty?
-          klass.unscoped
+        current_scope = klass.current_scope
+
+        if current_scope && current_scope.empty_scope?
+          build_scope(table, predicate_builder)
         else
           klass.default_scoped(build_scope(table, predicate_builder))
         end
