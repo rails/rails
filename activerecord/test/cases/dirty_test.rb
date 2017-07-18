@@ -839,15 +839,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal %w(first_name lock_version updated_at).sort, person.saved_changes.keys.sort
   end
 
-  test "changed? in after callbacks returns true but is deprecated" do
+  test "changed? in after callbacks returns false" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "people"
 
       after_save do
-        ActiveSupport::Deprecation.silence do
-          raise "changed? should be true" unless changed?
-        end
+        raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
+        rause "saved_changes? should be true" unless saved_changes?
       end
     end
 
