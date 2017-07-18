@@ -86,7 +86,13 @@ module ActiveRecord
             else
               unless reflection_scope.where_clause.empty?
                 scope.includes_values = Array(values[:includes] || options[:source])
-                scope.where_clause = reflection_scope.where_clause
+
+                if reflection.klass.finder_needs_type_condition?
+                  scope.where_clause = reflection_scope.where_clause.except(reflection.klass.inheritance_column)
+                else
+                  scope.where_clause = reflection_scope.where_clause
+                end
+
                 if joins = values[:joins]
                   scope.joins!(source_reflection.name => joins)
                 end
