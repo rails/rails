@@ -844,7 +844,7 @@ class DirtyTest < ActiveRecord::TestCase
       after_save do
         raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
-        rause "saved_changes? should be true" unless saved_changes?
+        raise "saved_changes? should be true" unless saved_changes?
       end
     end
 
