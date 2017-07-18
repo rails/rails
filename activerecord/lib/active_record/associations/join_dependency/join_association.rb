@@ -54,15 +54,13 @@ module ActiveRecord
             end
             scope_chain_index += 1
 
+            relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
+            current_scope = klass.current_scope
+
             klass_scope =
-              if klass.current_scope && klass.current_scope.values.empty?
-                klass.unscoped
+              if current_scope && current_scope.empty_scope?
+                relation
               else
-                relation = ActiveRecord::Relation.create(
-                  klass,
-                  table,
-                  predicate_builder,
-                )
                 klass.send(:build_default_scope, relation)
               end
             scope_chain_items.concat [klass_scope].compact
