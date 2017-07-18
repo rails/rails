@@ -405,6 +405,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
       assert_equal post, Post.joins(:special_comments).find(post.id)
       assert_equal comments, Post.joins(:special_comments).find(post.id).special_comments
       assert_equal comments, Post.eager_load(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.includes(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.preload(:special_comments).find(post.id).special_comments
     end
   end
 
