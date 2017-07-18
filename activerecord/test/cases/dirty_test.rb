@@ -299,11 +299,9 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_virtual_attribute_will_change
-    assert_deprecated do
-      parrot = Parrot.create!(name: "Ruby")
-      parrot.send(:attribute_will_change!, :cancel_save_from_callback)
-      assert parrot.has_changes_to_save?
-    end
+    parrot = Parrot.create!(name: "Ruby")
+    parrot.send(:attribute_will_change!, :cancel_save_from_callback)
+    assert parrot.has_changes_to_save?
   end
 
   def test_association_assignment_changes_foreign_key

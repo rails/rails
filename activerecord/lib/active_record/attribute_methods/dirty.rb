@@ -209,17 +209,7 @@ module ActiveRecord
 
         def attribute_will_change!(attr_name)
           super
-          if self.class.has_attribute?(attr_name)
-            mutations_from_database.force_change(attr_name)
-          else
-            ActiveSupport::Deprecation.warn(<<-EOW.squish)
-              #{attr_name} is not an attribute known to Active Record.
-              This behavior is deprecated and will be removed in the next
-              version of Rails. If you'd like #{attr_name} to be managed
-              by Active Record, add `attribute :#{attr_name}` to your class.
-            EOW
-            mutations_from_database.deprecated_force_change(attr_name)
-          end
+          mutations_from_database.force_change(attr_name)
         end
 
         def _update_record(*)
