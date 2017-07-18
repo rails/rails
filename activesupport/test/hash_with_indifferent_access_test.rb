@@ -65,35 +65,41 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_symbolize_keys_bang_for_hash_with_indifferent_access
-    assert_raise(NoMethodError) { @symbols.with_indifferent_access.dup.symbolize_keys! }
-    assert_raise(NoMethodError) { @strings.with_indifferent_access.dup.symbolize_keys! }
-    assert_raise(NoMethodError) { @mixed.with_indifferent_access.dup.symbolize_keys! }
+    @strings = @strings.with_indifferent_access
+    @symbols = @symbols.with_indifferent_access
+    @mixed   = @mixed.with_indifferent_access
+    assert_equal @symbols, @symbols.dup.symbolize_keys!
+    assert_equal @strings, @strings.dup.symbolize_keys!
+    assert_equal @mixed, @mixed.dup.symbolize_keys!
   end
 
   def test_deep_symbolize_keys_bang_for_hash_with_indifferent_access
-    assert_raise(NoMethodError) { @nested_symbols.with_indifferent_access.deep_dup.deep_symbolize_keys! }
-    assert_raise(NoMethodError) { @nested_strings.with_indifferent_access.deep_dup.deep_symbolize_keys! }
-    assert_raise(NoMethodError) { @nested_mixed.with_indifferent_access.deep_dup.deep_symbolize_keys! }
+    @nested_strings = @nested_strings.with_indifferent_access
+    @nested_symbols = @nested_symbols.with_indifferent_access
+    @nested_mixed   = @nested_mixed.with_indifferent_access
+    assert_equal @nested_symbols, @nested_symbols.deep_dup.deep_symbolize_keys!
+    assert_equal @nested_strings, @nested_strings.deep_dup.deep_symbolize_keys!
+    assert_equal @nested_mixed, @nested_mixed.deep_dup.deep_symbolize_keys!
   end
 
   def test_symbolize_keys_preserves_keys_that_cant_be_symbolized_for_hash_with_indifferent_access
     assert_equal @illegal_symbols, @illegal_symbols.with_indifferent_access.symbolize_keys
-    assert_raise(NoMethodError) { @illegal_symbols.with_indifferent_access.dup.symbolize_keys! }
+    assert_equal @illegal_symbols, @illegal_symbols.with_indifferent_access.dup.symbolize_keys!
   end
 
   def test_deep_symbolize_keys_preserves_keys_that_cant_be_symbolized_for_hash_with_indifferent_access
     assert_equal @nested_illegal_symbols, @nested_illegal_symbols.with_indifferent_access.deep_symbolize_keys
-    assert_raise(NoMethodError) { @nested_illegal_symbols.with_indifferent_access.deep_dup.deep_symbolize_keys! }
+    assert_equal @nested_illegal_symbols, @nested_illegal_symbols.with_indifferent_access.deep_dup.deep_symbolize_keys!
   end
 
   def test_symbolize_keys_preserves_integer_keys_for_hash_with_indifferent_access
     assert_equal @integers, @integers.with_indifferent_access.symbolize_keys
-    assert_raise(NoMethodError) { @integers.with_indifferent_access.dup.symbolize_keys! }
+    assert_equal @integers, @integers.with_indifferent_access.dup.symbolize_keys!
   end
 
   def test_deep_symbolize_keys_preserves_integer_keys_for_hash_with_indifferent_access
     assert_equal @nested_integers, @nested_integers.with_indifferent_access.deep_symbolize_keys
-    assert_raise(NoMethodError) { @nested_integers.with_indifferent_access.deep_dup.deep_symbolize_keys! }
+    assert_equal @nested_integers, @nested_integers.with_indifferent_access.deep_dup.deep_symbolize_keys!
   end
 
   def test_stringify_keys_for_hash_with_indifferent_access

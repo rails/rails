@@ -285,8 +285,8 @@ module ActiveSupport
     def deep_stringify_keys!; self end
     def stringify_keys; dup end
     def deep_stringify_keys; dup end
-    undef :symbolize_keys!
-    undef :deep_symbolize_keys!
+    def symbolize_keys!; self end
+    def deep_symbolize_keys!; self end
     def symbolize_keys; to_hash.symbolize_keys! end
     def deep_symbolize_keys; to_hash.deep_symbolize_keys! end
     def to_options!; self end
