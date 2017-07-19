@@ -29,6 +29,9 @@ gem 'bcrypt', '~> 3.1.11', require: false
 # sprockets.
 gem 'uglifier', '>= 1.3.0', require: false
 
+# Await upstreamed fix of closing out file descriptors.
+gem "rb-inotify", github: "guard/rb-inotify", branch: "master", require: false
+
 group :doc do
   gem 'sdoc', '~> 1.0.0.rc1'
   gem 'redcarpet', '~> 3.2.3', platforms: :ruby
