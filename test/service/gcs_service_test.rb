@@ -27,7 +27,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "signed URL generation" do
-      travel_to Time.now do
+      freeze_time do
         url = SERVICE.bucket.signed_url(FIXTURE_KEY, expires: 120) +
           "&response-content-disposition=inline%3B+filename%3D%22test.txt%22"
 

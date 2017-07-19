@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/rails/rails.git
-  revision: c1f9fa8c69590222fac43d58bf64ef4a1225d7ce
+  revision: 5c16dd35a23f75038baf1527143ee44accf081ff
   specs:
     actionpack (5.2.0.alpha)
       actionview (= 5.2.0.alpha)

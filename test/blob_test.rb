@@ -28,7 +28,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "urls expiring in 5 minutes" do
     blob = create_blob
 
-    travel_to Time.now do
+    freeze_time do
       assert_equal expected_url_for(blob), blob.url
       assert_equal expected_url_for(blob, disposition: :attachment), blob.url(disposition: :attachment)
     end
