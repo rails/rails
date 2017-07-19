@@ -1,3 +1,5 @@
+## Rails 5.0.5.rc1 (July 19, 2017) ##
+
 *   Make Rails' test runner work better with minitest plugins.
 
     By demoting the Rails test runner to just another minitest plugin —

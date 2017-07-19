@@ -1,3 +1,5 @@
+## Rails 5.0.5.rc1 (July 19, 2017) ##
+
 *   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
 
     *Kir Shatrov*
