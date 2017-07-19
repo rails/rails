@@ -236,6 +236,18 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_distinct_count_with_order_and_limit
+    assert_equal 4, Account.distinct.order(:firm_id).limit(4).count
+  end
+
+  def test_distinct_count_with_order_and_offset
+    assert_equal 4, Account.distinct.order(:firm_id).offset(2).count
+  end
+
+  def test_distinct_count_with_order_and_limit_and_offset
+    assert_equal 4, Account.distinct.order(:firm_id).limit(4).offset(2).count
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]

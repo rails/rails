@@ -16,7 +16,7 @@ module ActiveRecord
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        if collection.limit_value || collection.offset_value
+        if collection.has_limit_or_offset?
           query = collection.spawn
           query.select_values = [column]
           subquery_alias = "subquery_for_cache_key"

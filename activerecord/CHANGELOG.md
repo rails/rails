@@ -1,3 +1,7 @@
+*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
+
+    *Ryuta Kamizono*
+
 *   When a `has_one` association is destroyed by `dependent: destroy`,
     `destroyed_by_association` will now be set to the reflection, matching the
     behaviour of `has_many` associations.
