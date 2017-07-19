@@ -7,9 +7,9 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
-  remote: https://github.com/guard/rb-inotify.git
-  revision: 08364bc6f6e7e082da83379c80e4410e440d00b4
-  branch: master
+  remote: https://github.com/matthewd/rb-inotify.git
+  revision: 856730aad4b285969e8dd621e44808a7c5af4242
+  branch: close-handling
   specs:
     rb-inotify (0.9.9)
       ffi (~> 1.0)

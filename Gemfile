@@ -30,7 +30,7 @@ gem 'bcrypt', '~> 3.1.11', require: false
 gem 'uglifier', '>= 1.3.0', require: false
 
 # Await upstreamed fix of closing out file descriptors.
-gem "rb-inotify", github: "guard/rb-inotify", branch: "master", require: false
+gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 group :doc do
   gem 'sdoc', '~> 1.0.0.rc1'
