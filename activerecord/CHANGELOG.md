@@ -1,3 +1,9 @@
+*   When a `has_one` association is destroyed by `dependent: destroy`,
+    `destroyed_by_association` will now be set to the reflection, matching the
+    behaviour of `has_many` associations.
+
+    *Lisa Ugray*
+
 *   Fix `unscoped(where: [columns])` removing the wrong bind values
 
     When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
