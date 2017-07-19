@@ -4,6 +4,7 @@ require "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require_relative "metadata/shared_metadata_tests"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -106,8 +107,15 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_aead_not_decrypted(encryptor, [text, iv, auth_tag[0..-2]] * "--")
   end
 
-  private
+  def test_backwards_compatibility_decrypt_previously_encrypted_messages_without_metadata
+    secret = "\xB7\xF0\xBCW\xB1\x18`\xAB\xF0\x81\x10\xA4$\xF44\xEC\xA1\xDC\xC1\xDDD\xAF\xA9\xB8\x14\xCD\x18\x9A\x99 \x80)"
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm")
+    encrypted_message = "9cVnFs2O3lL9SPvIJuxBOLS51nDiBMw=--YNI5HAfHEmZ7VDpl--ddFJ6tXA0iH+XGcCgMINYQ=="
 
+    assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
+  end
+
+  private
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
         encryptor.decrypt_and_verify(value)
@@ -130,5 +138,39 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       bits = ::Base64.strict_decode64(base64_string)
       bits.reverse!
       ::Base64.strict_encode64(bits)
+    end
+end
+
+class MessageEncryptorMetadataTest < ActiveSupport::TestCase
+  include SharedMessageMetadataTests
+
+  setup do
+    @secret    = SecureRandom.random_bytes(32)
+    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, encryptor_options)
+  end
+
+  private
+    def generate(message, **options)
+      @encryptor.encrypt_and_sign(message, options)
+    end
+
+    def parse(data, **options)
+      @encryptor.decrypt_and_verify(data, options)
+    end
+
+    def encryptor_options; end
+end
+
+class MessageEncryptorMetadataMarshalTest < MessageEncryptorMetadataTest
+  private
+    def encryptor_options
+      { serializer: Marshal }
+    end
+end
+
+class MessageEncryptorMetadataJSONTest < MessageEncryptorMetadataTest
+  private
+    def encryptor_options
+      { serializer: MessageEncryptorTest::JSONSerializer.new }
     end
 end
