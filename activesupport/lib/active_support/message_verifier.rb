@@ -3,6 +3,7 @@
 require "base64"
 require_relative "core_ext/object/blank"
 require_relative "security_utils"
+require_relative "messages/metadata"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -79,11 +80,11 @@ module ActiveSupport
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
-    def verified(signed_message)
+    def verified(signed_message, purpose: nil)
       if valid_message?(signed_message)
         begin
           data = signed_message.split("--".freeze)[0]
-          @serializer.load(decode(data))
+          Messages::Metadata.verify(@serializer.load(decode(data)), purpose)
         rescue ArgumentError => argument_error
           return if argument_error.message.include?("invalid base64")
           raise
@@ -103,8 +104,8 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
-    def verify(signed_message)
-      verified(signed_message) || raise(InvalidSignature)
+    def verify(signed_message, purpose: nil)
+      verified(signed_message, purpose: purpose) || raise(InvalidSignature)
     end
 
     # Generates a signed message for the provided value.
@@ -114,8 +115,8 @@ module ActiveSupport
     #
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"
-    def generate(value)
-      data = encode(@serializer.dump(value))
+    def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
+      data = encode(@serializer.dump(Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)))
       "#{data}--#{generate_digest(data)}"
     end
 
