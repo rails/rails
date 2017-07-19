@@ -6,7 +6,6 @@ require "active_support/core_ext/hash/keys"
 module ActiveJob
   # Provides helper methods for testing Active Job
   module TestHelper
-    class InvalidOptionsError < StandardError; end
     delegate :enqueued_jobs, :enqueued_jobs=,
       :performed_jobs, :performed_jobs=,
       to: :queue_adapter
@@ -443,7 +442,7 @@ module ActiveJob
       end
 
       def validate_option(only: nil, except: nil)
-        raise InvalidOptionsError, "Cannot specify both `:only` and `:except` options." if only && except
+        raise ArgumentError, "Cannot specify both `:only` and `:except` options." if only && except
       end
   end
 end
