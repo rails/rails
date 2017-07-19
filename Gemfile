@@ -36,6 +36,9 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
+# Await upstreamed fix of closing out file descriptors.
+gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
+
 group :doc do
   gem "sdoc", "1.0.0.rc1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
