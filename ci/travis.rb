@@ -3,6 +3,10 @@ require 'fileutils'
 include FileUtils
 
 commands = [
+  'mysql -e "create user rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest.* to rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest2.* to rails@localhost;"',
+  'mysql -e "grant all privileges on inexistent_activerecord_unittest.* to rails@localhost;"',
   'mysql -e "create database activerecord_unittest;"',
   'mysql -e "create database activerecord_unittest2;"',
   'psql  -c "create database activerecord_unittest;" -U postgres',
