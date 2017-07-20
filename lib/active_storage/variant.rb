@@ -27,7 +27,7 @@ class ActiveStorage::Variant
 
   def url(expires_in: 5.minutes, disposition: :inline)
     perform unless exist?
-    service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename
+    service.url blob_variant_key, expires_in: expires_in, disposition: disposition, filename: blob.filename
   end
 
   def key
@@ -35,6 +35,10 @@ class ActiveStorage::Variant
   end
 
   private
+    def exist?
+      service.exist?(blob_variant_key)
+    end
+
     def perform
       upload_variant transform(download_blob)
     end
@@ -44,7 +48,11 @@ class ActiveStorage::Variant
     end
 
     def upload_variant(variation)
-      service.upload key, variation
+      service.upload blob_variant_key, variation
+    end
+
+    def blob_variant_key
+      "variants/#{blob.key}/#{key}"
     end
 
     def transform(io)
