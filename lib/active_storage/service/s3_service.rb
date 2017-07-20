@@ -2,17 +2,19 @@ require "aws-sdk"
 require "active_support/core_ext/numeric/bytes"
 
 class ActiveStorage::Service::S3Service < ActiveStorage::Service
-  attr_reader :client, :bucket
+  attr_reader :client, :bucket, :upload_options
 
-  def initialize(access_key_id:, secret_access_key:, region:, bucket:, **options)
+  def initialize(access_key_id:, secret_access_key:, region:, bucket:, upload: {}, **options)
     @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region, **options)
     @bucket = @client.bucket(bucket)
+
+    @upload_options = upload
   end
 
   def upload(key, io, checksum: nil)
     instrument :upload, key, checksum: checksum do
       begin
-        object_for(key).put(body: io, content_md5: checksum)
+        object_for(key).put(upload_options.merge(body: io, content_md5: checksum))
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       end
