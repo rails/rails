@@ -1,6 +1,5 @@
 require "service/shared_service_tests"
 require "httparty"
-require "uri"
 
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
@@ -9,37 +8,45 @@ if SERVICE_CONFIGURATIONS[:s3]
     include ActiveStorage::Service::SharedServiceTests
 
     test "direct upload" do
-      # FIXME: This test is failing because of a mismatched request signature, but it works in the browser.
-      skip
-
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        direct_upload_url = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size)
-        
-        url   = URI.parse(direct_upload_url).to_s.split("?").first
-        query = CGI::parse(URI.parse(direct_upload_url).query).collect { |(k, v)| [ k, v.first ] }.to_h
+        url  = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size)
 
-        HTTParty.post(
+        HTTParty.put(
           url,
-          query: query,
           body: data,
-          headers: {
-            "Content-Type": "text/plain",
-            "Origin": "http://localhost:3000"
-          },
+          headers: { "Content-Type" => "text/plain" },
           debug_output: STDOUT
         )
-        
+
         assert_equal data, @service.download(key)
       ensure
         @service.delete key
       end
     end
-    
+
     test "signed URL generation" do
-      assert_match /rails-activestorage\.s3\.amazonaws\.com.*response-content-disposition=inline.*avatar\.png/,
-        @service.url(FIXTURE_KEY, expires_in: 5.minutes, disposition: :inline, filename: "avatar.png")    
+      assert_match /#{SERVICE_CONFIGURATIONS[:s3][:bucket]}\.s3.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png/,
+        @service.url(FIXTURE_KEY, expires_in: 5.minutes, disposition: :inline, filename: "avatar.png")
+    end
+
+    test "uploading with server-side encryption" do
+      config      = {}
+      config[:s3] = SERVICE_CONFIGURATIONS[:s3].merge \
+        upload: { server_side_encryption: "AES256" }
+
+      sse_service = ActiveStorage::Service.configure(:s3, config)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        sse_service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+
+        assert_equal "AES256", sse_service.bucket.object(key).server_side_encryption
+      ensure
+        sse_service.delete key
+      end
     end
   end
 else

@@ -33,6 +33,6 @@ class ActiveStorage::DiskController < ActionController::Base
     end
 
     def disposition_param
-      params[:disposition].presence_in(%w( inline attachment )) || 'inline'
+      params[:disposition].presence_in(%w( inline attachment )) || "inline"
     end
 end

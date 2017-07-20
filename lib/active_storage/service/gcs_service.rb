@@ -44,11 +44,22 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
 
   def url(key, expires_in:, disposition:, filename:)
     instrument :url, key do |payload|
-      generated_url = file_for(key).signed_url(expires: expires_in) + "&" +
-        { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }.to_query
-      
+      query = { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }
+      generated_url = file_for(key).signed_url(expires: expires_in, query: query)
+
       payload[:url] = generated_url
-      
+
+      generated_url
+    end
+  end
+
+  def url_for_direct_upload(key, expires_in:, content_type:, content_length:)
+    instrument :url, key do |payload|
+      generated_url = bucket.signed_url key, method: "PUT", expires: expires_in,
+        content_type: content_type
+
+      payload[:url] = generated_url
+
       generated_url
     end
   end

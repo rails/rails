@@ -1,45 +1,51 @@
-PATH
-  remote: .
+GIT
+  remote: https://github.com/rails/rails.git
+  revision: 5c16dd35a23f75038baf1527143ee44accf081ff
   specs:
-    activestorage (0.1)
-      actionpack (>= 5.1)
-      activejob (>= 5.1)
-      activerecord (>= 5.1)
-      activesupport (>= 5.1)
-
-GEM
-  remote: https://rubygems.org/
-  specs:
-    actionpack (5.1.1)
-      actionview (= 5.1.1)
-      activesupport (= 5.1.1)
+    actionpack (5.2.0.alpha)
+      actionview (= 5.2.0.alpha)
+      activesupport (= 5.2.0.alpha)
       rack (~> 2.0)
       rack-test (~> 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.1.1)
-      activesupport (= 5.1.1)
+    actionview (5.2.0.alpha)
+      activesupport (= 5.2.0.alpha)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    activejob (5.1.1)
-      activesupport (= 5.1.1)
+    activejob (5.2.0.alpha)
+      activesupport (= 5.2.0.alpha)
       globalid (>= 0.3.6)
-    activemodel (5.1.1)
-      activesupport (= 5.1.1)
-    activerecord (5.1.1)
-      activemodel (= 5.1.1)
-      activesupport (= 5.1.1)
+    activemodel (5.2.0.alpha)
+      activesupport (= 5.2.0.alpha)
+    activerecord (5.2.0.alpha)
+      activemodel (= 5.2.0.alpha)
+      activesupport (= 5.2.0.alpha)
       arel (~> 8.0)
-    activesupport (5.1.1)
+    activesupport (5.2.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+
+PATH
+  remote: .
+  specs:
+    activestorage (0.1)
+      actionpack (>= 5.2.0.alpha)
+      activejob (>= 5.2.0.alpha)
+      activerecord (>= 5.2.0.alpha)
+      activesupport (>= 5.2.0.alpha)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     arel (8.0.0)
+    ast (2.3.0)
     aws-sdk (2.10.7)
       aws-sdk-resources (= 2.10.7)
     aws-sdk-core (2.10.7)
@@ -54,7 +60,7 @@ GEM
     declarative (0.0.9)
     declarative-option (0.1.0)
     digest-crc (0.4.1)
-    erubi (1.6.0)
+    erubi (1.6.1)
     faraday (0.12.1)
       multipart-post (>= 1.2, < 3)
     globalid (0.4.0)
@@ -69,9 +75,9 @@ GEM
     google-cloud-core (1.0.0)
       google-cloud-env (~> 1.0)
       googleauth (~> 0.5.1)
-    google-cloud-env (1.0.0)
+    google-cloud-env (1.0.1)
       faraday (~> 0.11)
-    google-cloud-storage (1.2.0)
+    google-cloud-storage (1.3.0)
       digest-crc (~> 0.4)
       google-api-client (~> 0.13.0)
       google-cloud-core (~> 1.0)
@@ -86,7 +92,7 @@ GEM
     httparty (0.15.5)
       multi_xml (>= 0.5.2)
     httpclient (2.8.3)
-    i18n (0.8.4)
+    i18n (0.8.6)
     jmespath (1.3.1)
     jwt (1.5.6)
     little-plugger (1.1.4)
@@ -100,14 +106,18 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
     mini_magick (4.8.0)
-    mini_portile2 (2.1.0)
+    mini_portile2 (2.2.0)
     minitest (5.10.2)
     multi_json (1.12.1)
     multi_xml (0.6.0)
     multipart-post (2.0.0)
-    nokogiri (1.7.2)
-      mini_portile2 (~> 2.1.0)
+    nokogiri (1.8.0)
+      mini_portile2 (~> 2.2.0)
     os (0.9.6)
+    parallel (1.11.2)
+    parser (2.4.0.0)
+      ast (~> 2.2)
+    powerpack (0.1.1)
     public_suffix (2.0.5)
     rack (2.0.3)
     rack-test (0.6.3)
@@ -117,12 +127,22 @@ GEM
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
+    rainbow (2.2.2)
+      rake
     rake (12.0.0)
     representable (3.0.4)
       declarative (< 0.1.0)
       declarative-option (< 0.2.0)
       uber (< 0.2.0)
     retriable (3.0.2)
+    rubocop (0.49.1)
+      parallel (~> 1.10)
+      parser (>= 2.3.3.1, < 3.0)
+      powerpack (~> 0.1)
+      rainbow (>= 1.99.1, < 3.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (~> 1.0, >= 1.0.1)
+    ruby-progressbar (1.8.1)
     signet (0.7.3)
       addressable (~> 2.3)
       faraday (~> 0.9)
@@ -133,19 +153,25 @@ GEM
     tzinfo (1.2.3)
       thread_safe (~> 0.1)
     uber (0.1.0)
+    unicode-display_width (1.3.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  actionpack!
+  activejob!
+  activerecord!
   activestorage!
+  activesupport!
   aws-sdk (~> 2)
   bundler (~> 1.15)
   byebug
-  google-cloud-storage
+  google-cloud-storage (~> 1.3)
   httparty
   mini_magick
   rake
+  rubocop
   sqlite3
 
 BUNDLED WITH

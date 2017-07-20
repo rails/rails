@@ -12,4 +12,3 @@ class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
     end
   end
 end
-
