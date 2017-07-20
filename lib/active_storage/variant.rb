@@ -51,8 +51,8 @@ class ActiveStorage::Variant
       service.download(blob.key)
     end
 
-    def upload_variant(variation)
-      service.upload blob_variant_key, variation
+    def upload_variant(variant)
+      service.upload blob_variant_key, variant
     end
 
     def blob_variant_key
