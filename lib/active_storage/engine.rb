@@ -14,17 +14,6 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.routes" do
-      require "active_storage/disk_controller"
-      require "active_storage/direct_uploads_controller"
-
-      config.after_initialize do |app|
-        app.routes.prepend do
-          eval(File.read(File.expand_path("../routes.rb", __FILE__)))
-        end
-      end
-    end
-
     initializer "active_storage.attached" do
       require "active_storage/attached"
 

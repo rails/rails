@@ -34,17 +34,6 @@ class ActiveSupport::TestCase
     end
 end
 
-require "action_controller"
-require "action_controller/test_case"
-
-class ActionController::TestCase
-  Routes = ActionDispatch::Routing::RouteSet.new.tap do |routes|
-    routes.draw do
-      eval(File.read(File.expand_path("../../lib/active_storage/routes.rb", __FILE__)))
-    end
-  end
-end
-
 require "active_storage/attached"
 ActiveRecord::Base.send :extend, ActiveStorage::Attached::Macros
 
