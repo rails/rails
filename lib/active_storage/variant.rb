@@ -1,8 +1,14 @@
 require "active_storage/blob"
+require "active_support/core_ext/object/inclusion"
 require "mini_magick"
 
 class ActiveStorage::Variant
   class_attribute :verifier
+
+  ALLOWED_TRANSFORMATIONS = %i(
+    resize rotate format flip fill monochrome orient quality roll scale sharpen shave shear size thumbnail
+    transparent transpose transverse trim background bordercolor compress crop
+  )
 
   attr_reader :blob, :variation
   delegate :service, to: :blob
@@ -42,11 +48,21 @@ class ActiveStorage::Variant
     end
 
     def transform(io)
-      # FIXME: Actually do a variant based on the variation
-      File.open MiniMagick::Image.read(io).resize("500x500").path
+      File.open \
+        MiniMagick::Image.read(io).tap { |transforming_image|
+          variation.each do |(method, argument)|
+            if method = allowed_transformational_method(method.to_sym)
+              if argument.present?
+                transforming_image.public_send(method, argument)
+              else
+                transforming_image.public_send(method)
+              end
+            end
+          end
+        }.path
     end
 
-    def exist?
-      service.exist?(key)
+    def allowed_transformational_method(method)
+      method.presence_in(ALLOWED_TRANSFORMATIONS)
     end
 end
