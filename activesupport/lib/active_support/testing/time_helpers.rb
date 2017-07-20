@@ -51,8 +51,14 @@ module ActiveSupport
 
     # Contains helpers that help you test passage of time.
     module TimeHelpers
+      def after_teardown
+        travel_back
+        super
+      end
+
       # Changes current time to the time in the future or in the past by a given time difference by
-      # stubbing +Time.now+, +Date.today+, and +DateTime.now+.
+      # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
+      # at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
@@ -74,6 +80,7 @@ module ActiveSupport
 
       # Changes current time to the given time by stubbing +Time.now+,
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
+      # The stubs are automatically removed at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
