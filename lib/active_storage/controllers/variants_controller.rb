@@ -4,7 +4,7 @@ require "active_storage/blob"
 class ActiveStorage::Controllers::VariantsController < ActionController::Base
   def show
     if blob_key = decode_verified_key
-      variant = ActiveStorage::Variant.lookup(blob_key: blob_key, variation_key: params[:variation_key])
+      variant = ActiveStorage::Variant.find_or_create_by(blob_key: blob_key, variation_key: params[:variation_key])
       redirect_to variant.url
     else
       head :not_found

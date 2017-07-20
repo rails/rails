@@ -7,7 +7,7 @@ class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
-  def self.lookup(blob_key:, variation_key:)
+  def self.find_or_create_by(blob_key:, variation_key:)
     new ActiveStorage::Blob.find_by!(key: blob_key), variation: verifier.verify(variation_key)
   end
 
