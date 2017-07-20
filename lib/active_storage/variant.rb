@@ -64,10 +64,11 @@ class ActiveStorage::Variant
         MiniMagick::Image.read(io).tap { |transforming_image|
           variation.each do |(method, argument)|
             if method = allowed_transformational_method(method.to_sym)
-              if argument.present?
-                transforming_image.public_send(method, argument)
-              else
+              if argument.blank? || argument == true
                 transforming_image.public_send(method)
+              else
+                # FIXME: Consider whitelisting allowed arguments as well?
+                transforming_image.public_send(method, argument)
               end
             end
           end
