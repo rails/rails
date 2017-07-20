@@ -212,28 +212,33 @@ module ActiveRecord
       end
 
       def attribute_was(*)
-        emit_warning_if_needed("attribute_was", "attribute_before_last_save")
-        super
+        with_warning("attribute_was", "attribute_before_last_save") do
+          super
+        end
       end
 
       def attribute_change(*)
-        emit_warning_if_needed("attribute_change", "saved_change_to_attribute")
-        super
+        with_warning("attribute_change", "saved_change_to_attribute") do
+          super
+        end
       end
 
       def attribute_changed?(*)
-        emit_warning_if_needed("attribute_changed?", "saved_change_to_attribute?")
-        super
+        with_warning("attribute_changed?", "saved_change_to_attribute?") do
+          super
+        end
       end
 
       def changed?(*)
-        emit_warning_if_needed("changed?", "saved_changes?")
-        super
+        with_warning("changed?", "saved_changes?") do
+          super
+        end
       end
 
       def changed(*)
-        emit_warning_if_needed("changed", "saved_changes.keys")
-        super
+        with_warning("changed", "saved_changes.keys") do
+          super
+        end
       end
 
       private
@@ -243,6 +248,12 @@ module ActiveRecord
             @mutation_tracker = nil
           end
           @mutation_tracker ||= AttributeMutationTracker.new(@attributes)
+        end
+
+        def with_warning(method_name, new_method_name)
+          emit_warning_if_needed(method_name, new_method_name)
+          yield
+          @warning_already_emitted = false
         end
 
         def emit_warning_if_needed(method_name, new_method_name)
