@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     delegate :resolve_column_aliases, to: :table
@@ -16,12 +18,7 @@ module ActiveRecord
 
     def build_from_hash(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
-      expand_from_hash(attributes)
-    end
-
-    def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes)
-      create_binds_for_hash(attributes)
+      build_parts_with_binds(attributes)
     end
 
     def self.references(attributes)
@@ -60,28 +57,19 @@ module ActiveRecord
 
       attr_reader :table
 
-      def expand_from_hash(attributes)
-        return ["1=0"] if attributes.empty?
+      EMPTY_PREDICATES = [["1=0"].freeze, [].freeze].freeze
 
-        attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
-            associated_predicate_builder(key).expand_from_hash(value)
-          else
-            build(table.arel_attribute(key), value)
-          end
-        end
-      end
+      def build_parts_with_binds(attributes)
+        return EMPTY_PREDICATES if attributes.empty?
 
-      def create_binds_for_hash(attributes)
-        result = attributes.dup
-        binds = []
+        parts, binds = [], []
 
         attributes.each do |column_name, value|
+          node = nil
           case
           when value.is_a?(Hash) && !table.has_column?(column_name)
-            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
-            result[column_name] = attrs
-            binds += bvs
+            node, bnds = associated_predicate_builder(column_name).build_parts_with_binds(value)
+            binds.concat(bnds)
           when table.associated_with?(column_name)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
@@ -98,10 +86,18 @@ module ActiveRecord
             end
 
             klass ||= AssociationQueryValue
-            result[column_name] = klass.new(associated_table, value).queries.map do |query|
-              attrs, bvs = create_binds_for_hash(query)
-              binds.concat(bvs)
-              attrs
+            queries = klass.new(associated_table, value).queries
+
+            nodes = queries.map do |query|
+              prts, bnds = build_parts_with_binds(query)
+              binds.concat(bnds)
+              prts
+            end
+
+            if nodes.size > 1
+              node = [nodes.map { |prts| Arel::Nodes::And.new(prts) }.inject(&:or)]
+            else
+              node = nodes.first
             end
           when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
             first = value.begin
@@ -115,23 +111,29 @@ module ActiveRecord
               last = Arel::Nodes::BindParam.new
             end
 
-            result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
+            value = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
           when value.is_a?(Relation)
             binds.concat(value.bound_attributes)
           else
             if can_be_bound?(column_name, value)
               bind_attribute = build_bind_attribute(column_name, value)
               if value.is_a?(StatementCache::Substitute) || !bind_attribute.value_for_database.nil?
-                result[column_name] = Arel::Nodes::BindParam.new
+                value = Arel::Nodes::BindParam.new
                 binds << bind_attribute
               else
-                result[column_name] = nil
+                value = nil
               end
             end
           end
+
+          if node
+            parts.concat(node)
+          else
+            parts << build(table.arel_attribute(column_name), value)
+          end
         end
 
-        [result, binds]
+        [parts, binds]
       end
 
     private
