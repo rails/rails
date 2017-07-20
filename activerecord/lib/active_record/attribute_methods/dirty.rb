@@ -246,7 +246,8 @@ module ActiveRecord
         end
 
         def emit_warning_if_needed(method_name, new_method_name)
-          unless mutation_tracker.equal?(mutations_from_database)
+          unless mutation_tracker.equal?(mutations_from_database) || @warning_already_emitted
+            @warning_already_emitted = true
             ActiveSupport::Deprecation.warn(<<-EOW.squish)
               The behavior of `#{method_name}` inside of after callbacks will
               be changing in the next version of Rails. The new return value will reflect the
