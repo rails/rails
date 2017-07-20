@@ -85,7 +85,7 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys)
-        keys = keys.flatten
+        keys = keys.flatten.uniq
 
         _store_accessors_module.module_eval do
           keys.each do |key|

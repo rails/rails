@@ -1,3 +1,9 @@
+*   Add uniq processing to keys for `store_accessor`
+
+    The purpose of this change is to avoid duplicate definitions.
+
+    *Yoshiyuki Hirano*
+
 *   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
 
     *Ryuta Kamizono*
