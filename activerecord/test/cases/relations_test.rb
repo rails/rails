@@ -1592,7 +1592,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["comments"], scope.references_values
 
     scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    assert_equal ["comments"], scope.references_values
+    if current_adapter?(:OracleAdapter)
+      assert_equal ["COMMENTS"], scope.references_values
+    else
+      assert_equal ["comments"], scope.references_values
+    end
 
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
@@ -1613,7 +1617,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal %w(comments), scope.references_values
 
     scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    assert_equal ["comments"], scope.references_values
+    if current_adapter?(:OracleAdapter)
+      assert_equal ["COMMENTS"], scope.references_values
+    else
+      assert_equal ["comments"], scope.references_values
+    end
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values
