@@ -7,8 +7,6 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
     blob = ActiveStorage::Blob.create_after_upload! \
       io: File.open(File.expand_path("../fixtures/files/racecar.jpg", __FILE__)), filename: "racecar.jpg", content_type: "image/jpeg"
 
-    variant = blob.variant(resize: "100x100")
-
-    assert_match /racecar.jpg/, variant.url
+    assert_match /racecar.jpg/, blob.variant(resize: "100x100").processed.url
   end
 end

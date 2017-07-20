@@ -13,8 +13,8 @@ class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
-  def self.find_or_create_by(blob_key:, variation_key:)
-    new ActiveStorage::Blob.find_by!(key: blob_key), variation: verifier.verify(variation_key)
+  def self.find_or_process_by!(blob_key:, encoded_variant_key:)
+    new(ActiveStorage::Blob.find_by!(key: blob_key), variation: verifier.verify(encoded_variant_key)).processed
   end
 
   def self.encode_key(variation)
@@ -25,8 +25,12 @@ class ActiveStorage::Variant
     @blob, @variation = blob, variation
   end
 
+  def processed
+    process unless exist?
+    self
+  end
+
   def url(expires_in: 5.minutes, disposition: :inline)
-    perform unless exist?
     service.url blob_variant_key, expires_in: expires_in, disposition: disposition, filename: blob.filename
   end
 
@@ -39,7 +43,7 @@ class ActiveStorage::Variant
       service.exist?(blob_variant_key)
     end
 
-    def perform
+    def process
       upload_variant transform(download_blob)
     end
 
