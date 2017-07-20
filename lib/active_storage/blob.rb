@@ -1,6 +1,7 @@
 require "active_storage/service"
 require "active_storage/filename"
 require "active_storage/purge_job"
+require "active_storage/variant"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveStorage::Blob < ActiveRecord::Base
@@ -38,6 +39,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   def filename
     ActiveStorage::Filename.new(self[:filename])
+  end
+
+  def variant(variation)
+    ActiveStorage::Variant.new(self, variation: variation)
   end
 
   def url(expires_in: 5.minutes, disposition: :inline)
