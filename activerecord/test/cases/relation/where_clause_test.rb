@@ -97,7 +97,7 @@ class ActiveRecord::Relation
       assert_equal expected, original.invert
     end
 
-    test "accept removes binary predicates referencing a given column" do
+    test "except removes binary predicates referencing a given column" do
       where_clause = WhereClause.new([
         table["id"].in([1, 2, 3]),
         table["name"].eq(bind_param),
@@ -109,6 +109,22 @@ class ActiveRecord::Relation
       expected = WhereClause.new([table["age"].gteq(bind_param)], [bind_attribute("age", 30)])
 
       assert_equal expected, where_clause.except("id", "name")
+    end
+
+    test "except jumps over unhandled binds (like with OR) correctly" do
+      wcs = (0..9).map do |i|
+        WhereClause.new([table["id#{i}"].eq(bind_param)], [bind_attribute("id#{i}", i)])
+      end
+
+      wc = wcs[0] + wcs[1] + wcs[2].or(wcs[3]) + wcs[4] + wcs[5] + wcs[6].or(wcs[7]) + wcs[8] + wcs[9]
+
+      expected = wcs[0] + wcs[2].or(wcs[3]) + wcs[5] + wcs[6].or(wcs[7]) + wcs[9]
+      actual = wc.except("id1", "id2", "id4", "id7", "id8")
+
+      # Easier to read than the inspect of where_clause
+      assert_equal expected.ast.to_sql, actual.ast.to_sql
+      assert_equal expected.binds.map(&:value), actual.binds.map(&:value)
+      assert_equal expected, actual
     end
 
     test "ast groups its predicates with AND" do

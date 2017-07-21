@@ -1,3 +1,18 @@
+*   Fix `unscoped(where: [columns])` removing the wrong bind values
+
+    When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
+    bind values used by the `or` instead. (possibly other cases too)
+
+    ```
+    Post.where(id: 1).or(Post.where(id: 2)).where(foo: 3).unscope(where: :foo).to_sql
+    # Currently:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 2 OR "posts"."id" = 3)
+    # With fix:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 1 OR "posts"."id" = 2)
+    ```
+
+    *Maxime Handfield Lapointe*
+
 *   Values constructed using multi-parameter assignment will now use the
     post-type-cast value for rendering in single-field form inputs.
 

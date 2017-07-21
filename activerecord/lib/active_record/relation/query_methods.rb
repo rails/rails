@@ -1020,9 +1020,7 @@ module ActiveRecord
         join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          @klass,
-          association_joins,
-          join_list
+          klass, table, association_joins, join_list
         )
 
         join_infos = join_dependency.join_constraints stashed_association_joins, join_type

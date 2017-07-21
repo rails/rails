@@ -4,6 +4,7 @@ require "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require_relative "metadata/shared_metadata_tests"
 
 class MessageVerifierTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -84,4 +85,44 @@ class MessageVerifierTest < ActiveSupport::TestCase
     end
     assert_equal "Secret should not be nil.", exception.message
   end
+
+  def test_backward_compatibility_messages_signed_without_metadata
+    signed_message = "BAh7BzoJc29tZUkiCWRhdGEGOgZFVDoIbm93SXU6CVRpbWUNIIAbgAAAAAAHOgtvZmZzZXRpADoJem9uZUkiCFVUQwY7BkY=--d03c52c91dfe4ccc5159417c660461bcce005e96"
+    assert_equal @data, @verifier.verify(signed_message)
+  end
+end
+
+class MessageVerifierMetadataTest < ActiveSupport::TestCase
+  include SharedMessageMetadataTests
+
+  setup do
+    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", verifier_options)
+  end
+
+  private
+    def generate(message, **options)
+      @verifier.generate(message, options)
+    end
+
+    def parse(message, **options)
+      @verifier.verified(message, options)
+    end
+
+    def verifier_options
+      Hash.new
+    end
+end
+
+class MessageVerifierMetadataMarshalTest < MessageVerifierMetadataTest
+  private
+    def verifier_options
+      { serializer: Marshal }
+    end
+end
+
+class MessageVerifierMetadataJSONTest < MessageVerifierMetadataTest
+  private
+    def verifier_options
+      { serializer: MessageVerifierTest::JSONSerializer.new }
+    end
 end
