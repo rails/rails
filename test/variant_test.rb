@@ -8,10 +8,23 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation" do
-    assert_match /racecar.jpg/, @blob.variant(resize: "100x100").processed.url
+    variant = @blob.variant(resize: "100x100").processed
+
+    assert_match /racecar.jpg/, variant.url    
+    assert_same_image "racecar-100x100.jpg", variant    
   end
 
   test "resized and monochrome variation" do
-    assert_match /racecar.jpg/, @blob.variant(resize: "100x100", monochrome: true).processed.url
+    variant = @blob.variant(resize: "100x100", monochrome: true).processed
+
+    assert_match /racecar.jpg/, variant.url
+    assert_same_image "racecar-100x100-monochrome.jpg", variant    
   end
+
+  private
+    def assert_same_image(fixture_filename, variant)
+      assert_equal \
+        File.binread(File.expand_path("../fixtures/files/#{fixture_filename}", __FILE__)),
+        File.binread(variant.service.send(:path_for, variant.key))
+    end
 end
