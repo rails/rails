@@ -1,6 +1,7 @@
 require "active_storage/service"
 require "active_storage/filename"
 require "active_storage/purge_job"
+require "active_storage/variant"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveStorage::Blob < ActiveRecord::Base
@@ -31,14 +32,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
-  # We can't wait until the record is first saved to have a key for it
+
   def key
+    # We can't wait until the record is first saved to have a key for it
     self[:key] ||= self.class.generate_unique_secure_token
   end
 
   def filename
     ActiveStorage::Filename.new(self[:filename])
   end
+
+  def variant(transformations)
+    ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
+  end
+
 
   def url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename

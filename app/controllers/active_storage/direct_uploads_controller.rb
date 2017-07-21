@@ -1,6 +1,3 @@
-require "action_controller"
-require "active_storage/blob"
-
 class ActiveStorage::DirectUploadsController < ActionController::Base
   def create
     blob = ActiveStorage::Blob.create_before_direct_upload!(blob_args)

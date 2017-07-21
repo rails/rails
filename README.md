@@ -63,6 +63,13 @@ class MessagesController < ApplicationController
 end
 ```
 
+Variation of image attachment:
+
+```erb
+<%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
+<%= image_tag url_for(user.avatar.variant(resize: "100x100")) %>
+```
+
 ## Installation
 
 1. Add `gem "activestorage", git: "https://github.com/rails/activestorage.git"` to your Gemfile.
@@ -70,6 +77,7 @@ end
 3. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
 4. Configure the storage service in `config/environments/*` with `config.active_storage.service = :local`
    that references the services configured in `config/storage_services.yml`.
+5. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
 
 ## Todos
 

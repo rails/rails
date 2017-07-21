@@ -9,10 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 2.3.0"
 
-  s.add_dependency "activesupport", ">= 5.2.0.alpha"
-  s.add_dependency "activerecord", ">= 5.2.0.alpha"
-  s.add_dependency "actionpack", ">= 5.2.0.alpha"
-  s.add_dependency "activejob", ">= 5.2.0.alpha"
+  s.add_dependency "rails", ">= 5.2.0.alpha"
 
   s.add_development_dependency "bundler", "~> 1.15"
 
