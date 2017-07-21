@@ -14,17 +14,14 @@ module Rails
       end
     end
 
-    @cipher = "aes-128-gcm"
-    @root = File # Wonky, but ensures `join` uses the current directory.
-
     class << self
-      attr_writer :root
+      attr_reader :cipher
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
           require "erb"
 
-          secrets = YAML.load(ERB.new(preprocess(path)).result) || {}
+          secrets = YAML.load(ERB.new(new(path).preprocess).result) || {}
           all_secrets.merge!(secrets["shared"].deep_symbolize_keys) if secrets["shared"]
           all_secrets.merge!(secrets[env].deep_symbolize_keys) if secrets[env]
         end
@@ -32,10 +29,6 @@ module Rails
 
       def generate_key
         SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
-      end
-
-      def key
-        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
       end
 
       def template
@@ -46,6 +39,51 @@ module Rails
 
         end_of_template
       end
+    end
+
+    @cipher = "aes-128-gcm"
+
+    attr_reader :path
+
+    def initialize(path)
+      @path = path
+    end
+
+    def read
+      decrypt(IO.binread(@path))
+    end
+
+    def write(contents)
+      IO.binwrite("#{@path}.tmp", encrypt(contents))
+      FileUtils.mv("#{@path}.tmp", @path)
+    end
+
+    def read_for_editing(&block)
+      writing(read, &block)
+    end
+
+    def read_template_for_editing(template = self.class.template, &block)
+      writing(template, &block)
+    end
+
+    def preprocess
+      if @path.end_with?(".enc")
+        decrypt(IO.binread(@path))
+      else
+        IO.read(@path)
+      end
+    end
+
+    def key_path
+      filename = File.basename(@path)
+      @path.sub(filename, filename.sub(".yml.enc", ".yml.key"))
+    end
+
+    def key
+      ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
+    end
+
+    private
 
       def encrypt(data)
         encryptor.encrypt_and_sign(data)
@@ -55,67 +93,32 @@ module Rails
         encryptor.decrypt_and_verify(data)
       end
 
-      def read
-        decrypt(IO.binread(path))
+      def encryptor
+        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: self.class.cipher)
       end
 
-      def write(contents)
-        IO.binwrite("#{path}.tmp", encrypt(contents))
-        FileUtils.mv("#{path}.tmp", path)
+      def handle_missing_key
+        raise MissingKeyError
       end
 
-      def read_for_editing(&block)
-        writing(read, &block)
+      def read_key_file
+        if File.exist?(key_path)
+          IO.binread(key_path).strip
+        end
       end
 
-      def read_template_for_editing(&block)
-        writing(template, &block)
+      def writing(contents)
+        tmp_file = "#{File.basename(@path)}.#{Process.pid}"
+        tmp_path = File.join(Dir.tmpdir, tmp_file)
+        IO.binwrite(tmp_path, contents)
+
+        yield tmp_path
+
+        updated_contents = IO.binread(tmp_path)
+
+        write(updated_contents) if updated_contents != contents
+      ensure
+        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
       end
-
-      private
-        def handle_missing_key
-          raise MissingKeyError
-        end
-
-        def read_key_file
-          if File.exist?(key_path)
-            IO.binread(key_path).strip
-          end
-        end
-
-        def key_path
-          @root.join("config", "secrets.yml.key")
-        end
-
-        def path
-          @root.join("config", "secrets.yml.enc").to_s
-        end
-
-        def preprocess(path)
-          if path.end_with?(".enc")
-            decrypt(IO.binread(path))
-          else
-            IO.read(path)
-          end
-        end
-
-        def writing(contents)
-          tmp_file = "#{File.basename(path)}.#{Process.pid}"
-          tmp_path = File.join(Dir.tmpdir, tmp_file)
-          IO.binwrite(tmp_path, contents)
-
-          yield tmp_path
-
-          updated_contents = IO.binread(tmp_path)
-
-          write(updated_contents) if updated_contents != contents
-        ensure
-          FileUtils.rm(tmp_path) if File.exist?(tmp_path)
-        end
-
-        def encryptor
-          @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: @cipher)
-        end
-    end
   end
 end
