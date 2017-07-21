@@ -2,7 +2,7 @@ require "test_helper"
 require "database/setup"
 require "active_storage/variant"
 
-class ActiveStorage::VariationTest < ActiveSupport::TestCase
+class ActiveStorage::VariantTest < ActiveSupport::TestCase
   setup do
     @blob = ActiveStorage::Blob.create_after_upload! \
         filename: "racecar.jpg", content_type: "image/jpeg",
