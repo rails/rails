@@ -127,8 +127,8 @@ module Arel
 
           it 'creates a subquery when there is limit and offset with BindParams' do
             stmt = Nodes::SelectStatement.new
-            stmt.limit = Nodes::Limit.new(Nodes::BindParam.new)
-            stmt.offset = Nodes::Offset.new(Nodes::BindParam.new)
+            stmt.limit = Nodes::Limit.new(Nodes::BindParam.new(nil))
+            stmt.offset = Nodes::Offset.new(Nodes::BindParam.new(nil))
             sql = compile stmt
             sql.must_be_like %{
               SELECT * FROM (
@@ -184,8 +184,8 @@ module Arel
 
       describe "Nodes::BindParam" do
         it "increments each bind param" do
-          query = @table[:name].eq(Arel::Nodes::BindParam.new)
-            .and(@table[:id].eq(Arel::Nodes::BindParam.new))
+          query = @table[:name].eq(Arel::Nodes::BindParam.new(nil))
+            .and(@table[:id].eq(Arel::Nodes::BindParam.new(nil)))
           compile(query).must_be_like %{
             "users"."name" = :a1 AND "users"."id" = :a2
           }

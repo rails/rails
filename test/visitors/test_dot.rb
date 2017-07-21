@@ -74,7 +74,7 @@ module Arel
       end
 
       def test_Arel_Nodes_BindParam
-        node = Arel::Nodes::BindParam.new
+        node = Arel::Nodes::BindParam.new(nil)
         collector = Collectors::PlainString.new
         assert_match '[label="<f0>Arel::Nodes::BindParam"]', @visitor.accept(node, collector).value
       end

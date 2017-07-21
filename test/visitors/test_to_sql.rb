@@ -17,13 +17,13 @@ module Arel
       end
 
       it 'works with BindParams' do
-        node = Nodes::BindParam.new
+        node = Nodes::BindParam.new(nil)
         sql = compile node
         sql.must_be_like '?'
       end
 
       it 'does not quote BindParams used as part of a Values' do
-        bp = Nodes::BindParam.new
+        bp = Nodes::BindParam.new(nil)
         values = Nodes::Values.new([bp])
         sql = compile values
         sql.must_be_like 'VALUES (?)'

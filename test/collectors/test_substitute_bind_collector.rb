@@ -4,7 +4,7 @@ require 'arel/collectors/substitute_binds'
 
 module Arel
   module Collectors
-    class TestBindCollector < Arel::Test
+    class TestSubstituteBindCollector < Arel::Test
       def setup
         @conn = FakeRecord::Base.new
         @visitor = Visitors::ToSql.new @conn.connection
@@ -28,14 +28,14 @@ module Arel
       end
 
       def test_leaves_binds
-        node = Nodes::BindParam.new
+        node = Nodes::BindParam.new(nil)
         list = compile node
         assert_equal node, list.first
         assert_equal node.class, list.first.class
       end
 
       def test_adds_strings
-        bv = Nodes::BindParam.new
+        bv = Nodes::BindParam.new(nil)
         list = compile ast_with_binds bv
         assert_operator list.length, :>, 0
         assert_equal bv, list.grep(Nodes::BindParam).first
@@ -43,7 +43,7 @@ module Arel
       end
 
       def test_substitute_binds
-        bv = Nodes::BindParam.new
+        bv = Nodes::BindParam.new(nil)
         collector = collect ast_with_binds bv
 
         values = collector.value
@@ -60,7 +60,7 @@ module Arel
       end
 
       def test_compile
-        bv = Nodes::BindParam.new
+        bv = Nodes::BindParam.new(nil)
         collector = collect ast_with_binds bv
 
         sql = collector.compile ["hello", "world"]
