@@ -94,7 +94,7 @@ module ActionDispatch
         end
 
         def path_parameters_utf8_encoding
-          params = path_parameters.dup
+          params = path_parameters.deep_dup
           ActionDispatch::Request::Utils.each_param_value(params) do |param|
             param.force_encoding ::Encoding::UTF_8
           end
