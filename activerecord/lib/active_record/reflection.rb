@@ -197,14 +197,12 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        if klass.current_scope && klass.current_scope.values.empty?
-          klass.unscoped
+        relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
+        current_scope = klass.current_scope
+
+        if current_scope && current_scope.empty_scope?
+          relation
         else
-          relation = ActiveRecord::Relation.create(
-            klass,
-            table,
-            predicate_builder,
-          )
           klass.send(:build_default_scope, relation)
         end
       end
