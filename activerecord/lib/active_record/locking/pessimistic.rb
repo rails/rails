@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Locking
     # Locking::Pessimistic provides support for row-level locking using

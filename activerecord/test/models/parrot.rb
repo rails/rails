@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Parrot < ActiveRecord::Base
   self.inheritance_column = :parrot_sti_class
 

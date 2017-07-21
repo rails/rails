@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record"
 
 db_namespace = namespace :db do

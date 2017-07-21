@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "abstract_adapter"
 require_relative "statement_pool"
 require_relative "mysql/column"

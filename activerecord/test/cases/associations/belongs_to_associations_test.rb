@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/project"
@@ -215,6 +217,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end
+
+    Admin::User.reset_column_information
   end
 
   def test_natural_assignment

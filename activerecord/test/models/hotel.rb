@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Hotel < ActiveRecord::Base
   has_many :departments
   has_many :chefs, through: :departments

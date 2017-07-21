@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.

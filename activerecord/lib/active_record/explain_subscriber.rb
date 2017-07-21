@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/notifications"
 require_relative "explain_registry"
 

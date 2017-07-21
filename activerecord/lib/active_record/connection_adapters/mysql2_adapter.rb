@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "abstract_mysql_adapter"
 require_relative "mysql/database_statements"
 
