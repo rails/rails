@@ -89,7 +89,6 @@ class Rails::SecretsTest < ActiveSupport::TestCase
           yeah_yeah: lets-walk-in-the-cool-evening-light
       end_of_secrets
 
-      Rails.application.config.root = app_path
       Rails.application.config.read_encrypted_secrets = true
       Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
       assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.secrets.yeah_yeah
@@ -113,19 +112,17 @@ class Rails::SecretsTest < ActiveSupport::TestCase
 
   test "do not update secrets.yml.enc when secretes do not change" do
     run_secrets_generator do
-      Dir.chdir(app_path) do
-        Rails::Secrets.read_for_editing do |tmp_path|
-          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
-        end
-
-        FileUtils.cp("config/secrets.yml.enc", "config/secrets.yml.enc.bk")
-
-        Rails::Secrets.read_for_editing do |tmp_path|
-          File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
-        end
-
-        assert_equal File.read("config/secrets.yml.enc.bk"), File.read("config/secrets.yml.enc")
+      Rails::Secrets.read_for_editing do |tmp_path|
+        File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
       end
+
+      FileUtils.cp("config/secrets.yml.enc", "config/secrets.yml.enc.bk")
+
+      Rails::Secrets.read_for_editing do |tmp_path|
+        File.write(tmp_path, "Empty streets, empty nights. The Downtown Lights.")
+      end
+
+      assert_equal File.read("config/secrets.yml.enc.bk"), File.read("config/secrets.yml.enc")
     end
   end
 
@@ -169,6 +166,9 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         capture(:stdout) do
           Rails::Generators::EncryptedSecretsGenerator.start
         end
+
+        # Make config.paths["config/secrets"] to be relative to app_path
+        Rails.application.config.root = app_path
 
         yield
       end
