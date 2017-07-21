@@ -39,6 +39,12 @@ class ActiveSupport::TestCase
         io: File.open(File.expand_path("../fixtures/files/#{filename}", __FILE__)),
         filename: filename, content_type: content_type
     end
+
+    def assert_same_image(fixture_filename, variant)
+      assert_equal \
+        File.binread(File.expand_path("../fixtures/files/#{fixture_filename}", __FILE__)),
+        File.binread(variant.service.send(:path_for, variant.key))
+    end
 end
 
 require "action_controller"
