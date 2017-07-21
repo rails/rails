@@ -218,7 +218,7 @@ module ActiveRecord
         add_pg_decoders
 
         @type_map = Type::HashLookupTypeMap.new
-        initialize_type_map(type_map)
+        initialize_type_map
         @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -427,7 +427,7 @@ module ActiveRecord
 
         def get_oid_type(oid, fmod, column_name, sql_type = "".freeze)
           if !type_map.key?(oid)
-            load_additional_types(type_map, [oid])
+            load_additional_types([oid])
           end
 
           type_map.fetch(oid, fmod, sql_type) {
@@ -438,7 +438,7 @@ module ActiveRecord
           }
         end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           register_class_with_limit m, "int2", Type::Integer
           register_class_with_limit m, "int4", Type::Integer
           register_class_with_limit m, "int8", Type::Integer
@@ -505,7 +505,7 @@ module ActiveRecord
             end
           end
 
-          load_additional_types(m)
+          load_additional_types
         end
 
         def extract_limit(sql_type)
@@ -554,7 +554,7 @@ module ActiveRecord
           !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
         end
 
-        def load_additional_types(type_map, oids = nil)
+        def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if supports_ranges?
@@ -573,7 +573,7 @@ module ActiveRecord
           if oids
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
           else
-            query += initializer.query_conditions_for_initial_load(type_map)
+            query += initializer.query_conditions_for_initial_load
           end
 
           execute_and_clear(query, "SCHEMA", []) do |records|

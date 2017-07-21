@@ -453,12 +453,6 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def type_map # :nodoc:
-        @type_map ||= Type::TypeMap.new.tap do |mapping|
-          initialize_type_map(mapping)
-        end
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         visitor.accept(node, collector).value
       end
@@ -486,8 +480,13 @@ module ActiveRecord
       end
 
       private
+        def type_map
+          @type_map ||= Type::TypeMap.new.tap do |mapping|
+            initialize_type_map(mapping)
+          end
+        end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean
           register_class_with_limit m, %r(char)i,          Type::String
           register_class_with_limit m, %r(binary)i,        Type::Binary
@@ -520,7 +519,7 @@ module ActiveRecord
 
         def reload_type_map
           type_map.clear
-          initialize_type_map(type_map)
+          initialize_type_map
         end
 
         def register_class_with_limit(mapping, key, klass)

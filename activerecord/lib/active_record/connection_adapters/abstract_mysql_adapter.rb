@@ -547,7 +547,7 @@ module ActiveRecord
           execute("SET @@SESSION.sql_mode = #{sql_mode}")
         end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
