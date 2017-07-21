@@ -26,7 +26,7 @@ class ActiveStorage::Variant
   end
 
   def processed
-    process unless exist?
+    process unless processed?
     self
   end
 
@@ -38,8 +38,9 @@ class ActiveStorage::Variant
     verifier.generate(variation)
   end
 
+
   private
-    def exist?
+    def processed?
       service.exist?(blob_variant_key)
     end
 
