@@ -28,7 +28,7 @@ module ActiveStorage
 
       config.after_initialize do |app|
         ActiveStorage::VerifiedKeyWithExpiration.verifier = \
-        ActiveStorage::Variant.verifier = \
+        ActiveStorage::Variation.verifier = \
           Rails.application.message_verifier('ActiveStorage')
       end
     end

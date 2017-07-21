@@ -32,8 +32,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
-  # We can't wait until the record is first saved to have a key for it
+
   def key
+    # We can't wait until the record is first saved to have a key for it
     self[:key] ||= self.class.generate_unique_secure_token
   end
 
@@ -41,9 +42,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     ActiveStorage::Filename.new(self[:filename])
   end
 
-  def variant(variation)
-    ActiveStorage::Variant.new(self, variation: variation)
+  def variant(transformations)
+    ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
   end
+
 
   def url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename
