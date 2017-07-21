@@ -12,5 +12,5 @@ Rails.application.routes.draw do
     route_for(:rails_blob_variation, encoded_blob_key, variation_key, filename)
   end
 
-  resolve 'ActiveStorage::Variant' { |variant| route_for(:rails_variant, variant) }
+  resolve('ActiveStorage::Variant') { |variant| route_for(:rails_variant, variant) }
 end
