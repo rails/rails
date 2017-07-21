@@ -47,7 +47,7 @@ namespace :test do
       status = $?.to_i
     ensure
       Process.kill("KILL", pid) if pid
-      FileUtils.rm_f("log")
+      FileUtils.rm_rf("log")
     end
 
     exit status
