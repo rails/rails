@@ -1,6 +1,7 @@
 require "active_storage/blob"
 require "mini_magick"
 
+# Image blobs can have variants that are the result of a set of transformations applied to the original.
 class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
