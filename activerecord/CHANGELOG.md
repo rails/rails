@@ -1,3 +1,10 @@
+*   When a `has_one` association is destroyed by `dependent: destroy`,
+    `destroyed_by_association` will now be set to the reflection, matching the
+    behaviour of `has_many` associations.
+
+    *Lisa Ugray*
+
+
 ## Rails 5.1.3.rc1 (July 19, 2017) ##
 
 *   `Relation#joins` is no longer affected by the target model's
