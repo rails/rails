@@ -24,7 +24,7 @@ module ActiveStorage
 
     initializer "active_storage.verifiers" do
       require "active_storage/verified_key_with_expiration"
-      require "active_storage/variant"
+      require "active_storage/variation"
 
       config.after_initialize do |app|
         ActiveStorage::VerifiedKeyWithExpiration.verifier = \
