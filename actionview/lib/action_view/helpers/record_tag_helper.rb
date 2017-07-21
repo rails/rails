@@ -1,7 +1,7 @@
 module ActionView
   module Helpers
     module RecordTagHelper
-      def div_for(*)
+      def div_for(*) # :nodoc:
         raise NoMethodError, "The `div_for` method has been removed from " \
           "Rails. To continue using it, add the `record_tag_helper` gem to " \
           "your Gemfile:\n" \
@@ -9,7 +9,7 @@ module ActionView
           "Consult the Rails upgrade guide for details."
       end
 
-      def content_tag_for(*)
+      def content_tag_for(*) # :nodoc:
         raise NoMethodError, "The `content_tag_for` method has been removed from " \
           "Rails. To continue using it, add the `record_tag_helper` gem to " \
           "your Gemfile:\n" \
