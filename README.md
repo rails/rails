@@ -72,9 +72,10 @@ Variation of image attachment:
 
 ## Installation
 
-1. Add `require "active_storage"` to config/application.rb, after `require "rails/all"` line.
-2. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
-3. Configure the storage service in `config/environments/*` with `config.active_storage.service = :local`
+1. Add `gem "activestorage", git: "https://github.com/rails/activestorage.git"` to your Gemfile.
+2. Add `require "active_storage"` to config/application.rb, after `require "rails/all"` line.
+3. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
+4. Configure the storage service in `config/environments/*` with `config.active_storage.service = :local`
    that references the services configured in `config/storage_services.yml`.
 
 ## Todos
