@@ -1,3 +1,11 @@
+*  Raise `ArgumentError` when passing anything that doesn't respond to `with_indifferent_access` to
+   `ActionController::Parameter.new`
+
+    When we pass a non-hash argument to `ActionController::Parameters.new`
+    it now raises an `ArgumentError`.
+
+    *Philibert Dugas*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,

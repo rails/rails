@@ -231,7 +231,11 @@ module ActionController
     #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(parameters = {})
-      @parameters = parameters.with_indifferent_access
+      begin
+        @parameters = parameters.with_indifferent_access
+      rescue NoMethodError
+        raise ArgumentError, "invalid parameters given, the parameters should be a hash"
+      end
       @permitted = self.class.permit_all_parameters
     end
 
