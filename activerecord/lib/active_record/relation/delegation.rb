@@ -44,7 +44,7 @@ module ActiveRecord
              :shuffle, :split, :index, to: :records
 
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, to: :klass
+             :columns_hash, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern

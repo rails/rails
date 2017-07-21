@@ -17,18 +17,19 @@ module ActiveRecord
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
-    attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_reader :table, :klass, :loaded, :predicate_builder, :connection
     alias :model :klass
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(klass, table, predicate_builder, values = {})
+    def initialize(klass, table, predicate_builder, values = {}, connection = klass.connection)
       @klass  = klass
       @table  = table
       @values = values
       @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
+      @connection = connection
     end
 
     def initialize_copy(other)
@@ -44,8 +45,8 @@ module ActiveRecord
           k.name == primary_key
         }]
 
-        if !primary_key_value && klass.prefetch_primary_key?
-          primary_key_value = klass.next_sequence_value
+        if !primary_key_value && klass.prefetch_primary_key?(connection)
+          primary_key_value = klass.next_sequence_value(connection)
           values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
@@ -61,7 +62,7 @@ module ActiveRecord
         im.insert substitutes
       end
 
-      @klass.connection.insert(
+      connection.insert(
         im,
         "SQL",
         primary_key || false,
@@ -73,7 +74,7 @@ module ActiveRecord
     def _update_record(values, id, id_was) # :nodoc:
       substitutes = substitute_values values
 
-      scope = @klass.unscoped
+      scope = unscoped
 
       if @klass.finder_needs_type_condition?
         scope.unscope!(where: @klass.inheritance_column)
@@ -84,7 +85,7 @@ module ActiveRecord
         .arel
         .compile_update(substitutes, @klass.primary_key)
 
-      @klass.connection.update(
+      connection.update(
         um,
         "SQL",
       )
@@ -365,7 +366,7 @@ module ActiveRecord
       stmt.table(table)
 
       if has_join_values?
-        @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
+        connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
         stmt.take(arel.limit)
@@ -373,7 +374,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, "SQL"
+      connection.update stmt, "SQL"
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -498,12 +499,12 @@ module ActiveRecord
       stmt.from(table)
 
       if has_join_values?
-        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
+        connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
         stmt.wheres = arel.constraints
       end
 
-      affected = @klass.connection.delete(stmt, "SQL")
+      affected = connection.delete(stmt, "SQL")
 
       reset
       affected
@@ -569,9 +570,8 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    conn = klass.connection
-                    conn.unprepared_statement {
-                      sql, _ = conn.to_sql(relation.arel)
+                    connection.unprepared_statement {
+                      sql, _ = connection.to_sql(relation.arel)
                       sql
                     }
                   end
@@ -639,14 +639,36 @@ module ActiveRecord
     end
 
     def empty_scope? # :nodoc:
-      @values == klass.unscoped.values
+      @values == unscoped.values
     end
 
     def has_limit_or_offset? # :nodoc:
       limit_value || offset_value
     end
 
+    def marshal_dump
+      unless connection.equal?(klass.connection)
+        raise "Cannot marshal Relation with non-default connection"
+      end
+      instance_variables = self.instance_variables - [:@connection]
+      ivars = instance_variables.map do |name|
+        [name, instance_variable_get(name)]
+      end
+      [extending_values] + ivars
+    end
+
+    def marshal_load(values)
+      extending_values, *values = values
+      values.each do |name, value|
+        instance_variable_set(name, value)
+      end
+      self.connection = klass.connection
+      extend(*extending_values) if extending_values.any?
+    end
+
     protected
+
+      attr_writer :connection
 
       def load_records(records)
         @records = records.freeze
@@ -661,7 +683,11 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, &block).freeze
+          if eager_loading?
+            @records = find_with_associations.freeze
+          else
+            @records = klass.find_by_sql(arel, connection: connection, &block).freeze
+          end
 
           preload = preload_values
           preload += includes_values unless eager_loading?
@@ -714,6 +740,12 @@ module ActiveRecord
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
         string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+      end
+
+      def unscoped
+        klass.unscoped.tap do |relation|
+          relation.connection = self.connection
+        end
       end
   end
 end

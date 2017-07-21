@@ -305,13 +305,13 @@ module ActiveRecord
 
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
-      def prefetch_primary_key?
+      def prefetch_primary_key?(connection = self.connection)
         connection.prefetch_primary_key?(table_name)
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
-      def next_sequence_value
+      def next_sequence_value(connection = self.connection)
         connection.next_sequence_value(sequence_name)
       end
 
