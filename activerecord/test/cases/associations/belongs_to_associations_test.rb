@@ -1113,17 +1113,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_out_of_range_value_assigning
-    model = Class.new(Comment) do
+    model = Class.new(Author) do
       def self.name; "Temp"; end
-      validates :post, presence: true
+      validates :author_address, presence: true
     end
 
-    comment = model.new
-    comment.post_id = 9223372036854775808 # out of range in the bigint
+    author = model.new
+    author.author_address_id = 9223372036854775808 # out of range in the bigint
 
-    assert_nil comment.post
-    assert_not comment.valid?
-    assert_equal [{ error: :blank }], comment.errors.details[:post]
+    assert_nil author.author_address
+    assert_not author.valid?
+    assert_equal [{ error: :blank }], author.errors.details[:author_address]
   end
 
   def test_polymorphic_with_custom_primary_key

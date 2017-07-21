@@ -2614,6 +2614,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_with_out_of_range_value
+    reference = Reference.create!(id: 2147483648) # out of range in the integer
+    assert_equal [], reference.ideal_jobs
+  end
+
   private
 
     def force_signal37_to_load_all_clients_of_firm
