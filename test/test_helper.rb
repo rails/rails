@@ -34,6 +34,17 @@ class ActiveSupport::TestCase
     end
 end
 
+require "action_controller"
+require "action_controller/test_case"
+class ActionController::TestCase
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |routes|
+    routes.draw do
+      # FIXME: Hacky way to avoid having to instantiate the real engine
+      eval(File.readlines(File.expand_path("../../config/routes.rb", __FILE__)).slice(1..-2).join("\n"))
+    end
+  end
+end
+
 require "active_storage/attached"
 ActiveRecord::Base.send :extend, ActiveStorage::Attached::Macros
 
