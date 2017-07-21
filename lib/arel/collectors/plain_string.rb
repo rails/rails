@@ -3,7 +3,7 @@ module Arel
   module Collectors
     class PlainString
       def initialize
-        @str = String.new
+        @str = ''.dup
       end
 
       def value
