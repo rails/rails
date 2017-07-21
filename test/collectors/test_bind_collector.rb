@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 require 'helper'
-require 'arel/collectors/bind'
+require 'arel/collectors/substitute_binds'
 
 module Arel
   module Collectors
@@ -12,7 +12,7 @@ module Arel
       end
 
       def collect node
-        @visitor.accept(node, Collectors::Bind.new)
+        @visitor.accept(node, Collectors::SubstituteBinds.new)
       end
 
       def compile node

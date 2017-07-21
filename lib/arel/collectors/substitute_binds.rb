@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Collectors
-    class Bind
+    class SubstituteBinds
       def initialize
         @parts = []
       end
