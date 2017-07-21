@@ -737,7 +737,7 @@ module Arel
       def literal o, collector; collector << o.to_s; end
 
       def visit_Arel_Nodes_BindParam o, collector
-        collector.add_bind(o) { "?" }
+        collector.add_bind(o.value) { "?" }
       end
 
       alias :visit_Arel_Nodes_SqlLiteral :literal

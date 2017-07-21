@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 require 'helper'
 require 'arel/collectors/substitute_binds'
+require 'arel/collectors/sql_string'
 
 module Arel
   module Collectors
@@ -11,60 +12,35 @@ module Arel
         super
       end
 
-      def collect node
-        @visitor.accept(node, Collectors::SubstituteBinds.new)
-      end
-
-      def compile node
-        collect(node).value
-      end
-
-      def ast_with_binds bv
+      def ast_with_binds
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
-        manager.where(table[:age].eq(bv))
-        manager.where(table[:name].eq(bv))
+        manager.where(table[:age].eq(Nodes::BindParam.new("hello")))
+        manager.where(table[:name].eq(Nodes::BindParam.new("world")))
         manager.ast
       end
 
-      def test_leaves_binds
-        node = Nodes::BindParam.new(nil)
-        list = compile node
-        assert_equal node, list.first
-        assert_equal node.class, list.first.class
-      end
-
-      def test_adds_strings
-        bv = Nodes::BindParam.new(nil)
-        list = compile ast_with_binds bv
-        assert_operator list.length, :>, 0
-        assert_equal bv, list.grep(Nodes::BindParam).first
-        assert_equal bv.class, list.grep(Nodes::BindParam).first.class
-      end
-
-      def test_substitute_binds
-        bv = Nodes::BindParam.new(nil)
-        collector = collect ast_with_binds bv
-
-        values = collector.value
-
-        offsets = values.map.with_index { |v,i|
-          [v,i]
-        }.find_all { |(v,_)| Nodes::BindParam === v }.map(&:last)
-
-        list = collector.substitute_binds ["hello", "world"]
-        assert_equal "hello", list[offsets[0]]
-        assert_equal "world", list[offsets[1]]
-
-        assert_equal 'SELECT FROM "users" WHERE "users"."age" = hello AND "users"."name" = world', list.join
+      def compile(node, quoter)
+        collector = Collectors::SubstituteBinds.new(quoter, Collectors::SQLString.new)
+        @visitor.accept(node, collector).value
       end
 
       def test_compile
-        bv = Nodes::BindParam.new(nil)
-        collector = collect ast_with_binds bv
-
-        sql = collector.compile ["hello", "world"]
+        quoter = Object.new
+        def quoter.quote(val)
+          val.to_s
+        end
+        sql = compile(ast_with_binds, quoter)
         assert_equal 'SELECT FROM "users" WHERE "users"."age" = hello AND "users"."name" = world', sql
+      end
+
+      def test_quoting_is_delegated_to_quoter
+        quoter = Object.new
+        def quoter.quote(val)
+          val.inspect
+        end
+        sql = compile(ast_with_binds, quoter)
+        assert_equal 'SELECT FROM "users" WHERE "users"."age" = "hello" AND "users"."name" = "world"', sql
       end
     end
   end

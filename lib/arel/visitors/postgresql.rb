@@ -46,7 +46,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_BindParam o, collector
-        collector.add_bind(o) { |i| "$#{i}" }
+        collector.add_bind(o.value) { |i| "$#{i}" }
       end
 
       def visit_Arel_Nodes_GroupingElement o, collector

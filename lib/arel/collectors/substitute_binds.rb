@@ -2,36 +2,27 @@
 module Arel
   module Collectors
     class SubstituteBinds
-      def initialize
-        @parts = []
+      def initialize(quoter, delegate_collector)
+        @quoter = quoter
+        @delegate = delegate_collector
       end
 
       def << str
-        @parts << str
+        delegate << str
         self
       end
 
       def add_bind bind
-        @parts << bind
-        self
+        self << quoter.quote(bind)
       end
 
-      def value; @parts; end
-
-      def substitute_binds bvs
-        bvs = bvs.dup
-        @parts.map do |val|
-          if Arel::Nodes::BindParam === val
-            bvs.shift
-          else
-            val
-          end
-        end
+      def value
+        delegate.value
       end
 
-      def compile bvs
-        substitute_binds(bvs).join
-      end
+      protected
+
+      attr_reader :quoter, :delegate
     end
   end
 end
