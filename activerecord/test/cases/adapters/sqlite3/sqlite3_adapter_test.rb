@@ -66,11 +66,11 @@ module ActiveRecord
 
       def test_exec_insert
         with_example_table do
-          binds = [bind_attribute("number", 10)]
-          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", binds)
+          vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
+          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
 
           result = @conn.exec_query(
-            "select number from ex where number = ?", "SQL", binds)
+            "select number from ex where number = ?", "SQL", vals)
 
           assert_equal 1, result.rows.length
           assert_equal 10, result.rows.first.first
@@ -134,7 +134,7 @@ module ActiveRecord
         with_example_table "id int, data string" do
           @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
           result = @conn.exec_query(
-            "SELECT id, data FROM ex WHERE id = ?", nil, [bind_attribute("id", 1)])
+            "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new(nil, 1, Type::Value.new)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -148,7 +148,7 @@ module ActiveRecord
           @conn.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
 
           result = @conn.exec_query(
-            "SELECT id, data FROM ex WHERE id = ?", nil, [bind_attribute("id", "1-fuu", Type::Integer.new)])
+            "SELECT id, data FROM ex WHERE id = ?", nil, [Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length

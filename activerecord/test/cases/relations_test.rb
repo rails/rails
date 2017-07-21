@@ -1853,8 +1853,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_unscope_removes_binds
     left = Post.where(id: 20)
 
-    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
-    assert_equal binds, left.bound_attributes
+    assert_equal 1, left.bound_attributes.length
 
     relation = left.unscope(where: :id)
     assert_equal [], relation.bound_attributes
@@ -1864,21 +1863,18 @@ class RelationTest < ActiveRecord::TestCase
     left = Post.where(id: 20)
     right = Post.where(id: [1, 2, 3, 4])
 
-    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
-    assert_equal binds, left.bound_attributes
+    assert_equal 1, left.bound_attributes.length
 
     merged = left.merge(right)
     assert_equal [], merged.bound_attributes
   end
 
   def test_merging_keeps_lhs_binds
-    binds = [bind_attribute("id", 20, Post.type_for_attribute("id"))]
-
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)
 
     merged = left.merge(right)
-    assert_equal binds, merged.bound_attributes
+    assert_equal [20], merged.bound_attributes.map(&:value)
   end
 
   def test_locked_should_not_build_arel

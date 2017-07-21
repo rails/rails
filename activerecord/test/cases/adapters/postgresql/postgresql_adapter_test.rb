@@ -202,8 +202,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            binds = [bind_attribute("id", 1)]
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
+            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
@@ -217,8 +217,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            binds = [bind_attribute("id", "1-fuu", Type::Integer.new)]
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
+            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
