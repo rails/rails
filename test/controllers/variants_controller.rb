@@ -6,12 +6,10 @@ require "active_storage/verified_key_with_expiration"
 
 class ActiveStorage::VariantsControllerTest < ActionController::TestCase
   setup do
-    @blob = ActiveStorage::Blob.create_after_upload! \
-      filename: "racecar.jpg", content_type: "image/jpeg",
-      io: File.open(File.expand_path("../../fixtures/files/racecar.jpg", __FILE__))
-
     @routes = Routes
     @controller = ActiveStorage::VariantsController.new
+
+    @blob = create_image_blob filename: "racecar.jpg"
   end
 
   test "showing variant inline" do

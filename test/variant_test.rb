@@ -4,9 +4,7 @@ require "active_storage/variant"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
   setup do
-    @blob = ActiveStorage::Blob.create_after_upload! \
-      filename: "racecar.jpg", content_type: "image/jpeg",
-      io: File.open(File.expand_path("../fixtures/files/racecar.jpg", __FILE__))
+    @blob = create_image_blob filename: "racecar.jpg"
   end
 
   test "resized variation" do

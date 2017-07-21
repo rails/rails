@@ -33,6 +33,12 @@ class ActiveSupport::TestCase
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
     end
+
+    def create_image_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+      ActiveStorage::Blob.create_after_upload! \
+        io: File.open(File.expand_path("../fixtures/files/#{filename}", __FILE__)),
+        filename: filename, content_type: content_type
+    end
 end
 
 require "action_controller"
