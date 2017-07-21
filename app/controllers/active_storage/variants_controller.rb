@@ -13,7 +13,10 @@ class ActiveStorage::VariantsController < ActionController::Base
     end
 
     def processed_variant_for(blob_key)
-      ActiveStorage::Variant.find_or_process_by!(blob_key: blob_key, encoded_variant_key: params[:encoded_variant_key])
+      ActiveStorage::Variant.new(
+        ActiveStorage::Blob.find_by!(key: blob_key),
+        ActiveStorage::Variation.decode(params[:variation_key])
+      ).processed
     end
 
     def disposition_param

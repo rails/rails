@@ -1,3 +1,5 @@
+$LOAD_PATH << File.expand_path("../../app/controllers", __FILE__)
+
 require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
