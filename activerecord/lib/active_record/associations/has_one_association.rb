@@ -58,6 +58,7 @@ module ActiveRecord
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
           when :nullify
             target.update_columns(reflection.foreign_key => nil) if target.persisted?
@@ -80,6 +81,7 @@ module ActiveRecord
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
           else
             nullify_owner_attributes(target)

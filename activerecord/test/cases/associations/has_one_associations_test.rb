@@ -690,4 +690,38 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       SpecialAuthor.joins(book: :subscription).where.not(where_clause)
     end
   end
+
+  class DestroyByParentBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyByParentAuthor"
+    before_destroy :dont, unless: :destroyed_by_association
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class DestroyByParentAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "DestroyByParentBook", foreign_key: "author_id", dependent: :destroy
+  end
+
+  test "destroyed_by_association set in child destroy callback on parent destroy" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.destroy
+
+    assert_not DestroyByParentBook.exists?(book.id)
+  end
+
+  test "destroyed_by_association set in child destroy callback on replace" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.book = DestroyByParentBook.create!
+    author.save!
+
+    assert_not DestroyByParentBook.exists?(book.id)
+  end
 end
