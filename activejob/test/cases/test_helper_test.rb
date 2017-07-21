@@ -124,7 +124,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_option
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 1, only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
@@ -156,7 +156,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_and_queue_option
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 1, only: HelloJob, except: HelloJob, queue: :some_queue do
         HelloJob.set(queue: :some_queue).perform_later
         HelloJob.set(queue: :other_queue).perform_later
@@ -199,7 +199,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_option_and_none_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 1, only: HelloJob, except: HelloJob do
         LoggingJob.perform_later
       end
@@ -231,7 +231,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_option_and_too_few_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 5, only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         4.times { LoggingJob.perform_later }
@@ -262,7 +262,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_option_and_too_many_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 1, only: HelloJob, except: HelloJob do
         2.times { HelloJob.perform_later("jeremy") }
       end
@@ -292,7 +292,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_and_except_option_as_array
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_enqueued_jobs 2, only: [HelloJob, LoggingJob], except: [HelloJob, LoggingJob] do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later("stewie")
@@ -320,7 +320,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_enqueued_jobs_with_only_and_except_option
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_enqueued_jobs only: HelloJob, except: HelloJob do
         LoggingJob.perform_later
       end
@@ -352,7 +352,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_enqueued_jobs_with_only_and_except_option_failure
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_enqueued_jobs only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
@@ -380,7 +380,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_enqueued_jobs_with_only_and_except_option_as_array
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_enqueued_jobs only: [HelloJob, RescueJob], except: [HelloJob, RescueJob] do
         LoggingJob.perform_later
       end
@@ -597,7 +597,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_and_except_option
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_performed_jobs 1, only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
@@ -628,7 +628,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_and_except_option_as_array
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_performed_jobs 2, only: [HelloJob, LoggingJob], except: [HelloJob, LoggingJob] do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later("stewie")
@@ -660,7 +660,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_and_except_option_and_none_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_performed_jobs 1, only: HelloJob, except: HelloJob do
         LoggingJob.perform_later
       end
@@ -692,7 +692,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_and_except_option_and_too_few_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_performed_jobs 5, only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         4.times { LoggingJob.perform_later }
@@ -723,7 +723,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_and_except_option_and_too_many_sent
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_performed_jobs 1, only: HelloJob, except: HelloJob do
         2.times { HelloJob.perform_later("jeremy") }
       end
@@ -749,7 +749,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_performed_jobs_with_only_and_except_option
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_performed_jobs only: HelloJob, except: HelloJob do
         LoggingJob.perform_later
       end
@@ -776,7 +776,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_performed_jobs_with_only_and_except_option_as_array
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_performed_jobs only: [HelloJob, RescueJob], except: [HelloJob, RescueJob] do
         LoggingJob.perform_later
       end
@@ -808,7 +808,7 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_performed_jobs_with_only_and_except_option_failure
-    error = assert_raise ActiveJob::TestHelper::InvalidOptionsError do
+    error = assert_raise ArgumentError do
       assert_no_performed_jobs only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
