@@ -54,7 +54,7 @@ module ActionDispatch
                  rescue EOFError
                    query_parameters.dup
                  end
-        params.merge!(path_parameters_utf8_encoding)
+        params.merge!(path_parameters_utf8_enforced)
         params = set_binary_encoding(params)
         set_header("action_dispatch.request.parameters", params)
         params
@@ -93,7 +93,7 @@ module ActionDispatch
           params
         end
 
-        def path_parameters_utf8_encoding
+        def path_parameters_utf8_enforced
           params = path_parameters.deep_dup
           ActionDispatch::Request::Utils.each_param_value(params) do |param|
             param.force_encoding ::Encoding::UTF_8
