@@ -1,9 +1,3 @@
-require "action_controller"
-require "active_storage/blob"
-require "active_storage/verified_key_with_expiration"
-
-require "active_support/core_ext/object/inclusion"
-
 # This controller is a wrapper around local file downloading. It allows you to
 # make abstraction of the URL generation logic and to serve files with expiry
 # if you are using the +Disk+ service.
