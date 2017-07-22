@@ -36,7 +36,7 @@ module Rails
 
       private
         def route_string
-          @route_string ||= ""
+          @route_string ||= "".dup
         end
 
         def write(str, indent)

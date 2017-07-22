@@ -58,7 +58,7 @@ module Rails
         logon = ""
 
         if config["username"]
-          logon = config["username"]
+          logon = config["username"].dup
           logon << "/#{config['password']}" if config["password"] && @options["include_password"]
           logon << "@#{config['database']}" if config["database"]
         end

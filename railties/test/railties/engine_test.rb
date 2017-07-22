@@ -503,7 +503,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each(&:upcase!)
+        response[2] = response[2].collect(&:upcase)
         response
       end
     end

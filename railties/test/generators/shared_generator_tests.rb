@@ -77,7 +77,7 @@ module SharedGeneratorTests
 
   def test_template_is_executed_when_supplied_an_https_path
     path = "https://gist.github.com/josevalim/103208/raw/"
-    template = %{ say "It works!" }
+    template = %{ say "It works!" }.dup
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do
