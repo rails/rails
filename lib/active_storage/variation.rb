@@ -15,7 +15,7 @@ class ActiveStorage::Variation
     def decode(key)
       new verifier.verify(key)
     end
-    
+
     def encode(transformations)
       verifier.generate(transformations)
     end

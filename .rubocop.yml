@@ -8,6 +8,85 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
 
+# Align `when` with `case`.
+Layout/CaseIndentation:
+  Enabled: true
+
+# Align comments with method definitions.
+Layout/CommentIndentation:
+  Enabled: true
+
+# No extra empty lines.
+Layout/EmptyLines:
+  Enabled: false
+
+# In a regular class definition, no empty lines around the body.
+Layout/EmptyLinesAroundClassBody:
+  Enabled: true
+
+# In a regular method definition, no empty lines around the body.
+Layout/EmptyLinesAroundMethodBody:
+  Enabled: true
+
+# In a regular module definition, no empty lines around the body.
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: true
+
+# Method definitions after `private` or `protected` isolated calls need one
+# extra level of indentation.
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: rails
+
+# Two spaces, no tabs (for indentation).
+Layout/IndentationWidth:
+  Enabled: true
+
+Layout/SpaceAfterColon:
+  Enabled: true
+
+Layout/SpaceAfterComma:
+  Enabled: true
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  Enabled: true
+
+Layout/SpaceAroundKeyword:
+  Enabled: true
+
+Layout/SpaceAroundOperators:
+  Enabled: true
+
+Layout/SpaceBeforeFirstArg:
+    Enabled: true
+
+# Use `foo {}` not `foo{}`.
+Layout/SpaceBeforeBlockBraces:
+  Enabled: true
+
+# Use `foo { bar }` not `foo {bar}`.
+Layout/SpaceInsideBlockBraces:
+  Enabled: true
+
+# Use `{ a: 1 }` not `{a:1}`.
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: true
+
+Layout/SpaceInsideParens:
+  Enabled: true
+
+# Detect hard tabs, no hard tabs.
+Layout/Tab:
+  Enabled: true
+
+# Blank lines should not have any spaces.
+Layout/TrailingBlankLines:
+  Enabled: true
+
+# No trailing whitespace.
+Layout/TrailingWhitespace:
+  Enabled: true
+
 # Prefer &&/|| over and/or.
 Style/AndOr:
   Enabled: true
@@ -18,97 +97,18 @@ Style/BracesAroundHashParameters:
   Enabled: true
   EnforcedStyle: context_dependent
 
-# Align `when` with `case`.
-Style/CaseIndentation:
-  Enabled: true
-
-# Align comments with method definitions.
-Style/CommentIndentation:
-  Enabled: true
-
-# No extra empty lines.
-Style/EmptyLines:
-  Enabled: false
-
-# In a regular class definition, no empty lines around the body.
-Style/EmptyLinesAroundClassBody:
-  Enabled: true
-
-# In a regular method definition, no empty lines around the body.
-Style/EmptyLinesAroundMethodBody:
-  Enabled: true
-
-# In a regular module definition, no empty lines around the body.
-Style/EmptyLinesAroundModuleBody:
-  Enabled: true
-
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
   Enabled: true
 
-# Method definitions after `private` or `protected` isolated calls need one
-# extra level of indentation.
-Style/IndentationConsistency:
-  Enabled: true
-  EnforcedStyle: rails
-
-# Two spaces, no tabs (for indentation).
-Style/IndentationWidth:
-  Enabled: true
-
-Style/SpaceAfterColon:
-  Enabled: true
-
-Style/SpaceAfterComma:
-  Enabled: true
-
-Style/SpaceAroundEqualsInParameterDefault:
-  Enabled: true
-
-Style/SpaceAroundKeyword:
-  Enabled: true
-
-Style/SpaceAroundOperators:
-  Enabled: true
-
-Style/SpaceBeforeFirstArg:
-    Enabled: true
-
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
-  Enabled: true
-
-# Use `foo {}` not `foo{}`.
-Style/SpaceBeforeBlockBraces:
-  Enabled: true
-
-# Use `foo { bar }` not `foo {bar}`.
-Style/SpaceInsideBlockBraces:
-  Enabled: true
-
-# Use `{ a: 1 }` not `{a:1}`.
-Style/SpaceInsideHashLiteralBraces:
-  Enabled: true
-
-Style/SpaceInsideParens:
   Enabled: true
 
 # Check quotes usage according to lint rule below.
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
-
-# Detect hard tabs, no hard tabs.
-Style/Tab:
-  Enabled: true
-
-# Blank lines should not have any spaces.
-Style/TrailingBlankLines:
-  Enabled: true
-
-# No trailing whitespace.
-Style/TrailingWhitespace:
-  Enabled: true
 
 # Use quotes for string literals when they are enough.
 Style/UnneededPercentQ:

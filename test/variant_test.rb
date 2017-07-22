@@ -10,14 +10,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation" do
     variant = @blob.variant(resize: "100x100").processed
 
-    assert_match /racecar.jpg/, variant.url    
-    assert_same_image "racecar-100x100.jpg", variant    
+    assert_match /racecar.jpg/, variant.url
+    assert_same_image "racecar-100x100.jpg", variant
   end
 
   test "resized and monochrome variation" do
     variant = @blob.variant(resize: "100x100", monochrome: true).processed
 
     assert_match /racecar.jpg/, variant.url
-    assert_same_image "racecar-100x100-monochrome.jpg", variant    
+    assert_same_image "racecar-100x100-monochrome.jpg", variant
   end
 end
