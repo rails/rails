@@ -243,6 +243,9 @@ module ActiveRecord
     def test_where_with_boolean_for_string_column
       count = Post.where(title: false).count
       assert_equal 0, count
+
+      count = Post.where("title = ?", false).count
+      assert_equal 0, count
     end
 
     def test_where_with_decimal_for_string_column

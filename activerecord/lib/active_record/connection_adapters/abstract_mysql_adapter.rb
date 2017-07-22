@@ -550,8 +550,6 @@ module ActiveRecord
         def initialize_type_map(m = type_map)
           super
 
-          register_class_with_limit m, %r(char)i, MysqlString
-
           m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
           m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
           m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -577,13 +575,13 @@ module ActiveRecord
           m.register_type(%r(enum)i) do |sql_type|
             limit = sql_type[/^enum\((.+)\)/i, 1]
               .split(",").map { |enum| enum.strip.length - 2 }.max
-            MysqlString.new(limit: limit)
+            Type::String.new(limit: limit)
           end
 
           m.register_type(%r(^set)i) do |sql_type|
             limit = sql_type[/^set\((.+)\)/i, 1]
               .split(",").map { |set| set.strip.length - 1 }.sum - 1
-            MysqlString.new(limit: limit)
+            Type::String.new(limit: limit)
           end
         end
 
@@ -860,27 +858,6 @@ module ActiveRecord
           full_version.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
-        class MysqlString < Type::String # :nodoc:
-          def serialize(value)
-            case value
-            when true then MySQL::Quoting::QUOTED_TRUE
-            when false then MySQL::Quoting::QUOTED_FALSE
-            else super
-            end
-          end
-
-          private
-
-            def cast_value(value)
-              case value
-              when true then MySQL::Quoting::QUOTED_TRUE
-              when false then MySQL::Quoting::QUOTED_FALSE
-              else super
-              end
-            end
-        end
-
-        ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end

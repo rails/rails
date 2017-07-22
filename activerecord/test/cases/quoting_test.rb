@@ -232,6 +232,7 @@ module ActiveRecord
     class QuoteBooleanTest < ActiveRecord::TestCase
       def setup
         @connection = ActiveRecord::Base.connection
+        @string = ActiveRecord::Type.lookup(:string)
       end
 
       def test_quote_returns_frozen_string
@@ -242,6 +243,16 @@ module ActiveRecord
       def test_type_cast_returns_frozen_value
         assert_predicate @connection.type_cast(true), :frozen?
         assert_predicate @connection.type_cast(false), :frozen?
+      end
+
+      def test_quote_serialized_stirng_returns_same_value
+        assert_equal @connection.quote(true), @connection.quote(@string.serialize(true))
+        assert_equal @connection.quote(false), @connection.quote(@string.serialize(false))
+      end
+
+      def test_type_cast_serialized_string_returns_same_value
+        assert_equal @connection.type_cast(true), @connection.type_cast(@string.serialize(true))
+        assert_equal @connection.type_cast(false), @connection.type_cast(@string.serialize(false))
       end
     end
 
