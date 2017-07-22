@@ -4,11 +4,6 @@ require "active_support/core_ext/object/inclusion"
 class ActiveStorage::Variation
   class_attribute :verifier
 
-  ALLOWED_TRANSFORMATIONS = %i(
-    resize rotate format flip fill monochrome orient quality roll scale sharpen shave shear size thumbnail
-    transparent transpose transverse trim background bordercolor compress crop
-  )
-
   attr_reader :transformations
 
   class << self
@@ -27,8 +22,6 @@ class ActiveStorage::Variation
 
   def transform(image)
     transformations.each do |(method, argument)|
-      next unless eligible_transformation?(method)
-
       if eligible_argument?(argument)
         image.public_send(method, argument)
       else
@@ -42,11 +35,6 @@ class ActiveStorage::Variation
   end
 
   private
-    def eligible_transformation?(method)
-      method.to_sym.in?(ALLOWED_TRANSFORMATIONS)
-    end
-
-    # FIXME: Consider whitelisting allowed arguments as well?
     def eligible_argument?(argument)
       argument.present? && argument != true
     end
