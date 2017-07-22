@@ -33,6 +33,46 @@ module ActiveSupport
   # `:digest` key as an option while initializing the verifier:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', digest: 'SHA256')
+  #
+  # === Confining messages to a specific purpose
+  #
+  # By default any message can be used throughout your app. But they can also be
+  # confined to a specific +:purpose+.
+  #
+  #   token = @verifier.generate("this is the chair", purpose: :login)
+  #
+  # Then that same purpose must be passed when verifying to get the data back out:
+  #
+  #   @verifier.verified(token, purpose: :login)    # => "this is the chair"
+  #   @verifier.verified(token, purpose: :shipping) # => nil
+  #   @verifier.verified(token)                     # => nil
+  #
+  #   @verifier.verify(token, purpose: :login)      # => "this is the chair"
+  #   @verifier.verify(token, purpose: :shipping)   # => ActiveSupport::MessageVerifier::InvalidSignature
+  #   @verifier.verify(token)                       # => ActiveSupport::MessageVerifier::InvalidSignature
+  #
+  # Likewise, if a message has no purpose it won't be returned when verifying with
+  # a specific purpose.
+  #
+  #   token = @verifier.generate("the conversation is lively")
+  #   @verifier.verified(token, purpose: :scare_tactics) # => nil
+  #   @verifier.verified(token)                          # => "the conversation is lively"
+  #
+  #   @verifier.verify(token, purpose: :scare_tactics)   # => ActiveSupport::MessageVerifier::InvalidSignature
+  #   @verifier.verify(token)                            # => "the conversation is lively"
+  #
+  # === Making messages expire
+  #
+  # By default messages last forever and verifying one year from now will still
+  # return the original value. But messages can be set to expire at a given
+  # time with +:expires_in+ or +:expires_at+.
+  #
+  #   @verifier.generate(parcel, expires_in: 1.month)
+  #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
+  #
+  # Then the messages can be verified and returned upto the expire time.
+  # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
+  # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
