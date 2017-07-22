@@ -7,7 +7,7 @@ namespace :activestorage do
     FileUtils.mkdir_p Rails.root.join("tmp/storage")
     puts "Made storage and tmp/storage directories for development and testing"
 
-    FileUtils.cp File.expand_path("../../active_storage/storage_services.yml", __FILE__), Rails.root.join("config")
+    FileUtils.cp File.expand_path("../../../config/storage_services.yml", __FILE__), Rails.root.join("config")
     puts "Copied default configuration to config/storage_services.yml"
 
     migration_file_path = "db/migrate/#{Time.now.utc.strftime("%Y%m%d%H%M%S")}_active_storage_create_tables.rb"
