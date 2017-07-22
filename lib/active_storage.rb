@@ -1,5 +1,5 @@
 require "active_record"
-require "active_storage/engine" if defined?(Rails)
+require "active_storage/engine"
 
 module ActiveStorage
   extend ActiveSupport::Autoload
