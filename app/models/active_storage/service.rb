@@ -1,4 +1,4 @@
-require_relative "log_subscriber"
+require "active_storage/log_subscriber"
 
 # Abstract class serving as an interface for concrete services.
 #
