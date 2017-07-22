@@ -1,9 +1,6 @@
 require "test_helper"
 require "database/setup"
 
-require "action_controller"
-require "action_controller/test_case"
-
 require "active_storage/direct_uploads_controller"
 
 if SERVICE_CONFIGURATIONS[:s3]
