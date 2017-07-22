@@ -1427,6 +1427,35 @@ YAML
       assert_equal "/vegetables/1/bukkits/posts", last_response.body
     end
 
+    test "route helpers resolve script name correctly when called with different script name from current one" do
+      @plugin.write "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index
+            render plain: fruit_bukkits.posts_path(fruit_id: 2)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :fruits do
+            mount Bukkits::Engine => "/bukkits"
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/fruits/1/bukkits/posts")
+      assert_equal "/fruits/2/bukkits/posts", last_response.body
+    end
+
   private
     def app
       Rails.application
