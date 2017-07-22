@@ -46,8 +46,7 @@ module ActionDispatch
           hash.each_pair { |key, value| hash[key] = change_param_encoding(value, encoding) }
           hash
         when String
-          string = params.dup
-          string.force_encoding(encoding)
+          params.dup.force_encoding(encoding)
         else
           params
         end
