@@ -863,8 +863,8 @@ module ActiveRecord
         class MysqlString < Type::String # :nodoc:
           def serialize(value)
             case value
-            when true then MySQL::Quoting::QUOTED_TRUE
-            when false then MySQL::Quoting::QUOTED_FALSE
+            when true then "1"
+            when false then "0"
             else super
             end
           end
@@ -873,8 +873,8 @@ module ActiveRecord
 
             def cast_value(value)
               case value
-              when true then MySQL::Quoting::QUOTED_TRUE
-              when false then MySQL::Quoting::QUOTED_FALSE
+              when true then "1"
+              when false then "0"
               else super
               end
             end
