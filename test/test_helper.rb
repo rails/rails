@@ -8,6 +8,10 @@ require "active_support/test_case"
 require "active_support/testing/autorun"
 require "byebug"
 
+require "active_job"
+ActiveJob::Base.queue_adapter = :test
+ActiveJob::Base.logger = nil
+
 require "active_storage"
 
 require "active_storage/service"

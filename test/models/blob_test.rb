@@ -1,6 +1,5 @@
 require "test_helper"
 require "database/setup"
-require "active_storage/blob"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "create after upload sets byte size and checksum" do

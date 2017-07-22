@@ -1,10 +1,5 @@
 require "test_helper"
 require "database/setup"
-require "active_storage/blob"
-
-require "active_job"
-ActiveJob::Base.queue_adapter = :test
-ActiveJob::Base.logger = nil
 
 # ActiveRecord::Base.logger = Logger.new(STDOUT)
 

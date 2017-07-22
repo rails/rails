@@ -1,5 +1,3 @@
-require "active_job"
-
 class ActiveStorage::PurgeJob < ActiveJob::Base
   # FIXME: Limit this to a custom ActiveStorage error
   retry_on StandardError
