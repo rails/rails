@@ -37,6 +37,22 @@ module ActionDispatch
         end
       end
 
+      def self.change_param_encoding(params, encoding)
+        case params
+        when Array
+          params.map { |element| change_param_encoding(element, encoding) }
+        when Hash
+          hash = params.dup
+          hash.each_pair { |key, value| hash[key] = change_param_encoding(value, encoding) }
+          hash
+        when String
+          string = params.dup
+          string.force_encoding(encoding)
+        else
+          params
+        end
+      end
+
       class ParamEncoder # :nodoc:
         # Convert nested Hash to HashWithIndifferentAccess.
         def self.normalize_encode_params(params)
