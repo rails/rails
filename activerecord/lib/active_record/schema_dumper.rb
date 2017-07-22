@@ -87,7 +87,7 @@ HEADER
         extensions = @connection.extensions
         if extensions.any?
           stream.puts "  # These are extensions that must be enabled in order to support this database"
-          extensions.each do |extension|
+          extensions.sort.each do |extension|
             stream.puts "  enable_extension #{extension.inspect}"
           end
           stream.puts

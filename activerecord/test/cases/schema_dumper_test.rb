@@ -303,6 +303,20 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_no_match "# These are extensions that must be enabled", output
         assert_no_match %r{enable_extension}, output
       end
+
+      def test_schema_dump_includes_extensions_in_alphabetic_order
+        connection = ActiveRecord::Base.connection
+
+        connection.stubs(:extensions).returns(["hstore", "uuid-ossp", "xml2"])
+        output = perform_schema_dump
+        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+
+        connection.stubs(:extensions).returns(["uuid-ossp", "xml2", "hstore"])
+        output = perform_schema_dump
+        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      end
     end
   end
 
