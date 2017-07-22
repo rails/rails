@@ -1,4 +1,4 @@
-*   Modify the encoding of `path_parameters` to UTF-8
+*   Use `path_parameters_utf8_enforced` instead of `path_parameters`
 
     *Tsukuru Tanimichi*
 
