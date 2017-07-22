@@ -142,13 +142,34 @@ namespace :all do
   task push: FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb'`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
     unless ENV["SKIP_TAG"] || `git tag | grep '^#{tag}$'`.strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
+    end
+  end
+
+  task verify: :install do
+    app_name = "pkg/verify-#{version}-#{Time.now.to_i}"
+    sh "rails new #{app_name}"
+    cd app_name
+    sh "rails generate scaffold user name admin:boolean && rails db:migrate"
+
+    puts "Booting a Rails server. Verify the release by:"
+    puts
+    puts "- Seeing the correct release number on the root page"
+    puts "- Viewing /users"
+    puts "- Creating a user"
+    puts "- Updating a user (e.g. disable the admin flag)"
+    puts "- Deleting a user on /users"
+    puts "- Whatever else you want."
+    begin
+      sh "rails server"
+    rescue Interrupt
+      # Server passes along interrupt. Prevent halting verify task.
     end
   end
 
