@@ -66,6 +66,11 @@ class MessagesController < ApplicationController
     message.images.attach(params[:message][:images])
     redirect_to message
   end
+
+  def show
+    # Use the built-in with_attached_images scope to avoid N+1
+    @message = Message.find(params[:id]).with_attached_images
+  end
 end
 ```
 
