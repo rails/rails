@@ -1,7 +1,6 @@
 require "active_storage/blob"
 require "active_support/core_ext/module/delegation"
 
-# Schema: id, record_gid, blob_id, created_at
 class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
