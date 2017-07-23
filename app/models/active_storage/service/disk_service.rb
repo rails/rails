@@ -2,7 +2,6 @@ require "fileutils"
 require "pathname"
 require "digest/md5"
 require "active_support/core_ext/numeric/bytes"
-require "active_storage/verified_key_with_expiration"
 
 class ActiveStorage::Service::DiskService < ActiveStorage::Service
   attr_reader :root
@@ -54,7 +53,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
   def url(key, expires_in:, disposition:, filename:)
     instrument :url, key do |payload|
-      verified_key_with_expiration = ActiveStorage::VerifiedKeyWithExpiration.encode(key, expires_in: expires_in)
+      verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in)
 
       generated_url =
         if defined?(Rails) && defined?(Rails.application)

@@ -24,7 +24,7 @@ class ActiveStorage::DiskController < ActionController::Base
     end
 
     def decode_verified_key
-      ActiveStorage::VerifiedKeyWithExpiration.decode(params[:encoded_key])
+      ActiveStorage.verifier.verified(params[:encoded_key])
     end
 
     def disposition_param

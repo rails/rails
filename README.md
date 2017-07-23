@@ -87,7 +87,6 @@ Variation of image attachment:
 - Read metadata via Marcel?
 - Add Migrator to copy/move between services
 - [Explore direct uploads to cloud](https://github.com/rails/activestorage/pull/19)
-- Extract VerifiedKeyWithExpiration into Rails as a feature of MessageVerifier
 
 ## Roadmap
 
