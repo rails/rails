@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionMailer #:nodoc:
   # Provides `rescue_from` for mailers. Wraps mailer action processing,
   # mail job processing, and mail delivery.

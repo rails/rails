@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "mailers/base_mailer"
