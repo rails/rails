@@ -5,13 +5,13 @@ module ActiveSupport
   module Messages #:nodoc:
     class Metadata #:nodoc:
       def initialize(expires_at, purpose)
-        @expires_at, @purpose = expires_at, purpose
+        @expires_at, @purpose = expires_at, purpose.to_s
       end
 
       class << self
         def wrap(message, expires_at: nil, expires_in: nil, purpose: nil)
           if expires_at || expires_in || purpose
-            { "value" => message, "_rails" => { "exp" => pick_expiry(expires_at, expires_in), "pur" => purpose.to_s } }
+            { "value" => message, "_rails" => { "exp" => pick_expiry(expires_at, expires_in), "pur" => purpose } }
           else
             message
           end
@@ -22,7 +22,7 @@ module ActiveSupport
 
           if metadata.nil?
             message if purpose.nil?
-          elsif metadata.match?(purpose.to_s) && metadata.fresh?
+          elsif metadata.match?(purpose) && metadata.fresh?
             message["value"]
           end
         end
@@ -44,7 +44,7 @@ module ActiveSupport
       end
 
       def match?(purpose)
-        @purpose == purpose
+        @purpose == purpose.to_s
       end
 
       def fresh?
