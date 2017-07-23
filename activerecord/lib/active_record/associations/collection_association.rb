@@ -59,7 +59,9 @@ module ActiveRecord
           r.send(reflection.association_primary_key)
         end.values_at(*ids).compact
         if records.size != ids.size
-          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
+          found_ids = records.map { |record| record.send(reflection.association_primary_key) }
+          not_found_ids = ids - found_ids
+          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key, not_found_ids)
         else
           replace(records)
         end
