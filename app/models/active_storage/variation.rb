@@ -2,17 +2,15 @@ require "active_support/core_ext/object/inclusion"
 
 # A set of transformations that can be applied to a blob to create a variant.
 class ActiveStorage::Variation
-  class_attribute :verifier
-
   attr_reader :transformations
 
   class << self
     def decode(key)
-      new verifier.verify(key)
+      new ActiveStorage.verifier.verify(key)
     end
 
     def encode(transformations)
-      verifier.generate(transformations)
+      ActiveStorage.verifier.generate(transformations)
     end
   end
 

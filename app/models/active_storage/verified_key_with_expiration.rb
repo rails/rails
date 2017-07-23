@@ -1,13 +1,11 @@
 class ActiveStorage::VerifiedKeyWithExpiration
-  class_attribute :verifier
-
   class << self
     def encode(key, expires_in: nil)
-      verifier.generate([ key, expires_at(expires_in) ])
+      ActiveStorage.verifier.generate([ key, expires_at(expires_in) ])
     end
 
     def decode(encoded_key)
-      key, expires_at = verifier.verified(encoded_key)
+      key, expires_at = ActiveStorage.verifier.verified(encoded_key)
 
       key if key && fresh?(expires_at)
     end

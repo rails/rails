@@ -33,6 +33,7 @@ ActiveStorage::VerifiedKeyWithExpiration.verifier = ActiveSupport::MessageVerifi
 
 require "active_storage/variation"
 ActiveStorage::Variation.verifier = ActiveSupport::MessageVerifier.new("Testing")
+ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
   private

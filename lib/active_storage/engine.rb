@@ -22,14 +22,9 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.verifiers" do
-      require "active_storage/verified_key_with_expiration"
-      require "active_storage/variation"
-
+    initializer "active_storage.verifier" do
       config.after_initialize do |app|
-        ActiveStorage::VerifiedKeyWithExpiration.verifier = \
-        ActiveStorage::Variation.verifier = \
-          Rails.application.message_verifier("ActiveStorage")
+        ActiveStorage.verifier = Rails.application.message_verifier("ActiveStorage")
       end
     end
 

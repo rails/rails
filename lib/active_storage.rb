@@ -6,4 +6,6 @@ module ActiveStorage
 
   autoload :Blob
   autoload :Service
+
+  mattr_accessor :verifier
 end
