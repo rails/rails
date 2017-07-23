@@ -14,15 +14,14 @@ class ActiveStorageCreateTables < ActiveRecord::Migration[5.1] # :nodoc:
 
     create_table :active_storage_attachments do |t|
       t.string  :name
-      t.string  :record_gid
+      t.string  :record_type
+      t.integer :record_id
       t.integer :blob_id
 
       t.datetime :created_at
 
-      t.index :record_gid
       t.index :blob_id
-      t.index [ :record_gid, :name ]
-      t.index [ :record_gid, :blob_id ], unique: true
+      t.index [ :record_type, :record_id, :name, :blob_id ], name: "index_active_storage_attachments_uniqueness", unique: true
     end
   end
 end

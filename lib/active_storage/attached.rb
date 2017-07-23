@@ -4,8 +4,6 @@ require "active_storage/attachment"
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"
 
-require "global_id/locator"
-
 class ActiveStorage::Attached
   attr_reader :name, :record
 

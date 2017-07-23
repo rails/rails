@@ -68,6 +68,17 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
   end
 
+  test "find attached blobs" do
+    @user.highlights.attach(
+      { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" })
+
+    highlights = User.where(id: @user.id).with_attached_highlights.first.highlights
+
+    assert_equal "town.jpg", highlights.first.filename.to_s
+    assert_equal "country.jpg", highlights.second.filename.to_s
+  end
+
   test "purge attached blobs" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
     highlight_keys = @user.highlights.collect(&:key)
