@@ -91,6 +91,7 @@ Style/FrozenStringLiteralComment:
     - 'activemodel/**/*'
     - 'activejob/**/*'
     - 'activerecord/**/*'
+    - 'actionmailer/**/*'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:

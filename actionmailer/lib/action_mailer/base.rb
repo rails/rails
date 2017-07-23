@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "mail"
 require_relative "collector"
 require "active_support/core_ext/string/inflections"
