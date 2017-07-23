@@ -74,7 +74,7 @@ class ActiveStorage::Service
     raise NotImplementedError
   end
 
-  def url(key, expires_in:, disposition:, filename:)
+  def url(key, expires_in:, disposition:, filename:, content_type:)
     raise NotImplementedError
   end
 

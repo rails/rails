@@ -46,8 +46,8 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
 
   test "URL generation in primary service" do
     freeze_time do
-      assert_equal SERVICE.primary.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: "test.txt"),
-        @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: "test.txt")
+      assert_equal SERVICE.primary.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: "test.txt", content_type: "text/plain"),
+        @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: "test.txt", content_type: "text/plain")
     end
   end
 

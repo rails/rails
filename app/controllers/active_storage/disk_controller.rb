@@ -11,8 +11,8 @@
 class ActiveStorage::DiskController < ActionController::Base
   def show
     if key = decode_verified_key
-      # FIXME: Find a way to set the correct content type
-      send_data disk_service.download(key), filename: params[:filename], disposition: disposition_param
+      # FIXME: Do we need to sign or otherwise validate the content type?
+      send_data disk_service.download(key), filename: params[:filename], disposition: disposition_param, content_type: params[:content_type]
     else
       head :not_found
     end

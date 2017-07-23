@@ -57,7 +57,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
 
   def url(expires_in: 5.minutes, disposition: :inline)
-    service.url key, expires_in: expires_in, disposition: disposition, filename: filename
+    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
   def url_for_direct_upload(expires_in: 5.minutes)

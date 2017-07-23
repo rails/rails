@@ -42,10 +42,12 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
     end
   end
 
-  def url(key, expires_in:, disposition:, filename:)
+  def url(key, expires_in:, disposition:, filename:, content_type:)
     instrument :url, key do |payload|
-      query = { "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"" }
-      generated_url = file_for(key).signed_url(expires: expires_in, query: query)
+      generated_url = file_for(key).signed_url expires: expires_in, query: { 
+        "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"",
+        "response-content-type" => content_type
+      }
 
       payload[:url] = generated_url
 
