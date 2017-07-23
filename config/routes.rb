@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  get  "/rails/active_storage/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
+
+  direct :rails_blob do |blob|
+    route_for(:rails_service_blob, blob.signed_id, blob.filename)
+  end
+
+  resolve("ActiveStorage::Blob")       { |blob| route_for(:rails_blob, blob) }
+  resolve("ActiveStorage::Attachment") { |attachment| route_for(:rails_blob, attachment.blob) }
 
 
   get  "/rails/active_storage/variants/:signed_blob_id/:variation_key/*filename" => "active_storage/variants#show", as: :rails_blob_variation
