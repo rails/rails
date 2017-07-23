@@ -12,7 +12,7 @@ Furthermore, this repository is likely to be in heavy flux prior to the merge to
 
 ## Compared to other storage solutions
 
-A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/activestorage/blob/master/lib/active_storage/blob.rb) and [Attachment](https://github.com/rails/activestorage/blob/master/lib/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses GlobalID to provide polymorphic associations via the join model of `Attachment`, which then connects to the actual `Blob`.
+A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/activestorage/blob/master/lib/active_storage/blob.rb) and [Attachment](https://github.com/rails/activestorage/blob/master/lib/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the join model of `Attachment`, which then connects to the actual `Blob`.
 
 These `Blob` models are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing (though of course you can delete that later if you don't need it).
 
