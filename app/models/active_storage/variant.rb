@@ -1,5 +1,4 @@
 require "active_storage/blob"
-require "mini_magick"
 
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 class ActiveStorage::Variant
@@ -30,6 +29,7 @@ class ActiveStorage::Variant
     end
 
     def transform(io)
+      require "mini_magick"
       File.open MiniMagick::Image.read(io).tap { |image| variation.transform(image) }.path
     end
 end
