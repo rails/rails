@@ -21,9 +21,7 @@ class ActiveStorageCreateTables < ActiveRecord::Migration[5.1] # :nodoc:
       t.datetime :created_at
 
       t.index :blob_id
-      t.index [ :record_type, :record_id ]
-      t.index [ :record_type, :record_id, :name ], name: "index_active_storage_attachments_record_and_name"
-      t.index [ :record_type, :record_id, :blob_id ], name: "index_active_storage_attachments_uniqueness", unique: true
+      t.index [ :record_type, :record_id, :name, :blob_id ], name: "index_active_storage_attachments_uniqueness", unique: true
     end
   end
 end
