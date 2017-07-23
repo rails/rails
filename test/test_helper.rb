@@ -62,3 +62,7 @@ end
 
 require "active_storage/attached"
 ActiveRecord::Base.send :extend, ActiveStorage::Attached::Macros
+
+require "global_id"
+GlobalID.app = "ActiveStorageExampleApp"
+ActiveRecord::Base.send :include, GlobalID::Identification
