@@ -212,28 +212,33 @@ module ActiveRecord
       end
 
       def attribute_was(*)
-        emit_warning_if_needed("attribute_was", "attribute_before_last_save")
-        super
+        with_warning("attribute_was", "attribute_before_last_save") do
+          super
+        end
       end
 
       def attribute_change(*)
-        emit_warning_if_needed("attribute_change", "saved_change_to_attribute")
-        super
+        with_warning("attribute_change", "saved_change_to_attribute") do
+          super
+        end
       end
 
       def attribute_changed?(*)
-        emit_warning_if_needed("attribute_changed?", "saved_change_to_attribute?")
-        super
+        with_warning("attribute_changed?", "saved_change_to_attribute?") do
+          super
+        end
       end
 
       def changed?(*)
-        emit_warning_if_needed("changed?", "saved_changes?")
-        super
+        with_warning("changed?", "saved_changes?") do
+          super
+        end
       end
 
       def changed(*)
-        emit_warning_if_needed("changed", "saved_changes.keys")
-        super
+        with_warning("changed", "saved_changes.keys") do
+          super
+        end
       end
 
       private
@@ -245,8 +250,15 @@ module ActiveRecord
           @mutation_tracker ||= AttributeMutationTracker.new(@attributes)
         end
 
+        def with_warning(method_name, new_method_name)
+          emit_warning_if_needed(method_name, new_method_name)
+          yield
+          @warning_already_emitted = false
+        end
+
         def emit_warning_if_needed(method_name, new_method_name)
-          unless mutation_tracker.equal?(mutations_from_database)
+          unless mutation_tracker.equal?(mutations_from_database) || @warning_already_emitted
+            @warning_already_emitted = true
             ActiveSupport::Deprecation.warn(<<-EOW.squish)
               The behavior of `#{method_name}` inside of after callbacks will
               be changing in the next version of Rails. The new return value will reflect the
