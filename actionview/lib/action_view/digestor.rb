@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require_relative "dependency_tracker"
 require "monitor"

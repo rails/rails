@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"

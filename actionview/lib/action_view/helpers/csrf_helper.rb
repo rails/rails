@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   # = Action View CSRF Helper
   module Helpers
