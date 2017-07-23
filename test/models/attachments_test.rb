@@ -21,7 +21,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   end
 
   test "attach existing sgid blob" do
-    @user.avatar.attach create_blob(filename: "funky.jpg").to_sgid.to_s
+    @user.avatar.attach create_blob(filename: "funky.jpg").signed_id
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 

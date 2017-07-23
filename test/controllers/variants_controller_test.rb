@@ -14,7 +14,7 @@ class ActiveStorage::VariantsControllerTest < ActionController::TestCase
   test "showing variant inline" do
     get :show, params: {
       filename: @blob.filename,
-      encoded_blob_key: ActiveStorage::VerifiedKeyWithExpiration.encode(@blob.key, expires_in: 5.minutes),
+      signed_blob_id: @blob.signed_id,
       variation_key: ActiveStorage::Variation.encode(resize: "100x100") }
 
     assert_redirected_to /racecar.jpg\?disposition=inline/

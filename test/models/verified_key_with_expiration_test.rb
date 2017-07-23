@@ -1,5 +1,6 @@
 require "test_helper"
 require "active_support/core_ext/securerandom"
+require "active_storage/verified_key_with_expiration"
 
 class ActiveStorage::VerifiedKeyWithExpirationTest < ActiveSupport::TestCase
   FIXTURE_KEY = SecureRandom.base58(24)

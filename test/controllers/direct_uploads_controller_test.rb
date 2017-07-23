@@ -24,8 +24,8 @@ if SERVICE_CONFIGURATIONS[:s3]
 
       details = JSON.parse(@response.body)
 
-      assert_match /#{SERVICE_CONFIGURATIONS[:s3][:bucket]}\.s3.(\S+)?amazonaws\.com/, details["url"]
-      assert_equal "hello.txt", GlobalID::Locator.locate_signed(details["sgid"]).filename.to_s
+      assert_match /#{SERVICE_CONFIGURATIONS[:s3][:bucket]}\.s3.(\S+)?amazonaws\.com/, details["upload_to_url"]
+      assert_equal "hello.txt", ActiveStorage::Blob.find_signed(details["signed_blob_id"]).filename.to_s
     end
   end
 else
@@ -54,8 +54,8 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       details = JSON.parse(@response.body)
 
-      assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["url"]
-      assert_equal "hello.txt", GlobalID::Locator.locate_signed(details["sgid"]).filename.to_s
+      assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["upload_to_url"]
+      assert_equal "hello.txt", ActiveStorage::Blob.find_signed(details["signed_blob_id"]).filename.to_s
     end
   end
 else

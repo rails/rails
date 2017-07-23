@@ -2,6 +2,7 @@ require "fileutils"
 require "pathname"
 require "digest/md5"
 require "active_support/core_ext/numeric/bytes"
+require "active_storage/verified_key_with_expiration"
 
 class ActiveStorage::Service::DiskService < ActiveStorage::Service
   attr_reader :root

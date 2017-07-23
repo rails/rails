@@ -2,6 +2,7 @@ require "active_storage/service"
 require "active_storage/filename"
 require "active_storage/purge_job"
 require "active_storage/variant"
+require "active_storage/variation"
 
 # Schema: id, key, filename, content_type, metadata, byte_size, checksum, created_at
 class ActiveStorage::Blob < ActiveRecord::Base
@@ -13,6 +14,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
   class_attribute :service
 
   class << self
+    def find_signed(id)
+      find ActiveStorage.verifier.verify(id)
+    end
+
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
       new.tap do |blob|
         blob.filename     = filename
@@ -32,6 +37,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
+
+  def signed_id
+    ActiveStorage.verifier.generate(id)
+  end
 
   def key
     # We can't wait until the record is first saved to have a key for it

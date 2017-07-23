@@ -26,7 +26,7 @@ class ActiveStorage::Attached
       when Hash
         ActiveStorage::Blob.create_after_upload!(attachable)
       when String
-        GlobalID::Locator.locate_signed(attachable)
+        ActiveStorage::Blob.find_signed(attachable)
       else
         nil
       end
