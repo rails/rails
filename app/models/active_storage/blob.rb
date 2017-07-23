@@ -15,7 +15,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   class << self
     def find_signed(id)
-      find ActiveStorage.verifier.verify(id)
+      find ActiveStorage.verifier.verify(id, purpose: :blob_id)
     end
 
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
@@ -39,7 +39,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
 
   def signed_id
-    ActiveStorage.verifier.generate(id)
+    ActiveStorage.verifier.generate(id, purpose: :blob_id)
   end
 
   def key

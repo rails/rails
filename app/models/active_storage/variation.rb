@@ -6,11 +6,11 @@ class ActiveStorage::Variation
 
   class << self
     def decode(key)
-      new ActiveStorage.verifier.verify(key)
+      new ActiveStorage.verifier.verify(key, purpose: :variation)
     end
 
     def encode(transformations)
-      ActiveStorage.verifier.generate(transformations)
+      ActiveStorage.verifier.generate(transformations, purpose: :variation)
     end
   end
 
