@@ -11,17 +11,18 @@
 class ActiveStorage::DiskController < ActionController::Base
   def show
     if key = decode_verified_key
-      blob = ActiveStorage::Blob.find_by!(key: key)
-
-      if stale?(etag: blob.checksum)
-        send_data blob.download, filename: blob.filename, type: blob.content_type, disposition: disposition_param
-      end
+      # FIXME: Find a way to set the correct content type
+      send_data disk_service.download(key), filename: params[:filename], disposition: disposition_param
     else
       head :not_found
     end
   end
 
   private
+    def disk_service
+      ActiveStorage::Blob.service
+    end
+
     def decode_verified_key
       ActiveStorage::VerifiedKeyWithExpiration.decode(params[:encoded_key])
     end
