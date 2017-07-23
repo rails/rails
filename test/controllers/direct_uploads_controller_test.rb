@@ -22,7 +22,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       post :create, params: { blob: {
           filename: "hello.txt", byte_size: 6, checksum: Digest::MD5.base64digest("Hello"), content_type: "text/plain" } }
 
-      @response.parsed_body.tap do |details|
+      JSON.parse(@response.body).tap do |details|
         assert_match(/#{SERVICE_CONFIGURATIONS[:s3][:bucket]}\.s3.(\S+)?amazonaws\.com/, details["upload_to_url"])
         assert_equal "hello.txt", ActiveStorage::Blob.find_signed(details["signed_blob_id"]).filename.to_s
       end
@@ -52,7 +52,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       post :create, params: { blob: {
           filename: "hello.txt", byte_size: 6, checksum: Digest::MD5.base64digest("Hello"), content_type: "text/plain" } }
 
-      @response.parsed_body.tap do |details|
+      JSON.parse(@response.body).tap do |details|
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["upload_to_url"]
         assert_equal "hello.txt", ActiveStorage::Blob.find_signed(details["signed_blob_id"]).filename.to_s
       end
