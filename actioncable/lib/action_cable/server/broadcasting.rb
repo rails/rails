@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Server
     # Broadcasting is how other parts of your application can send messages to a channel's subscribers. As explained in Channel, most of the time, these
