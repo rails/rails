@@ -13,9 +13,9 @@ class ActiveStorage::Attached::Many < ActiveStorage::Attached
   # Associates one or several attachments with the current record, saving
   # them to the database.
   def attach(*attachables)
-    record.public_send("#{name}_attachments=", attachments | Array(attachables).flat_map do |attachable|
-      ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
-    end)
+    attachables.flatten.collect do |attachable|
+      attachments.create!(name: name, blob: create_blob_from(attachable))
+    end
   end
 
   # Checks the presence of attachments.
