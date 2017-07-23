@@ -7,15 +7,15 @@ class ActiveStorage::Attached::Many < ActiveStorage::Attached
   # You don't have to call this method to access the attachments' methods as
   # they are all available at the model level.
   def attachments
-    @attachments ||= record.public_send("#{name}_attachments")
+    record.public_send("#{name}_attachments")
   end
 
   # Associates one or several attachments with the current record, saving
   # them to the database.
   def attach(*attachables)
-    @attachments = attachments | Array(attachables).flatten.collect do |attachable|
+    record.public_send("#{name}_attachments=", attachments | Array(attachables).flat_map do |attachable|
       ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
-    end
+    end)
   end
 
   # Checks the presence of attachments.
@@ -34,7 +34,7 @@ class ActiveStorage::Attached::Many < ActiveStorage::Attached
   def purge
     if attached?
       attachments.each(&:purge)
-      @attachments = nil
+      attachments.reload
     end
   end
 
@@ -42,7 +42,6 @@ class ActiveStorage::Attached::Many < ActiveStorage::Attached
   def purge_later
     if attached?
       attachments.each(&:purge_later)
-      @attachments = nil
     end
   end
 end

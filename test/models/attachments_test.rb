@@ -70,9 +70,9 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
   test "find attached blobs" do
     @user.highlights.attach(
-      { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" }, 
+      { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
       { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" })
-      
+
     User.where(id: @user.id).includes(highlights_attachments: :blob).first
   end
 
