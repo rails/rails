@@ -569,6 +569,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
   end
 
+  def test_request_content_type
+    with_test_route_set do
+      get "/get"
+      assert_not_includes request.env, "CONTENT_TYPE"
+
+      get "/get", as: :json
+      assert_not_nil request.env["CONTENT_TYPE"]
+    end
+  end
+
   private
     def with_default_headers(headers)
       original = ActionDispatch::Response.default_headers
