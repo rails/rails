@@ -73,7 +73,10 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
       { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" })
 
-    User.where(id: @user.id).includes(highlights_attachments: :blob).first
+    highlights = User.where(id: @user.id).with_attached_highlights.first.highlights
+
+    assert_equal "town.jpg", highlights.first.filename.to_s
+    assert_equal "country.jpg", highlights.second.filename.to_s
   end
 
   test "purge attached blobs" do

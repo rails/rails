@@ -33,6 +33,10 @@ module ActiveStorage::Attached::Macros
   # There are no columns defined on the model side, Active Storage takes
   # care of the mapping between your records and the attachments.
   #
+  # To avoid N+1 queries, you can include the attached blobs in your query like so:
+  #
+  #   Gallery.where(user: Current.user).with_attached_photos
+  #
   # If the +:dependent+ option isn't set, all the attachments will be purged
   # (i.e. destroyed) whenever the record is destroyed.
   def has_many_attached(name, dependent: :purge_later)
@@ -43,6 +47,8 @@ module ActiveStorage::Attached::Macros
 
     has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment"
     has_many :"#{name}_blobs", through: :"#{name}_attachments"
+
+    scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
     if dependent == :purge_later
       before_destroy { public_send(name).purge_later }
