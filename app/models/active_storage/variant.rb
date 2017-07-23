@@ -10,7 +10,7 @@ class ActiveStorage::Variant
   end
 
   def processed
-    process unless service.exist?(key)
+    process unless processed?
     self
   end
 
@@ -24,6 +24,10 @@ class ActiveStorage::Variant
 
 
   private
+    def processed?
+      service.exist?(key)
+    end
+
     def process
       service.upload key, transform(service.download(blob.key))
     end
