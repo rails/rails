@@ -53,7 +53,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
   def url(key, expires_in:, disposition:, filename:)
     instrument :url, key do |payload|
-      verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in)
+      verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
       generated_url =
         if defined?(Rails) && defined?(Rails.application)
