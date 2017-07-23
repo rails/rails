@@ -4,6 +4,12 @@ Active Storage makes it simple to upload and reference files in cloud services, 
 and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the
 focus is on cloud storage.
 
+## Compatibility & Expectations
+
+Active Storage only works with the development version of Rails 5.2+ (as of July 19, 2017). This separate repository is a staging ground for the upcoming inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository.
+
+Furthermore, this repository is likely to be in heavy flux prior to the merge to rails/rails. You're heartedly encouraged to follow along and even use Active Storage in this phase, but don't be surprised if the API suffers frequent breaking changes prior to the merge.
+
 ## Compared to other storage solutions
 
 A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/activestorage/blob/master/lib/active_storage/blob.rb) and [Attachment](https://github.com/rails/activestorage/blob/master/lib/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses GlobalID to provide polymorphic associations via the join model of `Attachment`, which then connects to the actual `Blob`.
@@ -82,15 +88,9 @@ Variation of image attachment:
 ## Todos
 
 - Document all the classes
-- Strip Download of its responsibilities and delete class
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
 - Add Migrator to copy/move between services
-- [Explore direct uploads to cloud](https://github.com/rails/activestorage/pull/19)
-
-## Roadmap
-
-This separate repository is a staging ground for eventual inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository. Compatibility with prior versions of Rails is not a development priority either. 
 
 ## License
 
