@@ -259,6 +259,13 @@ module ApplicationTests
         end
       end
 
+      test "db:schema:load fails if schema.rb doesn't exist yet" do
+        Dir.chdir(app_path) do
+          stderr_output = capture(:stderr) { `bin/rails db:schema:load` }
+          assert_match /Run `rails db:migrate` to create it/, stderr_output
+        end
+      end
+
       def db_test_load_structure
         Dir.chdir(app_path) do
           `bin/rails generate model book title:string;
