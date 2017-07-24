@@ -1,18 +1,12 @@
-# This controller is a wrapper around local file downloading. It allows you to
-# make abstraction of the URL generation logic and to serve files with expiry
-# if you are using the +Disk+ service.
-#
-# By default, mounting the Active Storage engine inside your application will
-# define a +/rails/blobs/:encoded_key/*filename+ route that will reference this
-# controller's +show+ action and will be used to serve local files.
-#
-# A URL for an attachment can be generated through its +#url+ method, that
-# will use the aforementioned route.
+# Serves files stored with the disk service in the same way that the cloud services do.
+# This means using expiring, signed URLs that are meant for immediate access, not permanent linking.
+# Always go through the BlobsController, or your own authenticated controller, rather than directly
+# to the service url.
 class ActiveStorage::DiskController < ActionController::Base
   def show
     if key = decode_verified_key
-      # FIXME: Do we need to sign or otherwise validate the content type?
-      send_data disk_service.download(key), filename: params[:filename], disposition: disposition_param, content_type: params[:content_type]
+      send_data disk_service.download(key),
+        filename: params[:filename], disposition: disposition_param, content_type: params[:content_type]
     else
       head :not_found
     end
