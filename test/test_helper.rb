@@ -23,6 +23,7 @@ rescue Errno::ENOENT
   {}
 end
 
+require "active_storage/blob"
 require "active_storage/service/disk_service"
 require "tmpdir"
 ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
