@@ -673,10 +673,10 @@ module ActionController
       self
     end
 
-    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
-    # to key. If the key is not found, returns the default value. If the
-    # optional code block is given and the key is not found, pass in the key
-    # and return the result of block.
+    # Deletes a key-value pair from +Parameters+ and returns the value. If
+    # +key+ is not found, returns +nil+ (or, with optional code block, yields
+    # +key+ and returns the result). Cf. +#extract!+, which returns the
+    # corresponding +ActionController::Parameters+ object.
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
     end
