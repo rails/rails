@@ -61,7 +61,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   def url_for_direct_upload(expires_in: 5.minutes)
-    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
 

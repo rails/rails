@@ -78,7 +78,7 @@ class ActiveStorage::Service
     raise NotImplementedError
   end
 
-  def url_for_direct_upload(key, expires_in:, content_type:, content_length:)
+  def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
     raise NotImplementedError
   end
 

@@ -9,14 +9,15 @@ if SERVICE_CONFIGURATIONS[:s3]
 
     test "direct upload" do
       begin
-        key  = SecureRandom.base58(24)
-        data = "Something else entirely!"
-        url  = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size)
+        key      = SecureRandom.base58(24)
+        data     = "Something else entirely!"
+        checksum = Digest::MD5.base64digest(data)
+        url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
         HTTParty.put(
           url,
           body: data,
-          headers: { "Content-Type" => "text/plain" },
+          headers: { "Content-Type" => "text/plain", "Content-MD5" => checksum },
           debug_output: STDOUT
         )
 
