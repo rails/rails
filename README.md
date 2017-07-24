@@ -104,7 +104,6 @@ Furthermore, this repository is likely to be in heavy flux prior to the merge to
 
 ## Todos
 
-- Document all the classes
 - Convert MirrorService to use threading
 - Read metadata via Marcel?
 - Add Migrator to copy/move between services
