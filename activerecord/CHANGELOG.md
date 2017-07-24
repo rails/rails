@@ -1,3 +1,7 @@
+*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
+
+    *Ryuta Kamizono*
+
 *   Fix `unscoped(where: [columns])` removing the wrong bind values
 
     When the `where` is called on a relation after a `or`, unscoping the column of that later `where`, it removed
