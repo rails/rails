@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../http/request"
 require "active_support/core_ext/uri"
 require "active_support/core_ext/array/extract_options"

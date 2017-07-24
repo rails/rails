@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "abstract_store"
 begin
   require "rack/session/dalli"

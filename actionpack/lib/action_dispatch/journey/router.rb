@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "router/utils"
 require_relative "routes"
 require_relative "formatter"
