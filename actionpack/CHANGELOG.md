@@ -1,3 +1,7 @@
+*   Add a method to determine if query parameters are parsable
+
+    *Christina Thompson*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,

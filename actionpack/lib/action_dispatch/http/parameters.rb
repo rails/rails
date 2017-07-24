@@ -84,6 +84,17 @@ module ActionDispatch
         get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
       end
 
+      # Returns true if parameters are parse-able. Otherwise returns false.
+      #
+      #   GET /posts/5?x=1&y=2            | request.params_readable? => true
+      #   GET /posts/5?x[y]=1&x[y][][w]=2 | request.params_readable? => false
+      #
+      def params_readable?
+        parameters
+      rescue ActionController::BadRequest
+        false
+      end
+
       private
 
         def set_binary_encoding(params, controller, action)

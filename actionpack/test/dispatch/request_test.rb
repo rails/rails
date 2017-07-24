@@ -882,6 +882,16 @@ class RequestFormat < BaseRequestTest
     assert request.format.html?
   end
 
+  test "params_readable? returns true when parameters are valid" do
+    request = stub_request("QUERY_STRING" => "x=1&y=2")
+    assert_predicate request, :params_readable?
+  end
+
+  test "params_readable? returns false when malformed parameters" do
+    request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
+    assert_not_predicate request, :params_readable?
+  end
+
   test "formats with xhr request" do
     request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
     assert_called(request, :parameters, times: 1, returns: {}) do
