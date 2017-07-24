@@ -560,7 +560,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   def test_double_conversion_with_nil_key
     h = { nil => "defined" }.with_indifferent_access.with_indifferent_access
 
-    assert_equal nil, h[:undefined_key]
+    assert_nil h[:undefined_key]
   end
 
   def test_assorted_keys_not_stringified
