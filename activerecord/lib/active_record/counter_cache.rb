@@ -56,15 +56,38 @@ module ActiveRecord
         return true
       end
 
+      # Convenience method for #update_counters_for_key that identifies the record
+      # by primary_id of the model.
+      #
+      # ==== Parameters
+      # * +id+ - The id of the object you wish to update a counter on or an array of ids.
+      # * +counters+ - A Hash containing the names of the fields
+      #   to update as keys and the amount to update the field by as values.
+      #
+      # ==== Examples
+      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
+      #   Post.update_counters [10, 15], comment_count: 1
+      #   # Executes the following SQL:
+      #   # UPDATE posts
+      #   #    SET comment_count = COALESCE(comment_count, 0) + 1
+      #   #  WHERE id IN (10, 15)
+      #
+      #
+      def update_counters(id, counters)
+        update_counters_for_key(primary_key, id, counters)
+      end
+
       # A generic "counter updater" implementation, intended primarily to be
-      # used by #increment_counter and #decrement_counter, but which may also
+      # used by #increment_counter_for_key and #decrement_counter_for_key, but which may also
       # be useful on its own. It simply does a direct SQL update for the record
-      # with the given ID, altering the given hash of counters by the amount
-      # given by the corresponding value:
+      # with the given value in given column, altering the given hash of counters by the amount
+      # given by the corresponding value. This method allows to update counter cache in record
+      # identified by any key (id, slug, uuid etc).
       #
       # ==== Parameters
       #
-      # * +id+ - The id of the object you wish to update a counter on or an array of ids.
+      # * +key_name+ - Column name of the key you want to identify the object by
+      # * +key_value+ - The value of the key object you wish to update a counter on or an array of values
       # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       # * <tt>:touch</tt> option - Touch timestamp columns when updating.
@@ -73,31 +96,26 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # For the Post with id of 5, decrement the comment_count by 1, and
+      #   # For the Post with slug of 5-recent-news, decrement the comment_count by 1, and
       #   # increment the action_count by 1
-      #   Post.update_counters 5, comment_count: -1, action_count: 1
+      #   Post.update_counters_for_key "slug", "5-recent-news", comment_count: -1, action_count: 1
+      #
       #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) - 1,
       #   #        action_count = COALESCE(action_count, 0) + 1
-      #   #  WHERE id = 5
-      #
-      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
-      #   Post.update_counters [10, 15], comment_count: 1
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comment_count = COALESCE(comment_count, 0) + 1
-      #   #  WHERE id IN (10, 15)
+      #   #  WHERE slug = "5-recent-news"
       #
       #   # For the Posts with id of 10 and 15, increment the comment_count by 1
       #   # and update the updated_at value for each counter.
       #   Post.update_counters [10, 15], comment_count: 1, touch: true
       #   # Executes the following SQL:
       #   # UPDATE posts
-      #   #    SET comment_count = COALESCE(comment_count, 0) + 1,
+      #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
-      def update_counters(id, counters)
+
+      def update_counters_for_key(key_name, key_value, counters)
         touch = counters.delete(:touch)
 
         updates = counters.map do |counter_name, value|
@@ -111,7 +129,7 @@ module ActiveRecord
           updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
         end
 
-        unscoped.where(primary_key => id).update_all updates.join(", ")
+        unscoped.where(key_name => key_value).update_all updates.join(", ")
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -141,6 +159,28 @@ module ActiveRecord
         update_counters(id, counter_name => 1, touch: touch)
       end
 
+      # Increment a numeric field by one, via a direct SQL update for record that
+      # is identified by given column name.
+      #
+      # This method is used primarily for maintaining counter_cache columns that are
+      # used to store aggregate values. For example, a +DiscussionBoard+ may cache
+      # posts_count and comments_count to avoid running an SQL query to calculate the
+      # number of posts and comments there are, each time it is displayed.
+      #
+      # ==== Parameters
+      #
+      # * +counter_name+ - The name of the field that should be incremented.
+      # * +key_name+ - key_value name of the key you want to identify the object by
+      # * +key_value+ - The value of the key object you wish to increment a counter on or an array of values
+      #
+      # ==== Examples
+      #
+      #   # Increment the posts_count column for the record with slug = "15-my-posts"
+      #   DiscussionBoard.increment_counter(:posts_count, "slug", "15-my-posts")
+      def increment_counter_for_key(counter_name, key_name, key_value)
+        update_counters_for_key(key_name, key_value, counter_name => 1)
+      end
+
       # Decrement a numeric field by one, via a direct SQL update.
       #
       # This works the same as #increment_counter but reduces the column value by
@@ -166,6 +206,26 @@ module ActiveRecord
         update_counters(id, counter_name => -1, touch: touch)
       end
 
+      # Decrement a numeric field by one, via a direct SQL update for record that
+      # is identified by given column name.
+      #
+      # This works the same as #increment_counter_for_key but reduces the column value by
+      # 1 instead of increasing it.
+      #
+      # ==== Parameters
+      #
+      # * +counter_name+ - The name of the field that should be decremented.
+      # * +key_name+ - key_value name of the key you want to identify the object by
+      # * +key_value+ - The value of the key object you wish to decrement a counter on or an array of values
+      #
+      # ==== Examples
+      #
+      #   # Decrement the posts_count column for the record with an id of 5
+      #   DiscussionBoard.decrement_counter(:posts_count, 5)
+      def decrement_counter_for_key(counter_name, key_name, key_value)
+        update_counters_for_key(key_name, key_value, counter_name => -1)
+      end
+
       private
         def touch_updates(touch)
           touch = timestamp_attributes_for_update_in_model if touch == true
@@ -182,7 +242,6 @@ module ActiveRecord
         each_counter_cached_associations do |association|
           if send(association.reflection.name)
             association.increment_counters
-            @_after_create_counter_called = true
           end
         end
 

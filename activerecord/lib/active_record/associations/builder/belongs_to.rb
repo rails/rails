@@ -34,11 +34,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif (@_after_replace_counter_called ||= false)
-            @_after_replace_counter_called = false
-          elsif saved_change_to_attribute?(foreign_key) && !new_record?
+          association_changed = saved_change_to_attribute?(foreign_key) || (reflection.polymorphic? && saved_change_to_attribute?(reflection.foreign_type))
+
+          if association_changed && !new_record?
             if reflection.polymorphic?
               model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
@@ -49,13 +47,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
             foreign_key_was = attribute_before_last_save foreign_key
             foreign_key     = attribute_in_database foreign_key
+            primary_key     = reflection.options[:primary_key] || model.primary_key
 
             if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(cache_column, foreign_key)
+              model.increment_counter_for_key(cache_column, primary_key, foreign_key)
             end
 
             if foreign_key_was && model_was.respond_to?(:decrement_counter)
-              model_was.decrement_counter(cache_column, foreign_key_was)
+              model_was.decrement_counter_for_key(cache_column, primary_key, foreign_key_was)
             end
           end
         end

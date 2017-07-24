@@ -25,6 +25,10 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/dog_lover"
+require "models/dog"
+require "models/car"
+require "models/engine"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -428,15 +432,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_assigning_nil
-    post = Post.find(1)
-    comment = Comment.find(1)
+    car = Car.create!
+    engine1 = Engine.create!(car_id: car.id)
+    engine2 = Engine.create!(car_id: car.id)
 
-    assert_equal post.id, comment.post_id
-    assert_equal 2, Post.find(post.id).comments.size
+    assert_equal car.id, engine1.car_id
+    assert_equal car.id, engine2.car_id
+    assert_equal 2, Car.find(car.id).engines.size
 
-    comment.post = nil
+    engine1.my_car = nil
+    engine1.save!
 
-    assert_equal 1, Post.find(post.id).comments.size
+    assert_equal 1, Car.find(car.id).engines.size
   end
 
   def test_belongs_to_with_primary_key_counter
@@ -447,12 +454,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
 
-    reply.topic_with_primary_key = debate2
+    reply.update_attribute(:topic_with_primary_key, debate2)
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 1, debate2.reload.replies_count
 
-    reply.topic_with_primary_key = nil
+    reply.update_attribute(:topic_with_primary_key, nil)
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
@@ -480,11 +487,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     reply1.topic = nil
 
+    assert reply1.save
     assert_equal 0, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
 
     reply1.topic = topic1
 
+    assert reply1.save
     assert_equal 1, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
 
@@ -693,6 +702,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     reply = Reply.create(title: "re: zoom", content: "speedy quick!")
     reply.topic = topic
+    reply.save
 
     assert_equal 1, topic.reload[:replies_count]
     assert_equal 1, topic.replies.size
@@ -719,6 +729,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     reply.destroy
     assert_equal 4, topic.reload[:replies_count]
     assert_equal 4, topic.replies.size
+  end
+
+  def test_counter_cache_is_not_incremented_if_the_association_is_not_saved_to_db
+    car = Car.create!
+    engine = Engine.create!
+
+    engine.my_car = car
+
+    assert_equal 0, Car.find(car.id).engines_count
+    assert_equal nil, Engine.find(engine.id).car_id
+
+    engine.save!
+
+    assert_equal 1, Car.find(car.id).engines_count
+    assert_equal car.id, Engine.find(engine.id).car_id
   end
 
   def test_concurrent_counter_cache_double_destroy
@@ -748,12 +773,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     silly = SillyReply.create(title: "gaga", content: "boo-boo")
     silly.reply = reply
+  end
 
-    assert_equal 1, reply.reload[:replies_count]
-    assert_equal 1, reply.replies.size
+  def test_counter_cache_with_custom_column_name
+    breeder = DogLover.create!
+    dog = Dog.create!
+    assert_equal 0, breeder[:bred_dogs_count]
 
-    reply[:replies_count] = 17
-    assert_equal 17, reply.replies.size
+    dog.breeder = breeder
+    dog.save!
+
+    assert_equal 1, breeder.reload[:bred_dogs_count]
+    assert_equal 1, breeder.bred_dogs.size
+
+    breeder[:bred_dogs_count] = 17
+    assert_equal 17, breeder.bred_dogs.size
   end
 
   def test_replace_counter_cache
@@ -1012,7 +1046,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_difference lambda { post.reload.tags_count }, -1 do
       assert_difference "comment.reload.tags_count", +1 do
-        tagging.taggable = comment
+        tagging.update_attribute(:taggable, comment)
       end
     end
   end

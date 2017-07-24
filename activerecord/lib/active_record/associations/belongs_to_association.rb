@@ -11,12 +11,10 @@ module ActiveRecord
       def replace(record)
         if record
           raise_on_type_mismatch!(record)
-          update_counters_on_replace(record)
           replace_keys(record)
           set_inverse_instance(record)
           @updated = true
         else
-          decrement_counters
           remove_keys
         end
 
