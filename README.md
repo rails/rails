@@ -4,11 +4,10 @@ Active Storage makes it simple to upload and reference files in cloud services, 
 and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the
 focus is on cloud storage.
 
-## Compatibility & Expectations
+Files can uploaded from the server to the cloud or directly from the client to the cloud.
 
-Active Storage only works with the development version of Rails 5.2+ (as of July 19, 2017). This separate repository is a staging ground for the upcoming inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository.
-
-Furthermore, this repository is likely to be in heavy flux prior to the merge to rails/rails. You're heartedly encouraged to follow along and even use Active Storage in this phase, but don't be surprised if the API suffers frequent breaking changes prior to the merge.
+Image files can further more be transformed using on-demand variants for quality, aspect ratio, size, or any other
+MiniMagick supported transformation.
 
 ## Compared to other storage solutions
 
@@ -26,15 +25,16 @@ class User < ApplicationRecord
 end
 
 user.avatar.attach io: File.open("~/face.jpg"), filename: "avatar.jpg", content_type: "image/jpg"
-user.avatar.exist? # => true
+user.avatar.attached? # => true
 
 user.avatar.purge
-user.avatar.exist? # => false
+user.avatar.attached? # => false
 
-user.avatar.service_url(expires_in: 5.minutes) # => /rails/blobs/<encoded-key>
+url_for(user.avatar) # Generate a permanent URL for the blob, which upon access will redirect to a temporary service URL.
 
 class AvatarsController < ApplicationController
   def update
+    # params[:avatar] contains a ActionDispatch::Http::UploadedFile object
     Current.user.avatar.attach(params.require(:avatar))
     redirect_to Current.user
   end
@@ -61,6 +61,11 @@ end
 
 ```ruby
 class MessagesController < ApplicationController
+  def index
+    # Use the built-in with_attached_images scope to avoid N+1
+    @messages = Message.all.with_attached_images
+  end
+
   def create
     message = Message.create! params.require(:message).permit(:title, :content)
     message.images.attach(params[:message][:images])
@@ -68,8 +73,7 @@ class MessagesController < ApplicationController
   end
 
   def show
-    # Use the built-in with_attached_images scope to avoid N+1
-    @message = Message.find(params[:id]).with_attached_images
+    @message = Message.find(params[:id])
   end
 end
 ```
@@ -88,7 +92,15 @@ Variation of image attachment:
 3. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
 4. Configure the storage service in `config/environments/*` with `config.active_storage.service = :local`
    that references the services configured in `config/storage_services.yml`.
-5. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
+5. Optional: Add `gem "aws-sdk", "~> 2"` to your Gemfile if you want to use AWS S3.
+6. Optional: Add `gem "google-cloud-storage", "~> 1.3"` to your Gemfile if you want to use Google Cloud Storage.
+7. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
+
+## Compatibility & Expectations
+
+Active Storage only works with the development version of Rails 5.2+ (as of July 19, 2017). This separate repository is a staging ground for the upcoming inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository.
+
+Furthermore, this repository is likely to be in heavy flux prior to the merge to rails/rails. You're heartedly encouraged to follow along and even use Active Storage in this phase, but don't be surprised if the API suffers frequent breaking changes prior to the merge.
 
 ## Todos
 
