@@ -64,8 +64,21 @@ class ActiveRecord::Relation
     end
 
     test "merge allows for columns with the same name from different tables" do
-      skip "This is not possible as of 4.2, and the binds do not yet contain sufficient information for this to happen"
-      # We might be able to change the implementation to remove conflicts by index, rather than column name
+      a = WhereClause.new(
+        [table("TestTable")["created_at"].between(bind_param..bind_param), table("TestTable")["id"].eq(bind_param), table("TestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-10"), bind_attribute("created_at", "2017-07-11"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+      )
+      b = WhereClause.new(
+        [table("TestTable")["created_at"].eq(bind_param), table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-09"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+      )
+
+      expected = WhereClause.new(
+        [table("TestTable")["created_at"].between(bind_param..bind_param), table("TestTable")["name"].eq(bind_param), table("TestTable")["created_at"].eq(bind_param), table("TestTable")["id"].eq(bind_param), table("AnotherTestTable")["name"].eq(bind_param)],
+        [bind_attribute("created_at", "2017-07-10"), bind_attribute("created_at", "2017-07-11"), bind_attribute("name", "TestAttribute"), bind_attribute("created_at", "2017-07-09"), bind_attribute("id", 1), bind_attribute("name", "TestAttribute")]
+      )
+
+      assert_equal expected, a.merge(b)
     end
 
     test "a clause knows if it is empty" do
@@ -185,8 +198,8 @@ class ActiveRecord::Relation
 
     private
 
-      def table
-        Arel::Table.new("table")
+      def table(name = "table")
+        Arel::Table.new(name)
       end
 
       def bind_param
