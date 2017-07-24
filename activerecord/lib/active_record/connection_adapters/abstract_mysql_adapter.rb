@@ -177,7 +177,8 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds)}"
+        sql, binds = to_sql(arel, binds)
+        sql     = "EXPLAIN #{sql}"
         start   = Time.now
         result  = exec_query(sql, "EXPLAIN", binds)
         elapsed = Time.now - start

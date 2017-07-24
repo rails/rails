@@ -24,6 +24,10 @@ module ActiveRecord
           return value.quoted_id
         end
 
+        if value.respond_to?(:value_for_database)
+          value = value.value_for_database
+        end
+
         _quote(value)
       end
 

@@ -76,31 +76,6 @@ module ActiveRecord
       CODE
     end
 
-    def bound_attributes
-      if limit_value
-        limit_bind = Attribute.with_cast_value(
-          "LIMIT".freeze,
-          connection.sanitize_limit(limit_value),
-          Type.default_value,
-        )
-      end
-      if offset_value
-        offset_bind = Attribute.with_cast_value(
-          "OFFSET".freeze,
-          offset_value.to_i,
-          Type.default_value,
-        )
-      end
-      connection.combine_bind_parameters(
-        from_clause: from_clause.binds,
-        join_clause: arel.bind_values,
-        where_clause: where_clause.binds,
-        having_clause: having_clause.binds,
-        limit: limit_bind,
-        offset: offset_bind,
-      )
-    end
-
     alias extensions extending_values
 
     # Specify relationships to be included in the result set. For
@@ -952,8 +927,22 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(Arel::Nodes::BindParam.new) if limit_value
-        arel.skip(Arel::Nodes::BindParam.new) if offset_value
+        if limit_value
+          limit_attribute = Attribute.with_cast_value(
+            "LIMIT".freeze,
+            connection.sanitize_limit(limit_value),
+            Type.default_value,
+          )
+          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
+        end
+        if offset_value
+          offset_attribute = Attribute.with_cast_value(
+            "OFFSET".freeze,
+            offset_value.to_i,
+            Type.default_value,
+          )
+          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
+        end
         arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
         build_order(arel)
@@ -1029,7 +1018,6 @@ module ActiveRecord
 
         join_infos.each do |info|
           info.joins.each { |join| manager.from(join) }
-          manager.bind_values.concat info.binds
         end
 
         manager.join_sources.concat(join_list)

@@ -1761,7 +1761,7 @@ class RelationTest < ActiveRecord::TestCase
 
   test "relations with cached arel can't be mutated [internal API]" do
     relation = Post.all
-    relation.count
+    relation.arel
 
     assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
     assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
@@ -1860,33 +1860,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
-  def test_unscope_removes_binds
-    left = Post.where(id: 20)
-
-    assert_equal 1, left.bound_attributes.length
-
-    relation = left.unscope(where: :id)
-    assert_equal [], relation.bound_attributes
-  end
-
-  def test_merging_removes_rhs_binds
-    left = Post.where(id: 20)
-    right = Post.where(id: [1, 2, 3, 4])
-
-    assert_equal 1, left.bound_attributes.length
-
-    merged = left.merge(right)
-    assert_equal [], merged.bound_attributes
-  end
-
-  def test_merging_keeps_lhs_binds
-    right  = Post.where(id: 20)
-    left   = Post.where(id: 10)
-
-    merged = left.merge(right)
-    assert_equal [20], merged.bound_attributes.map(&:value)
-  end
-
   def test_locked_should_not_build_arel
     posts = Post.locked
     assert posts.locked?
@@ -1895,24 +1868,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_relation_join_method
     assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
-  end
-
-  def test_connection_adapters_can_reorder_binds
-    posts = Post.limit(1).offset(2)
-
-    stubbed_connection = Post.connection.dup
-    def stubbed_connection.combine_bind_parameters(**kwargs)
-      offset = kwargs[:offset]
-      kwargs[:offset] = kwargs[:limit]
-      kwargs[:limit] = offset
-      super(**kwargs)
-    end
-
-    posts.define_singleton_method(:connection) do
-      stubbed_connection
-    end
-
-    assert_equal 2, posts.to_a.length
   end
 
   test "#skip_query_cache!" do

@@ -185,7 +185,7 @@ module ActiveRecord
 
       relation = Relation.new(klass, :b, nil)
       relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new(["foo = bar"], []), relation.where_clause
+      assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
     end
 
     def test_merging_readonly_false

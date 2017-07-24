@@ -10,14 +10,6 @@ module ActiveRecord
         @name = name
       end
 
-      def binds
-        if value.is_a?(Relation)
-          value.bound_attributes
-        else
-          []
-        end
-      end
-
       def merge(other)
         self
       end

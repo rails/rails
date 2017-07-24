@@ -317,7 +317,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists", relation.bound_attributes) } ? true : false
+      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
     rescue ::RangeError
       false
     end
@@ -378,7 +378,7 @@ module ActiveRecord
           if ActiveRecord::NullRelation === relation
             []
           else
-            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
+            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL") }
             join_dependency.instantiate(rows, aliases)
           end
         end
@@ -426,7 +426,7 @@ module ActiveRecord
 
         relation = relation.except(:select).select(values).distinct!
 
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL") }
         id_rows.map { |row| row[primary_key] }
       end
 

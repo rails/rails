@@ -127,7 +127,7 @@ module ActiveRecord
       car = cars(:honda)
 
       expected = [price_estimates(:diamond), price_estimates(:sapphire_1), price_estimates(:sapphire_2), price_estimates(:honda)].sort
-      actual   = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
+      actual = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
 
       assert_equal expected, actual
     end

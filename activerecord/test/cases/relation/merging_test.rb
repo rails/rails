@@ -81,13 +81,11 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   test "merge collapses wheres from the LHS only" do
-    left  = Post.where(title: "omg").where(comments_count: 1)
+    left = Post.where(title: "omg").where(comments_count: 1)
     right = Post.where(title: "wtf").where(title: "bbq")
 
-    expected = [left.bound_attributes[1]] + right.bound_attributes
-    merged   = left.merge(right)
+    merged = left.merge(right)
 
-    assert_equal expected, merged.bound_attributes
     assert_not_includes merged.to_sql, "omg"
     assert_includes merged.to_sql, "wtf"
     assert_includes merged.to_sql, "bbq"

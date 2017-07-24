@@ -41,18 +41,20 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize(values)
-        @values = values
-        @indexes = values.each_with_index.find_all { |thing, i|
-          Arel::Nodes::BindParam === thing
-        }.map(&:last)
+      def initialize(arel)
+        @arel = arel
       end
 
       def sql_for(binds, connection)
-        val = @values.dup
-        casted_binds = binds.map(&:value_for_database)
-        @indexes.each { |i| val[i] = connection.quote(casted_binds.shift) }
-        val.join
+        val = @arel.dup
+        val.grep(Arel::Nodes::BindParam) do |node|
+          node.value = binds.shift
+          if binds.empty?
+            break
+          end
+        end
+        sql, _ = connection.visitor.accept(val, connection.send(:collector)).value
+        sql
       end
     end
 
@@ -90,9 +92,9 @@ module ActiveRecord
     attr_reader :bind_map, :query_builder
 
     def self.create(connection, block = Proc.new)
-      relation      = block.call Params.new
-      bind_map      = BindMap.new relation.bound_attributes
-      query_builder = connection.cacheable_query(self, relation.arel)
+      relation = block.call Params.new
+      query_builder, binds = connection.cacheable_query(self, relation.arel)
+      bind_map = BindMap.new(binds)
       new query_builder, bind_map
     end
 

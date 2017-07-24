@@ -23,11 +23,10 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        JoinInformation = Struct.new :joins, :binds
+        JoinInformation = Struct.new :joins
 
         def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
           joins         = []
-          binds         = []
           tables        = tables.reverse
 
           # The chain starts with the target table, but we want to end with it here (makes
@@ -43,7 +42,6 @@ module ActiveRecord
             join_scope = reflection.join_scope(table, foreign_klass)
 
             if join_scope.arel.constraints.any?
-              binds.concat join_scope.bound_attributes
               joins.concat join_scope.arel.join_sources
               right = joins.last.right
               right.expr = right.expr.and(join_scope.arel.constraints)
@@ -53,7 +51,7 @@ module ActiveRecord
             foreign_table, foreign_klass = table, klass
           end
 
-          JoinInformation.new joins, binds
+          JoinInformation.new joins
         end
 
         def table
