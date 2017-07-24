@@ -28,8 +28,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob
 
     freeze_time do
-      assert_equal expected_url_for(blob), blob.url
-      assert_equal expected_url_for(blob, disposition: :attachment), blob.url(disposition: :attachment)
+      assert_equal expected_url_for(blob), blob.service_url
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url(disposition: :attachment)
     end
   end
 

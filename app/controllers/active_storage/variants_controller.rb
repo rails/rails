@@ -3,7 +3,7 @@ require "active_storage/variant"
 class ActiveStorage::VariantsController < ActionController::Base
   def show
     if blob = find_signed_blob
-      redirect_to ActiveStorage::Variant.new(blob, decoded_variation).processed.url(disposition: disposition_param)
+      redirect_to ActiveStorage::Variant.new(blob, decoded_variation).processed.service_url(disposition: disposition_param)
     else
       head :not_found
     end

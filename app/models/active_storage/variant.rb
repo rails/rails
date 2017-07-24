@@ -18,7 +18,7 @@ class ActiveStorage::Variant
     "variants/#{blob.key}/#{variation.key}"
   end
 
-  def url(expires_in: 5.minutes, disposition: :inline)
+  def service_url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
   end
 

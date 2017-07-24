@@ -31,7 +31,7 @@ user.avatar.exist? # => true
 user.avatar.purge
 user.avatar.exist? # => false
 
-user.avatar.url(expires_in: 5.minutes) # => /rails/blobs/<encoded-key>
+user.avatar.service_url(expires_in: 5.minutes) # => /rails/blobs/<encoded-key>
 
 class AvatarsController < ApplicationController
   def update

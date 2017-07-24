@@ -4,7 +4,7 @@
 class ActiveStorage::DirectUploadsController < ActionController::Base
   def create
     blob = ActiveStorage::Blob.create_before_direct_upload!(blob_args)
-    render json: { upload_to_url: blob.url_for_direct_upload, signed_blob_id: blob.signed_id }
+    render json: { upload_to_url: blob.service_url_for_direct_upload, signed_blob_id: blob.signed_id }
   end
 
   private

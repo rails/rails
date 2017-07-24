@@ -5,7 +5,7 @@
 class ActiveStorage::BlobsController < ActionController::Base
   def show
     if blob = find_signed_blob
-      redirect_to blob.url(disposition: disposition_param)
+      redirect_to blob.service_url(disposition: disposition_param)
     else
       head :not_found
     end
