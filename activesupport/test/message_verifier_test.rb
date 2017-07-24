@@ -19,7 +19,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
 
   def setup
     @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!")
-    @data = { some: "data", now: Time.local(2010) }
+    @data = { some: "data", now: Time.utc(2010) }
   end
 
   def test_valid_message
