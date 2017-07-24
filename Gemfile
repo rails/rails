@@ -22,7 +22,7 @@ gem "capybara", "~> 2.13"
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
 gem "coffee-rails"
-gem "sass-rails"
+gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
 gem "turbolinks", "~> 5"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
