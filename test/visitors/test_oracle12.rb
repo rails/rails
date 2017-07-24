@@ -48,8 +48,8 @@ module Arel
 
       describe "Nodes::BindParam" do
         it "increments each bind param" do
-          query = @table[:name].eq(Arel::Nodes::BindParam.new(nil))
-            .and(@table[:id].eq(Arel::Nodes::BindParam.new(nil)))
+          query = @table[:name].eq(Arel::Nodes::BindParam.new(1))
+            .and(@table[:id].eq(Arel::Nodes::BindParam.new(1)))
           compile(query).must_be_like %{
             "users"."name" = :a1 AND "users"."id" = :a2
           }

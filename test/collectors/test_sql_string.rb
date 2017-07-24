@@ -27,7 +27,7 @@ module Arel
       end
 
       def test_compile
-        bv = Nodes::BindParam.new(nil)
+        bv = Nodes::BindParam.new(1)
         collector = collect ast_with_binds bv
 
         sql = collector.compile ["hello", "world"]
@@ -35,7 +35,7 @@ module Arel
       end
 
       def test_returned_sql_uses_utf8_encoding
-        bv = Nodes::BindParam.new(nil)
+        bv = Nodes::BindParam.new(1)
         collector = collect ast_with_binds bv
 
         sql = collector.compile ["hello", "world"]
