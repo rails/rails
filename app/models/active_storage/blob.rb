@@ -107,7 +107,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the `service_url` should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the `service_url` behind a redirect also gives you the power to change services without updating all URLs. And
-  # it allows permanent URLs that redirec to the `service_url` to be cached in the view.
+  # it allows permanent URLs that redirect to the `service_url` to be cached in the view.
   def service_url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
