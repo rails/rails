@@ -85,6 +85,10 @@ module ActiveRecord
               expand_from_hash(query).reduce(&:and)
             end
             queries.reduce(&:or)
+          # FIXME: Deprecate this and provide a public API to force equality
+          elsif (value.is_a?(Range) || value.is_a?(Array)) &&
+            table.type(key.to_s).respond_to?(:subtype)
+            BasicObjectHandler.new(self).call(table.arel_attribute(key), value)
           else
             build(table.arel_attribute(key), value)
           end
