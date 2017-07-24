@@ -64,9 +64,9 @@ module Rails
       end
 
       def print_boot_information
-        url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
+        url = "on #{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-        puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
+        puts "=> Rails #{Rails.version} application starting in #{Rails.env} #{url}"
         puts "=> Run `rails server -h` for more startup options"
       end
 
@@ -90,6 +90,10 @@ module Rails
 
       def restart_command
         "bin/rails server #{ARGV.join(' ')}"
+      end
+
+      def use_puma?
+        server.to_s == "Rack::Handler::Puma"
       end
   end
 
