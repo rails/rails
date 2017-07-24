@@ -13,7 +13,7 @@ module ActiveRecord
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
-        ranges, values = values.partition { |v| v.is_a?(Range) }
+        ranges, values = values.partition { |v| v.is_a?(Range) || v.is_a?(Relation) }
 
         values_predicate =
           case values.length
