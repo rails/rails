@@ -1,8 +1,3 @@
-*   Include `rack-mini-profiler` gem by default. This gem allows for easy
-    visability and diagnosis of performance related issues.
-
-    *Richard Schneeman*
-
 *   Support `-` as a platform-agnostic way to run a script from stdin with
     `rails runner`
 
