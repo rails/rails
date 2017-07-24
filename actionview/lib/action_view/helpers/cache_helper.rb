@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   # = Action View Cache Helper
   module Helpers

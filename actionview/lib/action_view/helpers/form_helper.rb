@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 require_relative "date_helper"
 require_relative "tag_helper"

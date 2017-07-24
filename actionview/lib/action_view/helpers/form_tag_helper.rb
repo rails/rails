@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 require_relative "tag_helper"
 require "active_support/core_ext/string/output_safety"

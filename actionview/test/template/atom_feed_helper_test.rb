@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at) do

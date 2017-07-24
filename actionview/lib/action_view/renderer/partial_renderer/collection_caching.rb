@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "rendering"
 require "active_support/core_ext/module/remove_method"
 
