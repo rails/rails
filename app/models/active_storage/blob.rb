@@ -115,7 +115,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: 5.minutes)
-    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size
+    service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
 
