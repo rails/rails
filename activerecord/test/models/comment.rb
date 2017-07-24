@@ -77,3 +77,9 @@ class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope -> { includes(:developer).order("developers.name").references(:developer) }
   belongs_to :developer
 end
+
+class CommentWithAfterCreateUpdate < Comment
+  after_create do
+    update_attributes(body: "bar")
+  end
+end

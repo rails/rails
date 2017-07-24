@@ -182,7 +182,6 @@ module ActiveRecord
         each_counter_cached_associations do |association|
           if send(association.reflection.name)
             association.increment_counters
-            @_after_create_counter_called = true
           end
         end
 

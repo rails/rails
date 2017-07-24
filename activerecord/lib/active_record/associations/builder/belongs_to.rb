@@ -34,9 +34,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif (@_after_replace_counter_called ||= false)
+          if (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
           elsif saved_change_to_attribute?(foreign_key) && !new_record?
             if reflection.polymorphic?

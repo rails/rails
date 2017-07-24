@@ -1171,6 +1171,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Column.create! record: record
     assert_equal 1, Column.count
   end
+
+  def test_multiple_counter_cache_with_after_create_update
+    post = posts(:welcome)
+    parent = comments(:greetings)
+
+    assert_difference "parent.reload.children_count", +1 do
+      assert_difference "post.reload.comments_count", +1 do
+        comment = CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
+      end
+    end
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
