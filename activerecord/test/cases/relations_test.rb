@@ -1887,6 +1887,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [20], merged.bound_attributes.map(&:value)
   end
 
+  def test_where_with_ar_object_makes_binds
+    post = posts(:welcome)
+    bind = ActiveRecord::Relation::QueryAttribute.new("id", post.id, Post.type_for_attribute("id"))
+
+    relation = Post.where(id: post)
+
+    assert_equal [bind], relation.bound_attributes
+  end
+
   def test_locked_should_not_build_arel
     posts = Post.locked
     assert posts.locked?
