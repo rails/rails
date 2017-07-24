@@ -29,8 +29,9 @@ module ActiveRecord
           sql, binds = visitor.accept(arel.ast, collector).value
           query = klass.query(sql)
         else
-          query = klass.partial_query(arel.ast)
-          binds = []
+          collector = PartialQueryCollector.new
+          parts, binds = visitor.accept(arel.ast, collector).value
+          query = klass.partial_query(parts)
         end
         [query, binds]
       end
@@ -455,6 +456,28 @@ module ActiveRecord
             YAML.dump(value)
           else
             value
+          end
+        end
+
+        class PartialQueryCollector
+          def initialize
+            @parts = []
+            @binds = []
+          end
+
+          def << str
+            @parts << str
+            self
+          end
+
+          def add_bind obj
+            @binds << obj
+            @parts << Arel::Nodes::BindParam.new(1)
+            self
+          end
+
+          def value
+            [@parts, @binds]
           end
         end
     end

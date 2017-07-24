@@ -39,7 +39,7 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super
-        @prepared_statements = true unless config[:prepared_statements] == false
+        @prepared_statements = false unless config.key?(:prepared_statements)
         configure_connection
       end
 

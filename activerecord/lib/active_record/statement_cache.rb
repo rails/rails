@@ -41,20 +41,18 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize(arel)
-        @arel = arel
+      def initialize(values)
+        @values = values
+        @indexes = values.each_with_index.find_all { |thing, i|
+          Arel::Nodes::BindParam === thing
+        }.map(&:last)
       end
 
       def sql_for(binds, connection)
-        val = @arel.dup
-        val.grep(Arel::Nodes::BindParam) do |node|
-          node.value = binds.shift
-          if binds.empty?
-            break
-          end
-        end
-        sql, _ = connection.visitor.accept(val, connection.send(:collector)).value
-        sql
+        val = @values.dup
+        casted_binds = binds.map(&:value_for_database)
+        @indexes.each { |i| val[i] = connection.quote(casted_binds.shift) }
+        val.join
       end
     end
 
