@@ -2,7 +2,7 @@
 module Arel
   module Nodes
     class BindParam < Node
-      attr_reader :value
+      attr_accessor :value
 
       def initialize(value)
         @value = value
@@ -12,6 +12,10 @@ module Arel
       def ==(other)
         other.is_a?(BindParam) &&
           value == other.value
+      end
+
+      def nil?
+        value.nil?
       end
     end
   end
