@@ -1,3 +1,4 @@
+# Provides the class-level DSL for declaring that an Active Record model has attached blobs.
 module ActiveStorage::Attached::Macros
   # Specifies the relation between a single attachment and the model.
   #
