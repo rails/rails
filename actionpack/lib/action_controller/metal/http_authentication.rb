@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "base64"
 require "active_support/security_utils"
 
@@ -475,7 +477,7 @@ module ActionController
 
       # This removes the <tt>"</tt> characters wrapping the value.
       def rewrite_param_values(array_params)
-        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, "" }
+        array_params.each { |param| (param[1] || "".dup).gsub! %r/^"|"$/, "" }
       end
 
       # This method takes an authorization body and splits up the key-value
