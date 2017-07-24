@@ -629,6 +629,8 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Equality(o, collector)
           right = o.right
 
+          return collector << "1=0" if unboundable?(right)
+
           collector = visit o.left, collector
 
           if right.nil?
@@ -661,6 +663,8 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_NotEqual(o, collector)
           right = o.right
+
+          return collector << "1=1" if unboundable?(right)
 
           collector = visit o.left, collector
 
