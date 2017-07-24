@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Author < ActiveRecord::Base
+  scope :less_than, -> (attr_name, value) { where(arel_attribute(attr_name).lt(value)) }
+
   has_many :posts
   has_many :serialized_posts
   has_one :post

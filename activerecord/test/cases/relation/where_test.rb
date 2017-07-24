@@ -326,6 +326,17 @@ module ActiveRecord
       assert_equal author, Author.where(params.permit!).first
     end
 
+    def test_where_with_arel_attribute_works_without_range_error
+      expected = [authors(:david), authors(:mary), authors(:bob)]
+      assert_equal expected, Author.less_than(:id, "9223372036854775808").order(:id)
+    end
+
+    def test_to_sql_with_arel_attribute_works_without_range_error
+      expected = [authors(:david), authors(:mary), authors(:bob)]
+      less_than_sql = Author.less_than(:id, "9223372036854775808").order(:id).to_sql
+      assert_equal expected, Author.find_by_sql(less_than_sql)
+    end
+
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
