@@ -1178,7 +1178,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_difference "parent.reload.children_count", +1 do
       assert_difference "post.reload.comments_count", +1 do
-        comment = CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
+        CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
       end
     end
   end
