@@ -27,7 +27,7 @@ require "active_storage/engine"
 module ActiveStorage
   extend ActiveSupport::Autoload
 
-  autoload :Blob
+  autoload :Attached
   autoload :Service
 
   mattr_accessor :verifier
