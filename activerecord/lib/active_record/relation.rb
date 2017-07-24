@@ -642,6 +642,10 @@ module ActiveRecord
       @values == klass.unscoped.values
     end
 
+    def has_limit_or_offset? # :nodoc:
+      limit_value || offset_value
+    end
+
     protected
 
       def load_records(records)
