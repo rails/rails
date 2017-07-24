@@ -13,7 +13,7 @@ module ActionView
         :session, :cookies, :response, :headers, :flash, :action_name,
         :controller_name, :controller_path]
 
-      delegate *CONTROLLER_DELEGATES, to: :controller
+      delegate(*CONTROLLER_DELEGATES, to: :controller)
 
       def assign_controller(controller)
         if @_controller = controller
