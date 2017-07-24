@@ -1,11 +1,5 @@
-*   Add purpose and expiry support to `MessageVerifier` & `MessageEncryptor`.
-
-    Messages generated using `MessageVerifier` and `MessageEncryptor` now
-    support expiry and purpose. You can set the purpose of the message using
-    the key :purpose, and likewise, the expiration using :expires_at or :expires_in.
-
-    This ensures that the message is used only for its intended purpose and also
-    while it hasn't expired.
+*   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
+   `ActiveSupport::MessageEncryptor`.
 
     For instance, to ensure a message is only usable for one intended purpose:
 
