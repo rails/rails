@@ -1,6 +1,8 @@
 require "google/cloud/storage"
 require "active_support/core_ext/object/to_query"
 
+# Wraps the Google Cloud Storage as a Active Storage service. See `ActiveStorage::Service` for the generic API
+# documentation that applies to all services.
 class ActiveStorage::Service::GCSService < ActiveStorage::Service
   attr_reader :client, :bucket
 

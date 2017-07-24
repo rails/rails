@@ -1,24 +1,28 @@
-# Representation of multiple attachments to a model.
+# Decorated proxy object representing of multiple attachments to a model.
 class ActiveStorage::Attached::Many < ActiveStorage::Attached
   delegate_missing_to :attachments
 
   # Returns all the associated attachment records.
   #
-  # You don't have to call this method to access the attachments' methods as
-  # they are all available at the model level.
+  # All methods called on this proxy object that aren't listed here will automatically be delegated to `attachments`.
   def attachments
     record.public_send("#{name}_attachments")
   end
 
-  # Associates one or several attachments with the current record, saving
-  # them to the database.
+  # Associates one or several attachments with the current record, saving them to the database.
+  # Examples:
+  #
+  #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
+  #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
+  #   document.images.attach(io: File.open("~/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
+  #   document.images.attach([ first_blob, second_blob ])
   def attach(*attachables)
     attachables.flatten.collect do |attachable|
       attachments.create!(name: name, blob: create_blob_from(attachable))
     end
   end
 
-  # Checks the presence of attachments.
+  # Returns true if any attachments has been made.
   #
   #   class Gallery < ActiveRecord::Base
   #     has_many_attached :photos

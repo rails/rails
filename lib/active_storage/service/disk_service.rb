@@ -3,6 +3,8 @@ require "pathname"
 require "digest/md5"
 require "active_support/core_ext/numeric/bytes"
 
+# Wraps a local disk path as a Active Storage service. See `ActiveStorage::Service` for the generic API
+# documentation that applies to all services.
 class ActiveStorage::Service::DiskService < ActiveStorage::Service
   attr_reader :root
 

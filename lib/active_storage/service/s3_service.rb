@@ -1,6 +1,8 @@
 require "aws-sdk"
 require "active_support/core_ext/numeric/bytes"
 
+# Wraps the Amazon Simple Storage Service (S3) as a Active Storage service.
+# See `ActiveStorage::Service` for the generic API documentation that applies to all services.
 class ActiveStorage::Service::S3Service < ActiveStorage::Service
   attr_reader :client, :bucket, :upload_options
 
