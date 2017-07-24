@@ -22,6 +22,38 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  #
+  # === Confining messages to a specific purpose
+  #
+  # By default any message can be used throughout your app. But they can also be
+  # confined to a specific +:purpose+.
+  #
+  #   token = crypt.encrypt_and_sign("this is the chair", purpose: :login)
+  #
+  # Then that same purpose must be passed when verifying to get the data back out:
+  #
+  #   crypt.decrypt_and_verify(token, purpose: :login)    # => "this is the chair"
+  #   crypt.decrypt_and_verify(token, purpose: :shipping) # => nil
+  #   crypt.decrypt_and_verify(token)                     # => nil
+  #
+  # Likewise, if a message has no purpose it won't be returned when verifying with
+  # a specific purpose.
+  #
+  #   token = crypt.encrypt_and_sign("the conversation is lively")
+  #   crypt.decrypt_and_verify(token, purpose: :scare_tactics) # => nil
+  #   crypt.decrypt_and_verify(token)                          # => "the conversation is lively"
+  #
+  # === Making messages expire
+  #
+  # By default messages last forever and verifying one year from now will still
+  # return the original value. But messages can be set to expire at a given
+  # time with +:expires_in+ or +:expires_at+.
+  #
+  #   crypt.encrypt_and_sign(parcel, expires_in: 1.month)
+  #   crypt.encrypt_and_sign(doowad, expires_at: Time.now.end_of_year)
+  #
+  # Then the messages can be verified and returned upto the expire time.
+  # Thereafter, verifying returns +nil+.
   class MessageEncryptor
     class << self
       attr_accessor :use_authenticated_message_encryption #:nodoc:
