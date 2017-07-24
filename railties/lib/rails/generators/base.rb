@@ -16,6 +16,9 @@ module Rails
       include Thor::Actions
       include Rails::Generators::Actions
 
+      class_option :skip_namespace, type: :boolean, default: false,
+                                    desc: "Skip namespace (affects only isolated applications)"
+
       add_runtime_options!
       strict_args_position!
 
@@ -269,6 +272,40 @@ module Rails
             break unless last_module.const_defined?(nest, false)
             last_module.const_get(nest)
           end
+        end
+
+        # Wrap block with namespace of current application
+        # if namespace exists and is not skipped
+        def module_namespacing(&block) # :doc:
+          content = capture(&block)
+          content = wrap_with_namespace(content) if namespaced?
+          concat(content)
+        end
+
+        def indent(content, multiplier = 2) # :doc:
+          spaces = " " * multiplier
+          content.each_line.map { |line| line.blank? ? line : "#{spaces}#{line}" }.join
+        end
+
+        def wrap_with_namespace(content) # :doc:
+          content = indent(content).chomp
+          "module #{namespace.name}\n#{content}\nend\n"
+        end
+
+        def namespace # :doc:
+          Rails::Generators.namespace
+        end
+
+        def namespaced? # :doc:
+          !options[:skip_namespace] && namespace
+        end
+
+        def namespace_dirs
+          @namespace_dirs ||= namespace.name.split("::").map(&:underscore)
+        end
+
+        def namespaced_path # :doc:
+          @namespaced_path ||= namespace_dirs.join("/")
         end
 
         # Use Rails default banner.
