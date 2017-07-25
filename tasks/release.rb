@@ -154,8 +154,13 @@ namespace :all do
 
   task verify: :install do
     app_name = "pkg/verify-#{version}-#{Time.now.to_i}"
-    sh "rails new #{app_name}"
+    sh "rails _#{version}_ new #{app_name} --skip-bundle" # Generate with the right version.
     cd app_name
+
+    # Replace the generated gemfile entry with the exact version.
+    File.write("Gemfile", File.read("Gemfile").sub(/^gem 'rails.*/, "gem 'rails', '#{version}'"))
+    sh "bundle"
+
     sh "rails generate scaffold user name admin:boolean && rails db:migrate"
 
     puts "Booting a Rails server. Verify the release by:"
