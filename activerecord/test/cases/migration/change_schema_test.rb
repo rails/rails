@@ -273,6 +273,8 @@ module ActiveRecord
           assert_equal "timestamp without time zone", klass.columns_hash["foo"].sql_type
         elsif current_adapter?(:Mysql2Adapter)
           assert_equal "timestamp", klass.columns_hash["foo"].sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal "TIMESTAMP(6)", klass.columns_hash["foo"].sql_type
         else
           assert_equal klass.connection.type_to_sql("datetime"), klass.columns_hash["foo"].sql_type
         end
