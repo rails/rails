@@ -53,6 +53,10 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class PostWithBeforeUpdate < Post
+  before_update { self.body = 'body updated' }
+end
+
 class Weird < ActiveRecord::Base; end
 
 class LintTest < ActiveRecord::TestCase
@@ -67,6 +71,12 @@ end
 
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
+
+  def test_has_one_should_not_call_before_update_on_save
+    original_body = 'original body'
+    post = PostWithBeforeUpdate.create!(title: 'post title', body: original_body, author: Author.new(name: 'Jane Doe'))
+    assert_equal original_body, post.body
+  end
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection

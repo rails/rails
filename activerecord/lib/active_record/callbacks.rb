@@ -329,21 +329,34 @@ module ActiveRecord
     end
 
     def touch(*) #:nodoc:
-      _run_touch_callbacks { super }
+      persist_with_callbacks { _run_touch_callbacks { super } }
+    end
+
+    # Returns true if the record is currently being created or updated
+    def persiting_with_callbacks?
+      @persiting_with_callbacks ||= false
     end
 
   private
 
     def create_or_update(*)
-      _run_save_callbacks { super }
+      persist_with_callbacks { _run_save_callbacks { super } }
     end
 
     def _create_record
-      _run_create_callbacks { super }
+      persist_with_callbacks { _run_create_callbacks { super } }
     end
 
     def _update_record(*)
-      _run_update_callbacks { super }
+      persist_with_callbacks { _run_update_callbacks { super } }
     end
+
+    def persist_with_callbacks
+      @persiting_with_callbacks = true
+      yield
+    ensure
+      @persiting_with_callbacks = false
+    end
+
   end
 end

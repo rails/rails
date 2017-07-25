@@ -397,7 +397,7 @@ module ActiveRecord
 
               saved = true
 
-              if autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave != false && (@new_record_before_save || record.new_record?) && !record.persiting_with_callbacks?
                 if autosave
                   saved = association.insert_record(record, false)
                 else
@@ -430,7 +430,7 @@ module ActiveRecord
 
           if autosave && record.marked_for_destruction?
             record.destroy
-          elsif autosave != false
+          elsif autosave != false && !record.persiting_with_callbacks?
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
 
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
