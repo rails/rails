@@ -60,6 +60,7 @@ module ActiveRecord
     Decimal = ActiveModel::Type::Decimal
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
+    ImmutableString = ActiveModel::Type::ImmutableString
     String = ActiveModel::Type::String
     Value = ActiveModel::Type::Value
 
