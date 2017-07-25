@@ -58,7 +58,7 @@ module Rails
 
         private
           def extract_filters(argv)
-            argv.select { |arg| arg =~ /^\w+\// }.map do |path|
+            argv.select { |arg| arg =~ %r{^/?\w+/} }.map do |path|
               case
               when path =~ /(:\d+)+$/
                 file, *lines = path.split(":")
@@ -66,11 +66,11 @@ module Rails
                 file
               when Dir.exist?(path)
                 "#{path}/**/*_test.rb"
-              else
+              when path !~ /\/$/
                 filters << [ path, [] ]
                 path
               end
-            end
+            end.compact
           end
       end
     end
