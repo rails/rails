@@ -64,7 +64,7 @@ module ApplicationTests
       spawn_dbconsole(slave, "-e production")
       assert_output("sqlite>", master)
 
-      master.puts ".databases"
+      master.puts "pragma database_list;"
       assert_output("production.sqlite3", master)
     ensure
       master.puts ".exit"
