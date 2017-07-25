@@ -271,7 +271,8 @@ module ActiveRecord
     test "immutable_strings_by_default changes schema inference for string columns" do
       with_immutable_strings do
         OverloadedType.reset_column_information
-        assert_instance_of Type::ImmutableString, OverloadedType.type_for_attribute("inferred_string")
+        immutable_string_type = Type.lookup(:immutable_string).class
+        assert_instance_of immutable_string_type, OverloadedType.type_for_attribute("inferred_string")
       end
     end
 
@@ -285,7 +286,8 @@ module ActiveRecord
     test "immutable_strings_by_default does not affect `attribute :foo, :string`" do
       with_immutable_strings do
         OverloadedType.reset_column_information
-        assert_instance_of Type::String, OverloadedType.type_for_attribute("string_with_default")
+        default_string_type = Type.lookup(:string).class
+        assert_instance_of default_string_type, OverloadedType.type_for_attribute("string_with_default")
       end
     end
 

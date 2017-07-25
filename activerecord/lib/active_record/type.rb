@@ -72,6 +72,7 @@ module ActiveRecord
     register(:decimal, Type::Decimal, override: false)
     register(:float, Type::Float, override: false)
     register(:integer, Type::Integer, override: false)
+    register(:immutable_string, Type::ImmutableString, override: false)
     register(:json, Type::Json, override: false)
     register(:string, Type::String, override: false)
     register(:text, Type::Text, override: false)
