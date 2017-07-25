@@ -428,3 +428,32 @@ end
 ```
 
 WARNING. The `after_commit` and `after_rollback` callbacks are called for all models created, updated, or destroyed within a transaction block. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
+
+WARNING. Using `after_create_commit` and `after_update_commit` both in the same model will override the callback which was registered first amongst them.
+
+```ruby
+class User < ApplicationRecord
+  after_create_commit :log_user_saved_to_db
+  after_update_commit :log_user_saved_to_db
+
+  private
+  def log_user_saved_to_db
+    puts 'User was saved to database'
+  end
+end
+
+# prints nothing
+>> @user = User.create
+
+# updating @user
+>> @user.save
+=> User was saved to database
+```
+
+To register callbacks for both create and update actions, use `after_commit` instead.
+
+```ruby
+class User < ApplicationRecord
+  after_commit :log_user_saved_to_db, on: [:create, :update]
+end
+```
