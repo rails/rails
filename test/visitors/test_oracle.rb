@@ -136,7 +136,7 @@ module Arel
                 FROM (SELECT ) raw_sql_
                  WHERE rownum <= (:a1 + :a2)
               )
-              WHERE raw_rnum_ > :a1
+              WHERE raw_rnum_ > :a3
             }
           end
 

@@ -31,10 +31,11 @@ module Arel
           if offset.expr.is_a? Nodes::BindParam
             offset_bind = nil
             collector << ') raw_sql_ WHERE rownum <= ('
-            collector.add_bind(offset.expr) { |i| offset_bind = ":a#{i}" }
+            collector = visit offset.expr, collector
             collector << ' + '
-            collector.add_bind(limit) { |i| ":a#{i}" }
-            collector << ") ) WHERE raw_rnum_ > #{offset_bind}"
+            collector = visit limit, collector
+            collector << ") ) WHERE raw_rnum_ > "
+            collector = visit offset.expr, collector
             return collector
           else
             collector << ") raw_sql_
