@@ -1,3 +1,5 @@
+## Rails 5.0.5.rc2 (July 25, 2017) ##
+
 *   Regression fix: Allow `bin/rails test` to take absolute paths to tests.
 
     *Pawan Dubey*
