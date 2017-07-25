@@ -29,6 +29,8 @@ module Arel
           self.alias == other.alias &&
           self.distinct == other.distinct
       end
+      alias :== :eql?
+
     end
 
     %w{
