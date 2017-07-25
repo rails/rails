@@ -1,3 +1,7 @@
+*   When using #or, extract the common conditions and put them before the OR condition.
+
+    *Maxime Handfield Lapointe*
+
 *   `Relation#or` now accepts two relations who have different values for
     `references` only, as `references` can be implicitly called by `where`.
 

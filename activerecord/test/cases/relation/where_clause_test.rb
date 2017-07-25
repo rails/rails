@@ -181,6 +181,39 @@ class ActiveRecord::Relation
       assert_equal WhereClause.empty, WhereClause.empty.or(where_clause)
     end
 
+    test "or places common conditions before the OR" do
+      wcs = (0..6).map do |i|
+        WhereClause.new([table["col_#{i}"].eq(bind_param(i))])
+      end
+
+      actual = wcs[0]
+      expected = wcs[0]
+
+      actual = (actual + wcs[1]).or(actual + wcs[2])
+      expected = expected + wcs[1].or(wcs[2])
+
+      actual = (actual + wcs[3] + wcs[4]).or(actual + wcs[5] + wcs[6])
+      expected = expected + (wcs[3] + wcs[4]).or(wcs[5] + wcs[6])
+
+      assert_equal expected, actual
+    end
+
+    test "or will use common conditions only if one side only has common conditions" do
+      common = WhereClause.new(
+        [table["id"].eq(bind_param(1)), "foo = bar"]
+      )
+
+      extra = WhereClause.new([table["extra"].eq(bind_param("pluto"))])
+
+      actual_extra_only_on_left = (common + extra).or(common)
+      actual_extra_only_on_right = (common).or(common + extra)
+
+      expected = common
+
+      assert_equal expected, actual_extra_only_on_left
+      assert_equal expected, actual_extra_only_on_right
+    end
+
     private
 
       def table
