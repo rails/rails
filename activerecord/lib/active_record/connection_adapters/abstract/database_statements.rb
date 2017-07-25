@@ -144,22 +144,22 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        sql, binds = to_sql_and_binds(arel)
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
       alias create insert
 
       # Executes the update statement and returns the number of rows affected.
-      def update(arel, name = nil)
-        sql, binds = to_sql_and_binds(arel)
+      def update(arel, name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(arel, name = nil)
-        sql, binds = to_sql_and_binds(arel)
+      def delete(arel, name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         exec_delete(sql, name, binds)
       end
 

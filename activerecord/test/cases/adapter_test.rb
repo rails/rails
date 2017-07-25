@@ -227,6 +227,38 @@ module ActiveRecord
         result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
         assert_equal expected.to_hash, result.to_hash
       end
+
+      def test_insert_update_delete_with_legacy_binds
+        binds = [[nil, 1]]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
+
+      def test_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
     end
 
     def test_select_methods_passing_a_association_relation
