@@ -1,3 +1,7 @@
+*   Allow `bin/rails test` to take absolute paths as arguments
+
+    *Pawan Dubey*
+
 *   Support `-` as a platform-agnostic way to run a script from stdin with
     `rails runner`
 
