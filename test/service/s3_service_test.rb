@@ -33,20 +33,17 @@ if SERVICE_CONFIGURATIONS[:s3]
     end
 
     test "uploading with server-side encryption" do
-      config      = {}
-      config[:s3] = SERVICE_CONFIGURATIONS[:s3].merge \
-        upload: { server_side_encryption: "AES256" }
-
-      sse_service = ActiveStorage::Service.configure(:s3, config)
+      config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { upload: { server_side_encryption: "AES256" }})
+      service = ActiveStorage::Service.configure(:s3, config)
 
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        sse_service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+        service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
 
-        assert_equal "AES256", sse_service.bucket.object(key).server_side_encryption
+        assert_equal "AES256", service.bucket.object(key).server_side_encryption
       ensure
-        sse_service.delete key
+        service.delete key
       end
     end
   end
