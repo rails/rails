@@ -31,9 +31,9 @@ GIT
 
 GIT
   remote: https://github.com/rails/arel.git
-  revision: 0e7ce3f4c7c17e72f905b26aff3893149f524888
+  revision: f4227bf20a16a1d688afc24cf0038e2f98905dd4
   specs:
-    arel (8.0.0)
+    arel (9.0.0.alpha)
 
 GIT
   remote: https://github.com/rails/sass-rails.git
@@ -81,7 +81,7 @@ PATH
     activerecord (5.2.0.alpha)
       activemodel (= 5.2.0.alpha)
       activesupport (= 5.2.0.alpha)
-      arel (~> 8.0)
+      arel (= 9.0.0.alpha)
     activesupport (5.2.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
