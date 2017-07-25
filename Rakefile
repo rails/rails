@@ -24,6 +24,9 @@ task :default => %w(test test:isolated)
   task task_name do
     errors = []
     FRAMEWORKS.each do |project|
+      p '=' * 80
+      p "Project: #{project}, task_name: #{task_name}"
+      p '=' * 80
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
     end
     if task_name =~ /test/
