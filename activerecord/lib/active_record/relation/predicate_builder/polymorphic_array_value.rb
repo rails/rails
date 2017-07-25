@@ -12,7 +12,7 @@ module ActiveRecord
         type_to_ids_mapping.map do |type, ids|
           {
             associated_table.association_foreign_type.to_s => type,
-            associated_table.association_foreign_key.to_s => ids.size > 1 ? ids : ids.first
+            associated_table.association_foreign_key.to_s => ids
           }
         end
       end
