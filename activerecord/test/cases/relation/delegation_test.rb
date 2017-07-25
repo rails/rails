@@ -26,7 +26,7 @@ module ActiveRecord
   module DeprecatedArelDelegationTests
     AREL_METHODS = [
       :with, :orders, :froms, :project, :projections, :taken, :constraints, :exists, :locked, :where_sql,
-      :ast, :source, :join_sources, :to_dot, :bind_values, :create_insert, :create_true, :create_false
+      :ast, :source, :join_sources, :to_dot, :create_insert, :create_true, :create_false
     ]
 
     def test_deprecate_arel_delegation
