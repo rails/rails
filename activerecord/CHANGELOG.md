@@ -1,3 +1,10 @@
+*   Added the setting `ActiveRecord::Base.immutable_strings_by_default`, which
+    allows you to specify that all string columns should be frozen unless
+    otherwise specified. This will reduce memory pressure for applications which
+    do not generally mutate string properties of Active Record objects.
+
+    *Sean Griffin*
+
 *   Deprecate `map!` and `collect!` on `ActiveRecord::Result`.
 
     *Ryuta Kamizono*

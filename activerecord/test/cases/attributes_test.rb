@@ -111,22 +111,24 @@ module ActiveRecord
 
     test "overloading properties does not attribute method order" do
       attribute_names = OverloadedType.attribute_names
-      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), attribute_names
+      expected = OverloadedType.column_names + ["non_existent_decimal"]
+      assert_equal expected, attribute_names
     end
 
     test "caches are cleared" do
       klass = Class.new(OverloadedType)
+      column_count = klass.columns.length
 
-      assert_equal 6, klass.attribute_types.length
-      assert_equal 6, klass.column_defaults.length
-      assert_equal 6, klass.attribute_names.length
+      assert_equal column_count + 1, klass.attribute_types.length
+      assert_equal column_count + 1, klass.column_defaults.length
+      assert_equal column_count + 1, klass.attribute_names.length
       assert_not klass.attribute_types.include?("wibble")
 
       klass.attribute :wibble, Type::Value.new
 
-      assert_equal 7, klass.attribute_types.length
-      assert_equal 7, klass.column_defaults.length
-      assert_equal 7, klass.attribute_names.length
+      assert_equal column_count + 2, klass.attribute_types.length
+      assert_equal column_count + 2, klass.column_defaults.length
+      assert_equal column_count + 2, klass.attribute_names.length
       assert_includes klass.attribute_types, "wibble"
     end
 
@@ -292,5 +294,37 @@ module ActiveRecord
       assert_equal 1, klass.new(no_type: 1).no_type
       assert_equal "foo", klass.new(no_type: "foo").no_type
     end
+
+    test "immutable_strings_by_default changes schema inference for string columns" do
+      with_immutable_strings do
+        OverloadedType.reset_column_information
+        immutable_string_type = Type.lookup(:immutable_string).class
+        assert_instance_of immutable_string_type, OverloadedType.type_for_attribute("inferred_string")
+      end
+    end
+
+    test "immutable_strings_by_default retains limit information" do
+      with_immutable_strings do
+        OverloadedType.reset_column_information
+        assert_equal 255, OverloadedType.type_for_attribute("inferred_string").limit
+      end
+    end
+
+    test "immutable_strings_by_default does not affect `attribute :foo, :string`" do
+      with_immutable_strings do
+        OverloadedType.reset_column_information
+        default_string_type = Type.lookup(:string).class
+        assert_instance_of default_string_type, OverloadedType.type_for_attribute("string_with_default")
+      end
+    end
+
+    private
+      def with_immutable_strings
+        old_value = ActiveRecord::Base.immutable_strings_by_default
+        ActiveRecord::Base.immutable_strings_by_default = true
+        yield
+      ensure
+        ActiveRecord::Base.immutable_strings_by_default = old_value
+      end
   end
 end

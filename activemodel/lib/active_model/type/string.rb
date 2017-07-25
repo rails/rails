@@ -11,6 +11,14 @@ module ActiveModel
         end
       end
 
+      def to_immutable_string
+        ImmutableString.new(
+          limit: limit,
+          precision: precision,
+          scale: scale,
+        )
+      end
+
       private
         def cast_value(value)
           case value
