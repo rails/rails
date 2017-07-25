@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
+require "models/categorization"
 require "models/post"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
     fixtures :posts
+    fixtures :authors
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
@@ -114,6 +117,14 @@ module ActiveRecord
       assert_raises ArgumentError do
         Post.where(id: [1, 2, 3]).or(title: "Rails")
       end
+    end
+
+    def test_or_with_references_inequality
+      joined = Post.includes(:author)
+      actual = joined.where(authors: { id: 1 })
+        .or(joined.where(title: "I don't have any comments"))
+      expected = Author.find(1).posts + Post.where(title: "I don't have any comments")
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
   end
 end
