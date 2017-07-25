@@ -23,8 +23,6 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        JoinInformation = Struct.new :joins
-
         def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
           joins         = []
           tables        = tables.reverse
@@ -51,7 +49,7 @@ module ActiveRecord
             foreign_table, foreign_klass = table, klass
           end
 
-          JoinInformation.new joins
+          joins
         end
 
         def table
