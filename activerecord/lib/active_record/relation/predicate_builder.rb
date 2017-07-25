@@ -56,6 +56,10 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
+    def basic_object?(value)
+      handler_for(value).is_a?(BasicObjectHandler)
+    end
+
     protected
 
       attr_reader :table

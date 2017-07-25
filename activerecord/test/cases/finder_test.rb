@@ -741,6 +741,18 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1, 2, 6, 7, 8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_array_of_arrays
+    assert_equal [1, 2, 6, 7, 8], Comment.where(id: [[1, 2], [6, 7, 8]]).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_array_of_sets
+    assert_equal [1, 2, 6, 7, 8], Comment.where(id: [[1, 2].to_set, [6, 7, 8].to_set]).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_array_of_relations
+    assert_equal [1, 2, 6, 7, 8], Comment.where(id: [Comment.where(id: 1..2), Comment.where(id: 6..8)]).to_a.map(&:id).sort
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
