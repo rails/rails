@@ -1,3 +1,8 @@
+*   ApplicationRecord is no longer generated when generating models.  If you
+    need to generate it, it can be created with `rails g application_record`.
+
+    *Lisa Ugray*
+
 *   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
 
     *Ryuta Kamizono*
