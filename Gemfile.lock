@@ -188,7 +188,7 @@ GEM
     erubis (2.7.0)
     et-orbi (1.0.5)
       tzinfo
-    event_emitter (0.2.5)
+    event_emitter (0.2.6)
     eventmachine (1.2.3)
     eventmachine (1.2.3-x64-mingw32)
     eventmachine (1.2.3-x86-mingw32)
