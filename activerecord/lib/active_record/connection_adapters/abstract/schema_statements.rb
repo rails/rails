@@ -511,6 +511,7 @@ module ActiveRecord
       # * <tt>:limit</tt> -
       #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
       #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
+      #   This option is ignored by some backends.
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
