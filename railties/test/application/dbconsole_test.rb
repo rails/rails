@@ -1,12 +1,10 @@
 require "isolation/abstract_unit"
-begin
-  require "pty"
-rescue LoadError
-end
+require "console_helpers"
 
 module ApplicationTests
   class DBConsoleTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ConsoleHelpers
 
     def setup
       skip "PTY unavailable" unless available_pty?
@@ -73,23 +71,6 @@ module ApplicationTests
     private
       def spawn_dbconsole(fd, options = nil)
         Process.spawn("#{app_path}/bin/rails dbconsole #{options}", in: fd, out: fd, err: fd)
-      end
-
-      def assert_output(expected, io, timeout = 5)
-        timeout = Time.now + timeout
-
-        output = ""
-        until output.include?(expected) || Time.now > timeout
-          if IO.select([io], [], [], 0.1)
-            output << io.read(1)
-          end
-        end
-
-        assert_includes output, expected, "#{expected.inspect} expected, but got:\n\n#{output}"
-      end
-
-      def available_pty?
-        defined?(PTY) && PTY.respond_to?(:open)
       end
   end
 end
