@@ -36,7 +36,6 @@ module Rails
 
     def start
       print_boot_information
-      trap(:INT) { exit }
       create_tmp_directories
       setup_dev_caching
       log_to_stdout if options[:log_stdout]
