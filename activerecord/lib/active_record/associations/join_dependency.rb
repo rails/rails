@@ -174,9 +174,9 @@ module ActiveRecord
 
         def make_join_constraints(parent, child, join_type, aliasing = false)
           tables = aliasing ? table_aliases_for(parent, child) : child.tables
-          info   = make_constraints(parent, child, tables, join_type)
+          joins  = make_constraints(parent, child, tables, join_type)
 
-          [info] + child.children.flat_map { |c| make_join_constraints(child, c, join_type, aliasing) }
+          joins.concat child.children.flat_map { |c| make_join_constraints(child, c, join_type, aliasing) }
         end
 
         def table_aliases_for(parent, node)

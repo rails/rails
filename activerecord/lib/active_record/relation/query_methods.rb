@@ -1014,11 +1014,8 @@ module ActiveRecord
           klass, table, association_joins, join_list
         )
 
-        join_infos = join_dependency.join_constraints stashed_association_joins, join_type
-
-        join_infos.each do |info|
-          info.joins.each { |join| manager.from(join) }
-        end
+        joins = join_dependency.join_constraints(stashed_association_joins, join_type)
+        joins.each { |join| manager.from(join) }
 
         manager.join_sources.concat(join_list)
 
