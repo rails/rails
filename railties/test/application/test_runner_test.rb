@@ -31,10 +31,24 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
+    def test_run_single_file_with_absolute_path
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      assert_match "1 runs, 1 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb")
+    end
+
     def test_run_multiple_files
       create_test_file :models,  "foo"
       create_test_file :models,  "bar"
       assert_match "2 runs, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+    end
+
+    def test_run_multiple_files_with_absolute_paths
+      create_test_file :models,  "foo"
+      create_test_file :controllers,  "foobar_controller"
+      create_test_file :models, "bar"
+
+      assert_match "2 runs, 2 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb #{app_path}/test/controllers/foobar_controller_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -258,6 +272,18 @@ module ApplicationTests
       create_test_file :controllers, "accounts_controller"
 
       run_test_command("test/models test/controllers").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "AccountsControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_run_multiple_folders_with_absolute_paths
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
+
+      run_test_command("#{app_path}/test/models #{app_path}/test/controllers").tap do |output|
         assert_match "AccountTest", output
         assert_match "AccountsControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
