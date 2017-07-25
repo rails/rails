@@ -7,11 +7,8 @@ module Arel
 
     attr_reader :ast
 
-    attr_accessor :bind_values
-
     def initialize
-      @ctx    = nil
-      @bind_values = []
+      @ctx = nil
     end
 
     def to_dot
