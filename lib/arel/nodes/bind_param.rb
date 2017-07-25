@@ -9,10 +9,15 @@ module Arel
         super()
       end
 
-      def ==(other)
+      def hash
+        [self.class, self.value].hash
+      end
+
+      def eql?(other)
         other.is_a?(BindParam) &&
           value == other.value
       end
+      alias :== :eql?
 
       def nil?
         value.nil?

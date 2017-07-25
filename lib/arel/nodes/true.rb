@@ -9,6 +9,7 @@ module Arel
       def eql? other
         self.class == other.class
       end
+      alias :== :eql?
     end
   end
 end
