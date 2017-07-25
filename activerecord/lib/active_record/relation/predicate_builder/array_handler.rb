@@ -13,7 +13,7 @@ module ActiveRecord
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
-        ranges, values = values.partition { |v| v.is_a?(Range) }
+        others, values = values.partition { |v| v.is_a?(Range) || v.is_a?(Relation) }
 
         values_predicate =
           case values.length
@@ -30,7 +30,7 @@ module ActiveRecord
           values_predicate = values_predicate.or(predicate_builder.build(attribute, nil))
         end
 
-        array_predicates = ranges.map { |range| predicate_builder.build(attribute, range) }
+        array_predicates = others.map { |other| predicate_builder.build(attribute, other) }
         array_predicates.unshift(values_predicate)
         array_predicates.inject(&:or)
       end
