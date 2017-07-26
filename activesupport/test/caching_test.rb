@@ -1021,8 +1021,12 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   require 'dalli'
 
   begin
-    ss = Dalli::Client.new('localhost:11211').stats
-    raise Dalli::DalliError unless ss['localhost:11211']
+    host = ENV.fetch('MEMCACHED_PORT_11211_TCP_ADDR', 'localhost')
+    port = ENV.fetch('MEMCACHED_PORT_11211_TCP_PORT', 11211)
+
+    server = "#{host}:#{port}"
+    ss = Dalli::Client.new(server).stats
+    raise Dalli::DalliError unless ss[server]
 
     MEMCACHE_UP = true
   rescue Dalli::DalliError
