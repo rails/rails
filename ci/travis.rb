@@ -14,7 +14,7 @@ commands = [
 ]
 
 commands.each do |command|
-  system("#{command} > /dev/null 2>&1")
+  system(command, [1, 2] => File::NULL)
 end
 
 class Build

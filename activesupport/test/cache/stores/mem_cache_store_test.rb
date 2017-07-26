@@ -24,7 +24,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @data = @cache.instance_variable_get(:@data)
     @cache.clear
     @cache.silence!
-    @cache.logger = ActiveSupport::Logger.new("/dev/null")
+    @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
 
   include CacheStoreBehavior
