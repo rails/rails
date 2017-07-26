@@ -293,7 +293,7 @@ module ApplicationTests
             extend ActiveModel::Naming
             include ActiveModel::Conversion
 
-            def model_name
+            def self.model_name
               @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
             end
 
@@ -430,7 +430,7 @@ module ApplicationTests
           extend ActiveModel::Naming
           include ActiveModel::Conversion
 
-          def model_name
+          def self.model_name
             @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
           end
 
@@ -542,7 +542,7 @@ module ApplicationTests
           extend ActiveModel::Naming
           include ActiveModel::Conversion
 
-          def model_name
+          def self.model_name
             @_model_name ||= ActiveModel::Name.new(self.class, nil, "User")
           end
 
