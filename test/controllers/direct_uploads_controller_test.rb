@@ -6,7 +6,6 @@ require "active_storage/direct_uploads_controller"
 if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::S3DirectUploadsControllerTest < ActionController::TestCase
     setup do
-      @blob = create_blob
       @routes = Routes
       @controller = ActiveStorage::DirectUploadsController.new
 
@@ -35,7 +34,6 @@ end
 if SERVICE_CONFIGURATIONS[:gcs]
   class ActiveStorage::GCSDirectUploadsControllerTest < ActionController::TestCase
     setup do
-      @blob = create_blob
       @routes = Routes
       @controller = ActiveStorage::DirectUploadsController.new
       @config = SERVICE_CONFIGURATIONS[:gcs]
@@ -64,7 +62,6 @@ end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionController::TestCase
   setup do
-    @blob = create_blob
     @routes = Routes
     @controller = ActiveStorage::DirectUploadsController.new
   end
