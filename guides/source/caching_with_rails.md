@@ -179,6 +179,24 @@ With `touch` set to true, any action which changes `updated_at` for a game
 record will also change it for the associated product, thereby expiring the
 cache.
 
+### Shared Partial Caching
+
+It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and Javascript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
+
+```ruby
+render(partial: 'hotels/hotel', collection: @hotels, cached: true)
+```
+
+Will load a file named `hotels/hotel.erb`.
+
+Another option is to include the full filename of the partial to render.
+
+```ruby
+render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
+```
+
+Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a Javascript file.
+
 ### Managing dependencies
 
 In order to correctly invalidate the cache, you need to properly define the
@@ -387,9 +405,9 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
-New Rails projects are configured to use this implementation in development environment by default. 
+New Rails projects are configured to use this implementation in development environment by default.
 
-NOTE: Since processes will not share cache data when using `:memory_store`, 
+NOTE: Since processes will not share cache data when using `:memory_store`,
 it will not be possible to manually read, write or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
@@ -580,7 +598,7 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to 
+in development mode. Rails provides the rake task `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
