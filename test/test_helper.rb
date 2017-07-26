@@ -44,27 +44,9 @@ class ActiveSupport::TestCase
         io: file_fixture(filename).open,
         filename: filename, content_type: content_type
     end
-  
+
     def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain")
       ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
-    end
-  
-
-    def assert_equal_image_dimensions(fixture_filename, variant)
-      expected_image, actual_image = read_image_fixture(fixture_filename), read_image_variant(variant)
-      
-      assert_equal expected_image.width, actual_image.width
-      assert_equal expected_image.height, actual_image.height
-    end
-
-    def assert_equal_image_colorspace(fixture_filename, variant)
-      expected_image, actual_image = read_image_fixture(fixture_filename), read_image_variant(variant)
-      
-      assert_equal expected_image.colorspace, actual_image.colorspace
-    end
-
-    def read_image_fixture(fixture_filename)
-      MiniMagick::Image.open file_fixture(fixture_filename)
     end
 
     def read_image_variant(variant)

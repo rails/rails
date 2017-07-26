@@ -18,6 +18,9 @@ class ActiveStorage::VariantsControllerTest < ActionController::TestCase
       variation_key: ActiveStorage::Variation.encode(resize: "100x100") }
 
     assert_redirected_to /racecar.jpg\?disposition=inline/
-    assert_equal_image_dimensions "racecar-100x100.jpg", @blob.variant(resize: "100x100")
+
+    image = read_image_variant(@blob.variant(resize: "100x100"))
+    assert_equal 100, image.width
+    assert_equal 67, image.height
   end
 end
