@@ -7,6 +7,10 @@ end
 
 gemspec
 
+if ENV.has_key?("IMMUNIO_AGENT_DIR")
+  gem "immunio", :path => ENV["IMMUNIO_AGENT_DIR"]
+end
+
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 11.1'
 
@@ -35,7 +39,7 @@ gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", requi
 group :doc do
   gem 'sdoc', '~> 1.0.0.rc1'
   gem 'redcarpet', '~> 3.2.3', platforms: :ruby
-  gem 'w3c_validators'
+  gem 'w3c_validators', '~> 1.2.0'
   gem 'kindlerb', '0.1.1'
 end
 
@@ -80,6 +84,7 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 group :test do
   # FIX: Our test suite isn't ready to run in random order yet.
   gem 'minitest', '< 5.3.4'
+  gem 'ci_reporter_minitest'
 
   platforms :mri do
     gem 'stackprof'

@@ -21,6 +21,14 @@ module ActiveRecord
         'fake_table'
       end
 
+      # IMMUNIO: Add current_scope methods so we can call the #name method on
+      # the relation created for this class.
+      def self.current_scope(skip_inherited_scope = false)
+      end
+
+      def self.current_scope=(scope)
+      end
+
       def self.sanitize_sql_for_order(sql)
         sql
       end

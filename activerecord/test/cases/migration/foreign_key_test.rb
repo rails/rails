@@ -241,19 +241,19 @@ module ActiveRecord
 
       def test_add_foreign_key_is_reversible
         migration = CreateCitiesAndHousesMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         assert_equal 1, @connection.foreign_keys("houses").size
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
       end
 
       def test_foreign_key_constraint_is_not_cached_incorrectly
         migration = CreateCitiesAndHousesMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         output = dump_table_schema "houses"
         assert_match %r{\s+add_foreign_key "houses",.+on_delete: :cascade$}, output
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
       end
 
       class CreateSchoolsAndClassesMigration < ActiveRecord::Migration::Current
@@ -270,20 +270,20 @@ module ActiveRecord
       def test_add_foreign_key_with_prefix
         ActiveRecord::Base.table_name_prefix = 'p_'
         migration = CreateSchoolsAndClassesMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         assert_equal 1, @connection.foreign_keys("p_classes").size
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
         ActiveRecord::Base.table_name_prefix = nil
       end
 
       def test_add_foreign_key_with_suffix
         ActiveRecord::Base.table_name_suffix = '_s'
         migration = CreateSchoolsAndClassesMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         assert_equal 1, @connection.foreign_keys("classes_s").size
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
         ActiveRecord::Base.table_name_suffix = nil
       end
 

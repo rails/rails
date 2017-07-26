@@ -1,6 +1,19 @@
 require 'cases/helper'
 require 'active_support/testing/isolation'
 
+# The GlobalID gem has a silly requirement that necessitates the
+# Rails::Application class to have a name method. Hacky, but makes the tests
+# pass.
+module Rails
+  class Application
+    class << self
+      def name
+        'test'
+      end
+    end
+  end
+end
+
 class RailtieTest < ActiveModel::TestCase
   include ActiveSupport::Testing::Isolation
 

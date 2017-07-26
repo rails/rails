@@ -158,20 +158,20 @@ module ActiveRecord
       def test_references_foreign_key_with_prefix
         ActiveRecord::Base.table_name_prefix = 'p_'
         migration = CreateDogsMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         assert_equal 1, @connection.foreign_keys("p_dogs").size
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
         ActiveRecord::Base.table_name_prefix = nil
       end
 
       def test_references_foreign_key_with_suffix
         ActiveRecord::Base.table_name_suffix = '_s'
         migration = CreateDogsMigration.new
-        silence_stream($stdout) { migration.migrate(:up) }
+        migration.migrate(:up)
         assert_equal 1, @connection.foreign_keys("dogs_s").size
       ensure
-        silence_stream($stdout) { migration.migrate(:down) }
+        migration.migrate(:down)
         ActiveRecord::Base.table_name_suffix = nil
       end
 
