@@ -110,6 +110,8 @@ class PrependProtectForgeryBaseController < ActionController::Base
   end
 end
 
+PrependProtectForgeryBaseController.send :include, Immunio::CsrfHook
+
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   self.allow_forgery_protection = false
 

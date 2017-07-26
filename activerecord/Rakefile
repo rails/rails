@@ -90,8 +90,8 @@ namespace :db do
     desc 'Build the MySQL test databases'
     task :build do
       config = ARTest.config['connections']['mysql2']
-      %x( mysql --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
-      %x( mysql --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit']['username']} --password=#{config['arunit']['password']} --host=#{config['arunit']['host']} --port=#{config['arunit']['port']} -e "create DATABASE #{config['arunit']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
+      %x( mysql --user=#{config['arunit2']['username']} --password=#{config['arunit2']['password']} --host=#{config['arunit2']['host']} --port=#{config['arunit2']['port']} -e "create DATABASE #{config['arunit2']['database']} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci ")
     end
 
     desc 'Drop the MySQL test databases'
@@ -109,8 +109,8 @@ namespace :db do
     desc 'Build the PostgreSQL test databases'
     task :build do
       config = ARTest.config['connections']['postgresql']
-      %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
-      %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
+      %x( createdb -E UTF8 -T template0 --user=#{config['arunit']['username']} --host=#{config['arunit']['host']} --port=#{config['arunit']['port']} #{config["arunit"]["database"]} )
+      %x( createdb -E UTF8 -T template0 --user=#{config['arunit2']['username']} --host=#{config['arunit2']['host']} --port=#{config['arunit2']['port']} #{config["arunit2"]["database"]} )
 
       # prepare hstore
       if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"

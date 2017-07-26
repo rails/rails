@@ -14,7 +14,16 @@ module ERBTest
   class BlockTestCase < ActiveSupport::TestCase
     def render_content(start, inside)
       template = block_helper(start, inside)
-      ActionView::Template::Handlers::Erubis.new(template).evaluate(ViewContext.new)
+      # IMMUNIO: Modified to render through the entire stack, otherwise you break our ActionView plugins
+      # ActionView::Template::Handlers::ERB.erb_implementation.new(template).evaluate(ViewContext.new)
+
+      av_template = ActionView::Template.new(
+        template,
+        'partial',
+        ActionView::Template::Handlers::ERB.new,
+        virtual_path: 'partial')
+
+      av_template.render(ViewContext.new, {})
     end
 
     def block_helper(str, rest)

@@ -1,5 +1,7 @@
 require 'net/http'
 
+require 'ci/reporter/rake/minitest'
+
 $:.unshift File.expand_path('..', __FILE__)
 require "tasks/release"
 require 'railties/lib/rails/api/task'
@@ -24,10 +26,10 @@ task :default => %w(test test:isolated)
   task task_name do
     errors = []
     FRAMEWORKS.each do |project|
+      p '=' * 80
+      p "Project: #{project}, task_name: #{task_name}"
+      p '=' * 80
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
-    end
-    if task_name =~ /test/
-      system(%(cd actioncable && env FAYE=1 #{$0} #{task_name} --trace)) || errors << 'actioncable-faye'
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
@@ -39,7 +41,6 @@ task :smoke do
     system %(cd #{project} && #{$0} test:isolated --trace)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
-  system %(cd actioncable && env FAYE=1 #{$0} test:isolated --trace)
 end
 
 desc "Install gems for all projects."
