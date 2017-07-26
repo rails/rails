@@ -22,6 +22,6 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     image = read_image_variant(variant)
     assert_equal 100, image.width
     assert_equal 67, image.height
-    assert_equal "Grayscale", image.colorspace
+    assert_match /Gray/, image.colorspace
   end
 end
