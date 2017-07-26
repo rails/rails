@@ -20,7 +20,7 @@ Introduction
 ------------
 
 Action Mailer allows you to send emails from your application using mailer classes
-and views. Mailers work very similarly to controllers. They inherit from
+and views. Mailers work in a similar way to controllers. They inherit from
 `ActionMailer::Base` and live in `app/mailers`, and they have associated views
 that appear in `app/views`.
 
@@ -30,7 +30,7 @@ Sending Emails
 This section will provide a step-by-step guide to creating a mailer and its
 views.
 
-### Walkthrough to Generating a Mailer
+### Walkthrough to Generate a Mailer
 
 #### Create the Mailer
 
@@ -59,12 +59,10 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-As you can see, you can generate mailers just like you use other generators with
-Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
-a directory for views, and a test.
+The generator has created a mailer, a directory for views, and a test.
 
-If you didn't want to use a generator, you could create your own file inside of
-app/mailers, just make sure that it inherits from `ActionMailer::Base`:
+An alternative to using a generator is to create a file inside of
+app/mailers that inherits from `ActionMailer::Base`:
 
 ```ruby
 class MyMailer < ActionMailer::Base
@@ -73,9 +71,9 @@ end
 
 #### Edit the Mailer
 
-Mailers are very similar to Rails controllers. They also have methods called
-"actions" and use views to structure the content. Where a controller generates
-content like HTML to send back to the client, a Mailer creates a message to be
+Mailers are very similar to Rails controllers. They both have methods called
+"actions" and use views to structure their content. Where a controller generates
+content such as HTML to send back to the client, a mailer creates a message to be
 delivered via email.
 
 `app/mailers/user_mailer.rb` contains an empty mailer:
@@ -85,7 +83,7 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Let's add a method called `welcome_email`, that will send an email to the user's
+Let's add a method called `welcome_email`. Its role will be to send an email to the user's
 registered email address:
 
 ```ruby
@@ -100,17 +98,17 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Here is a quick explanation of the items presented in the preceding method. For
-a full list of all available options, please have a look further down at the
+Here is an explanation of the preceding code. For
+a full list of all available options, please refer to the
 Complete List of Action Mailer user-settable attributes section.
 
 * `default Hash` - This is a hash of default values for any email you send from
 this mailer. In this case we are setting the `:from` header to a value for all
-messages in this class. This can be overridden on a per-email basis.
-* `mail` - The actual email message, we are passing the `:to` and `:subject`
-headers in.
+messages in this class. This can be overridden on each email.
+* `mail` - The actual email message into which the `:to` and `:subject`
+headers are passed.
 
-Just like controllers, any instance variables we define in the method become
+As with controllers, any instance variables we define in the mailer method become
 available for use in the views.
 
 #### Create a Mailer View
@@ -159,27 +157,24 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 #### Calling the Mailer
 
-Mailers are really just another way to render a view. Instead of rendering a
-view and sending it over the HTTP protocol, they are just sending it out through
-the email protocols instead. Due to this, it makes sense to just have your
+Mailers are really another way to render a view. Instead of rendering a
+view and sending it over the HTTP protocol, they send it out through
+the email protocols instead. Due to this, it makes sense to have your
 controller tell the Mailer to send an email when a user is successfully created.
 
-Setting this up is painfully simple.
-
-First, let's create a simple `User` scaffold:
+To set this up, let's create a `User` model using Rails' scaffold:
 
 ```bash
 $ bin/rails generate scaffold user name email login
 $ bin/rails db:migrate
 ```
 
-Now that we have a user model to play with, we will just edit the
-`app/controllers/users_controller.rb` make it instruct the `UserMailer` to deliver
-an email to the newly created user by editing the create action and inserting a
-call to `UserMailer.welcome_email` right after the user is successfully saved.
+Now edit the create action of `app/controllers/users_controller.rb`, adding a call to `UserMailer.welcome_email` after the user is successfully saved. This will send an email to the newly created
+user.
 
-Action Mailer is nicely integrated with Active Job so you can send emails outside
-of the request-response cycle, so the user doesn't have to wait on it:
+Action Mailer is integrated with Active Job, so emails can be sent outside
+of the request-response cycle. This avoids the user having to wait for the server to
+communicate with an email server:
 
 ```ruby
 class UsersController < ApplicationController
@@ -204,16 +199,17 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. So, you can use
+NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. This means you can use
 `deliver_later` now to send emails asynchronously.
 Active Job's default adapter runs jobs with an in-process thread pool.
 It's well-suited for the development/test environments, since it doesn't require
 any external infrastructure, but it's a poor fit for production since it drops
 pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
-that has a persistent backend (Sidekiq, Resque, etc).
+that has a persistent backend (such as Sidekiq or Resque).
 
-If you want to send emails right away (from a cronjob for example) just call
+If you want to send emails right away, for example from a cronjob or other process
+that is already outside of the request-response cycle for a user, call
 `deliver_now`:
 
 ```ruby
@@ -227,14 +223,14 @@ end
 ```
 
 The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
-can then just be told `deliver_now` or `deliver_later` to send itself out. The
-`ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
+can then be told `deliver_now` or `deliver_later`. The
+`ActionMailer::MessageDelivery` object is a wrapper around a `Mail::Message`. If
 you want to inspect, alter or do anything else with the `Mail::Message` object you can
 access it with the `message` method on the `ActionMailer::MessageDelivery` object.
 
 ### Auto encoding header values
 
-Action Mailer handles the auto encoding of multibyte characters inside of
+Action Mailer handles the auto-encoding of multibyte characters inside of
 headers and bodies.
 
 For more complex examples such as defining alternate character sets or
@@ -243,21 +239,20 @@ self-encoding text first, please refer to the
 
 ### Complete List of Action Mailer Methods
 
-There are just three methods that you need to send pretty much any email
-message:
+There are three methods that the majority of email messages require:
 
-* `headers` - Specifies any header on the email you want. You can pass a hash of
+* `headers` - Specifies a header on the email. You can pass a hash of
   header field names and value pairs, or you can call `headers[:field_name] =
   'value'`.
 * `attachments` - Allows you to add attachments to your email. For example,
   `attachments['file-name.jpg'] = File.read('file-name.jpg')`.
 * `mail` - Sends the actual email itself. You can pass in headers as a hash to
-  the mail method as a parameter, mail will then create an email, either plain
-  text, or multipart, depending on what email templates you have defined.
+  the `mail` method as a parameter. `mail` will then create an email, either plain
+  text, or multipart, depending on what email templates are defined.
 
 #### Adding Attachments
 
-Action Mailer makes it very easy to add attachments.
+To add attachments:
 
 * Pass the file name and content and Action Mailer and the
   [Mail gem](https://github.com/mikel/mail) will automatically guess the
@@ -267,17 +262,15 @@ Action Mailer makes it very easy to add attachments.
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
     ```
 
-  When the `mail` method will be triggered, it will send a multipart email with
-  an attachment, properly nested with the top level being `multipart/mixed` and
+  When the `mail` method is triggered, it will send a multipart email with
+  an attachment, properly nested, with the top level being `multipart/mixed` and
   the first part being a `multipart/alternative` containing the plain text and
   HTML email messages.
 
-NOTE: Mail will automatically Base64 encode an attachment. If you want something
-different, encode your content and pass in the encoded content and encoding in a
-`Hash` to the `attachments` method.
+NOTE: Mail will automatically Base64 encode an attachment. For different behavior, encode the content and send both the encoded content and the encoding method in a `Hash` to the `attachments` method.
 
-* Pass the file name and specify headers and content and Action Mailer and Mail
-  will use the settings you pass in.
+* Pass the file name, and specify headers and content, and Action Mailer and Mail
+  will use the supplied settings.
 
     ```ruby
     encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
@@ -289,13 +282,13 @@ different, encode your content and pass in the encoded content and encoding in a
     ```
 
 NOTE: If you specify an encoding, Mail will assume that your content is already
-encoded and not try to Base64 encode it.
+encoded and will not try to Base64 encode it.
 
 #### Making Inline Attachments
 
-Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
+Action Mailer enables inline attachments.
 
-* First, to tell Mail to turn an attachment into an inline attachment, you just call `#inline` on the attachments method within your Mailer:
+* First, to create an inline attachment, call `#inline` on the attachments method within your Mailer:
 
     ```ruby
     def welcome
@@ -303,9 +296,9 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     end
     ```
 
-* Then in your view, you can just reference `attachments` as a hash and specify
-  which attachment you want to show, calling `url` on it and then passing the
-  result into the `image_tag` method:
+* In the view, reference `attachments` as a hash, and specify
+  which attachment to show by calling `url` on it and passing the
+  result to the `image_tag` method:
 
     ```html+erb
     <p>Hello there, this is our image</p>
@@ -313,8 +306,8 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     <%= image_tag attachments['image.jpg'].url %>
     ```
 
-* As this is a standard call to `image_tag` you can pass in an options hash
-  after the attachment URL as you could for any other image:
+* As this is a standard call to `image_tag`, an options hash can be passed in
+  after the attachment URL:
 
     ```html+erb
     <p>Hello there, this is our image</p>
@@ -324,10 +317,9 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
 
 #### Sending Email To Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (e.g.,
-informing all admins of a new signup) by setting the list of emails to the `:to`
-key. The list of emails can be an array of email addresses or a single string
-with the addresses separated by commas.
+An email can be sent to multiple recipients (e.g.,
+informing all admins of a new signup) by setting the `:to` key to a list of email addresses.
+The list of addresses can be an array, or a single string of comma-separated addresses.
 
 ```ruby
 class AdminMailer < ApplicationMailer
@@ -341,14 +333,13 @@ class AdminMailer < ApplicationMailer
 end
 ```
 
-The same format can be used to set carbon copy (Cc:) and blind carbon copy
+The same formats can be used to set carbon copy (Cc:) and blind carbon copy
 (Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
 
-#### Sending Email With Name
+#### Sending Emails With Addressee Names
 
-Sometimes you wish to show the name of the person instead of just their email
-address when they receive the email. The trick to doing that is to format the
-email address in the format `"Full Name" <email>`.
+Sometimes it may be desirable to include the names of addressees as well as their email
+addresses, by formatting the email address as `"Full Name" <email>`.
 
 ```ruby
 def welcome_email(user)
@@ -723,7 +714,7 @@ end
 Using Action Mailer Helpers
 ---------------------------
 
-Action Mailer now just inherits from `AbstractController`, so you have access to
+Action Mailer now inherits from `AbstractController`, so you have access to
 the same generic helpers as you do in Action Controller.
 
 Action Mailer Configuration
@@ -735,7 +726,7 @@ files (environment.rb, production.rb, etc...)
 | Configuration | Description |
 |---------------|-------------|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
-|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default `"localhost"` setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain` (will send the password in the clear), `:login` (will send password Base64 encoded) or `:cram_md5` (combines a Challenge/Response mechanism to exchange information and a cryptographic Message Digest 5 algorithm to hash important information)</li><li>`:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. Defaults to `true`.</li><li>`:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name of an OpenSSL verify constant ('none' or 'peer') or directly the constant (`OpenSSL::SSL::VERIFY_NONE` or `OpenSSL::SSL::VERIFY_PEER`).</li></ul>|
+|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Change it from its default `"localhost"` setting.</li><li>`:port` - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain` (will send the password in the clear), `:login` (will send password Base64 encoded) or `:cram_md5` (combines a Challenge/Response mechanism to exchange information and a cryptographic Message Digest 5 algorithm to hash important information)</li><li>`:enable_starttls_auto` - Detects if STARTTLS is enabled in your SMTP server and starts to use it. Defaults to `true`.</li><li>`:openssl_verify_mode` - When using TLS, you can set how OpenSSL checks the certificate. This is really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name of an OpenSSL verify constant ('none' or 'peer') or directly the constant (`OpenSSL::SSL::VERIFY_NONE` or `OpenSSL::SSL::VERIFY_PEER`).</li></ul>|
 |`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i`.</li></ul>|
 |`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered. This only works if the external email server is configured for immediate delivery.|
 |`delivery_method`|Defines a delivery method. Possible values are:<ul><li>`:smtp` (default), can be configured by using `config.action_mailer.smtp_settings`.</li><li>`:sendmail`, can be configured by using `config.action_mailer.sendmail_settings`.</li><li>`:file`: save emails to files; can be configured by using `config.action_mailer.file_settings`.</li><li>`:test`: save emails to `ActionMailer::Base.deliveries` array.</li></ul>See [API docs](http://api.rubyonrails.org/classes/ActionMailer/Base.html) for more info.|
@@ -766,8 +757,7 @@ config.action_mailer.default_options = {from: 'no-reply@example.com'}
 
 ### Action Mailer Configuration for Gmail
 
-As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), this
-becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
+As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), it can be configured in the  `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
 config.action_mailer.delivery_method = :smtp
@@ -780,7 +770,7 @@ config.action_mailer.smtp_settings = {
   authentication:       'plain',
   enable_starttls_auto: true  }
 ```
-Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
+Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems insecure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
 use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
