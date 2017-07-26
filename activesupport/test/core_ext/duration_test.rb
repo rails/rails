@@ -111,7 +111,15 @@ class DurationTest < ActiveSupport::TestCase
   def test_divide
     assert_equal 1.day, 7.days / 7
     assert_instance_of ActiveSupport::Duration, 7.days / 7
+
     assert_equal 1, 1.day / 1.day
+    assert_kind_of Numeric, 1.day / 1.day
+
+    assert_equal 90.0, 1.5.hours / 1.minute
+    assert_kind_of Numeric, 1.5.hours / 1.minute
+
+    assert_equal 2, 4.days / 1 / 2.days
+    assert_kind_of Numeric, 4.days / 1 / 2.days
   end
 
   def test_date_added_with_multiplied_duration
@@ -412,7 +420,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 10, 100.seconds / scalar
     assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
     assert_equal 5, scalar / 2.seconds
-    assert_instance_of ActiveSupport::Duration, scalar / 2.seconds
+    assert_kind_of Numeric, scalar / 2.seconds
 
     exception = assert_raises(TypeError) do
       scalar / "foo"
@@ -422,12 +430,12 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_scalar_divide_parts
-    scalar = ActiveSupport::Duration::Scalar.new(10)
+    scalar = ActiveSupport::Duration::Scalar.new(10 * 24 * 60 * 60)
 
-    assert_equal({ days: 2 }, (scalar / 5.days).parts)
-    assert_equal(172800, (scalar / 5.days).value)
-    assert_equal({ days: -2 }, (scalar / -5.days).parts)
-    assert_equal(-172800, (scalar / -5.days).value)
+    assert_kind_of Numeric, scalar / 5.days
+    assert_equal 2, scalar / 5.days
+    assert_kind_of Numeric, scalar / -5.days
+    assert_equal -2, scalar / -5.days
   end
 
   def test_twelve_months_equals_one_year

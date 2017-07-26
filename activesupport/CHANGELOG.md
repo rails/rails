@@ -1,3 +1,25 @@
+*   Fix Division operation to return correct values and parts in resulting Duration objects.
+
+    Before:
+
+         4.minutes / 2.minutes
+         => 0 minutes
+
+         4.minutes / 1 / 2.minutes
+         => 0 minutes
+
+    Now:
+
+         4.minutes / 2.minutes
+         => 2 minutes
+
+         4.minutes / 1 / 2.minutes
+         => 2 minutes
+
+    Fixes #29952
+
+    *Sayan Chakraborty*
+
 *   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
    `ActiveSupport::MessageEncryptor`.
 
