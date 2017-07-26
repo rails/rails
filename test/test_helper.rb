@@ -43,6 +43,10 @@ class ActiveSupport::TestCase
         filename: filename, content_type: content_type
     end
 
+    def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain")
+      ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
+    end
+
     def assert_same_image(fixture_filename, variant)
       assert_equal \
         File.binread(File.expand_path("../fixtures/files/#{fixture_filename}", __FILE__)),

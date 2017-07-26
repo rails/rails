@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get  "/rails/active_storage/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
+  get "/rails/active_storage/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
 
   direct :rails_blob do |blob|
     route_for(:rails_service_blob, blob.signed_id, blob.filename)
@@ -23,5 +23,6 @@ Rails.application.routes.draw do
 
 
   get  "/rails/active_storage/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_blob
+  put  "/rails/active_storage/disk/:encoded_token" => "active_storage/disk#update", as: :update_rails_disk_blob
   post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
 end

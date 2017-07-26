@@ -29,7 +29,7 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
-    test "upload without integrity" do
+    test "uploading without integrity" do
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
@@ -37,6 +37,8 @@ module ActiveStorage::Service::SharedServiceTests
         assert_raises(ActiveStorage::IntegrityError) do
           @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad data"))
         end
+
+        assert_not @service.exist?(key)
       ensure
         @service.delete key
       end

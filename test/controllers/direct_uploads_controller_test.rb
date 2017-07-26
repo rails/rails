@@ -61,3 +61,21 @@ if SERVICE_CONFIGURATIONS[:gcs]
 else
   puts "Skipping GCS Direct Upload tests because no GCS configuration was supplied"
 end
+
+class ActiveStorage::DiskDirectUploadsControllerTest < ActionController::TestCase
+  setup do
+    @blob = create_blob
+    @routes = Routes
+    @controller = ActiveStorage::DirectUploadsController.new
+  end
+
+  test "creating new direct upload" do
+    post :create, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: Digest::MD5.base64digest("Hello"), content_type: "text/plain" } }
+
+    JSON.parse(@response.body).tap do |details|
+      assert_match /rails\/active_storage\/disk/, details["upload_to_url"]
+      assert_equal "hello.txt", ActiveStorage::Blob.find_signed(details["signed_blob_id"]).filename.to_s
+    end
+  end
+end

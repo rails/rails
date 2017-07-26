@@ -12,10 +12,25 @@ class ActiveStorage::DiskController < ActionController::Base
     end
   end
 
+  def update
+    if token = decode_verified_token
+      if acceptable_content?(token)
+        disk_service.upload token[:key], request.body, checksum: token[:checksum]
+      else
+        head :unprocessable_entity
+      end
+    else
+      head :not_found
+    end
+  rescue ActiveStorage::IntegrityError
+    head :unprocessable_entity
+  end
+
   private
     def disk_service
       ActiveStorage::Blob.service
     end
+
 
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
@@ -23,5 +38,16 @@ class ActiveStorage::DiskController < ActionController::Base
 
     def disposition_param
       params[:disposition].presence_in(%w( inline attachment )) || "inline"
+    end
+
+
+    def decode_verified_token
+      ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
+    end
+
+    # FIXME: Validate Content-Length when we're using integration tests. Controller tests don't
+    # populate the header properly when a request body is provided.
+    def acceptable_content?(token)
+      token[:content_type] == request.content_type
     end
 end
