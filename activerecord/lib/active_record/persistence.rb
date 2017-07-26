@@ -332,7 +332,7 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
+      updated_count = _relation_for_itself.update_all(attributes)
 
       attributes.each do |k, v|
         write_attribute_without_type_cast(k, v)
@@ -523,8 +523,7 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
+        scope = _relation_for_itself
 
         if locking_enabled?
           locking_column = self.class.locking_column
