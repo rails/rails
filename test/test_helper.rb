@@ -32,6 +32,8 @@ ActiveStorage::Service.logger = ActiveSupport::Logger.new(STDOUT)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
+  self.file_fixture_path = File.expand_path("../fixtures/files", __FILE__)
+
   private
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
@@ -39,18 +41,34 @@ class ActiveSupport::TestCase
 
     def create_image_blob(filename: "racecar.jpg", content_type: "image/jpeg")
       ActiveStorage::Blob.create_after_upload! \
-        io: File.open(File.expand_path("../fixtures/files/#{filename}", __FILE__)),
+        io: file_fixture(filename).open,
         filename: filename, content_type: content_type
     end
-
+  
     def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain")
       ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
     end
+  
 
-    def assert_same_image(fixture_filename, variant)
-      assert_equal \
-        File.binread(File.expand_path("../fixtures/files/#{fixture_filename}", __FILE__)),
-        File.binread(variant.service.send(:path_for, variant.key))
+    def assert_equal_image_dimensions(fixture_filename, variant)
+      expected_image, actual_image = read_image_fixture(fixture_filename), read_image_variant(variant)
+      
+      assert_equal expected_image.width, actual_image.width
+      assert_equal expected_image.height, actual_image.height
+    end
+
+    def assert_equal_image_colorspace(fixture_filename, variant)
+      expected_image, actual_image = read_image_fixture(fixture_filename), read_image_variant(variant)
+      
+      assert_equal expected_image.colorspace, actual_image.colorspace
+    end
+
+    def read_image_fixture(fixture_filename)
+      MiniMagick::Image.open file_fixture(fixture_filename)
+    end
+
+    def read_image_variant(variant)
+      MiniMagick::Image.open variant.service.send(:path_for, variant.key)
     end
 end
 
