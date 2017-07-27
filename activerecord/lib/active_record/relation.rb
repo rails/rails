@@ -376,48 +376,8 @@ module ActiveRecord
       @klass.connection.update stmt, "SQL"
     end
 
-    # Updates an object (or multiple objects) and saves it to the database, if validations pass.
-    # The resulting object is returned whether the object was saved successfully to the database or not.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes or an array of hashes.
-    #
-    # ==== Examples
-    #
-    #   # Updates one record
-    #   Person.update(15, user_name: 'Samuel', group: 'expert')
-    #
-    #   # Updates multiple records
-    #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
-    #   Person.update(people.keys, people.values)
-    #
-    #   # Updates multiple records from the result of a relation
-    #   people = Person.where(group: 'expert')
-    #   people.update(group: 'masters')
-    #
-    # Note: Updating a large number of records will run an
-    # UPDATE query for each record, which may cause a performance
-    # issue. When running callbacks is not needed for each record update,
-    # it is preferred to use #update_all for updating all records
-    # in a single query.
-    def update(id = :all, attributes)
-      if id.is_a?(Array)
-        id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
-      elsif id == :all
-        records.each { |record| record.update(attributes) }
-      else
-        if ActiveRecord::Base === id
-          raise ArgumentError, <<-MSG.squish
-            You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
-        object = find(id)
-        object.update(attributes)
-        object
-      end
+    def update(attributes) # :nodoc:
+      records.each { |record| record.update(attributes) }
     end
 
     # Destroys the records by instantiating each

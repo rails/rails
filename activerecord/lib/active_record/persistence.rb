@@ -71,6 +71,47 @@ module ActiveRecord
         klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
       end
 
+      # Updates an object (or multiple objects) and saves it to the database, if validations pass.
+      # The resulting object is returned whether the object was saved successfully to the database or not.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - This should be the id or an array of ids to be updated.
+      # * +attributes+ - This should be a hash of attributes or an array of hashes.
+      #
+      # ==== Examples
+      #
+      #   # Updates one record
+      #   Person.update(15, user_name: 'Samuel', group: 'expert')
+      #
+      #   # Updates multiple records
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+      #   Person.update(people.keys, people.values)
+      #
+      #   # Updates multiple records from the result of a relation
+      #   people = Person.where(group: 'expert')
+      #   people.update(group: 'masters')
+      #
+      # Note: Updating a large number of records will run an
+      # UPDATE query for each record, which may cause a performance
+      # issue. When running callbacks is not needed for each record update,
+      # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
+      # for updating all records in a single query.
+      def update(id, attributes)
+        if id.is_a?(Array)
+          id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = unscoped { find(id) }
+          object.update(attributes)
+          object
+        end
+      end
+
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
       # therefore all callbacks and filters are fired off before the object is deleted. This method is
       # less efficient than #delete but allows cleanup methods and other actions to be run.
