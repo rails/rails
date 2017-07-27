@@ -115,7 +115,11 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output
-      assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
+      if current_adapter?(:OracleAdapter)
+        assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
+      else
+        assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
+      end
       unless current_adapter?(:OracleAdapter)
         assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
         assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
