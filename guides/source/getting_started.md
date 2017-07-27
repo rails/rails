@@ -78,7 +78,7 @@ your prompt will look something like `c:\source_code>`
 ### Installing Rails
 
 Before you install Rails, you should check to make sure that your system has the
-proper prerequisites installed. These include Ruby and SQLite3.
+proper prerequisites installed. These include Ruby, NodeJS and SQLite3.
 
 Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
