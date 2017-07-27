@@ -59,7 +59,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
       generated_url =
         if defined?(Rails.application)
-          Rails.application.routes.url_helpers.rails_disk_blob_path \
+          Rails.application.routes.url_helpers.rails_disk_service_path \
             verified_key_with_expiration,
             disposition: disposition, filename: filename, content_type: content_type
         else
@@ -87,7 +87,7 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
 
       generated_url =
         if defined?(Rails.application)
-          Rails.application.routes.url_helpers.update_rails_disk_blob_path verified_token_with_expiration
+          Rails.application.routes.url_helpers.update_rails_disk_service_path verified_token_with_expiration
         else
           "/rails/active_storage/disk/#{verified_token_with_expiration}"
         end

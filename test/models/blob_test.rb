@@ -35,6 +35,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   private
     def expected_url_for(blob, disposition: :inline)
-      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{blob.filename}?disposition=#{disposition}&content_type=#{blob.content_type}"
+      query_string = { content_type: blob.content_type, disposition: disposition }.to_param
+      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{blob.filename}?#{query_string}"
     end
 end
