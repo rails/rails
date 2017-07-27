@@ -76,10 +76,10 @@ module ActiveSupport
 
       def /(other)
         if Duration === other
-          new_parts = other.parts.map { |part, other_value| [part, value / other_value] }.to_h
-          new_value = new_parts.inject(0) { |total, (part, value)| total + value * Duration::PARTS_IN_SECONDS[part] }
+          new_parts = other.parts.map { |part, other_value| [part, value / (Duration::PARTS_IN_SECONDS[part] * other_value)] }.to_h
+          new_value = new_parts.inject(0) { |total, (part, value)| total + value }
 
-          Duration.new(new_value, new_parts)
+          new_value
         else
           calculate(:/, other)
         end
@@ -235,7 +235,7 @@ module ActiveSupport
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
       if Scalar === other || Duration === other
-        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value] })
+        value / other.value
       elsif Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
       else
