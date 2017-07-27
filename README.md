@@ -96,6 +96,44 @@ Variation of image attachment:
 6. Optional: Add `gem "google-cloud-storage", "~> 1.3"` to your Gemfile if you want to use Google Cloud Storage.
 7. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
 
+## Direct uploads
+
+Active Storage, with its included JavaScript library, supports uploading directly from the client to the cloud.
+
+### Direct upload installation
+
+1. Include `activestorage.js` in your application's JavaScript bundle.
+
+    Using the asset pipeline:
+    ```js
+    //= require activestorage
+    ```
+    Using the npm package:
+    ```js
+    import * as ActiveStorage from "activestorage"
+    ActiveStorage.start()
+    ```
+2. Annotate file inputs with the direct upload URL.
+
+    ```ruby
+    <%= form.file_field :attachments, multiple: true, data: { direct_upload_url: rails_direct_uploads_url } %>
+    ```
+3. That's it! Uploads begin upon form submission.
+
+### Direct upload JavaScript events
+
+| Event name | Event target | Event data (`event.detail`) | Description |
+| --- | --- | --- | --- |
+| `direct-uploads:start` | `<form>` | None | A form containing files for direct upload fields was submit. |
+| `direct-upload:initialize` | `<input>` | `{id, file}` | Dispatched for every file after form submission. |
+| `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
+| `direct-upload:before-blob-request` | `<input>` | `{id, file, xhr}` | Before making a request to your application for direct upload metadata. |
+| `direct-upload:before-storage-request` | `<input>` | `{id, file, xhr}` | Before making a request to store a file. |
+| `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
+| `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
+| `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
+| `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
+
 ## Compatibility & Expectations
 
 Active Storage only works with the development version of Rails 5.2+ (as of July 19, 2017). This separate repository is a staging ground for the upcoming inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository.
