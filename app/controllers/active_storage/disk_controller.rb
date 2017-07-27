@@ -45,9 +45,7 @@ class ActiveStorage::DiskController < ActionController::Base
       ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
     end
 
-    # FIXME: Validate Content-Length when we're using integration tests. Controller tests don't
-    # populate the header properly when a request body is provided.
     def acceptable_content?(token)
-      token[:content_type] == request.content_type
+      token[:content_type] == request.content_type && token[:content_length] == request.content_length
     end
 end
