@@ -912,11 +912,29 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
   end
 
+  def test_class_level_destroy_isnt_affected_by_scoping
+    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_be_destroyed_reply
+
+    Topic.where("1=0").scoping { Topic.destroy(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
+  end
+
   def test_class_level_delete
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_be_destroyed_reply
 
     Topic.delete(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
+  end
+
+  def test_class_level_delete_isnt_affected_by_scoping
+    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_be_destroyed_reply
+
+    Topic.where("1=0").scoping { Topic.delete(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
   end
