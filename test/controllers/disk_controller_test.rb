@@ -18,6 +18,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal "text/plain", @response.headers["Content-Type"]
   end
 
+
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data)
