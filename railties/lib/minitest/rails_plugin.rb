@@ -26,6 +26,10 @@ module Minitest
       options[:color] = value
     end
 
+    opts.on("-s", "--silence-result-code", "Disable the result code output") do
+      options[:silence_result_code] = true
+    end
+
     options[:color] = true
     options[:output_inline] = true
   end

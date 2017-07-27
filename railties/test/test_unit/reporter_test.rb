@@ -125,6 +125,15 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     assert_no_match "Failed tests:", @output.string
   end
 
+  test "outputs does not print test result when silence_result_code is true" do
+    @output.stub(:tty?, true) do
+      colored = Rails::TestUnitReporter.new @output, color: true, silence_result_code: true
+      colored.record(passing_test)
+
+      assert_equal "", @output.string
+    end
+  end
+
   test "outputs colored passing results" do
     @output.stub(:tty?, true) do
       colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
