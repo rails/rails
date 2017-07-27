@@ -1,3 +1,13 @@
+*   Fix division where a duration is the denominator
+
+    PR #29163 introduced a change in behavior when a duration was the denominator
+    in a calculation - this was incorrect as dividing by a duration should always
+    return a `Numeric`. The behavior of previous versions of Rails has been restored.
+
+    Fixes #29592.
+
+    *Andrew White*
+
 *   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
    `ActiveSupport::MessageEncryptor`.
 

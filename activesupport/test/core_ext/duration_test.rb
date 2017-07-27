@@ -410,9 +410,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 5, scalar / 2
     assert_instance_of ActiveSupport::Duration::Scalar, scalar / 2
     assert_equal 10, 100.seconds / scalar
+    assert_instance_of ActiveSupport::Duration, 100.seconds / scalar
+    assert_equal 20, 2.seconds * scalar
     assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
     assert_equal 5, scalar / 2.seconds
-    assert_instance_of ActiveSupport::Duration, scalar / 2.seconds
+    assert_kind_of Integer, scalar / 2.seconds
 
     exception = assert_raises(TypeError) do
       scalar / "foo"
@@ -421,21 +423,23 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
   end
 
-  def test_scalar_divide_parts
-    scalar = ActiveSupport::Duration::Scalar.new(10)
-
-    assert_equal({ days: 2 }, (scalar / 5.days).parts)
-    assert_equal(172800, (scalar / 5.days).value)
-    assert_equal({ days: -2 }, (scalar / -5.days).parts)
-    assert_equal(-172800, (scalar / -5.days).value)
-  end
-
   def test_twelve_months_equals_one_year
     assert_equal 12.months, 1.year
   end
 
   def test_thirty_days_does_not_equal_one_month
     assert_not_equal 30.days, 1.month
+  end
+
+  def test_division
+    assert_equal 1.hour, 1.day / 24
+    assert_instance_of ActiveSupport::Duration, 1.day / 24
+
+    assert_equal 24, 86400 / 1.hour
+    assert_kind_of Integer, 86400 / 1.hour
+
+    assert_equal 24, 1.day / 1.hour
+    assert_kind_of Integer, 1.day / 1.hour
   end
 
   def test_adding_one_month_maintains_day_of_month
