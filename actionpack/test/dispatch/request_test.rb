@@ -874,8 +874,20 @@ class RequestFormat < BaseRequestTest
     end
   end
 
-  test "format does not throw exceptions when malformed parameters" do
+  test "format does not throw exceptions when malformed GET parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
+    assert request.formats
+    assert request.format.html?
+  end
+
+  test "format does not throw exceptions when invalid POST parameters" do
+    body = "{record:{content:24.12.1.146}}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => body.length,
+      "CONTENT_TYPE" => "application/json",
+      "rack.input" => StringIO.new(body)
+    )
     assert request.formats
     assert request.format.html?
   end
