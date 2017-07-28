@@ -10,6 +10,8 @@
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-preset-env": "^1.6.0",
+    "eslint": "^4.3.0",
+    "eslint-plugin-import": "^2.7.0",
     "spark-md5": "^3.0.0",
     "webpack": "^3.4.0"
   },
@@ -17,6 +19,8 @@
     "app/assets/javascripts/activestorage.js"
   ],
   "scripts": {
-    "build": "webpack -p"
+    "prebuild": "yarn lint",
+    "build": "webpack -p",
+    "lint": "eslint app/javascript"
   }
 }

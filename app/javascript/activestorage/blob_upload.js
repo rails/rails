@@ -19,7 +19,7 @@ export class BlobUpload {
   requestDidLoad(event) {
     const { status, response } = this.xhr
     if (status >= 200 && status < 300) {
-      this.callback(null, this.xhr.response)
+      this.callback(null, response)
     } else {
       this.requestDidError(event)
     }
