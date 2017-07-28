@@ -36,12 +36,14 @@ module ActiveRecord
         common = self - left
         right = other - common
 
-        return common if left.empty? || right.empty?
-
-        or_clause = WhereClause.new(
-          [left.ast.or(right.ast)]
-        )
-        common + or_clause
+        if left.empty? || right.empty?
+          common
+        else
+          or_clause = WhereClause.new(
+            [left.ast.or(right.ast)],
+          )
+          common + or_clause
+        end
       end
 
       def to_h(table_name = nil)

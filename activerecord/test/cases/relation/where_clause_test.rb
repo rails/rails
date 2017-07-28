@@ -182,36 +182,50 @@ class ActiveRecord::Relation
     end
 
     test "or places common conditions before the OR" do
-      wcs = (0..6).map do |i|
-        WhereClause.new([table["col_#{i}"].eq(bind_param(i))])
-      end
-
-      actual = wcs[0]
-      expected = wcs[0]
-
-      actual = (actual + wcs[1]).or(actual + wcs[2])
-      expected = expected + wcs[1].or(wcs[2])
-
-      actual = (actual + wcs[3] + wcs[4]).or(actual + wcs[5] + wcs[6])
-      expected = expected + (wcs[3] + wcs[4]).or(wcs[5] + wcs[6])
-
-      assert_equal expected, actual
-    end
-
-    test "or will use common conditions only if one side only has common conditions" do
-      common = WhereClause.new(
-        [table["id"].eq(bind_param(1)), "foo = bar"]
+      a = WhereClause.new(
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
+      )
+      b = WhereClause.new(
+        [table["id"].eq(bind_param(1)), table["hair_color"].eq(bind_param("black"))],
       )
 
-      extra = WhereClause.new([table["extra"].eq(bind_param("pluto"))])
+      common = WhereClause.new(
+        [table["id"].eq(bind_param(1))],
+      )
 
-      actual_extra_only_on_left = (common + extra).or(common)
-      actual_extra_only_on_right = (common).or(common + extra)
+      or_clause = WhereClause.new([table["name"].eq(bind_param("Sean"))])
+        .or(WhereClause.new([table["hair_color"].eq(bind_param("black"))]))
 
-      expected = common
+      assert_equal common + or_clause, a.or(b)
+    end
 
-      assert_equal expected, actual_extra_only_on_left
-      assert_equal expected, actual_extra_only_on_right
+    test "or can detect identical or as being a common condition" do
+      common_or = WhereClause.new([table["name"].eq(bind_param("Sean"))])
+        .or(WhereClause.new([table["hair_color"].eq(bind_param("black"))]))
+
+      a = common_or + WhereClause.new([table["id"].eq(bind_param(1))])
+      b = common_or + WhereClause.new([table["foo"].eq(bind_param("bar"))])
+
+      new_or = WhereClause.new([table["id"].eq(bind_param(1))])
+        .or(WhereClause.new([table["foo"].eq(bind_param("bar"))]))
+
+      assert_equal common_or + new_or, a.or(b)
+    end
+
+    test "or will use only common conditions if one side only has common conditions" do
+      only_common = WhereClause.new([
+        table["id"].eq(bind_param(1)),
+        "foo = bar",
+      ])
+
+      common_with_extra = WhereClause.new([
+        table["id"].eq(bind_param(1)),
+        "foo = bar",
+        table["extra"].eq(bind_param("pluto")),
+      ])
+
+      assert_equal only_common, only_common.or(common_with_extra)
+      assert_equal only_common, common_with_extra.or(only_common)
     end
 
     private
