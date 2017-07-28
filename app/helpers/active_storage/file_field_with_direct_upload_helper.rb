@@ -12,7 +12,7 @@ module ActiveStorage
 
     private
       def convert_direct_upload_option_to_url(options)
-        options.merge('data-direct-upload-url': rails_direct_uploads_url) if options.delete(:direct_upload)
+        options.merge('data-direct-upload-url': options.delete(:direct_upload) ? rails_direct_uploads_url : nil).compact
       end
   end
 end
