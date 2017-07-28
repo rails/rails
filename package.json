@@ -3,7 +3,17 @@
   "version": "0.1.0",
   "description": "Attach cloud and local files in Rails applications",
   "main": "app/assets/javascripts/activestorage.js",
-  "repository": "git+https://github.com/rails/activestorage.git",
+  "files": [
+    "app/assets/javascripts/*.js"
+  ],
+  "homepage": "https://github.com/rails/activestorage",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rails/activestorage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rails/activestorage/issues"
+  },
   "author": "Javan Makhmali <javan@javan.us>",
   "license": "MIT",
   "devDependencies": {
@@ -15,9 +25,6 @@
     "spark-md5": "^3.0.0",
     "webpack": "^3.4.0"
   },
-  "files": [
-    "app/assets/javascripts/activestorage.js"
-  ],
   "scripts": {
     "prebuild": "yarn lint",
     "build": "webpack -p",
