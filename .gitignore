@@ -12,7 +12,6 @@ pkg
 /*/doc
 /*/test/tmp
 /activerecord/sqlnet.log
-/activemodel/test/fixtures/fixture_database.sqlite3
 /activestorage/test/service/configurations.yml
 /guides/output
 node_modules/
