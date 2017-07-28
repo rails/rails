@@ -92,8 +92,8 @@ module ActiveRecord
 
     def substitute_values(values) # :nodoc:
       values.map do |arel_attr, value|
-        bind = QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-        [arel_attr, Arel::Nodes::BindParam.new(bind)]
+        bind = predicate_builder.build_bind_attribute(arel_attr.name, value)
+        [arel_attr, bind]
       end
     end
 
