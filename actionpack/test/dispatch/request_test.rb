@@ -886,10 +886,14 @@ class RequestFormat < BaseRequestTest
       "REQUEST_METHOD" => "POST",
       "CONTENT_LENGTH" => body.length,
       "CONTENT_TYPE" => "application/json",
-      "rack.input" => StringIO.new(body)
+      "rack.input" => StringIO.new(body),
+      "action_dispatch.logger" => Logger.new(output = StringIO.new)
     )
     assert request.formats
     assert request.format.html?
+
+    output.rewind && (err = output.read)
+    assert err =~ /Error occurred while parsing request parameters/
   end
 
   test "formats with xhr request" do

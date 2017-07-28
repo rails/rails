@@ -60,7 +60,7 @@ module ActionDispatch
         fetch_header("action_dispatch.request.formats") do |k|
           params_readable = begin
                               parameters[:format]
-                            rescue ActionController::BadRequest
+                            rescue ActionController::BadRequest, Parameters::ParseError
                               false
                             end
 
