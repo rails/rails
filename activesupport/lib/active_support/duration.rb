@@ -82,6 +82,17 @@ module ActiveSupport
         end
       end
 
+      def %(other)
+        if Duration === other
+          new_parts = other.parts.map { |part, other_value| [:seconds, value % (other_value * PARTS_IN_SECONDS[part])] }.to_h
+          new_value = value % other.value
+
+          Duration.new(new_value, new_parts)
+        else
+          calculate(:%, other)
+        end
+      end
+
       private
         def calculate(op, other)
           if Scalar === other
@@ -237,6 +248,21 @@ module ActiveSupport
         value / other.value
       elsif Numeric === other
         Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+      else
+        raise_type_error(other)
+      end
+    end
+
+    # Performs modulo operation on this Duration by a Numeric and returns a new Duration in seconds.
+    def %(other)
+      if Scalar === other || Duration === other
+        new_parts = other.parts.map { |type, other_value| [:seconds, value % (other_value * PARTS_IN_SECONDS[type])] }.to_h
+        new_value = value % other.value
+
+        Duration.new(new_value, new_parts)
+      elsif Numeric === other
+        other_value = other * PARTS_IN_SECONDS[parts.keys.first]
+        Duration.new(value % other_value, parts.map { |type, number| [:seconds, (number * PARTS_IN_SECONDS[type]) % other_value ] })
       else
         raise_type_error(other)
       end
