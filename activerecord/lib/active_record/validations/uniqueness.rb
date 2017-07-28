@@ -78,10 +78,7 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        klass.unscoped.tap do |scope|
-          parts = [comparison]
-          scope.where_clause += Relation::WhereClause.new(parts)
-        end
+        klass.unscoped.where!(comparison)
       end
 
       def scope_relation(record, relation)
