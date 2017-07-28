@@ -63,6 +63,7 @@ DEFAULT_APP_FILES = %w(
   config/routes.rb
   config/secrets.yml
   config/spring.rb
+  config/storage_services.yml
   db
   db/seeds.rb
   lib
