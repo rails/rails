@@ -22,4 +22,4 @@ pkg
 /railties/tmp
 /guides/output
 node_modules/
-/actionview/log
+package-lock.json
