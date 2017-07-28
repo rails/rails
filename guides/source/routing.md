@@ -418,7 +418,7 @@ resources :articles do
 end
 ```
 
-Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
+Also you can use them in any place that you want inside the routes, for example in a `scope` or `namespace` call:
 
 ```ruby
 namespace :articles do
@@ -808,14 +808,14 @@ NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesContr
 
 If you specify a Rack application as the endpoint for a matcher, remember that
 the route will be unchanged in the receiving application. With the following
-route your Rack application should expect the route to be '/admin':
+route your Rack application should expect the route to be `/admin`:
 
 ```ruby
 match '/admin', to: AdminApp, via: :all
 ```
 
 If you would prefer to have your Rack application receive requests at the root
-path instead, use mount:
+path instead, use `mount`:
 
 ```ruby
 mount AdminApp, at: '/admin'
