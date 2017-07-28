@@ -11,6 +11,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
+  test "inquery type" do
+    blob = create_blob data: "Hello world!"
+    assert blob.type.text?
+    assert_not blob.type.audio?
+  end
+
   test "download yields chunks" do
     blob   = create_blob data: "a" * 75.kilobytes
     chunks = []

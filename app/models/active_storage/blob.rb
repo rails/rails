@@ -84,6 +84,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  # Returns a `StringInquirer` based on the content_type that is broken into text, image, audio, video, pdf, or,
+  # the catch-all, file. Example: `messages.attachments.select(&:image?)`.
+  def type
+    @type ||=
+      case content_type
+      when /^text/  then 'text'
+      when /^image/ then 'image'
+      when /^audio/ then 'audio'
+      when /^video/ then 'video'
+      when /pdf/    then 'pdf'
+      else 'file'
+      end.inquiry
+  end
+
   # Returns a `ActiveStorage::Variant` instance with the set of `transformations` passed in. This is only relevant
   # for image files, and it allows any image to be transformed for size, colors, and the like. Example:
   #
