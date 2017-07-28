@@ -881,7 +881,7 @@ class RequestFormat < BaseRequestTest
   end
 
   test "format does not throw exceptions when invalid POST parameters" do
-    body = "{record:{content:24.12.1.146}}"
+    body = "{record:{content:127.0.0.1}}"
     request = stub_request(
       "REQUEST_METHOD" => "POST",
       "CONTENT_LENGTH" => body.length,
