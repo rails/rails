@@ -67,12 +67,11 @@ module ActiveRecord
         end
 
         attribute_name = attribute.to_s
+        value = klass.predicate_builder.build_bind_attribute(attribute_name, value)
 
         table = klass.arel_table
         column = klass.columns_hash[attribute_name]
-        cast_type = klass.type_for_attribute(attribute_name)
 
-        value = Relation::QueryAttribute.new(attribute_name, value, cast_type)
         comparison = if !options[:case_sensitive]
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
