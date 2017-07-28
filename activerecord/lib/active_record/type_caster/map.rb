@@ -11,6 +11,8 @@ module ActiveRecord
         return value if value.is_a?(Arel::Nodes::BindParam)
         type = types.type_for_attribute(attr_name.to_s)
         type.serialize(value)
+      rescue ::RangeError
+        type.cast(value)
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.
