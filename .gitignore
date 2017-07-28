@@ -11,7 +11,6 @@ pkg
 /doc/rdoc
 /*/doc
 /*/test/tmp
-/activerecord/sqlnet.log
 /activestorage/test/service/configurations.yml
 /guides/output
 node_modules/
