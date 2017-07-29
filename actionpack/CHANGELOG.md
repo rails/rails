@@ -1,4 +1,4 @@
-*   Use `path_parameters_utf8_enforced` instead of `path_parameters`
+*   Force path parameters to be UTF-8
 
     *Tsukuru Tanimichi*
 
