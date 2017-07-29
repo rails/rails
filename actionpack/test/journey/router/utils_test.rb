@@ -40,7 +40,7 @@ module ActionDispatch
         end
 
         def test_normalize_path_with_nil
-          assert_equal '/', Utils.normalize_path(nil)
+          assert_equal "/", Utils.normalize_path(nil)
         end
       end
     end

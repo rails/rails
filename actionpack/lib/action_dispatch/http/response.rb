@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require_relative "filter_redirect"
 require_relative "cache"

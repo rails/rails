@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # This middleware can be used to diagnose deadlocks in the autoload interlock.
   #

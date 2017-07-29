@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../middleware/cookies"
 require_relative "../middleware/flash"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view"
 require_relative "log_subscriber"
 require_relative "metal/params_wrapper"

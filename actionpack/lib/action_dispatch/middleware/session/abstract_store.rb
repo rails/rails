@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"

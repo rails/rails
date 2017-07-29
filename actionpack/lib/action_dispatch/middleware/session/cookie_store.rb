@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 require_relative "abstract_store"
 require "rack/session/cookie"
