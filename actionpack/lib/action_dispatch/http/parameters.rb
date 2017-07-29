@@ -54,8 +54,14 @@ module ActionDispatch
                  rescue EOFError
                    query_parameters.dup
                  end
-        params.merge!(path_parameters_utf8_enforced)
-        params = set_binary_encoding(params)
+        params.merge!(path_parameters)
+
+        params = if binary_params_for?(path_parameters[:action])
+                   Request::Utils.change_param_encoding(params, ::Encoding::ASCII_8BIT)
+                 else
+                   Request::Utils.change_param_encoding(params, ::Encoding::UTF_8)
+                 end
+
         set_header("action_dispatch.request.parameters", params)
         params
       end
@@ -82,20 +88,6 @@ module ActionDispatch
       end
 
       private
-
-        def set_binary_encoding(params)
-          action = params[:action]
-          if binary_params_for?(action)
-            ActionDispatch::Request::Utils.each_param_value(params) do |param|
-              param.force_encoding ::Encoding::ASCII_8BIT
-            end
-          end
-          params
-        end
-
-        def path_parameters_utf8_enforced
-          ActionDispatch::Request::Utils.change_param_encoding(path_parameters, ::Encoding::UTF_8)
-        end
 
         def binary_params_for?(action)
           controller_class.binary_params_for?(action)
