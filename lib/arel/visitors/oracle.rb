@@ -29,7 +29,6 @@ module Arel
           collector = super(o, collector)
 
           if offset.expr.is_a? Nodes::BindParam
-            offset_bind = nil
             collector << ') raw_sql_ WHERE rownum <= ('
             collector = visit offset.expr, collector
             collector << ' + '
