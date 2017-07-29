@@ -1,5 +1,6 @@
 require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
+require "rails/test_unit/runner"
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -10,6 +11,8 @@ module Minitest
   end
 
   def self.plugin_rails_options(opts, options)
+    Rails::TestUnit::Runner.attach_before_load_options(opts)
+
     opts.on("-b", "--backtrace", "Show the complete backtrace") do
       options[:full_backtrace] = true
     end
