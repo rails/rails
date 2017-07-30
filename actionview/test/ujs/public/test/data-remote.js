@@ -411,7 +411,7 @@ asyncTest('form buttons should only be serialized when clicked', 4, function() {
 asyncTest('changing a select option without "data-url" attribute still fires ajax request to current location', 1, function() {
   var currentLocation, ajaxLocation
 
-  buildSelect({'data-url': ''});
+  buildSelect({'data-url': ''})
 
   $('select[data-remote]')
     .bindNative('ajax:beforeSend', function(e, xhr, settings) {
