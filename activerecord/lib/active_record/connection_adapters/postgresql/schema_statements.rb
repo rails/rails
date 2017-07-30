@@ -224,7 +224,7 @@ module ActiveRecord
 
         # Sets the schema search path to a string of comma-separated schema names.
         # Names beginning with $ have to be quoted (e.g. $user => '$user').
-        # See: http://www.postgresql.org/docs/current/static/ddl-schemas.html
+        # See: https://www.postgresql.org/docs/current/static/ddl-schemas.html
         #
         # This should be not be called manually but set in database.yml.
         def schema_search_path=(schema_csv)
