@@ -119,9 +119,9 @@ module ActiveRecord
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
+      include PostgreSQL::SchemaDumper
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
-      include PostgreSQL::ColumnDumper
 
       def supports_index_sort_order?
         true

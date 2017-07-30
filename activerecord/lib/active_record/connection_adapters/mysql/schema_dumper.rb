@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      module ColumnDumper # :nodoc:
+      module SchemaDumper # :nodoc:
         def prepare_column_options(column)
           spec = super
           spec[:unsigned] = "true" if column.unsigned?

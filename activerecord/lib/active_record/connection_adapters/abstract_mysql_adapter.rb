@@ -17,7 +17,7 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
-      include MySQL::ColumnDumper
+      include MySQL::SchemaDumper
       include MySQL::SchemaStatements
 
       def update_table_definition(table_name, base) # :nodoc:
