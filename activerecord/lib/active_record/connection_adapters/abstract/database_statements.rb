@@ -227,7 +227,7 @@ module ActiveRecord
       # You should consult the documentation for your database to understand the
       # semantics of these different levels:
       #
-      # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+      # * https://www.postgresql.org/docs/current/static/transaction-iso.html
       # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
