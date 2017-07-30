@@ -68,6 +68,10 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
     end
   end
 
+  def headers_for_direct_upload(key, content_type:, checksum:, **)
+    { "Content-Type" => content_type, "Content-MD5" => checksum }
+  end
+
   private
     def file_for(key)
       bucket.file(key)

@@ -3,10 +3,13 @@ export class BlobUpload {
     this.blob = blob
     this.file = blob.file
 
+    const { url, headers } = blob.directUploadData
+
     this.xhr = new XMLHttpRequest
-    this.xhr.open("PUT", blob.uploadURL, true)
-    this.xhr.setRequestHeader("Content-Type", blob.attributes.content_type)
-    this.xhr.setRequestHeader("Content-MD5", blob.attributes.checksum)
+    this.xhr.open("PUT", url, true)
+    for (const key in headers) {
+      this.xhr.setRequestHeader(key, headers[key])
+    }
     this.xhr.addEventListener("load", event => this.requestDidLoad(event))
     this.xhr.addEventListener("error", event => this.requestDidError(event))
   }

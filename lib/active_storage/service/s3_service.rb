@@ -72,6 +72,10 @@ class ActiveStorage::Service::S3Service < ActiveStorage::Service
     end
   end
 
+  def headers_for_direct_upload(key, content_type:, checksum:, **)
+    { "Content-Type" => content_type, "Content-MD5" => checksum }
+  end
+
   private
     def object_for(key)
       bucket.object(key)

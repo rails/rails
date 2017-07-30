@@ -98,6 +98,10 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
     end
   end
 
+  def headers_for_direct_upload(key, content_type:, **)
+    { "Content-Type" => content_type }
+  end
+
   private
     def path_for(key)
       File.join root, folder_for(key), key

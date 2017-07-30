@@ -30,8 +30,10 @@ export class BlobRecord {
   requestDidLoad(event) {
     const { status, response } = this.xhr
     if (status >= 200 && status < 300) {
-      this.attributes.signed_id = response.signed_blob_id
-      this.uploadURL = response.upload_to_url
+      const { direct_upload } = response
+      delete response.direct_upload
+      this.attributes = response
+      this.directUploadData = direct_upload
       this.callback(null, this.toJSON())
     } else {
       this.requestDidError(event)

@@ -63,14 +63,14 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
-  
+
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   # It uses the framework-wide verifier on `ActiveStorage.verifier`, but with a dedicated purpose.
   def signed_id
     ActiveStorage.verifier.generate(id, purpose: :blob_id)
   end
 
-  # Returns the key pointing to the file on the service that's associated with this blob. The key is in the 
+  # Returns the key pointing to the file on the service that's associated with this blob. The key is in the
   # standard secure-token format from Rails. So it'll look like: XTAPjJCJiuDrLk3TmwyJGpUo. This key is not intended
   # to be revealed directly to the user. Always refer to blobs using the signed_id or a verified form of the key.
   def key
@@ -130,6 +130,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
+  # Returns a Hash of headers for `service_url_for_direct_upload` requests.
+  def service_headers_for_direct_upload
+    service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
+  end
 
   # Uploads the `io` to the service on the `key` for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
@@ -175,7 +179,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   def purge_later
     ActiveStorage::PurgeJob.perform_later(self)
   end
-
 
   private
     def compute_checksum_in_chunks(io)
