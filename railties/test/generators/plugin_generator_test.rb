@@ -530,10 +530,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     gemfile_path = "#{Rails.root}/Gemfile"
     Object.const_set("APP_PATH", Rails.root)
     FileUtils.touch gemfile_path
+    File.write(gemfile_path, "#foo")
 
     run_generator
 
-    assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
+    assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
   ensure
     Object.send(:remove_const, "APP_PATH")
     FileUtils.rm gemfile_path
