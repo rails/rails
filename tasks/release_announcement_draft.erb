@@ -5,7 +5,7 @@ I am happy to announce that Rails <%= versions.join(" and ") %> <%= versions.siz
 <% if future_date %>
 If no regressions are found, expect the final release on <%= future_date.strftime("%A, %B %-d, %Y") %>.
 If you find one, please open an [issue on GitHub](https://github.com/rails/rails/issues/new)
-<%= "and mention me (@github_user}) on it, " unless github_user.empty? %>so that we can fix it before the final release.
+<%= "and mention me (@#{github_user}) on it, " unless github_user.empty? %>so that we can fix it before the final release.
 <% end %>
 <% versions.each do |version| %>
 
