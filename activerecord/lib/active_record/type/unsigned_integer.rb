@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Type
-    class UnsignedInteger < ActiveModel::Type::Integer # :nodoc:
+    class UnsignedInteger < Integer # :nodoc:
       private
 
         def max_value
