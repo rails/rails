@@ -1,3 +1,8 @@
+## Rails 5.1.3.rc3 (July 31, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.1.3.rc2 (July 25, 2017) ##
 
 *   Regression fix: Allow `bin/rails test` to take absolute paths to tests.
