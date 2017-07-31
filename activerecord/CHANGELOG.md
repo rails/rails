@@ -1,4 +1,4 @@
-*   When using #or, extract the common conditions and put them before the OR condition.
+*   When using `Relation#or`, extract the common conditions and put them before the OR condition.
 
     *Maxime Handfield Lapointe*
 
