@@ -13,7 +13,6 @@ Rails.application.configure do
   config.consider_all_requests_local = true
 
   # Enable/disable caching. By default caching is disabled.
-  # Run rails dev:cache to toggle caching.
   if Rails.root.join('tmp/caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
@@ -27,25 +26,12 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
-  # Store uploaded files on the local file system (see config/storage_services.yml for options)
-  config.active_storage.service = :local
-  <%- unless options.skip_action_mailer? -%>
-
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
-
-  config.action_mailer.perform_caching = false
-  <%- end -%>
-
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
-  <%- unless options.skip_active_record? -%>
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
-  <%- end -%>
-  <%- unless options.skip_sprockets? -%>
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
@@ -53,12 +39,11 @@ Rails.application.configure do
 
   # Suppress logger output for asset requests.
   config.assets.quiet = true
-  <%- end -%>
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  <%= '# ' unless depend_on_listen? %>config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+  # config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 end
