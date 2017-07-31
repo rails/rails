@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/rails/activestorage"
   s.license  = "MIT"
 
-  s.required_ruby_version = ">= 2.3.0"
+  s.required_ruby_version = ">= 2.2.2"
 
   s.add_dependency "rails", ">= 5.2.0.alpha"
 

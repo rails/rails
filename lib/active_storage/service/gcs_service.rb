@@ -32,7 +32,7 @@ class ActiveStorage::Service::GCSService < ActiveStorage::Service
 
   def delete(key)
     instrument :delete, key do
-      file_for(key)&.delete
+      file_for(key).try(:delete)
     end
   end
 
