@@ -4,6 +4,7 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .gitignore
+  .ruby-version
   README.md
   Gemfile
   Rakefile
@@ -802,6 +803,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".gitignore" do |content|
       assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_inclusion_of_ruby_version
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/ruby '#{RUBY_VERSION}'/, content)
+    end
+    assert_file ".ruby-version" do |content|
+      assert_match(/#{RUBY_VERSION}/, content)
     end
   end
 
