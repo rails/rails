@@ -1,3 +1,5 @@
+## Rails 5.1.3.rc3 (July 31, 2017) ##
+
 *   Fix modulo operations involving durations
 
     Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper
@@ -29,6 +31,12 @@
     Fixes #29592.
 
     *Andrew White*
+
+
+## Rails 5.1.3.rc2 (July 25, 2017) ##
+
+*   No changes.
+
 
 ## Rails 5.1.3.rc1 (July 19, 2017) ##
 
