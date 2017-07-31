@@ -4,7 +4,7 @@ version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = "activejob"
+  s.name        = "activestorage"
   s.version     = version
   s.summary     = "Local and cloud file storage framework."
   s.description = "Attach cloud and local files in Rails applications."
