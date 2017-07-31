@@ -122,9 +122,10 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist = File.exist?("config/cable.yml")
-      rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
-      assets_config_exist = File.exist?("config/initializers/assets.rb")
+      action_cable_config_exist      = File.exist?("config/cable.yml")
+      active_storage_config_exist    = File.exist?("config/storage.yml")
+      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
+      assets_config_exist            = File.exist?("config/initializers/assets.rb")
 
       config
 
@@ -134,6 +135,10 @@ module Rails
 
       if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
+      end
+
+      if !active_storage_config_exist
+        template "config/storage.yml"
       end
 
       unless rack_cors_config_exist

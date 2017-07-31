@@ -31,7 +31,7 @@ module ActiveStorage
     initializer "active_storage.services" do
       config.after_initialize do |app|
         if config_choice = app.config.active_storage.service
-          config_file = Pathname.new(Rails.root.join("config/storage_services.yml"))
+          config_file = Pathname.new(Rails.root.join("config/storage.yml"))
           raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
           require "yaml"

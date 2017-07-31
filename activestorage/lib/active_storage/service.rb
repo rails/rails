@@ -10,7 +10,7 @@ require "active_storage/log_subscriber"
 # * +Mirror+, to be able to use several services to manage attachments.
 #
 # Inside a Rails application, you can set-up your services through the
-# generated <tt>config/storage_services.yml</tt> file and reference one
+# generated <tt>config/storage.yml</tt> file and reference one
 # of the aforementioned constant under the +service+ key. For example:
 #
 #   local:
