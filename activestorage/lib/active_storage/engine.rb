@@ -1,4 +1,7 @@
-require "rails/engine"
+# frozen_string_literal: true
+
+require "rails"
+require "active_storage"
 
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
