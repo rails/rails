@@ -398,7 +398,7 @@ module ActiveRecord
         if attributes.respond_to?(:permitted?)
           attributes = attributes.to_h
         end
-        attributes = attributes.with_indifferent_access
+        attributes = (attributes || {}).with_indifferent_access
         existing_record = send(association_name)
 
         if (options[:update_only] || !attributes["id"].blank?) && existing_record &&

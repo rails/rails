@@ -232,6 +232,10 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?", exception.message
   end
 
+  def test_should_assign_nil_to_association_when_nil
+    assert_nil(Pirate.new(ship_attributes: nil).ship)
+  end
+
   def test_should_define_an_attribute_writer_method_for_the_association
     assert_respond_to @pirate, :ship_attributes=
   end
