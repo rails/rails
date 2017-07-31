@@ -15,6 +15,12 @@ module ActiveRecord
         )
       end
 
+      def -(other)
+        WhereClause.new(
+          predicates - other.predicates,
+        )
+      end
+
       def merge(other)
         WhereClause.new(
           predicates_unreferenced_by(other) + other.predicates,
@@ -26,14 +32,17 @@ module ActiveRecord
       end
 
       def or(other)
-        if empty?
-          self
-        elsif other.empty?
-          other
+        left = self - other
+        common = self - left
+        right = other - common
+
+        if left.empty? || right.empty?
+          common
         else
-          WhereClause.new(
-            [ast.or(other.ast)],
+          or_clause = WhereClause.new(
+            [left.ast.or(right.ast)],
           )
+          common + or_clause
         end
       end
 
