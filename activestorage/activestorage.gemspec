@@ -1,18 +1,30 @@
+# frozen_string_literal: true
+
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
+
 Gem::Specification.new do |s|
-  s.name     = "activestorage"
-  s.version  = "0.1"
-  s.authors  = "David Heinemeier Hansson"
-  s.email    = "david@basecamp.com"
-  s.summary  = "Attach cloud and local files in Rails applications"
-  s.homepage = "https://github.com/rails/activestorage"
-  s.license  = "MIT"
+  s.platform    = Gem::Platform::RUBY
+  s.name        = "activejob"
+  s.version     = version
+  s.summary     = "Local and cloud file storage framework."
+  s.description = "Attach cloud and local files in Rails applications."
 
   s.required_ruby_version = ">= 2.2.2"
 
-  s.add_dependency "rails", ">= 5.2.0.alpha"
+  s.license = "MIT"
 
-  s.add_development_dependency "bundler", "~> 1.15"
+  s.author   = "David Heinemeier Hansson"
+  s.email    = "david@loudthinking.com"
+  s.homepage = "http://rubyonrails.org"
 
-  s.files      = `git ls-files`.split("\n")
-  s.test_files = `git ls-files -- test/*`.split("\n")
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*"]
+  s.require_path = "lib"
+
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activestorage",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activestorage/CHANGELOG.md"
+  }
+
+  s.add_dependency "actionpack", version
+  s.add_dependency "activerecord", version
 end
