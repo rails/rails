@@ -1,4 +1,13 @@
 GIT
+  remote: https://github.com/dixpac/azure-ruby-asm-core.git
+  revision: 4403389747f44a94b73e7a7522d1ea11f8b1a266
+  specs:
+    azure-core (0.1.8)
+      faraday (~> 0.9)
+      faraday_middleware (~> 0.10)
+      nokogiri (~> 1.7)
+
+GIT
   remote: https://github.com/rails/rails.git
   revision: 127b475dc251a06942fe0cd2de2e0545cf5ed69f
   specs:
@@ -79,6 +88,11 @@ GEM
     aws-sdk-resources (2.10.7)
       aws-sdk-core (= 2.10.7)
     aws-sigv4 (1.0.0)
+    azure-storage (0.11.4.preview)
+      azure-core (~> 0.1)
+      faraday (~> 0.9)
+      faraday_middleware (~> 0.10)
+      nokogiri (~> 1.6)
     builder (3.2.3)
     byebug (9.0.6)
     concurrent-ruby (1.0.5)
@@ -88,6 +102,8 @@ GEM
     erubi (1.6.1)
     faraday (0.12.1)
       multipart-post (>= 1.2, < 3)
+    faraday_middleware (0.12.0)
+      faraday (>= 0.7.4, < 1.0)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
     google-api-client (0.13.0)
@@ -201,6 +217,8 @@ PLATFORMS
 DEPENDENCIES
   activestorage!
   aws-sdk (~> 2)
+  azure-core!
+  azure-storage
   bundler (~> 1.15)
   byebug
   google-cloud-storage (~> 1.3)
