@@ -178,6 +178,11 @@ module Rails
       directory "public", "public", recursive: false
     end
 
+    def storage
+      empty_directory_with_keep_file "storage"
+      empty_directory_with_keep_file "tmp/storage"
+    end
+
     def test
       empty_directory_with_keep_file "test/fixtures"
       empty_directory_with_keep_file "test/fixtures/files"
