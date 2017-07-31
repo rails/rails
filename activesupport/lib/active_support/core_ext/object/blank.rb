@@ -42,8 +42,8 @@ class Object
   #   region = params[:state].presence || params[:country].presence || 'US'
   #
   # @return [Object]
-  def presence
-    self if present?
+  def presence(object = nil)
+    present? ? self : object
   end
 end
 
