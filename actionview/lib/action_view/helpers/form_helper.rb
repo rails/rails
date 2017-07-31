@@ -1193,7 +1193,7 @@ module ActionView
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
-        Tags::FileField.new(object_name, method, self, options).render
+        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options)).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -2315,6 +2315,10 @@ module ActionView
           if options.key?(:skip_id)
             options[:include_id] = !options.delete(:skip_id)
           end
+        end
+
+        def convert_direct_upload_option_to_url(options)
+          options.merge('data-direct-upload-url': options.delete(:direct_upload) ? rails_direct_uploads_url : nil).compact
         end
     end
   end
