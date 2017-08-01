@@ -21,6 +21,14 @@ local:
 #   keyfile: <%= Rails.root.join("path/to/gcs.keyfile") %>
 #   bucket: your_own_bucket
 
+# Use rails secrets:edit to set the Azure secret (as shared:azure:storage_access_key)
+# microsoft:
+#   service: Azure
+#   path: your_azure_storage_path
+#   storage_account_name: your_account_name
+#   storage_access_key: <%= Rails.application.secrets.dig(:azure, :storage_access_key) %>
+#   container: your_container_name
+
 # mirror:
 #   service: Mirror
 #   primary: local
