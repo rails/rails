@@ -4414,6 +4414,10 @@ end
 
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
+    def self.binary_params_for?(action)
+      action == "show"
+    end
+
     def show
       render plain: "foo#show"
     end
