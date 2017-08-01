@@ -522,6 +522,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
+    elsif RUBY_PLATFORM =~ /mingw|mswin/
+      assert_gem "duktape"
     else
       assert_file "Gemfile", /# gem 'mini_racer', platforms: :ruby/
     end
