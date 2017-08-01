@@ -163,7 +163,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
 
     assert_not_nil permitted[:book][:authors_attributes]["0"]
     assert_not_nil permitted[:book][:authors_attributes]["1"]
-    assert_empty permitted[:book][:authors_attributes]["new_record"]
+    assert_nil permitted[:book][:authors_attributes]["new_record"]
     assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
     assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
 
