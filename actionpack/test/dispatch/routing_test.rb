@@ -4416,6 +4416,10 @@ end
 
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
+    def self.binary_params_for?(action)
+      action == "show"
+    end
+
     def show
       render plain: "foo#show"
     end
@@ -4437,19 +4441,19 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       end
 
       get "/%E2%EF%BF%BD%A6"
-      assert_response :not_found
+      assert_response :bad_request
 
       get "/foo/%E2%EF%BF%BD%A6"
-      assert_response :not_found
+      assert_response :bad_request
 
       get "/foo/show/%E2%EF%BF%BD%A6"
       assert_response :ok
 
       get "/bar/%E2%EF%BF%BD%A6"
-      assert_response :redirect
+      assert_response :bad_request
 
       get "/foobar/%E2%EF%BF%BD%A6"
-      assert_response :ok
+      assert_response :bad_request
     end
   end
 end
