@@ -216,6 +216,12 @@ module ActionController
     #    config.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
+    class << self
+      def field_style_valid?(k = nil, v = nil)
+        k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters))
+      end
+    end
+
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
@@ -800,7 +806,7 @@ module ActionController
       end
 
       def fields_for_style?
-        @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }
+        @parameters.any? { |k, v| Parameters.field_style_valid?(k, v) }
       end
 
     private
@@ -852,7 +858,7 @@ module ActionController
         when Parameters
           if object.fields_for_style?
             hash = object.class.new
-            object.each { |k, v| hash[k] = yield v }
+            object.each { |k, v| hash[k] = yield v if Parameters.field_style_valid?(k, v) }
             hash
           else
             yield object
