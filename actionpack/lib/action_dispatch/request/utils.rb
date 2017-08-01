@@ -5,17 +5,6 @@ module ActionDispatch
     class Utils # :nodoc:
       mattr_accessor :perform_deep_munge, default: true
 
-      def self.each_param_value(params, &block)
-        case params
-        when Array
-          params.each { |element| each_param_value(element, &block) }
-        when Hash
-          params.each_value { |value| each_param_value(value, &block) }
-        when String
-          block.call params
-        end
-      end
-
       def self.normalize_encode_params(params)
         if perform_deep_munge
           NoNilParamEncoder.normalize_encode_params params
@@ -36,6 +25,21 @@ module ActionDispatch
             # ActionDispatch::Request#GET will re-raise as a BadRequest error.
             raise Rack::Utils::InvalidParameterError, "Invalid encoding for parameter: #{params.scrub}"
           end
+        end
+      end
+
+      def self.change_param_encoding(params, encoding)
+        case params
+        when Array
+          params.map { |element| change_param_encoding(element, encoding) }
+        when Hash
+          hash = params.dup
+          hash.each_pair { |key, value| hash[key] = change_param_encoding(value, encoding) }
+          hash
+        when String
+          params.dup.force_encoding(encoding)
+        else
+          params
         end
       end
 

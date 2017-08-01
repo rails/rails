@@ -57,7 +57,13 @@ module ActionDispatch
                    query_parameters.dup
                  end
         params.merge!(path_parameters)
-        params = set_binary_encoding(params)
+
+        params = if binary_params_for?(path_parameters[:action])
+                   Request::Utils.change_param_encoding(params, ::Encoding::ASCII_8BIT)
+                 else
+                   Request::Utils.change_param_encoding(params, ::Encoding::UTF_8)
+                 end
+
         set_header("action_dispatch.request.parameters", params)
         params
       end
@@ -84,16 +90,6 @@ module ActionDispatch
       end
 
       private
-
-        def set_binary_encoding(params)
-          action = params[:action]
-          if binary_params_for?(action)
-            ActionDispatch::Request::Utils.each_param_value(params) do |param|
-              param.force_encoding ::Encoding::ASCII_8BIT
-            end
-          end
-          params
-        end
 
         def binary_params_for?(action)
           controller_class.binary_params_for?(action)

@@ -1,3 +1,7 @@
+*   Force path parameters to be UTF-8
+
+    *Tsukuru Tanimichi*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,
