@@ -348,6 +348,8 @@ module Rails
         comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
+        elsif RUBY_PLATFORM =~ /mingw|mswin/
+          GemfileEntry.version "duktape", nil, comment
         else
           GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
         end

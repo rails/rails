@@ -216,9 +216,9 @@ module Rails
 
       # Runs the supplied rake task (invoked with 'rails ...')
       #
-      #   rails("db:migrate")
-      #   rails("db:migrate", env: "production")
-      #   rails("gems:install", sudo: true)
+      #   rails_command("db:migrate")
+      #   rails_command("db:migrate", env: "production")
+      #   rails_command("gems:install", sudo: true)
       def rails_command(command, options = {})
         execute_command :rails, command, options
       end

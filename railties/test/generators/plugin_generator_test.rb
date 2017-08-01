@@ -491,7 +491,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/public/robots.txt"
     assert_no_file "test/dummy/README.md"
     assert_no_directory "test/dummy/lib/tasks"
-    assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
     assert_no_directory "test/dummy/.git"
