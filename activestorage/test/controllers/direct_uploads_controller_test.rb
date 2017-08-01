@@ -1,7 +1,7 @@
 require "test_helper"
 require "database/setup"
 
-if SERVICE_CONFIGURATIONS[:s3]
+if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @old_service = ActiveStorage::Blob.service

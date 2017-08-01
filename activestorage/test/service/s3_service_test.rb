@@ -1,7 +1,7 @@
 require "service/shared_service_tests"
 require "net/http"
 
-if SERVICE_CONFIGURATIONS[:s3]
+if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
 
