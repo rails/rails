@@ -87,14 +87,10 @@ Variation of image attachment:
 
 ## Installation
 
-1. Add `gem "activestorage", git: "https://github.com/rails/activestorage.git"` to your Gemfile.
-2. Add `require "active_storage"` to config/application.rb, after `require "rails/all"` line.
-3. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
-4. Configure the storage service in `config/environments/*` with `config.active_storage.service = :local`
-   that references the services configured in `config/storage.yml`.
-5. Optional: Add `gem "aws-sdk", "~> 2"` to your Gemfile if you want to use AWS S3.
-6. Optional: Add `gem "google-cloud-storage", "~> 1.3"` to your Gemfile if you want to use Google Cloud Storage.
-7. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
+1. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
+2. Optional: Add `gem "aws-sdk", "~> 2"` to your Gemfile if you want to use AWS S3.
+3. Optional: Add `gem "google-cloud-storage", "~> 1.3"` to your Gemfile if you want to use Google Cloud Storage.
+4. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
 
 ## Direct uploads
 
