@@ -93,8 +93,6 @@ group :cable do
 end
 
 group :storage do
-  gem "httparty"
-
   gem "aws-sdk", "~> 2", require: false
   gem "google-cloud-storage", "~> 1.3", require: false
 
