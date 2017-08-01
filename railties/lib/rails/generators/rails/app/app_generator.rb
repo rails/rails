@@ -113,6 +113,7 @@ module Rails
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
+        template "storage.yml"
 
         directory "environments"
         directory "initializers"
