@@ -9,6 +9,7 @@ require_relative "../model_naming"
 require_relative "../record_identifier"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/hash/compact"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
 
