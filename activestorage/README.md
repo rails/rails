@@ -134,18 +134,6 @@ Active Storage, with its included JavaScript library, supports uploading directl
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
-## Compatibility & Expectations
-
-Active Storage only works with the development version of Rails 5.2+ (as of July 19, 2017). This separate repository is a staging ground for the upcoming inclusion in rails/rails prior to the Rails 5.2 release. It is not intended to be a long-term stand-alone repository.
-
-Furthermore, this repository is likely to be in heavy flux prior to the merge to rails/rails. You're heartedly encouraged to follow along and even use Active Storage in this phase, but don't be surprised if the API suffers frequent breaking changes prior to the merge.
-
-## Todos
-
-- Convert MirrorService to use threading
-- Read metadata via Marcel?
-- Add Migrator to copy/move between services
-
 ## License
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
