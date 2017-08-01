@@ -1,5 +1,4 @@
 require "service/shared_service_tests"
-require "httparty"
 require "uri"
 
 if SERVICE_CONFIGURATIONS[:azure]

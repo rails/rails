@@ -1,5 +1,5 @@
 require "service/shared_service_tests"
-require "httparty"
+require "net/http"
 
 if SERVICE_CONFIGURATIONS[:gcs]
   class ActiveStorage::Service::GCSServiceTest < ActiveSupport::TestCase
@@ -14,12 +14,14 @@ if SERVICE_CONFIGURATIONS[:gcs]
         checksum = Digest::MD5.base64digest(data)
         url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
-        HTTParty.put(
-          url,
-          body: data,
-          headers: { "Content-Type" => "text/plain", "Content-MD5" => checksum },
-          debug_output: STDOUT
-        )
+        uri = URI.parse url
+        request = Net::HTTP::Put.new uri.request_uri
+        request.body = data
+        request.add_field 'Content-Type', 'text/plain'
+        request.add_field 'Content-MD5', checksum
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+          http.request request
+        end
 
         assert_equal data, @service.download(key)
       ensure
