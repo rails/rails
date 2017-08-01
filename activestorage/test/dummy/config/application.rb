@@ -7,13 +7,13 @@ require "active_record/railtie"
 require "action_controller/railtie"
 require "action_view/railtie"
 require "sprockets/railtie"
+require "active_storage/engine"
 #require "action_mailer/railtie"
 #require "rails/test_unit/railtie"
 #require "action_cable/engine"
 
 
 Bundler.require(*Rails.groups)
-require "active_storage"
 
 module Dummy
   class Application < Rails::Application
@@ -22,4 +22,3 @@ module Dummy
     config.active_storage.service = :local
   end
 end
-
