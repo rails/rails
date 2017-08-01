@@ -120,7 +120,6 @@ task default: :test
     def test_dummy_clean
       inside dummy_path do
         remove_file "db/seeds.rb"
-        remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
