@@ -14,7 +14,9 @@ require "active_storage"
 
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
-  YAML.load(ERB.new(Pathname.new(File.expand_path("../service/configurations.yml", __FILE__)).read).result).deep_symbolize_keys
+  erb = ERB.new(Pathname.new(File.expand_path("../service/configurations.yml", __FILE__)).read)
+  configuration = YAML.load(erb.result) || {}
+  configuration.deep_symbolize_keys
 rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"
   {}
