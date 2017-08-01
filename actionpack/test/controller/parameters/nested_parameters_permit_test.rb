@@ -173,7 +173,6 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     )
   end
 
-
   test "fields_for-style nested params with negative numbers" do
     params = ActionController::Parameters.new(
       book: {
