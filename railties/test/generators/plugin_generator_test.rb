@@ -491,7 +491,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/public/robots.txt"
     assert_no_file "test/dummy/README.md"
     assert_no_directory "test/dummy/lib/tasks"
-    assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
     assert_no_directory "test/dummy/.git"
@@ -677,20 +676,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/models/bukkits/article.rb", /class Article < ApplicationRecord/
-  end
-
-  def test_generate_application_record_when_does_not_exist_in_mountable_engine
-    run_generator [destination_root, "--mountable"]
-    FileUtils.rm "#{destination_root}/app/models/bukkits/application_record.rb"
-    capture(:stdout) do
-      `#{destination_root}/bin/rails g model article`
-    end
-
-    assert_file "#{destination_root}/app/models/bukkits/application_record.rb" do |record|
-      assert_match(/module Bukkits/, record)
-      assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-      assert_match(/self\.abstract_class = true/, record)
-    end
   end
 
   def test_generate_application_mailer_when_does_not_exist_in_mountable_engine

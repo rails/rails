@@ -276,6 +276,16 @@ You can now just call the dependency once with a wildcard.
 <% # Template Dependency: recordings/threads/events/* %>
 ```
 
+### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
+
+`content_tag_for` and `div_for` has been removed in favor of just using `content_tag`. To continue using it, add the `record_tag_helper` gem to your Gemfile:
+
+```ruby
+gem 'record_tag_helper', '~> 1.0'
+```
+
+See [#18411](https://github.com/rails/rails/pull/18411) for more details.
+
 ### Removed Support for `protected_attributes` Gem
 
 The `protected_attributes` gem is no longer supported in Rails 5.

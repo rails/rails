@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 require "json"
 require "json/encoding_test_cases"

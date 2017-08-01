@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Hash
   # Returns a new hash with all keys converted using the +block+ operation.
   #

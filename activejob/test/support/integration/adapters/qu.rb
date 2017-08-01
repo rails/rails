@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module QuJobsManager
   def setup
     require "qu-rails"

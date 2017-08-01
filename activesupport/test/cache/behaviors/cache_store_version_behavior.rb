@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module CacheStoreVersionBehavior
   ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
 

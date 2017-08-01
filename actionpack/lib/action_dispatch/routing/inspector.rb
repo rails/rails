@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "delegate"
 require "active_support/core_ext/string/strip"
 

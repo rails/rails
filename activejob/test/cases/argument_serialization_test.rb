@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "helper"
 require "active_job/arguments"
 require "models/person"

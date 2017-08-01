@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/per_thread_registry"
 
 module ActiveRecord
@@ -33,9 +35,8 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att, value|
-        send("#{att}=", value) if respond_to?("#{att}=")
-      end
+      attributes = self.class.scope_attributes
+      _assign_attributes(attributes) if attributes.any?
     end
 
     def initialize_internals_callback # :nodoc:

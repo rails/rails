@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class LoadError
   REGEXPS = [
     /^no such file to load -- (.+)$/i,

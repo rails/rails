@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class String
   # Strips indentation in heredocs.
   #

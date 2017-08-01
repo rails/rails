@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/book"
 require "models/club"
@@ -232,6 +234,30 @@ class CalculationsTest < ActiveRecord::TestCase
       next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
+  end
+
+  def test_distinct_count_with_order_and_limit
+    assert_equal 4, Account.distinct.order(:firm_id).limit(4).count
+  end
+
+  def test_distinct_count_with_order_and_offset
+    assert_equal 4, Account.distinct.order(:firm_id).offset(2).count
+  end
+
+  def test_distinct_count_with_order_and_limit_and_offset
+    assert_equal 4, Account.distinct.order(:firm_id).limit(4).offset(2).count
+  end
+
+  def test_distinct_joins_count_with_order_and_limit
+    assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).count
+  end
+
+  def test_distinct_joins_count_with_order_and_offset
+    assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).offset(2).count
+  end
+
+  def test_distinct_joins_count_with_order_and_limit_and_offset
+    assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
   end
 
   def test_should_group_by_summed_field_having_condition

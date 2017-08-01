@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
@@ -90,8 +92,8 @@ module ActiveRecord
 
       def select_all(arel, name = nil, binds = [], preparable: nil)
         if @query_cache_enabled && !locked?(arel)
-          arel, binds = binds_from_relation arel, binds
-          sql = to_sql(arel, binds)
+          arel = arel_from_relation(arel)
+          sql, binds = to_sql(arel, binds)
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
           super

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -36,6 +37,10 @@ module ActionDispatch
         def test_normalize_path_maintains_string_encoding
           path = "/foo%AAbar%AAbaz".b
           assert_equal Encoding::ASCII_8BIT, Utils.normalize_path(path).encoding
+        end
+
+        def test_normalize_path_with_nil
+          assert_equal "/", Utils.normalize_path(nil)
         end
       end
     end

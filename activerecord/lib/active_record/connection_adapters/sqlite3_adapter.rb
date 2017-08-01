@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "abstract_adapter"
 require_relative "statement_pool"
 require_relative "sqlite3/explain_pretty_printer"
@@ -71,6 +73,23 @@ module ActiveRecord
         binary:       { name: "blob" },
         boolean:      { name: "boolean" }
       }
+
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your application.rb file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
 
       class StatementPool < ConnectionAdapters::StatementPool
         private
@@ -184,7 +203,8 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
+        sql, binds = to_sql(arel, binds)
+        sql = "EXPLAIN QUERY PLAN #{sql}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
@@ -512,5 +532,6 @@ module ActiveRecord
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

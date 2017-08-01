@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "active_support/core_ext/string/filters"
 require "active_support/deprecation"
@@ -219,10 +221,10 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        if klass.current_scope
-          klass.current_scope.clone.tap { |scope|
-            scope.joins_values = scope.left_outer_joins_values = [].freeze
-          }
+        current_scope = klass.current_scope
+
+        if current_scope && current_scope.empty_scope?
+          build_scope(table, predicate_builder)
         else
           klass.default_scoped(build_scope(table, predicate_builder))
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
@@ -169,17 +171,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.exec_query "select * from developers where id = ?", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = ?", "sql", [bind_param(1)]
     end
   end
 
   if ActiveRecord::Base.connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
       @connection.exec_query "alter table developers add column zomg int", "sql", []
       altered = true
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
     ensure
       # We are not using DROP COLUMN IF EXISTS because that syntax is only
       # supported by pg 9.X
@@ -466,6 +468,10 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal 1, this_index.columns.size
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
+    end
+
+    def bind_param(value)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
     end
 end
 

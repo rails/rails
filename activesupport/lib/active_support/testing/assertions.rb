@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     module Assertions
@@ -156,7 +157,7 @@ module ActiveSupport
         after = exp.call
 
         if to == UNTRACKED
-          error = "#{expression.inspect} didn't changed"
+          error = "#{expression.inspect} didn't change"
           error = "#{message}.\n#{error}" if message
           assert_not_equal before, after, error
         else

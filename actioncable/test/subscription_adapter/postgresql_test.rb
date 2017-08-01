@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require_relative "common"
 
@@ -12,7 +14,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     if Dir.exist?(ar_tests)
       require File.join(ar_tests, "config")
       require File.join(ar_tests, "support/config")
-      local_config = ARTest.config["arunit"]
+      local_config = ARTest.config["connections"]["postgresql"]["arunit"]
       database_config.update local_config if local_config
     end
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "core_ext/hash/keys"
 require_relative "core_ext/hash/reverse_merge"
 
@@ -72,16 +73,6 @@ module ActiveSupport
         self.default_proc = hash.default_proc if hash.default_proc
       else
         super(constructor)
-      end
-    end
-
-    def default(*args)
-      arg_key = args.first
-
-      if include?(key = convert_key(arg_key))
-        self[key]
-      else
-        super
       end
     end
 
@@ -186,6 +177,36 @@ module ActiveSupport
       super(convert_key(key), *extras)
     end
 
+    if Hash.new.respond_to?(:dig)
+      # Same as <tt>Hash#dig</tt> where the key passed as argument can be
+      # either a string or a symbol:
+      #
+      #   counters = ActiveSupport::HashWithIndifferentAccess.new
+      #   counters[:foo] = { bar: 1 }
+      #
+      #   counters.dig('foo', 'bar')     # => 1
+      #   counters.dig(:foo, :bar)       # => 1
+      #   counters.dig(:zoo)             # => nil
+      def dig(*args)
+        args[0] = convert_key(args[0]) if args.size > 0
+        super(*args)
+      end
+    end
+
+    # Same as <tt>Hash#default</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new(1)
+    #   hash.default                   # => 1
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+    #   hash.default                   # => nil
+    #   hash.default('foo')            # => 'foo'
+    #   hash.default(:foo)             # => 'foo'
+    def default(*args)
+      super(*args.map { |arg| convert_key(arg) })
+    end
+
     # Returns an array of the values at the specified indices:
     #
     #   hash = ActiveSupport::HashWithIndifferentAccess.new
@@ -243,7 +264,7 @@ module ActiveSupport
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      replace(reverse_merge(other_hash))
+      super(self.class.new(other_hash))
     end
     alias_method :with_defaults!, :reverse_merge!
 

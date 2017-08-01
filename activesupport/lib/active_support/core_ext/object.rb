@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "object/acts_like"
 require_relative "object/blank"
 require_relative "object/duplicable"

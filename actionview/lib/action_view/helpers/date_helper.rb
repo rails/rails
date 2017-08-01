@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "date"
 require_relative "tag_helper"
 require "active_support/core_ext/array/extract_options"

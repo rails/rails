@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "support/schema_dumping_helper"
 
 module JSONSharedTestCases

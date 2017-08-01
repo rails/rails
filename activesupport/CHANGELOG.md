@@ -1,3 +1,61 @@
+*   Fix modulo operations involving durations
+
+    Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper
+    around a numeric value as a way of ensuring a duration was the outcome of
+    an expression. However the implementation was missing support for modulo
+    operations. This support has now been added and should result in a duration
+    being returned from expressions involving modulo operations.
+
+    Prior to Rails 5.1:
+
+        5.minutes % 2.minutes
+        => 60
+
+    Now:
+
+        5.minutes % 2.minutes
+        => 1 minute
+
+    Fixes #29603 and #29743.
+
+    *Sayan Chakraborty*, *Andrew White*
+
+*   Fix division where a duration is the denominator
+
+    PR #29163 introduced a change in behavior when a duration was the denominator
+    in a calculation - this was incorrect as dividing by a duration should always
+    return a `Numeric`. The behavior of previous versions of Rails has been restored.
+
+    Fixes #29592.
+
+    *Andrew White*
+
+*   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
+   `ActiveSupport::MessageEncryptor`.
+
+    For instance, to ensure a message is only usable for one intended purpose:
+
+        token = @verifier.generate("x", purpose: :shipping)
+
+        @verifier.verified(token, purpose: :shipping) # => "x"
+        @verifier.verified(token)                     # => nil
+
+    Or make it expire after a set time:
+
+        @verifier.generate("x", expires_in: 1.month)
+        @verifier.generate("y", expires_at: Time.now.end_of_year)
+
+    Showcased with `ActiveSupport::MessageVerifier`, but works the same for
+    `ActiveSupport::MessageEncryptor`'s `encrypt_and_sign` and `decrypt_and_verify`.
+
+    Pull requests: #29599, #29854
+
+    *Assain Jaleel*
+
+*   Make the order of `Hash#reverse_merge!` consistent with `HashWithIndifferentAccess`.
+
+    *Erol Fornoles*
+
 *   Add `freeze_time` helper which freezes time to `Time.now` in tests.
 
     *Prathamesh Sonpatki*

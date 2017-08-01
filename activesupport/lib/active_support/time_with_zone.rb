@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "duration"
 require_relative "values/time_zone"
 require_relative "core_ext/object/acts_like"

@@ -1,7 +1,6 @@
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
+
 require "mutex_m"
-require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Attribute Methods

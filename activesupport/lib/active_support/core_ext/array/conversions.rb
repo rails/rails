@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../../xml_mini"
 require_relative "../hash/keys"
 require_relative "../string/inflections"

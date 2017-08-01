@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
@@ -29,5 +31,5 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "activemodel",   version
 
-  s.add_dependency "arel", "~> 8.0"
+  s.add_dependency "arel", "9.0.0.alpha"
 end

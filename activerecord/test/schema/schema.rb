@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ActiveRecord::Schema.define do
   # ------------------------------------------------------------------- #
   #                                                                     #
@@ -189,6 +191,7 @@ ActiveRecord::Schema.define do
     t.string :resource_id
     t.string :resource_type
     t.integer :developer_id
+    t.datetime :deleted_at
   end
 
   create_table :companies, force: true do |t|

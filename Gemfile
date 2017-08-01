@@ -22,7 +22,7 @@ gem "capybara", "~> 2.13"
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
 gem "coffee-rails"
-gem "sass-rails"
+gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
 gem "turbolinks", "~> 5"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -39,6 +39,8 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
+gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
+
 group :doc do
   gem "sdoc", "> 1.0.0.rc1", "< 2.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
@@ -53,6 +55,9 @@ gem "libxml-ruby", platforms: :ruby
 
 # Action View. For testing Erubis handler deprecation.
 gem "erubis", "~> 2.7.0", require: false
+
+# for railties app_generator_test
+gem "bootsnap", ">= 1.1.0", require: false
 
 # Active Job.
 group :job do

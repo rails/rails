@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../type"
 require_relative "determine_if_preparable_visitor"
 require_relative "schema_cache"
@@ -5,7 +7,9 @@ require_relative "sql_type_metadata"
 require_relative "abstract/schema_dumper"
 require_relative "abstract/schema_creation"
 require "arel/collectors/bind"
+require "arel/collectors/composite"
 require "arel/collectors/sql_string"
+require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -124,19 +128,6 @@ module ActiveRecord
 
         def <=>(version_string)
           @version <=> version_string.split(".").map(&:to_i)
-        end
-      end
-
-      class BindCollector < Arel::Collectors::Bind
-        def compile(bvs, conn)
-          casted_binds = bvs.map(&:value_for_database)
-          super(casted_binds.map { |value| conn.quote(value) })
-        end
-      end
-
-      class SQLString < Arel::Collectors::SQLString
-        def compile(bvs, conn)
-          super(bvs)
         end
       end
 
@@ -451,32 +442,8 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def type_map # :nodoc:
-        @type_map ||= Type::TypeMap.new.tap do |mapping|
-          initialize_type_map(mapping)
-        end
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         visitor.accept(node, collector).value
-      end
-
-      def combine_bind_parameters(
-        from_clause: [],
-        join_clause: [],
-        where_clause: [],
-        having_clause: [],
-        limit: nil,
-        offset: nil
-      ) # :nodoc:
-        result = from_clause + join_clause + where_clause + having_clause
-        if limit
-          result << limit
-        end
-        if offset
-          result << offset
-        end
-        result
       end
 
       def default_index_type?(index) # :nodoc:
@@ -484,8 +451,13 @@ module ActiveRecord
       end
 
       private
+        def type_map
+          @type_map ||= Type::TypeMap.new.tap do |mapping|
+            initialize_type_map(mapping)
+          end
+        end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean
           register_class_with_limit m, %r(char)i,          Type::String
           register_class_with_limit m, %r(binary)i,        Type::Binary
@@ -518,7 +490,7 @@ module ActiveRecord
 
         def reload_type_map
           type_map.clear
-          initialize_type_map(type_map)
+          initialize_type_map
         end
 
         def register_class_with_limit(mapping, key, klass)
@@ -608,9 +580,15 @@ module ActiveRecord
 
         def collector
           if prepared_statements
-            SQLString.new
+            Arel::Collectors::Composite.new(
+              Arel::Collectors::SQLString.new,
+              Arel::Collectors::Bind.new,
+            )
           else
-            BindCollector.new
+            Arel::Collectors::SubstituteBinds.new(
+              self,
+              Arel::Collectors::SQLString.new,
+            )
           end
         end
 

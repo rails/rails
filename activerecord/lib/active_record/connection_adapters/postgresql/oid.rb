@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "oid/array"
 require_relative "oid/bit"
 require_relative "oid/bit_varying"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -372,10 +374,6 @@ module ActiveRecord
           else
             record.save(validate: validate, &block)
           end
-        end
-
-        def create_scope
-          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)

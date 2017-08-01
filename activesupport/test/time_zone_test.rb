@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -102,7 +103,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
-    travel_back
   end
 
   def test_tomorrow
@@ -114,7 +114,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 3), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
-    travel_back
   end
 
   def test_yesterday
@@ -126,7 +125,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
-    travel_back
   end
 
   def test_travel_to_a_date

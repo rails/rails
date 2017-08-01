@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require_relative "partial_renderer/collection_caching"
 

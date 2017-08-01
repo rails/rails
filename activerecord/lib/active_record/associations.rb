@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
@@ -222,13 +224,6 @@ module ActiveRecord
     autoload :CollectionAssociation
     autoload :ForeignAssociation
     autoload :CollectionProxy
-
-    autoload :BelongsToAssociation
-    autoload :BelongsToPolymorphicAssociation
-    autoload :HasManyAssociation
-    autoload :HasManyThroughAssociation
-    autoload :HasOneAssociation
-    autoload :HasOneThroughAssociation
     autoload :ThroughAssociation
 
     module Builder #:nodoc:
@@ -243,6 +238,13 @@ module ActiveRecord
     end
 
     eager_autoload do
+      autoload :BelongsToAssociation
+      autoload :BelongsToPolymorphicAssociation
+      autoload :HasManyAssociation
+      autoload :HasManyThroughAssociation
+      autoload :HasOneAssociation
+      autoload :HasOneThroughAssociation
+
       autoload :Preloader
       autoload :JoinDependency
       autoload :AssociationScope

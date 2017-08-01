@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "timeout"
 require "concurrent/atomic/count_down_latch"

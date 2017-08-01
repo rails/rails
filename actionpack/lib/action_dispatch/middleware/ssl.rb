@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActionDispatch
   # This middleware is added to the stack when `config.force_ssl = true`, and is passed
   # the options set in `config.ssl_options`. It does three jobs to enforce secure HTTP

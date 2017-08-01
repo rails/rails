@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/company"
@@ -418,7 +420,8 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = 1/) do
+    bind_param = Arel::Nodes::BindParam.new(nil)
+    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end

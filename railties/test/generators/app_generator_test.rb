@@ -4,6 +4,7 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .gitignore
+  .ruby-version
   README.md
   Gemfile
   Rakefile
@@ -278,6 +279,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-action-cable"]
+
+    FileUtils.cd(app_root) do
+      # For avoid conflict file
+      FileUtils.rm("#{app_root}/config/secrets.yml")
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_no_file "#{app_root}/config/cable.yml"
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.action_cable/, content)
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
@@ -505,6 +522,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
+    elsif RUBY_PLATFORM =~ /mingw|mswin/
+      assert_gem "duktape"
     else
       assert_file "Gemfile", /# gem 'mini_racer', platforms: :ruby/
     end
@@ -786,6 +805,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".gitignore" do |content|
       assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_inclusion_of_ruby_version
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/ruby '#{RUBY_VERSION}'/, content)
+    end
+    assert_file ".ruby-version" do |content|
+      assert_match(/#{RUBY_VERSION}/, content)
     end
   end
 

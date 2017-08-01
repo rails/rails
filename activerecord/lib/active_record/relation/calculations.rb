@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Calculations
     # Count the records.
@@ -129,7 +131,7 @@ module ActiveRecord
     def calculate(operation, column_name)
       if has_include?(column_name)
         relation = construct_relation_for_association_calculations
-        relation = relation.distinct if operation.to_s.downcase == "count"
+        relation.distinct! if operation.to_s.downcase == "count"
 
         relation.calculate(operation, column_name)
       else
@@ -184,7 +186,7 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
-        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil, bound_attributes) }
+        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
         result.cast_values(klass.attribute_types)
       end
     end
@@ -212,8 +214,13 @@ module ActiveRecord
 
         if operation == "count"
           column_name ||= select_for_count
-          column_name = primary_key if column_name == :all && distinct
-          distinct = nil if column_name =~ /\s*DISTINCT[\s(]+/i
+          if column_name == :all
+            if distinct && !(has_limit_or_offset? && order_values.any?)
+              column_name = primary_key
+            end
+          elsif column_name =~ /\s*DISTINCT[\s(]+/i
+            distinct = nil
+          end
         end
 
         if group_values.any?
@@ -240,7 +247,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
         column_alias = column_name
 
-        if operation == "count" && (limit_value || offset_value)
+        if operation == "count" && has_limit_or_offset?
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
@@ -260,7 +267,7 @@ module ActiveRecord
           query_builder = relation.arel
         end
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil, bound_attributes) }
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
         row    = result.first
         value  = row && row.values.first
         type   = result.column_types.fetch(column_alias) do
@@ -311,7 +318,7 @@ module ActiveRecord
         relation.group_values  = group_fields
         relation.select_values = select_values
 
-        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil, relation.bound_attributes) }
+        calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
 
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
@@ -379,14 +386,18 @@ module ActiveRecord
       end
 
       def build_count_subquery(relation, column_name, distinct)
-        column_alias = Arel.sql("count_column")
-        subquery_alias = Arel.sql("subquery_for_count")
+        relation.select_values = [
+          if column_name == :all
+            distinct ? table[Arel.star] : Arel.sql("1")
+          else
+            column_alias = Arel.sql("count_column")
+            aggregate_column(column_name).as(column_alias)
+          end
+        ]
 
-        aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
-        relation.select_values = [aliased_column]
-        subquery = relation.arel.as(subquery_alias)
+        subquery = relation.arel.as(Arel.sql("subquery_for_count"))
+        select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)
 
-        select_value = operation_over_aggregate_column(column_alias, "count", distinct)
         Arel::SelectManager.new(subquery).project(select_value)
       end
   end

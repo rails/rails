@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "abstract_adapter"
 require_relative "statement_pool"
 require_relative "mysql/column"
@@ -175,7 +177,8 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds)}"
+        sql, binds = to_sql(arel, binds)
+        sql     = "EXPLAIN #{sql}"
         start   = Time.now
         result  = exec_query(sql, "EXPLAIN", binds)
         elapsed = Time.now - start
@@ -545,7 +548,7 @@ module ActiveRecord
           execute("SET @@SESSION.sql_mode = #{sql_mode}")
         end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
@@ -861,8 +864,8 @@ module ActiveRecord
         class MysqlString < Type::String # :nodoc:
           def serialize(value)
             case value
-            when true then MySQL::Quoting::QUOTED_TRUE
-            when false then MySQL::Quoting::QUOTED_FALSE
+            when true then "1"
+            when false then "0"
             else super
             end
           end
@@ -871,8 +874,8 @@ module ActiveRecord
 
             def cast_value(value)
               case value
-              when true then MySQL::Quoting::QUOTED_TRUE
-              when false then MySQL::Quoting::QUOTED_FALSE
+              when true then "1"
+              when false then "0"
               else super
               end
             end

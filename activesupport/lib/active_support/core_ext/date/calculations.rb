@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "date"
 require_relative "../../duration"
 require_relative "../object/acts_like"

@@ -111,6 +111,7 @@ module ApplicationTests
       @plugin.write "config/routes.rb", <<-RUBY
         Blog::Engine.routes.draw do
           resources :posts
+          get '/different_context', to: 'posts#different_context'
           get '/generate_application_route', to: 'posts#generate_application_route'
           get '/application_route_in_view', to: 'posts#application_route_in_view'
           get '/engine_polymorphic_path', to: 'posts#engine_polymorphic_path'
@@ -123,6 +124,10 @@ module ApplicationTests
           class PostsController < ActionController::Base
             def index
               render plain: blog.post_path(1)
+            end
+
+            def different_context
+              render plain: blog.post_path(1, user: "ada")
             end
 
             def generate_application_route
@@ -195,6 +200,10 @@ module ApplicationTests
       # test generating engine's route from engine
       get "/john/blog/posts"
       assert_equal "/john/blog/posts/1", last_response.body
+
+      # test generating engine route from engine with a different context
+      get "/john/blog/different_context"
+      assert_equal "/ada/blog/posts/1", last_response.body
 
       # test generating engine's route from engine with default_url_options
       get "/john/blog/posts", {}, "SCRIPT_NAME" => "/foo"

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "stringio"
 
 require "active_support/inflector"
@@ -75,10 +76,13 @@ module ActionDispatch
 
     def controller_class
       params = path_parameters
+      params[:action] ||= "index"
+      controller_class_for(params[:controller])
+    end
 
-      if params.key?(:controller)
-        controller_param = params[:controller].underscore
-        params[:action] ||= "index"
+    def controller_class_for(name)
+      if name
+        controller_param = name.underscore
         const_name = "#{controller_param.camelize}Controller"
         ActiveSupport::Dependencies.constantize(const_name)
       else
@@ -299,7 +303,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post.force_encoding(Encoding::BINARY)
+        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream

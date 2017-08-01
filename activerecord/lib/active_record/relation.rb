@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Relation
   class Relation
@@ -51,7 +53,7 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       if values.empty? # empty insert
         im.values = Arel.sql(connection.empty_insert_statement_value)
@@ -65,11 +67,11 @@ module ActiveRecord
         primary_key || false,
         primary_key_value,
         nil,
-        binds)
+      )
     end
 
     def _update_record(values, id, id_was) # :nodoc:
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       scope = @klass.unscoped
 
@@ -78,7 +80,6 @@ module ActiveRecord
       end
 
       relation = scope.where(@klass.primary_key => (id_was || id))
-      bvs = binds + relation.bound_attributes
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
@@ -86,20 +87,14 @@ module ActiveRecord
       @klass.connection.update(
         um,
         "SQL",
-        bvs,
       )
     end
 
     def substitute_values(values) # :nodoc:
-      binds = []
-      substitutes = []
-
-      values.each do |arel_attr, value|
-        binds.push QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-        substitutes.push [arel_attr, Arel::Nodes::BindParam.new]
+      values.map do |arel_attr, value|
+        bind = predicate_builder.build_bind_attribute(arel_attr.name, value)
+        [arel_attr, bind]
       end
-
-      [substitutes, binds]
     end
 
     def arel_attribute(name) # :nodoc:
@@ -378,7 +373,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, "SQL", bound_attributes
+      @klass.connection.update stmt, "SQL"
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -508,7 +503,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
+      affected = @klass.connection.delete(stmt, "SQL")
 
       reset
       affected
@@ -556,8 +551,7 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
+      @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
@@ -577,7 +571,8 @@ module ActiveRecord
 
                     conn = klass.connection
                     conn.unprepared_statement {
-                      conn.to_sql(relation.arel, relation.bound_attributes)
+                      sql, _ = conn.to_sql(relation.arel)
+                      sql
                     }
                   end
     end
@@ -591,7 +586,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -643,6 +638,14 @@ module ActiveRecord
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
 
+    def empty_scope? # :nodoc:
+      @values == klass.unscoped.values
+    end
+
+    def has_limit_or_offset? # :nodoc:
+      limit_value || offset_value
+    end
+
     protected
 
       def load_records(records)
@@ -658,7 +661,7 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
+          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, &block).freeze
 
           preload = preload_values
           preload += includes_values unless eager_loading?

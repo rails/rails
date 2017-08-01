@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   class Request
     class Utils # :nodoc:
@@ -32,7 +34,7 @@ module ActionDispatch
           unless params.valid_encoding?
             # Raise Rack::Utils::InvalidParameterError for consistency with Rack.
             # ActionDispatch::Request#GET will re-raise as a BadRequest error.
-            raise Rack::Utils::InvalidParameterError, "Non UTF-8 value: #{params}"
+            raise Rack::Utils::InvalidParameterError, "Invalid encoding for parameter: #{params.scrub}"
           end
         end
       end

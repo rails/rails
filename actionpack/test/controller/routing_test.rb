@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
@@ -93,6 +94,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/faithfully-omg"))
     assert_equal({ "artist" => "journey", "song" => "faithfully" }, hash)
+  end
+
+  def test_id_encoding
+    rs.draw do
+      get "/journey/:id", to: lambda { |env|
+        param = ActionDispatch::Request.new(env).path_parameters
+        resp = ActiveSupport::JSON.encode param
+        [200, {}, [resp]]
+      }
+    end
+
+    # The encoding of the URL in production is *binary*, so we add a
+    # .b here.
+    hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/%E5%A4%AA%E9%83%8E".b))
+    assert_equal({ "id" => "太郎" }, hash)
+    assert_equal ::Encoding::UTF_8, hash["id"].encoding
   end
 
   def test_id_with_dash

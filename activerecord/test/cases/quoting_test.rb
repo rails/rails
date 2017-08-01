@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -8,11 +10,11 @@ module ActiveRecord
       end
 
       def test_quoted_true
-        assert_equal "'t'", @quoter.quoted_true
+        assert_equal "TRUE", @quoter.quoted_true
       end
 
       def test_quoted_false
-        assert_equal "'f'", @quoter.quoted_false
+        assert_equal "FALSE", @quoter.quoted_false
       end
 
       def test_quote_column_name
@@ -174,13 +176,21 @@ module ActiveRecord
 
       def test_type_cast_date
         date = Date.today
-        expected = @conn.quoted_date(date)
+        if current_adapter?(:Mysql2Adapter)
+          expected = date
+        else
+          expected = @conn.quoted_date(date)
+        end
         assert_equal expected, @conn.type_cast(date)
       end
 
       def test_type_cast_time
         time = Time.now
-        expected = @conn.quoted_date(time)
+        if current_adapter?(:Mysql2Adapter)
+          expected = time
+        else
+          expected = @conn.quoted_date(time)
+        end
         assert_equal expected, @conn.type_cast(time)
       end
 
@@ -257,7 +267,7 @@ module ActiveRecord
 
         def test_type_cast_ar_object
           value = DatetimePrimaryKey.new(id: @time)
-          assert_equal "2017-02-14 12:34:56.789000",  @connection.type_cast(value)
+          assert_equal @connection.type_cast(value.id),  @connection.type_cast(value)
         end
       end
     end

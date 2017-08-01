@@ -70,7 +70,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    \n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -150,7 +150,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
       colored.record(errored_test)
 
-      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    No backtrace\n\e\[0m}
+      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    \n\e\[0m}
       assert_match expected, @output.string
     end
   end
@@ -171,8 +171,11 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
 
     def errored_test
+      error = ArgumentError.new("wups")
+      error.set_backtrace([ "some_test.rb:4" ])
+
       et = ExampleTest.new(:woot)
-      et.failures << Minitest::UnexpectedError.new(ArgumentError.new("wups"))
+      et.failures << Minitest::UnexpectedError.new(error)
       et
     end
 

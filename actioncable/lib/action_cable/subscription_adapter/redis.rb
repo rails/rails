@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 
 gem "redis", "~> 3.0"

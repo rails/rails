@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/project"
@@ -649,8 +651,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_new_record_with_foreign_key_but_no_object
     client = Client.new("firm_id" => 1)
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.all.merge!(order: "id").first, client.firm_with_basic_id
+    assert_equal Firm.first, client.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
@@ -1169,6 +1170,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+
+  def test_multiple_counter_cache_with_after_create_update
+    post = posts(:welcome)
+    parent = comments(:greetings)
+
+    assert_difference "parent.reload.children_count", +1 do
+      assert_difference "post.reload.comments_count", +1 do
+        CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
+      end
+    end
   end
 end
 

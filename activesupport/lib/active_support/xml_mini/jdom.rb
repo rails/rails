@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM.include?("java")
 
 require "jruby"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "transition_table"
 require_relative "../gtg/transition_table"
 

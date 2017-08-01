@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/aircraft"
 require "models/post"
@@ -435,6 +437,13 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_delete_doesnt_run_callbacks
     Topic.find(1).delete
     assert_not_nil Topic.find(2)
+  end
+
+  def test_delete_isnt_affected_by_scoping
+    topic = Topic.find(1)
+    assert_difference("Topic.count", -1) do
+      Topic.where("1=0").scoping { topic.delete }
+    end
   end
 
   def test_destroy

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../core_ext/string/strip" # for strip_heredoc
 require_relative "../core_ext/time/calculations"
 require "concurrent/map"
@@ -50,8 +51,14 @@ module ActiveSupport
 
     # Contains helpers that help you test passage of time.
     module TimeHelpers
+      def after_teardown
+        travel_back
+        super
+      end
+
       # Changes current time to the time in the future or in the past by a given time difference by
-      # stubbing +Time.now+, +Date.today+, and +DateTime.now+.
+      # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
+      # at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
@@ -73,6 +80,7 @@ module ActiveSupport
 
       # Changes current time to the given time by stubbing +Time.now+,
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
+      # The stubs are automatically removed at the end of the test.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -150,7 +158,7 @@ module ActiveSupport
       end
 
       # Returns the current time back to its original state, by removing the stubs added by
-      # `travel` and `travel_to`.
+      # +travel+ and +travel_to+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
@@ -161,7 +169,7 @@ module ActiveSupport
         simple_stubs.unstub_all!
       end
 
-      # Calls `travel_to` with `Time.now`.
+      # Calls +travel_to+ with +Time.now+.
       #
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   freeze_time
@@ -177,7 +185,6 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
-
       def freeze_time(&block)
         travel_to Time.now, &block
       end

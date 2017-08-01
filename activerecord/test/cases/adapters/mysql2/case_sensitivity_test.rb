@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require_relative "filter_redirect"
 require_relative "cache"
@@ -252,7 +254,7 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP character set. In case of +nil+ parameter
-    # it sets the charset to utf-8.
+    # it sets the charset to +default_charset+.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'

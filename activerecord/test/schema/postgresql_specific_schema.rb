@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ActiveRecord::Schema.define do
 
   enable_extension!("uuid-ossp", ActiveRecord::Base.connection)

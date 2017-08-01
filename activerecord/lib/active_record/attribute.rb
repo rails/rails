@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Attribute # :nodoc:
     class << self
@@ -174,7 +176,7 @@ module ActiveRecord
         end
 
         def came_from_user?
-          true
+          !type.value_constructed_by_mass_assignment?(value_before_type_cast)
         end
       end
 

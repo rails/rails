@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -54,7 +56,7 @@ if current_adapter?(:Mysql2Adapter)
         private
 
           def assert_lookup_type(type, lookup)
-            cast_type = @connection.type_map.lookup(lookup)
+            cast_type = @connection.send(:type_map).lookup(lookup)
             assert_equal type, cast_type.type
           end
 

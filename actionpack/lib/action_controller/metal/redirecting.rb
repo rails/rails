@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   module Redirecting
     extend ActiveSupport::Concern

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/book"
 require "models/post"
@@ -222,7 +224,7 @@ module ActiveRecord
       def test_select_all_with_legacy_binds
         post = Post.create!(title: "foo", body: "bar")
         expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
-        result = @connection.select_all("SELECT * FROM posts WHERE id = #{bind_param.to_sql}", nil, [[nil, post.id]])
+        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
         assert_equal expected.to_hash, result.to_hash
       end
     end
@@ -231,7 +233,6 @@ module ActiveRecord
       author = Author.create!(name: "john")
       Post.create!(author: author, title: "foo", body: "bar")
       query = author.posts.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({ "title" => "foo" }, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
@@ -241,7 +242,6 @@ module ActiveRecord
     def test_select_methods_passing_a_relation
       Post.create!(title: "foo", body: "bar")
       query = Post.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({ "title" => "foo" }, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)

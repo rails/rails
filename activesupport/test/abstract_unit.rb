@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 ORIG_ARGV = ARGV.dup
 
 require "active_support/core_ext/kernel/reporting"

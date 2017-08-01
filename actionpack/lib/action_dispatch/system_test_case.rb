@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "capybara/dsl"
 require "capybara/minitest"
 require "action_controller"

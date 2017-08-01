@@ -1,3 +1,67 @@
+*   When using `Relation#or`, extract the common conditions and put them before the OR condition.
+
+    *Maxime Handfield Lapointe*
+
+*   `Relation#or` now accepts two relations who have different values for
+    `references` only, as `references` can be implicitly called by `where`.
+
+    Fixes #29411.
+
+    *Sean Griffin*
+
+*   ApplicationRecord is no longer generated when generating models.  If you
+    need to generate it, it can be created with `rails g application_record`.
+
+    *Lisa Ugray*
+
+*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
+
+    *Ryuta Kamizono*
+
+*   When a `has_one` association is destroyed by `dependent: destroy`,
+    `destroyed_by_association` will now be set to the reflection, matching the
+    behaviour of `has_many` associations.
+
+    *Lisa Ugray*
+
+*   Fix `unscoped(where: [columns])` removing the wrong bind values
+
+    When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
+    bind values used by the `or` instead. (possibly other cases too)
+
+    ```
+    Post.where(id: 1).or(Post.where(id: 2)).where(foo: 3).unscope(where: :foo).to_sql
+    # Currently:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 2 OR "posts"."id" = 3)
+    # With fix:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 1 OR "posts"."id" = 2)
+    ```
+
+    *Maxime Handfield Lapointe*
+
+*   Values constructed using multi-parameter assignment will now use the
+    post-type-cast value for rendering in single-field form inputs.
+
+    *Sean Griffin*
+
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
+
+    Fixes #29338.
+
+    *Sean Griffin*
+
+*   Change sqlite3 boolean serialization to use 1 and 0
+
+    SQLite natively recognizes 1 and 0 as true and false, but does not natively
+    recognize 't' and 'f' as was previously serialized.
+
+    This change in serialization requires a migration of stored boolean data
+    for SQLite databases, so it's implemented behind a configuration flag
+    whose default false value is deprecated.
+
+    *Lisa Ugray*
+
 *   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
     `in_batches`).
 

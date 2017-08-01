@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     class Preloader
@@ -114,8 +116,18 @@ module ActiveRecord
             @reflection_scope ||= reflection.scope_for(klass)
           end
 
+          def klass_scope
+            current_scope = klass.current_scope
+
+            if current_scope && current_scope.empty_scope?
+              klass.unscoped
+            else
+              klass.default_scoped
+            end
+          end
+
           def build_scope
-            scope = klass.default_scoped
+            scope = klass_scope
 
             if reflection.type
               scope.where!(reflection.type => model.base_class.sti_name)

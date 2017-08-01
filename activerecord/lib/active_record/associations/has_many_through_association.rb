@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Has Many Through Association
   module Associations
@@ -152,7 +154,7 @@ module ActiveRecord
               stmt.from scope.klass.arel_table
               stmt.wheres = arel.constraints
 
-              count = scope.klass.connection.delete(stmt, "SQL", scope.bound_attributes)
+              count = scope.klass.connection.delete(stmt, "SQL")
             end
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)

@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
         def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
+          sql, binds = to_sql(arel, binds)
+          sql = "EXPLAIN #{sql}"
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
         end
 

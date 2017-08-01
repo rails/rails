@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "securerandom"
 require "concurrent/scheduled_task"
 require "concurrent/executor/thread_pool_executor"

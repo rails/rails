@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -315,7 +317,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists", relation.bound_attributes) } ? true : false
+      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
     rescue ::RangeError
       false
     end
@@ -329,7 +331,7 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
-      conditions = arel.where_sql(@klass.arel_engine)
+      conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
@@ -376,7 +378,7 @@ module ActiveRecord
           if ActiveRecord::NullRelation === relation
             []
           else
-            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
+            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL") }
             join_dependency.instantiate(rows, aliases)
           end
         end
@@ -397,7 +399,7 @@ module ActiveRecord
 
       def construct_join_dependency(joins = [], eager_loading: true)
         including = eager_load_values + includes_values
-        ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
+        ActiveRecord::Associations::JoinDependency.new(klass, table, including, joins, eager_loading: eager_loading)
       end
 
       def construct_relation_for_association_calculations
@@ -424,7 +426,7 @@ module ActiveRecord
 
         relation = relation.except(:select).select(values).distinct!
 
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL", relation.bound_attributes) }
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL") }
         id_rows.map { |row| row[primary_key] }
       end
 

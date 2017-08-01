@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/person"
@@ -944,6 +946,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       people(:michael).posts.first.update!(title: "Can write")
     end
+  end
+
+  def test_has_many_through_polymorphic_with_rewhere
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    tag = post.tags.create!(name: "Tag")
+    assert_equal [tag], TaggedPost.preload(:tags).last.tags
+    assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
@@ -7,30 +9,37 @@ module ActiveRecord
       end
 
       # Converts an arel AST to SQL
-      def to_sql(arel, binds = [])
-        if arel.respond_to?(:ast)
-          collected = visitor.accept(arel.ast, collector)
-          collected.compile(binds, self).freeze
+      def to_sql(arel_or_sql_string, binds = [])
+        if arel_or_sql_string.respond_to?(:ast)
+          unless binds.empty?
+            raise "Passing bind parameters with an arel AST is forbidden. " \
+              "The values must be stored on the AST directly"
+          end
+          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+          [sql.freeze, binds || []]
         else
-          arel.dup.freeze
+          [arel_or_sql_string.dup.freeze, binds]
         end
       end
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
-        collected = visitor.accept(arel.ast, collector)
         if prepared_statements
-          klass.query(collected.value)
+          sql, binds = visitor.accept(arel.ast, collector).value
+          query = klass.query(sql)
         else
-          klass.partial_query(collected.value)
+          collector = PartialQueryCollector.new
+          parts, binds = visitor.accept(arel.ast, collector).value
+          query = klass.partial_query(parts)
         end
+        [query, binds]
       end
 
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
-        arel, binds = binds_from_relation arel, binds
-        sql = to_sql(arel, binds)
+        arel = arel_from_relation(arel)
+        sql, binds = to_sql(arel, binds)
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
           preparable = false
         else
@@ -129,20 +138,23 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        value = exec_insert(to_sql(arel, binds), name, binds, pk, sequence_name)
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+        sql, binds = to_sql(arel)
+        value = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
       alias create insert
 
       # Executes the update statement and returns the number of rows affected.
-      def update(arel, name = nil, binds = [])
-        exec_update(to_sql(arel, binds), name, binds)
+      def update(arel, name = nil)
+        sql, binds = to_sql(arel)
+        exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(arel, name = nil, binds = [])
-        exec_delete(to_sql(arel, binds), name, binds)
+      def delete(arel, name = nil)
+        sql, binds = to_sql(arel)
+        exec_delete(sql, name, binds)
       end
 
       # Returns +true+ when the connection adapter supports prepared statement
@@ -215,7 +227,7 @@ module ActiveRecord
       # You should consult the documentation for your database to understand the
       # semantics of these different levels:
       #
-      # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+      # * https://www.postgresql.org/docs/current/static/transaction-iso.html
       # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
@@ -428,11 +440,12 @@ module ActiveRecord
           row && row.first
         end
 
-        def binds_from_relation(relation, binds)
-          if relation.is_a?(Relation) && binds.empty?
-            relation, binds = relation.arel, relation.bound_attributes
+        def arel_from_relation(relation)
+          if relation.is_a?(Relation)
+            relation.arel
+          else
+            relation
           end
-          [relation, binds]
         end
 
         # Fixture value is quoted by Arel, however scalar values
@@ -443,6 +456,28 @@ module ActiveRecord
             YAML.dump(value)
           else
             value
+          end
+        end
+
+        class PartialQueryCollector
+          def initialize
+            @parts = []
+            @binds = []
+          end
+
+          def << str
+            @parts << str
+            self
+          end
+
+          def add_bind obj
+            @binds << obj
+            @parts << Arel::Nodes::BindParam.new(1)
+            self
+          end
+
+          def value
+            [@parts, @binds]
           end
         end
     end

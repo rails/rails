@@ -1,3 +1,13 @@
+*   Protect from forgery by default
+
+    Rather than protecting from forgery in the generated `ApplicationController`,
+    add it to `ActionController::Base` depending on
+    `config.action_controller.default_protect_from_forgery`. This configuration
+    defaults to false to support older versions which have removed it from their
+    `ApplicationController`, but is set to true for Rails 5.2.
+
+    *Lisa Ugray*
+
 *   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
 
     *Kir Shatrov*

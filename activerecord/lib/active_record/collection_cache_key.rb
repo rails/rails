@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module CollectionCacheKey
     def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:
@@ -14,7 +16,7 @@ module ActiveRecord
         column = "#{connection.quote_table_name(collection.table_name)}.#{connection.quote_column_name(timestamp_column)}"
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
-        if collection.limit_value || collection.offset_value
+        if collection.has_limit_or_offset?
           query = collection.spawn
           query.select_values = [column]
           subquery_alias = "subquery_for_cache_key"
@@ -27,7 +29,7 @@ module ActiveRecord
           arel = query.arel
         end
 
-        result = connection.select_one(arel, nil, query.bound_attributes)
+        result = connection.select_one(arel, nil)
 
         if result.blank?
           size = 0

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -332,7 +334,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_create_with_merge
     aaron = PoorDeveloperCalledJamis.create_with(name: "foo", salary: 20).merge(
-              PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
+      PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
 
@@ -340,6 +342,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
                                      create_with(name: "Aaron").new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
+  end
+
+  def test_create_with_using_both_string_and_symbol
+    jamis = PoorDeveloperCalledJamis.create_with(name: "foo").create_with("name" => "Aaron").new
+    assert_equal "Aaron", jamis.name
   end
 
   def test_create_with_reset
@@ -372,9 +379,37 @@ class DefaultScopingTest < ActiveRecord::TestCase
                  Comment.joins(:post).count
   end
 
+  def test_joins_not_affected_by_scope_other_than_default_or_unscoped
+    without_scope_on_post = Comment.joins(:post).to_a
+    with_scope_on_post = nil
+    Post.where(id: [1, 5, 6]).scoping do
+      with_scope_on_post = Comment.joins(:post).to_a
+    end
+
+    assert_equal with_scope_on_post, without_scope_on_post
+  end
+
   def test_unscoped_with_joins_should_not_have_default_scope
     assert_equal SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).to_a },
                  Comment.joins(:post).to_a
+  end
+
+  def test_sti_association_with_unscoped_not_affected_by_default_scope
+    post = posts(:thinking)
+    comments = [comments(:does_it_hurt)]
+
+    post.special_comments.update_all(deleted_at: Time.now)
+
+    assert_raises(ActiveRecord::RecordNotFound) { Post.joins(:special_comments).find(post.id) }
+    assert_equal [], post.special_comments
+
+    SpecialComment.unscoped do
+      assert_equal post, Post.joins(:special_comments).find(post.id)
+      assert_equal comments, Post.joins(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.eager_load(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.includes(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.preload(:special_comments).find(post.id).special_comments
+    end
   end
 
   def test_default_scope_select_ignored_by_aggregations

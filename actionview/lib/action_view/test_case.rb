@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/remove_method"
 require "action_controller"
 require "action_controller/test_case"
@@ -101,6 +103,7 @@ module ActionView
       def setup_with_controller
         @controller = ActionView::TestCase::TestController.new
         @request = @controller.request
+        @view_flow = ActionView::OutputFlow.new
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
         @output_buffer = ActiveSupport::SafeBuffer.new ""
@@ -244,6 +247,7 @@ module ActionView
         :@test_passed,
         :@view,
         :@view_context_class,
+        :@view_flow,
         :@_subscribers,
         :@html_document
       ]

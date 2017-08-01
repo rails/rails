@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Delegation # :nodoc:
     module DelegateCache # :nodoc:
