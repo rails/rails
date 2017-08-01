@@ -4196,51 +4196,26 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 
-  if RUBY_VERSION < '2.0.0'
-    test "invalid UTF-8 encoding returns a 400 Bad Request" do
-      with_routing do |set|
-        set.draw do
-          get "/bar/:id", :to => redirect("/foo/show/%{id}")
-          get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-          get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
-          get "/:controller(/:action(/:id))"
-        end
-
-        get "/%E2%EF%BF%BD%A6"
-        assert_response :bad_request
-
-        get "/foo/%E2%EF%BF%BD%A6"
-        assert_response :bad_request
-
-        get "/foo/show/%E2%EF%BF%BD%A6"
-        assert_response :bad_request
-
-        get "/bar/%E2%EF%BF%BD%A6"
-        assert_response :bad_request
+  test "invalid UTF-8 encoding is treated as ASCII 8BIT encode" do
+    with_routing do |set|
+      set.draw do
+        get "/bar/:id", :to => redirect("/foo/show/%{id}")
+        get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
+        get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
+        get "/:controller(/:action(/:id))"
       end
-    end
-  else
-    test "invalid UTF-8 encoding is treated as ASCII 8BIT encode" do
-      with_routing do |set|
-        set.draw do
-          get "/bar/:id", :to => redirect("/foo/show/%{id}")
-          get "/foo/show(/:id)", :to => "test_invalid_urls/foo#show"
-          get "/foo(/:action(/:id))", :controller => "test_invalid_urls/foo"
-          get "/:controller(/:action(/:id))"
-        end
 
-        get "/%E2%EF%BF%BD%A6"
-        assert_response :not_found
+      get "/%E2%EF%BF%BD%A6"
+      assert_response :not_found
 
-        get "/foo/%E2%EF%BF%BD%A6"
-        assert_response :not_found
+      get "/foo/%E2%EF%BF%BD%A6"
+      assert_response :not_found
 
-        get "/foo/show/%E2%EF%BF%BD%A6"
-        assert_response :ok
+      get "/foo/show/%E2%EF%BF%BD%A6"
+      assert_response :ok
 
-        get "/bar/%E2%EF%BF%BD%A6"
-        assert_response :redirect
-      end
+      get "/bar/%E2%EF%BF%BD%A6"
+      assert_response :redirect
     end
   end
 end
