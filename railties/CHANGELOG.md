@@ -1,3 +1,8 @@
+*   Change setting position of environment variable from end of command to
+    beginning of command.
+
+    *Yoshiyuki Hirano*
+
 *   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
     root file containing current Ruby version when new Rails applications are
     created.
