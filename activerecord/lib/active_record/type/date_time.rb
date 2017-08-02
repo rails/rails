@@ -7,34 +7,15 @@ module ActiveRecord
         :datetime
       end
 
-      def type_cast_for_database(value)
-        return super unless value.acts_like?(:time)
-
-        zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-
-        if value.respond_to?(zone_conversion_method)
-          value = value.send(zone_conversion_method)
-        end
-
-        return value unless has_precision?
-
-        result = value.to_s(:db)
-        if value.respond_to?(:usec) && (1..6).cover?(precision)
-          "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
-        else
-          result
-        end
-      end
-
       private
 
       alias has_precision? precision
 
-      def cast_value(string)
-        return string unless string.is_a?(::String)
-        return if string.empty?
+      def cast_value(value)
+        return apply_seconds_precision(value) unless value.is_a?(::String)
+        return if value.empty?
 
-        fast_string_to_time(string) || fallback_string_to_time(string)
+        fast_string_to_time(value) || fallback_string_to_time(value)
       end
 
       # '0.123456' -> 123456
