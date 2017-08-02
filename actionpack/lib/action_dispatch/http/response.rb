@@ -259,11 +259,10 @@ module ActionDispatch # :nodoc:
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      header_info = parsed_content_type_header
+      content_type = parsed_content_type_header.mime_type
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type
+        set_content_type content_type, nil
       else
-        content_type = header_info.mime_type
         set_content_type content_type, charset || self.class.default_charset
       end
     end
