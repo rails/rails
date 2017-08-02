@@ -1179,6 +1179,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal posts(:eager_other), Post.find_by("id = ?", posts(:eager_other).id)
   end
 
+  test "find_by with range conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by(id: posts(:eager_other).id...posts(:misc_by_bob).id)
+  end
+
   test "find_by returns nil if the record is missing" do
     assert_nil Post.find_by("1 = 0")
   end

@@ -108,6 +108,11 @@ module ActiveRecord
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
     end
-    alias :call :execute
+
+    def self.unsupported_value?(value)
+      case value
+      when NilClass, Array, Range, Hash, Relation, Base then true
+      end
+    end
   end
 end
