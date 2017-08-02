@@ -158,26 +158,6 @@ module ActiveRecord
       end
     end
 
-    # test resetting sequences in odd tables in PostgreSQL
-    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-      require "models/movie"
-      require "models/subscriber"
-
-      def test_reset_empty_table_with_custom_pk
-        Movie.delete_all
-        Movie.connection.reset_pk_sequence! "movies"
-        assert_equal 1, Movie.create(name: "fight club").id
-      end
-
-      def test_reset_table_with_non_integer_pk
-        Subscriber.delete_all
-        Subscriber.connection.reset_pk_sequence! "subscribers"
-        sub = Subscriber.new(name: "robert drake")
-        sub.id = "bob drake"
-        assert_nothing_raised { sub.save! }
-      end
-    end
-
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do
@@ -366,6 +346,26 @@ module ActiveRecord
         assert @connection.transaction_open?
         @connection.disconnect!
         assert !@connection.transaction_open?
+      end
+    end
+
+    # test resetting sequences in odd tables in PostgreSQL
+    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
+      require "models/movie"
+      require "models/subscriber"
+
+      def test_reset_empty_table_with_custom_pk
+        Movie.delete_all
+        Movie.connection.reset_pk_sequence! "movies"
+        assert_equal 1, Movie.create(name: "fight club").id
+      end
+
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! "subscribers"
+        sub = Subscriber.new(name: "robert drake")
+        sub.id = "bob drake"
+        assert_nothing_raised { sub.save! }
       end
     end
   end
