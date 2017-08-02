@@ -432,8 +432,8 @@ module ActiveRecord
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
             pk = self.class.primary_key
-            if pk && read_attribute(pk) != restore_state[:id]
-              write_attribute(pk, restore_state[:id])
+            if pk && _read_attribute(pk) != restore_state[:id]
+              _write_attribute(pk, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end

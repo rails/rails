@@ -1002,33 +1002,19 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   class SaveTest < ActiveRecord::TestCase
-    self.use_transactional_tests = false
-
     def test_save_touch_false
-      widget = Class.new(ActiveRecord::Base) do
-        connection.create_table :widgets, force: true do |t|
-          t.string :name
-          t.timestamps null: false
-        end
-
-        self.table_name = :widgets
-      end
-
-      instance = widget.create!(
+      pet = Pet.create!(
         name: "Bob",
         created_at: 1.day.ago,
         updated_at: 1.day.ago)
 
-      created_at = instance.created_at
-      updated_at = instance.updated_at
+      created_at = pet.created_at
+      updated_at = pet.updated_at
 
-      instance.name = "Barb"
-      instance.save!(touch: false)
-      assert_equal instance.created_at, created_at
-      assert_equal instance.updated_at, updated_at
-    ensure
-      ActiveRecord::Base.connection.drop_table widget.table_name
-      widget.reset_column_information
+      pet.name = "Barb"
+      pet.save!(touch: false)
+      assert_equal pet.created_at, created_at
+      assert_equal pet.updated_at, updated_at
     end
   end
 

@@ -133,7 +133,7 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_cache :off, conn
         end
       ensure
-        ActiveRecord::Base.clear_all_connections!
+        ActiveRecord::Base.connection_pool.disconnect!
       end
     end
   end

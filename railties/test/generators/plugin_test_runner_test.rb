@@ -71,7 +71,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     create_test_file "post", pass: false
 
     output = run_test_command("test/post_test.rb")
-    assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+    assert_match %r{Finished in.*\n1 runs, 1 assertions}, output
   end
 
   def test_fail_fast

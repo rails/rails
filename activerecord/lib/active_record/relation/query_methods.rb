@@ -902,16 +902,17 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
-    # Returns a relation value with a given name
-    def get_value(name) # :nodoc:
-      @values[name] || default_value_for(name)
-    end
+    protected
+      # Returns a relation value with a given name
+      def get_value(name) # :nodoc:
+        @values[name] || default_value_for(name)
+      end
 
-    # Sets the relation value with the given name
-    def set_value(name, value) # :nodoc:
-      assert_mutability!
-      @values[name] = value
-    end
+      # Sets the relation value with the given name
+      def set_value(name, value) # :nodoc:
+        assert_mutability!
+        @values[name] = value
+      end
 
     private
 

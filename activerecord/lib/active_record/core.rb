@@ -168,8 +168,7 @@ module ActiveRecord
 
         id = ids.first
 
-        return super if id.kind_of?(Array) ||
-                         id.is_a?(ActiveRecord::Base)
+        return super if StatementCache.unsupported_value?(id)
 
         key = primary_key
 
@@ -194,7 +193,7 @@ module ActiveRecord
         hash = args.first
 
         return super if !(Hash === hash) || hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v || Base === v
+          StatementCache.unsupported_value?(v)
         }
 
         # We can't cache Post.find_by(author: david) ...yet

@@ -397,6 +397,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
   class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
     fixtures :companies
+    self.use_transactional_tests = false
 
     def setup
       @instances = [Account.new(credit_limit: 50), Company.new(name: "RoR Consulting"), Course.new(name: "Test")]
@@ -841,6 +842,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
 end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  self.use_transactional_tests = false
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
            :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 

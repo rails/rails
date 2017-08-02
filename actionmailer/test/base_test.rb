@@ -981,8 +981,7 @@ class BasePreviewTest < ActiveSupport::TestCase
   test "has access to params" do
     params = { name: "World" }
 
-    assert_called_with(BaseMailer, :welcome, [params]) do
-      BaseMailerPreview.call(:welcome, params)
-    end
+    message = BaseMailerPreview.call(:welcome, params)
+    assert_equal "World", message["name"].decoded
   end
 end
