@@ -8,6 +8,7 @@ require_relative "type/date"
 require_relative "type/date_time"
 require_relative "type/decimal_without_scale"
 require_relative "type/json"
+require_relative "type/string"
 require_relative "type/time"
 require_relative "type/text"
 require_relative "type/unsigned_integer"
@@ -60,7 +61,6 @@ module ActiveRecord
     Decimal = ActiveModel::Type::Decimal
     Float = ActiveModel::Type::Float
     Integer = ActiveModel::Type::Integer
-    String = ActiveModel::Type::String
     Value = ActiveModel::Type::Value
 
     register(:big_integer, Type::BigInteger, override: false)
