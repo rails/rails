@@ -686,7 +686,7 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert_nil movie.id
+    assert_nil movie.movieid
   end
 
   def test_assign_id_after_rollback
@@ -709,8 +709,54 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    movie.id = nil
-    assert_nil movie.id
+    movie.movieid = nil
+    assert_nil movie.movieid
+  end
+
+  def test_read_attribute_after_rollback
+    topic = Topic.new
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil topic.read_attribute(:id)
+  end
+
+  def test_read_attribute_with_custom_primary_key_after_rollback
+    movie = Movie.new(name: "foo")
+
+    Movie.transaction do
+      movie.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_nil movie.read_attribute(:movieid)
+  end
+
+  def test_write_attribute_after_rollback
+    topic = Topic.create!
+
+    Topic.transaction do
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    topic.write_attribute(:id, nil)
+    assert_nil topic.id
+  end
+
+  def test_write_attribute_with_custom_primary_key_after_rollback
+    movie = Movie.create!(name: "foo")
+
+    Movie.transaction do
+      movie.save!
+      raise ActiveRecord::Rollback
+    end
+
+    movie.write_attribute(:movieid, nil)
+    assert_nil movie.movieid
   end
 
   def test_rollback_of_frozen_records
