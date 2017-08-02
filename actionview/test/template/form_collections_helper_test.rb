@@ -44,6 +44,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'label[for=user_name_199]', '$1.99'
   end
 
+  test "collection radio generates labels for non-English values correctly" do
+    with_collection_radio_buttons :user, :title, ["Господин", "Госпожа"], :to_s, :to_s
+
+    assert_select "input[type=radio]#user_title_господин"
+    assert_select "label[for=user_title_господин]", "Господин"
+  end
+
   test 'collection radio accepts checked item' do
     with_collection_radio_buttons :user, :active, [[1, true], [0, false]], :last, :first, :checked => true
 
@@ -296,6 +303,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_check_boxes :user, :name, ['$0.99', '$1.99'], :to_s, :to_s
     assert_select 'label[for=user_name_099]', '$0.99'
     assert_select 'label[for=user_name_199]', '$1.99'
+  end
+
+  test "collection check boxes generates labels for non-English values correctly" do
+    with_collection_check_boxes :user, :title, ["Господин", "Госпожа"], :to_s, :to_s
+
+    assert_select "input[type=checkbox]#user_title_господин"
+    assert_select "label[for=user_title_господин]", "Господин"
   end
 
   test 'collection check boxes accepts html options as the last element of array' do
