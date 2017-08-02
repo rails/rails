@@ -38,7 +38,7 @@ module SidekiqJobsManager
       # Sidekiq is not warning-clean :(
       $VERBOSE = false
 
-      $stdin.reopen("/dev/null")
+      $stdin.reopen(File::NULL)
       $stdout.sync = true
       $stderr.sync = true
 
