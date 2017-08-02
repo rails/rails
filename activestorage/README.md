@@ -1,8 +1,6 @@
 # Active Storage
 
-Active Storage makes it simple to upload and reference files in cloud services, like Amazon S3 or Google Cloud Storage,
-and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the
-focus is on cloud storage.
+Active Storage makes it simple to upload and reference files in cloud services, like Amazon S3, Google Cloud Storage or Microsoft Azure Storage and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
 
 Files can uploaded from the server to the cloud or directly from the client to the cloud.
 
