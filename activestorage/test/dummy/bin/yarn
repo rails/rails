@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-VENDOR_PATH = File.expand_path('..', __dir__)
+VENDOR_PATH = File.expand_path("..", __dir__)
 Dir.chdir(VENDOR_PATH) do
   begin
     exec "yarnpkg #{ARGV.join(" ")}"
