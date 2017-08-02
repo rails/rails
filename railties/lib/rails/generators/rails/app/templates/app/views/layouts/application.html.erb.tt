@@ -16,7 +16,6 @@
       <%- end -%>
     <%- end -%>
   </head>
-
   <body>
     <%%= yield %>
   </body>
