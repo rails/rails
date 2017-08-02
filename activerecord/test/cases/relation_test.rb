@@ -100,6 +100,14 @@ module ActiveRecord
       assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
     end
 
+    def test_empty_scope
+      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      assert relation.empty_scope?
+
+      relation.merge!(relation)
+      assert relation.empty_scope?
+    end
+
     def test_bad_constants_raise_errors
       assert_raises(NameError) do
         ActiveRecord::Relation::HelloWorld
