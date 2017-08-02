@@ -97,8 +97,8 @@ group :storage do
   gem "google-cloud-storage", "~> 1.3", require: false
 
   # Contains fix to be able to test using StringIO
-  gem 'azure-core', git: "https://github.com/dixpac/azure-ruby-asm-core.git"
-  gem 'azure-storage', require: false
+  gem "azure-core", git: "https://github.com/dixpac/azure-ruby-asm-core.git"
+  gem "azure-storage", require: false
 
   gem "mini_magick"
 end
