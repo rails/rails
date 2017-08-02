@@ -281,7 +281,7 @@ module Rails
           log executor, command
           env  = options[:env] || ENV["RAILS_ENV"] || "development"
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
-          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
+          in_root { run("RAILS_ENV=#{env} #{sudo}#{extify(executor)} #{command}", verbose: false) }
         end
 
         # Add an extension to the given name based on the platform.
