@@ -400,6 +400,31 @@ class SchemaDumperTest < ActiveRecord::TestCase
     $stdout = original
   end
 
+  def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
+    original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.table_name_prefix = "foo$"
+    ActiveRecord::Base.table_name_suffix = "$bar"
+
+    migration = CreateDogMigration.new
+    migration.migrate(:up)
+
+    output = perform_schema_dump
+    assert_no_match %r{create_table "foo\$.+\$bar"}, output
+    assert_no_match %r{add_index "foo\$.+\$bar"}, output
+    assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
+    end
+  ensure
+    migration.migrate(:down)
+
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
+    $stdout = original
+  end
+
   def test_schema_dump_with_table_name_prefix_and_ignoring_tables
     original, $stdout = $stdout, StringIO.new
 
