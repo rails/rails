@@ -249,8 +249,12 @@ module ActionDispatch # :nodoc:
 
     def sending_file=(v)
       if true == v
-        self.charset = false
+        omit_charset
       end
+    end
+
+    def omit_charset # :nodoc:
+      self.charset = false
     end
 
     # Sets the HTTP character set. In case of +nil+ parameter

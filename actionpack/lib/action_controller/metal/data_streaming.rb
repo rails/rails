@@ -115,7 +115,7 @@ module ActionController #:nodoc:
 
         content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
         self.content_type = content_type
-        response.sending_file = true
+        response.omit_charset
 
         raise ArgumentError, ":type option required" if content_type.nil?
 
