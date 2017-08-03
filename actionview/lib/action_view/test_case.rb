@@ -281,6 +281,18 @@ module ActionView
           super
         end
       end
+
+      def respond_to_missing?(name, include_private = false)
+        begin
+          routes = @controller.respond_to?(:_routes) && @controller._routes
+        rescue
+          # Dont call routes, if there is an error on _routes call
+        end
+
+        routes &&
+          (routes.named_routes.route_defined?(name) ||
+           routes.mounted_helpers.method_defined?(name))
+      end
     end
 
     include Behavior
