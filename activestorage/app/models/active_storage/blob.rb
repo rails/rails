@@ -85,16 +85,24 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
-  def image?() content_type =~ /^image/ end
+  def image?
+    content_type =~ /^image/
+  end
 
   # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
-  def audio?() content_type =~ /^audio/ end
+  def audio?
+    content_type =~ /^audio/
+  end
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
-  def video?() content_type =~ /^video/ end
+  def video?
+    content_type =~ /^video/
+  end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
-  def text?()  content_type =~ /^text/  end
+  def text?
+    content_type =~ /^text/
+  end
 
   # Returns a `ActiveStorage::Variant` instance with the set of `transformations` passed in. This is only relevant
   # for image files, and it allows any image to be transformed for size, colors, and the like. Example:
