@@ -233,11 +233,9 @@ module ApplicationTests
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       begin
-        orig_database_url = ENV.delete("DATABASE_URL")
-
         require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
         orig_rails_env, Rails.env = Rails.env, "development"
-
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
@@ -250,13 +248,11 @@ module ApplicationTests
 
     test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
       begin
+        require "#{app_path}/config/environment"
         orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, "development"
         database_url_db_name = "db/database_url_db.sqlite3"
         ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
-
-        require "#{app_path}/config/environment"
-        orig_rails_env, Rails.env = Rails.env, "development"
-
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])

@@ -1,4 +1,3 @@
-require "active_storage/blob"
 require "active_support/core_ext/module/delegation"
 
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship, 

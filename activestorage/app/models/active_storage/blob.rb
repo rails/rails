@@ -1,9 +1,3 @@
-require "active_storage/service"
-require "active_storage/filename"
-require "active_storage/purge_job"
-require "active_storage/variant"
-require "active_storage/variation"
-
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #

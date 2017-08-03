@@ -1,6 +1,3 @@
-require "active_storage/blob"
-require "active_storage/attachment"
-
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"
 
