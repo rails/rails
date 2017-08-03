@@ -1,6 +1,6 @@
-*   Update String#camelize to provide feedback when wrong option is passed
+*   Update `String#camelize` to provide feedback when wrong option is passed
 
-    String#camelize was returning nil without any feedback when an
+    `String#camelize` was returning nil without any feedback when an
     invalid option was passed as parameter.
 
     Previously:
