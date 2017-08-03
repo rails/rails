@@ -1,3 +1,20 @@
+*   Update String#camelize to provide feedback when wrong option is passed
+
+    String#camelize was returning nil without any feedback when an
+    invalid option was passed as parameter.
+
+    Previously:
+
+        'one_two'.camelize(true)
+        => nil
+
+    Now:
+
+        'one_two'.camelize(true)
+        => ArgumentError: Invalid option, use either :upper or :lower.
+
+    *Ricardo Díaz*
+
 *   Fix modulo operations involving durations
 
     Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper

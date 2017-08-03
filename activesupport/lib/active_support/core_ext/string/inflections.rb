@@ -94,6 +94,8 @@ class String
       ActiveSupport::Inflector.camelize(self, true)
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
+    else
+      raise ArgumentError, "Invalid option, use either :upper or :lower."
     end
   end
   alias_method :camelcase, :camelize
