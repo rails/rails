@@ -465,12 +465,12 @@ module ActiveRecord
             @binds = []
           end
 
-          def << str
+          def <<(str)
             @parts << str
             self
           end
 
-          def add_bind obj
+          def add_bind(obj)
             @binds << obj
             @parts << Arel::Nodes::BindParam.new(1)
             self

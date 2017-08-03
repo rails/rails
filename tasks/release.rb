@@ -234,7 +234,7 @@ task :announce do
     versions = ENV["VERSIONS"] ? ENV["VERSIONS"].split(",") : [ version ]
     versions = versions.sort.map { |v| Announcement::Version.new(v) }
 
-   raise "Only valid for patch releases" if versions.any?(&:major_or_security?)
+    raise "Only valid for patch releases" if versions.any?(&:major_or_security?)
 
     if versions.any?(&:rc?)
       require "date"
