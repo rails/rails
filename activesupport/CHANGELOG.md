@@ -1,3 +1,8 @@
+## Rails 5.1.3 (August 03, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.1.3.rc3 (July 31, 2017) ##
 
 *   Fix modulo operations involving durations
