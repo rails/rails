@@ -8,7 +8,7 @@ module ActiveRecord
     MAJOR = 5
     MINOR = 1
     TINY  = 3
-    PRE   = "rc3"
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
