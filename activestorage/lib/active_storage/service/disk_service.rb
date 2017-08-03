@@ -81,8 +81,10 @@ class ActiveStorage::Service::DiskService < ActiveStorage::Service
           content_length: content_length,
           checksum: checksum
         },
-        expires_in: expires_in,
-        purpose: :blob_token
+        {
+          expires_in: expires_in,
+          purpose: :blob_token
+        }
       )
 
       generated_url =
