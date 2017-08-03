@@ -15,7 +15,6 @@
 
     *Ricardo Díaz*
 
-
 *   Fix modulo operations involving durations
 
     Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper
