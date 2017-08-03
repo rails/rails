@@ -19,7 +19,7 @@ class ActiveStorage::Service::AzureStorageService < ActiveStorage::Service
     instrument :upload, key, checksum: checksum do
       begin
         blobs.create_block_blob(container, key, io, content_md5: checksum)
-      rescue Azure::Core::Http::HTTPError => e
+      rescue Azure::Core::Http::HTTPError
         raise ActiveStorage::IntegrityError
       end
     end
