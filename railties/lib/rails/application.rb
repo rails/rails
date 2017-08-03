@@ -3,6 +3,7 @@ require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
+require "active_support/encrypted_configuration"
 require_relative "engine"
 require_relative "secrets"
 
@@ -398,6 +399,14 @@ module Rails
 
         secrets
       end
+    end
+
+    def credentials
+      @credentials ||= ActiveSupport::EncryptedConfiguration.new \
+        config_path: Rails.root.join("config/credentials.yml.enc"), 
+        key_path: Rails.root.join("config/credentials.yml.key"),
+        env_key: "RAILS_CREDENTIALS_KEY",
+        template: "# Put your credentials here!"
     end
 
     def secrets=(secrets) #:nodoc:
