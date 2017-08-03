@@ -27,7 +27,9 @@ module ActiveStorage
 
     initializer "active_storage.verifier" do
       config.after_initialize do |app|
-        ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+        if app.config.secret_key_base.present?
+          ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+        end
       end
     end
 
