@@ -88,7 +88,7 @@ Variation of image attachment:
 1. Run `rails activestorage:install` to create needed directories, migrations, and configuration.
 2. Optional: Add `gem "aws-sdk", "~> 2"` to your Gemfile if you want to use AWS S3.
 3. Optional: Add `gem "google-cloud-storage", "~> 1.3"` to your Gemfile if you want to use Google Cloud Storage.
-4. Optional: Add `gem "azure-core", git: "https://github.com/dixpac/azure-ruby-asm-core.git"` and `gem "azure-storage", require: false` to your Gemfile if you want to use Microsoft Azure.
+4. Optional: Add `gem "azure-core"` and `gem "azure-storage", require: false` to your Gemfile if you want to use Microsoft Azure.
 5. Optional: Add `gem "mini_magick"` to your Gemfile if you want to use variants.
 
 ## Direct uploads
