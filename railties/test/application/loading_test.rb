@@ -115,11 +115,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
     get "/load"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
     get "/unload"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
   end
 
   test "initialize cant be called twice" do
