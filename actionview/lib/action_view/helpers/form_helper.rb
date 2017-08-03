@@ -2316,12 +2316,6 @@ module ActionView
             options[:include_id] = !options.delete(:skip_id)
           end
         end
-
-        def convert_direct_upload_option_to_url(options)
-          if options.delete(:direct_upload)
-            options['data-direct-upload-url'] = rails_direct_uploads_url
-          end
-        end
     end
   end
 
