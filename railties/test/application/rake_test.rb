@@ -129,7 +129,15 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails routes` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+      MESSAGE
     end
 
     def test_singular_resource_output_in_rake_routes
@@ -162,10 +170,20 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails routes -g show` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      MESSAGE
 
       output = Dir.chdir(app_path) { `bin/rails routes -g POST` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                    Controller#Action
+                                POST /cart(.:format)                                cart#create
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
+      MESSAGE
 
       output = Dir.chdir(app_path) { `bin/rails routes -g basketballs` }
       assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
@@ -221,11 +239,12 @@ module ApplicationTests
       RUBY
 
       assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path) { `bin/rails routes` }
-        You don't have any routes defined!
-
-        Please add some routes in config/routes.rb.
-
-        For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
       MESSAGE
     end
 
@@ -237,7 +256,16 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+      MESSAGE
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
