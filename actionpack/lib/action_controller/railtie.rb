@@ -24,7 +24,7 @@ module ActionController
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 
-      ActiveSupport.on_load(:action_controller) do
+      ActiveSupport.on_load(:action_controller, run_once: true) do
         ActionController::Parameters.permit_all_parameters = options.delete(:permit_all_parameters) { false }
         if app.config.action_controller[:always_permitted_parameters]
           ActionController::Parameters.always_permitted_parameters =
