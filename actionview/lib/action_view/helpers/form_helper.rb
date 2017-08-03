@@ -9,7 +9,6 @@ require_relative "../model_naming"
 require_relative "../record_identifier"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/hash/compact"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
 
@@ -1194,7 +1193,7 @@ module ActionView
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
-        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options)).render
+        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options.dup)).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -2319,7 +2318,9 @@ module ActionView
         end
 
         def convert_direct_upload_option_to_url(options)
-          options.merge('data-direct-upload-url': options.delete(:direct_upload) ? rails_direct_uploads_url : nil).compact
+          if options.delete(:direct_upload)
+            options['data-direct-upload-url'] = rails_direct_uploads_url
+          end
         end
     end
   end
