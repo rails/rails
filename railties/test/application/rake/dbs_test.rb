@@ -42,8 +42,8 @@ module ApplicationTests
       end
 
       test "db:create and db:drop with database url" do
-        require "#{app_path}/config/environment"
         set_database_url
+        require "#{app_path}/config/environment"
         db_create_and_drop database_url_db_name
       end
 
@@ -154,8 +154,8 @@ module ApplicationTests
       end
 
       test "db:fixtures:load with database_url" do
-        require "#{app_path}/config/environment"
         set_database_url
+        require "#{app_path}/config/environment"
         db_fixtures_load database_url_db_name
       end
 
@@ -189,8 +189,8 @@ module ApplicationTests
       end
 
       test "db:structure:dump and db:structure:load with database_url" do
-        require "#{app_path}/config/environment"
         set_database_url
+        require "#{app_path}/config/environment"
         db_structure_dump_and_load database_url_db_name
       end
 
