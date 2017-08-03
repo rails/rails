@@ -21,9 +21,9 @@ s3:
 #   }
 #   project:
 #   bucket:
-# 
+#
 # azure:
-#   service: Azure
+#   service: AzureStorage
 #   path: ""
 #   storage_account_name: ""
 #   storage_access_key: ""

@@ -4,7 +4,7 @@ require "azure/storage/core/auth/shared_access_signature"
 
 # Wraps the Microsoft Azure Storage Blob Service as a Active Storage service.
 # See `ActiveStorage::Service` for the generic API documentation that applies to all services.
-class ActiveStorage::Service::AzureService < ActiveStorage::Service
+class ActiveStorage::Service::AzureStorageService < ActiveStorage::Service
   attr_reader :client, :path, :blobs, :container, :signer
 
   def initialize(path:, storage_account_name:, storage_access_key:, container:)
