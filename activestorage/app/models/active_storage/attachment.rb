@@ -1,6 +1,6 @@
 require "active_support/core_ext/module/delegation"
 
-# Attachments associate records with blobs. Usually that's a one record-many blobs relationship, 
+# Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
 # but it is possible to associate many different records with the same blob. If you're doing that,
 # you'll want to declare with `has_one/many_attached :thingy, dependent: false`, so that destroying
 # any one record won't destroy the blob as well. (Then you'll need to do your own garbage collecting, though).
