@@ -92,6 +92,14 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+group :storage do
+  gem "aws-sdk", "~> 2", require: false
+  gem "google-cloud-storage", "~> 1.3", require: false
+  gem "azure-storage", require: false
+
+  gem "mini_magick"
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile

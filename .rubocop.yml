@@ -28,10 +28,6 @@ Layout/CommentIndentation:
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
-# No extra empty lines.
-Layout/EmptyLines:
-  Enabled: true
-
 # In a regular class definition, no empty lines around the body.
 Layout/EmptyLinesAroundClassBody:
   Enabled: true

@@ -21,6 +21,9 @@
 !/tmp/.keep
 <% end -%>
 
+# Ignore uploaded files in development
+/storage/*
+
 <% unless options[:skip_yarn] -%>
 /node_modules
 /yarn-error.log
