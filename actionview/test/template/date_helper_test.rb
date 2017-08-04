@@ -156,8 +156,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_ago_in_words_passes_include_seconds
-    assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, include_seconds: true)
-    assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, include_seconds: false)
+    assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.from_now, include_seconds: true)
+    assert_equal "less than a minute", time_ago_in_words(15.seconds.from_now, include_seconds: false)
   end
 
   def test_distance_in_words_with_time_zones
@@ -212,7 +212,8 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_time_ago_in_words
-    assert_equal "about 1 year", time_ago_in_words(1.year.ago - 1.day)
+    assert_equal "about 1 year", time_ago_in_words(1.year.from_now - 1.day)
+    assert_equal "-1", time_ago_in_words(1.year.ago)
   end
 
   def test_select_day
