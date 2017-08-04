@@ -14,65 +14,45 @@ module ActiveSupport
 
     CIPHER = "aes-128-gcm"
 
-    attr_reader :config_path, :key_path, :env_key, :template
-
-    delegate :dig, :[], to: :data
-
-    def initialize(config_path:, key_path:, env_key:, template: nil)
-      @config_path, @key_path, @env_path = config_path, key_path, env_key
-      @template = template
-    end
-
-    def data
-      @data ||= read
-    end
-
-    def generate_key
+    def self.generate_key
       SecureRandom.hex(OpenSSL::Cipher.new(CIPHER).key_len)
     end
 
-    def key
-      read_env_key || read_key_file || handle_missing_key
+
+    attr_reader :config_path, :key_path, :env_key
+
+    def initialize(config_path:, key_path:, env_key:)
+      @config_path, @key_path, @env_key = config_path, key_path, env_key
     end
 
-    def encrypt(data)
-      encryptor.encrypt_and_sign(data)
+    def data
+      @data ||= YAML.load(read).deep_symbolize_keys
     end
 
-    def decrypt(data)
-      encryptor.decrypt_and_verify(data)
-    end
+    delegate :dig, :fetch, :[], to: :data
 
-    def read
-      decrypt(IO.binread(configuration_path))
-    end
 
     def write(contents)
-      IO.binwrite("#{configuration_path}.tmp", encrypt(contents))
-      FileUtils.mv("#{configuration_path}.tmp", configuration_path)
+      IO.binwrite("#{config_path}.tmp", encrypt(contents))
+      FileUtils.mv("#{config_path}.tmp", config_path)
     end
 
-    def read_for_editing(&block)
+    def change(&block)
       writing(read, &block)
     end
 
-    def read_template_for_editing(&block)
-      writing(template, &block)
-    end
 
     private
-      def handle_missing_key
-        raise MissingKeyError.new(key_path: key_path, env_key: env_key)
-      end
-
-      def read_key_file
-        if File.exist?(key_path)
-          IO.binread(key_path).strip
+      def read
+        if File.exist?(config_path)
+          decrypt(IO.binread(config_path))
+        else
+          ""
         end
       end
 
       def writing(contents)
-        tmp_file = "#{File.basename(configuration_path)}.#{Process.pid}"
+        tmp_file = "#{File.basename(config_path)}.#{Process.pid}"
         tmp_path = File.join(Dir.tmpdir, tmp_file)
         IO.binwrite(tmp_path, contents)
 
@@ -85,8 +65,36 @@ module ActiveSupport
         FileUtils.rm(tmp_path) if File.exist?(tmp_path)
       end
 
+
+      def encrypt(contents)
+        encryptor.encrypt_and_sign(contents)
+      end
+
+      def decrypt(contents)
+        encryptor.decrypt_and_verify(contents)
+      end
+
       def encryptor
         @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
+      end
+
+
+      def key
+        read_env_key || read_key_file || handle_missing_key
+      end
+
+      def read_env_key
+        ENV[env_key]
+      end
+
+      def read_key_file
+        if File.exist?(key_path)
+          IO.binread(key_path).strip
+        end
+      end
+
+      def handle_missing_key
+        raise MissingKeyError.new(key_path: key_path, env_key: env_key)
       end
   end
 end
