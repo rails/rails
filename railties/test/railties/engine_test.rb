@@ -882,7 +882,15 @@ YAML
         end
       RUBY
 
-      add_to_config "isolate_namespace AppTemplate"
+      @plugin.write "lib/new_lugin.rb", <<-RUBY
+        module AppTemplate
+          module NewPlugin
+            class Engine < ::Rails::Engine
+              isolate_namespace(AppTemplate)
+            end
+          end
+        end
+      RUBY
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do end
