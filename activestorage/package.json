@@ -6,13 +6,13 @@
   "files": [
     "app/assets/javascripts/*.js"
   ],
-  "homepage": "https://github.com/rails/activestorage",
+  "homepage": "http://rubyonrails.org/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rails/activestorage.git"
+    "url": "git+https://github.com/rails/rails.git"
   },
   "bugs": {
-    "url": "https://github.com/rails/activestorage/issues"
+    "url": "https://github.com/rails/rails/issues"
   },
   "author": "Javan Makhmali <javan@javan.us>",
   "license": "MIT",
