@@ -882,15 +882,17 @@ YAML
         end
       RUBY
 
-      @plugin.write "lib/new_lugin.rb", <<-RUBY
-        module AppTemplate
-          module NewPlugin
-            class Engine < ::Rails::Engine
-              isolate_namespace(AppTemplate)
+      engine "loaded_first" do |plugin|
+        plugin.write "lib/loaded_first.rb", <<-RUBY
+          module AppTemplate
+            module LoadedFirst
+              class Engine < ::Rails::Engine
+                isolate_namespace(AppTemplate)
+              end
             end
           end
-        end
-      RUBY
+        RUBY
+      end
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do end
@@ -898,7 +900,7 @@ YAML
 
       boot_rails
 
-      assert_equal AppTemplate::Engine, AppTemplate.railtie_namespace
+      assert_equal AppTemplate::LoadedFirst::Engine, AppTemplate.railtie_namespace
     end
 
     test "properly reload routes" do
