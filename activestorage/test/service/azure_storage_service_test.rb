@@ -2,7 +2,7 @@ require "service/shared_service_tests"
 require "uri"
 
 if SERVICE_CONFIGURATIONS[:azure]
-  class ActiveStorage::Service::AzureServiceTest < ActiveSupport::TestCase
+  class ActiveStorage::Service::AzureStorageServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:azure, SERVICE_CONFIGURATIONS)
 
     include ActiveStorage::Service::SharedServiceTests

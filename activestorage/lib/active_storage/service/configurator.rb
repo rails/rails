@@ -22,7 +22,7 @@ class ActiveStorage::Service::Configurator #:nodoc:
     end
 
     def resolve(class_name)
-      require "active_storage/service/#{class_name.to_s.downcase}_service"
+      require "active_storage/service/#{class_name.to_s.underscore}_service"
       ActiveStorage::Service.const_get(:"#{class_name}Service")
     end
 end

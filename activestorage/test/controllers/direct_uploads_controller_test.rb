@@ -69,7 +69,7 @@ else
 end
 
 if SERVICE_CONFIGURATIONS[:azure]
-  class ActiveStorage::AzureDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  class ActiveStorage::AzureStorageDirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
       @config = SERVICE_CONFIGURATIONS[:azure]
 
@@ -99,7 +99,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
   end
 else
-  puts "Skipping Azure Direct Upload tests because no Azure configuration was supplied"
+  puts "Skipping Azure Storage Direct Upload tests because no Azure Storage configuration was supplied"
 end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
