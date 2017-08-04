@@ -159,7 +159,7 @@ module ActionView
 
       # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       #
-      #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
+      #   time_ago_in_words(3.minutes.from_now)                 # => -1
       #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
       #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
       #   time_ago_in_words(Time.now)                           # => less than a minute
@@ -174,6 +174,7 @@ module ActionView
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
       def time_ago_in_words(from_time, options = {})
+        return -1 if from_time < Time.now
         distance_of_time_in_words(from_time, Time.now, options)
       end
 
