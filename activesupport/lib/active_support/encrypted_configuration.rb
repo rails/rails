@@ -25,11 +25,11 @@ module ActiveSupport
       @config_path, @key_path, @env_key = config_path, key_path, env_key
     end
 
-    def data
-      @data ||= YAML.load(read).deep_symbolize_keys
+    def config
+      @config ||= YAML.load(read).deep_symbolize_keys
     end
 
-    delegate :dig, :fetch, :[], to: :data
+    delegate :dig, :fetch, :[], to: :config
 
 
     def write(contents)
