@@ -405,8 +405,7 @@ module Rails
       @credentials ||= ActiveSupport::EncryptedConfiguration.new \
         config_path: Rails.root.join("config/credentials.yml.enc"), 
         key_path: Rails.root.join("config/credentials.yml.key"),
-        env_key: "RAILS_CREDENTIALS_KEY",
-        template: "# Put your credentials here!"
+        env_key: "RAILS_CREDENTIALS_KEY"
     end
 
     def secrets=(secrets) #:nodoc:

@@ -1,6 +1,7 @@
 require "yaml"
 require "active_support/message_encryptor"
 require "active_support/core_ext/string/strip"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedConfiguration
@@ -22,11 +23,11 @@ module ActiveSupport
     attr_reader :config_path, :key_path, :env_key
 
     def initialize(config_path:, key_path:, env_key:)
-      @config_path, @key_path, @env_key = config_path, key_path, env_key
+      @config_path, @key_path, @env_key = Pathname.new(config_path), Pathname.new(key_path), env_key
     end
 
     def config
-      @config ||= YAML.load(read).deep_symbolize_keys
+      @config ||= (YAML.load(read) || {}).deep_symbolize_keys
     end
 
     delegate :dig, :fetch, :[], to: :config
