@@ -867,6 +867,38 @@ class HeadRenderTest < ActionController::TestCase
   end
 end
 
+class LiveTestController < ActionController::Base
+  include ActionController::Live
+
+  def test_action
+    head :ok
+  end
+end
+
+class LiveHeadRenderTest < ActionController::TestCase
+  tests LiveTestController
+
+  def setup
+    super
+
+    def @controller.new_controller_thread
+      Thread.new { yield }
+    end
+
+    def @controller.response_body=(body)
+      super
+      sleep 0.1
+    end
+  end
+
+  def test_live_head_ok
+    get :test_action, format: "json"
+
+    @response.stream.on_error { flunk "action should not raise any errors" }
+    sleep 0.2
+  end
+end
+
 class HttpCacheForeverTest < ActionController::TestCase
   class HttpCacheForeverController < ActionController::Base
     def cache_me_forever
