@@ -216,6 +216,15 @@ module JSONSharedTestCases
     assert_equal true, json.payload
   end
 
+  def test_not_compatible_with_serialize_macro
+    new_klass = Class.new(klass) do
+      serialize :payload, JSON
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
+  end
+
   private
     def klass
       JsonDataType
