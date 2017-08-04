@@ -41,9 +41,9 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     write_key_file
 
     @credentials.write({ something: { good: true }}.to_yaml)
-    @credentials.change do |config_path|
-      config = YAML.load(File.read(config_path))
-      File.write(config_path, config.merge(new: "things").to_yaml)
+    @credentials.change do |config_file|
+      config = YAML.load(config_file.read)
+      config_file.write config.merge(new: "things").to_yaml
     end
 
     assert @credentials[:something][:good]

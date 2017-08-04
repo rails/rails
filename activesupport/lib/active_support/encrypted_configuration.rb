@@ -45,25 +45,25 @@ module ActiveSupport
 
     private
       def read
-        if File.exist?(config_path)
-          decrypt(IO.binread(config_path))
+        if config_path.exist?
+          decrypt config_path.binread
         else
           ""
         end
       end
 
       def writing(contents)
-        tmp_file = "#{File.basename(config_path)}.#{Process.pid}"
-        tmp_path = File.join(Dir.tmpdir, tmp_file)
-        IO.binwrite(tmp_path, contents)
+        tmp_file = "#{config_path.basename}.#{Process.pid}"
+        tmp_path = Pathname.new(File.join(Dir.tmpdir, tmp_file))
+        tmp_path.binwrite(contents)
 
         yield tmp_path
 
-        updated_contents = IO.binread(tmp_path)
+        updated_contents = tmp_path.binread
 
         write(updated_contents) if updated_contents != contents
       ensure
-        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
+        FileUtils.rm(tmp_path) if tmp_path.exist?
       end
 
 
@@ -89,9 +89,7 @@ module ActiveSupport
       end
 
       def read_key_file
-        if File.exist?(key_path)
-          IO.binread(key_path).strip
-        end
+        key_path.binread.strip if key_path.exist?
       end
 
       def handle_missing_key
