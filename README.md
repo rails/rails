@@ -40,6 +40,8 @@ to generate and send emails; Active Job ([README](activejob/README.md)), a
 framework for declaring jobs and making them run on a variety of queueing
 backends; Action Cable ([README](actioncable/README.md)), a framework to
 integrate WebSockets with a Rails application;
+Active Storage ([README](activestorage/README.md)), a library to attach cloud
+and local files to Rails applications;
 and Active Support ([README](activesupport/README.rdoc)), a collection
 of utility classes and standard library extensions that are useful for Rails,
 and may also be used independently outside Rails.
