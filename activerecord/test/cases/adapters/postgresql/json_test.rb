@@ -33,6 +33,15 @@ module PostgresqlJSONSharedTestCases
     x.reload
     assert_equal ["foo" => "bar"], x.objects
   end
+
+  def test_not_compatible_with_serialize_macro
+    new_klass = Class.new(klass) do
+      serialize :payload, JSON
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
+  end
 end
 
 class PostgresqlJSONTest < ActiveRecord::PostgreSQLTestCase
