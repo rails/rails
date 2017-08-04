@@ -40,6 +40,8 @@ script: 'ci/travis.rb'
 env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
+    - "AWS_ACCESS_KEY_ID=AKIAIDIA2E7SSMYGNB7A"
+    - secure: "XohvFnYff1yf8qlawCujI+CIqHK08KOw34pPprd4QYuG0SJCzBdNN7efBBj5gLX1PI6DwkDLNv51Oi31xPh7yJFuzRAkB0FPdyKM7UyYZ7BMaTqx8LVC89lZJ8VIu19kDP/8sdOm0HN/huOM5kO3jZJFLpi2Tj313TjmzWZFPq0="
   matrix:
     - "GEM=railties"
     - "GEM=ap,ac"

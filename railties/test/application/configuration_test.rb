@@ -1452,8 +1452,8 @@ module ApplicationTests
 
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
-      app "development"
       err = assert_raises RuntimeError do
+        app "development"
         Rails.application.config.database_configuration
       end
       assert_match "config/database", err.message

@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
+require "concurrent/map"
 
 module ActiveRecord
   module Core
@@ -149,7 +150,7 @@ module ActiveRecord
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => {}.extend(Mutex_m), false => {}.extend(Mutex_m) }
+        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
       def inherited(child_class) # :nodoc:
@@ -281,9 +282,7 @@ module ActiveRecord
 
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
-          cache[key] || cache.synchronize {
-            cache[key] ||= StatementCache.create(connection, &block)
-          }
+          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
         end
 
         def relation

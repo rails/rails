@@ -64,6 +64,13 @@ module Rails
           )
         },
 
+        "activestorage" => {
+          include: %w(
+            README.md
+            lib/active_storage/**/*.rb
+          )
+        },
+
         "railties" => {
           include: %w(
             README.rdoc

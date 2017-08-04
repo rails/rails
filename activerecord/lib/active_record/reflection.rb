@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "thread"
 require "active_support/core_ext/string/filters"
 require "active_support/deprecation"
+require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -443,8 +443,7 @@ module ActiveRecord
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
-        @association_scope_cache = {}
-        @scope_lock = Mutex.new
+        @association_scope_cache = Concurrent::Map.new
 
         if options[:class_name] && options[:class_name].class == Class
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
@@ -463,9 +462,7 @@ module ActiveRecord
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        @association_scope_cache[key] ||= @scope_lock.synchronize {
-          @association_scope_cache[key] ||= StatementCache.create(conn, &block)
-        }
+        @association_scope_cache.compute_if_absent(key) { StatementCache.create(conn, &block) }
       end
 
       def constructable? # :nodoc:

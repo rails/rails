@@ -113,7 +113,11 @@ module Rails
         #
         #   assert_field_default_value :string, "MyString"
         def assert_field_default_value(attribute_type, value)
-          assert_equal(value, create_generated_attribute(attribute_type).default)
+          if value.nil?
+            assert_nil(create_generated_attribute(attribute_type).default)
+          else
+            assert_equal(value, create_generated_attribute(attribute_type).default)
+          end
         end
       end
     end

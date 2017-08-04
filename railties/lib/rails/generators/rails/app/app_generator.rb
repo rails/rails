@@ -113,6 +113,7 @@ module Rails
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
+        template "storage.yml"
 
         directory "environments"
         directory "initializers"
@@ -122,9 +123,10 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist = File.exist?("config/cable.yml")
-      rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
-      assets_config_exist = File.exist?("config/initializers/assets.rb")
+      action_cable_config_exist      = File.exist?("config/cable.yml")
+      active_storage_config_exist    = File.exist?("config/storage.yml")
+      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
+      assets_config_exist            = File.exist?("config/initializers/assets.rb")
 
       config
 
@@ -134,6 +136,10 @@ module Rails
 
       if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
+      end
+
+      if !active_storage_config_exist
+        template "config/storage.yml"
       end
 
       unless rack_cors_config_exist
@@ -171,6 +177,11 @@ module Rails
 
     def public_directory
       directory "public", "public", recursive: false
+    end
+
+    def storage
+      empty_directory_with_keep_file "storage"
+      empty_directory_with_keep_file "tmp/storage"
     end
 
     def test
