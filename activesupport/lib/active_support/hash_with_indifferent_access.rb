@@ -236,7 +236,7 @@ module ActiveSupport
     #   dup  = hash.dup
     #   dup[:a][:c] = 'c'
     #
-    #   hash[:a][:c] # => nil
+    #   hash[:a][:c] # => "c"
     #   dup[:a][:c]  # => "c"
     def dup
       self.class.new(self).tap do |new_hash|
