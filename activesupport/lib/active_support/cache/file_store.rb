@@ -1,7 +1,9 @@
-require 'active_support/core_ext/marshal'
-require 'active_support/core_ext/file/atomic'
-require 'active_support/core_ext/string/conversions'
-require 'uri/common'
+# frozen_string_literal: true
+
+require_relative "../core_ext/marshal"
+require_relative "../core_ext/file/atomic"
+require_relative "../core_ext/string/conversions"
+require "uri/common"
 
 module ActiveSupport
   module Cache
@@ -16,8 +18,8 @@ module ActiveSupport
       DIR_FORMATTER = "%03X"
       FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
-      EXCLUDED_DIRS = ['.', '..'].freeze
-      GITKEEP_FILES = ['.gitkeep', '.keep'].freeze
+      EXCLUDED_DIRS = [".", ".."].freeze
+      GITKEEP_FILES = [".gitkeep", ".keep"].freeze
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -29,7 +31,7 @@ module ActiveSupport
       # config file when using +FileStore+ because everything in that directory will be deleted.
       def clear(options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
-        FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
+        FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT
       end
 
@@ -66,7 +68,7 @@ module ActiveSupport
         end
       end
 
-      protected
+      private
 
         def read_entry(key, options)
           if File.exist?(key)
@@ -80,7 +82,7 @@ module ActiveSupport
         def write_entry(key, entry, options)
           return false if options[:unless_exist] && File.exist?(key)
           ensure_cache_path(File.dirname(key))
-          File.atomic_write(key, cache_path) {|f| Marshal.dump(entry, f)}
+          File.atomic_write(key, cache_path) { |f| Marshal.dump(entry, f) }
           true
         end
 
@@ -98,11 +100,10 @@ module ActiveSupport
           end
         end
 
-      private
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
+        def lock_file(file_name, &block)
           if File.exist?(file_name)
-            File.open(file_name, 'r+') do |f|
+            File.open(file_name, "r+") do |f|
               begin
                 f.flock File::LOCK_EX
                 yield
@@ -136,14 +137,6 @@ module ActiveSupport
           end until fname.blank?
 
           File.join(cache_path, DIR_FORMATTER % dir_1, DIR_FORMATTER % dir_2, *fname_paths)
-        end
-
-        def key_file_path(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `key_file_path` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
-          key
         end
 
         # Translate a file path into a key.

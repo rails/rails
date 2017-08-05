@@ -30,7 +30,7 @@ Setup
 -----
 
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
-different rails applications using RubyGems and Bundler if desired.
+different Rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
@@ -67,7 +67,7 @@ This will tell you that everything got generated properly and you are ready to s
 Extending Core Classes
 ----------------------
 
-This section will explain how to add a method to String that will be available anywhere in your rails application.
+This section will explain how to add a method to String that will be available anywhere in your Rails application.
 
 In this example you will add a method to String named `to_squawk`. To begin, create a new test file with a few assertions:
 
@@ -340,8 +340,7 @@ module Yaffle
 
     module ClassMethods
       def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
       end
     end
   end
@@ -411,8 +410,7 @@ module Yaffle
 
     module ClassMethods
       def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field
-        self.yaffle_text_field = (options[:yaffle_text_field] || :last_squawk).to_s
+        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
 
         include Yaffle::ActsAsYaffle::LocalInstanceMethods
       end

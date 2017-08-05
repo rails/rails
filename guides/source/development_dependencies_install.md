@@ -30,7 +30,6 @@ Ruby on Rails uses Git for source code control. The [Git homepage](http://git-sc
 * [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
 * The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git.
 * [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
-* The [PeepCode screencast](https://peepcode.com/products/git) on Git is easier to follow.
 * [GitHub](http://help.github.com) offers links to a variety of Git resources.
 * [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
@@ -47,7 +46,7 @@ $ cd rails
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first SQLite3 and its development files for the `sqlite3` gem. Mac OS X
+Install first SQLite3 and its development files for the `sqlite3` gem. On macOS
 users are done with:
 
 ```bash
@@ -63,7 +62,7 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 If you are on Fedora or CentOS, you're done with
 
 ```bash
-$ sudo yum install sqlite3 sqlite3-devel
+$ sudo yum install libsqlite3x libsqlite3x-devel 
 ```
 
 If you are on Arch Linux, you will need to run:
@@ -162,6 +161,10 @@ Or, you can run a single test in a particular file:
 $ cd actionpack
 $ bundle exec ruby -Itest path/to/test.rb -n test_name
 ```
+
+### Railties Setup
+
+Some Railties tests depend on a JavaScript runtime environment, such as having [Node.js](https://nodejs.org/) installed.
 
 ### Active Record Setup
 
@@ -289,3 +292,46 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+
+### Action Cable Setup
+
+Action Cable uses Redis as its default subscriptions adapter ([read more](action_cable_overview.html#broadcasting)). Thus, in order to have Action Cable's tests passing you need to install and have Redis running.
+
+#### Install Redis From Source
+
+Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](http://redis.io/download#installation).
+
+#### Install Redis From Package Manager
+
+On OS X, you can run:
+
+```bash
+$ brew install redis
+```
+
+Follow the instructions given by Homebrew to start these.
+
+In Ubuntu just run:
+
+```bash
+$ sudo apt-get install redis-server
+```
+
+On Fedora or CentOS (requires EPEL enabled), just run:
+
+```bash
+$ sudo yum install redis
+```
+
+If you are running Arch Linux just run:
+
+```bash
+$ sudo pacman -S redis
+$ sudo systemctl start redis
+```
+
+FreeBSD users will have to run the following:
+
+```bash
+# portmaster databases/redis
+```

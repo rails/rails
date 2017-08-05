@@ -1,21 +1,23 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require 'models/man'
-require 'models/face'
-require 'models/interest'
-require 'models/zine'
-require 'models/club'
-require 'models/sponsor'
-require 'models/rating'
-require 'models/comment'
-require 'models/car'
-require 'models/bulb'
-require 'models/mixed_case_monkey'
-require 'models/admin'
-require 'models/admin/account'
-require 'models/admin/user'
-require 'models/developer'
-require 'models/company'
-require 'models/project'
+require "models/man"
+require "models/face"
+require "models/interest"
+require "models/zine"
+require "models/club"
+require "models/sponsor"
+require "models/rating"
+require "models/comment"
+require "models/car"
+require "models/bulb"
+require "models/mixed_case_monkey"
+require "models/admin"
+require "models/admin/account"
+require "models/admin/user"
+require "models/developer"
+require "models/company"
+require "models/project"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -24,11 +26,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
     man_reflection = Man.reflect_on_association(:mixed_case_monkey)
 
-    assert_respond_to monkey_reflection, :has_inverse?
     assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
     assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
 
-    assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?, "The man reflection should have an inverse"
     assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
   end
@@ -37,7 +37,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     account_reflection = Admin::Account.reflect_on_association(:users)
     user_reflection = Admin::User.reflect_on_association(:account)
 
-    assert_respond_to account_reflection, :has_inverse?
     assert account_reflection.has_inverse?, "The Admin::Account reflection should have an inverse"
     assert_equal user_reflection, account_reflection.inverse_of, "The Admin::Account reflection's inverse should be the Admin::User reflection"
   end
@@ -46,11 +45,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     car_reflection = Car.reflect_on_association(:bulb)
     bulb_reflection = Bulb.reflect_on_association(:car)
 
-    assert_respond_to car_reflection, :has_inverse?
     assert car_reflection.has_inverse?, "The Car reflection should have an inverse"
     assert_equal bulb_reflection, car_reflection.inverse_of, "The Car reflection's inverse should be the Bulb reflection"
 
-    assert_respond_to bulb_reflection, :has_inverse?
     assert bulb_reflection.has_inverse?, "The Bulb reflection should have an inverse"
     assert_equal car_reflection, bulb_reflection.inverse_of, "The Bulb reflection's inverse should be the Car reflection"
   end
@@ -59,7 +56,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     comment_reflection = Comment.reflect_on_association(:ratings)
     rating_reflection = Rating.reflect_on_association(:comment)
 
-    assert_respond_to comment_reflection, :has_inverse?
     assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
     assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
   end
@@ -107,77 +103,53 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
-    assert_respond_to sponsor_reflection, :has_inverse?
     assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
 
     club_reflection = Club.reflect_on_association(:members)
 
-    assert_respond_to club_reflection, :has_inverse?
     assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
-  def test_polymorphic_relationships_should_still_not_have_inverses_when_non_polymorphic_relationship_has_the_same_name
+  def test_polymorphic_has_one_should_find_inverse_automatically
     man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
-    face_reflection = Face.reflect_on_association(:man)
 
-    assert_respond_to face_reflection, :has_inverse?
-    assert face_reflection.has_inverse?, "For this test, the non-polymorphic association must have an inverse"
-
-    assert_respond_to man_reflection, :has_inverse?
-    assert !man_reflection.has_inverse?, "The target of a polymorphic association should not find an inverse automatically"
+    assert man_reflection.has_inverse?
   end
 end
 
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_many') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base).has_many(:wheels, inverse_of: :car)
     end
 
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_one') do
-      Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base).has_one(:engine, inverse_of: :car)
     end
 
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on belongs_to') do
-      Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base).belongs_to(:car, inverse_of: :driver)
     end
   end
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
     has_one_with_inverse_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_with_inverse_ref, :has_inverse?
     assert has_one_with_inverse_ref.has_inverse?
 
     has_many_with_inverse_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_with_inverse_ref, :has_inverse?
     assert has_many_with_inverse_ref.has_inverse?
 
     belongs_to_with_inverse_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_with_inverse_ref, :has_inverse?
     assert belongs_to_with_inverse_ref.has_inverse?
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
-    assert_respond_to has_one_without_inverse_ref, :has_inverse?
     assert !has_one_without_inverse_ref.has_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
-    assert_respond_to has_many_without_inverse_ref, :has_inverse?
     assert !has_many_without_inverse_ref.has_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
     assert !belongs_to_without_inverse_ref.has_inverse?
-  end
-
-  def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of
-    has_one_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_ref, :inverse_of
-
-    has_many_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_ref, :inverse_of
-
-    belongs_to_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_ref, :inverse_of
   end
 
   def test_inverse_of_method_should_supply_the_actual_reflection_instance_it_is_the_inverse_of
@@ -203,9 +175,9 @@ class InverseAssociationTests < ActiveRecord::TestCase
   end
 
   def test_this_inverse_stuff
-    firm = Firm.create!(name: 'Adequate Holdings')
-    Project.create!(name: 'Project 1', firm: firm)
-    Developer.create!(name: 'Gorbypuff', firm: firm)
+    firm = Firm.create!(name: "Adequate Holdings")
+    Project.create!(name: "Project 1", firm: firm)
+    Developer.create!(name: "Gorbypuff", firm: firm)
 
     new_project = Project.last
     assert Project.reflect_on_association(:lead_developer).inverse_of.present?, "Expected inverse of to be present"
@@ -220,73 +192,72 @@ class InverseHasOneTests < ActiveRecord::TestCase
     m = men(:gordon)
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
   end
 
-
   def test_parent_instance_should_be_shared_with_eager_loaded_child_on_find
-    m = Man.all.merge!(:where => {:name => 'Gordon'}, :includes => :face).first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :face).first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
 
-    m = Man.all.merge!(:where => {:name => 'Gordon'}, :includes => :face, :order => 'faces.id').first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :face, order: "faces.id").first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_built_child
     m = Man.first
-    f = m.build_face(:description => 'haunted')
+    f = m.build_face(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to just-built-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_created_child
     m = Man.first
-    f = m.create_face(:description => 'haunted')
+    f = m.create_face(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     m = Man.first
-    f = m.create_face!(:description => 'haunted')
+    f = m.create_face!(description: "haunted")
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_replaced_via_accessor_child
     m = Man.first
-    f = Face.new(:description => 'haunted')
+    f = Face.new(description: "haunted")
     m.face = f
     assert_not_nil f.man
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to parent instance"
-    f.man.name = 'Mungo'
+    f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
 
@@ -303,67 +274,67 @@ class InverseHasManyTests < ActiveRecord::TestCase
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-      m.name = 'Bongo'
+      m.name = "Bongo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-      i.man.name = 'Mungo'
+      i.man.name = "Mungo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
   end
 
   def test_parent_instance_should_be_shared_with_eager_loaded_children
-    m = Man.all.merge!(:where => {:name => 'Gordon'}, :includes => :interests).first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :interests).first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-      m.name = 'Bongo'
+      m.name = "Bongo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-      i.man.name = 'Mungo'
+      i.man.name = "Mungo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Man.all.merge!(:where => {:name => 'Gordon'}, :includes => :interests, :order => 'interests.id').first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :interests, order: "interests.id").first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-      m.name = 'Bongo'
+      m.name = "Bongo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-      i.man.name = 'Mungo'
+      i.man.name = "Mungo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
   end
 
   def test_parent_instance_should_be_shared_with_newly_block_style_built_child
     m = Man.first
-    i = m.interests.build {|ii| ii.topic = 'Industrial Revolution Re-enactment'}
+    i = m.interests.build { |ii| ii.topic = "Industrial Revolution Re-enactment" }
     assert_not_nil i.topic, "Child attributes supplied to build via blocks should be populated"
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
+    i.man.name = "Mungo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to just-built-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_created_via_bang_method_child
     m = Man.first
-    i = m.interests.create!(:topic => 'Industrial Revolution Re-enactment')
+    i = m.interests.create!(topic: "Industrial Revolution Re-enactment")
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
+    i.man.name = "Mungo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_newly_block_style_created_child
     m = Man.first
-    i = m.interests.create {|ii| ii.topic = 'Industrial Revolution Re-enactment'}
+    i = m.interests.create { |ii| ii.topic = "Industrial Revolution Re-enactment" }
     assert_not_nil i.topic, "Child attributes supplied to create via blocks should be populated"
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
+    i.man.name = "Mungo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
@@ -385,25 +356,25 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_poked_in_child
     m = men(:gordon)
-    i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
+    i = Interest.create(topic: "Industrial Revolution Re-enactment")
     m.interests << i
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
+    i.man.name = "Mungo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to newly-created-child-owned instance"
   end
 
   def test_parent_instance_should_be_shared_with_replaced_via_accessor_children
     m = Man.first
-    i = Interest.new(:topic => 'Industrial Revolution Re-enactment')
+    i = Interest.new(topic: "Industrial Revolution Re-enactment")
     m.interests = [i]
     assert_not_nil i.man
     assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
-    m.name = 'Bongo'
+    m.name = "Bongo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
-    i.man.name = 'Mungo'
+    i.man.name = "Mungo"
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
 
@@ -444,7 +415,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
     assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
 
-    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    assert_nil man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
     man.name = "Ben Bitdiddle"
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
     man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
@@ -485,7 +456,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_child_instance_should_point_to_parent_without_saving
     man = Man.new
-    i = Interest.create(:topic => 'Industrial Revolution Re-enactment')
+    i = Interest.create(topic: "Industrial Revolution Re-enactment")
 
     man.interests << i
     assert_not_nil i.man
@@ -494,6 +465,33 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal i.man.name, man.name
 
     assert !man.persisted?
+  end
+
+  def test_inverse_instance_should_be_set_before_find_callbacks_are_run
+    reset_callbacks(Interest, :find) do
+      Interest.after_find { raise unless association(:man).loaded? && man.present? }
+
+      assert Man.first.interests.reload.any?
+      assert Man.includes(:interests).first.interests.any?
+      assert Man.joins(:interests).includes(:interests).first.interests.any?
+    end
+  end
+
+  def test_inverse_instance_should_be_set_before_initialize_callbacks_are_run
+    reset_callbacks(Interest, :initialize) do
+      Interest.after_initialize { raise unless association(:man).loaded? && man.present? }
+
+      assert Man.first.interests.reload.any?
+      assert Man.includes(:interests).first.interests.any?
+      assert Man.joins(:interests).includes(:interests).first.interests.any?
+    end
+  end
+
+  def reset_callbacks(target, type)
+    old_callbacks = target.send(:get_callbacks, type).deep_dup
+    yield
+  ensure
+    target.send(:set_callbacks, type, old_callbacks) if old_callbacks
   end
 end
 
@@ -504,49 +502,49 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     f = faces(:trusting)
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:includes => :man, :where => {:description => 'trusting'}).first
+    f = Face.all.merge!(includes: :man, where: { description: "trusting" }).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(:includes => :man, :order => 'men.id', :where => {:description => 'trusting'}).first
+    f = Face.all.merge!(includes: :man, order: "men.id", where: { description: "trusting" }).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
   end
 
   def test_child_instance_should_be_shared_with_newly_built_parent
     f = faces(:trusting)
-    m = f.build_man(:name => 'Charles')
+    m = f.build_man(name: "Charles")
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to just-built-parent-owned instance"
   end
 
   def test_child_instance_should_be_shared_with_newly_created_parent
     f = faces(:trusting)
-    m = f.create_man(:name => 'Charles')
+    m = f.create_man(name: "Charles")
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to newly-created-parent-owned instance"
   end
 
@@ -554,24 +552,24 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     i = interests(:trainspotting)
     m = i.man
     assert_not_nil m.interests
-    iz = m.interests.detect { |_iz| _iz.id == i.id}
+    iz = m.interests.detect { |_iz| _iz.id == i.id }
     assert_not_nil iz
     assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
-    i.topic = 'Eating cheese with a spoon'
+    i.topic = "Eating cheese with a spoon"
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to child"
-    iz.topic = 'Cow tipping'
+    iz.topic = "Cow tipping"
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
   end
 
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     f = Face.first
-    m = Man.new(:name => 'Charles')
+    m = Man.new(name: "Charles")
     f.man = m
     assert_not_nil m.face
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to child instance"
-    m.face.description = 'pleasing'
+    m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
@@ -584,30 +582,30 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
   fixtures :men, :faces, :interests
 
   def test_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:where => {:description => 'confused'}).first
+    f = Face.all.merge!(where: { description: "confused" }).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to child instance"
-    m.polymorphic_face.description = 'pleasing'
+    m.polymorphic_face.description = "pleasing"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
   end
 
   def test_eager_loaded_child_instance_should_be_shared_with_parent_on_find
-    f = Face.all.merge!(:where => {:description => 'confused'}, :includes => :man).first
+    f = Face.all.merge!(where: { description: "confused" }, includes: :man).first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to child instance"
-    m.polymorphic_face.description = 'pleasing'
+    m.polymorphic_face.description = "pleasing"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(:where => {:description => 'confused'}, :includes => :man, :order => 'men.id').first
+    f = Face.all.merge!(where: { description: "confused" }, includes: :man, order: "men.id").first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
-    f.description = 'gormless'
+    f.description = "gormless"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to child instance"
-    m.polymorphic_face.description = 'pleasing'
+    m.polymorphic_face.description = "pleasing"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
   end
 
@@ -619,23 +617,9 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     face.polymorphic_man = new_man
 
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
-    face.description = 'Bongo'
+    face.description = "Bongo"
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
-    new_man.polymorphic_face.description = 'Mungo'
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
-  end
-
-  def test_child_instance_should_be_shared_with_replaced_via_method_parent
-    face = faces(:confused)
-    new_man = Man.new
-
-    assert_not_nil face.polymorphic_man
-    face.polymorphic_man = new_man
-
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
-    face.description = 'Bongo'
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
-    new_man.polymorphic_face.description = 'Mungo'
+    new_man.polymorphic_face.description = "Mungo"
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
@@ -655,18 +639,18 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     i = interests(:llama_wrangling)
     m = i.polymorphic_man
     assert_not_nil m.polymorphic_interests
-    iz = m.polymorphic_interests.detect { |_iz| _iz.id == i.id}
+    iz = m.polymorphic_interests.detect { |_iz| _iz.id == i.id }
     assert_not_nil iz
     assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
-    i.topic = 'Eating cheese with a spoon'
+    i.topic = "Eating cheese with a spoon"
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to child"
-    iz.topic = 'Cow tipping'
+    iz.topic = "Cow tipping"
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
   end
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
     # Ideally this would, if only for symmetry's sake with other association types
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_man }
+    assert_nothing_raised { Face.first.horrible_polymorphic_man }
   end
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
@@ -676,7 +660,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
     # passes because Man does have the correct inverse_of
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Man.first }
+    assert_nothing_raised { Face.first.polymorphic_man = Man.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
   end
@@ -688,7 +672,7 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   fixtures :men, :interests, :zines
 
   def test_that_we_can_load_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
+    assert_nothing_raised do
       i = Interest.first
       i.zine
       i.man
@@ -696,10 +680,10 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   end
 
   def test_that_we_can_create_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
+    assert_nothing_raised do
       i = Interest.first
-      i.build_zine(:title => 'Get Some in Winter! 2008')
-      i.build_man(:name => 'Gordon')
+      i.build_zine(title: "Get Some in Winter! 2008")
+      i.build_man(name: "Gordon")
       i.save!
     end
   end

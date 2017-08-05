@@ -1,9 +1,10 @@
-require 'active_support/core_ext/string/multibyte'
-require 'active_support/i18n'
+# frozen_string_literal: true
+
+require_relative "../core_ext/string/multibyte"
+require_relative "../i18n"
 
 module ActiveSupport
   module Inflector
-
     # Replaces non-ASCII characters with an ASCII approximation, or if none
     # exists, a replacement character which defaults to "?".
     #
@@ -58,9 +59,12 @@ module ActiveSupport
     #   transliterate('Jürgen')
     #   # => "Juergen"
     def transliterate(string, replacement = "?".freeze)
-      I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
-        ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-          :replacement => replacement)
+      raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+
+      I18n.transliterate(
+        ActiveSupport::Multibyte::Unicode.normalize(
+          ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
+        replacement: replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of
@@ -79,11 +83,7 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
     #
-    def parameterize(string, sep = :unused, separator: '-', preserve_case: false)
-      unless sep == :unused
-        ActiveSupport::Deprecation.warn("Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '#{sep}'` instead.")
-        separator = sep
-      end
+    def parameterize(string, separator: "-", preserve_case: false)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string)
 
@@ -102,9 +102,9 @@ module ActiveSupport
         # No more than one of the separator in a row.
         parameterized_string.gsub!(re_duplicate_separator, separator)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(re_leading_trailing_separator, ''.freeze)
+        parameterized_string.gsub!(re_leading_trailing_separator, "".freeze)
       end
-      
+
       parameterized_string.downcase! unless preserve_case
       parameterized_string
     end

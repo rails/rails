@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -9,7 +11,7 @@ module ActiveRecord
           raise
         end
         klass = Class.new(ActiveRecord::Base) do
-          self.table_name = 'posts'
+          self.table_name = "posts"
           attribute :foo, type_which_cannot_go_to_the_database
         end
         model = klass.new

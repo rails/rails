@@ -1,5 +1,7 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
 
 module ActiveModel
   # == Active \Model \Serialization

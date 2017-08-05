@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/testing/method_call_assertions'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/testing/method_call_assertions"
 
 class MethodCallAssertionsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
@@ -51,7 +53,7 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
 
   def test_assert_called_with_message
     error = assert_raises(Minitest::Assertion) do
-      assert_called(@object, :increment, 'dang it') do
+      assert_called(@object, :increment, "dang it") do
         # Call nothing...
       end
     end

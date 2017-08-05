@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Connection
     # Makes it possible for the RemoteConnection to disconnect a specific connection.
@@ -11,26 +13,24 @@ module ActionCable
 
         def subscribe_to_internal_channel
           if connection_identifier.present?
-            callback = -> (message) { process_internal_message(message) }
+            callback = -> (message) { process_internal_message decode(message) }
             @_internal_subscriptions ||= []
             @_internal_subscriptions << [ internal_channel, callback ]
 
-            Concurrent.global_io_executor.post { pubsub.subscribe(internal_channel, callback) }
+            server.event_loop.post { pubsub.subscribe(internal_channel, callback) }
             logger.info "Registered connection (#{connection_identifier})"
           end
         end
 
         def unsubscribe_from_internal_channel
           if @_internal_subscriptions.present?
-            @_internal_subscriptions.each { |channel, callback| Concurrent.global_io_executor.post { pubsub.unsubscribe(channel, callback) } }
+            @_internal_subscriptions.each { |channel, callback| server.event_loop.post { pubsub.unsubscribe(channel, callback) } }
           end
         end
 
         def process_internal_message(message)
-          message = ActiveSupport::JSON.decode(message)
-
-          case message['type']
-          when 'disconnect'
+          case message["type"]
+          when "disconnect"
             logger.info "Removing connection (#{connection_identifier})"
             websocket.close
           end

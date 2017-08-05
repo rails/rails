@@ -20,7 +20,7 @@ The [Rails API documentation](http://api.rubyonrails.org) is generated with
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
-  ./bin/rails rdoc
+  bundle exec rake rdoc
 ```
 
 Resulting HTML files can be found in the ./doc/rdoc directory.
@@ -120,7 +120,7 @@ On the other hand, big chunks of structured documentation may have a separate "E
 The results of expressions follow them and are introduced by "# => ", vertically aligned:
 
 ```ruby
-# For checking if a fixnum is even or odd.
+# For checking if an integer is even or odd.
 #
 #   1.even? # => false
 #   1.odd?  # => true
@@ -281,7 +281,7 @@ Methods created with `(module|class)_eval(STRING)` have a comment by their side 
 
 ```ruby
 for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__
+  class_eval <<-EOT, __FILE__, __LINE__ + 1
     def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
       add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
     end                                                              # end
@@ -332,10 +332,6 @@ If you thought, "this method looks like a public class method for `ActiveRecord:
 As a contributor, it's important to think about whether this API is meant for end-user consumption. The Rails team is committed to not making any breaking changes to public API across releases without going through a full deprecation cycle. It's recommended that you `:nodoc:` any of your internal methods/classes unless they're already private (meaning visibility), in which case it's internal by default. Once the API stabilizes the visibility can change, but changing public API is much harder due to backwards compatibility.
 
 A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
-
-If you come across an existing `:nodoc:` you should tread lightly. Consider asking someone from the core team or author of the code before removing it. This should almost always happen through a pull request instead of the docrails project.
-
-A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
 
 To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
 

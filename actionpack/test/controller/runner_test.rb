@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'action_dispatch/testing/integration'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "action_dispatch/testing/integration"
 
 module ActionDispatch
   class RunnerTest < ActiveSupport::TestCase

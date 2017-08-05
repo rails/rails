@@ -2,12 +2,12 @@ module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
     # It allows you to collect information about how you want to structure your application
-    # paths by a Hash like API. It requires you to give a physical path on initialization.
+    # paths through a Hash-like API. It requires you to give a physical path on initialization.
     #
     #   root = Root.new "/rails"
     #   root.add "app/controllers", eager_load: true
     #
-    # The command above creates a new root object and adds "app/controllers" as a path.
+    # The above command creates a new root object and adds "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
@@ -30,7 +30,7 @@ module Rails
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # The +add+ method accepts the following options as arguments:
-    # eager_load, autoload, autoload_once and glob.
+    # eager_load, autoload, autoload_once, and glob.
     #
     # Finally, the +Path+ object also provides a few helpers:
     #
@@ -45,7 +45,6 @@ module Rails
       attr_accessor :path
 
       def initialize(path)
-        @current = nil
         @path = path
         @root = {}
       end
@@ -180,7 +179,7 @@ module Rails
       end
 
       def extensions # :nodoc:
-        $1.split(',') if @glob =~ /\{([\S]+)\}/
+        $1.split(",") if @glob =~ /\{([\S]+)\}/
       end
 
       # Expands all paths against the root and return all unique values.
@@ -206,7 +205,14 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exist?(f) }
+        expanded.select do |f|
+          does_exist = File.exist?(f)
+
+          if !does_exist && File.symlink?(f)
+            raise "File #{f.inspect} is a symlink that does not point to a valid file"
+          end
+          does_exist
+        end
       end
 
       def existent_directories

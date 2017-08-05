@@ -1,7 +1,16 @@
-saphire_1:
+sapphire_1:
   price: 10
   estimate_of: sapphire (Treasure)
 
 sapphire_2:
   price: 20
   estimate_of: sapphire (Treasure)
+
+diamond:
+  price: 30
+  estimate_of: diamond (Treasure)
+
+honda:
+  price: 40
+  estimate_of_type: Car
+  estimate_of_id: 1

@@ -1,5 +1,7 @@
-require 'active_support/duration'
-require 'active_support/core_ext/numeric/time'
+# frozen_string_literal: true
+
+require_relative "../../duration"
+require_relative "../numeric/time"
 
 class Integer
   # Enables the use of time calculations and declarations, like <tt>45.minutes +
@@ -18,12 +20,12 @@ class Integer
   #   # equivalent to Time.now.advance(months: 4, years: 5)
   #   (4.months + 5.years).from_now
   def months
-    ActiveSupport::Duration.new(self * 30.days, [[:months, self]])
+    ActiveSupport::Duration.months(self)
   end
   alias :month :months
 
   def years
-    ActiveSupport::Duration.new(self * 365.25.days.to_i, [[:years, self]])
+    ActiveSupport::Duration.years(self)
   end
   alias :year :years
 end

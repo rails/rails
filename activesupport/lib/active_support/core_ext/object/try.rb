@@ -1,4 +1,6 @@
-require 'delegate'
+# frozen_string_literal: true
+
+require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:
@@ -99,7 +101,7 @@ class Object
   #
   #   "a".try!(:upcase) # => "A"
   #   nil.try!(:upcase) # => nil
-  #   123.try!(:upcase) # => NoMethodError: undefined method `upcase' for 123:Fixnum
+  #   123.try!(:upcase) # => NoMethodError: undefined method `upcase' for 123:Integer
 end
 
 class Delegator

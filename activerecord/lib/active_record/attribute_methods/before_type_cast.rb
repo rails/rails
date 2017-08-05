@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeMethods
     # = Active Record Attribute Methods Before Type Cast
@@ -63,14 +65,14 @@ module ActiveRecord
 
       private
 
-      # Handle *_before_type_cast for method_missing.
-      def attribute_before_type_cast(attribute_name)
-        read_attribute_before_type_cast(attribute_name)
-      end
+        # Handle *_before_type_cast for method_missing.
+        def attribute_before_type_cast(attribute_name)
+          read_attribute_before_type_cast(attribute_name)
+        end
 
-      def attribute_came_from_user?(attribute_name)
-        @attributes[attribute_name].came_from_user?
-      end
+        def attribute_came_from_user?(attribute_name)
+          @attributes[attribute_name].came_from_user?
+        end
     end
   end
 end

@@ -1,11 +1,10 @@
-require 'isolation/abstract_unit'
+require "isolation/abstract_unit"
 
 class LoadingTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup
     build_app
-    boot_rails
   end
 
   def teardown
@@ -26,11 +25,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    p = Post.create(title: 'omg')
+    p = Post.create(title: "omg")
     assert_equal 1, Post.count
-    assert_equal 'omg', p.title
+    assert_equal "omg", p.title
     p = Post.first
-    assert_equal 'omg', p.title
+    assert_equal "omg", p.title
   end
 
   test "concerns in app are autoloaded" do
@@ -56,10 +55,10 @@ class LoadingTest < ActiveSupport::TestCase
 
     require "#{rails_root}/config/environment"
 
-    assert_nothing_raised(NameError) { Trackable }
-    assert_nothing_raised(NameError) { EmailLoggable }
-    assert_nothing_raised(NameError) { Orderable }
-    assert_nothing_raised(NameError) { Matchable }
+    assert_nothing_raised { Trackable }
+    assert_nothing_raised { EmailLoggable }
+    assert_nothing_raised { Orderable }
+    assert_nothing_raised { Matchable }
   end
 
   test "models without table do not panic on scope definitions when loaded" do
@@ -103,24 +102,24 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/load',   to: lambda { |env| [200, {}, Post.all] }
         get '/unload', to: lambda { |env| [200, {}, []] }
       end
     RUBY
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/load"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/unload"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
   end
 
   test "initialize cant be called twice" do
@@ -133,7 +132,7 @@ class LoadingTest < ActiveSupport::TestCase
       config.cache_classes = false
     RUBY
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
@@ -145,7 +144,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
@@ -174,7 +173,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     RUBY
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [User.counter.to_s]] }
       end
@@ -186,7 +185,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
@@ -209,7 +208,7 @@ class LoadingTest < ActiveSupport::TestCase
       config.cache_classes = false
     RUBY
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       $counter ||= 0
       Rails.application.routes.draw do
         get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
@@ -222,7 +221,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
@@ -241,7 +240,7 @@ class LoadingTest < ActiveSupport::TestCase
       config.cache_classes = false
     RUBY
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       $counter ||= 1
       $counter  *= 2
       Rails.application.routes.draw do
@@ -255,7 +254,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     require "#{rails_root}/config/environment"
@@ -274,7 +273,7 @@ class LoadingTest < ActiveSupport::TestCase
       config.cache_classes = false
     RUBY
 
-    app_file 'config/routes.rb', <<-RUBY
+    app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/title', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.title]] }
         get '/body',  to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [Post.new.body]] }
@@ -286,7 +285,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MODEL
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
     app_file "db/migrate/1_create_posts.rb", <<-MIGRATION
@@ -299,7 +298,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate`}
+    Dir.chdir(app_path) { `rake db:migrate` }
     require "#{rails_root}/config/environment"
 
     get "/title"
@@ -341,11 +340,11 @@ class LoadingTest < ActiveSupport::TestCase
 
     require "#{rails_root}/config/environment"
 
-    require 'rack/test'
+    require "rack/test"
     extend Rack::Test::Methods
 
-    get '/omg/show'
-    assert_equal 'OK', last_response.body
+    get "/omg/show"
+    assert_equal "OK", last_response.body
   end
 
   def test_initialize_can_be_called_at_any_time
@@ -358,15 +357,15 @@ class LoadingTest < ActiveSupport::TestCase
     assert Rails.application.initialized?
   end
 
-  protected
+  private
 
-  def setup_ar!
-    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-    ActiveRecord::Migration.verbose = false
-    ActiveRecord::Schema.define(version: 1) do
-      create_table :posts do |t|
-        t.string :title
+    def setup_ar!
+      ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      ActiveRecord::Migration.verbose = false
+      ActiveRecord::Schema.define(version: 1) do
+        create_table :posts do |t|
+          t.string :title
+        end
       end
     end
-  end
 end

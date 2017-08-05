@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ActionCable
   module SubscriptionAdapter
     class SubscriberMap
       def initialize
-        @subscribers = Hash.new { |h,k| h[k] = [] }
+        @subscribers = Hash.new { |h, k| h[k] = [] }
         @sync = Mutex.new
       end
 
@@ -32,7 +34,11 @@ module ActionCable
       end
 
       def broadcast(channel, message)
-        list = @sync.synchronize { @subscribers[channel].dup }
+        list = @sync.synchronize do
+          return if !@subscribers.key?(channel)
+          @subscribers[channel].dup
+        end
+
         list.each do |subscriber|
           invoke_callback(subscriber, message)
         end

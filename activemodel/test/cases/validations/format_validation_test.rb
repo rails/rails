@@ -1,10 +1,11 @@
-require 'cases/helper'
+# frozen_string_literal: true
 
-require 'models/topic'
-require 'models/person'
+require "cases/helper"
+
+require "models/topic"
+require "models/person"
 
 class PresenceValidationTest < ActiveModel::TestCase
-
   def teardown
     Topic.clear_validators!
   end
@@ -63,7 +64,7 @@ class PresenceValidationTest < ActiveModel::TestCase
 
   def test_validate_format_with_formatted_message
     Topic.validates_format_of(:title, with: /\AValid Title\z/, message: "can't be %{value}")
-    t = Topic.new(title: 'Invalid title')
+    t = Topic.new(title: "Invalid title")
     assert t.invalid?
     assert_equal ["can't be Invalid title"], t.errors[:title]
   end
@@ -73,7 +74,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_format_of_with_multiline_regexp_and_option
-    assert_nothing_raised(ArgumentError) do
+    assert_nothing_raised do
       Topic.validates_format_of(:title, with: /^Valid Title$/, multiline: true)
     end
   end
@@ -108,7 +109,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_format_of_with_lambda
-    Topic.validates_format_of :content, with: lambda { |topic| topic.title == "digit" ? /\A\d+\Z/ : /\A\S+\Z/ }
+    Topic.validates_format_of :content, with: lambda { |topic| topic.title == "digit" ? /\A\d+\z/ : /\A\S+\z/ }
 
     t = Topic.new
     t.title = "digit"
@@ -120,7 +121,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_format_of_without_lambda
-    Topic.validates_format_of :content, without: lambda { |topic| topic.title == "characters" ? /\A\d+\Z/ : /\A\S+\Z/ }
+    Topic.validates_format_of :content, without: lambda { |topic| topic.title == "characters" ? /\A\d+\z/ : /\A\S+\z/ }
 
     t = Topic.new
     t.title = "characters"
@@ -132,7 +133,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_format_of_for_ruby_class
-    Person.validates_format_of :karma, with: /\A\d+\Z/
+    Person.validates_format_of :karma, with: /\A\d+\z/
 
     p = Person.new
     p.karma = "Pixies"

@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/aliasing'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/core_ext/module/aliasing"
 
 module AttributeAliasing
   class Content
@@ -52,8 +54,8 @@ class AttributeAliasingTest < ActiveSupport::TestCase
     assert_equal "No, really, this is not a joke.", e.Data
     assert e.Data?
 
-    e.Data = "Uppercased methods are teh suck"
-    assert_equal "Uppercased methods are teh suck", e.body
+    e.Data = "Uppercased methods are the suck"
+    assert_equal "Uppercased methods are the suck", e.body
     assert e.body?
   end
 end

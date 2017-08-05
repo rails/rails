@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class CallbacksTest < ActiveModel::TestCase
-
   class CallbackValidator
     def around_create(model)
       model.callbacks << :before_around_create
@@ -28,7 +29,7 @@ class CallbacksTest < ActiveModel::TestCase
       false
     end
 
-    ActiveSupport::Deprecation.silence { after_create "@callbacks << :final_callback" }
+    after_create { |model| model.callbacks << :final_callback }
 
     def initialize(options = {})
       @callbacks = []
@@ -64,12 +65,10 @@ class CallbacksTest < ActiveModel::TestCase
     assert_equal model.callbacks.last, :final_callback
   end
 
-  test "the callback chain is halted when a before callback returns false (deprecated)" do
+  test "the callback chain is not halted when a before callback returns false)" do
     model = ModelCallbacks.new(before_create_returns: false)
-    assert_deprecated do
-      model.create
-      assert_equal model.callbacks.last, :before_create
-    end
+    model.create
+    assert_equal model.callbacks.last, :final_callback
   end
 
   test "the callback chain is halted when a callback throws :abort" do
@@ -110,8 +109,8 @@ class CallbacksTest < ActiveModel::TestCase
     end
     extend ActiveModel::Callbacks
     define_model_callbacks :create
-    def callback1; self.history << 'callback1'; end
-    def callback2; self.history << 'callback2'; end
+    def callback1; history << "callback1"; end
+    def callback2; history << "callback2"; end
     def create
       run_callbacks(:create) {}
       self
@@ -128,8 +127,8 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in one line" do
     assert_equal ["callback1", "callback2"], Violin1.new.create.history
   end
+
   test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
-
 end

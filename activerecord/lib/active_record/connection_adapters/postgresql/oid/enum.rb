@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -9,9 +11,9 @@ module ActiveRecord
 
           private
 
-          def cast_value(value)
-            value.to_s
-          end
+            def cast_value(value)
+              value.to_s
+            end
         end
       end
     end

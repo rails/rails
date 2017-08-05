@@ -1,8 +1,9 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module AbstractController
   module Testing
-
     class ControllerRenderer < AbstractController::Base
       include AbstractController::Rendering
       include ActionView::Rendering
@@ -21,15 +22,15 @@ module AbstractController
       )]
 
       def template
-        render :template => "template"
+        render template: "template"
       end
 
       def file
-        render :file => "some/file"
+        render file: "some/file"
       end
 
       def inline
-        render :inline => "With <%= :Inline %>"
+        render inline: "With <%= :Inline %>"
       end
 
       def text
@@ -54,7 +55,6 @@ module AbstractController
     end
 
     class TestRenderer < ActiveSupport::TestCase
-
       def setup
         @controller = ControllerRenderer.new
       end

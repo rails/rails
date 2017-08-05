@@ -1,9 +1,11 @@
-require 'active_support/duration'
-require 'active_support/core_ext/time/conversions'
-require 'active_support/time_with_zone'
-require 'active_support/core_ext/time/zones'
-require 'active_support/core_ext/date_and_time/calculations'
-require 'active_support/core_ext/date/calculations'
+# frozen_string_literal: true
+
+require_relative "../../duration"
+require_relative "conversions"
+require_relative "../../time_with_zone"
+require_relative "zones"
+require_relative "../date_and_time/calculations"
+require_relative "../date/calculations"
 
 class Time
   include DateAndTime::Calculations
@@ -53,6 +55,29 @@ class Time
     end
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
+
+    # Creates a +Time+ instance from an RFC 3339 string.
+    #
+    #   Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+    #
+    # If the time or offset components are missing then an +ArgumentError+ will be raised.
+    #
+    #   Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    def rfc3339(str)
+      parts = Date._rfc3339(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour),
+        parts.fetch(:min),
+        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset)
+      )
+    end
   end
 
   # Returns the number of seconds since 00:00:00.
@@ -61,7 +86,7 @@ class Time
   #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
   #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
   def seconds_since_midnight
-    to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
+    to_i - change(hour: 0).to_i + (usec / 1.0e+6)
   end
 
   # Returns the number of seconds until 23:59:59.
@@ -73,40 +98,53 @@ class Time
     end_of_day.to_i - to_i
   end
 
+  # Returns the fraction of a second as a +Rational+
+  #
+  #   Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
+  def sec_fraction
+    subsec
+  end
+
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
   # the hour is passed, then minute, sec, usec and nsec is set to 0. If the hour
-  # and minute is passed, then sec, usec and nsec is set to 0. The +options+
-  # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
-  # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>
-  # <tt>:nsec</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # and minute is passed, then sec, usec and nsec is set to 0. The +options+ parameter
+  # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
+  # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
+  # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
   def change(options)
-    new_year  = options.fetch(:year, year)
-    new_month = options.fetch(:month, month)
-    new_day   = options.fetch(:day, day)
-    new_hour  = options.fetch(:hour, hour)
-    new_min   = options.fetch(:min, options[:hour] ? 0 : min)
-    new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_year   = options.fetch(:year, year)
+    new_month  = options.fetch(:month, month)
+    new_day    = options.fetch(:day, day)
+    new_hour   = options.fetch(:hour, hour)
+    new_min    = options.fetch(:min, options[:hour] ? 0 : min)
+    new_sec    = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_offset = options.fetch(:offset, nil)
 
     if new_nsec = options[:nsec]
       raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
       new_usec = Rational(new_nsec, 1000)
     else
-      new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+      new_usec = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     end
 
-    if utc?
-      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    raise ArgumentError, "argument out of range" if new_usec >= 1000000
+
+    new_sec += Rational(new_usec, 1000000)
+
+    if new_offset
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
+    elsif utc?
+      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
     elsif zone
-      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
     else
-      raise ArgumentError, 'argument out of range' if new_usec >= 1000000
-      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, utc_offset)
     end
   end
 
@@ -134,7 +172,7 @@ class Time
 
     d = to_date.advance(options)
     d = d.gregorian if d.julian?
-    time_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
+    time_advanced_by_date = change(year: d.year, month: d.month, day: d.day)
     seconds_to_advance = \
       options.fetch(:seconds, 0) +
       options.fetch(:minutes, 0) * 60 +
@@ -162,7 +200,7 @@ class Time
 
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    change(:hour => 0)
+    change(hour: 0)
   end
   alias :midnight :beginning_of_day
   alias :at_midnight :beginning_of_day
@@ -170,7 +208,7 @@ class Time
 
   # Returns a new Time representing the middle of the day (12:00)
   def middle_of_day
-    change(:hour => 12)
+    change(hour: 12)
   end
   alias :midday :middle_of_day
   alias :noon :middle_of_day
@@ -181,49 +219,44 @@ class Time
   # Returns a new Time representing the end of the day, 23:59:59.999999
   def end_of_day
     change(
-      :hour => 23,
-      :min => 59,
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      hour: 23,
+      min: 59,
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_day :end_of_day
 
   # Returns a new Time representing the start of the hour (x:00)
   def beginning_of_hour
-    change(:min => 0)
+    change(min: 0)
   end
   alias :at_beginning_of_hour :beginning_of_hour
 
   # Returns a new Time representing the end of the hour, x:59:59.999999
   def end_of_hour
     change(
-      :min => 59,
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      min: 59,
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_hour :end_of_hour
 
   # Returns a new Time representing the start of the minute (x:xx:00)
   def beginning_of_minute
-    change(:sec => 0)
+    change(sec: 0)
   end
   alias :at_beginning_of_minute :beginning_of_minute
 
   # Returns a new Time representing the end of the minute, x:xx:59.999999
   def end_of_minute
     change(
-      :sec => 59,
-      :usec => Rational(999999999, 1000)
+      sec: 59,
+      usec: Rational(999999999, 1000)
     )
   end
   alias :at_end_of_minute :end_of_minute
-
-  # Returns a Range representing the whole day of the current time.
-  def all_day
-    beginning_of_day..end_of_day
-  end
 
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
@@ -279,5 +312,4 @@ class Time
   end
   alias_method :eql_without_coercion, :eql?
   alias_method :eql?, :eql_with_coercion
-
 end

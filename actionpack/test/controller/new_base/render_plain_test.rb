@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module RenderPlain
   class MinimalController < ActionController::Metal
@@ -80,7 +82,7 @@ module RenderPlain
 
     test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_plain/simple"
         assert_body "hello david"
@@ -90,7 +92,7 @@ module RenderPlain
 
     test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
-        set.draw { get ':controller', action: 'index' }
+        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: "index" } }
 
         get "/render_plain/with_layout"
 

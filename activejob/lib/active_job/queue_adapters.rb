@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveJob
   # == Active Job adapters
   #
@@ -8,7 +10,7 @@ module ActiveJob
   # * {Qu}[https://github.com/bkeepers/qu]
   # * {Que}[https://github.com/chanks/que]
   # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
-  # * {Resque 1.x}[https://github.com/resque/resque/tree/1-x-stable]
+  # * {Resque}[https://github.com/resque/resque]
   # * {Sidekiq}[http://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
@@ -33,7 +35,8 @@ module ActiveJob
   #
   # ==== Async
   #
-  # Yes: The Queue Adapter runs the jobs in a separate or forked process.
+  # Yes: The Queue Adapter has the ability to run the job in a non-blocking manner.
+  # It either runs on a separate or forked process, or on a different thread.
   #
   # No: The job is run in the same process.
   #
@@ -120,7 +123,7 @@ module ActiveJob
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
-    ADAPTER = 'Adapter'.freeze
+    ADAPTER = "Adapter".freeze
     private_constant :ADAPTER
 
     class << self

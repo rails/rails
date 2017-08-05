@@ -1,6 +1,8 @@
-require 'active_support/log_subscriber'
-require 'active_support/logger'
-require 'active_support/notifications'
+# frozen_string_literal: true
+
+require_relative "../log_subscriber"
+require_relative "../logger"
+require_relative "../notifications"
 
 module ActiveSupport
   class LogSubscriber
@@ -58,15 +60,15 @@ module ActiveSupport
         def initialize(level = DEBUG)
           @flush_count = 0
           @level = level
-          @logged = Hash.new { |h,k| h[k] = [] }
+          @logged = Hash.new { |h, k| h[k] = [] }
         end
 
         def method_missing(level, message = nil)
-           if block_given?
-             @logged[level] << yield
-           else
-             @logged[level] << message
-           end
+          if block_given?
+            @logged[level] << yield
+          else
+            @logged[level] << message
+          end
         end
 
         def logged(level)

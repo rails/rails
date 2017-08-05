@@ -1,8 +1,8 @@
-require 'abstract_unit'
-require 'active_support/testing/autorun'
-require 'active_support/test_case'
-require 'rails/rack/logger'
-require 'logger'
+require "abstract_unit"
+require "active_support/testing/autorun"
+require "active_support/test_case"
+require "rails/rack/logger"
+require "logger"
 
 module Rails
   module Rack
@@ -20,7 +20,7 @@ module Rails
         def development?; false; end
       end
 
-      class Subscriber < Struct.new(:starts, :finishes)
+      Subscriber = Struct.new(:starts, :finishes) do
         def initialize(starts = [], finishes = [])
           super
         end
@@ -39,7 +39,7 @@ module Rails
       def setup
         @subscriber = Subscriber.new
         @notifier = ActiveSupport::Notifications.notifier
-        @subscription = notifier.subscribe 'request.action_dispatch', subscriber
+        @subscription = notifier.subscribe "request.action_dispatch", subscriber
       end
 
       def teardown
@@ -47,11 +47,11 @@ module Rails
       end
 
       def test_notification
-        logger = TestLogger.new { }
+        logger = TestLogger.new {}
 
-        assert_difference('subscriber.starts.length') do
-          assert_difference('subscriber.finishes.length') do
-            logger.call('REQUEST_METHOD' => 'GET').last.close
+        assert_difference("subscriber.starts.length") do
+          assert_difference("subscriber.finishes.length") do
+            logger.call("REQUEST_METHOD" => "GET").last.close
           end
         end
       end
@@ -62,10 +62,10 @@ module Rails
           raise NotImplementedError
         end
 
-        assert_difference('subscriber.starts.length') do
-          assert_difference('subscriber.finishes.length') do
+        assert_difference("subscriber.starts.length") do
+          assert_difference("subscriber.finishes.length") do
             assert_raises(NotImplementedError) do
-              logger.call 'REQUEST_METHOD' => 'GET'
+              logger.call "REQUEST_METHOD" => "GET"
             end
           end
         end

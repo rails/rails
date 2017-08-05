@@ -1,8 +1,9 @@
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
-require 'action_view'
-require 'action_view/view_paths'
-require 'set'
+# frozen_string_literal: true
+
+require_relative "error"
+require "action_view"
+require "action_view/view_paths"
+require "set"
 
 module AbstractController
   class DoubleRenderError < Error
@@ -59,9 +60,7 @@ module AbstractController
     end
 
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(
-      @_action_name @_response_body @_formats @_prefixes @_config
-      @_view_context_class @_view_renderer @_lookup_context
-      @_routes @_db_runtime
+      @_action_name @_response_body @_formats @_prefixes
     )
 
     # This method should return a hash with assigns.
@@ -81,7 +80,7 @@ module AbstractController
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
-    def _normalize_args(action=nil, options={})
+    def _normalize_args(action = nil, options = {})
       if action.respond_to?(:permitted?)
         if action.permitted?
           action
@@ -112,6 +111,9 @@ module AbstractController
     def _process_format(format)
     end
 
+    def _process_variant(options)
+    end
+
     def _set_html_content_type # :nodoc:
     end
 
@@ -122,10 +124,7 @@ module AbstractController
     # :api: private
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
-      #TODO: remove defined? when we restore AP <=> AV dependency
-      if defined?(request) && request.variant.present?
-        options[:variant] = request.variant
-      end
+      _process_variant(options)
       _normalize_options(options)
       options
     end

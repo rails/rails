@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CallbackJob < ActiveJob::Base
   before_perform ->(job) { job.history << "CallbackJob ran before_perform" }
   after_perform ->(job) { job.history << "CallbackJob ran after_perform" }
@@ -17,7 +19,6 @@ class CallbackJob < ActiveJob::Base
     job.history << "CallbackJob ran around_enqueue_stop"
   end
 
-
   def perform(person = "david")
     # NOTHING!
   end
@@ -25,5 +26,4 @@ class CallbackJob < ActiveJob::Base
   def history
     @history ||= []
   end
-
 end

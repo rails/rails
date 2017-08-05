@@ -1,2 +1,3 @@
-TypO = 1
+# frozen_string_literal: true
 
+TypO = 1

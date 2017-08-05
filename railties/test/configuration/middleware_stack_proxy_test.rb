@@ -1,8 +1,8 @@
-require 'active_support'
-require 'active_support/testing/autorun'
-require 'rails/configuration'
-require 'active_support/test_case'
-require 'minitest/mock'
+require "active_support"
+require "active_support/testing/autorun"
+require "rails/configuration"
+require "active_support/test_case"
+require "minitest/mock"
 
 module Rails
   module Configuration
@@ -50,12 +50,12 @@ module Rails
 
       private
 
-      def assert_playback(msg_name, args)
-        mock = Minitest::Mock.new
-        mock.expect :send, nil, [msg_name, args]
-        @stack.merge_into(mock)
-        mock.verify
-      end
+        def assert_playback(msg_name, args)
+          mock = Minitest::Mock.new
+          mock.expect :send, nil, [msg_name, args]
+          @stack.merge_into(mock)
+          mock.verify
+        end
     end
   end
 end

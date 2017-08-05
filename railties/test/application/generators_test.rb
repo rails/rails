@@ -6,7 +6,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
     end
 
     def teardown
@@ -30,7 +29,7 @@ module ApplicationTests
     end
 
     test "allow running plugin new generator inside Rails app directory" do
-      FileUtils.cd(rails_root){ `ruby bin/rails plugin new vendor/plugins/bukkits` }
+      FileUtils.cd(rails_root) { `ruby bin/rails plugin new vendor/plugins/bukkits` }
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
     end
 
@@ -114,7 +113,7 @@ module ApplicationTests
     test "generators with string and hash for options should generate symbol keys" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    'data_mapper', migration: false
+          g.orm    "data_mapper", migration: false
         end
 
         expected = {
@@ -135,10 +134,10 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       Rails.application.load_generators
 
-      assert Rails::Generators.hidden_namespaces.include?("assets")
-      assert Rails::Generators.hidden_namespaces.include?("helper")
-      assert Rails::Generators.hidden_namespaces.include?("js")
-      assert Rails::Generators.hidden_namespaces.include?("css")
+      assert_includes Rails::Generators.hidden_namespaces, "assets"
+      assert_includes Rails::Generators.hidden_namespaces, "helper"
+      assert_includes Rails::Generators.hidden_namespaces, "js"
+      assert_includes Rails::Generators.hidden_namespaces, "css"
       assert Rails::Generators.options[:rails][:api]
       assert_equal false, Rails::Generators.options[:rails][:assets]
       assert_equal false, Rails::Generators.options[:rails][:helper]
@@ -159,6 +158,41 @@ module ApplicationTests
       assert Rails::Generators.options[:rails][:api]
       assert Rails::Generators.options[:rails][:helper]
       assert_equal :my_template, Rails::Generators.options[:rails][:template_engine]
+    end
+
+    test "api only generator generate mailer views" do
+      add_to_config <<-RUBY
+        config.api_only = true
+      RUBY
+
+      FileUtils.cd(rails_root) { `bin/rails generate mailer notifier foo` }
+      assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.text.erb"))
+      assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
+    end
+
+    test "ARGV is mutated as expected" do
+      require "#{app_path}/config/environment"
+      Rails::Command.const_set("APP_PATH", "rails/all")
+
+      FileUtils.cd(rails_root) do
+        ARGV = ["mailer", "notifier", "foo"]
+        Rails::Command.const_set("ARGV", ARGV)
+        quietly { Rails::Command.invoke :generate, ARGV }
+
+        assert_equal ["notifier", "foo"], ARGV
+      end
+
+      Rails::Command.send(:remove_const, "APP_PATH")
+    end
+
+    test "help does not show hidden namespaces" do
+      FileUtils.cd(rails_root) do
+        output = `bin/rails generate --help`
+        assert_no_match "active_record:migration", output
+
+        output = `bin/rails destroy --help`
+        assert_no_match "active_record:migration", output
+      end
     end
   end
 end

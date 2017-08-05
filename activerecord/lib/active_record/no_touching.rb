@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record No Touching
   module NoTouching
@@ -43,6 +45,10 @@ module ActiveRecord
 
     def no_touching?
       NoTouching.applied_to?(self.class)
+    end
+
+    def touch_later(*) # :nodoc:
+      super unless no_touching?
     end
 
     def touch(*) # :nodoc:

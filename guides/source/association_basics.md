@@ -105,13 +105,13 @@ class CreateBooks < ActiveRecord::Migration[5.0]
   def change
     create_table :authors do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :books do |t|
       t.belongs_to :author, index: true
       t.datetime :published_at
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -136,13 +136,13 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -154,7 +154,7 @@ case, the column definition might look like this:
 
 ```ruby
 create_table :accounts do |t|
-  t.belongs_to :supplier, index: true, unique: true, foreign_key: true
+  t.belongs_to :supplier, index: { unique: true }, foreign_key: true
   # ...
 end
 ```
@@ -180,13 +180,13 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
   def change
     create_table :authors do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :books do |t|
       t.belongs_to :author, index: true
       t.datetime :published_at
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -222,19 +222,19 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
   def change
     create_table :physicians do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :patients do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :appointments do |t|
       t.belongs_to :physician, index: true
       t.belongs_to :patient, index: true
       t.datetime :appointment_date
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -308,19 +308,19 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :account_histories do |t|
       t.belongs_to :account, index: true
       t.integer :credit_rating
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -349,12 +349,12 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
   def change
     create_table :assemblies do |t|
       t.string :name
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :parts do |t|
       t.string :part_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     create_table :assemblies_parts, id: false do |t|
@@ -387,14 +387,14 @@ The corresponding migration might look like this:
 class CreateSuppliers < ActiveRecord::Migration[5.0]
   def change
     create_table :suppliers do |t|
-      t.string  :name
-      t.timestamps null: false
+      t.string :name
+      t.timestamps
     end
 
     create_table :accounts do |t|
       t.integer :supplier_id
       t.string  :account_number
-      t.timestamps null: false
+      t.timestamps
     end
 
     add_index :accounts, :supplier_id
@@ -472,7 +472,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
       t.string  :name
       t.integer :imageable_id
       t.string  :imageable_type
-      t.timestamps null: false
+      t.timestamps
     end
 
     add_index :pictures, [:imageable_type, :imageable_id]
@@ -488,7 +488,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
     create_table :pictures do |t|
       t.string :name
       t.references :imageable, polymorphic: true, index: true
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -518,7 +518,7 @@ class CreateEmployees < ActiveRecord::Migration[5.0]
   def change
     create_table :employees do |t|
       t.references :manager, index: true
-      t.timestamps null: false
+      t.timestamps
     end
   end
 end
@@ -545,13 +545,13 @@ author.books.size            # uses the cached copy of books
 author.books.empty?          # uses the cached copy of books
 ```
 
-But what if you want to reload the cache, because data might have been changed by some other part of the application? Just pass `true` to the association call:
+But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
 
 ```ruby
 author.books                 # retrieves books from the database
 author.books.size            # uses the cached copy of books
-author.books(true).empty?    # discards the cached copy of books
-                                # and goes back to the database
+author.books.reload.empty?   # discards the cached copy of books
+                             # and goes back to the database
 ```
 
 ### Avoiding Name Collisions
@@ -582,13 +582,29 @@ class CreateBooks < ActiveRecord::Migration[5.0]
       t.string   :book_number
       t.integer  :author_id
     end
-
-    add_index :books, :author_id
   end
 end
 ```
 
 If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
+
+It's a good practice to add an index on the foreign key to improve queries
+performance and a foreign key constraint to ensure referential data integrity:
+
+```ruby
+class CreateBooks < ActiveRecord::Migration[5.0]
+  def change
+    create_table :books do |t|
+      t.datetime :published_at
+      t.string   :book_number
+      t.integer  :author_id
+    end
+
+    add_index :books, :author_id
+    add_foreign_key :books, :authors
+  end
+end
+```
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -709,55 +725,73 @@ class Book < ApplicationRecord
 end
 ```
 
-By default, Active Record doesn't know about the connection between these associations. This can lead to two copies of an object getting out of sync:
+Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
 
 ```ruby
 a = Author.first
 b = a.books.first
 a.first_name == b.author.first_name # => true
-a.first_name = 'Manny'
-a.first_name == b.author.first_name # => false
-```
-
-This happens because `a` and `b.author` are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
-
-```ruby
-class Author < ApplicationRecord
-  has_many :books, inverse_of: :author
-end
-
-class Book < ApplicationRecord
-  belongs_to :author, inverse_of: :books
-end
-```
-
-With these changes, Active Record will only load one copy of the author object, preventing inconsistencies and making your application more efficient:
-
-```ruby
-a = author.first
-b = a.books.first
-a.first_name == b.author.first_name # => true
-a.first_name = 'Manny'
+a.first_name = 'David'
 a.first_name == b.author.first_name # => true
 ```
 
-There are a few limitations to `inverse_of` support:
-
-* They do not work with `:through` associations.
-* They do not work with `:polymorphic` associations.
-* They do not work with `:as` associations.
-* For `belongs_to` associations, `has_many` inverse associations are ignored.
-
-Every association will attempt to automatically find the inverse association
-and set the `:inverse_of` option heuristically (based on the association name).
-Most associations with standard names will be supported. However, associations
-that contain the following options will not have their inverses set
-automatically:
+Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain any of the following options:
 
 * `:conditions`
 * `:through`
 * `:polymorphic`
+* `:class_name`
 * `:foreign_key`
+
+For example, consider the following model declarations:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books
+end
+
+class Book < ApplicationRecord
+  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+end
+```
+
+Active Record will no longer automatically recognize the bi-directional association:
+
+```ruby
+a = Author.first
+b = a.books.first
+a.first_name == b.writer.first_name # => true
+a.first_name = 'David'
+a.first_name == b.writer.first_name # => false
+```
+
+Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books, inverse_of: 'writer'
+end
+
+class Book < ApplicationRecord
+  belongs_to :writer, class_name: 'Author', foreign_key: 'author_id'
+end
+```
+
+By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
+
+```ruby
+a = Author.first
+b = a.books.first
+a.first_name == b.writer.first_name # => true
+a.first_name = 'David'
+a.first_name == b.writer.first_name # => true
+```
+
+There are a few limitations to `:inverse_of` support:
+
+* They do not work with `:through` associations.
+* They do not work with `:polymorphic` associations.
+* They do not work with `:as` associations.
 
 Detailed Association Reference
 ------------------------------
@@ -926,21 +960,19 @@ class Author < ApplicationRecord
 end
 ```
 
-NOTE: You only need to specify the :counter_cache option on the `belongs_to`
+NOTE: You only need to specify the `:counter_cache` option on the `belongs_to`
 side of the association.
 
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
-If you set the `:dependent` option to:
+Controls what happens to associated objects when their owner is destroyed:
 
-* `:destroy`, when the object is destroyed, `destroy` will be called on its
-associated objects.
-* `:delete_all`, when the object is destroyed, all its associated objects will be
-deleted directly from the database without calling their `destroy` method.
-* `:nullify`, causes the foreign key to be set to `NULL`. Callbacks are not executed.
-* `:restrict_with_exception`, causes an exception to be raised if there is an associated record
-* `:restrict_with_error`, causes an error to be added to the owner if there is an associated object
+* `:destroy` causes the associated objects to also be destroyed.
+* `:delete_all` causes the associated objects to be deleted directly from the database (callbacks are not executed).
+* `:nullify` causes the foreign keys to be set to `NULL` (callbacks are not executed).
+* `:restrict_with_exception` causes an exception to be raised if there are associated records.
+* `:restrict_with_error` causes an error to be added to the owner if there are associated objects.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
@@ -1009,7 +1041,7 @@ class Author < ApplicationRecord
 end
 ```
 
-In this case, saving or destroying an book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
+In this case, saving or destroying a book will update the timestamp on the associated author. You can also specify a particular timestamp attribute to update:
 
 ```ruby
 class Book < ApplicationRecord
@@ -1385,7 +1417,7 @@ If either of these saves fails due to validation errors, then the assignment sta
 
 If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
 
-If you want to assign an object to a `has_one` association without saving the object, use the `association.build` method.
+If you want to assign an object to a `has_one` association without saving the object, use the `build_association` method.
 
 ### `has_many` Association Reference
 
@@ -1479,7 +1511,7 @@ WARNING: Objects will _always_ be removed from the database, ignoring the `:depe
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -1491,7 +1523,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 
@@ -1527,7 +1559,7 @@ The `collection.size` method returns the number of objects in the collection.
 The `collection.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`.
 
 ```ruby
-@available_books = @author.books.find(1)
+@available_book = @author.books.find(1)
 ```
 
 ##### `collection.where(...)`
@@ -1799,7 +1831,7 @@ The `limit` method lets you restrict the total number of objects that will be fe
 class Author < ApplicationRecord
   has_many :recent_books,
     -> { order('published_at desc').limit(100) },
-    class_name: "Book",
+    class_name: "Book"
 end
 ```
 
@@ -1843,7 +1875,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
+Reading.all.inspect     # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
 ```
 
 In the above case there are two readings and `person.articles` brings out both of
@@ -1862,7 +1894,7 @@ article   = Article.create(name: 'a1')
 person.articles << article
 person.articles << article
 person.articles.inspect # => [#<Article id: 7, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
+Reading.all.inspect     # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
 ```
 
 In the above case there are still two readings. However `person.articles` shows
@@ -1996,11 +2028,9 @@ The `collection.delete` method removes one or more objects from the collection b
 @part.assemblies.delete(@assembly1)
 ```
 
-WARNING: This does not trigger callbacks on the join records.
-
 ##### `collection.destroy(object, ...)`
 
-The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each record in the join table, including running callbacks. This does not destroy the objects.
+The `collection.destroy` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 ```ruby
 @part.assemblies.destroy(@assembly1)
@@ -2008,7 +2038,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 ##### `collection=(objects)`
 
-The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection_singular_ids`
 
@@ -2020,7 +2050,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 
 ##### `collection_singular_ids=(ids)`
 
-The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate. The changes are persisted to the database.
 
 ##### `collection.clear`
 

@@ -1,44 +1,73 @@
-require 'rake/testtask'
+# frozen_string_literal: true
+
+require "rake/testtask"
+require "fileutils"
+require "open3"
 
 desc "Default Task"
-task :default => :test
+task default: :test
 
-task :package
-task "package:clean"
+task package: %w( assets:compile assets:verify )
 
 # Run the unit tests
 
 desc "Run all unit tests"
-task :test => ["test:template", "test:integration:action_pack", "test:integration:active_record"]
+task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
 
 namespace :test do
   task :isolated do
     Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, '-w', '-Ilib:test', file)
-    end or raise "Failures"
+      sh(Gem.ruby, "-w", "-Ilib:test", file)
+    end || raise("Failures")
   end
 
   Rake::TestTask.new(:template) do |t|
-    t.libs << 'test'
-    t.test_files = Dir.glob('test/template/**/*_test.rb')
+    t.libs << "test"
+    t.test_files = Dir.glob("test/template/**/*_test.rb")
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
+  task :ujs do
+    begin
+      Dir.mkdir("log")
+      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1")
+
+      start_time = Time.now
+
+      loop do
+        break if system("lsof -i :4567", 1 => File::NULL)
+
+        if Time.now - start_time > 5
+          puts "Timed out after 5 seconds"
+          exit 1
+        end
+      end
+
+      system("npm run lint && phantomjs ../ci/phantomjs.js http://localhost:4567/")
+      status = $?.to_i
+    ensure
+      Process.kill("KILL", pid) if pid
+      FileUtils.rm_rf("log")
+    end
+
+    exit status
+  end
+
   namespace :integration do
-    desc 'ActiveRecord Integration Tests'
+    desc "ActiveRecord Integration Tests"
     Rake::TestTask.new(:active_record) do |t|
-      t.libs << 'test'
+      t.libs << "test"
       t.test_files = Dir.glob("test/activerecord/*_test.rb")
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
-    desc 'ActionPack Integration Tests'
+    desc "ActionPack Integration Tests"
     Rake::TestTask.new(:action_pack) do |t|
-      t.libs << 'test'
+      t.libs << "test"
       t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
       t.warning = true
       t.verbose = true
@@ -47,8 +76,61 @@ namespace :test do
   end
 end
 
+namespace :ujs do
+  desc "Starts the test server"
+  task :server do
+    system "bundle exec rackup test/ujs/config.ru -p 4567 -s puma"
+  end
+end
+
+namespace :assets do
+  desc "Compile Action View assets"
+  task :compile do
+    require "blade"
+    require "sprockets"
+    require "sprockets/export"
+    Blade.build
+  end
+
+  desc "Verify compiled Action View assets"
+  task :verify do
+    file = "lib/assets/compiled/rails-ujs.js"
+    pathname = Pathname.new("#{__dir__}/#{file}")
+
+    print "[verify] #{file} exists "
+    if pathname.exist?
+      puts "[OK]"
+    else
+      $stderr.puts "[FAIL]"
+      fail
+    end
+
+    print "[verify] #{file} is a UMD module "
+    if pathname.read =~ /module\.exports.*define\.amd/m
+      puts "[OK]"
+    else
+      $stderr.puts "[FAIL]"
+      fail
+    end
+
+    print "[verify] #{__dir__} can be required as a module "
+    js = <<-JS
+      window = { Event: class {} }
+      class Element {}
+      require('#{__dir__}')
+    JS
+    _, stderr, status = Open3.capture3("node", "--print", js)
+    if status.success?
+      puts "[OK]"
+    else
+      $stderr.puts "[FAIL]\n#{stderr}"
+      fail
+    end
+  end
+end
+
 task :lines do
-  load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
+  load File.join(File.expand_path("..", __dir__), "/tools/line_statistics")
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

@@ -149,7 +149,7 @@ false` as an argument. This technique should be used with caution.
 
 ### `valid?` and `invalid?`
 
-Before saving an ActiveRecord object, Rails runs your validations.
+Before saving an Active Record object, Rails runs your validations.
 If these validations produce any errors, Rails does not save the object.
 
 You can also run these validations on your own. `valid?` triggers your validations
@@ -278,12 +278,6 @@ form was submitted. This is typically used when the user needs to agree to your
 application's terms of service, confirm that some text is read, or any similar
 concept.
 
-This validation is very specific to web applications and this
-'acceptance' does not need to be recorded anywhere in your database. If you
-don't have a field for it, the helper will just create a virtual attribute. If
-the field does exist in your database, the `accept` option must be set to
-`true` or else the validation will not run.
-
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: true
@@ -292,15 +286,30 @@ end
 
 This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
+You can also pass custom message via the `message` option.
 
-It can receive an `:accept` option, which determines the value that will be
-considered acceptance. It defaults to "1" and can be easily changed.
+```ruby
+class Person < ApplicationRecord
+  validates :terms_of_service, acceptance: { message: 'must be abided' }
+end
+```
+
+It can also receive an `:accept` option, which determines the allowed values
+that will be considered as accepted. It defaults to `['1', true]` and can be
+easily changed.
 
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: { accept: 'yes' }
+  validates :eula, acceptance: { accept: ['TRUE', 'accepted'] }
 end
 ```
+
+This validation is very specific to web applications and this
+'acceptance' does not need to be recorded anywhere in your database. If you
+don't have a field for it, the helper will just create a virtual attribute. If
+the field does exist in your database, the `accept` option must be set to
+or include `true` or else the validation will not run.
 
 ### `validates_associated`
 
@@ -383,7 +392,8 @@ The `exclusion` helper has an option `:in` that receives the set of values that
 will not be accepted for the validated attributes. The `:in` option has an
 alias called `:within` that you can use for the same purpose, if you'd like to.
 This example uses the `:message` option to show how you can include the
-attribute's value.
+attribute's value. For full options to the message argument please see the
+[message documentation](#message).
 
 The default error message is _"is reserved"_.
 
@@ -418,7 +428,8 @@ end
 The `inclusion` helper has an option `:in` that receives the set of values that
 will be accepted. The `:in` option has an alias called `:within` that you can
 use for the same purpose, if you'd like to. The previous example uses the
-`:message` option to show how you can include the attribute's value.
+`:message` option to show how you can include the attribute's value. For full
+options please see the [message documentation](#message).
 
 The default error message for this helper is _"is not included in the list"_.
 
@@ -479,9 +490,6 @@ If you set `:only_integer` to `true`, then it will use the
 regular expression to validate the attribute's value. Otherwise, it will try to
 convert the value to a number using `Float`.
 
-WARNING. Note that the regular expression above allows a trailing newline
-character.
-
 ```ruby
 class Player < ApplicationRecord
   validates :points, numericality: true
@@ -505,6 +513,8 @@ constraints to acceptable values:
 * `:less_than_or_equal_to` - Specifies the value must be less than or equal to
   the supplied value. The default error message for this option is _"must be
   less than or equal to %{count}"_.
+* `:other_than` - Specifies the value must be other than the supplied value.
+  The default error message for this option is _"must be other than %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
@@ -628,7 +638,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -757,6 +767,9 @@ class Coffee < ApplicationRecord
 end
 ```
 
+For full options to the message argument please see the
+[message documentation](#message).
+
 ### `:allow_blank`
 
 The `:allow_blank` option is similar to the `:allow_nil` option. This option
@@ -781,9 +794,10 @@ for each validation helper. The `:message` option accepts a `String` or `Proc`.
 
 A `String` `:message` value can optionally contain any/all of `%{value}`,
 `%{attribute}`, and `%{model}` which will be dynamically replaced when
-validation fails.
+validation fails. This replacement is done using the I18n gem, and the
+placeholders must match exactly, no spaces are allowed.
 
-A `Proc` `:message` value is given two arguments: a message key for i18n, and
+A `Proc` `:message` value is given two arguments: the object being validated, and
 a hash with `:model`, `:attribute`, and `:value` key-value pairs.
 
 ```ruby
@@ -799,10 +813,10 @@ class Person < ApplicationRecord
   # Proc
   validates :username,
     uniqueness: {
-      # key = "activerecord.errors.models.person.attributes.username.taken"
+      # object = person object being validated
       # data = { model: "Person", attribute: "Username", value: <username> }
-      message: ->(key, data) do
-        "#{data[:value]} taken! Try again #{Time.zone.tomorrow}"
+      message: ->(object, data) do
+        "Hey #{object.name}!, #{data[:value]} is taken already! Try again #{Time.zone.tomorrow}"
       end
     }
 end
@@ -829,6 +843,25 @@ class Person < ApplicationRecord
   validates :name, presence: true
 end
 ```
+
+You can also use `on:` to define custom context.
+Custom contexts need to be triggered explicitly
+by passing name of the context to `valid?`, `invalid?` or `save`.
+
+```ruby
+class Person < ApplicationRecord
+  validates :email, uniqueness: true, on: :account_setup
+  validates :age, numericality: true, on: :account_setup
+end
+
+person = Person.new
+```
+
+`person.valid?(:account_setup)` executes both the validations
+without saving the model. And `person.save(context: :account_setup)`
+validates `person` in `account_setup` context before saving.
+On explicit triggers, model is validated by
+validations of only that context and validations without context.
 
 Strict Validations
 ------------------
@@ -880,18 +913,6 @@ class Order < ApplicationRecord
 end
 ```
 
-### Using a String with `:if` and `:unless`
-
-You can also use a string that will be evaluated using `eval` and needs to
-contain valid Ruby code. You should use this option only when the string
-represents a really short condition.
-
-```ruby
-class Person < ApplicationRecord
-  validates :surname, presence: true, if: "name.nil?"
-end
-```
-
 ### Using a Proc with `:if` and `:unless`
 
 Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
@@ -932,7 +953,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?],
+                    if: [Proc.new  { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```
@@ -1196,9 +1217,9 @@ person.errors[:name]
 person.errors.clear
 person.errors.empty? # => true
 
-p.save # => false
+person.save # => false
 
-p.errors[:name]
+person.errors[:name]
 # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 

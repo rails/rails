@@ -7,19 +7,19 @@ module Rails
       class_option :javascript_engine, desc: "Engine for JavaScripts"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
-      protected
+      private
 
-      def asset_name
-        file_name
-      end
+        def asset_name
+          file_name
+        end
 
-      hook_for :javascript_engine do |javascript_engine|
-        invoke javascript_engine, [name] if options[:javascripts]
-      end
+        hook_for :javascript_engine do |javascript_engine|
+          invoke javascript_engine, [name] if options[:javascripts]
+        end
 
-      hook_for :stylesheet_engine do |stylesheet_engine|
-        invoke stylesheet_engine, [name] if options[:stylesheets]
-      end
+        hook_for :stylesheet_engine do |stylesheet_engine|
+          invoke stylesheet_engine, [name] if options[:stylesheets]
+        end
     end
   end
 end

@@ -1,8 +1,12 @@
-require 'active_support/logger_silence'
-require 'logger'
+# frozen_string_literal: true
+
+require_relative "logger_silence"
+require_relative "logger_thread_safe_level"
+require "logger"
 
 module ActiveSupport
   class Logger < ::Logger
+    include ActiveSupport::LoggerThreadSafeLevel
     include LoggerSilence
 
     # Returns true if the logger destination matches one of the sources
@@ -47,6 +51,29 @@ module ActiveSupport
         define_method(:level=) do |level|
           logger.level = level
           super(level)
+        end
+
+        define_method(:local_level=) do |level|
+          logger.local_level = level if logger.respond_to?(:local_level=)
+          super(level) if respond_to?(:local_level=)
+        end
+
+        define_method(:silence) do |level = Logger::ERROR, &block|
+          if logger.respond_to?(:silence)
+            logger.silence(level) do
+              if defined?(super)
+                super(level, &block)
+              else
+                block.call(self)
+              end
+            end
+          else
+            if defined?(super)
+              super(level, &block)
+            else
+              block.call(self)
+            end
+          end
         end
       end
     end

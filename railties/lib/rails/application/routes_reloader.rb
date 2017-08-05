@@ -4,11 +4,13 @@ module Rails
   class Application
     class RoutesReloader
       attr_reader :route_sets, :paths
-      delegate :execute_if_updated, :execute, :updated?, to: :updater
+      attr_accessor :eager_load
+      delegate :updated?, to: :updater
 
       def initialize
         @paths      = []
         @route_sets = []
+        @eager_load = false
       end
 
       def reload!
@@ -17,6 +19,19 @@ module Rails
         finalize!
       ensure
         revert
+      end
+
+      def execute
+        ret = updater.execute
+        route_sets.each(&:eager_load!) if eager_load
+        ret
+      end
+
+      def execute_if_updated
+        if updated = updater.execute_if_updated
+          route_sets.each(&:eager_load!) if eager_load
+        end
+        updated
       end
 
     private

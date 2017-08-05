@@ -1,4 +1,6 @@
-require 'active_support/concurrency/share_lock'
+# frozen_string_literal: true
+
+require_relative "../concurrency/share_lock"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -19,14 +21,12 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Attempt to obtain an "unloading" (exclusive) lock. If possible,
-      # execute the supplied block while holding the lock. If there is
-      # concurrent activity, return immediately (without executing the
-      # block) instead of waiting.
-      def attempt_unloading
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], after_compatible: [:load, :unload], no_wait: true) do
-          yield
-        end
+      def start_unloading
+        @lock.start_exclusive(purpose: :unload, compatible: [:load, :unload])
+      end
+
+      def done_unloading
+        @lock.stop_exclusive(compatible: [:load, :unload])
       end
 
       def start_running
@@ -47,6 +47,10 @@ module ActiveSupport #:nodoc:
         @lock.yield_shares(compatible: [:load]) do
           yield
         end
+      end
+
+      def raw_state(&block) # :nodoc:
+        @lock.raw_state(&block)
       end
     end
   end

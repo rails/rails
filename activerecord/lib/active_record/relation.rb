@@ -1,14 +1,14 @@
-require "arel/collectors/bind"
+# frozen_string_literal: true
 
 module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
@@ -20,6 +20,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
+    alias :locked? :lock_value
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -31,9 +32,7 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      # This method is a hot spot, so for now, use Hash[] to dup the hash.
-      #   https://bugs.ruby-lang.org/issues/7166
-      @values        = Hash[@values]
+      @values = @values.dup
       reset
     end
 
@@ -45,8 +44,8 @@ module ActiveRecord
           k.name == primary_key
         }]
 
-        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
-          primary_key_value = connection.next_sequence_value(klass.sequence_name)
+        if !primary_key_value && klass.prefetch_primary_key?
+          primary_key_value = klass.next_sequence_value
           values[arel_attribute(klass.primary_key)] = primary_key_value
         end
       end
@@ -54,7 +53,7 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       if values.empty? # empty insert
         im.values = Arel.sql(connection.empty_insert_statement_value)
@@ -64,15 +63,15 @@ module ActiveRecord
 
       @klass.connection.insert(
         im,
-        'SQL',
-        primary_key,
+        "SQL",
+        primary_key || false,
         primary_key_value,
         nil,
-        binds)
+      )
     end
 
     def _update_record(values, id, id_was) # :nodoc:
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       scope = @klass.unscoped
 
@@ -81,28 +80,21 @@ module ActiveRecord
       end
 
       relation = scope.where(@klass.primary_key => (id_was || id))
-      bvs = binds + relation.bound_attributes
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
 
       @klass.connection.update(
         um,
-        'SQL',
-        bvs,
+        "SQL",
       )
     end
 
     def substitute_values(values) # :nodoc:
-      binds = values.map do |arel_attr, value|
-        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
+      values.map do |arel_attr, value|
+        bind = predicate_builder.build_bind_attribute(arel_attr.name, value)
+        [arel_attr, bind]
       end
-
-      substitutes = values.map do |(arel_attr, _)|
-        [arel_attr, Arel::Nodes::BindParam.new]
-      end
-
-      [substitutes, binds]
     end
 
     def arel_attribute(name) # :nodoc:
@@ -247,23 +239,22 @@ module ActiveRecord
     # Please see further details in the
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
-      #TODO: Fix for binds.
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
 
     # Converts relation objects to Array.
     def to_a
+      records.dup
+    end
+
+    def records # :nodoc:
       load
       @records
     end
 
     # Serializes the relation objects Array.
     def encode_with(coder)
-      coder.represent_seq(nil, to_a)
-    end
-
-    def as_json(options = nil) #:nodoc:
-      to_a.as_json(options)
+      coder.represent_seq(nil, records)
     end
 
     # Returns size of the records.
@@ -274,13 +265,7 @@ module ActiveRecord
     # Returns true if there are no records.
     def empty?
       return @records.empty? if loaded?
-
-      if limit_value == 0
-        true
-      else
-        c = count(:all)
-        c.respond_to?(:zero?) ? c.zero? : c.empty?
-      end
+      !exists?
     end
 
     # Returns true if there are no records.
@@ -298,13 +283,13 @@ module ActiveRecord
     # Returns true if there is exactly one record.
     def one?
       return super if block_given?
-      limit_value ? to_a.one? : size == 1
+      limit_value ? records.one? : size == 1
     end
 
     # Returns true if there is more than one record.
     def many?
       return super if block_given?
-      limit_value ? to_a.many? : size > 1
+      limit_value ? records.many? : size > 1
     end
 
     # Returns a cache key that can be used to identify the records fetched by
@@ -343,7 +328,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope, self
+      previous, klass.current_scope = klass.current_scope(true), self
       yield
     ensure
       klass.current_scope = previous
@@ -368,6 +353,9 @@ module ActiveRecord
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
+    #
+    #   # Update all invoices and set the number column to its id value.
+    #   Invoice.update_all('number = id')
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
@@ -376,7 +364,7 @@ module ActiveRecord
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
 
-      if joins_values.any?
+      if has_join_values?
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
@@ -385,7 +373,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bound_attributes
+      @klass.connection.update stmt, "SQL"
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -411,20 +399,19 @@ module ActiveRecord
     #
     # Note: Updating a large number of records will run an
     # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
+    # issue. When running callbacks is not needed for each record update,
+    # it is preferred to use #update_all for updating all records
+    # in a single query.
     def update(id = :all, attributes)
       if id.is_a?(Array)
         id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
       elsif id == :all
-        to_a.each { |record| record.update(attributes) }
+        records.each { |record| record.update(attributes) }
       else
         if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`
+            Please pass the id of the object by calling `.id`.
           MSG
         end
         object = find(id)
@@ -449,16 +436,8 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.where(age: 0..18).destroy_all
-    def destroy_all(conditions = nil)
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to destroy_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).destroy_all
-        MESSAGE
-        where(conditions).destroy_all
-      else
-        to_a.each(&:destroy).tap { reset }
-      end
+    def destroy_all
+      records.each(&:destroy).tap { reset }
     end
 
     # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -506,41 +485,28 @@ module ActiveRecord
     #
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
-    def delete_all(conditions = nil)
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
-        if MULTI_VALUE_METHODS.include?(method)
-          send("#{method}_values").any?
-        elsif SINGLE_VALUE_METHODS.include?(method)
-          send("#{method}_value")
-        elsif CLAUSE_METHODS.include?(method)
-          send("#{method}_clause").any?
-        end
-      }
+    def delete_all
+      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+        value = get_value(method)
+        SINGLE_VALUE_METHODS.include?(method) ? value : value.any?
+      end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      if conditions
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-          Passing conditions to delete_all is deprecated and will be removed in Rails 5.1.
-          To achieve the same use where(conditions).delete_all
-        MESSAGE
-        where(conditions).delete_all
+      stmt = Arel::DeleteManager.new
+      stmt.from(table)
+
+      if has_join_values?
+        @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
-        stmt = Arel::DeleteManager.new
-        stmt.from(table)
-
-        if joins_values.any?
-          @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
-        else
-          stmt.wheres = arel.constraints
-        end
-
-        affected = @klass.connection.delete(stmt, 'SQL', bound_attributes)
-
-        reset
-        affected
+        stmt.wheres = arel.constraints
       end
+
+      affected = @klass.connection.delete(stmt, "SQL")
+
+      reset
+      affected
     end
 
     # Deletes the row with a primary key matching the +id+ argument, using a
@@ -572,8 +538,8 @@ module ActiveRecord
     # return value is the relation itself, not the records.
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
-    def load
-      exec_queries unless loaded?
+    def load(&block)
+      exec_queries(&block) unless loaded?
 
       self
     end
@@ -585,9 +551,8 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
-      @records = []
+      @to_sql = @arel = @loaded = @should_eager_load = nil
+      @records = [].freeze
       @offsets = {}
       self
     end
@@ -598,19 +563,17 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
-                    relation   = self
-                    connection = klass.connection
-                    visitor    = connection.visitor
+                    relation = self
 
                     if eager_loading?
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    binds = relation.bound_attributes
-                    binds = connection.prepare_binds_for_database(binds)
-                    binds.map! { |value| connection.quote(value) }
-                    collect = visitor.accept(relation.arel.ast, Arel::Collectors::Bind.new)
-                    collect.substitute_binds(binds).join
+                    conn = klass.connection
+                    conn.unprepared_statement {
+                      sql, _ = conn.to_sql(relation.arel)
+                      sql
+                    }
                   end
     end
 
@@ -623,7 +586,7 @@ module ActiveRecord
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -641,98 +604,116 @@ module ActiveRecord
       includes_values & joins_values
     end
 
-    # {#uniq}[rdoc-ref:QueryMethods#uniq] and
-    # {#uniq!}[rdoc-ref:QueryMethods#uniq!] are silently deprecated.
-    # #uniq_value delegates to #distinct_value to maintain backwards compatibility.
-    # Use #distinct_value instead.
-    def uniq_value
-      distinct_value
-    end
-    deprecate uniq_value: :distinct_value
-
     # Compares two relations for equality.
     def ==(other)
       case other
       when Associations::CollectionProxy, AssociationRelation
-        self == other.to_a
+        self == other.records
       when Relation
         other.to_sql == to_sql
       when Array
-        to_a == other
+        records == other
       end
     end
 
     def pretty_print(q)
-      q.pp(self.to_a)
+      q.pp(records)
     end
 
     # Returns true if relation is blank.
     def blank?
-      to_a.blank?
+      records.blank?
     end
 
     def values
-      Hash[@values]
+      @values.dup
     end
 
     def inspect
-      entries = to_a.take([limit_value, 11].compact.min).map!(&:inspect)
-      entries[10] = '...' if entries.size == 11
+      subject = loaded? ? records : self
+      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+
+      entries[10] = "..." if entries.size == 11
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
+    end
+
+    def empty_scope? # :nodoc:
+      @values == klass.unscoped.values
+    end
+
+    def has_limit_or_offset? # :nodoc:
+      limit_value || offset_value
     end
 
     protected
 
       def load_records(records)
-        @records = records
+        @records = records.freeze
         @loaded = true
       end
 
     private
 
-    def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
-
-      preload = preload_values
-      preload +=  includes_values unless eager_loading?
-      preloader = build_preloader
-      preload.each do |associations|
-        preloader.preload @records, associations
+      def has_join_values?
+        joins_values.any? || left_outer_joins_values.any?
       end
 
-      @records.each(&:readonly!) if readonly_value
+      def exec_queries(&block)
+        skip_query_cache_if_necessary do
+          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, &block).freeze
 
-      @loaded = true
-      @records
-    end
+          preload = preload_values
+          preload += includes_values unless eager_loading?
+          preloader = nil
+          preload.each do |associations|
+            preloader ||= build_preloader
+            preloader.preload @records, associations
+          end
 
-    def build_preloader
-      ActiveRecord::Associations::Preloader.new
-    end
+          @records.each(&:readonly!) if readonly_value
 
-    def references_eager_loaded_tables?
-      joined_tables = arel.join_sources.map do |join|
-        if join.is_a?(Arel::Nodes::StringJoin)
-          tables_in_string(join.left)
-        else
-          [join.left.table_name, join.left.table_alias]
+          @loaded = true
+          @records
         end
       end
 
-      joined_tables += [table.name, table.table_alias]
+      def skip_query_cache_if_necessary
+        if skip_query_cache_value
+          uncached do
+            yield
+          end
+        else
+          yield
+        end
+      end
 
-      # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+      def build_preloader
+        ActiveRecord::Associations::Preloader.new
+      end
 
-      (references_values - joined_tables).any?
-    end
+      def references_eager_loaded_tables?
+        joined_tables = arel.join_sources.map do |join|
+          if join.is_a?(Arel::Nodes::StringJoin)
+            tables_in_string(join.left)
+          else
+            [join.left.table_name, join.left.table_alias]
+          end
+        end
 
-    def tables_in_string(string)
-      return [] if string.blank?
-      # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
-    end
+        joined_tables += [table.name, table.table_alias]
+
+        # always convert table names to downcase as in Oracle quoted table names are in uppercase
+        joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+
+        (references_values - joined_tables).any?
+      end
+
+      def tables_in_string(string)
+        return [] if string.blank?
+        # always convert table names to downcase as in Oracle quoted table names are in uppercase
+        # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
+        string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+      end
   end
 end

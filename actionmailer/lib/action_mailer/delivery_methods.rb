@@ -1,4 +1,6 @@
-require 'tmpdir'
+# frozen_string_literal: true
+
+require "tmpdir"
 
 module ActionMailer
   # This module handles everything related to mail delivery, from registering
@@ -7,25 +9,18 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :delivery_methods, :delivery_method
-
       # Do not make this inheritable, because we always want it to propagate
-      cattr_accessor :raise_delivery_errors
-      self.raise_delivery_errors = true
+      cattr_accessor :raise_delivery_errors, default: true
+      cattr_accessor :perform_deliveries, default: true
+      cattr_accessor :deliver_later_queue_name, default: :mailers
 
-      cattr_accessor :perform_deliveries
-      self.perform_deliveries = true
-
-      cattr_accessor :deliver_later_queue_name
-      self.deliver_later_queue_name = :mailers
-
-      self.delivery_methods = {}.freeze
-      self.delivery_method  = :smtp
+      class_attribute :delivery_methods, default: {}.freeze
+      class_attribute :delivery_method, default: :smtp
 
       add_delivery_method :smtp, Mail::SMTP,
         address:              "localhost",
         port:                 25,
-        domain:               'localhost.localdomain',
+        domain:               "localhost.localdomain",
         user_name:            nil,
         password:             nil,
         authentication:       nil,
@@ -35,8 +30,8 @@ module ActionMailer
         location: defined?(Rails.root) ? "#{Rails.root}/tmp/mails" : "#{Dir.tmpdir}/mails"
 
       add_delivery_method :sendmail, Mail::Sendmail,
-        location:  '/usr/sbin/sendmail',
-        arguments: '-i -t'
+        location:  "/usr/sbin/sendmail",
+        arguments: "-i"
 
       add_delivery_method :test, Mail::TestMailer
     end
@@ -51,15 +46,15 @@ module ActionMailer
       #
       #   add_delivery_method :sendmail, Mail::Sendmail,
       #     location:  '/usr/sbin/sendmail',
-      #     arguments: '-i -t'
-      def add_delivery_method(symbol, klass, default_options={})
+      #     arguments: '-i'
+      def add_delivery_method(symbol, klass, default_options = {})
         class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
         send(:"#{symbol}_settings=", default_options)
         self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
       end
 
-      def wrap_delivery_behavior(mail, method=nil, options=nil) # :nodoc:
-        method ||= self.delivery_method
+      def wrap_delivery_behavior(mail, method = nil, options = nil) # :nodoc:
+        method ||= delivery_method
         mail.delivery_handler = self
 
         case method

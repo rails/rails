@@ -1,4 +1,6 @@
-require 'models/topic'
+# frozen_string_literal: true
+
+require "models/topic"
 
 class Reply < Topic
   validate :errors_on_empty_content

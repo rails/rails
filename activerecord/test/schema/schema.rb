@@ -1,10 +1,6 @@
-ActiveRecord::Schema.define do
-  def except(adapter_names_to_exclude)
-    unless [adapter_names_to_exclude].flatten.include?(adapter_name)
-      yield
-    end
-  end
+# frozen_string_literal: true
 
+ActiveRecord::Schema.define do
   # ------------------------------------------------------------------- #
   #                                                                     #
   #   Please keep these create table statements in alphabetical order   #
@@ -27,7 +23,7 @@ ActiveRecord::Schema.define do
     t.string :settings, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, null: true, default: '', limit: 1024
+    t.string :preferences, null: true, default: "", limit: 1024
     t.string :json_data, null: true, limit: 1024
     t.string :json_data_empty, null: true, default: "", limit: 1024
     t.text :params
@@ -60,8 +56,8 @@ ActiveRecord::Schema.define do
 
   create_table :authors, force: true do |t|
     t.string :name, null: false
-    t.integer :author_address_id
-    t.integer :author_address_extra_id
+    t.references :author_address
+    t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
   end
@@ -94,7 +90,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :books, force: true do |t|
-    t.integer :author_id
+    t.references :author
     t.string :format
     t.column :name, :string
     t.column :status, :integer, default: 0
@@ -104,7 +100,8 @@ ActiveRecord::Schema.define do
     t.column :author_visibility, :integer, default: 0
     t.column :illustrator_visibility, :integer, default: 0
     t.column :font_size, :integer, default: 0
-    t.column :cover, :string, default: 'hard'
+    t.column :difficulty, :integer, default: 0
+    t.column :cover, :string, default: "hard"
   end
 
   create_table :booleans, force: true do |t|
@@ -112,7 +109,7 @@ ActiveRecord::Schema.define do
     t.boolean :has_fun, null: false, default: false
   end
 
-  create_table :bulbs, force: true do |t|
+  create_table :bulbs, primary_key: "ID", force: true do |t|
     t.integer :car_id
     t.string  :name
     t.boolean :frickinawesome, default: false
@@ -129,6 +126,9 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
+  end
+
+  create_table :old_cars, id: :integer, force: true do |t|
   end
 
   create_table :carriers, force: true
@@ -191,6 +191,7 @@ ActiveRecord::Schema.define do
     t.string :resource_id
     t.string :resource_type
     t.integer :developer_id
+    t.datetime :deleted_at
   end
 
   create_table :companies, force: true do |t|
@@ -202,9 +203,10 @@ ActiveRecord::Schema.define do
     t.integer :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
-    t.index [:firm_id, :type, :rating], name: "company_index"
-    t.index [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
-    t.index :name, name: 'company_name_index', using: :btree
+    t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
+    t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
+    t.index :name, name: "company_name_index", using: :btree
+    t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -303,11 +305,11 @@ ActiveRecord::Schema.define do
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
-    t.index [:source_id, :sink_id], unique: true, name: 'unique_edge_index'
+    t.index [:source_id, :sink_id], unique: true, name: "unique_edge_index"
   end
 
   create_table :engines, force: true do |t|
-    t.integer :car_id
+    t.references :car, index: false
   end
 
   create_table :entrants, force: true do |t|
@@ -328,6 +330,15 @@ ActiveRecord::Schema.define do
   end
 
   create_table :eyes, force: true do |t|
+  end
+
+  create_table :families, force: true do |t|
+  end
+
+  create_table :family_trees, force: true do |t|
+    t.references :family
+    t.references :member
+    t.string :token
   end
 
   create_table :funny_jokes, force: true do |t|
@@ -395,9 +406,17 @@ ActiveRecord::Schema.define do
     t.integer :ideal_reference_id
   end
 
+  create_table :jobs_pool, force: true, id: false do |t|
+    t.references :job, null: false, index: true
+    t.references :user, null: false, index: true
+  end
+
   create_table :keyboards, force: true, id: false do |t|
     t.primary_key :key_number
     t.string      :name
+  end
+
+  create_table :kitchens, force: true do |t|
   end
 
   create_table :legacy_things, force: true do |t|
@@ -414,6 +433,14 @@ ActiveRecord::Schema.define do
     t.references :student
   end
 
+  create_table :students, force: true do |t|
+    t.string :name
+    t.boolean :active
+    t.integer :college_id
+  end
+
+  add_foreign_key :lessons_students, :students, on_delete: :cascade
+
   create_table :lint_models, force: true
 
   create_table :line_items, force: true do |t|
@@ -421,12 +448,21 @@ ActiveRecord::Schema.define do
     t.integer :amount
   end
 
+  create_table :lions, force: true do |t|
+    t.integer :gender
+    t.boolean :is_vegetarian, default: false
+  end
+
   create_table :lock_without_defaults, force: true do |t|
+    t.column :title, :string
     t.column :lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :lock_without_defaults_cust, force: true do |t|
+    t.column :title, :string
     t.column :custom_lock_version, :integer
+    t.timestamps null: true
   end
 
   create_table :magazines, force: true do |t|
@@ -458,7 +494,7 @@ ActiveRecord::Schema.define do
     t.datetime :joined_on
     t.integer :club_id, :member_id
     t.boolean :favourite, default: false
-    t.string :type
+    t.integer :type
   end
 
   create_table :member_types, force: true do |t|
@@ -555,6 +591,7 @@ ActiveRecord::Schema.define do
     t.column :color, :string
     t.column :parrot_sti_class, :string
     t.column :killer_id, :integer
+    t.column :updated_count, :integer, default: 0
     if subsecond_precision_supported?
       t.column :created_at, :datetime, precision: 0
       t.column :created_on, :datetime, precision: 0
@@ -615,6 +652,12 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :pets_treasures, force: true do |t|
+    t.column :treasure_id, :integer
+    t.column :pet_id, :integer
+    t.column :rainbow_color, :string
+  end
+
   create_table :pirates, force: true do |t|
     t.column :catchphrase, :string
     t.column :parrot_id, :integer
@@ -629,8 +672,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.integer :author_id
-    t.string  :title, null: false
+    t.references :author
+    t.string :title, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
@@ -748,6 +791,10 @@ ActiveRecord::Schema.define do
     t.belongs_to :ship
   end
 
+  create_table :sinks, force: true do |t|
+    t.references :kitchen
+  end
+
   create_table :shop_accounts, force: true do |t|
     t.references :customer
     t.references :customer_carrier
@@ -765,22 +812,19 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
-  create_table :string_key_objects, id: false, primary_key: :id, force: true do |t|
-    t.string     :id
-    t.string     :name
-    t.integer    :lock_version, null: false, default: 0
-  end
-
-  create_table :students, force: true do |t|
+  create_table :string_key_objects, id: false, force: true do |t|
+    t.string :id, null: false
     t.string :name
-    t.boolean :active
-    t.integer :college_id
+    t.integer :lock_version, null: false, default: 0
+    t.index :id, unique: true
   end
 
-  create_table :subscribers, force: true, id: false do |t|
+  create_table :subscribers, id: false, force: true do |t|
     t.string :nick, null: false
     t.string :name
-    t.column :books_count, :integer, null: false, default: 0
+    t.integer :id
+    t.integer :books_count, null: false, default: 0
+    t.integer :update_count, null: false, default: 0
     t.index :nick, unique: true
   end
 
@@ -881,15 +925,14 @@ ActiveRecord::Schema.define do
     t.column :label, :string
   end
 
-  create_table 'warehouse-things', force: true do |t|
+  create_table "warehouse-things", force: true do |t|
     t.integer :value
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) { }
+    create_table(t, force: true) {}
   end
 
-  # NOTE - the following 4 tables are used by models that have :inverse_of options on the associations
   create_table :men, force: true do |t|
     t.string  :name
   end
@@ -913,23 +956,23 @@ ActiveRecord::Schema.define do
     t.integer :zine_id
   end
 
-  create_table :wheels, force: true do |t|
-    t.references :wheelable, polymorphic: true
-  end
-
   create_table :zines, force: true do |t|
     t.string :title
   end
 
-  create_table :countries, force: true, id: false, primary_key: 'country_id' do |t|
+  create_table :wheels, force: true do |t|
+    t.references :wheelable, polymorphic: true
+  end
+
+  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
     t.string :country_id
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: 'treaty_id' do |t|
+  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
     t.string :treaty_id
     t.string :name
   end
-  create_table :countries_treaties, force: true, id: false do |t|
+  create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false
   end
@@ -946,9 +989,9 @@ ActiveRecord::Schema.define do
     t.string :name
   end
   create_table :weirds, force: true do |t|
-    t.string 'a$b'
-    t.string 'なまえ'
-    t.string 'from'
+    t.string "a$b"
+    t.string "なまえ"
+    t.string "from"
   end
 
   create_table :nodes, force: true do |t|
@@ -986,24 +1029,21 @@ ActiveRecord::Schema.define do
   create_table :records, force: true do |t|
   end
 
-  except 'SQLite' do
-    # fk_test_has_fk should be before fk_test_has_pk
+  disable_referential_integrity do
+    create_table :fk_test_has_pk, primary_key: "pk_id", force: :cascade do |t|
+    end
+
     create_table :fk_test_has_fk, force: true do |t|
-      t.integer :fk_id, null: false
+      t.references :fk, null: false
+      t.foreign_key :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
     end
-
-    create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
-    end
-
-    add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
-    add_foreign_key :lessons_students, :students
   end
 
   create_table :overloaded_types, force: true do |t|
     t.float :overloaded_float, default: 500
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
-    t.string :string_with_default, default: 'the original default'
+    t.string :string_with_default, default: "the original default"
   end
 
   create_table :users, force: true do |t|
@@ -1013,6 +1053,10 @@ ActiveRecord::Schema.define do
 
   create_table :test_with_keyword_column_name, force: true do |t|
     t.string :desc
+  end
+
+  create_table :non_primary_keys, force: true, id: false do |t|
+    t.integer :id
   end
 end
 
@@ -1033,3 +1077,5 @@ Professor.connection.create_table :courses_professors, id: false, force: true do
   t.references :course
   t.references :professor
 end
+
+OtherDog.connection.create_table :dogs, force: true

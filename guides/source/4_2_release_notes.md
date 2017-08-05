@@ -405,7 +405,7 @@ Please refer to the [Changelog][railties] for detailed changes.
       url: http://localhost:3001
       namespace: my_app_development
 
-    # config/production.rb
+    # config/environments/production.rb
     Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     end
@@ -871,7 +871,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `module Foo; extend ActiveSupport::Concern; end` boilerplate.
     ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
-*   New [guide](constant_autoloading_and_reloading.html) about constant autoloading and reloading.
+*   New [guide](autoloading_and_reloading_constants.html) about constant autoloading and reloading.
 
 Credits
 -------

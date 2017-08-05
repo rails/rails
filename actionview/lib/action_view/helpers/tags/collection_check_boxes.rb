@@ -1,4 +1,6 @@
-require 'action_view/helpers/tags/collection_helpers'
+# frozen_string_literal: true
+
+require_relative "collection_helpers"
 
 module ActionView
   module Helpers
@@ -7,9 +9,10 @@ module ActionView
         include CollectionHelpers
 
         class CheckBoxBuilder < Builder # :nodoc:
-          def check_box(extra_html_options={})
+          def check_box(extra_html_options = {})
             html_options = extra_html_options.merge(@input_html_options)
             html_options[:multiple] = true
+            html_options[:skip_default_ids] = false
             @template_object.check_box(@object_name, @method_name, html_options, @value, nil)
           end
         end
@@ -20,13 +23,13 @@ module ActionView
 
         private
 
-        def render_component(builder)
-          builder.check_box + builder.label
-        end
+          def render_component(builder)
+            builder.check_box + builder.label
+          end
 
-        def hidden_field_name #:nodoc:
-          "#{super}[]"
-        end
+          def hidden_field_name
+            "#{super}[]"
+          end
       end
     end
   end

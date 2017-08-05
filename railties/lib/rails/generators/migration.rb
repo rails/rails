@@ -1,5 +1,5 @@
-require 'active_support/concern'
-require 'rails/generators/actions/create_migration'
+require "active_support/concern"
+require_relative "actions/create_migration"
 
 module Rails
   module Generators
@@ -35,11 +35,11 @@ module Rails
       end
 
       def set_migration_assigns!(destination)
-        destination = File.expand_path(destination, self.destination_root)
+        destination = File.expand_path(destination, destination_root)
 
         migration_dir = File.dirname(destination)
         @migration_number     = self.class.next_migration_number(migration_dir)
-        @migration_file_name  = File.basename(destination, '.rb')
+        @migration_file_name  = File.basename(destination, ".rb")
         @migration_class_name = @migration_file_name.camelize
       end
 
@@ -52,16 +52,16 @@ module Rails
       #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
       def migration_template(source, destination, config = {})
-        source  = File.expand_path(find_in_source_paths(source.to_s))
+        source = File.expand_path(find_in_source_paths(source.to_s))
 
         set_migration_assigns!(destination)
-        context = instance_eval('binding')
+        context = instance_eval("binding")
 
         dir, base = File.split(destination)
-        numbered_destination = File.join(dir, ["%migration_number%", base].join('_'))
+        numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
         create_migration numbered_destination, nil, config do
-          ERB.new(::File.binread(source), nil, '-', '@output_buffer').result(context)
+          ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
         end
       end
     end

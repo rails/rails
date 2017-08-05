@@ -1,7 +1,9 @@
-require 'yaml'
+# frozen_string_literal: true
+
+require "yaml"
 
 YAML.add_builtin_type("omap") do |type, val|
-  ActiveSupport::OrderedHash[val.map{ |v| v.to_a.first }]
+  ActiveSupport::OrderedHash[val.map { |v| v.to_a.first }]
 end
 
 module ActiveSupport
@@ -25,7 +27,7 @@ module ActiveSupport
     end
 
     def encode_with(coder)
-      coder.represent_seq '!omap', map { |k,v| { k => v } }
+      coder.represent_seq "!omap", map { |k, v| { k => v } }
     end
 
     def select(*args, &block)

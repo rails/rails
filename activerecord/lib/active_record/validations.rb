@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \RecordInvalid
   #
@@ -40,13 +42,13 @@ module ActiveRecord
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
-    def save(options={})
+    def save(options = {})
       perform_validations(options) ? super : false
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
-    # will raise a ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
-    def save!(options={})
+    # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
+    def save!(options = {})
       perform_validations(options) ? super : raise_validation_error
     end
 
@@ -68,7 +70,7 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
-  protected
+  private
 
     def default_validation_context
       new_record? ? :create : :update
@@ -78,14 +80,14 @@ module ActiveRecord
       raise(RecordInvalid.new(self))
     end
 
-    def perform_validations(options={}) # :nodoc:
+    def perform_validations(options = {})
       options[:validate] == false || valid?(options[:context])
     end
   end
 end
 
-require "active_record/validations/associated"
-require "active_record/validations/uniqueness"
-require "active_record/validations/presence"
-require "active_record/validations/absence"
-require "active_record/validations/length"
+require_relative "validations/associated"
+require_relative "validations/uniqueness"
+require_relative "validations/presence"
+require_relative "validations/absence"
+require_relative "validations/length"

@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/controller/controller_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/controller/controller_generator"
 
 class ControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -19,7 +19,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_check_class_collision
     Object.send :const_set, :ObjectController, Class.new
-    content = capture(:stderr){ run_generator ["object"] }
+    content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'ObjectController' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :ObjectController
@@ -65,7 +65,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
+    assert_file "config/routes.rb", /^  get 'account\/foo'/, /^  get 'account\/bar'/
   end
 
   def test_skip_routes

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
@@ -24,9 +26,9 @@ module ActiveRecord
 
       protected
 
-      def attributes_for_hash
-        [self.class, sql_type, type, limit, precision, scale]
-      end
+        def attributes_for_hash
+          [self.class, sql_type, type, limit, precision, scale]
+        end
     end
   end
 end

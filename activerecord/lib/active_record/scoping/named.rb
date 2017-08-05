@@ -1,6 +1,8 @@
-require 'active_support/core_ext/array'
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/kernel/singleton_class'
+# frozen_string_literal: true
+
+require "active_support/core_ext/array"
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/kernel/singleton_class"
 
 module ActiveRecord
   # = Active Record \Named \Scopes
@@ -29,20 +31,22 @@ module ActiveRecord
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = build_default_scope
+        def default_scoped(scope = relation) # :nodoc:
+          build_default_scope(scope) || scope
+        end
 
-          if scope
-            relation.spawn.merge!(scope)
+        def default_extensions # :nodoc:
+          if scope = current_scope || build_default_scope
+            scope.extensions
           else
-            relation
+            []
           end
         end
 
         # Adds a class method for retrieving and querying objects.
         # The method is intended to return an ActiveRecord::Relation
         # object, which is composable with other scopes.
-        # If it returns nil or false, an
+        # If it returns +nil+ or +false+, an
         # {all}[rdoc-ref:Scoping::Named::ClassMethods#all] scope is returned instead.
         #
         # A \scope represents a narrowing of a database query, such as
@@ -142,7 +146,7 @@ module ActiveRecord
         #   Article.featured.titles
         def scope(name, body, &block)
           unless body.respond_to?(:call)
-            raise ArgumentError, 'The scope body needs to be callable.'
+            raise ArgumentError, "The scope body needs to be callable."
           end
 
           if dangerous_class_method?(name)
@@ -156,29 +160,29 @@ module ActiveRecord
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { instance_exec(*args, &body) }
+              scope = all
+              scope = scope.instance_exec(*args, &body) || scope
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           else
             singleton_class.send(:define_method, name) do |*args|
-              scope = all.scoping { body.call(*args) }
+              scope = all
+              scope = scope.scoping { body.call(*args) || scope }
               scope = scope.extending(extension) if extension
-
-              scope || all
+              scope
             end
           end
         end
 
-      protected
+        private
 
-        def valid_scope_name?(name)
-          if respond_to?(name, true)
-            logger.warn "Creating scope :#{name}. " \
-                        "Overwriting existing method #{self.name}.#{name}."
+          def valid_scope_name?(name)
+            if respond_to?(name, true) && logger
+              logger.warn "Creating scope :#{name}. " \
+                "Overwriting existing method #{self.name}.#{name}."
+            end
           end
-        end
       end
     end
   end

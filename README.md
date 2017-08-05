@@ -1,4 +1,4 @@
-## Welcome to Rails
+# Welcome to Rails
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
@@ -35,11 +35,13 @@ or to generate the body of an email. In Rails, View generation is handled by Act
 You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
-In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
+In addition to that, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
 to generate and send emails; Active Job ([README](activejob/README.md)), a
 framework for declaring jobs and making them run on a variety of queueing
 backends; Action Cable ([README](actioncable/README.md)), a framework to
 integrate WebSockets with a Rails application;
+Active Storage ([README](activestorage/README.md)), a library to attach cloud
+and local files to Rails applications;
 and Active Support ([README](activesupport/README.rdoc)), a collection
 of utility classes and standard library extensions that are useful for Rails,
 and may also be used independently outside Rails.
@@ -71,12 +73,18 @@ and may also be used independently outside Rails.
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
+    * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
 
+[![Code Triage Badge](https://www.codetriage.com/rails/rails/badges/users.svg)](https://www.codetriage.com/rails/rails)
+
 We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+
+Trying to report a possible security vulnerability in Rails? Please
+check out our [security policy](http://rubyonrails.org/security/) for
+guidelines about how to proceed.
 
 Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 

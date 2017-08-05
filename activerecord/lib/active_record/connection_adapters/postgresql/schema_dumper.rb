@@ -1,26 +1,13 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ColumnDumper
-        def column_spec_for_primary_key(column)
-          spec = {}
-          if column.serial?
-            return unless column.bigint?
-            spec[:id] = ':bigserial'
-          elsif column.type == :uuid
-            spec[:id] = ':uuid'
-            spec[:default] = schema_default(column) || 'nil'
-          else
-            spec[:id] = schema_type(column).inspect
-            spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
-          end
-          spec
-        end
-
+      module ColumnDumper # :nodoc:
         # Adds +:array+ option to the default set
         def prepare_column_options(column)
           spec = super
-          spec[:array] = 'true' if column.array?
+          spec[:array] = "true" if column.array?
           spec
         end
 
@@ -31,19 +18,27 @@ module ActiveRecord
 
         private
 
-        def schema_type(column)
-          return super unless column.serial?
-
-          if column.bigint?
-            :bigserial
-          else
-            :serial
+          def default_primary_key?(column)
+            schema_type(column) == :bigserial
           end
-        end
 
-        def schema_expression(column)
-          super unless column.serial?
-        end
+          def explicit_primary_key_default?(column)
+            column.type == :uuid || (column.type == :integer && !column.serial?)
+          end
+
+          def schema_type(column)
+            return super unless column.serial?
+
+            if column.bigint?
+              :bigserial
+            else
+              :serial
+            end
+          end
+
+          def schema_expression(column)
+            super unless column.serial?
+          end
       end
     end
   end

@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
 
     eager_autoload do
       autoload :NumberConverter
+      autoload :RoundingHelper
       autoload :NumberToRoundedConverter
       autoload :NumberToDelimitedConverter
       autoload :NumberToHumanConverter
@@ -15,7 +18,7 @@ module ActiveSupport
 
     extend self
 
-    # Formats a +number+ into a US phone number (e.g., (555)
+    # Formats a +number+ into a phone number (US by default e.g., (555)
     # 123-9876). You can customize the format in the +options+ hash.
     #
     # ==== Options
@@ -27,19 +30,26 @@ module ActiveSupport
     #   end of the generated number.
     # * <tt>:country_code</tt> - Sets the country code for the phone
     #   number.
+    # * <tt>:pattern</tt> - Specifies how the number is divided into three
+    #   groups with the custom regexp to override the default format.
     # ==== Examples
     #
-    #   number_to_phone(5551234)                                     # => 555-1234
-    #   number_to_phone('5551234')                                   # => 555-1234
-    #   number_to_phone(1235551234)                                  # => 123-555-1234
-    #   number_to_phone(1235551234, area_code: true)                 # => (123) 555-1234
-    #   number_to_phone(1235551234, delimiter: ' ')                  # => 123 555 1234
-    #   number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
-    #   number_to_phone(1235551234, country_code: 1)                 # => +1-123-555-1234
-    #   number_to_phone('123a456')                                   # => 123a456
+    #   number_to_phone(5551234)                                     # => "555-1234"
+    #   number_to_phone('5551234')                                   # => "555-1234"
+    #   number_to_phone(1235551234)                                  # => "123-555-1234"
+    #   number_to_phone(1235551234, area_code: true)                 # => "(123) 555-1234"
+    #   number_to_phone(1235551234, delimiter: ' ')                  # => "123 555 1234"
+    #   number_to_phone(1235551234, area_code: true, extension: 555) # => "(123) 555-1234 x 555"
+    #   number_to_phone(1235551234, country_code: 1)                 # => "+1-123-555-1234"
+    #   number_to_phone('123a456')                                   # => "123a456"
     #
     #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
-    #   # => +1.123.555.1234 x 1343
+    #   # => "+1.123.555.1234 x 1343"
+    #
+    #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
+    #   # => "(755) 6123-4567"
+    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
+    #   # => "133-1234-5678"
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)
     end
@@ -71,25 +81,25 @@ module ActiveSupport
     #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
     #   currency, and <tt>%n</tt> for the number.
     # * <tt>:negative_format</tt> - Sets the format for negative
-    #   numbers (defaults to prepending an hyphen to the formatted
+    #   numbers (defaults to prepending a hyphen to the formatted
     #   number given by <tt>:format</tt>).  Accepts the same fields
     #   than <tt>:format</tt>, except <tt>%n</tt> is here the
     #   absolute value of the number.
     #
     # ==== Examples
     #
-    #   number_to_currency(1234567890.50)                # => $1,234,567,890.50
-    #   number_to_currency(1234567890.506)               # => $1,234,567,890.51
-    #   number_to_currency(1234567890.506, precision: 3) # => $1,234,567,890.506
-    #   number_to_currency(1234567890.506, locale: :fr)  # => 1 234 567 890,51 €
-    #   number_to_currency('123a456')                    # => $123a456
+    #   number_to_currency(1234567890.50)                # => "$1,234,567,890.50"
+    #   number_to_currency(1234567890.506)               # => "$1,234,567,890.51"
+    #   number_to_currency(1234567890.506, precision: 3) # => "$1,234,567,890.506"
+    #   number_to_currency(1234567890.506, locale: :fr)  # => "1 234 567 890,51 €"
+    #   number_to_currency('123a456')                    # => "$123a456"
     #
     #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')
-    #   # => ($1,234,567,890.50)
+    #   # => "($1,234,567,890.50)"
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '')
-    #   # => &pound;1234567890,50
+    #   # => "&pound;1234567890,50"
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
-    #   # => 1234567890,50 &pound;
+    #   # => "1234567890,50 &pound;"
     def number_to_currency(number, options = {})
       NumberToCurrencyConverter.convert(number, options)
     end
@@ -102,7 +112,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).
@@ -118,15 +128,15 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_percentage(100)                                  # => 100.000%
-    #   number_to_percentage('98')                                 # => 98.000%
-    #   number_to_percentage(100, precision: 0)                    # => 100%
-    #   number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
-    #   number_to_percentage(302.24398923423, precision: 5)        # => 302.24399%
-    #   number_to_percentage(1000, locale: :fr)                    # => 1000,000%
-    #   number_to_percentage(1000, precision: nil)                 # => 1000%
-    #   number_to_percentage('98a')                                # => 98a%
-    #   number_to_percentage(100, format: '%n  %')                 # => 100.000  %
+    #   number_to_percentage(100)                                  # => "100.000%"
+    #   number_to_percentage('98')                                 # => "98.000%"
+    #   number_to_percentage(100, precision: 0)                    # => "100%"
+    #   number_to_percentage(1000, delimiter: '.', separator: ',') # => "1.000,000%"
+    #   number_to_percentage(302.24398923423, precision: 5)        # => "302.24399%"
+    #   number_to_percentage(1000, locale: :fr)                    # => "1000,000%"
+    #   number_to_percentage(1000, precision: nil)                 # => "1000%"
+    #   number_to_percentage('98a')                                # => "98a%"
+    #   number_to_percentage(100, format: '%n  %')                 # => "100.000  %"
     def number_to_percentage(number, options = {})
       NumberToPercentageConverter.convert(number, options)
     end
@@ -149,19 +159,19 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_delimited(12345678)                    # => 12,345,678
-    #   number_to_delimited('123456')                    # => 123,456
-    #   number_to_delimited(12345678.05)                 # => 12,345,678.05
-    #   number_to_delimited(12345678, delimiter: '.')    # => 12.345.678
-    #   number_to_delimited(12345678, delimiter: ',')    # => 12,345,678
-    #   number_to_delimited(12345678.05, separator: ' ') # => 12,345,678 05
-    #   number_to_delimited(12345678.05, locale: :fr)    # => 12 345 678,05
-    #   number_to_delimited('112a')                      # => 112a
+    #   number_to_delimited(12345678)                    # => "12,345,678"
+    #   number_to_delimited('123456')                    # => "123,456"
+    #   number_to_delimited(12345678.05)                 # => "12,345,678.05"
+    #   number_to_delimited(12345678, delimiter: '.')    # => "12.345.678"
+    #   number_to_delimited(12345678, delimiter: ',')    # => "12,345,678"
+    #   number_to_delimited(12345678.05, separator: ' ') # => "12,345,678 05"
+    #   number_to_delimited(12345678.05, locale: :fr)    # => "12 345 678,05"
+    #   number_to_delimited('112a')                      # => "112a"
     #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
-    #                                                    # => 98 765 432,98
+    #                                                    # => "98 765 432,98"
     #   number_to_delimited("123456.78",
     #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
-    #                                                    # => 1,23,456.78
+    #                                                    # => "1,23,456.78"
     def number_to_delimited(number, options = {})
       NumberToDelimitedConverter.convert(number, options)
     end
@@ -176,7 +186,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3). Keeps the number's precision if nil.
+    #   (defaults to 3). Keeps the number's precision if +nil+.
     # * <tt>:significant</tt> - If +true+, precision will be the number
     #   of significant_digits. If +false+, the number of fractional
     #   digits (defaults to +false+).
@@ -190,22 +200,22 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_rounded(111.2345)                                  # => 111.235
-    #   number_to_rounded(111.2345, precision: 2)                    # => 111.23
-    #   number_to_rounded(13, precision: 5)                          # => 13.00000
-    #   number_to_rounded(389.32314, precision: 0)                   # => 389
-    #   number_to_rounded(111.2345, significant: true)               # => 111
-    #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
-    #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
-    #   number_to_rounded(13, precision: nil)                        # => 13
-    #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
+    #   number_to_rounded(111.2345)                                  # => "111.235"
+    #   number_to_rounded(111.2345, precision: 2)                    # => "111.23"
+    #   number_to_rounded(13, precision: 5)                          # => "13.00000"
+    #   number_to_rounded(389.32314, precision: 0)                   # => "389"
+    #   number_to_rounded(111.2345, significant: true)               # => "111"
+    #   number_to_rounded(111.2345, precision: 1, significant: true) # => "100"
+    #   number_to_rounded(13, precision: 5, significant: true)       # => "13.000"
+    #   number_to_rounded(13, precision: nil)                        # => "13"
+    #   number_to_rounded(111.234, locale: :fr)                      # => "111,234"
     #
     #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
-    #   # => 13
+    #   # => "13"
     #
-    #   number_to_rounded(389.32314, precision: 4, significant: true) # => 389.3
+    #   number_to_rounded(389.32314, precision: 4, significant: true) # => "389.3"
     #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
-    #   # => 1.111,23
+    #   # => "1.111,23"
     def number_to_rounded(number, options = {})
       NumberToRoundedConverter.convert(number, options)
     end
@@ -237,17 +247,17 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #   number_to_human_size(123)                                    # => 123 Bytes
-    #   number_to_human_size(1234)                                   # => 1.21 KB
-    #   number_to_human_size(12345)                                  # => 12.1 KB
-    #   number_to_human_size(1234567)                                # => 1.18 MB
-    #   number_to_human_size(1234567890)                             # => 1.15 GB
-    #   number_to_human_size(1234567890123)                          # => 1.12 TB
-    #   number_to_human_size(1234567890123456)                       # => 1.1 PB
-    #   number_to_human_size(1234567890123456789)                    # => 1.07 EB
-    #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MB
-    #   number_to_human_size(483989, precision: 2)                   # => 470 KB
-    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
+    #   number_to_human_size(123)                                    # => "123 Bytes"
+    #   number_to_human_size(1234)                                   # => "1.21 KB"
+    #   number_to_human_size(12345)                                  # => "12.1 KB"
+    #   number_to_human_size(1234567)                                # => "1.18 MB"
+    #   number_to_human_size(1234567890)                             # => "1.15 GB"
+    #   number_to_human_size(1234567890123)                          # => "1.12 TB"
+    #   number_to_human_size(1234567890123456)                       # => "1.1 PB"
+    #   number_to_human_size(1234567890123456789)                    # => "1.07 EB"
+    #   number_to_human_size(1234567, precision: 2)                  # => "1.2 MB"
+    #   number_to_human_size(483989, precision: 2)                   # => "470 KB"
+    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => "1,2 MB"
     #   number_to_human_size(1234567890123, precision: 5)            # => "1.1228 TB"
     #   number_to_human_size(524288000, precision: 5)                # => "500 MB"
     def number_to_human_size(number, options = {})

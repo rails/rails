@@ -3,6 +3,7 @@
 
 .Gemfile
 .ruby-version
+.byebug_history
 debug.log
 pkg
 /.bundle
@@ -19,3 +20,5 @@ pkg
 /railties/doc
 /railties/tmp
 /guides/output
+node_modules/
+/actionview/log

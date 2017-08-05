@@ -1,4 +1,8 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
+
+class ReviewsController < ResourcesController; end
 
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
   class Reviewable

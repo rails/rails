@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     # Provides access to the request's HTTP headers from the environment.
     #
     #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
-    #   headers = ActionDispatch::Http::Headers.new(env)
+    #   headers = ActionDispatch::Http::Headers.from_hash(env)
     #   headers["Content-Type"] # => "text/plain"
-    #   headers["User-Agent"] # => "curl/7/43/0"
+    #   headers["User-Agent"] # => "curl/7.43.0"
     #
     # Also note that when headers are mapped to CGI-like variables by the Rack
     # server, both dashes and underscores are converted to underscores. This
@@ -86,7 +88,7 @@ module ActionDispatch
         @req.fetch_header(env_name(key)) do
           return default unless default == DEFAULT
           return yield if block_given?
-          raise NameError, key
+          raise KeyError, key
         end
       end
 
@@ -115,16 +117,16 @@ module ActionDispatch
 
       private
 
-      # Converts a HTTP header name to an environment variable name if it is
-      # not contained within the headers hash.
-      def env_name(key)
-        key = key.to_s
-        if key =~ HTTP_HEADER
-          key = key.upcase.tr('-', '_')
-          key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
+        # Converts an HTTP header name to an environment variable name if it is
+        # not contained within the headers hash.
+        def env_name(key)
+          key = key.to_s
+          if key =~ HTTP_HEADER
+            key = key.upcase.tr("-", "_")
+            key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
+          end
+          key
         end
-        key
-      end
     end
   end
 end

@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'file_update_checker_shared_tests'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "file_update_checker_shared_tests"
 
 class FileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests

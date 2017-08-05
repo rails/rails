@@ -13,28 +13,33 @@ class ActionCable.Subscriptions
   create: (channelName, mixin) ->
     channel = channelName
     params = if typeof channel is "object" then channel else {channel}
-    new ActionCable.Subscription this, params, mixin
+    subscription = new ActionCable.Subscription @consumer, params, mixin
+    @add(subscription)
 
   # Private
 
   add: (subscription) ->
     @subscriptions.push(subscription)
+    @consumer.ensureActiveConnection()
     @notify(subscription, "initialized")
     @sendCommand(subscription, "subscribe")
+    subscription
 
   remove: (subscription) ->
     @forget(subscription)
-
     unless @findAll(subscription.identifier).length
       @sendCommand(subscription, "unsubscribe")
+    subscription
 
   reject: (identifier) ->
     for subscription in @findAll(identifier)
       @forget(subscription)
       @notify(subscription, "rejected")
+      subscription
 
   forget: (subscription) ->
     @subscriptions = (s for s in @subscriptions when s isnt subscription)
+    subscription
 
   findAll: (identifier) ->
     s for s in @subscriptions when s.identifier is identifier
@@ -58,7 +63,4 @@ class ActionCable.Subscriptions
 
   sendCommand: (subscription, command) ->
     {identifier} = subscription
-    if identifier is ActionCable.INTERNAL.identifiers.ping
-      @consumer.connection.isOpen()
-    else
-      @consumer.send({command, identifier})
+    @consumer.send({command, identifier})

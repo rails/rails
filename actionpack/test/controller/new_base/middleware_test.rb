@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module MiddlewareTest
   class MyMiddleware
@@ -21,7 +23,7 @@ module MiddlewareTest
 
     def call(env)
       result = @app.call(env)
-      result[1]["Middleware-Order"] << "!"
+      result[1]["Middleware-Order"] += "!"
       result
     end
   end
@@ -56,8 +58,8 @@ module MiddlewareTest
   end
 
   class ActionsController < ActionController::Metal
-    use MyMiddleware, :only => :show
-    middleware.insert_before MyMiddleware, ExclaimerMiddleware, :except => :index
+    use MyMiddleware, only: :show
+    middleware.insert_before MyMiddleware, ExclaimerMiddleware, except: :index
 
     def index
       self.response_body = "index"

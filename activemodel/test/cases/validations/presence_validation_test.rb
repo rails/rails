@@ -1,11 +1,12 @@
-require 'cases/helper'
+# frozen_string_literal: true
 
-require 'models/topic'
-require 'models/person'
-require 'models/custom_reader'
+require "cases/helper"
+
+require "models/topic"
+require "models/person"
+require "models/custom_reader"
 
 class PresenceValidationTest < ActiveModel::TestCase
-
   teardown do
     Topic.clear_validators!
     Person.clear_validators!
@@ -21,7 +22,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     assert_equal ["can't be blank"], t.errors[:content]
 
     t.title = "something"
-    t.content  = "   "
+    t.content = "   "
 
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:content]

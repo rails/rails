@@ -1,5 +1,5 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/task/task_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/task/task_generator"
 
 class TaskGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -15,10 +15,10 @@ class TaskGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_task_on_revoke
-    task_path = 'lib/tasks/feeds.rake'
+    task_path = "lib/tasks/feeds.rake"
     run_generator
     assert_file task_path
-    run_generator ['feeds'], behavior: :revoke
+    run_generator ["feeds"], behavior: :revoke
     assert_no_file task_path
   end
 end

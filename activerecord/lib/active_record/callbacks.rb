@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Callbacks
   #
@@ -53,9 +55,9 @@ module ActiveRecord
   #   end
   #
   #   class Firm < ActiveRecord::Base
-  #     # Destroys the associated clients and people when the firm is destroyed
-  #     before_destroy { |record| Person.destroy_all "firm_id = #{record.id}"   }
-  #     before_destroy { |record| Client.destroy_all "client_of = #{record.id}" }
+  #     # Disables access to the system, for associated clients and people when the firm is destroyed
+  #     before_destroy { |record| Person.where(firm_id: record.id).update_all(access: 'disabled')   }
+  #     before_destroy { |record| Client.where(client_of: record.id).update_all(access: 'disabled') }
   #   end
   #
   # == Inheritable callback queues
@@ -179,7 +181,7 @@ module ActiveRecord
   #
   # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will return +false+.
-  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise a ActiveRecord::RecordInvalid exception.
+  # If {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] is called it will raise an ActiveRecord::RecordInvalid exception.
   # Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
@@ -225,6 +227,55 @@ module ActiveRecord
   #
   # This way, the +before_destroy+ gets executed before the <tt>dependent: :destroy</tt> is called, and the data is still available.
   #
+  # Also, there are cases when you want several callbacks of the same type to
+  # be executed in order.
+  #
+  # For example:
+  #
+  #   class Topic
+  #     has_many :children
+  #
+  #     after_save :log_children
+  #     after_save :do_something_else
+  #
+  #     private
+  #
+  #     def log_chidren
+  #       # Child processing
+  #     end
+  #
+  #     def do_something_else
+  #       # Something else
+  #     end
+  #   end
+  #
+  # In this case the +log_children+ gets executed before +do_something_else+.
+  # The same applies to all non-transactional callbacks.
+  #
+  # In case there are multiple transactional callbacks as seen below, the order
+  # is reversed.
+  #
+  # For example:
+  #
+  #   class Topic
+  #     has_many :children
+  #
+  #     after_commit :log_children
+  #     after_commit :do_something_else
+  #
+  #     private
+  #
+  #     def log_chidren
+  #       # Child processing
+  #     end
+  #
+  #     def do_something_else
+  #       # Something else
+  #     end
+  #   end
+  #
+  # In this case the +do_something_else+ gets executed before +log_children+.
+  #
   # == \Transactions
   #
   # The entire callback chain of a {#save}[rdoc-ref:Persistence#save], {#save!}[rdoc-ref:Persistence#save!],
@@ -265,17 +316,6 @@ module ActiveRecord
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
-    module ClassMethods # :nodoc:
-      include ActiveModel::Callbacks
-    end
-
-    included do
-      include ActiveModel::Validations::Callbacks
-
-      define_model_callbacks :initialize, :find, :touch, :only => :after
-      define_model_callbacks :save, :create, :update, :destroy
-    end
-
     def destroy #:nodoc:
       @_destroy_callback_already_called ||= false
       return if @_destroy_callback_already_called
@@ -294,15 +334,15 @@ module ActiveRecord
 
   private
 
-    def create_or_update(*) #:nodoc:
+    def create_or_update(*)
       _run_save_callbacks { super }
     end
 
-    def _create_record #:nodoc:
+    def _create_record
       _run_create_callbacks { super }
     end
 
-    def _update_record(*) #:nodoc:
+    def _update_record(*)
       _run_update_callbacks { super }
     end
   end

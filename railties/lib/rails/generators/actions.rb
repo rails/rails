@@ -1,5 +1,3 @@
-require 'open-uri'
-
 module Rails
   module Generators
     module Actions
@@ -70,7 +68,7 @@ module Rails
       #   add_source "http://gems.github.com/" do
       #     gem "rspec-rails"
       #   end
-      def add_source(source, options={}, &block)
+      def add_source(source, options = {}, &block)
         log :source, source
 
         in_root do
@@ -98,14 +96,14 @@ module Rails
       #   environment(nil, env: "development") do
       #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
-      def environment(data=nil, options={})
+      def environment(data = nil, options = {})
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
         data = yield if !data && block_given?
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n    #{data}", after: sentinel, verbose: false
+            inject_into_file "config/application.rb", "\n    #{data}", after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
               inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
@@ -120,7 +118,7 @@ module Rails
       #   git :init
       #   git add: "this.file that.rb"
       #   git add: "onefile.rb", rm: "badfile.cxx"
-      def git(commands={})
+      def git(commands = {})
         if commands.is_a?(Symbol)
           run "git #{commands}"
         else
@@ -139,7 +137,7 @@ module Rails
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      def vendor(filename, data=nil, &block)
+      def vendor(filename, data = nil, &block)
         log :vendor, filename
         create_file("vendor/#{filename}", data, verbose: false, &block)
       end
@@ -152,7 +150,7 @@ module Rails
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      def lib(filename, data=nil, &block)
+      def lib(filename, data = nil, &block)
         log :lib, filename
         create_file("lib/#{filename}", data, verbose: false, &block)
       end
@@ -172,7 +170,7 @@ module Rails
       #   end
       #
       #   rakefile('seed.rake', 'puts "Planting seeds"')
-      def rakefile(filename, data=nil, &block)
+      def rakefile(filename, data = nil, &block)
         log :rakefile, filename
         create_file("lib/tasks/#{filename}", data, verbose: false, &block)
       end
@@ -190,7 +188,7 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      def initializer(filename, data=nil, &block)
+      def initializer(filename, data = nil, &block)
         log :initializer, filename
         create_file("config/initializers/#{filename}", data, verbose: false, &block)
       end
@@ -207,22 +205,29 @@ module Rails
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
 
-      # Runs the supplied rake task
+      # Runs the supplied rake task (invoked with 'rake ...')
       #
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
-      def rake(command, options={})
-        log :rake, command
-        env  = options[:env] || ENV["RAILS_ENV"] || 'development'
-        sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", verbose: false) }
+      def rake(command, options = {})
+        execute_command :rake, command, options
+      end
+
+      # Runs the supplied rake task (invoked with 'rails ...')
+      #
+      #   rails_command("db:migrate")
+      #   rails_command("db:migrate", env: "production")
+      #   rails_command("gems:install", sudo: true)
+      def rails_command(command, options = {})
+        execute_command :rails, command, options
       end
 
       # Just run the capify command in root
       #
       #   capify!
       def capify!
+        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
         log :capify, ""
         in_root { run("#{extify(:capify)} .", verbose: false) }
       end
@@ -235,7 +240,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: false }
+          inject_into_file "config/routes.rb", "  #{routing_code}\n", after: sentinel, verbose: false, force: false
         end
       end
 
@@ -256,23 +261,32 @@ module Rails
         @after_bundle_callbacks << block
       end
 
-      protected
+      private
 
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        def log(*args)
+        def log(*args) # :doc:
           if args.size == 1
             say args.first.to_s unless options.quiet?
           else
-            args << (self.behavior == :invoke ? :green : :red)
+            args << (behavior == :invoke ? :green : :red)
             say_status(*args)
           end
         end
 
+        # Runs the supplied command using either "rake ..." or "rails ..."
+        # based on the executor parameter provided.
+        def execute_command(executor, command, options = {}) # :doc:
+          log executor, command
+          env  = options[:env] || ENV["RAILS_ENV"] || "development"
+          sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
+          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
+        end
+
         # Add an extension to the given name based on the platform.
-        def extify(name)
-          if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+        def extify(name) # :doc:
+          if Gem.win_platform?
             "#{name}.bat"
           else
             name
@@ -281,7 +295,7 @@ module Rails
 
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
-        def quote(value)
+        def quote(value) # :doc:
           return value.inspect unless value.is_a? String
 
           if value.include?("'")

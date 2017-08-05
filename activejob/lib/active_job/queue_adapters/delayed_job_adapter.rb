@@ -1,4 +1,6 @@
-require 'delayed_job'
+# frozen_string_literal: true
+
+require "delayed_job"
 
 module ActiveJob
   module QueueAdapters

@@ -1,4 +1,6 @@
-require 'action_controller/metal/exceptions'
+# frozen_string_literal: true
+
+require_relative "exceptions"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -8,10 +10,10 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = 'application/octet-stream'.freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = 'attachment'.freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
 
-    protected
+    private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
       # via the Rack::Sendfile middleware. The header to use is set via
       # +config.action_dispatch.x_sendfile_header+.
@@ -25,14 +27,13 @@ module ActionController #:nodoc:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
       # * <tt>:type</tt> - specifies an HTTP content type.
-      #   You can specify either a string or a symbol for a registered type register with
-      #   <tt>Mime::Type.register</tt>, for example :json
-      #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
-      #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
+      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
+      #   If omitted, the type will be inferred from the file extension specified in <tt>:filename</tt>.
+      #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
-      # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser guess the filename from
+      # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser to guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
       #   (setting <tt>:filename</tt> overrides this option).
       #
@@ -65,7 +66,7 @@ module ActionController #:nodoc:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
-        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
+        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
 
         options[:filename] ||= File.basename(path) unless options[:url_based_filename]
         send_file_headers! options
@@ -79,14 +80,14 @@ module ActionController #:nodoc:
       # <tt>render plain: data</tt>, but also allows you to specify whether
       # the browser should display the response as a file attachment (i.e. in a
       # download dialog) or as inline data. You may also set the content type,
-      # the apparent file name, and other things.
+      # the file name, and other things.
       #
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'. You can specify
-      #   either a string or a symbol for a registered type register with <tt>Mime::Type.register</tt>, for example :json
-      #   If omitted, type will be guessed from the file extension specified in <tt>:filename</tt>.
-      #   If no content type is registered for the extension, default type 'application/octet-stream' will be used.
+      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'.
+      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
+      #   If omitted, type will be inferred from the file extension specified in <tt>:filename</tt>.
+      #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
       #   Valid values are 'inline' and 'attachment' (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
@@ -109,11 +110,13 @@ module ActionController #:nodoc:
         render options.slice(:status, :content_type).merge(body: data)
       end
 
-    private
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
         content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        self.content_type = content_type
+        response.sending_file = true
+
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)
@@ -123,7 +126,7 @@ module ActionController #:nodoc:
         else
           if !type_provided && options[:filename]
             # If type wasn't provided, try guessing from file extension.
-            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete('.')) || content_type
+            content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete(".")) || content_type
           end
           self.content_type = content_type
         end
@@ -132,12 +135,10 @@ module ActionController #:nodoc:
         unless disposition.nil?
           disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]
-          headers['Content-Disposition'] = disposition
+          headers["Content-Disposition"] = disposition
         end
 
-        headers['Content-Transfer-Encoding'] = 'binary'
-
-        response.sending_file = true
+        headers["Content-Transfer-Encoding"] = "binary"
 
         # Fix a problem with IE 6.0 on opening downloaded files:
         # If Cache-Control: no-cache is set (which Rails does by default),

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     # == Active \Model \Validation \Callbacks
@@ -23,14 +25,12 @@ module ActiveModel
       included do
         include ActiveSupport::Callbacks
         define_callbacks :validation,
-                         terminator: deprecated_false_terminator,
                          skip_after_callbacks_if_terminated: true,
                          scope: [:kind, :name]
       end
 
       module ClassMethods
-        # Defines a callback that will get called right before validation
-        # happens.
+        # Defines a callback that will get called right before validation.
         #
         #   class Person
         #     include ActiveModel::Validations
@@ -65,8 +65,7 @@ module ActiveModel
           set_callback(:validation, :before, *args, &block)
         end
 
-        # Defines a callback that will get called right after validation
-        # happens.
+        # Defines a callback that will get called right after validation.
         #
         #   class Person
         #     include ActiveModel::Validations
@@ -106,10 +105,10 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
       # Overwrite run validations to include callbacks.
-      def run_validations! #:nodoc:
+      def run_validations!
         _run_validation_callbacks { super }
       end
     end

@@ -96,7 +96,7 @@ This is the generator just created:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("../templates", __FILE__)
+  source_root File.expand_path("templates", __dir__)
 end
 ```
 
@@ -122,7 +122,7 @@ And now let's change the generator to copy this template when invoked:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("../templates", __FILE__)
+  source_root File.expand_path("templates", __dir__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"
@@ -208,7 +208,15 @@ $ bin/rails generate scaffold User name:string
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
-Our first customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds. We can achieve that by changing our configuration to the following:
+If we want to avoid generating the default `app/assets/stylesheets/scaffolds.scss` file when scaffolding a new resource we can disable `scaffold_stylesheet`:
+
+```ruby
+  config.generators do |g|
+    g.scaffold_stylesheet false
+  end
+```
+
+The next customization on the workflow will be to stop generating stylesheet, JavaScript and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
 ```ruby
 config.generators do |g|
@@ -418,7 +426,7 @@ Fallbacks allow your generators to have a single responsibility, increasing code
 Application Templates
 ---------------------
 
-Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template". This is a brief overview of the Templates API. For detailed documentation see the [Rails Application Templates guide](rails_application_templates.html).
+Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred to as a "template". This is a brief overview of the Templates API. For detailed documentation see the [Rails Application Templates guide](rails_application_templates.html).
 
 ```ruby
 gem "rspec-rails", group: "test"
@@ -450,6 +458,26 @@ $ rails new thud -m https://gist.github.com/radar/722911/raw/
 ```
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
+
+Adding Command Line Arguments
+-----------------------------
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](http://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+
+```
+class_option :scope, type: :string, default: 'read_products'
+```
+
+Now our generator can be invoked as follows:
+
+```bash
+rails generate initializer --scope write_products
+```
+
+The command line arguments are accessed through the `options` method inside the generator class. e.g:
+
+```ruby
+@scope = options['scope']
+```
 
 Generator methods
 -----------------
@@ -660,14 +688,6 @@ Available options are:
 
 * `:env` - Specifies the environment in which to run this rake task.
 * `:sudo` - Whether or not to run this task using `sudo`. Defaults to `false`.
-
-### `capify!`
-
-Runs the `capify` command from Capistrano at the root of the application which generates Capistrano configuration.
-
-```ruby
-capify!
-```
 
 ### `route`
 

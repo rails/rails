@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Hash
   # Returns a new hash with all keys converted using the +block+ operation.
   #
@@ -11,7 +13,7 @@ class Hash
   #  hash.transform_keys.with_index { |k, i| [k, i].join } # => {"name0"=>"Rob", "age1"=>"28"}
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
-    result = self.class.new
+    result = {}
     each_key do |key|
       result[yield(key)] = self[key]
     end
@@ -52,14 +54,14 @@ class Hash
   #   hash.symbolize_keys
   #   # => {:name=>"Rob", :age=>"28"}
   def symbolize_keys
-    transform_keys{ |key| key.to_sym rescue key }
+    transform_keys { |key| key.to_sym rescue key }
   end
   alias_method :to_options,  :symbolize_keys
 
   # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
   def symbolize_keys!
-    transform_keys!{ |key| key.to_sym rescue key }
+    transform_keys! { |key| key.to_sym rescue key }
   end
   alias_method :to_options!, :symbolize_keys!
 
@@ -128,14 +130,14 @@ class Hash
   #   hash.deep_symbolize_keys
   #   # => {:person=>{:name=>"Rob", :age=>"28"}}
   def deep_symbolize_keys
-    deep_transform_keys{ |key| key.to_sym rescue key }
+    deep_transform_keys { |key| key.to_sym rescue key }
   end
 
   # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_symbolize_keys!
-    deep_transform_keys!{ |key| key.to_sym rescue key }
+    deep_transform_keys! { |key| key.to_sym rescue key }
   end
 
   private
@@ -147,7 +149,7 @@ class Hash
           result[yield(key)] = _deep_transform_keys_in_object(value, &block)
         end
       when Array
-        object.map {|e| _deep_transform_keys_in_object(e, &block) }
+        object.map { |e| _deep_transform_keys_in_object(e, &block) }
       else
         object
       end
@@ -162,7 +164,7 @@ class Hash
         end
         object
       when Array
-        object.map! {|e| _deep_transform_keys_in_object!(e, &block)}
+        object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
       else
         object
       end

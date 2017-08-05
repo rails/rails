@@ -1,35 +1,26 @@
-*  Added ActionCable::SubscriptionAdapter::EventedRedis.em_redis_connector/redis_connector and
-   ActionCable::SubscriptionAdapter::Redis.redis_connector factory methods for redis connections, 
-   so you can overwrite with your own initializers. This is used when you want to use different-than-standard Redis adapters,
-   like for Makara distributed Redis.
+*   Hash long stream identifiers when using Postgres adapter.
 
-   *DHH*
+    PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
+    Provided fix minifies identifiers longer than 63 chars by hashing them with SHA1.
 
-## Rails 5.0.0.beta2 (February 01, 2016) ##
+    Fixes #28751.
 
-*   Support PostgreSQL pubsub adapter.
+    *Vladimir Dementyev*
 
-    *Jon Moss*
+*   ActionCable's `redis` adapter allows for other common redis-rb options (`host`, `port`, `db`, `password`) in cable.yml.
 
-*   Remove EventMachine dependency.
+    Previously, it accepts only a [redis:// url](https://www.iana.org/assignments/uri-schemes/prov/redis) as an option.
+    While we can add all of these options to the `url` itself, it is not explicitly documented. This alternative setup
+    is shown as the first example in the [Redis rubygem](https://github.com/redis/redis-rb#getting-started), which
+    makes this set of options as sensible as using just the `url`.
 
-    *Matthew Draper*
+    *Marc Rendl Ignacio*
 
-*   Remove Celluloid dependency.
+*   ActionCable socket errors are now logged to the console
 
-    *Mike Perham*
+    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
 
-*   Create notion of an `ActionCable::SubscriptionAdapter`.
-    Separate out Redis functionality into
-    `ActionCable::SubscriptionAdapter::Redis`, and add a
-    PostgreSQL adapter as well. Configuration file for
-    ActionCable was changed from`config/redis/cable.yml` to
-    `config/cable.yml`.
+    *Edward Poot*
 
-   *Jon Moss*
 
-## Rails 5.0.0.beta1 (December 18, 2015) ##
-
-*   Added to Rails!
-
-    *DHH*
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.

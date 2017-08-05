@@ -1,6 +1,8 @@
-require 'action_view'
-require "action_controller/log_subscriber"
-require "action_controller/metal/params_wrapper"
+# frozen_string_literal: true
+
+require "action_view"
+require_relative "log_subscriber"
+require_relative "metal/params_wrapper"
 
 module ActionController
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
@@ -8,7 +10,7 @@ module ActionController
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
   #
   # By default, only the ApplicationController in a \Rails application inherits from <tt>ActionController::Base</tt>. All other
-  # controllers in turn inherit from ApplicationController. This gives you one class to configure things such as
+  # controllers inherit from ApplicationController. This gives you one class to configure things such as
   # request forgery protection and filtering of sensitive request parameters.
   #
   # A sample controller could look like this:
@@ -30,9 +32,9 @@ module ActionController
   #
   # Unlike index, the create action will not render a template. After performing its main purpose (creating a
   # new post), it initiates a redirect instead. This redirect works by returning an external
-  # "302 Moved" HTTP response that takes the user to the index action.
+  # <tt>302 Moved</tt> HTTP response that takes the user to the index action.
   #
-  # These two methods represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
+  # These two methods represent the two basic action archetypes used in Action Controllers: Get-and-show and do-and-redirect.
   # Most actions are variations on these themes.
   #
   # == Requests
@@ -51,16 +53,16 @@ module ActionController
   # == Parameters
   #
   # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
-  # available through the params method which returns a hash. For example, an action that was performed through
-  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
+  # available through the <tt>params</tt> method which returns a hash. For example, an action that was performed through
+  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in <tt>params</tt>.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
   #   <input type="text" name="post[name]" value="david">
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
-  # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named <tt>post[address][street]</tt>, the params would have included
+  # A request coming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
+  # If the address input had been named <tt>post[address][street]</tt>, the <tt>params</tt> would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
@@ -74,7 +76,7 @@ module ActionController
   #
   #   session[:person] = Person.authenticate(user_name, password)
   #
-  # And retrieved again through the same hash:
+  # You can retrieve it again through the same hash:
   #
   #   Hello #{session[:person]}
   #
@@ -213,11 +215,12 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       EtagWithTemplateDigest,
+      EtagWithFlash,
       Caching,
       MimeResponds,
       ImplicitRender,
       StrongParameters,
-
+      ParameterEncoding,
       Cookies,
       Flash,
       FormBuilder,
@@ -229,7 +232,7 @@ module ActionController
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
 
-      # Before callbacks should also be executed the earliest as possible, so
+      # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
       AbstractController::Callbacks,
 
@@ -251,14 +254,22 @@ module ActionController
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
-      :@_params, :@_response, :@_request,
-      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
+    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + %i(
+      @_params @_response @_request @_config @_url_options @_action_has_layout @_view_context_class
+      @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
+    )
 
     def _protected_ivars # :nodoc:
       PROTECTED_IVARS
     end
 
+    def self.make_response!(request)
+      ActionDispatch::Response.create.tap do |res|
+        res.request = request
+      end
+    end
+
+    ActiveSupport.run_load_hooks(:action_controller_base, self)
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

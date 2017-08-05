@@ -1,8 +1,10 @@
-require 'abstract_unit'
-require 'active_support/inflector'
+# frozen_string_literal: true
 
-require 'inflector_test_cases'
-require 'constantize_test_cases'
+require "abstract_unit"
+require "active_support/inflector"
+
+require "inflector_test_cases"
+require "constantize_test_cases"
 
 class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -29,6 +31,32 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_pluralize_empty_string
     assert_equal "", ActiveSupport::Inflector.pluralize("")
+  end
+
+  test "uncountability of ascii word" do
+    word = "HTTP"
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable word
+    end
+
+    assert_equal word, ActiveSupport::Inflector.pluralize(word)
+    assert_equal word, ActiveSupport::Inflector.singularize(word)
+    assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
+
+    ActiveSupport::Inflector.inflections.uncountables.pop
+  end
+
+  test "uncountability of non-ascii word" do
+    word = "猫"
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable word
+    end
+
+    assert_equal word, ActiveSupport::Inflector.pluralize(word)
+    assert_equal word, ActiveSupport::Inflector.singularize(word)
+    assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
+
+    ActiveSupport::Inflector.inflections.uncountables.pop
   end
 
   ActiveSupport::Inflector.inflections.uncountable.each do |word|
@@ -80,7 +108,6 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-
   def test_overwrite_previous_inflectors
     assert_equal("series", ActiveSupport::Inflector.singularize("series"))
     ActiveSupport::Inflector.inflections.singular "series", "serie"
@@ -94,6 +121,13 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
+    define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
+        "mixture to TitleCase with keep_id_suffix failed for #{before}")
+    end
+  end
+
   def test_camelize
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
@@ -101,11 +135,11 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   def test_camelize_with_lower_downcases_the_first_letter
-    assert_equal('capital', ActiveSupport::Inflector.camelize('Capital', false))
+    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
   end
 
   def test_camelize_with_underscores
-    assert_equal("CamelCase", ActiveSupport::Inflector.camelize('Camel_Case'))
+    assert_equal("CamelCase", ActiveSupport::Inflector.camelize("Camel_Case"))
   end
 
   def test_acronyms
@@ -246,55 +280,27 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-# FIXME: get following tests to pass on jruby, currently skipped
-#
-# Currently this fails because ActiveSupport::Multibyte::Unicode#tidy_bytes
-# required a specific Encoding::Converter(UTF-8 to UTF8-MAC) which unavailable on JRuby
-# causing our tests to error out.
-# related bug http://jira.codehaus.org/browse/JRUBY-7194
   def test_parameterize
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
     end
   end
 
   def test_parameterize_and_normalize
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterizedAndNormalized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
     end
   end
 
   def test_parameterize_with_custom_separator
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, separator: '_'))
-    end
-  end
-
-  def test_parameterize_with_custom_separator_deprecated
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
-    StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
-      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '_'` instead./i) do
-        assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, '_'))
-      end
+      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, separator: "_"))
     end
   end
 
   def test_parameterize_with_multi_character_separator
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
     StringToParameterized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string.gsub('-', '__sep__'), ActiveSupport::Inflector.parameterize(some_string, separator: '__sep__'))
-    end
-  end
-
-  def test_parameterize_with_multi_character_separator_deprecated
-    jruby_skip "UTF-8 to UTF8-MAC Converter is unavailable"
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_deprecated(/Passing the separator argument as a positional parameter is deprecated and will soon be removed. Use `separator: '__sep__'` instead./i) do
-        assert_equal(parameterized_string.gsub('-', '__sep__'), ActiveSupport::Inflector.parameterize(some_string, '__sep__'))
-      end
+      assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
     end
   end
 
@@ -307,12 +313,12 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_classify_with_symbol
     assert_nothing_raised do
-      assert_equal 'FooBar', ActiveSupport::Inflector.classify(:foo_bars)
+      assert_equal "FooBar", ActiveSupport::Inflector.classify(:foo_bars)
     end
   end
 
   def test_classify_with_leading_schema_name
-    assert_equal 'FooBar', ActiveSupport::Inflector.classify('schema.foo_bar')
+    assert_equal "FooBar", ActiveSupport::Inflector.classify("schema.foo_bar")
   end
 
   def test_humanize
@@ -324,6 +330,12 @@ class InflectorTest < ActiveSupport::TestCase
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, ActiveSupport::Inflector.humanize(underscore, capitalize: false))
+    end
+  end
+
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
     end
   end
 
@@ -403,31 +415,38 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_inflector_locality
     ActiveSupport::Inflector.inflections(:es) do |inflect|
-      inflect.plural(/$/, 's')
-      inflect.plural(/z$/i, 'ces')
+      inflect.plural(/$/, "s")
+      inflect.plural(/z$/i, "ces")
 
-      inflect.singular(/s$/, '')
-      inflect.singular(/es$/, '')
+      inflect.singular(/s$/, "")
+      inflect.singular(/es$/, "")
 
-      inflect.irregular('el', 'los')
+      inflect.irregular("el", "los")
+
+      inflect.uncountable("agua")
     end
 
-    assert_equal('hijos', 'hijo'.pluralize(:es))
-    assert_equal('luces', 'luz'.pluralize(:es))
-    assert_equal('luzs', 'luz'.pluralize)
+    assert_equal("hijos", "hijo".pluralize(:es))
+    assert_equal("luces", "luz".pluralize(:es))
+    assert_equal("luzs", "luz".pluralize)
 
-    assert_equal('sociedad', 'sociedades'.singularize(:es))
-    assert_equal('sociedade', 'sociedades'.singularize)
+    assert_equal("sociedad", "sociedades".singularize(:es))
+    assert_equal("sociedade", "sociedades".singularize)
 
-    assert_equal('los', 'el'.pluralize(:es))
-    assert_equal('els', 'el'.pluralize)
+    assert_equal("los", "el".pluralize(:es))
+    assert_equal("els", "el".pluralize)
+
+    assert_equal("agua", "agua".pluralize(:es))
+    assert_equal("aguas", "agua".pluralize)
 
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
     assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
+    assert ActiveSupport::Inflector.inflections(:es).uncountables.empty?
     assert !ActiveSupport::Inflector.inflections.plurals.empty?
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
+    assert !ActiveSupport::Inflector.inflections.uncountables.empty?
   end
 
   def test_clear_all
@@ -435,7 +454,7 @@ class InflectorTest < ActiveSupport::TestCase
       # ensure any data is present
       inflect.plural(/(quiz)$/i, '\1zes')
       inflect.singular(/(database)s$/i, '\1')
-      inflect.uncountable('series')
+      inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
 
       inflect.clear :all
@@ -452,7 +471,7 @@ class InflectorTest < ActiveSupport::TestCase
       # ensure any data is present
       inflect.plural(/(quiz)$/i, '\1zes')
       inflect.singular(/(database)s$/i, '\1')
-      inflect.uncountable('series')
+      inflect.uncountable("series")
       inflect.human("col_rpted_bugs", "Reported bugs")
 
       inflect.clear
@@ -525,13 +544,5 @@ class InflectorTest < ActiveSupport::TestCase
         assert_equal [], inflect.send(scope)
       end
     end
-  end
-
-  def test_inflections_with_uncountable_words
-    ActiveSupport::Inflector.inflections do |inflect|
-      inflect.uncountable "HTTP"
-    end
-
-    assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
   end
 end

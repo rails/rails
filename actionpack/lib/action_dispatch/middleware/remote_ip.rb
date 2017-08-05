@@ -1,4 +1,6 @@
-require 'ipaddr'
+# frozen_string_literal: true
+
+require "ipaddr"
 
 module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
@@ -131,8 +133,8 @@ module ActionDispatch
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
-          raise IpSpoofAttackError, "IP spoofing attack?! " +
-            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " +
+          raise IpSpoofAttackError, "IP spoofing attack?! " \
+            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
             "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
@@ -153,17 +155,17 @@ module ActionDispatch
         @ip ||= calculate_ip
       end
 
-    protected
+    private
 
-      def ips_from(header)
+      def ips_from(header) # :doc:
         return [] unless header
-        # Split the comma-separated list into an array of strings
+        # Split the comma-separated list into an array of strings.
         ips = header.strip.split(/[,\s]+/)
         ips.select do |ip|
           begin
-            # Only return IPs that are valid according to the IPAddr#new method
+            # Only return IPs that are valid according to the IPAddr#new method.
             range = IPAddr.new(ip).to_range
-            # we want to make sure nobody is sneaking a netmask in
+            # We want to make sure nobody is sneaking a netmask in.
             range.begin == range.end
           rescue ArgumentError
             nil
@@ -171,13 +173,11 @@ module ActionDispatch
         end
       end
 
-      def filter_proxies(ips)
+      def filter_proxies(ips) # :doc:
         ips.reject do |ip|
           @proxies.any? { |proxy| proxy === ip }
         end
       end
-
     end
-
   end
 end

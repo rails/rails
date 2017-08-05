@@ -1,11 +1,13 @@
-require 'active_support/core_ext/string/output_safety'
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   class OutputFlow #:nodoc:
     attr_reader :content
 
     def initialize
-      @content = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
+      @content = Hash.new { |h, k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
     # Called by _layout_for to read stored values.
@@ -23,7 +25,6 @@ module ActionView
       @content[key] << value
     end
     alias_method :append!, :append
-
   end
 
   class StreamingFlow < OutputFlow #:nodoc:
@@ -37,9 +38,8 @@ module ActionView
     end
 
     # Try to get stored content. If the content
-    # is not available and we are inside the layout
-    # fiber, we set that we are waiting for the given
-    # key and yield.
+    # is not available and we're inside the layout fiber,
+    # then it will begin waiting for the given key and yield.
     def get(key)
       return super if @content.key?(key)
 
@@ -60,8 +60,8 @@ module ActionView
     end
 
     # Appends the contents for the given key. This is called
-    # by provides and resumes back to the fiber if it is
-    # the key it is waiting for.
+    # by providing and resuming back to the fiber,
+    # if that's the key it's waiting for.
     def append!(key, value)
       super
       @fiber.resume if @waiting_for == key
@@ -69,8 +69,8 @@ module ActionView
 
     private
 
-    def inside_fiber?
-      Fiber.current.object_id != @root
-    end
+      def inside_fiber?
+        Fiber.current.object_id != @root
+      end
   end
 end

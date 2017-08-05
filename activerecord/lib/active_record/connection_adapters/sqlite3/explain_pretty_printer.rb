@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -10,7 +12,7 @@ module ActiveRecord
         #
         def pp(result)
           result.rows.map do |row|
-            row.join('|')
+            row.join("|")
           end.join("\n") + "\n"
         end
       end

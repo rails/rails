@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Through Association
   module Associations
     module ThroughAssociation #:nodoc:
+      delegate :source_reflection, :through_reflection, to: :reflection
 
-      delegate :source_reflection, :through_reflection, :to => :reflection
-
-      protected
+      private
 
         # We merge in these scopes for two reasons:
         #
@@ -21,8 +22,6 @@ module ActiveRecord
           end
           scope
         end
-
-      private
 
         # Construct attributes for :through pointing to owner and associate. This is used by the
         # methods which create and delete records on the association.

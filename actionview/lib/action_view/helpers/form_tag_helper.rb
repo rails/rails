@@ -1,7 +1,9 @@
-require 'cgi'
-require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/string/output_safety'
-require 'active_support/core_ext/module/attribute_accessors'
+# frozen_string_literal: true
+
+require "cgi"
+require_relative "tag_helper"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   # = Action View Form Tag Helpers
@@ -18,7 +20,7 @@ module ActionView
       include TextHelper
 
       mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = false
+      self.embed_authenticity_token_in_remote_forms = nil
 
       # Starts a form tag that points the action to a url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
@@ -134,18 +136,20 @@ module ActionView
 
         if options.include?(:include_blank)
           include_blank = options.delete(:include_blank)
+          options_for_blank_options_tag = { value: "" }
 
           if include_blank == true
-            include_blank = ''
+            include_blank = ""
+            options_for_blank_options_tag[:label] = " "
           end
 
           if include_blank
-            option_tags = content_tag("option".freeze, include_blank, value: '').safe_concat(option_tags)
+            option_tags = content_tag("option".freeze, include_blank, options_for_blank_options_tag).safe_concat(option_tags)
           end
         end
 
         if prompt = options.delete(:prompt)
-          option_tags = content_tag("option".freeze, prompt, value: '').safe_concat(option_tags)
+          option_tags = content_tag("option".freeze, prompt, value: "").safe_concat(option_tags)
         end
 
         content_tag "select".freeze, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
@@ -270,7 +274,7 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, options.merge(type: :file))
+        text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
@@ -440,26 +444,14 @@ module ActionView
       #   # => <input name='commit' type='submit' value='Save' data-disable-with="Save" data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
-        options = options.stringify_keys
+        options = options.deep_stringify_keys
         tag_options = { "type" => "submit", "name" => "commit", "value" => value }.update(options)
-
-        if ActionView::Base.automatically_disable_submit_tag
-          unless tag_options["data-disable-with"] == false || (tag_options["data"] && tag_options["data"][:disable_with] == false)
-            disable_with_text = tag_options["data-disable-with"]
-            disable_with_text ||= tag_options["data"][:disable_with] if tag_options["data"]
-            disable_with_text ||= value.to_s.clone
-            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
-          else
-            tag_options["data"].delete(:disable_with) if tag_options["data"]
-          end
-          tag_options.delete("data-disable-with")
-        end
-
+        set_default_disable_with value, tag_options
         tag :input, tag_options
       end
 
       # Creates a button element that defines a <tt>submit</tt> button,
-      # <tt>reset</tt>button or a generic button which can be used in
+      # <tt>reset</tt> button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
       # the button tag does allow for richer labels such as images and emphasis,
@@ -516,12 +508,12 @@ module ActionView
           options ||= {}
         end
 
-        options = { 'name' => 'button', 'type' => 'submit' }.merge!(options.stringify_keys)
+        options = { "name" => "button", "type" => "submit" }.merge!(options.stringify_keys)
 
         if block_given?
           content_tag :button, options, &block
         else
-          content_tag :button, content_or_options || 'Button', options
+          content_tag :button, content_or_options || "Button", options
         end
       end
 
@@ -683,17 +675,6 @@ module ActionView
         text_field_tag(name, value, options.merge(type: :time))
       end
 
-      # Creates a text field of type "datetime".
-      #
-      # === Options
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
-      def datetime_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :datetime))
-      end
-
       # Creates a text field of type "datetime-local".
       #
       # === Options
@@ -701,9 +682,11 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def datetime_local_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: 'datetime-local'))
+      def datetime_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
+
+      alias datetime_local_field_tag datetime_field_tag
 
       # Creates a text field of type "month".
       #
@@ -862,13 +845,14 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s
+          method = html_options.delete("method").to_s.downcase
 
-          method_tag = case method
-            when /^get$/i # must be case-insensitive, but can't use downcase as might be nil
+          method_tag = \
+            case method
+            when "get"
               html_options["method"] = "get"
-              ''
-            when /^post$/i, "", nil
+              ""
+            when "post", ""
               html_options["method"] = "post"
               token_tag(authenticity_token, form_options: {
                 action: html_options["action"],
@@ -880,7 +864,7 @@ module ActionView
                 action: html_options["action"],
                 method: method
               })
-          end
+            end
 
           if html_options.delete("enforce_utf8") { true }
             utf8_enforcer_tag + method_tag
@@ -902,7 +886,30 @@ module ActionView
 
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
-          name.to_s.delete(']').tr('^-a-zA-Z0-9:.', "_")
+          name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+        end
+
+        def set_default_disable_with(value, tag_options)
+          return unless ActionView::Base.automatically_disable_submit_tag
+          data = tag_options["data"]
+
+          unless tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
+            disable_with_text = tag_options["data-disable-with"]
+            disable_with_text ||= data["disable_with"] if data
+            disable_with_text ||= value.to_s.clone
+            tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
+          else
+            data.delete("disable_with") if data
+          end
+
+          tag_options.delete("data-disable-with")
+        end
+
+        def convert_direct_upload_option_to_url(options)
+          if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
+            options["data-direct-upload-url"] = rails_direct_uploads_url
+          end
+          options
         end
     end
   end

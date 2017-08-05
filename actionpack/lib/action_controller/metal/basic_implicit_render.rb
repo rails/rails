@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module ActionController
-  module BasicImplicitRender
+  module BasicImplicitRender # :nodoc:
     def send_action(method, *args)
       super.tap { default_render unless performed? }
     end

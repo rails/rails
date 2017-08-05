@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2015-2016 Basecamp, LLC
+# Copyright (c) 2015-2017 Basecamp, LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,21 +23,22 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'action_cable/version'
+require "active_support"
+require "active_support/rails"
+require_relative "action_cable/version"
 
 module ActionCable
   extend ActiveSupport::Autoload
 
   INTERNAL = {
-    identifiers: {
-      ping: '_ping'.freeze
-    },
     message_types: {
-      confirmation: 'confirm_subscription'.freeze,
-      rejection: 'reject_subscription'.freeze
-    }
+      welcome: "welcome".freeze,
+      ping: "ping".freeze,
+      confirmation: "confirm_subscription".freeze,
+      rejection: "reject_subscription".freeze
+    },
+    default_mount_path: "/cable".freeze,
+    protocols: ["actioncable-v1-json".freeze, "actioncable-unsupported".freeze].freeze
   }
 
   # Singleton instance of the server

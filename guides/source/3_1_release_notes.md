@@ -99,7 +99,7 @@ gem 'jquery-rails'
     # config.assets.manifest = YOUR_PATH
 
     # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-    # config.assets.precompile `= %w( search.js )
+    # config.assets.precompile `= %w( admin.js admin.css )
 
 
     # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
@@ -558,4 +558,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev)

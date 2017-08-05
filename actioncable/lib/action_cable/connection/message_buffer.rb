@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Connection
-    # Allows us to buffer messages received from the WebSocket before the Connection has been fully initialized and is ready to receive them.
-    # Entirely internal operation and should not be used directly by the user.
-    class MessageBuffer
+    # Allows us to buffer messages received from the WebSocket before the Connection has been fully initialized, and is ready to receive them.
+    class MessageBuffer # :nodoc:
       def initialize(connection)
         @connection = connection
         @buffered_messages = []
@@ -29,9 +30,11 @@ module ActionCable
         receive_buffered_messages
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
         attr_reader :connection
-        attr_accessor :buffered_messages
+        attr_reader :buffered_messages
 
       private
         def valid?(message)
@@ -39,7 +42,7 @@ module ActionCable
         end
 
         def receive(message)
-          connection.send_async :receive, message
+          connection.receive message
         end
 
         def buffer(message)

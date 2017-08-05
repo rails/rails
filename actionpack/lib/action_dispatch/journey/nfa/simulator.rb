@@ -1,4 +1,6 @@
-require 'strscan'
+# frozen_string_literal: true
+
+require "strscan"
 
 module ActionDispatch
   module Journey # :nodoc:

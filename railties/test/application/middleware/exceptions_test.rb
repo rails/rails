@@ -1,5 +1,5 @@
-require 'isolation/abstract_unit'
-require 'rack/test'
+require "isolation/abstract_unit"
+require "rack/test"
 
 module ApplicationTests
   class MiddlewareExceptionsTest < ActiveSupport::TestCase
@@ -8,7 +8,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
     end
 
     def teardown
@@ -70,7 +69,7 @@ module ApplicationTests
 
       app.config.action_dispatch.show_exceptions = true
 
-      get '/foo'
+      get "/foo"
       assert_equal 500, last_response.status
     end
 
@@ -78,15 +77,15 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = false
 
       assert_raise(ActionController::RoutingError) do
-        get '/foo'
+        get "/foo"
       end
     end
 
     test "unspecified route when action_dispatch.show_exceptions is set shows 404" do
       app.config.action_dispatch.show_exceptions = true
 
-      assert_nothing_raised(ActionController::RoutingError) do
-        get '/foo'
+      assert_nothing_raised do
+        get "/foo"
         assert_match "The page you were looking for doesn't exist.", last_response.body
       end
     end
@@ -95,10 +94,24 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = true
       app.config.consider_all_requests_local = true
 
-      assert_nothing_raised(ActionController::RoutingError) do
-        get '/foo'
+      assert_nothing_raised do
+        get "/foo"
         assert_match "No route matches", last_response.body
       end
+    end
+
+    test "routing to an nonexistent controller when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :articles
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      get "/articles"
+      assert_match "<title>Action Controller: Exception caught</title>", last_response.body
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do
@@ -112,12 +125,12 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = true
       app.config.consider_all_requests_local = true
 
-      app_file 'app/views/foo/index.html.erb', <<-ERB
+      app_file "app/views/foo/index.html.erb", <<-ERB
         <% raise 'boooom' %>
         ✓測試テスト시험
       ERB
 
-      get '/foo', :utf8 => '✓'
+      get "/foo", utf8: "✓"
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end

@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 class Membership < ActiveRecord::Base
+  enum type: %i(Membership CurrentMembership SuperMembership SelectedMembership TenantMembership)
   belongs_to :member
   belongs_to :club
 end
@@ -9,7 +12,7 @@ class CurrentMembership < Membership
 end
 
 class SuperMembership < Membership
-  belongs_to :member, -> { order('members.id DESC') }
+  belongs_to :member, -> { order("members.id DESC") }
   belongs_to :club
 end
 

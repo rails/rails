@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Reply < ActiveRecord::Base
   scope :base, -> { all }
   belongs_to :topic, -> { includes(:replies) }

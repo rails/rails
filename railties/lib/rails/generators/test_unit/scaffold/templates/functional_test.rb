@@ -22,10 +22,10 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
 
   test "should create <%= singular_table_name %>" do
     assert_difference('<%= class_name %>.count') do
-      post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_hash} }" %> }
+      post <%= index_helper %>_url, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }
     end
 
-    assert_redirected_to <%= singular_table_name %>_path(<%= class_name %>.last)
+    assert_redirected_to <%= singular_table_name %>_url(<%= class_name %>.last)
   end
 
   test "should show <%= singular_table_name %>" do
@@ -39,8 +39,8 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
   end
 
   test "should update <%= singular_table_name %>" do
-    patch <%= show_helper %>, params: { <%= "#{singular_table_name}: { #{attributes_hash} }" %> }
-    assert_redirected_to <%= singular_table_name %>_path(<%= "@#{singular_table_name}" %>)
+    patch <%= show_helper %>, params: { <%= "#{singular_table_name}: { #{attributes_string} }" %> }
+    assert_redirected_to <%= singular_table_name %>_url(<%= "@#{singular_table_name}" %>)
   end
 
   test "should destroy <%= singular_table_name %>" do
@@ -48,7 +48,7 @@ class <%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTe
       delete <%= show_helper %>
     end
 
-    assert_redirected_to <%= index_helper %>_path
+    assert_redirected_to <%= index_helper %>_url
   end
 end
 <% end -%>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
@@ -113,10 +115,10 @@ module ActionDispatch
         default_url_options
       end
 
-      # Generate a url based on the options provided, default_url_options and the
+      # Generate a URL based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
       #
-      # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
+      # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
@@ -164,20 +166,17 @@ module ActionDispatch
       # implicitly used by +url_for+ can always be overwritten like shown on the
       # last +url_for+ calls.
       def url_for(options = nil)
+        full_url_for(options)
+      end
+
+      def full_url_for(options = nil) # :nodoc:
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
-        when Hash
+        when Hash, ActionController::Parameters
           route_name = options.delete :use_route
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
-                         route_name)
-        when ActionController::Parameters
-          unless options.permitted?
-            raise ArgumentError.new("Generating an URL from non sanitized request parameters is insecure!")
-          end
-          route_name = options.delete :use_route
-          _routes.url_for(options.to_h.symbolize_keys.
-                          reverse_merge!(url_options), route_name)
+          merged_url_options = options.to_h.symbolize_keys.reverse_merge!(url_options)
+          _routes.url_for(merged_url_options, route_name)
         when String
           options
         when Symbol
@@ -192,22 +191,28 @@ module ActionDispatch
         end
       end
 
+      def route_for(name, *args) # :nodoc:
+        public_send(:"#{name}_url", *args)
+      end
+
       protected
 
-      def optimize_routes_generation?
-        _routes.optimize_routes_generation? && default_url_options.empty?
-      end
+        def optimize_routes_generation?
+          _routes.optimize_routes_generation? && default_url_options.empty?
+        end
 
-      def _with_routes(routes)
-        old_routes, @_routes = @_routes, routes
-        yield
-      ensure
-        @_routes = old_routes
-      end
+      private
 
-      def _routes_context
-        self
-      end
+        def _with_routes(routes) # :doc:
+          old_routes, @_routes = @_routes, routes
+          yield
+        ensure
+          @_routes = old_routes
+        end
+
+        def _routes_context # :doc:
+          self
+        end
     end
   end
 end

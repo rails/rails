@@ -1,11 +1,11 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/app/app_generator'
+require "generators/generators_test_helper"
+require "rails/generators/rails/app/app_generator"
 
 class ApiAppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::AppGenerator
 
-  arguments [destination_root, '--api']
+  arguments [destination_root, "--api"]
 
   def setup
     Rails.application = TestApp::Application
@@ -35,7 +35,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/gem 'coffee-rails'/, content)
-      assert_no_match(/gem 'jquery-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
       assert_no_match(/gem 'web-console'/, content)
       assert_match(/# gem 'jbuilder'/, content)
@@ -62,47 +61,75 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_unnecessary_config_files
+    run_generator
+
+    generator = Rails::Generators::AppGenerator.new ["rails"],
+      { api: true, update: true }, destination_root: destination_root, shell: @shell
+    quietly { generator.send(:update_config_files) }
+
+    assert_no_file "config/initializers/cookies_serializer.rb"
+    assert_no_file "config/initializers/assets.rb"
+  end
+
+  def test_app_update_does_not_generate_unnecessary_bin_files
+    run_generator
+
+    generator = Rails::Generators::AppGenerator.new ["rails"],
+      { api: true, update: true }, destination_root: destination_root, shell: @shell
+    quietly { generator.send(:update_bin_files) }
+
+    assert_no_file "bin/yarn"
+  end
+
   private
 
-  def default_files
-    files = %W(
-      .gitignore
-      Gemfile
-      Rakefile
-      config.ru
-      app/controllers
-      app/mailers
-      app/models
-      config/environments
-      config/initializers
-      config/locales
-      db
-      lib
-      lib/tasks
-      log
-      test/fixtures
-      test/controllers
-      test/integration
-      test/models
-      tmp
-      vendor
-    )
-    files.concat %w(bin/bundle bin/rails bin/rake)
-    files
-  end
+    def default_files
+      files = %W(
+        .gitignore
+        Gemfile
+        Rakefile
+        config.ru
+        app/controllers
+        app/mailers
+        app/models
+        app/views/layouts/mailer.html.erb
+        app/views/layouts/mailer.text.erb
+        config/environments
+        config/initializers
+        config/locales
+        db
+        lib
+        lib/tasks
+        log
+        test/fixtures
+        test/controllers
+        test/integration
+        test/models
+        tmp
+        vendor
+      )
+      files.concat %w(bin/bundle bin/rails bin/rake)
+      files
+    end
 
-  def skipped_files
-    %w(app/assets
-       app/helpers
-       app/views
-       config/initializers/assets.rb
-       config/initializers/cookies_serializer.rb
-       config/initializers/session_store.rb
-       config/initializers/request_forgery_protection.rb
-       config/initializers/per_form_csrf_tokens.rb
-       lib/assets
-       vendor/assets
-       test/helpers
-       tmp/cache/assets)
-  end
+    def skipped_files
+      %w(app/assets
+         app/helpers
+         app/views/layouts/application.html.erb
+         bin/yarn
+         config/initializers/assets.rb
+         config/initializers/cookies_serializer.rb
+         lib/assets
+         test/helpers
+         tmp/cache/assets
+         public/404.html
+         public/422.html
+         public/500.html
+         public/apple-touch-icon-precomposed.png
+         public/apple-touch-icon.png
+         public/favicon.icon
+         package.json
+      )
+    end
 end

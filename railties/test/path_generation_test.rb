@@ -1,6 +1,6 @@
-require 'abstract_unit'
-require 'active_support/core_ext/object/with_options'
-require 'active_support/core_ext/object/json'
+require "abstract_unit"
+require "active_support/core_ext/object/with_options"
+require "active_support/core_ext/object/json"
 
 class PathGenerationTest < ActiveSupport::TestCase
   attr_reader :app
@@ -30,7 +30,7 @@ class PathGenerationTest < ActiveSupport::TestCase
     end
 
     def make_request(env)
-      Request.new super, self.url_helpers, @block
+      Request.new(super, url_helpers, @block)
     end
   end
 
@@ -38,11 +38,11 @@ class PathGenerationTest < ActiveSupport::TestCase
     host = uri_or_host.host unless path
     path ||= uri_or_host.path
 
-    params = {'PATH_INFO'      => path,
-              'REQUEST_METHOD' => method,
-              'HTTP_HOST'      => host }
+    params = { "PATH_INFO" => path,
+              "REQUEST_METHOD" => method,
+              "HTTP_HOST"      => host }
 
-    params['SCRIPT_NAME'] = script_name if script_name
+    params["SCRIPT_NAME"] = script_name if script_name
 
     status, headers, body = app.call(params)
     new_body = []
@@ -72,11 +72,11 @@ class PathGenerationTest < ActiveSupport::TestCase
 
     url = URI("http://example.org/blogs")
 
-    send_request(url, 'GET', nil, '/FOO')
-    assert_equal '/FOO/blogs', app.instance.controller.blogs_path
+    send_request(url, "GET", nil, "/FOO")
+    assert_equal "/FOO/blogs", app.instance.controller.blogs_path
 
-    send_request(url, 'GET', nil)
-    assert_equal '/blogs', app.instance.controller.blogs_path
+    send_request(url, "GET", nil)
+    assert_equal "/blogs", app.instance.controller.blogs_path
   ensure
     Rails.logger = original_logger
   end

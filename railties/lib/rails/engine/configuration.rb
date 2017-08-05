@@ -1,4 +1,4 @@
-require 'rails/railtie/configuration'
+require_relative "../railtie/configuration"
 
 module Rails
   class Engine
@@ -7,7 +7,7 @@ module Rails
       attr_accessor :middleware
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
-      def initialize(root=nil)
+      def initialize(root = nil)
         super()
         @root = root
         @generators = app_generators.dup
@@ -39,6 +39,7 @@ module Rails
           paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
+          paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
           paths.add "app/mailers",         eager_load: true

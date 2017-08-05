@@ -1,6 +1,9 @@
-require 'base64'
-require 'active_support/core_ext/object/blank'
-require 'active_support/security_utils'
+# frozen_string_literal: true
+
+require "base64"
+require_relative "core_ext/object/blank"
+require_relative "security_utils"
+require_relative "messages/metadata"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -24,13 +27,59 @@ module ActiveSupport
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
+  #
+  # +MessageVerifier+ creates HMAC signatures using SHA1 hash algorithm by default.
+  # If you want to use a different hash algorithm, you can change it by providing
+  # `:digest` key as an option while initializing the verifier:
+  #
+  #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', digest: 'SHA256')
+  #
+  # === Confining messages to a specific purpose
+  #
+  # By default any message can be used throughout your app. But they can also be
+  # confined to a specific +:purpose+.
+  #
+  #   token = @verifier.generate("this is the chair", purpose: :login)
+  #
+  # Then that same purpose must be passed when verifying to get the data back out:
+  #
+  #   @verifier.verified(token, purpose: :login)    # => "this is the chair"
+  #   @verifier.verified(token, purpose: :shipping) # => nil
+  #   @verifier.verified(token)                     # => nil
+  #
+  #   @verifier.verify(token, purpose: :login)      # => "this is the chair"
+  #   @verifier.verify(token, purpose: :shipping)   # => ActiveSupport::MessageVerifier::InvalidSignature
+  #   @verifier.verify(token)                       # => ActiveSupport::MessageVerifier::InvalidSignature
+  #
+  # Likewise, if a message has no purpose it won't be returned when verifying with
+  # a specific purpose.
+  #
+  #   token = @verifier.generate("the conversation is lively")
+  #   @verifier.verified(token, purpose: :scare_tactics) # => nil
+  #   @verifier.verified(token)                          # => "the conversation is lively"
+  #
+  #   @verifier.verify(token, purpose: :scare_tactics)   # => ActiveSupport::MessageVerifier::InvalidSignature
+  #   @verifier.verify(token)                            # => "the conversation is lively"
+  #
+  # === Making messages expire
+  #
+  # By default messages last forever and verifying one year from now will still
+  # return the original value. But messages can be set to expire at a given
+  # time with +:expires_in+ or +:expires_at+.
+  #
+  #   @verifier.generate(parcel, expires_in: 1.month)
+  #   @verifier.generate(doowad, expires_at: Time.now.end_of_year)
+  #
+  # Then the messages can be verified and returned upto the expire time.
+  # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
+  # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   class MessageVerifier
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
-      raise ArgumentError, 'Secret should not be nil.' unless secret
+      raise ArgumentError, "Secret should not be nil." unless secret
       @secret = secret
-      @digest = options[:digest] || 'SHA1'
+      @digest = options[:digest] || "SHA1"
       @serializer = options[:serializer] || Marshal
     end
 
@@ -71,13 +120,13 @@ module ActiveSupport
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
-    def verified(signed_message)
+    def verified(signed_message, purpose: nil)
       if valid_message?(signed_message)
         begin
           data = signed_message.split("--".freeze)[0]
-          @serializer.load(decode(data))
+          Messages::Metadata.verify(@serializer.load(decode(data)), purpose)
         rescue ArgumentError => argument_error
-          return if argument_error.message =~ %r{invalid base64}
+          return if argument_error.message.include?("invalid base64")
           raise
         end
       end
@@ -95,8 +144,8 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
-    def verify(signed_message)
-      verified(signed_message) || raise(InvalidSignature)
+    def verify(signed_message, purpose: nil)
+      verified(signed_message, purpose: purpose) || raise(InvalidSignature)
     end
 
     # Generates a signed message for the provided value.
@@ -106,8 +155,8 @@ module ActiveSupport
     #
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"
-    def generate(value)
-      data = encode(@serializer.dump(value))
+    def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
+      data = encode(@serializer.dump(Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)))
       "#{data}--#{generate_digest(data)}"
     end
 
@@ -121,7 +170,7 @@ module ActiveSupport
       end
 
       def generate_digest(data)
-        require 'openssl' unless defined?(OpenSSL)
+        require "openssl" unless defined?(OpenSSL)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
       end
   end

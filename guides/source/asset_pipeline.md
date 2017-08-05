@@ -25,13 +25,9 @@ It allows assets in your application to be automatically combined with assets
 from other gems. For example, jquery-rails includes a copy of jquery.js
 and enables AJAX features in Rails.
 
-The asset pipeline is technically no longer a core feature from Rails 4 onwards -- it has
-been extracted out of the framework into the
-[sprockets-rails](https://github.com/rails/sprockets-rails) gem.
-
-The asset pipeline is enabled by default.
-
-You can disable the asset pipeline while creating a new application by
+The asset pipeline is implemented by the
+[sprockets-rails](https://github.com/rails/sprockets-rails) gem,
+and is enabled by default. You can disable it while creating a new application by
 passing the `--skip-sprockets` option.
 
 ```bash
@@ -82,9 +78,9 @@ requests can mean faster loading for your application.
 Sprockets concatenates all JavaScript files into one master `.js` file and all
 CSS files into one master `.css` file. As you'll learn later in this guide, you
 can customize this strategy to group files any way you like. In production,
-Rails inserts an MD5 fingerprint into each filename so that the file is cached
-by the web browser. You can invalidate the cache by altering this fingerprint,
-which happens automatically whenever you change the file contents.
+Rails inserts an SHA256 fingerprint into each filename so that the file is
+cached by the web browser. You can invalidate the cache by altering this
+fingerprint, which happens automatically whenever you change the file contents.
 
 The second feature of the asset pipeline is asset minification or compression.
 For CSS files, this is done by removing whitespace and comments. For JavaScript,
@@ -110,7 +106,7 @@ or in web browsers) to keep their own copy of the content. When the content is
 updated, the fingerprint will change. This will cause the remote clients to
 request a new copy of the content. This is generally known as _cache busting_.
 
-The technique sprockets uses for fingerprinting is to insert a hash of the
+The technique Sprockets uses for fingerprinting is to insert a hash of the
 content into the name, usually at the end. For example a CSS file `global.css`
 
 ```
@@ -211,7 +207,7 @@ default .coffee and .scss files will not be precompiled on their own. See
 precompiling works.
 
 NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
-If you are using Mac OS X or Windows, you have a JavaScript runtime installed in
+If you are using macOS or Windows, you have a JavaScript runtime installed in
 your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
 
 You can also disable generation of controller specific asset files by adding the
@@ -335,11 +331,11 @@ include the 'data-turbolinks-track' option which causes turbolinks to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => true %>
-<%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+<%= stylesheet_link_tag "application", media: "all", "data-turbolinks-track" => "reload" %>
+<%= javascript_include_tag "application", "data-turbolinks-track" => "reload" %>
 ```
 
-In regular views you can access images in the `public/assets/images` directory
+In regular views you can access images in the `app/assets/images` directory
 like this:
 
 ```erb
@@ -350,9 +346,9 @@ Provided that the pipeline is enabled within your application (and not disabled
 in the current environment context), this file is served by Sprockets. If a file
 exists at `public/assets/rails.png` it is served by the web server.
 
-Alternatively, a request for a file with an MD5 hash such as
-`public/assets/rails-af27b6a414e6da00003503148be9b409.png` is treated the same
-way. How these hashes are generated is covered in the [In
+Alternatively, a request for a file with an SHA256 hash such as
+`public/assets/rails-f90d8a84c707a8dc923fca1ca1895ae8ed0a09237f6992015fef1e11be77c023.png`
+is treated the same way. How these hashes are generated is covered in the [In
 Production](#in-production) section later on in this guide.
 
 Sprockets will also look through the paths specified in `config.assets.paths`,
@@ -439,11 +435,11 @@ Sprockets uses manifest files to determine which assets to include and serve.
 These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file and then compresses them (if
-`Rails.application.config.assets.compress` is true). By serving one file rather
-than many, the load time of pages can be greatly reduced because the browser
-makes fewer requests. Compression also reduces file size, enabling the
-browser to download them faster.
+necessary, concatenates them into one single file and then compresses them
+(based on value of `Rails.application.config.assets.js_compressor`). By serving
+one file rather than many, the load time of pages can be greatly reduced because
+the browser makes fewer requests. Compression also reduces file size, enabling
+the browser to download them faster.
 
 
 For example, a new Rails application includes a default
@@ -451,15 +447,15 @@ For example, a new Rails application includes a default
 
 ```js
 // ...
-//= require jquery
-//= require jquery_ujs
+//= require rails-ujs
+//= require turbolinks
 //= require_tree .
 ```
 
 In JavaScript files, Sprockets directives begin with `//=`. In the above case,
 the file is using the `require` and the `require_tree` directives. The `require`
 directive is used to tell Sprockets the files you wish to require. Here, you are
-requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere
+requiring the files `rails-ujs.js` and `turbolinks.js` that are available somewhere
 in the search path for Sprockets. You need not supply the extensions explicitly.
 Sprockets assumes you are requiring a `.js` file when done from within a `.js`
 file.
@@ -489,7 +485,7 @@ which contains these lines:
 
 Rails creates both `app/assets/javascripts/application.js` and
 `app/assets/stylesheets/application.css` regardless of whether the
---skip-sprockets option is used when creating a new rails application. This is
+--skip-sprockets option is used when creating a new Rails application. This is
 so you can easily add asset pipelining later if you like.
 
 The directives that work in JavaScript files also work in stylesheets
@@ -576,19 +572,18 @@ would generate this HTML:
 
 The `body` param is required by Sprockets.
 
-### Runtime Error Checking
+### Raise an Error When an Asset is Not Found
 
-By default the asset pipeline will check for potential errors in development mode during
-runtime. To disable this behavior you can set:
+If you are using sprockets-rails >= 3.2.0 you can configure what happens
+when an asset lookup is performed and nothing is found. If you turn off "asset fallback"
+then an error will be raised when an asset cannot be found.
 
 ```ruby
-config.assets.raise_runtime_errors = false
+config.assets.unknown_asset_fallback = false
 ```
 
-When this option is true, the asset pipeline will check if all the assets loaded
-in your application are included in the `config.assets.precompile` list.
-If `config.assets.digest` is also true, the asset pipeline will require that
-all requests for assets include digests.
+If "asset fallback" is enabled then when an asset cannot be found the path will be
+output instead and no error raised. The asset fallback behavior is enabled by default.
 
 ### Turning Digests Off
 
@@ -645,7 +640,7 @@ In the production environment Sprockets uses the fingerprinting scheme outlined
 above. By default Rails assumes assets have been precompiled and will be
 served as static assets by your web server.
 
-During the precompilation phase an MD5 is generated from the contents of the
+During the precompilation phase an SHA256 is generated from the contents of the
 compiled files, and inserted into the filenames as they are written to disk.
 These fingerprinted names are used by the Rails helpers in place of the manifest
 name.
@@ -670,7 +665,7 @@ anymore, delete these options from the `javascript_include_tag` and
 `stylesheet_link_tag`.
 
 The fingerprinting behavior is controlled by the `config.assets.digest`
-initialization option (which defaults to `true` for production and development).
+initialization option (which defaults to `true`).
 
 NOTE: Under normal circumstances the default `config.assets.digest` option
 should not be changed. If there are no digests in the filenames, and far-future
@@ -728,28 +723,30 @@ If you have other manifests or individual stylesheets and JavaScript files to
 include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
 
 ```ruby
-Rails.application.config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
+Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
 NOTE. Always specify an expected compiled filename that ends with .js or .css,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The task also generates a `manifest-md5hash.json` that contains a list with
-all your assets and their respective fingerprints. This is used by the Rails
-helper methods to avoid handing the mapping requests back to Sprockets. A
-typical manifest file looks like:
+The task also generates a `.sprockets-manifest-md5hash.json` (where `md5hash` is
+an MD5 hash) that contains a list with all your assets and their respective
+fingerprints. This is used by the Rails helper methods to avoid handing the
+mapping requests back to Sprockets. A typical manifest file looks like:
 
 ```ruby
-{"files":{"application-723d1be6cc741a3aabb1cec24276d681.js":{"logical_path":"application.js","mtime":"2013-07-26T22:55:03-07:00","size":302506,
-"digest":"723d1be6cc741a3aabb1cec24276d681"},"application-12b3c7dd74d2e9df37e7cbb1efa76a6d.css":{"logical_path":"application.css","mtime":"2013-07-26T22:54:54-07:00","size":1560,
-"digest":"12b3c7dd74d2e9df37e7cbb1efa76a6d"},"application-1c5752789588ac18d7e1a50b1f0fd4c2.css":{"logical_path":"application.css","mtime":"2013-07-26T22:56:17-07:00","size":1591,
-"digest":"1c5752789588ac18d7e1a50b1f0fd4c2"},"favicon-a9c641bf2b81f0476e876f7c5e375969.ico":{"logical_path":"favicon.ico","mtime":"2013-07-26T23:00:10-07:00","size":1406,
-"digest":"a9c641bf2b81f0476e876f7c5e375969"},"my_image-231a680f23887d9dd70710ea5efd3c62.png":{"logical_path":"my_image.png","mtime":"2013-07-26T23:00:27-07:00","size":6646,
-"digest":"231a680f23887d9dd70710ea5efd3c62"}},"assets":{"application.js":
-"application-723d1be6cc741a3aabb1cec24276d681.js","application.css":
-"application-1c5752789588ac18d7e1a50b1f0fd4c2.css",
-"favicon.ico":"favicona9c641bf2b81f0476e876f7c5e375969.ico","my_image.png":
-"my_image-231a680f23887d9dd70710ea5efd3c62.png"}}
+{"files":{"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
+"digest":"aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b","integrity":"sha256-ruS+cfEogDeueLmX3ziDMu39JGRxtTPc7aqPn+FWRCs="},
+"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css":{"logical_path":"application.css","mtime":"2016-12-23T19:12:20-05:00","size":2994,
+"digest":"86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18","integrity":"sha256-hqKStQcHk8N+LA5fOfc7s4dkTq6tp/lub8BAoCixbBg="},
+"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico":{"logical_path":"favicon.ico","mtime":"2016-12-23T20:11:00-05:00","size":8629,
+"digest":"8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda","integrity":"sha256-jSOHuNTTLOzZP6OQDfDp/4nQGqzYT1DngMF8n2s9Dto="},
+"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png":{"logical_path":"my_image.png","mtime":"2016-12-23T20:10:54-05:00","size":23414,
+"digest":"f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493","integrity":"sha256-9AKBVv1+ygNYTV8vwEcN8eDbxzaequY4sv8DP5iOxJM="}},
+"assets":{"application.js":"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js",
+"application.css":"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css",
+"favicon.ico":"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico",
+"my_image.png":"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png"}}
 ```
 
 The default location for the manifest is the root of the location specified in
@@ -789,7 +786,6 @@ location ~ ^/assets/ {
   add_header Cache-Control public;
 
   add_header ETag "";
-  break;
 }
 ```
 
@@ -842,7 +838,7 @@ config.assets.compile = true
 
 On the first request the assets are compiled and cached as outlined in
 development above, and the manifest names used in the helpers are altered to
-include the MD5 hash.
+include the SHA256 hash.
 
 Sprockets also sets the `Cache-Control` HTTP header to `max-age=31536000`. This
 signals all caches between your server and the client browser that this content
@@ -858,7 +854,7 @@ pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
 group :production do
-  gem 'therubyracer'
+  gem 'mini_racer'
 end
 ```
 
@@ -901,7 +897,7 @@ your CDN server, you need to tell browsers to use your CDN to grab assets
 instead of your Rails server directly. You can do this by configuring Rails to
 set your CDN as the asset host instead of using a relative path. To set your
 asset host in Rails, you need to set `config.action_controller.asset_host` in
-`config/production.rb`:
+`config/environments/production.rb`:
 
 ```ruby
 config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'
@@ -1029,7 +1025,7 @@ to tell our CDN (and browser) that the asset is "public", that means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
 value is set to seconds with a maximum possible value of `31536000` which is one
-year. You can do this in your rails application by setting
+year. You can do this in your Rails application by setting
 
 ```
 config.public_file_server.headers = {
@@ -1107,14 +1103,20 @@ config.assets.js_compressor = :uglifier
 ```
 
 NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
-supported runtime in order to use `uglifier`. If you are using Mac OS X or
+supported runtime in order to use `uglifier`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
-NOTE: The `config.assets.compress` initialization option is no longer used in
-Rails to enable either CSS or JavaScript compression. Setting it will have no
-effect on the application. Instead, setting `config.assets.css_compressor` and
-`config.assets.js_compressor` will control compression of CSS and JavaScript
-assets.
+
+
+### Serving GZipped version of assets
+
+By default, gzipped version of compiled assets will be generated, along with
+the non-gzipped version of assets. Gzipped assets help reduce the transmission
+of data over the wire. You can configure this by setting the `gzip` flag.
+
+```ruby
+config.assets.gzip = false # disable gzipped assets generation
+```
 
 ### Using Your Own Compressor
 
@@ -1213,35 +1215,25 @@ Sprockets.
 Making Your Library or Gem a Pre-Processor
 ------------------------------------------
 
-As Sprockets uses [Tilt](https://github.com/rtomayko/tilt) as a generic
-interface to different templating engines, your gem should just implement the
-Tilt template protocol. Normally, you would subclass `Tilt::Template` and
-reimplement the `prepare` method, which initializes your template, and the
-`evaluate` method, which returns the processed source. The original source is
-stored in `data`. Have a look at
-[`Tilt::Template`](https://github.com/rtomayko/tilt/blob/master/lib/tilt/template.rb)
-sources to learn more.
+Sprockets uses Processors, Transformers, Compressors, and Exporters to extend
+Sprockets functionality. Have a look at
+[Extending Sprockets](https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md)
+to learn more. Here we registered a preprocessor to add a comment to the end
+of text/css (.css) files.
 
 ```ruby
-module BangBang
-  class Template < ::Tilt::Template
-    def prepare
-      # Do any initialization here
-    end
-
-    # Adds a "!" to original template.
-    def evaluate(scope, locals, &block)
-      "#{data}!"
-    end
+module AddComment
+  def self.call(input)
+    { data: input[:data] + "/* Hello From my sprockets extension */" }
   end
 end
 ```
 
-Now that you have a `Template` class, it's time to associate it with an
-extension for template files:
+Now that you have a module that modifies the input data, it's time to register
+it as a preprocessor for your mime type.
 
 ```ruby
-Sprockets.register_engine '.bang', BangBang::Template
+Sprockets.register_preprocessor 'text/css', AddComment
 ```
 
 Upgrading from Old Versions of Rails
@@ -1285,12 +1277,12 @@ config.assets.js_compressor = :uglifier
 # Don't fallback to assets pipeline if a precompiled asset is missed
 config.assets.compile = false
 
-# Generate digests for assets URLs. This is planned for deprecation.
+# Generate digests for assets URLs.
 config.assets.digest = true
 
 # Precompile additional assets (application.js, application.css, and all
 # non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+# config.assets.precompile += %w( admin.js admin.css )
 ```
 
 Rails 4 and above no longer set default config values for Sprockets in `test.rb`, so

@@ -1,20 +1,22 @@
-require 'date'
-require 'active_support/inflector/methods'
-require 'active_support/core_ext/date/zones'
-require 'active_support/core_ext/module/remove_method'
+# frozen_string_literal: true
+
+require "date"
+require_relative "../../inflector/methods"
+require_relative "zones"
+require_relative "../module/remove_method"
 
 class Date
   DATE_FORMATS = {
-    :short        => '%e %b',
-    :long         => '%B %e, %Y',
-    :db           => '%Y-%m-%d',
-    :number       => '%Y%m%d',
-    :long_ordinal => lambda { |date|
+    short: "%d %b",
+    long: "%B %d, %Y",
+    db: "%Y-%m-%d",
+    number: "%Y%m%d",
+    long_ordinal: lambda { |date|
       day_format = ActiveSupport::Inflector.ordinalize(date.day)
       date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
     },
-    :rfc822       => '%e %b %Y',
-    :iso8601      => lambda { |date| date.iso8601 }
+    rfc822: "%d %b %Y",
+    iso8601: lambda { |date| date.iso8601 }
   }
 
   # Ruby 1.9 has Date#to_time which converts to localtime only.
@@ -65,7 +67,7 @@ class Date
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect
-    strftime('%a, %d %b %Y')
+    strftime("%a, %d %b %Y")
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
@@ -79,7 +81,11 @@ class Date
   #   date.to_time(:local)           # => 2007-11-10 00:00:00 0800
   #
   #   date.to_time(:utc)             # => 2007-11-10 00:00:00 UTC
+  #
+  # NOTE: The :local timezone is Ruby's *process* timezone, i.e. ENV['TZ'].
+  #       If the *application's* timezone is needed, then use +in_time_zone+ instead.
   def to_time(form = :local)
+    raise ArgumentError, "Expected :local or :utc, got #{form.inspect}." unless [:local, :utc].include?(form)
     ::Time.send(form, year, month, day)
   end
 

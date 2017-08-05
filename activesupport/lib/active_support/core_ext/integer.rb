@@ -1,3 +1,5 @@
-require 'active_support/core_ext/integer/multiple'
-require 'active_support/core_ext/integer/inflections'
-require 'active_support/core_ext/integer/time'
+# frozen_string_literal: true
+
+require_relative "integer/multiple"
+require_relative "integer/inflections"
+require_relative "integer/time"

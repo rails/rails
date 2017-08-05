@@ -1,8 +1,8 @@
-require 'abstract_unit'
+# frozen_string_literal: true
 
+require "abstract_unit"
 
 class MultibyteUnicodeDatabaseTest < ActiveSupport::TestCase
-
   include ActiveSupport::Multibyte::Unicode
 
   def setup
