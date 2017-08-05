@@ -453,10 +453,8 @@ module ApplicationTests
           secret_key_base: 123
       YAML
 
-      app "development"
-
       assert_raise(ArgumentError) do
-        app.key_generator
+        app "development"
       end
     end
 
