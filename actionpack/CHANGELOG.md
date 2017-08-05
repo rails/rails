@@ -57,5 +57,16 @@
 
     *Julian Nadeau*
 
+*   Add support for strong parameter to deal with nested arrays
+    
+    Strong parameters doesn't support nested arrays, 
+    take as example: `[[{ name: 'Leonardo', age: 26 }]]`.
+
+    This is fixed adding a method that is called when object is an array, and recursively returns allowed values.
+
+
+    Fixes #23640.
+
+    *Leonardo Siqueira*
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionpack/CHANGELOG.md) for previous changes.

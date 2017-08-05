@@ -16,11 +16,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
           title: "Romance",
           description: "A Romance section"
         }]],
+        pages: [[1]],
         reviews: [[[
-          { title: "Awesome book", description: "It's an awesome book"},
-          { title: "So good", description: "This book is so good"}
+          { title: "Awesome book", description: "It's an awesome book" },
+          { title: "So good", description: "This book is so good" }
         ],
-          { title: "Don't like", description: "I prefer Hamlet"}
+          { title: "Don't like", description: "I prefer Hamlet" }
         ]],
         authors: [{
           name: "William Shakespeare",
@@ -40,11 +41,12 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
       },
       magazine: "Mjallo!")
 
-    permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id, sections: [[[:title]]], reviews: [[[[:title, :description]]]] ]
+    permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id, sections: [[[:title]]], reviews: [[[[:title, :description]]]], pages: [[]] ]
 
     assert permitted.permitted?
     assert_equal "Romeo and Juliet", permitted[:book][:title]
-    
+
+    assert_equal [1], permitted[:book][:pages][0]
     assert_equal "Romance", permitted[:book][:sections][0][0][:title]
     assert_nil permitted[:book][:sections][0][0][:description]
     assert_equal "Awesome book", permitted[:book][:reviews][0][0][0][:title]
@@ -53,7 +55,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_equal "This book is so good", permitted[:book][:reviews][0][0][1][:description]
     assert_equal "Don't like", permitted[:book][:reviews][0][1][:title]
     assert_equal "I prefer Hamlet", permitted[:book][:reviews][0][1][:description]
-    
+
     assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
     assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
     assert_equal 200, permitted[:book][:details][:pages]
