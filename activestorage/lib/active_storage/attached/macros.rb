@@ -22,8 +22,11 @@ module ActiveStorage::Attached::Macros
   # (i.e. destroyed) whenever the record is destroyed.
   def has_one_attached(name, dependent: :purge_later)
     define_method(name) do
-      instance_variable_get("@active_storage_attached_#{name}") ||
+      if instance_variable_defined?("@active_storage_attached_#{name}")
+        instance_variable_get("@active_storage_attached_#{name}")
+      else
         instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::One.new(name, self))
+      end
     end
 
     has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record
@@ -60,8 +63,11 @@ module ActiveStorage::Attached::Macros
   # (i.e. destroyed) whenever the record is destroyed.
   def has_many_attached(name, dependent: :purge_later)
     define_method(name) do
-      instance_variable_get("@active_storage_attached_#{name}") ||
+      if instance_variable_defined?("@active_storage_attached_#{name}")
+        instance_variable_get("@active_storage_attached_#{name}")
+      else
         instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::Many.new(name, self))
+      end
     end
 
     has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment"
