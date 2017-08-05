@@ -240,7 +240,7 @@ module ActionView
         check_for_image_tag_errors(options)
         skip_pipeline = options.delete(:skip_pipeline)
 
-        src = options[:src] = path_to_image(source, skip_pipeline: skip_pipeline)
+        src = options[:src] = resolve_image_source(source, skip_pipeline)
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
@@ -361,6 +361,14 @@ module ActionView
           else
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
+          end
+        end
+
+        def resolve_image_source(source, skip_pipeline)
+          if source.class.in? [ActiveStorage::Variant, ActiveStorage::Blob, ActiveStorage::Attachment]
+            polymorphic_url(source)
+          else
+            path_to_image(source, skip_pipeline: skip_pipeline)
           end
         end
 
