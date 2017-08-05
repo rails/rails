@@ -365,10 +365,10 @@ module ActionView
         end
 
         def resolve_image_source(source, skip_pipeline)
-          if source.class.in? [ActiveStorage::Variant, ActiveStorage::Blob, ActiveStorage::Attachment]
-            polymorphic_url(source)
-          else
+          if source.is_a?(Symbol) || source.is_a?(String)
             path_to_image(source, skip_pipeline: skip_pipeline)
+          else
+            polymorphic_url(source)
           end
         end
 
