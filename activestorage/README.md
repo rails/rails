@@ -2,7 +2,7 @@
 
 Active Storage makes it simple to upload and reference files in cloud services, like Amazon S3, Google Cloud Storage or Microsoft Azure Storage and attach those files to Active Records. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
 
-Files can uploaded from the server to the cloud or directly from the client to the cloud.
+Files can be uploaded from the server to the cloud or directly from the client to the cloud.
 
 Image files can further more be transformed using on-demand variants for quality, aspect ratio, size, or any other
 MiniMagick supported transformation.
@@ -119,7 +119,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
-| `direct-uploads:start` | `<form>` | None | A form containing files for direct upload fields was submit. |
+| `direct-uploads:start` | `<form>` | None | A form containing files for direct upload fields was submitted. |
 | `direct-upload:initialize` | `<input>` | `{id, file}` | Dispatched for every file after form submission. |
 | `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
 | `direct-upload:before-blob-request` | `<input>` | `{id, file, xhr}` | Before making a request to your application for direct upload metadata. |
