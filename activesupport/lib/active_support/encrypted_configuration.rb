@@ -1,5 +1,6 @@
 require "yaml"
 require "active_support/encrypted_file"
+require "active_support/core_ext/object/inclusion"
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
@@ -7,7 +8,7 @@ module ActiveSupport
 
     def initialize(config_path:, key_path:, env_key:, serializer: :yaml)
       super content_path: config_path, key_path: key_path, env_key: env_key
-      @serializer = serializer
+      @serializer = validated_serializer(serializer)
     end
 
     def config
@@ -31,7 +32,6 @@ module ActiveSupport
           case @serializer
           when :yaml then YAML.dump(config)
           when :json then JSON.encode(config)
-          else raise "Unknown serializer: #{serializer}"
           end
         end
       end
@@ -41,9 +41,13 @@ module ActiveSupport
           case @serializer
           when :yaml then YAML.load(config)
           when :json then JSON.decode(config)
-          else raise "Unknown serializer: #{serializer}"
           end
         end
+      end
+
+      def validated_serializer(serializer)
+        serializer.presence_in(%i( yaml json )) ||
+          raise(ArgumentError.new("Unknown serializer: #{serializer}"))
       end
   end
 end
