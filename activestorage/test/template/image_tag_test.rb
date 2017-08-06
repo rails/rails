@@ -9,7 +9,6 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   setup do
-    @user = User.create!(name: "DHH")
     @blob = create_image_blob filename: "racecar.jpg"
   end
 
@@ -27,12 +26,9 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url attachment}" />), image_tag(attachment)
   end
 
-  test "attachment on a model" do
-    @user.avatar.attach @blob
-    assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url @user.avatar}" />), image_tag(@user.avatar)
-  end
-
   test "error when nothing's attached" do
+    @user = User.create!(name: "DHH")
+
     assert_not @user.avatar.attached?
     assert_raises { image_tag(@user.avatar) }
   end
