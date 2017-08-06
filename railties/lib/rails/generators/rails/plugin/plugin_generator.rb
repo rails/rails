@@ -76,8 +76,8 @@ module Rails
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
-#{rakefile_test_tasks}
 
+#{rakefile_test_tasks}
 task default: :test
       EOF
       if engine?
