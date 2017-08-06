@@ -11,6 +11,13 @@ module ActiveSupport
       @serializer = validated_serializer(serializer)
     end
 
+    # Allow a config to be started without a file present
+    def read
+      super
+    rescue ActiveSupport::EncryptedFile::MissingContentError
+      ""
+    end
+
     def config
       @config ||= deserialize(read).deep_symbolize_keys
     end
@@ -21,13 +28,6 @@ module ActiveSupport
     end
 
     private
-      # Allow a config to be started without a file present
-      def read
-        super
-      rescue ActiveSupport::EncryptedFile::MissingContentError
-        ""
-      end
-
       def serialize(config)
         if config.blank? then "" else
           case @serializer
