@@ -47,7 +47,7 @@ get '/patients/:id', to: 'patients#show', as: 'patient'
 and your application contains this code in the controller:
 
 ```ruby
-@patient = Patient.find(17)
+@patient = Patient.find(params[:id])
 ```
 
 and this in the corresponding view:
