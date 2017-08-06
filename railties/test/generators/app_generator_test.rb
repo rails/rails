@@ -75,6 +75,7 @@ DEFAULT_APP_FILES = %w(
   log
   package.json
   public
+  storage
   test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
@@ -89,6 +90,7 @@ DEFAULT_APP_FILES = %w(
   tmp
   tmp/cache
   tmp/cache/assets
+  tmp/storage
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -293,6 +295,65 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{app_root}/config/cable.yml"
     assert_file "#{app_root}/config/environments/production.rb" do |content|
       assert_no_match(/config\.action_cable/, content)
+    end
+  end
+
+  def test_active_storage_mini_magick_gem
+    run_generator
+    assert_file "Gemfile", /^# gem 'mini_magick'/
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-storage"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-record"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
     end
   end
 

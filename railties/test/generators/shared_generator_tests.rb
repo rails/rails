@@ -189,6 +189,97 @@ module SharedGeneratorTests
     end
   end
 
+  def test_generator_for_active_storage
+    run_generator
+
+    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
+      assert_match(/^\/\/= require activestorage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/storage.yml"
+    assert_directory "#{application_path}/db/migrate"
+    assert_directory "#{application_path}/storage"
+    assert_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_match(/\/storage\//, content)
+    end
+  end
+
+  def test_generator_if_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+
+    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
+      assert_no_match(/^\/\/= require activestorage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{application_path}/config/storage.yml"
+    assert_no_directory "#{application_path}/db/migrate"
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/\/storage\//, content)
+    end
+  end
+
+  def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+
+    assert_file "#{application_path}/app/assets/javascripts/application.js" do |content|
+      assert_no_match(/^\/\/= require activestorage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{application_path}/config/storage.yml"
+    assert_no_directory "#{application_path}/db/migrate"
+    assert_no_directory "#{application_path}/storage"
+    assert_no_directory "#{application_path}/tmp/storage"
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/\/storage\//, content)
+    end
+  end
+
   def test_generator_if_skip_action_mailer_is_given
     run_generator [destination_root, "--skip-action-mailer"]
     assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/

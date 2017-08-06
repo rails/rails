@@ -114,7 +114,7 @@ module Rails
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
-        template "storage.yml"
+        template "storage.yml" unless skip_active_storage?
 
         directory "environments"
         directory "initializers"
@@ -139,7 +139,7 @@ module Rails
         template "config/cable.yml"
       end
 
-      if !active_storage_config_exist
+      if !skip_active_storage? && !active_storage_config_exist
         template "config/storage.yml"
       end
 
@@ -353,6 +353,10 @@ module Rails
 
       def create_system_test_files
         build(:system_test) if depends_on_system_test?
+      end
+
+      def create_storage_files
+        build(:storage) unless skip_active_storage?
       end
 
       def create_tmp_files
