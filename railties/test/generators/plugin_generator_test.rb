@@ -101,6 +101,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Rakefile" do |contents|
       assert_no_match(/APP_RAKEFILE/, contents)
     end
+    assert_file "bin/rails" do |contents|
+      assert_no_match(/APP_PATH/, contents)
+    end
   end
 
   def test_generating_adds_dummy_app_in_full_mode_without_sprockets
@@ -114,6 +117,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
     run_generator [destination_root, "-T", "--mountable", "--dummy-path", "my_dummy_app"]
     assert_file "Rakefile", /APP_RAKEFILE/
+    assert_file "bin/rails", /APP_PATH/
   end
 
   def test_generating_adds_dummy_app_without_javascript_and_assets_deps
