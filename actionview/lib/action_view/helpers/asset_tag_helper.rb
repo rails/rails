@@ -200,7 +200,7 @@ module ActionView
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
-      # path or a file.
+      # path, a file or an Active Storage attachment.
       #
       # ==== Options
       #
@@ -216,6 +216,8 @@ module ActionView
       #   pairs, each image path will be expanded before the list is formatted as a string.
       #
       # ==== Examples
+      #
+      # Assets (images that are part of your app):
       #
       #   image_tag("icon")
       #   # => <img alt="Icon" src="/assets/icon" />
@@ -235,6 +237,15 @@ module ActionView
       #   # => <img src="/assets/icon.png" srcset="/assets/icon_2x.png 2x, /assets/icon_4x.png 4x">
       #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
       #   # => <img src="/assets/pic.jpg" srcset="/assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw">
+      #
+      # Active Storage (images that are uploaded by the users of your app):
+      #
+      #   image_tag(user.avatar)
+      #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" alt="Tiger" />
+      #   image_tag(user.avatar.variant(resize: "100x100"))
+      #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" alt="Tiger" />
+      #   image_tag(user.avatar.variant(resize: "100x100"), size: '100')
+      #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" alt="Tiger" />
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
