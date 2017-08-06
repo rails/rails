@@ -7,11 +7,11 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   setup do
     @credentials_config_path = File.join(Dir.tmpdir, "credentials.yml.enc")
     
-    @credentials_key_path = File.join(Dir.tmpdir, "credentials.yml.key")
+    @credentials_key_path = File.join(Dir.tmpdir, "master.key")
     File.write(@credentials_key_path, ActiveSupport::EncryptedConfiguration.generate_key)
 
     @credentials = ActiveSupport::EncryptedConfiguration.new \
-      config_path: @credentials_config_path, key_path: @credentials_key_path, env_key: 'RAILS_CREDENTIALS_KEY'
+      config_path: @credentials_config_path, key_path: @credentials_key_path, env_key: "RAILS_MASTER_KEY"
   end
 
   teardown do
@@ -23,14 +23,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     FileUtils.rm_rf @credentials_key_path
 
     begin
-      ENV["RAILS_CREDENTIALS_KEY"] = ActiveSupport::EncryptedConfiguration.generate_key
+      ENV["RAILS_MASTER_KEY"] = ActiveSupport::EncryptedConfiguration.generate_key
       @credentials.write({ something: { good: true, bad: false }}.to_yaml)
 
       assert @credentials[:something][:good]
       assert_not @credentials.dig(:something, :bad)
       assert_nil @credentials.fetch(:nothing, nil)
     ensure 
-      ENV["RAILS_CREDENTIALS_KEY"] = nil
+      ENV["RAILS_MASTER_KEY"] = nil
     end
   end
 
@@ -76,7 +76,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
       ActiveSupport::EncryptedConfiguration.new \
         config_path: @credentials_config_path,
         key_path: @credentials_key_path,
-        env_key: 'RAILS_CREDENTIALS_KEY',
+        env_key: "RAILS_MASTER_KEY",
         serializer: serializer
     end
 end
