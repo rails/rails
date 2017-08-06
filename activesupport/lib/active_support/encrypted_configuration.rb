@@ -15,6 +15,7 @@ module ActiveSupport
       @config ||= deserialize(read).deep_symbolize_keys
     end
 
+    # Saves the current configuration to file, but won't persist any comments that where there already!
     def save
       write serialize(config)
     end
