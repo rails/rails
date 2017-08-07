@@ -38,7 +38,7 @@ module ActiveSupport
       if content_path.exist?
         decrypt content_path.binread
       else
-        raise MissingContentError.new(content_path)
+        raise MissingContentError, content_path
       end
     end
 
@@ -94,7 +94,7 @@ module ActiveSupport
       end
 
       def handle_missing_key
-        raise MissingKeyError.new(key_path: key_path, env_key: env_key)
+        raise MissingKeyError, key_path: key_path, env_key: env_key
       end
   end
 end

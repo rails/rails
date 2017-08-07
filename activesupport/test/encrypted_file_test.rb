@@ -8,7 +8,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
     @content = "One little fox jumped over the hedge"
 
     @content_path = File.join(Dir.tmpdir, "content.txt.enc")
-    
+
     @key_path = File.join(Dir.tmpdir, "content.txt.key")
     File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
 
@@ -29,7 +29,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
       @encrypted_file.write @content
 
       assert_equal @content, @encrypted_file.read
-    ensure 
+    ensure
       ENV["CONTENT_KEY"] = nil
     end
   end
