@@ -1,3 +1,7 @@
+*   Add git_source to `Gemfile` for plugin generator
+
+    *Yoshiyuki Hirano*
+
 *   Deprecate support of use `Rails::Application` subclass to start Rails server.
 
     *Yuji Yaginuma*
