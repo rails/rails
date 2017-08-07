@@ -295,6 +295,20 @@ module ActiveRecord
       assert_equal essays(:david_modest_proposal), essay
     end
 
+    def test_where_with_relation_on_has_many_association
+      essay = essays(:david_modest_proposal)
+      author = Author.where(essays: Essay.where(id: essay.id)).first
+
+      assert_equal authors(:david), author
+    end
+
+    def test_where_with_relation_on_has_one_association
+      author = authors(:david)
+      author_address = AuthorAddress.where(author: Author.where(id: author.id)).first
+      assert_equal author_addresses(:david_address), author_address
+    end
+
+
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
