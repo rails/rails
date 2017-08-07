@@ -590,10 +590,6 @@ module ActionMailer
 
     attr_internal :message
 
-    # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
-    # will be initialized according to the named method. If not, the mailer will
-    # remain uninitialized (useful when you only need to invoke the "receive"
-    # method, for instance).
     def initialize
       super()
       @_mail_was_called = false

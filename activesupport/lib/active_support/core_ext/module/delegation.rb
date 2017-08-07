@@ -273,6 +273,8 @@ class Module
       def method_missing(method, *args, &block)
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
+        elsif #{target}.nil?
+          raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
         else
           super
         end

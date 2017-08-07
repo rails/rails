@@ -108,6 +108,13 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("capital", "Capital".camelize(:lower))
   end
 
+  def test_camelize_invalid_option
+    e = assert_raise ArgumentError do
+      "Capital".camelize(nil)
+    end
+    assert_equal("Invalid option, use either :upper or :lower.", e.message)
+  end
+
   def test_dasherize
     UnderscoresToDashes.each do |underscored, dasherized|
       assert_equal(dasherized, underscored.dasherize)
