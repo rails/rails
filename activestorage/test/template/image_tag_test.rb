@@ -26,10 +26,15 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url attachment}" />), image_tag(attachment)
   end
 
-  test "error when nothing's attached" do
+  test "error when attachment's empty" do
     @user = User.create!(name: "DHH")
 
     assert_not @user.avatar.attached?
     assert_raises { image_tag(@user.avatar) }
+  end
+
+  test "error when object can't be resolved into url" do
+    unresolvable_object = ActionView::Helpers::AssetTagHelper
+    assert_raises { image_tag(unresolvable_object) }
   end
 end
