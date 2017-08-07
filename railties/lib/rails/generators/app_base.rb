@@ -459,6 +459,12 @@ module Rails
         end
       end
 
+      def run_active_storage
+        unless skip_active_storage?
+          rails_command "active_storage:install"
+        end
+      end
+
       def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
         keep_file(destination)

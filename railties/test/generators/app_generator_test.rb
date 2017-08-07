@@ -68,6 +68,7 @@ DEFAULT_APP_FILES = %w(
   config/spring.rb
   config/storage.yml
   db
+  db/migrate
   db/seeds.rb
   lib
   lib/tasks
@@ -408,7 +409,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbcmysql_database
-    run_generator([destination_root, "-d", "jdbcmysql"])
+    run_generator([destination_root, "-d", "jdbcmysql", "--skip-active-storage"])
     assert_file "config/database.yml", /mysql/
     assert_gem "activerecord-jdbcmysql-adapter"
   end
@@ -426,7 +427,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbc_database
-    run_generator([destination_root, "-d", "jdbc"])
+    run_generator([destination_root, "-d", "jdbc", "--skip-active-storage"])
     assert_file "config/database.yml", /jdbc/
     assert_file "config/database.yml", /mssql/
     assert_gem "activerecord-jdbc-adapter"
@@ -803,7 +804,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -813,12 +814,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], template: path).stub(:open, check_open, template) do
       generator.stub(:bundle_command, ensure_bundler_first) do
         generator.stub(:run, ensure_bundler_first) do
-          quietly { generator.invoke_all }
+          generator.stub(:rails_command, ensure_bundler_first) do
+            quietly { generator.invoke_all }
+          end
         end
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
   end
 
   def test_system_tests_directory_generated

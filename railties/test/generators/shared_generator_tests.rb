@@ -63,7 +63,7 @@ module SharedGeneratorTests
   end
 
   def test_shebang_is_added_to_rails_file
-    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
+    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full", "--skip-active-storage"]
     assert_file "bin/rails", /#!foo\/bar\/baz/
   end
 
@@ -129,13 +129,26 @@ module SharedGeneratorTests
   end
 
   def test_default_frameworks_are_required_when_others_are_removed
-    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets"]
-    assert_file "#{application_path}/config/application.rb", /require\s+["']rails["']/
-    assert_file "#{application_path}/config/application.rb", /require\s+["']active_model\/railtie["']/
-    assert_file "#{application_path}/config/application.rb", /require\s+["']active_job\/railtie["']/
-    assert_file "#{application_path}/config/application.rb", /require\s+["']action_controller\/railtie["']/
-    assert_file "#{application_path}/config/application.rb", /require\s+["']action_view\/railtie["']/
-    assert_file "#{application_path}/config/application.rb", /require\s+["']active_storage\/engine["']/
+    run_generator [
+      destination_root,
+      "--skip-active-record",
+      "--skip-active-storage",
+      "--skip-action-mailer",
+      "--skip-action-cable",
+      "--skip-sprockets"
+    ]
+
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']rails["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']active_model\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']active_job\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_record\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_storage\/engine["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']action_controller\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_mailer\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']action_view\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']action_cable\/engine["']/
+    assert_file "#{application_path}/config/application.rb", /^# require\s+["']sprockets\/railtie["']/
+    assert_file "#{application_path}/config/application.rb", /^require\s+["']rails\/test_unit\/railtie["']/
   end
 
   def test_generator_without_skips

@@ -461,6 +461,7 @@ module Rails
 
       public_task :apply_rails_template, :run_bundle
       public_task :run_webpack, :generate_spring_binstubs
+      public_task :run_active_storage
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

@@ -26,6 +26,7 @@ module ApplicationTests
 
     test "config.ru can be racked up" do
       Dir.chdir app_path do
+        FileUtils.rm_rf("db/migrate")
         @app = rackup
         assert_welcome get("/")
       end

@@ -287,6 +287,8 @@ module ApplicationTests
           ENV.delete "RAILS_ENV"
           ENV.delete "RACK_ENV"
 
+          Dir.chdir(app_path) { FileUtils.rm_rf("db/migrate") }
+
           app_file "db/schema.rb", <<-RUBY
             ActiveRecord::Schema.define(version: "1") do
               create_table :users do |t|
@@ -308,6 +310,8 @@ module ApplicationTests
       end
 
       test "db:setup sets ar_internal_metadata" do
+        Dir.chdir(app_path) { FileUtils.rm_rf("db/migrate") }
+
         app_file "db/schema.rb", ""
         rails "db:setup"
 
