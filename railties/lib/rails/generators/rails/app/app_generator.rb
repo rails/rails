@@ -109,7 +109,6 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
-        template "secrets.yml"
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
