@@ -33,12 +33,12 @@ module ActionDispatch
     #
     #   Rails.application.config.session_store :cookie_store, key: '_your_app_session'
     #
-    # Configure your secret key in config/secrets.yml:
+    # By default, your secret key is derived from your application name in 
+    # the test and development environments. In all other environments, it is stored
+    # encrypted in the config/credentials.yml.enc file.
     #
-    #   development:
-    #     secret_key_base: 'secret key'
-    #
-    # To generate a secret key for an existing application, run `rails secret`.
+    # If your application was not updated to Rails 5.2 specs, the secret_key_base
+    # will be found in the old `config/secrets.yml` file.
     #
     # If you are upgrading an existing Rails 3 app, you should leave your
     # existing secret_token in place and simply add the new secret_key_base.
