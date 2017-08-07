@@ -14,11 +14,11 @@
 
 *   `driven_by` now registers poltergeist and capybara-webkit
 
-    If driver poltergeist or capybara-webkit is set for System Tests,
+    If poltergeist or capybara-webkit are set as drivers is set for System Tests,
     `driven_by` will register the driver and set additional options passed via
-    `:options` param.
+    the `:options` parameter.
 
-    Refer to drivers documentation to learn what options can be passed.
+    Refer to the respective driver's documentation to see what options can be passed.
 
     *Mario Chavez*
 
