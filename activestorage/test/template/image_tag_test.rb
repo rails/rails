@@ -30,7 +30,7 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     @user = User.create!(name: "DHH")
 
     assert_not @user.avatar.attached?
-    assert_raises { image_tag(@user.avatar) }
+    assert_raises(ArgumentError) { image_tag(@user.avatar) }
   end
 
   test "error when object can't be resolved into url" do
