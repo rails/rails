@@ -12,6 +12,10 @@ ActiveJob::Base.logger = nil
 
 require "active_storage"
 
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
+
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
   erb = ERB.new(Pathname.new(File.expand_path("../service/configurations.yml", __FILE__)).read)
