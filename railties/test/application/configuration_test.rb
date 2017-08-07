@@ -641,6 +641,15 @@ module ApplicationTests
       assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
     end
 
+    test "require_master_key aborts app boot when missing key" do
+      remove_file "config/master.key"
+      add_to_config "config.require_master_key = true"
+
+      assert_raises(ActiveSupport::EncryptedFile::MissingKeyError) do
+        app "development"
+      end
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 

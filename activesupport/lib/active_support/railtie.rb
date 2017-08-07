@@ -49,6 +49,12 @@ module ActiveSupport
       Date.beginning_of_week_default = beginning_of_week_default
     end
 
+    initializer "active_support.require_master_key" do |app|
+      if app.config.respond_to?(:require_master_key) && app.config.require_master_key
+        app.credentials.key
+      end
+    end
+
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="

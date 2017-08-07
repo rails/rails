@@ -34,6 +34,10 @@ module ActiveSupport
       @env_key = env_key
     end
 
+    def key
+      read_env_key || read_key_file || handle_missing_key
+    end
+
     def read
       if content_path.exist?
         decrypt content_path.binread
@@ -80,10 +84,6 @@ module ActiveSupport
         @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
       end
 
-
-      def key
-        read_env_key || read_key_file || handle_missing_key
-      end
 
       def read_env_key
         ENV[env_key]
