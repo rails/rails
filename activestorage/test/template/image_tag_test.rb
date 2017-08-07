@@ -35,6 +35,6 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
 
   test "error when object can't be resolved into url" do
     unresolvable_object = ActionView::Helpers::AssetTagHelper
-    assert_raises { image_tag(unresolvable_object) }
+    assert_raises(ArgumentError) { image_tag(unresolvable_object) }
   end
 end
