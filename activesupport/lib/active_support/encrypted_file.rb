@@ -23,7 +23,7 @@ module ActiveSupport
     CIPHER = "aes-128-gcm"
 
     def self.generate_key
-      SecureRandom.hex(OpenSSL::Cipher.new(CIPHER).key_len)
+      SecureRandom.hex(ActiveSupport::MessageEncryptor.key_len(CIPHER))
     end
 
 
