@@ -6,9 +6,8 @@ module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
     delegate :dig, :fetch, :[], :[]=, to: :config
 
-    def initialize(config_path:, key_path:, env_key:, serializer: :yaml)
+    def initialize(config_path:, key_path:, env_key:)
       super content_path: config_path, key_path: key_path, env_key: env_key
-      @serializer = validated_serializer(serializer)
     end
 
     # Allow a config to be started without a file present
@@ -29,26 +28,19 @@ module ActiveSupport
 
     private
       def serialize(config)
-        if config.blank? then "" else
-          case @serializer
-          when :yaml then YAML.dump(config)
-          when :json then JSON.encode(config)
-          end
+        if config.blank?
+          ""
+        else
+          YAML.dump(config)
         end
       end
 
       def deserialize(config)
-        if config.blank? then {} else
-          case @serializer
-          when :yaml then YAML.load(config)
-          when :json then JSON.decode(config)
-          end
+        if config.blank?
+          {}
+        else
+          YAML.load(config)
         end
-      end
-
-      def validated_serializer(serializer)
-        serializer.presence_in(%i( yaml json )) ||
-          raise(ArgumentError.new("Unknown serializer: #{serializer}"))
       end
   end
 end

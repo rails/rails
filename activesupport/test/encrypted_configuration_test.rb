@@ -6,7 +6,7 @@ require "active_support/encrypted_configuration"
 class EncryptedConfigurationTest < ActiveSupport::TestCase
   setup do
     @credentials_config_path = File.join(Dir.tmpdir, "credentials.yml.enc")
-    
+
     @credentials_key_path = File.join(Dir.tmpdir, "master.key")
     File.write(@credentials_key_path, ActiveSupport::EncryptedConfiguration.generate_key)
 
@@ -29,7 +29,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
       assert @credentials[:something][:good]
       assert_not @credentials.dig(:something, :bad)
       assert_nil @credentials.fetch(:nothing, nil)
-    ensure 
+    ensure
       ENV["RAILS_MASTER_KEY"] = nil
     end
   end
@@ -54,29 +54,17 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "change configuration and save it by key file" do
     @credentials[:something] = "neat"
     @credentials.save
-    
+
     reloaded_config = new_credentials_configuration
 
     assert_equal "neat", reloaded_config[:something]
   end
 
-  test "change JSON configuration" do
-    json_config = new_credentials_configuration serializer: :json
-
-    json_config[:something] = "nice"
-    json_config.save
-
-    reloaded_json_configuration = new_credentials_configuration serializer: :json
-
-    assert_equal "nice", json_config[:something]
-  end
-
   private
-    def new_credentials_configuration(serializer: :yaml)
+    def new_credentials_configuration
       ActiveSupport::EncryptedConfiguration.new \
         config_path: @credentials_config_path,
         key_path: @credentials_key_path,
-        env_key: "RAILS_MASTER_KEY",
-        serializer: serializer
+        env_key: "RAILS_MASTER_KEY"
     end
 end
