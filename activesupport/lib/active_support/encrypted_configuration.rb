@@ -28,19 +28,11 @@ module ActiveSupport
 
     private
       def serialize(config)
-        if config.blank?
-          ""
-        else
-          YAML.dump(config)
-        end
+        config.present? ? YAML.dump(config) : ""
       end
 
       def deserialize(config)
-        if config.blank?
-          {}
-        else
-          YAML.load(config)
-        end
+        config.present? ? YAML.load(config) : {}
       end
   end
 end
