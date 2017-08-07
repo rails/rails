@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/encrypted_configuration"
+require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
   setup do
