@@ -1,3 +1,7 @@
+*   Skip unused components when running `bin/rails` in Rails plugin.
+
+    *Yoshiyuki Hirano*
+
 *   Deprecate support of use `Rails::Application` subclass to start Rails server.
 
     *Yuji Yaginuma*
