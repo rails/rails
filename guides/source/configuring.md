@@ -383,7 +383,7 @@ indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
 set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
 boolean values and must have old data converted to 1 and 0 (its native boolean
 serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a rake task which runs
+by setting up a Rake task which runs
 
     ```ruby
     ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
