@@ -565,9 +565,6 @@ class AssetTagHelperTest < ActionView::TestCase
     def blank?; true; end
     def to_s; "no-image-yet.png"; end
   end
-  def test_image_tag_with_blank_placeholder
-    assert_equal '<img alt="" src="/images/no-image-yet.png" />', image_tag(PlaceholderImage.new, alt: "")
-  end
   def test_image_path_with_blank_placeholder
     assert_equal "/images/no-image-yet.png", image_path(PlaceholderImage.new)
   end
