@@ -31,7 +31,7 @@ module ActionDispatch
         class UriEncoder # :nodoc:
           ENCODE   = "%%%02X".freeze
           US_ASCII = Encoding::US_ASCII
-	  ASCII_8  = Encoding::ASCII_8BIT
+          ASCII_8  = Encoding::ASCII_8BIT
           UTF_8    = Encoding::UTF_8
           EMPTY    = "".dup.force_encoding(US_ASCII).freeze
           DEC2HEX  = (0..255).to_a.map { |i| ENCODE % i }.map { |s| s.force_encoding(US_ASCII) }
@@ -61,7 +61,7 @@ module ActionDispatch
 
           def unescape_uri(uri)
             encoding = uri.encoding
-	    encoding = UTF_8 if ( encoding == US_ASCII || encoding == ASCII_8 )
+            encoding = UTF_8 if (encoding == US_ASCII || encoding == ASCII_8)
             uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
           end
 
