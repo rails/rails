@@ -1,3 +1,11 @@
+*   Deprecate `ActionDispatch::TestResponse` response aliases
+
+    `#success?`, `#missing?` & `#error?` are not supported by the actual
+    `ActionDispatch::Response` object and can produce false-positives. Instead,
+    use the response helpers provided by `Rack::Response`.
+
+    *Trevor Wistaff*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,
