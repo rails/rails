@@ -645,7 +645,7 @@ module ApplicationTests
       remove_file "config/master.key"
       add_to_config "config.require_master_key = true"
 
-      assert_raises(ActiveSupport::EncryptedFile::MissingKeyError) do
+      capture(:stderr) do
         app "development"
       end
     end

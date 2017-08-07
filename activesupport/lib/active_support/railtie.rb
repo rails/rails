@@ -51,7 +51,12 @@ module ActiveSupport
 
     initializer "active_support.require_master_key" do |app|
       if app.config.respond_to?(:require_master_key) && app.config.require_master_key
-        app.credentials.key
+        begin
+          app.credentials.key
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          $stderr.puts error.message
+          exit 1
+        end
       end
     end
 
