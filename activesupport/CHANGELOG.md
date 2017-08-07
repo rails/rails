@@ -1,7 +1,7 @@
 *   Update `String#camelize` to provide feedback when wrong option is passed
 
     `String#camelize` was returning nil without any feedback when an
-    invalid option was passed as parameter.
+    invalid option was passed as a parameter.
 
     Previously:
 
@@ -17,9 +17,9 @@
 
 *   Fix modulo operations involving durations
 
-    Rails 5.1 introduce an `ActiveSupport::Duration::Scalar` class as a wrapper
-    around a numeric value as a way of ensuring a duration was the outcome of
-    an expression. However the implementation was missing support for modulo
+    Rails 5.1 introduced `ActiveSupport::Duration::Scalar` as a wrapper
+    around numeric values as a way of ensuring a duration was the outcome of
+    an expression. However, the implementation was missing support for modulo
     operations. This support has now been added and should result in a duration
     being returned from expressions involving modulo operations.
 
@@ -135,15 +135,15 @@
 
 *   Fix implicit coercion calculations with scalars and durations
 
-    Previously calculations where the scalar is first would be converted to a duration
-    of seconds but this causes issues with dates being converted to times, e.g:
+    Previously, calculations where the scalar is first would be converted to a duration
+    of seconds, but this causes issues with dates being converted to times, e.g:
 
         Time.zone = "Beijing"           # => Asia/Shanghai
         date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
         2 * 1.day                       # => 172800 seconds
         date + 2 * 1.day                # => Mon, 22 May 2017 00:00:00 CST +08:00
 
-    Now the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
+    Now, the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
     the part structure of the duration where possible, e.g:
 
         Time.zone = "Beijing"           # => Asia/Shanghai
