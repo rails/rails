@@ -349,6 +349,7 @@ module ActiveRecord
       #   build_other(attributes={})        |     X      |              |    X
       #   create_other(attributes={})       |     X      |              |    X
       #   create_other!(attributes={})      |     X      |              |    X
+      #   reload_other                      |     X      |      X       |    X
       #
       # === Collection associations (one-to-many / many-to-many)
       #                                     |       |          | has_many
@@ -378,6 +379,7 @@ module ActiveRecord
       #   others.exists?                    |   X   |    X     |    X
       #   others.distinct                   |   X   |    X     |    X
       #   others.reset                      |   X   |    X     |    X
+      #   others.reload                     |   X   |    X     |    X
       #
       # === Overriding generated methods
       #
@@ -1426,6 +1428,8 @@ module ActiveRecord
         # [create_association!(attributes = {})]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
+        # [reload_association]
+        #   Returns the associated object, forcing a database read.
         #
         # === Example
         #
@@ -1435,6 +1439,7 @@ module ActiveRecord
         # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
         # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
         # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
+        # * <tt>Account#reload_beneficiary</tt>
         #
         # === Scopes
         #
@@ -1555,6 +1560,8 @@ module ActiveRecord
         # [create_association!(attributes = {})]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
+        # [reload_association]
+        #   Returns the associated object, forcing a database read.
         #
         # === Example
         #
@@ -1564,6 +1571,7 @@ module ActiveRecord
         # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
         # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
         # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
+        # * <tt>Post#reload_author</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
