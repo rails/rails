@@ -28,6 +28,7 @@ class Build
     "av"       => "actionview",
     "aj"       => "activejob",
     "ac"       => "actioncable",
+    "ast"      => "activestorage",
     "guides"   => "guides"
   }
 
