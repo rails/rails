@@ -169,7 +169,7 @@ module ActiveRecord
   class NoDatabaseError < StatementInvalid
   end
 
-  # Raised when Postgres returns 'cached plan must not change result type' and
+  # Raised when PostgreSQL returns 'cached plan must not change result type' and
   # we cannot retry gracefully (e.g. inside a transaction)
   class PreparedStatementCacheExpired < StatementInvalid
   end

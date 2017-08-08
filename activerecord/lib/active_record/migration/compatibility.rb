@@ -39,7 +39,7 @@ module ActiveRecord
             end
           end
 
-          # Since 5.1 Postgres adapter uses bigserial type for primary
+          # Since 5.1 PostgreSQL adapter uses bigserial type for primary
           # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
           # serial/int type instead -- the way it used to work before 5.1.
           unless options.key?(:id)
