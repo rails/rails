@@ -57,11 +57,12 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:)
+    def url(key, expires_in:, disposition:, filename:, content_type:)
       instrument :url, key do |payload|
         base_url = url_for(key)
         generated_url = signer.signed_uri(URI(base_url), false, permissions: "r",
-          expiry: format_expiry(expires_in), content_disposition: "#{disposition}; filename=\"#{filename}\"").to_s
+          expiry: format_expiry(expires_in), content_type: content_type,
+          content_disposition: "#{disposition}; filename=\"#{filename}\"").to_s
 
         payload[:url] = generated_url
 
