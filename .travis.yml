@@ -45,7 +45,7 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap,ac"
-    - "GEM=am,amo,as,av,aj"
+    - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
