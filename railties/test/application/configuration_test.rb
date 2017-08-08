@@ -642,12 +642,18 @@ module ApplicationTests
     end
 
     test "require_master_key aborts app boot when missing key" do
+      skip "can't run without fork" unless Process.respond_to?(:fork)
+
       remove_file "config/master.key"
       add_to_config "config.require_master_key = true"
 
-      capture(:stderr) do
-        app "development"
+      error = capture(:stderr) do
+        Process.wait(Process.fork { app "development" })
       end
+
+      assert_equal 1, $?.exitstatus
+      puts error
+      assert_match(/Missing.*RAILS_MASTER_KEY/, error)
     end
 
     test "protect from forgery is the default in a new app" do
