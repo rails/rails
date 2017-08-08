@@ -64,7 +64,7 @@ Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
 a directory for views, and a test.
 
 If you didn't want to use a generator, you could create your own file inside of
-app/mailers, just make sure that it inherits from `ActionMailer::Base`:
+`app/mailers`, just make sure that it inherits from `ActionMailer::Base`:
 
 ```ruby
 class MyMailer < ActionMailer::Base
