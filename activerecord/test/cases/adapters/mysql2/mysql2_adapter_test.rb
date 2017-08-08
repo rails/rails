@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/ddl_helper"
 
@@ -15,17 +17,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
         @conn.exec_query("DELETE FROM ex WHERE number = 1")
       end
     end
-  end
-
-  def test_valid_column
-    with_example_table do
-      column = @conn.columns("ex").find { |col| col.name == "id" }
-      assert @conn.valid_type?(column.type)
-    end
-  end
-
-  def test_invalid_column
-    assert_not @conn.valid_type?(:foobar)
   end
 
   def test_columns_for_distinct_zero_orders

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class Date < Value # :nodoc:
@@ -12,7 +14,7 @@ module ActiveModel
       end
 
       def type_cast_for_schema(value)
-        "'#{value.to_s(:db)}'"
+        value.to_s(:db).inspect
       end
 
       private

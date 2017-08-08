@@ -124,7 +124,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_rails_generators_help_does_not_include_app_nor_plugin_new
     output = capture(:stdout) { Rails::Generators.help }
-    assert_no_match(/app/, output)
+    assert_no_match(/app\W/, output)
     assert_no_match(/[^:]plugin/, output)
   end
 
@@ -200,7 +200,7 @@ class GeneratorsTest < Rails::Generators::TestCase
 
     self.class.class_eval(<<-end_eval, __FILE__, __LINE__ + 1)
       class WithOptionsGenerator < Rails::Generators::Base
-        class_option :generate, :default => true
+        class_option :generate, default: true, type: :boolean
       end
     end_eval
 
@@ -233,7 +233,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_usage_with_embedded_ruby
-    require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
+    require_relative "fixtures/lib/generators/usage_template/usage_template_generator"
     output = capture(:stdout) { Rails::Generators.invoke :usage_template, ["--help"] }
     assert_match(/:: 2 ::/, output)
   end

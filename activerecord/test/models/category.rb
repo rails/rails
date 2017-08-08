@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts
   has_and_belongs_to_many :special_posts, class_name: "Post"
@@ -29,6 +31,15 @@ class Category < ActiveRecord::Base
   has_many :authors_with_select, -> { select "authors.*, categorizations.post_id" }, through: :categorizations, source: :author
 
   scope :general, -> { where(name: "General") }
+
+  # Should be delegated `ast` and `locked` to `arel`.
+  def self.ast
+    raise
+  end
+
+  def self.locked
+    raise
+  end
 end
 
 class SpecialCategory < Category

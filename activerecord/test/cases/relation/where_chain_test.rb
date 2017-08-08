@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -25,7 +27,7 @@ module ActiveRecord
     end
 
     def test_association_not_eq
-      expected = Arel::Nodes::Grouping.new(Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new))
+      expected = Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new(1))
       relation = Post.joins(:comments).where.not(comments: { title: "hello" })
       assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
     end

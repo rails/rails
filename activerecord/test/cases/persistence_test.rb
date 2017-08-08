@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/aircraft"
 require "models/post"
@@ -49,7 +51,7 @@ class PersistenceTest < ActiveRecord::TestCase
         assert !test_update_with_order_succeeds.call("id ASC") # test that this wasn't a fluke and using an incorrect order results in an exception
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\Z/i) do
+        assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
           test_update_with_order_succeeds.call("id DESC")
         end
       end
@@ -435,6 +437,13 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_delete_doesnt_run_callbacks
     Topic.find(1).delete
     assert_not_nil Topic.find(2)
+  end
+
+  def test_delete_isnt_affected_by_scoping
+    topic = Topic.find(1)
+    assert_difference("Topic.count", -1) do
+      Topic.where("1=0").scoping { topic.delete }
+    end
   end
 
   def test_destroy
@@ -993,33 +1002,19 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   class SaveTest < ActiveRecord::TestCase
-    self.use_transactional_tests = false
-
     def test_save_touch_false
-      widget = Class.new(ActiveRecord::Base) do
-        connection.create_table :widgets, force: true do |t|
-          t.string :name
-          t.timestamps null: false
-        end
-
-        self.table_name = :widgets
-      end
-
-      instance = widget.create!(
+      pet = Pet.create!(
         name: "Bob",
         created_at: 1.day.ago,
         updated_at: 1.day.ago)
 
-      created_at = instance.created_at
-      updated_at = instance.updated_at
+      created_at = pet.created_at
+      updated_at = pet.updated_at
 
-      instance.name = "Barb"
-      instance.save!(touch: false)
-      assert_equal instance.created_at, created_at
-      assert_equal instance.updated_at, updated_at
-    ensure
-      ActiveRecord::Base.connection.drop_table widget.table_name
-      widget.reset_column_information
+      pet.name = "Barb"
+      pet.save!(touch: false)
+      assert_equal pet.created_at, created_at
+      assert_equal pet.updated_at, updated_at
     end
   end
 

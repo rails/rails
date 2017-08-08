@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class Mysql2SqlTypesTest < ActiveRecord::Mysql2TestCase
@@ -8,7 +10,7 @@ class Mysql2SqlTypesTest < ActiveRecord::Mysql2TestCase
     assert_equal "blob", type_to_sql(:binary)
   end
 
-  def type_to_sql(*args)
-    ActiveRecord::Base.connection.type_to_sql(*args)
+  def type_to_sql(type, limit = nil)
+    ActiveRecord::Base.connection.type_to_sql(type, limit: limit)
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -31,15 +33,21 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_not_nil @connection.encoding
+      assert_queries(1) do
+        assert_not_nil @connection.encoding
+      end
     end
 
     def test_collation
-      assert_not_nil @connection.collation
+      assert_queries(1) do
+        assert_not_nil @connection.collation
+      end
     end
 
     def test_ctype
-      assert_not_nil @connection.ctype
+      assert_queries(1) do
+        assert_not_nil @connection.ctype
+      end
     end
 
     def test_default_client_min_messages
@@ -105,7 +113,7 @@ module ActiveRecord
     end
 
     def test_table_alias_length_logs_name
-      @connection.instance_variable_set("@table_alias_length", nil)
+      @connection.instance_variable_set("@max_identifier_length", nil)
       @connection.table_alias_length
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
@@ -177,7 +185,7 @@ module ActiveRecord
       assert_not_equal original_connection_pid, new_connection_pid,
         "umm -- looks like you didn't break the connection, because we're still " \
         "successfully querying with the same connection pid."
-
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end

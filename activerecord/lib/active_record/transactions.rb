@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
@@ -123,7 +125,7 @@ module ActiveRecord
     #     # statement will cause a PostgreSQL error, even though the unique
     #     # constraint is no longer violated:
     #     Number.create(i: 1)
-    #     # => "PGError: ERROR:  current transaction is aborted, commands
+    #     # => "PG::Error: ERROR:  current transaction is aborted, commands
     #     #     ignored until end of transaction block"
     #   end
     #
@@ -283,7 +285,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if] << "transaction_include_any_action?(#{fire_on})"
+            options[:if].unshift("transaction_include_any_action?(#{fire_on})")
           end
         end
 
@@ -430,8 +432,8 @@ module ActiveRecord
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
             pk = self.class.primary_key
-            if pk && read_attribute(pk) != restore_state[:id]
-              write_attribute(pk, restore_state[:id])
+            if pk && _read_attribute(pk) != restore_state[:id]
+              _write_attribute(pk, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end
@@ -490,7 +492,7 @@ module ActiveRecord
       def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
           restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
+          clear_transaction_record_state if transaction_state.fully_completed?
         end
       end
   end

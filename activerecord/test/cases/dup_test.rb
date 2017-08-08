@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/reply"
 require "models/topic"
@@ -143,6 +145,8 @@ module ActiveRecord
     end
 
     def test_dup_without_primary_key
+      skip if current_adapter?(:OracleAdapter)
+
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "parrots_pirates"
       end

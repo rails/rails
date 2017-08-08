@@ -1,9 +1,21 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
 
   tests ActionView::Helpers::FormTagHelper
+
+  class WithActiveStorageRoutesControllers < ActionController::Base
+    test_routes do
+      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
+    end
+
+    def url_options
+      { host: "testtwo.host" }
+    end
+  end
 
   def setup
     super
@@ -14,7 +26,7 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    "".tap do |txt|
+    "".dup.tap do |txt|
       if enforce_utf8
         txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
       end
@@ -30,7 +42,7 @@ class FormTagHelperTest < ActionView::TestCase
 
     method = method.to_s == "get" ? "get" : "post"
 
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
     txt << %{ enctype="multipart/form-data"} if enctype
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
@@ -174,6 +186,33 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_file_field_tag_with_options
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
+  end
+
+  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true)
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_defined
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true)
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_dont_mutate_arguments
+    original_options = { class: "pix", direct_upload: true }
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      file_field_tag("picsplz", original_options)
+    )
+
+    assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
   def test_password_field_tag
@@ -342,6 +381,12 @@ class FormTagHelperTest < ActionView::TestCase
   def test_text_field_tag_size_symbol
     actual = text_field_tag "title", "Hello!", size: 75
     expected = %(<input id="title" name="title" size="75" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_text_field_tag_with_ac_parameters
+    actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
+    expected = %(<input id="title" name="title" type="text" value="{&quot;key&quot;=&gt;&quot;value&quot;}" />)
     assert_dom_equal expected, actual
   end
 

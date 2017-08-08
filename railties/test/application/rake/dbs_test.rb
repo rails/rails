@@ -1,5 +1,4 @@
 require "isolation/abstract_unit"
-require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   module RakeTests
@@ -257,6 +256,13 @@ module ApplicationTests
 
           columns = `bin/rails runner 'p ActiveRecord::Base.connection.columns("geese").map(&:name)'`.strip
           assert_equal columns, '["gooseid", "name"]'
+        end
+      end
+
+      test "db:schema:load fails if schema.rb doesn't exist yet" do
+        Dir.chdir(app_path) do
+          stderr_output = capture(:stderr) { `bin/rails db:schema:load` }
+          assert_match(/Run `rails db:migrate` to create it/, stderr_output)
         end
       end
 

@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
+require "timeout"
 require "concurrent/atomic/count_down_latch"
 Thread.abort_on_exception = true
 
@@ -151,7 +154,7 @@ module ActionController
       end
 
       def write_sleep_autoload
-        path = File.join(File.dirname(__FILE__), "../fixtures")
+        path = File.expand_path("../fixtures", __dir__)
         ActiveSupport::Dependencies.autoload_paths << path
 
         response.headers["Content-Type"] = "text/event-stream"

@@ -1,4 +1,4 @@
-require "rails/generators/rails/resource/resource_generator"
+require_relative "../resource/resource_generator"
 
 module Rails
   module Generators
@@ -6,6 +6,7 @@ module Rails
       remove_hook_for :resource_controller
       remove_class_option :actions
 
+      class_option :api, type: :boolean
       class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
       class_option :assets, type: :boolean

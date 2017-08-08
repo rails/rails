@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
 
     eager_autoload do
       autoload :NumberConverter
+      autoload :RoundingHelper
       autoload :NumberToRoundedConverter
       autoload :NumberToDelimitedConverter
       autoload :NumberToHumanConverter

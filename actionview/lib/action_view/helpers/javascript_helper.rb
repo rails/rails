@@ -1,4 +1,6 @@
-require "action_view/helpers/tag_helper"
+# frozen_string_literal: true
+
+require_relative "tag_helper"
 
 module ActionView
   module Helpers
@@ -13,8 +15,8 @@ module ActionView
         "'"     => "\\'"
       }
 
-      JS_ESCAPE_MAP["\342\200\250".force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
-      JS_ESCAPE_MAP["\342\200\251".force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
+      JS_ESCAPE_MAP["\342\200\250".dup.force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
+      JS_ESCAPE_MAP["\342\200\251".dup.force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActionCable
@@ -10,7 +12,7 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor(:config, instance_accessor: true) { ActionCable::Server::Configuration.new }
+      cattr_accessor :config, instance_accessor: true, default: ActionCable::Server::Configuration.new
 
       def self.logger; config.logger; end
       delegate :logger, to: :config

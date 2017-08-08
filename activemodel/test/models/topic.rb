@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Topic
   include ActiveModel::Validations
   include ActiveModel::Validations::Callbacks

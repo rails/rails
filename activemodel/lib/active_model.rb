@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Copyright (c) 2004-2017 David Heinemeier Hansson
 #
@@ -23,7 +25,7 @@
 
 require "active_support"
 require "active_support/rails"
-require "active_model/version"
+require_relative "active_model/version"
 
 module ActiveModel
   extend ActiveSupport::Autoload
@@ -68,5 +70,5 @@ module ActiveModel
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + "/active_model/locale/en.yml"
+  I18n.load_path << File.expand_path("active_model/locale/en.yml", __dir__)
 end

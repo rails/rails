@@ -1,30 +1,41 @@
-*   Remove deprecated behavior that halts callbacks when the return is false.
+*   Add method `#merge!` for `ActiveModel::Errors`.
 
-    *Rafael Mendonça França*
+    *Jahfer Husain*
 
-*   Remove unused `ActiveModel::TestCase` class.
+*   Fix regression in numericality validator when comparing Decimal and Float input
+    values with more scale than the schema.
 
-    *Yuji Yaginuma*
+    *Bradley Priest*
 
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
 
-    *Iain Beeston*
+    Change `#keys` to only return the keys that don't have empty messages.
 
-*   Allow indifferent access in `ActiveModel::Errors`.
+    Change `#values` to only return the not empty values.
 
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
+    Example:
 
-    *Kenichi Kamiya*
+        # Before
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => [:name]
+        person.errors.values   # => [[]]
 
-*   Removed deprecated `:tokenizer` in the length validator.
+        # After
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => []
+        person.errors.values   # => []
 
-    *Rafael Mendonça França*
-
-*   Removed deprecated methods in `ActiveModel::Errors`.
-
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
+    *bogdanvlviv*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "core_ext/date_and_time_behavior"
 require "time_zone_test_helpers"
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
-  def date_time_init(year, month, day, hour, minute, second, *args)
-    DateTime.civil(year, month, day, hour, minute, second)
+  def date_time_init(year, month, day, hour, minute, second, usec = 0)
+    DateTime.civil(year, month, day, hour, minute, second + (usec / 1000000))
   end
 
   include DateAndTimeBehavior
@@ -26,6 +28,28 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal "2008-06-09T04:05:01-05:00", DateTime.civil(2008, 6, 9, 4, 5, 1, Rational(-18000, 86400)).to_s(:iso8601)
       assert_equal "2009-02-05T14:30:05+00:00", DateTime.civil(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
     end
+  end
+
+  def test_next_occur
+    datetime = DateTime.new(2016, 9, 24, 0, 0) # saturday
+    assert_equal datetime.next_occurring(:monday), datetime.since(2.days)
+    assert_equal datetime.next_occurring(:tuesday), datetime.since(3.days)
+    assert_equal datetime.next_occurring(:wednesday), datetime.since(4.days)
+    assert_equal datetime.next_occurring(:thursday), datetime.since(5.days)
+    assert_equal datetime.next_occurring(:friday), datetime.since(6.days)
+    assert_equal datetime.next_occurring(:saturday), datetime.since(1.week)
+    assert_equal datetime.next_occurring(:sunday), datetime.since(1.day)
+  end
+
+  def test_prev_occur
+    datetime = DateTime.new(2016, 9, 24, 0, 0) # saturday
+    assert_equal datetime.prev_occurring(:monday), datetime.ago(5.days)
+    assert_equal datetime.prev_occurring(:tuesday), datetime.ago(4.days)
+    assert_equal datetime.prev_occurring(:wednesday), datetime.ago(3.days)
+    assert_equal datetime.prev_occurring(:thursday), datetime.ago(2.days)
+    assert_equal datetime.prev_occurring(:friday), datetime.ago(1.day)
+    assert_equal datetime.prev_occurring(:saturday), datetime.ago(1.week)
+    assert_equal datetime.prev_occurring(:sunday), datetime.ago(6.days)
   end
 
   def test_readable_inspect
@@ -113,7 +137,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal DateTime.civil(2005, 2, 4, 23, 59, 59), DateTime.civil(2005, 2, 4, 10, 10, 10).end_of_day
+    assert_equal DateTime.civil(2005, 2, 4, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 2, 4, 10, 10, 10).end_of_day
   end
 
   def test_beginning_of_hour
@@ -121,7 +145,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_hour
-    assert_equal DateTime.civil(2005, 2, 4, 19, 59, 59), DateTime.civil(2005, 2, 4, 19, 30, 10).end_of_hour
+    assert_equal DateTime.civil(2005, 2, 4, 19, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 2, 4, 19, 30, 10).end_of_hour
   end
 
   def test_beginning_of_minute
@@ -129,13 +153,13 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_minute
-    assert_equal DateTime.civil(2005, 2, 4, 19, 30, 59), DateTime.civil(2005, 2, 4, 19, 30, 10).end_of_minute
+    assert_equal DateTime.civil(2005, 2, 4, 19, 30, Rational(59999999999, 1000000000)), DateTime.civil(2005, 2, 4, 19, 30, 10).end_of_minute
   end
 
   def test_end_of_month
-    assert_equal DateTime.civil(2005, 3, 31, 23, 59, 59), DateTime.civil(2005, 3, 20, 10, 10, 10).end_of_month
-    assert_equal DateTime.civil(2005, 2, 28, 23, 59, 59), DateTime.civil(2005, 2, 20, 10, 10, 10).end_of_month
-    assert_equal DateTime.civil(2005, 4, 30, 23, 59, 59), DateTime.civil(2005, 4, 20, 10, 10, 10).end_of_month
+    assert_equal DateTime.civil(2005, 3, 31, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 3, 20, 10, 10, 10).end_of_month
+    assert_equal DateTime.civil(2005, 2, 28, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 2, 20, 10, 10, 10).end_of_month
+    assert_equal DateTime.civil(2005, 4, 30, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 4, 20, 10, 10, 10).end_of_month
   end
 
   def test_last_year
@@ -162,12 +186,22 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2006, 2, 22, 15, 15, 10), DateTime.civil(2005, 2, 22, 15, 15, 10).change(year: 2006)
     assert_equal DateTime.civil(2005, 6, 22, 15, 15, 10), DateTime.civil(2005, 2, 22, 15, 15, 10).change(month: 6)
     assert_equal DateTime.civil(2012, 9, 22, 15, 15, 10), DateTime.civil(2005, 2, 22, 15, 15, 10).change(year: 2012, month: 9)
-    assert_equal DateTime.civil(2005, 2, 22, 16),       DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16)
-    assert_equal DateTime.civil(2005, 2, 22, 16, 45),    DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16, min: 45)
-    assert_equal DateTime.civil(2005, 2, 22, 15, 45),    DateTime.civil(2005, 2, 22, 15, 15, 10).change(min: 45)
+    assert_equal DateTime.civil(2005, 2, 22, 16),         DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16)
+    assert_equal DateTime.civil(2005, 2, 22, 16, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16, min: 45)
+    assert_equal DateTime.civil(2005, 2, 22, 15, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(min: 45)
+
+    # datetime with non-zero offset
+    assert_equal DateTime.civil(2005, 2, 22, 15, 15, 10, Rational(-5, 24)), DateTime.civil(2005, 2, 22, 15, 15, 10, 0).change(offset: Rational(-5, 24))
 
     # datetime with fractions of a second
     assert_equal DateTime.civil(2005, 2, 1, 15, 15, 10.7), DateTime.civil(2005, 2, 22, 15, 15, 10.7).change(day: 1)
+    assert_equal DateTime.civil(2005, 1, 2, 11, 22, Rational(33000008, 1000000)), DateTime.civil(2005, 1, 2, 11, 22, 33).change(usec: 8)
+    assert_equal DateTime.civil(2005, 1, 2, 11, 22, Rational(33000008, 1000000)), DateTime.civil(2005, 1, 2, 11, 22, 33).change(nsec: 8000)
+    assert_raise(ArgumentError) { DateTime.civil(2005, 1, 2, 11, 22, 0).change(usec: 1, nsec: 1) }
+    assert_raise(ArgumentError) { DateTime.civil(2005, 1, 2, 11, 22, 0).change(usec: 1000000) }
+    assert_raise(ArgumentError) { DateTime.civil(2005, 1, 2, 11, 22, 0).change(nsec: 1000000000) }
+    assert_nothing_raised { DateTime.civil(2005, 1, 2, 11, 22, 0).change(usec: 999999) }
+    assert_nothing_raised { DateTime.civil(2005, 1, 2, 11, 22, 0).change(nsec: 999999999) }
   end
 
   def test_advance

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "tempfile"
@@ -47,22 +49,6 @@ module ActiveRecord
         ensure
           ActiveRecord::Base.establish_connection(original_connection)
         end
-      end
-
-      def test_valid_column
-        with_example_table do
-          column = @conn.columns("ex").find { |col| col.name == "id" }
-          assert @conn.valid_type?(column.type)
-        end
-      end
-
-      # sqlite3 databases should be able to support any type and not just the
-      # ones mentioned in the native_database_types.
-      #
-      # Therefore test_invalid column should always return true even if the
-      # type is not valid.
-      def test_invalid_column
-        assert @conn.valid_type?(:foobar)
       end
 
       def test_column_types
@@ -181,7 +167,7 @@ module ActiveRecord
             data binary
           )
         eosql
-        str = "\x80".force_encoding("ASCII-8BIT")
+        str = "\x80".dup.force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
         assert_equal str, binary.data
@@ -190,7 +176,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name = "hello".force_encoding(Encoding::ASCII_8BIT)
+        name = "hello".dup.force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
@@ -276,8 +262,7 @@ module ActiveRecord
 
       def test_tables_logs_name
         sql = <<-SQL
-          SELECT name FROM sqlite_master
-          WHERE type = 'table' AND name <> 'sqlite_sequence'
+          SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
@@ -295,8 +280,7 @@ module ActiveRecord
       def test_table_exists_logs_name
         with_example_table do
           sql = <<-SQL
-            SELECT name FROM sqlite_master
-            WHERE type = 'table' AND name <> 'sqlite_sequence' AND name = 'ex'
+            SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
             assert @conn.table_exists?("ex")

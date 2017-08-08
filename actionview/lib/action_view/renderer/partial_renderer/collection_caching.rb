@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern
@@ -5,7 +7,7 @@ module ActionView
     included do
       # Fallback cache store if Action View is used without Rails.
       # Otherwise overridden in Railtie to use Rails.cache.
-      mattr_accessor(:collection_cache) { ActiveSupport::Cache::MemoryStore.new }
+      mattr_accessor :collection_cache, default: ActiveSupport::Cache::MemoryStore.new
     end
 
     private
@@ -38,7 +40,7 @@ module ActionView
       end
 
       def expanded_cache_key(key)
-        key = @view.fragment_cache_key(@view.cache_fragment_name(key, virtual_path: @template.virtual_path))
+        key = @view.combined_fragment_cache_key(@view.cache_fragment_name(key, virtual_path: @template.virtual_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
 

@@ -1,4 +1,4 @@
-# Oracle/OCI 8i, 9, 10g
+# Oracle/OCI 11g or higher recommended
 #
 # Requires Ruby/OCI8:
 #  https://github.com/kubo/ruby-oci8
@@ -17,7 +17,7 @@
 #  cursor_sharing: similar
 #
 default: &default
-  adapter: oracle
+  adapter: oracle_enhanced
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: <%= app_name %>
   password:
@@ -45,7 +45,9 @@ test:
 # On Heroku and other platform providers, you may have a full connection URL
 # available as an environment variable. For example:
 #
-#   DATABASE_URL="oracle://myuser:mypass@localhost/somedatabase"
+#   DATABASE_URL="oracle-enhanced://myuser:mypass@localhost/somedatabase"
+#
+# Note that the adapter name uses a dash instead of an underscore.
 #
 # You can use this database configuration with:
 #

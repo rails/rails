@@ -1,7 +1,7 @@
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
-require "rails/engine/configuration"
-require "rails/source_annotation_extractor"
+require_relative "../engine/configuration"
+require_relative "../source_annotation_extractor"
 
 module Rails
   class Application
@@ -13,9 +13,9 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :read_encrypted_secrets, :log_level
 
-      attr_writer :log_level
       attr_reader :encoding, :api_only
 
       def initialize(*)
@@ -34,7 +34,7 @@ module Rails
         @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
-        @log_level                       = nil
+        @log_level                       = :debug
         @generators                      = app_generators
         @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                  = [:all]
@@ -51,6 +51,62 @@ module Rails
         @debug_exception_response_format = nil
         @x                               = Custom.new
         @enable_dependency_loading       = false
+        @read_encrypted_secrets          = false
+      end
+
+      def load_defaults(target_version)
+        case target_version.to_s
+        when "5.0"
+          if respond_to?(:action_controller)
+            action_controller.per_form_csrf_tokens = true
+            action_controller.forgery_protection_origin_check = true
+          end
+
+          ActiveSupport.to_time_preserves_timezone = true
+
+          if respond_to?(:active_record)
+            active_record.belongs_to_required_by_default = true
+          end
+
+          self.ssl_options = { hsts: { subdomains: true } }
+
+        when "5.1"
+          load_defaults "5.0"
+
+          if respond_to?(:assets)
+            assets.unknown_asset_fallback = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = true
+          end
+
+        when "5.2"
+          load_defaults "5.1"
+
+          if respond_to?(:active_record)
+            active_record.cache_versioning = true
+            # Remove the temporary load hook from SQLite3Adapter when this is removed
+            ActiveSupport.on_load(:active_record_sqlite3adapter) do
+              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+            end
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_authenticated_cookie_encryption = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.use_authenticated_message_encryption = true
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.default_protect_from_forgery = true
+          end
+
+        else
+          raise "Unknown version #{target_version.to_s.inspect}"
+        end
       end
 
       def encoding=(value)
@@ -80,7 +136,7 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config/secrets.yml"
+          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
@@ -101,7 +157,14 @@ module Rails
         config = if yaml && yaml.exist?
           require "yaml"
           require "erb"
-          YAML.load(ERB.new(yaml.read).result) || {}
+          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
+          shared = loaded_yaml.delete("shared")
+          if shared
+            loaded_yaml.each do |_k, values|
+              values.reverse_merge!(shared)
+            end
+          end
+          Hash.new(shared).merge(loaded_yaml)
         elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
@@ -117,10 +180,6 @@ module Rails
               "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
-      end
-
-      def log_level
-        @log_level ||= (Rails.env.production? ? :info : :debug)
       end
 
       def colorize_logging

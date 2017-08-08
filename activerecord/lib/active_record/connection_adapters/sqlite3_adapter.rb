@@ -1,10 +1,13 @@
-require "active_record/connection_adapters/abstract_adapter"
-require "active_record/connection_adapters/statement_pool"
-require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
-require "active_record/connection_adapters/sqlite3/quoting"
-require "active_record/connection_adapters/sqlite3/schema_creation"
-require "active_record/connection_adapters/sqlite3/schema_definitions"
-require "active_record/connection_adapters/sqlite3/schema_dumper"
+# frozen_string_literal: true
+
+require_relative "abstract_adapter"
+require_relative "statement_pool"
+require_relative "sqlite3/explain_pretty_printer"
+require_relative "sqlite3/quoting"
+require_relative "sqlite3/schema_creation"
+require_relative "sqlite3/schema_definitions"
+require_relative "sqlite3/schema_dumper"
+require_relative "sqlite3/schema_statements"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -55,6 +58,7 @@ module ActiveRecord
 
       include SQLite3::Quoting
       include SQLite3::ColumnDumper
+      include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -70,6 +74,23 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your application.rb file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
+
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
@@ -80,14 +101,6 @@ module ActiveRecord
 
       def update_table_definition(table_name, base) # :nodoc:
         SQLite3::Table.new(table_name, base)
-      end
-
-      def schema_creation # :nodoc:
-        SQLite3::SchemaCreation.new self
-      end
-
-      def arel_visitor # :nodoc:
-        Arel::Visitors::SQLite.new(self)
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -109,21 +122,6 @@ module ActiveRecord
 
       def supports_partial_index?
         sqlite_version >= "3.8.0"
-      end
-
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations? #:nodoc:
-        true
-      end
-
-      def supports_primary_key? #:nodoc:
-        true
       end
 
       def requires_reloading?
@@ -167,10 +165,6 @@ module ActiveRecord
         true
       end
 
-      def valid_type?(type)
-        true
-      end
-
       # Returns 62. SQLite supports index names up to 64
       # characters. The rest is used by Rails internally to perform
       # temporary rename operations
@@ -194,7 +188,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = select_value("PRAGMA foreign_keys")
+        old = query_value("PRAGMA foreign_keys")
 
         begin
           execute("PRAGMA foreign_keys = OFF")
@@ -209,7 +203,8 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
+        sql, binds = to_sql(arel, binds)
+        sql = "EXPLAIN QUERY PLAN #{sql}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
@@ -278,92 +273,6 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def data_sources # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def views # :nodoc:
-        select_values("SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'", "SCHEMA")
-      end
-
-      def table_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def data_source_exists?(table_name) # :nodoc:
-        return false unless table_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(table_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def view_exists?(view_name) # :nodoc:
-        return false unless view_name.present?
-
-        sql = "SELECT name FROM sqlite_master WHERE type = 'view' AND name <> 'sqlite_sequence'"
-        sql << " AND name = #{quote(view_name)}"
-
-        select_values(sql, "SCHEMA").any?
-      end
-
-      def new_column_from_field(table_name, field) # :nondoc:
-        case field["dflt_value"]
-        when /^null$/i
-          field["dflt_value"] = nil
-        when /^'(.*)'$/m
-          field["dflt_value"] = $1.gsub("''", "'")
-        when /^"(.*)"$/m
-          field["dflt_value"] = $1.gsub('""', '"')
-        end
-
-        collation = field["collation"]
-        sql_type = field["type"]
-        type_metadata = fetch_type_metadata(sql_type)
-        new_column(field["name"], field["dflt_value"], type_metadata, field["notnull"].to_i == 0, table_name, nil, collation)
-      end
-
-      # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil) #:nodoc:
-        if name
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing name to #indexes is deprecated without replacement.
-          MSG
-        end
-
-        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
-          sql = <<-SQL
-            SELECT sql
-            FROM sqlite_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-            UNION ALL
-            SELECT sql
-            FROM sqlite_temp_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-          SQL
-          index_sql = exec_query(sql).first["sql"]
-          match = /\sWHERE\s+(.+)$/i.match(index_sql)
-          where = match[1] if match
-          IndexDefinition.new(
-            table_name,
-            row["name"],
-            row["unique"] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
-              col["name"]
-            }, nil, nil, where)
-        end
-      end
-
       def primary_keys(table_name) # :nodoc:
         pks = table_structure(table_name).select { |f| f["pk"] > 0 }
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
@@ -424,11 +333,10 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          include_default = options_include_default?(options)
           definition[column_name].instance_eval do
             self.type    = type
             self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if include_default
+            self.default = options[:default] if options.include?(:default)
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
             self.scale = options[:scale] if options.include?(:scale)
@@ -449,7 +357,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -458,6 +366,12 @@ module ActiveRecord
             on_update: extract_foreign_key_action(row["on_update"])
           }
           ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
+      end
+
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
         end
       end
 
@@ -549,7 +463,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("select sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -610,21 +524,14 @@ module ActiveRecord
           end
         end
 
-        def create_table_definition(*args)
-          SQLite3::TableDefinition.new(*args)
-        end
-
-        def extract_foreign_key_action(specifier)
-          case specifier
-          when "CASCADE"; :cascade
-          when "SET NULL"; :nullify
-          when "RESTRICT"; :restrict
-          end
+        def arel_visitor
+          Arel::Visitors::SQLite.new(self)
         end
 
         def configure_connection
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

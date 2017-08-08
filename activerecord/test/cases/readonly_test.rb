@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/post"
@@ -10,7 +12,7 @@ require "models/person"
 require "models/ship"
 
 class ReadOnlyTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
+  fixtures :authors, :author_addresses, :posts, :comments, :developers, :projects, :developers_projects, :people, :readers
 
   def test_cant_save_readonly_record
     dev = Developer.find(1)

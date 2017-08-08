@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/default"
@@ -87,9 +89,14 @@ if current_adapter?(:PostgreSQLAdapter)
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+      if ActiveRecord::Base.connection.postgresql_version >= 100000
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      else
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+      end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
-      assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
       assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
     end
   end
@@ -100,10 +107,20 @@ if current_adapter?(:Mysql2Adapter)
     include SchemaDumpingHelper
 
     if ActiveRecord::Base.connection.version >= "5.6.0"
-      test "schema dump includes default expression" do
+      test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       end
+    end
+
+    test "schema dump timestamp includes default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+    end
+
+    test "schema dump timestamp without default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
     end
   end
 

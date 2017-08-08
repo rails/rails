@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/pirate"
 require "models/ship"
@@ -117,7 +119,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_one
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| true }
-    pirate = Pirate.new(catchphrase: "Stop wastin' me time")
+    pirate = Pirate.create(catchphrase: "Stop wastin' me time")
     ship = pirate.create_ship(name: "s1")
     pirate.update(ship_attributes: { name: "s2", id: ship.id })
     assert_equal "s1", ship.reload.name
@@ -752,7 +754,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ArgumentError do
       @pirate.send(association_setter, "foo")
     end
-    assert_equal 'Hash or Array expected, got String ("foo")', exception.message
+    assert_equal %{Hash or Array expected for attribute `#{@association_name}`, got String ("foo")}, exception.message
   end
 
   def test_should_work_with_update_as_well

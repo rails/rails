@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -104,7 +106,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   def setup
     super
 
-    @connection.type_map.register_type "full_address", FullAddressType.new
+    @connection.send(:type_map).register_type "full_address", FullAddressType.new
   end
 
   def test_column

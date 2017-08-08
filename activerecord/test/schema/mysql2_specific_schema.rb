@@ -1,9 +1,16 @@
+# frozen_string_literal: true
+
 ActiveRecord::Schema.define do
 
   if ActiveRecord::Base.connection.version >= "5.6.0"
     create_table :datetime_defaults, force: true do |t|
       t.datetime :modified_datetime, default: -> { "CURRENT_TIMESTAMP" }
     end
+  end
+
+  create_table :timestamp_defaults, force: true do |t|
+    t.timestamp :nullable_timestamp
+    t.timestamp :modified_timestamp, default: -> { "CURRENT_TIMESTAMP" }
   end
 
   create_table :binary_fields, force: true do |t|

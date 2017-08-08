@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 
 gem "em-hiredis", "~> 0.3.0"
@@ -17,13 +19,19 @@ module ActionCable
 
       # Overwrite this factory method for EventMachine Redis connections if you want to use a different Redis connection library than EM::Hiredis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
-      cattr_accessor(:em_redis_connector) { ->(config) { EM::Hiredis.connect(config[:url]) } }
+      cattr_accessor :em_redis_connector, default: ->(config) { EM::Hiredis.connect(config[:url]) }
 
       # Overwrite this factory method for Redis connections if you want to use a different Redis connection library than Redis.
       # This is needed, for example, when using Makara proxies for distributed Redis.
-      cattr_accessor(:redis_connector) { ->(config) { ::Redis.new(url: config[:url]) } }
+      cattr_accessor :redis_connector, default: ->(config) { ::Redis.new(url: config[:url]) }
 
       def initialize(*)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The "evented_redis" subscription adapter is deprecated and
+          will be removed in Rails 5.2. Please use the "redis" adapter
+          instead.
+        MSG
+
         super
         @redis_connection_for_broadcasts = @redis_connection_for_subscriptions = nil
       end

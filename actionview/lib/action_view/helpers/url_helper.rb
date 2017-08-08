@@ -1,4 +1,6 @@
-require "action_view/helpers/javascript_helper"
+# frozen_string_literal: true
+
+require_relative "javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
@@ -542,7 +544,7 @@ module ActionView
 
         return false unless request.get? || request.head?
 
-        check_parameters ||= !options.is_a?(String) && options.try(:delete, :check_parameters)
+        check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
         url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
@@ -552,7 +554,10 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
+        if url_string.start_with?("/") && url_string != "/"
+          url_string.chomp!("/")
+          request_uri.chomp!("/")
+        end
 
         if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -621,11 +626,6 @@ module ActionView
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
-            unless attribute.permitted?
-              raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \
-                " Whitelist and sanitize passed parameters to be secure."
-            end
-
             attribute.to_h
           else
             attribute

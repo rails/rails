@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/ddl_helper"
 
@@ -28,12 +30,12 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_data_type_of_time_types
-    assert_equal :string, @first_time.column_for_attribute(:time_interval).type
-    assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
+    assert_equal :interval, @first_time.column_for_attribute(:time_interval).type
+    assert_equal :interval, @first_time.column_for_attribute(:scaled_time_interval).type
   end
 
   def test_data_type_of_oid_types
-    assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
+    assert_equal :oid, @first_oid.column_for_attribute(:obj_id).type
   end
 
   def test_time_values
@@ -61,9 +63,9 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_text_columns_are_limitless_the_upper_limit_is_one_GB
-    assert_equal "text", @connection.type_to_sql(:text, 100_000)
+    assert_equal "text", @connection.type_to_sql(:text, limit: 100_000)
     assert_raise ActiveRecord::ActiveRecordError do
-      @connection.type_to_sql :text, 4294967295
+      @connection.type_to_sql(:text, limit: 4294967295)
     end
   end
 end

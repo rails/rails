@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class Workshop
@@ -21,8 +23,8 @@ end
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render plain: "called status"; end
-  def location; render plain: "called location"; end
+  def status; raise "Should not be called!"; end
+  def location; raise "Should not be called!"; end
 
   def simple_redirect
     redirect_to action: "hello_world"
@@ -285,10 +287,10 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_params
-    error = assert_raise(ArgumentError) do
+    error = assert_raise(ActionController::UnfilteredParameters) do
       get :redirect_to_params
     end
-    assert_equal ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE, error.message
+    assert_equal "unable to convert unpermitted parameters to hash", error.message
   end
 
   def test_redirect_to_with_block

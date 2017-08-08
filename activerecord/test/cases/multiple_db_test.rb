@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/entrant"
 require "models/bird"
@@ -90,14 +92,9 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal "Ruby Developer", Entrant.find(1).name
   end
 
-  def test_arel_table_engines
-    assert_not_equal Entrant.arel_engine, Bird.arel_engine
-    assert_not_equal Entrant.arel_engine, Course.arel_engine
-  end
-
   def test_connection
-    assert_equal Entrant.arel_engine.connection.object_id, Bird.arel_engine.connection.object_id
-    assert_not_equal Entrant.arel_engine.connection.object_id, Course.arel_engine.connection.object_id
+    assert_same Entrant.connection, Bird.connection
+    assert_not_same Entrant.connection, Course.connection
   end
 
   unless in_memory_db?

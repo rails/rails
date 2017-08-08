@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -19,12 +21,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     def setup
       @connection = ActiveRecord::Base.connection
 
-      unless @connection.extension_enabled?("hstore")
-        @connection.enable_extension "hstore"
-        @connection.commit_db_transaction
-      end
-
-      @connection.reconnect!
+      enable_extension!("hstore", @connection)
 
       @connection.transaction do
         @connection.create_table("hstores") do |t|
@@ -40,6 +37,7 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     teardown do
       @connection.drop_table "hstores", if_exists: true
+      disable_extension!("hstore", @connection)
     end
 
     def test_hstore_included_in_extensions

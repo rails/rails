@@ -1,4 +1,6 @@
-require "abstract_controller/error"
+# frozen_string_literal: true
+
+require_relative "error"
 require "action_view"
 require "action_view/view_paths"
 require "set"

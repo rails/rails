@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/logger"
 require "controller/fake_models"
@@ -9,6 +11,12 @@ module Submodule
 end
 
 class EmptyController < ActionController::Base
+end
+
+class SimpleController < ActionController::Base
+  def hello
+    self.response_body = "hello"
+  end
 end
 
 class NonEmptyController < ActionController::Base
@@ -117,6 +125,27 @@ class ControllerInstanceTests < ActiveSupport::TestCase
 
     controller = klass.new
     assert_equal "examples", controller.controller_path
+  end
+
+  def test_response_has_default_headers
+    original_default_headers = ActionDispatch::Response.default_headers
+
+    ActionDispatch::Response.default_headers = {
+      "X-Frame-Options" => "DENY",
+      "X-Content-Type-Options" => "nosniff",
+      "X-XSS-Protection" => "1;"
+    }
+
+    response_headers = SimpleController.action("hello").call(
+      "REQUEST_METHOD" => "GET",
+      "rack.input" => -> {}
+    )[1]
+
+    assert response_headers.key?("X-Frame-Options")
+    assert response_headers.key?("X-Content-Type-Options")
+    assert response_headers.key?("X-XSS-Protection")
+  ensure
+    ActionDispatch::Response.default_headers = original_default_headers
   end
 end
 

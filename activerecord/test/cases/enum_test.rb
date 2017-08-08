@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 require "cases/helper"
+require "models/author"
 require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
-  fixtures :books
+  fixtures :books, :authors
 
   setup do
     @book = books(:awdr)
@@ -37,6 +40,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.author_visibility_visible.first
     assert_equal @book, Book.illustrator_visibility_visible.first
     assert_equal @book, Book.medium_to_read.first
+    assert_equal books(:ddd), Book.forgotten.first
+    assert_equal books(:rfr), authors(:david).unpublished_books.first
   end
 
   test "find via where with values" do
@@ -57,6 +62,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [:written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
+    assert_equal books(:ddd), Book.where(read_status: :forgotten).first
   end
 
   test "find via where with strings" do
@@ -66,6 +72,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: ["written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
+    assert_equal books(:ddd), Book.where(read_status: "forgotten").first
   end
 
   test "build from scope" do

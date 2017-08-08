@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -43,6 +45,15 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     ratings_column = PgArray.columns_hash["ratings"]
     assert_equal :integer, ratings_column.type
     assert ratings_column.array?
+  end
+
+  def test_not_compatible_with_serialize
+    new_klass = Class.new(PgArray) do
+      serialize :tags, Array
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
   end
 
   def test_default
@@ -188,6 +199,12 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_insert_fixture
     tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
     @connection.insert_fixture({ "tags" => tag_values }, "pg_arrays")
+    assert_equal(PgArray.last.tags, tag_values)
+  end
+
+  def test_insert_fixtures
+    tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
+    @connection.insert_fixtures([{ "tags" => tag_values }], "pg_arrays")
     assert_equal(PgArray.last.tags, tag_values)
   end
 

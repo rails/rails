@@ -1,4 +1,6 @@
-require "action_controller/metal/exceptions"
+# frozen_string_literal: true
+
+require_relative "exceptions"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,
@@ -111,10 +113,10 @@ module ActionController #:nodoc:
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
 
-        self.content_type = DEFAULT_SEND_FILE_TYPE
+        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
+        self.content_type = content_type
         response.sending_file = true
 
-        content_type = options.fetch(:type, DEFAULT_SEND_FILE_TYPE)
         raise ArgumentError, ":type option required" if content_type.nil?
 
         if content_type.is_a?(Symbol)

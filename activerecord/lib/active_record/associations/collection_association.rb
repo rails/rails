@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -30,13 +32,8 @@ module ActiveRecord
           reload
         end
 
-        if null_scope?
-          # Cache the proxy separately before the owner has an id
-          # or else a post-save proxy will still lack the id
-          @null_proxy ||= CollectionProxy.create(klass, self)
-        else
-          @proxy ||= CollectionProxy.create(klass, self)
-        end
+        @proxy ||= CollectionProxy.create(klass, self)
+        @proxy.reset_scope
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -49,10 +46,7 @@ module ActiveRecord
         if loaded?
           target.pluck(reflection.association_primary_key)
         else
-          @association_ids ||= (
-            column = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-            scope.pluck(column)
-          )
+          @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
       end
 
@@ -74,6 +68,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @association_ids = nil
       end
 
       def find(*args)
@@ -286,38 +281,9 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
-      def replace_on_target(record, index, skip_callbacks)
-        callback(:before_add, record) unless skip_callbacks
-
-        begin
-          if index
-            record_was = target[index]
-            target[index] = record
-          else
-            target << record
-          end
-
-          set_inverse_instance(record)
-
-          yield(record) if block_given?
-        rescue
-          if index
-            target[index] = record_was
-          else
-            target.delete(record)
-          end
-
-          raise
-        end
-
-        callback(:after_add, record) unless skip_callbacks
-
-        record
-      end
-
-      def scope(opts = {})
-        scope = super()
-        scope.none! if opts.fetch(:nullify, true) && null_scope?
+      def scope
+        scope = super
+        scope.none! if null_scope?
         scope
       end
 
@@ -334,18 +300,17 @@ module ActiveRecord
       private
 
         def find_target
-          return scope.to_a if skip_statement_cache?
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
 
           conn = klass.connection
-          sc = reflection.association_scope_cache(conn, owner) do
-            StatementCache.create(conn) { |params|
-              as = AssociationScope.create { params.bind }
-              target_scope.merge as.scope(self, conn)
-            }
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass, conn) do |record|
+          sc.execute(binds, conn) do |record|
             set_inverse_instance(record)
           end
         end
@@ -391,19 +356,22 @@ module ActiveRecord
             transaction do
               add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
-                insert_record(record, true, raise)
+                insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
               end
             end
           end
         end
 
         # Do the relevant stuff to insert the given record into the association collection.
-        def insert_record(record, validate = true, raise = false)
-          raise NotImplementedError
-        end
-
-        def create_scope
-          scope.scope_for_create.stringify_keys
+        def insert_record(record, validate = true, raise = false, &block)
+          if raise
+            record.save!(validate: validate, &block)
+          else
+            record.save(validate: validate, &block)
+          end
         end
 
         def delete_or_destroy(records, method)
@@ -454,17 +422,44 @@ module ActiveRecord
           end
         end
 
-        def concat_records(records, should_raise = false)
+        def concat_records(records, raise = false)
           result = true
 
           records.each do |record|
             raise_on_type_mismatch!(record)
-            add_to_target(record) do |rec|
-              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
+            add_to_target(record) do
+              unless owner.new_record?
+                result &&= insert_record(record, true, raise) {
+                  @_was_loaded = loaded?
+                  @association_ids = nil
+                }
+              end
             end
           end
 
           result && records
+        end
+
+        def replace_on_target(record, index, skip_callbacks)
+          callback(:before_add, record) unless skip_callbacks
+
+          set_inverse_instance(record)
+
+          @_was_loaded = true
+
+          yield(record) if block_given?
+
+          if index
+            target[index] = record
+          elsif @_was_loaded || !loaded?
+            target << record
+          end
+
+          callback(:after_add, record) unless skip_callbacks
+
+          record
+        ensure
+          @_was_loaded = nil
         end
 
         def callback(method, record)

@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeDecorators # :nodoc:
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attribute_type_decorations, instance_accessor: false # :internal:
-      self.attribute_type_decorations = TypeDecorator.new
+      class_attribute :attribute_type_decorations, instance_accessor: false, default: TypeDecorator.new # :internal:
     end
 
     module ClassMethods # :nodoc:

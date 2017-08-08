@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/computer"
 require "models/developer"
@@ -22,7 +24,7 @@ require "models/interest"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers, :authors, :author_favorites
+           :computers, :people, :readers, :authors, :author_addresses, :author_favorites
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -111,7 +113,7 @@ class AssociationsTest < ActiveRecord::TestCase
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
+  fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
 
   def test_push_does_not_load_target
     david = authors(:david)
@@ -222,7 +224,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   test "proxy object is cached" do
     david = developers(:david)
-    assert david.projects.equal?(david.projects)
+    assert_same david.projects, david.projects
+  end
+
+  test "proxy object can be stubbed" do
+    david = developers(:david)
+    david.projects.define_singleton_method(:extra_method) { 42 }
+
+    assert_equal 42, david.projects.extra_method
   end
 
   test "inverses get set of subsets of the association" do

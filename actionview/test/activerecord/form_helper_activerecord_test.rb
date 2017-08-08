@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record_unit"
 require "fixtures/project"
 require "fixtures/developer"
@@ -55,7 +57,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
   private
 
     def hidden_fields(method = nil)
-      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
 
       if method && !%w(get post).include?(method.to_s)
         txt << %{<input name="_method" type="hidden" value="#{method}" />}
@@ -65,7 +67,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -72,9 +74,11 @@ if ActiveRecord::Base.connection.supports_comments?
     end
 
     def test_add_index_with_comment_later
-      @connection.add_index :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
-      index = @connection.indexes("commenteds").find { |idef| idef.name == "idx_obvious" }
-      assert_equal "We need to see obvious comments", index.comment
+      unless current_adapter?(:OracleAdapter)
+        @connection.add_index :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
+        index = @connection.indexes("commenteds").find { |idef| idef.name == "idx_obvious" }
+        assert_equal "We need to see obvious comments", index.comment
+      end
     end
 
     def test_add_comment_to_column
@@ -111,9 +115,13 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output
-      assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
-      assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
-      assert_match %r[t\.index\s+.+\s+name: "idx_obvious",.+\s+comment: "We need to see obvious comments"], output
+      if current_adapter?(:OracleAdapter)
+        assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
+      else
+        assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
+        assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
+        assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
+      end
     end
 
     def test_schema_dump_omits_blank_comments

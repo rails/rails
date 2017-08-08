@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActionController
@@ -26,8 +28,7 @@ module ActionController
     RENDERERS = Set.new
 
     included do
-      class_attribute :_renderers
-      self._renderers = Set.new.freeze
+      class_attribute :_renderers, default: Set.new.freeze
     end
 
     # Used in <tt>ActionController::Base</tt>

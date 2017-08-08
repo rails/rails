@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/time/zones"
 
 module ActiveModel
@@ -38,7 +40,7 @@ module ActiveModel
         end
 
         def type_cast_for_schema(value)
-          "'#{value.to_s(:db)}'"
+          value.to_s(:db).inspect
         end
 
         def user_input_in_time_zone(value)

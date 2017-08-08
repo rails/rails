@@ -65,6 +65,41 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.0 to Rails 5.1
+-------------------------------------
+
+For more information on changes made to Rails 5.1 please see the [release notes](5_1_release_notes.html).
+
+### Top-level `HashWithIndifferentAccess` is soft-deprecated
+
+If your application uses the the top-level `HashWithIndifferentAccess` class, you
+should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
+
+It is only soft-deprecated, which means that your code will not break at the
+moment and no deprecation warning will be displayed, but this constant will be
+removed in the future.
+
+Also, if you have pretty old YAML documents containing dumps of such objects,
+you may need to load and dump them again to make sure that they reference
+the right constant, and that loading them won't break in the future.
+
+### `application.secrets` now loaded with all keys as symbols
+
+If your application stores nested configuration in `config/secrets.yml`, all keys
+are now loaded as symbols, so access using strings should be changed.
+
+From:
+
+```ruby
+Rails.application.secrets[:smtp_settings]["address"]
+```
+
+To:
+
+```ruby
+Rails.application.secrets[:smtp_settings][:address]
+```
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
@@ -140,12 +175,22 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
 ### Rails Controller Testing
 
+#### Extraction of some helper methods to `rails-controller-testing`
+
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your Gemfile.
 
 If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
+
+#### New behavior when uploading files
+
+If you are using `ActionDispatch::Http::UploadedFile` in your tests to
+upload files, you will need to change to use the similar `Rack::Test::UploadedFile`
+class instead.
+
+See [#26404](https://github.com/rails/rails/issues/26404) for more details.
 
 ### Autoloading is Disabled After Booting in the Production Environment
 
@@ -193,7 +238,7 @@ Run `bin/rails` to see the list of commands available.
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 
 Calling `params` in your application will now return an object instead of a hash. If your
-parameters are already permitted, then you will not need to make any changes. If you are using `slice`
+parameters are already permitted, then you will not need to make any changes. If you are using `map`
 and other methods that depend on being able to read the hash regardless of `permitted?` you will
 need to upgrade your application to first permit and then convert to a hash.
 
@@ -230,6 +275,16 @@ You can now just call the dependency once with a wildcard.
 ```erb
 <% # Template Dependency: recordings/threads/events/* %>
 ```
+
+### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
+
+`content_tag_for` and `div_for` has been removed in favor of just using `content_tag`. To continue using it, add the `record_tag_helper` gem to your Gemfile:
+
+```ruby
+gem 'record_tag_helper', '~> 1.0'
+```
+
+See [#18411](https://github.com/rails/rails/pull/18411) for more details.
 
 ### Removed Support for `protected_attributes` Gem
 
@@ -703,7 +758,7 @@ There are a few major changes related to JSON handling in Rails 4.1.
 MultiJSON has reached its [end-of-life](https://github.com/rails/rails/pull/10576)
 and has been removed from Rails.
 
-If your application currently depend on MultiJSON directly, you have a few options:
+If your application currently depends on MultiJSON directly, you have a few options:
 
 1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
 

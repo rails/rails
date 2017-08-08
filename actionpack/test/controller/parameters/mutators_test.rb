@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/hash/transform_values"
@@ -23,6 +25,27 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "delete retains unpermitted status" do
     assert_not @params.delete(:person).permitted?
+  end
+
+  test "delete returns the value when the key is present" do
+    assert_equal "32", @params[:person].delete(:age)
+  end
+
+  test "delete removes the entry when the key present" do
+    @params[:person].delete(:age)
+    assert_not @params[:person].key?(:age)
+  end
+
+  test "delete returns nil when the key is not present" do
+    assert_nil @params[:person].delete(:first_name)
+  end
+
+  test "delete returns the value of the given block when the key is not present" do
+    assert_equal "David", @params[:person].delete(:first_name) { "David" }
+  end
+
+  test "delete yields the key to the given block when the key is not present" do
+    assert_equal "first_name: David", @params[:person].delete(:first_name) { |k| "#{k}: David" }
   end
 
   test "delete_if retains permitted status" do

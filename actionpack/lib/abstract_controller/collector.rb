@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/mime_type"
 
 module AbstractController

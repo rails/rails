@@ -1,4 +1,6 @@
-require "active_record/attribute"
+# frozen_string_literal: true
+
+require_relative "../attribute"
 
 module ActiveRecord
   class AttributeSet # :nodoc:

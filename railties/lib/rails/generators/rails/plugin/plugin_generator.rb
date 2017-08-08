@@ -1,5 +1,5 @@
 require "active_support/core_ext/hash/slice"
-require "rails/generators/rails/app/app_generator"
+require_relative "../app/app_generator"
 require "date"
 
 module Rails
@@ -60,7 +60,12 @@ module Rails
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
       template "lib/%namespaced_name%/version.rb"
-      template "lib/%namespaced_name%/engine.rb" if engine?
+
+      if engine?
+        template "lib/%namespaced_name%/engine.rb"
+      else
+        template "lib/%namespaced_name%/railtie.rb"
+      end
     end
 
     def config
@@ -91,6 +96,8 @@ task default: :test
       opts[:skip_bundle] = true
       opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
+      opts[:skip_turbolinks] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,9 +119,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
-        remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
@@ -300,7 +305,7 @@ task default: :test
       end
 
       def engine?
-        full? || mountable?
+        full? || mountable? || options[:engine]
       end
 
       def full?
@@ -432,7 +437,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path

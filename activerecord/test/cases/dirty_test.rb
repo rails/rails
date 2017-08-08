@@ -1,13 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"    # For booleans
 require "models/pirate"   # For timestamps
 require "models/parrot"
 require "models/person"   # For optimistic locking
 require "models/aircraft"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-end
+require "models/numeric_data"
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone
@@ -301,6 +300,12 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal ["arr", "arr matey!"], pirate.catchphrase_change
   end
 
+  def test_virtual_attribute_will_change
+    parrot = Parrot.create!(name: "Ruby")
+    parrot.send(:attribute_will_change!, :cancel_save_from_callback)
+    assert parrot.has_changes_to_save?
+  end
+
   def test_association_assignment_changes_foreign_key
     pirate = Pirate.create!(catchphrase: "jarl")
     pirate.parrot = Parrot.create!(name: "Lorre")
@@ -341,12 +346,13 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update_with_optimistic_locking
     person = Person.new(first_name: "foo")
-    old_lock_version = person.lock_version
 
     with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
+
+    old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
       assert_queries(0) { 2.times { person.save! } }
@@ -558,18 +564,17 @@ class DirtyTest < ActiveRecord::TestCase
     travel_back
   end
 
-  if ActiveRecord::Base.connection.supports_migrations?
-    class Testings < ActiveRecord::Base; end
-    def test_field_named_field
-      ActiveRecord::Base.connection.create_table :testings do |t|
-        t.string :field
-      end
-      assert_nothing_raised do
-        Testings.new.attributes
-      end
-    ensure
-      ActiveRecord::Base.connection.drop_table :testings rescue nil
+  class Testings < ActiveRecord::Base; end
+  def test_field_named_field
+    ActiveRecord::Base.connection.create_table :testings do |t|
+      t.string :field
     end
+    assert_nothing_raised do
+      Testings.new.attributes
+    end
+  ensure
+    ActiveRecord::Base.connection.drop_table :testings rescue nil
+    ActiveRecord::Base.clear_cache!
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
@@ -661,6 +666,47 @@ class DirtyTest < ActiveRecord::TestCase
     binary.data << "bar"
 
     assert binary.changed?
+  end
+
+  test "changes is correct for subclass" do
+    foo = Class.new(Pirate) do
+      def catchphrase
+        super.upcase
+      end
+    end
+
+    pirate = foo.create!(catchphrase: "arrrr")
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
+  end
+
+  test "changes is correct if override attribute reader" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    def pirate.catchphrase
+      super.upcase
+    end
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
   end
 
   test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do
@@ -793,15 +839,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal %w(first_name lock_version updated_at).sort, person.saved_changes.keys.sort
   end
 
-  test "changed? in after callbacks returns true but is deprecated" do
+  test "changed? in after callbacks returns false" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "people"
 
       after_save do
-        ActiveSupport::Deprecation.silence do
-          raise "changed? should be true" unless changed?
-        end
+        raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
+        raise "saved_changes? should be true" unless saved_changes?
       end
     end
 

@@ -1,4 +1,4 @@
-require "rails/generators/app_base"
+require_relative "../../app_base"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -32,6 +32,14 @@ module Rails
   # This allows you to override entire operations, like the creation of the
   # Gemfile, README, or JavaScript files, without needing to know exactly
   # what those operations do so you can create another template action.
+  #
+  #  class CustomAppBuilder < Rails::AppBuilder
+  #    def test
+  #      @generator.gem "rspec-rails", group: [:development, :test]
+  #      run "bundle install"
+  #      generate "rspec:install"
+  #    end
+  #  end
   class AppBuilder
     def rakefile
       template "Rakefile"
@@ -39,6 +47,10 @@ module Rails
 
     def readme
       copy_file "README.md", "README.md"
+    end
+
+    def ruby_version
+      template "ruby-version", ".ruby-version"
     end
 
     def gemfile
@@ -59,6 +71,10 @@ module Rails
       end
     end
 
+    def package_json
+      template "package.json"
+    end
+
     def app
       directory "app"
 
@@ -76,6 +92,16 @@ module Rails
       chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
+    def bin_when_updating
+      bin_yarn_exist = File.exist?("bin/yarn")
+
+      bin
+
+      if options[:api] && !bin_yarn_exist
+        remove_file "bin/yarn"
+      end
+    end
+
     def config
       empty_directory "config"
 
@@ -87,6 +113,7 @@ module Rails
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
+        template "storage.yml"
 
         directory "environments"
         directory "initializers"
@@ -96,23 +123,37 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist = File.exist?("config/cable.yml")
-      rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
+      action_cable_config_exist      = File.exist?("config/cable.yml")
+      active_storage_config_exist    = File.exist?("config/storage.yml")
+      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
+      assets_config_exist            = File.exist?("config/initializers/assets.rb")
 
       config
-
-      gsub_file "config/environments/development.rb", /^(\s+)config\.file_watcher/, '\1# config.file_watcher'
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
       end
 
-      unless action_cable_config_exist
+      if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
+      end
+
+      if !active_storage_config_exist
+        template "config/storage.yml"
       end
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if options[:api]
+        unless cookie_serializer_config_exist
+          remove_file "config/initializers/cookies_serializer.rb"
+        end
+
+        unless assets_config_exist
+          remove_file "config/initializers/assets.rb"
+        end
       end
     end
 
@@ -138,6 +179,11 @@ module Rails
       directory "public", "public", recursive: false
     end
 
+    def storage
+      empty_directory_with_keep_file "storage"
+      empty_directory_with_keep_file "tmp/storage"
+    end
+
     def test
       empty_directory_with_keep_file "test/fixtures"
       empty_directory_with_keep_file "test/fixtures/files"
@@ -150,6 +196,12 @@ module Rails
       template "test/test_helper.rb"
     end
 
+    def system_test
+      empty_directory_with_keep_file "test/system"
+
+      template "test/application_system_test_case.rb"
+    end
+
     def tmp
       empty_directory_with_keep_file "tmp"
       empty_directory "tmp/cache"
@@ -158,20 +210,18 @@ module Rails
 
     def vendor
       empty_directory_with_keep_file "vendor"
-
-      unless options[:skip_yarn]
-        template "package.json", "vendor/package.json"
-      end
     end
   end
 
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
+      WEBPACKS = %w( react vue angular elm )
+
       add_shared_options_for "application"
 
       # Add bin/rails options
@@ -183,6 +233,9 @@ module Rails
 
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
+
+      class_option :webpack, type: :string, default: nil,
+                             desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
 
       def initialize(*args)
         super
@@ -204,10 +257,12 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
+        build(:ruby_version)
         build(:configru)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
+        build(:package_json) unless options[:skip_yarn]
       end
 
       def create_app_files
@@ -217,6 +272,11 @@ module Rails
       def create_bin_files
         build(:bin)
       end
+
+      def update_bin_files
+        build(:bin_when_updating)
+      end
+      remove_task :update_bin_files
 
       def create_config_files
         build(:config)
@@ -262,16 +322,16 @@ module Rails
         build(:test) unless options[:skip_test]
       end
 
+      def create_system_test_files
+        build(:system_test) if depends_on_system_test?
+      end
+
       def create_tmp_files
         build(:tmp)
       end
 
       def create_vendor_files
         build(:vendor)
-
-        if options[:skip_yarn]
-          remove_file "vendor/package.json"
-        end
       end
 
       def delete_app_assets_if_api_option
@@ -350,6 +410,12 @@ module Rails
       def delete_api_initializers
         unless options[:api]
           remove_file "config/initializers/cors.rb"
+        end
+      end
+
+      def delete_new_framework_defaults
+        unless options[:update]
+          remove_file "config/initializers/new_framework_defaults_5_2.rb"
         end
       end
 
@@ -465,7 +531,7 @@ module Rails
 
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
-            require "rails/version"
+            require_relative "../../../version"
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end

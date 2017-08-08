@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
-require "action_view/template/resolver"
+require_relative "template/resolver"
 
 module ActionView
   # = Action View Lookup Context
@@ -14,11 +16,9 @@ module ActionView
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
-    mattr_accessor :fallbacks
-    @@fallbacks = FallbackFileSystemResolver.instances
+    mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
-    mattr_accessor :registered_details
-    self.registered_details = []
+    mattr_accessor :registered_details, default: []
 
     def self.register_detail(name, &block)
       registered_details << name

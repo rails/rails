@@ -1,8 +1,8 @@
-activesupport_path = File.expand_path("../../../../activesupport/lib", __FILE__)
+activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
 require "thor/group"
-require "rails/command"
+require_relative "command"
 
 require "active_support"
 require "active_support/core_ext/object/blank"
@@ -62,7 +62,8 @@ module Rails
         stylesheets: true,
         stylesheet_engine: :css,
         scaffold_stylesheet: true,
-        test_framework: false,
+        system_tests: nil,
+        test_framework: nil,
         template_engine: :erb
       }
     }
@@ -151,6 +152,7 @@ module Rails
             "#{test}:controller",
             "#{test}:helper",
             "#{test}:integration",
+            "#{test}:system",
             "#{test}:mailer",
             "#{test}:model",
             "#{test}:scaffold",
@@ -212,6 +214,7 @@ module Rails
         rails.map! { |n| n.sub(/^rails:/, "") }
         rails.delete("app")
         rails.delete("plugin")
+        rails.delete("encrypted_secrets")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 

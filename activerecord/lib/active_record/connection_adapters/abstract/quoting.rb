@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/multibyte/chars"
 
@@ -7,8 +9,24 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        # records are quoted as their primary key
-        return value.quoted_id if value.respond_to?(:quoted_id)
+        value = id_value_for_database(value) if value.is_a?(Base)
+
+        if value.respond_to?(:quoted_id)
+          at = value.method(:quoted_id).source_location
+          at &&= " at %s:%d" % at
+
+          owner = value.method(:quoted_id).owner.to_s
+          klass = value.class.to_s
+          klass += "(#{owner})" unless owner == klass
+
+          ActiveSupport::Deprecation.warn \
+            "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
+          return value.quoted_id
+        end
+
+        if value.respond_to?(:value_for_database)
+          value = value.value_for_database
+        end
 
         _quote(value)
       end
@@ -17,6 +35,8 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column = nil)
+        value = id_value_for_database(value) if value.is_a?(Base)
+
         if value.respond_to?(:quoted_id) && value.respond_to?(:id)
           return value.id
         end
@@ -52,17 +72,6 @@ module ActiveRecord
       # See docs for #type_cast_from_column
       def lookup_cast_type_from_column(column) # :nodoc:
         lookup_cast_type(column.sql_type)
-      end
-
-      def fetch_type_metadata(sql_type)
-        cast_type = lookup_cast_type(sql_type)
-        SqlTypeMetadata.new(
-          sql_type: sql_type,
-          type: cast_type.type,
-          limit: cast_type.limit,
-          precision: cast_type.precision,
-          scale: cast_type.scale,
-        )
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
@@ -103,19 +112,19 @@ module ActiveRecord
       end
 
       def quoted_true
-        "'t'".freeze
+        "TRUE".freeze
       end
 
       def unquoted_true
-        "t".freeze
+        true
       end
 
       def quoted_false
-        "'f'".freeze
+        "FALSE".freeze
       end
 
       def unquoted_false
-        "f".freeze
+        false
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds
@@ -141,10 +150,27 @@ module ActiveRecord
         quoted_date(value).sub(/\A2000-01-01 /, "")
       end
 
-      private
+      def quoted_binary(value) # :nodoc:
+        "'#{quote_string(value.to_s)}'"
+      end
 
-        def type_casted_binds(binds)
+      def type_casted_binds(binds) # :nodoc:
+        if binds.first.is_a?(Array)
+          binds.map { |column, value| type_cast(value, column) }
+        else
           binds.map { |attr| type_cast(attr.value_for_database) }
+        end
+      end
+
+      private
+        def lookup_cast_type(sql_type)
+          type_map.lookup(sql_type)
+        end
+
+        def id_value_for_database(value)
+          if primary_key = value.class.primary_key
+            value.instance_variable_get(:@attributes)[primary_key].value_for_database
+          end
         end
 
         def types_which_need_no_typecasting
@@ -153,7 +179,7 @@ module ActiveRecord
 
         def _quote(value)
           case value
-          when String, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+          when String, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true
           when false      then quoted_false
@@ -161,6 +187,7 @@ module ActiveRecord
           # BigDecimals need to be put in a non-normalized form and quoted.
           when BigDecimal then value.to_s("F")
           when Numeric, ActiveSupport::Duration then value.to_s
+          when Type::Binary::Data then quoted_binary(value)
           when Type::Time::Value then "'#{quoted_time(value)}'"
           when Date, Time then "'#{quoted_date(value)}'"
           when Symbol     then "'#{quote_string(value.to_s)}'"

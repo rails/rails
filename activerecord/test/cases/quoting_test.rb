@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -8,11 +10,11 @@ module ActiveRecord
       end
 
       def test_quoted_true
-        assert_equal "'t'", @quoter.quoted_true
+        assert_equal "TRUE", @quoter.quoted_true
       end
 
       def test_quoted_false
-        assert_equal "'f'", @quoter.quoted_false
+        assert_equal "FALSE", @quoter.quoted_false
       end
 
       def test_quote_column_name
@@ -81,8 +83,21 @@ module ActiveRecord
         end
       end
 
+      class QuotedOne
+        def quoted_id
+          1
+        end
+      end
+      class SubQuotedOne < QuotedOne
+      end
       def test_quote_with_quoted_id
-        assert_equal 1, @quoter.quote(Struct.new(:quoted_id).new(1))
+        assert_deprecated(/defined on \S+::QuotedOne at .*quoting_test\.rb:[0-9]/) do
+          assert_equal 1, @quoter.quote(QuotedOne.new)
+        end
+
+        assert_deprecated(/defined on \S+::SubQuotedOne\(\S+::QuotedOne\) at .*quoting_test\.rb:[0-9]/) do
+          assert_equal 1, @quoter.quote(SubQuotedOne.new)
+        end
       end
 
       def test_quote_nil
@@ -150,6 +165,70 @@ module ActiveRecord
       end
     end
 
+    class TypeCastingTest < ActiveRecord::TestCase
+      def setup
+        @conn = ActiveRecord::Base.connection
+      end
+
+      def test_type_cast_symbol
+        assert_equal "foo", @conn.type_cast(:foo)
+      end
+
+      def test_type_cast_date
+        date = Date.today
+        if current_adapter?(:Mysql2Adapter)
+          expected = date
+        else
+          expected = @conn.quoted_date(date)
+        end
+        assert_equal expected, @conn.type_cast(date)
+      end
+
+      def test_type_cast_time
+        time = Time.now
+        if current_adapter?(:Mysql2Adapter)
+          expected = time
+        else
+          expected = @conn.quoted_date(time)
+        end
+        assert_equal expected, @conn.type_cast(time)
+      end
+
+      def test_type_cast_numeric
+        assert_equal 10, @conn.type_cast(10)
+        assert_equal 2.2, @conn.type_cast(2.2)
+      end
+
+      def test_type_cast_nil
+        assert_nil @conn.type_cast(nil)
+      end
+
+      def test_type_cast_unknown_should_raise_error
+        obj = Class.new.new
+        assert_raise(TypeError) { @conn.type_cast(obj) }
+      end
+
+      def test_type_cast_object_which_responds_to_quoted_id
+        quoted_id_obj = Class.new {
+          def quoted_id
+            "'zomg'"
+          end
+
+          def id
+            10
+          end
+        }.new
+        assert_equal 10, @conn.type_cast(quoted_id_obj)
+
+        quoted_id_obj = Class.new {
+          def quoted_id
+            "'zomg'"
+          end
+        }.new
+        assert_raise(TypeError) { @conn.type_cast(quoted_id_obj) }
+      end
+    end
+
     class QuoteBooleanTest < ActiveRecord::TestCase
       def setup
         @connection = ActiveRecord::Base.connection
@@ -163,6 +242,33 @@ module ActiveRecord
       def test_type_cast_returns_frozen_value
         assert_predicate @connection.type_cast(true), :frozen?
         assert_predicate @connection.type_cast(false), :frozen?
+      end
+    end
+
+    if subsecond_precision_supported?
+      class QuoteARBaseTest < ActiveRecord::TestCase
+        class DatetimePrimaryKey < ActiveRecord::Base
+        end
+
+        def setup
+          @time = ::Time.utc(2017, 2, 14, 12, 34, 56, 789999)
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table :datetime_primary_keys, id: :datetime, precision: 3, force: true
+        end
+
+        def teardown
+          @connection.drop_table :datetime_primary_keys, if_exists: true
+        end
+
+        def test_quote_ar_object
+          value = DatetimePrimaryKey.new(id: @time)
+          assert_equal "'2017-02-14 12:34:56.789000'",  @connection.quote(value)
+        end
+
+        def test_type_cast_ar_object
+          value = DatetimePrimaryKey.new(id: @time)
+          assert_equal @connection.type_cast(value.id),  @connection.type_cast(value)
+        end
       end
     end
   end

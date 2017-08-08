@@ -1,5 +1,7 @@
-require "active_record/scoping/default"
-require "active_record/scoping/named"
+# frozen_string_literal: true
+
+require_relative "scoping/default"
+require_relative "scoping/named"
 
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations
@@ -39,7 +41,11 @@ module ActiveRecord
       end
 
       def normalized_versions
-        pluck(:version).map { |v| normalize_migration_number v }
+        all_versions.map { |v| normalize_migration_number v }
+      end
+
+      def all_versions
+        order(:version).pluck(:version)
       end
     end
 

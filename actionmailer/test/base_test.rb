@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -120,7 +122,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -129,7 +131,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -966,5 +968,20 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+end
+
+class BasePreviewTest < ActiveSupport::TestCase
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome(params)
+    end
+  end
+
+  test "has access to params" do
+    params = { name: "World" }
+
+    message = BaseMailerPreview.call(:welcome, params)
+    assert_equal "World", message["name"].decoded
   end
 end

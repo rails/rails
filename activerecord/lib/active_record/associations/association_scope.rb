@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
-      def self.scope(association, connection)
-        INSTANCE.scope(association, connection)
+      def self.scope(association)
+        INSTANCE.scope(association)
       end
 
       def self.create(&block)
@@ -16,16 +18,16 @@ module ActiveRecord
 
       INSTANCE = create
 
-      def scope(association, connection)
+      def scope(association)
         klass = association.klass
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        alias_tracker = AliasTracker.create connection, association.klass.table_name, klass.type_caster
+        alias_tracker = AliasTracker.create(klass.connection, klass.table_name)
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
-        scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, chain_head, chain_tail)
+        scope.extending! reflection.extensions
+        add_constraints(scope, owner, reflection, chain_head, chain_tail)
       end
 
       def join_type
@@ -60,8 +62,8 @@ module ActiveRecord
           table.create_join(table, table.create_on(constraint), join_type)
         end
 
-        def last_chain_scope(scope, table, reflection, owner, association_klass)
-          join_keys = reflection.join_keys(association_klass)
+        def last_chain_scope(scope, table, reflection, owner)
+          join_keys = reflection.join_keys
           key = join_keys.key
           foreign_key = join_keys.foreign_key
 
@@ -80,8 +82,8 @@ module ActiveRecord
           value_transformation.call(value)
         end
 
-        def next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
-          join_keys = reflection.join_keys(association_klass)
+        def next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
+          join_keys = reflection.join_keys
           key = join_keys.key
           foreign_key = join_keys.foreign_key
 
@@ -112,7 +114,11 @@ module ActiveRecord
           runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
           previous_reflection = runtime_reflection
           reflection.chain.drop(1).each do |refl|
-            alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
+            alias_name = tracker.aliased_table_for(
+              refl.table_name,
+              refl.alias_candidate(name),
+              refl.klass.type_caster
+            )
             proxy = ReflectionProxy.new(refl, alias_name)
             previous_reflection.next = proxy
             previous_reflection = proxy
@@ -120,10 +126,10 @@ module ActiveRecord
           [runtime_reflection, previous_reflection]
         end
 
-        def add_constraints(scope, owner, association_klass, refl, chain_head, chain_tail)
+        def add_constraints(scope, owner, refl, chain_head, chain_tail)
           owner_reflection = chain_tail
           table = owner_reflection.alias_name
-          scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
+          scope = last_chain_scope(scope, table, owner_reflection, owner)
 
           reflection = chain_head
           while reflection
@@ -132,13 +138,13 @@ module ActiveRecord
 
             unless reflection == chain_tail
               foreign_table = next_reflection.alias_name
-              scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
+              scope = next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
             end
 
             # Exclude the scope of the association itself, because that
             # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
-              item = eval_scope(reflection.klass, table, scope_chain_item, owner)
+              item = eval_scope(reflection, table, scope_chain_item, owner)
 
               if scope_chain_item == refl.scope
                 scope.merge! item.except(:where, :includes)
@@ -159,9 +165,8 @@ module ActiveRecord
           scope
         end
 
-        def eval_scope(klass, table, scope, owner)
-          predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
-          ActiveRecord::Relation.create(klass, table, predicate_builder).instance_exec(owner, &scope)
+        def eval_scope(reflection, table, scope, owner)
+          reflection.build_scope(table).instance_exec(owner, &scope)
         end
     end
   end

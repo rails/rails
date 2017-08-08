@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "cases/migration/helper"
 
@@ -124,6 +126,67 @@ class MigratorTest < ActiveRecord::TestCase
     assert_equal migration_list.last, migrations.first
   end
 
+  def test_migrations_status
+    path = MIGRATIONS_ROOT + "/valid"
+
+    ActiveRecord::SchemaMigration.create(version: 2)
+    ActiveRecord::SchemaMigration.create(version: 10)
+
+    assert_equal [
+      ["down", "001", "Valid people have last names"],
+      ["up",   "002", "We need reminders"],
+      ["down", "003", "Innocent jointable"],
+      ["up",   "010", "********** NO FILE **********"],
+    ], ActiveRecord::Migrator.migrations_status(path)
+  end
+
+  def test_migrations_status_in_subdirectories
+    path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
+
+    ActiveRecord::SchemaMigration.create(version: 2)
+    ActiveRecord::SchemaMigration.create(version: 10)
+
+    assert_equal [
+      ["down", "001", "Valid people have last names"],
+      ["up",   "002", "We need reminders"],
+      ["down", "003", "Innocent jointable"],
+      ["up",   "010", "********** NO FILE **********"],
+    ], ActiveRecord::Migrator.migrations_status(path)
+  end
+
+  def test_migrations_status_with_schema_define_in_subdirectories
+    path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
+    prev_paths = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = path
+
+    ActiveRecord::Schema.define(version: 3) do
+    end
+
+    assert_equal [
+      ["up", "001", "Valid people have last names"],
+      ["up", "002", "We need reminders"],
+      ["up", "003", "Innocent jointable"],
+    ], ActiveRecord::Migrator.migrations_status(path)
+  ensure
+    ActiveRecord::Migrator.migrations_paths = prev_paths
+  end
+
+  def test_migrations_status_from_two_directories
+    paths = [MIGRATIONS_ROOT + "/valid_with_timestamps", MIGRATIONS_ROOT + "/to_copy_with_timestamps"]
+
+    ActiveRecord::SchemaMigration.create(version: "20100101010101")
+    ActiveRecord::SchemaMigration.create(version: "20160528010101")
+
+    assert_equal [
+      ["down", "20090101010101", "People have hobbies"],
+      ["down", "20090101010202", "People have descriptions"],
+      ["up",   "20100101010101", "Valid with timestamps people have last names"],
+      ["down", "20100201010101", "Valid with timestamps we need reminders"],
+      ["down", "20100301010101", "Valid with timestamps innocent jointable"],
+      ["up",   "20160528010101", "********** NO FILE **********"],
+    ], ActiveRecord::Migrator.migrations_status(paths)
+  end
+
   def test_migrator_interleaved_migrations
     pass_one = [Sensor.new("One", 1)]
 
@@ -238,6 +301,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_verbosity
     _, migrations = sensors(3)
 
+    ActiveRecord::Migration.verbose = true
     ActiveRecord::Migrator.new(:up, migrations, 1).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
 
@@ -250,7 +314,6 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_verbosity_off
     _, migrations = sensors(3)
 
-    ActiveRecord::Migration.message_count = 0
     ActiveRecord::Migration.verbose = false
     ActiveRecord::Migrator.new(:up, migrations, 1).migrate
     assert_equal 0, ActiveRecord::Migration.message_count

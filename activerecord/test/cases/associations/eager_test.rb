@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/tagging"
@@ -66,6 +68,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ).to_a
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
+  end
+
+  def test_loading_with_scope_including_joins
+    assert_equal clubs(:boring_club), Member.preload(:general_club).find(1).general_club
+    assert_equal clubs(:boring_club), Member.eager_load(:general_club).find(1).general_club
   end
 
   def test_with_ordering
@@ -271,9 +278,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert_nothing_raised do
-      Author.all.merge!(includes: :hello_posts_with_hash_conditions).to_a
-    end
     assert !Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
@@ -1094,12 +1098,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author }
 
     posts = assert_queries(2) do
-      Post.all.merge!(select: "distinct posts.*", includes: :author, joins: [:comments], where: "comments.body like 'Thank you%'", order: "posts.id").to_a
-    end
-    assert_equal [posts(:welcome)], posts
-    assert_equal authors(:david), assert_no_queries { posts[0].author }
-
-    posts = assert_queries(2) do
       Post.all.merge!(includes: :author, joins: { taggings: :tag }, where: "tags.name = 'General'", order: "posts.id").to_a
     end
     assert_equal posts(:welcome, :thinking), posts
@@ -1363,6 +1361,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised do
       authors(:david).essays.includes(:writer).any?
       authors(:david).essays.includes(:writer).exists?
+      authors(:david).essays.includes(:owner).where("name IS NOT NULL").exists?
     end
   end
 

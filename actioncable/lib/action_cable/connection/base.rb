@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 
 module ActionCable
@@ -24,7 +26,7 @@ module ActionCable
     #
     #       private
     #         def find_verified_user
-    #           User.find_by_identity(cookies.signed[:identity_id]) ||
+    #           User.find_by_identity(cookies.encrypted[:identity_id]) ||
     #             reject_unauthorized_connection
     #         end
     #     end
@@ -126,7 +128,8 @@ module ActionCable
       end
 
       def on_error(message) # :nodoc:
-        # ignore
+        # log errors to make diagnosing socket errors easier
+        logger.error "WebSocket error occurred: #{message}"
       end
 
       def on_close(reason, code) # :nodoc:

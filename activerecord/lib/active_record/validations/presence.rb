@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
@@ -57,7 +59,7 @@ module ActiveRecord
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See ActiveModel::Validation#validates! for more information.
+      #   See ActiveModel::Validations#validates! for more information.
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end

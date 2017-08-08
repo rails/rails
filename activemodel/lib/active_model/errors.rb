@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
@@ -93,6 +95,18 @@ module ActiveModel
       @details  = other.details.dup
     end
 
+    # Merges the errors from <tt>other</tt>.
+    #
+    # other - The ActiveModel::Errors instance.
+    #
+    # Examples
+    #
+    #   person.errors.merge!(other)
+    def merge!(other)
+      @messages.merge!(other.messages) { |_, ary1, ary2| ary1 + ary2 }
+      @details.merge!(other.details) { |_, ary1, ary2| ary1 + ary2 }
+    end
+
     # Clear the error messages.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]
@@ -132,15 +146,6 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
-    #
-    # Note that, if you try to get errors of an attribute which has
-    # no errors associated with it, this method will instantiate
-    # an empty error list for it and +keys+ will return an array
-    # of error keys which includes this attribute.
-    #
-    #   person.errors.keys    # => []
-    #   person.errors[:name]  # => []
-    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -181,7 +186,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.values
+      messages.select do |key, value|
+        !value.empty?
+      end.values
     end
 
     # Returns all message keys.
@@ -189,7 +196,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.keys
+      messages.select do |key, value|
+        !value.empty?
+      end.keys
     end
 
     # Returns +true+ if no errors are found, +false+ otherwise.

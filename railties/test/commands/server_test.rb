@@ -121,6 +121,58 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_host
+    with_rails_env "development" do
+      options = parse_arguments([])
+      assert_equal "localhost", options[:Host]
+    end
+
+    with_rails_env "production" do
+      options = parse_arguments([])
+      assert_equal "0.0.0.0", options[:Host]
+    end
+
+    with_rails_env "development" do
+      args = ["-b", "127.0.0.1"]
+      options = parse_arguments(args)
+      assert_equal "127.0.0.1", options[:Host]
+    end
+  end
+
+  def test_argument_precedence_over_environment_variable
+    switch_env "PORT", "1234" do
+      args = ["-p", "5678"]
+      options = parse_arguments(args)
+      assert_equal 5678, options[:Port]
+    end
+
+    switch_env "PORT", "1234" do
+      args = ["-p", "3000"]
+      options = parse_arguments(args)
+      assert_equal 3000, options[:Port]
+    end
+
+    switch_env "HOST", "1.2.3.4" do
+      args = ["-b", "127.0.0.1"]
+      options = parse_arguments(args)
+      assert_equal "127.0.0.1", options[:Host]
+    end
+  end
+
+  def test_records_user_supplied_options
+    server_options = parse_arguments(["-p", 3001])
+    assert_equal [:Port], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["--port", 3001])
+    assert_equal [:Port], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["-p3001", "-C", "--binding", "127.0.0.1"])
+    assert_equal [:Port, :Host, :caching], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["--port=3001"])
+    assert_equal [:Port], server_options[:user_supplied_options]
+  end
+
   def test_default_options
     server = Rails::Server.new
     old_default_options = server.default_options

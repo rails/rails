@@ -1,4 +1,6 @@
-require "action_dispatch/journey/gtg/transition_table"
+# frozen_string_literal: true
+
+require_relative "transition_table"
 
 module ActionDispatch
   module Journey # :nodoc:

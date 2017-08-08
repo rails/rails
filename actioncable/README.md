@@ -53,8 +53,8 @@ module ApplicationCable
 
     private
       def find_verified_user
-        if current_user = User.find_by(id: cookies.signed[:user_id])
-          current_user
+        if verified_user = User.find_by(id: cookies.encrypted[:user_id])
+          verified_user
         else
           reject_unauthorized_connection
         end
@@ -409,7 +409,7 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../../config/environment', __FILE__)
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server

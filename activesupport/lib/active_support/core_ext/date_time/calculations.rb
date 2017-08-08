@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "date"
 
 class DateTime
@@ -47,13 +49,23 @@ class DateTime
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
   def change(options)
+    if new_nsec = options[:nsec]
+      raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
+      new_fraction = Rational(new_nsec, 1000000000)
+    else
+      new_usec = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+      new_fraction = Rational(new_usec, 1000000)
+    end
+
+    raise ArgumentError, "argument out of range" if new_fraction >= 1
+
     ::DateTime.civil(
       options.fetch(:year, year),
       options.fetch(:month, month),
       options.fetch(:day, day),
       options.fetch(:hour, hour),
       options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec + sec_fraction),
+      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec) + new_fraction,
       options.fetch(:offset, offset),
       options.fetch(:start, start)
     )
@@ -122,7 +134,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the day (23:59:59).
   def end_of_day
-    change(hour: 23, min: 59, sec: 59)
+    change(hour: 23, min: 59, sec: 59, usec: Rational(999999999, 1000))
   end
   alias :at_end_of_day :end_of_day
 
@@ -134,7 +146,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the hour (hh:59:59).
   def end_of_hour
-    change(min: 59, sec: 59)
+    change(min: 59, sec: 59, usec: Rational(999999999, 1000))
   end
   alias :at_end_of_hour :end_of_hour
 
@@ -146,7 +158,7 @@ class DateTime
 
   # Returns a new DateTime representing the end of the minute (hh:mm:59).
   def end_of_minute
-    change(sec: 59)
+    change(sec: 59, usec: Rational(999999999, 1000))
   end
   alias :at_end_of_minute :end_of_minute
 

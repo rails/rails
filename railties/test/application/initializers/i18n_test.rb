@@ -245,7 +245,7 @@ fr:
     end
 
     test "[shortcut] config.i18n.fallbacks = [{ :ca => :'es-ES' }] initializes fallbacks with a mapping ca => es-ES" do
-      I18n::Railtie.config.i18n.fallbacks.map = { ca: :'es-ES' }
+      I18n::Railtie.config.i18n.fallbacks = [{ ca: :'es-ES' }]
       load_app
       assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/minimalistic"
 require "models/developer"
@@ -866,6 +868,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert subklass.method_defined?(:id), "subklass is missing id method"
   end
 
+  test "define_attribute_method works with both symbol and string" do
+    klass = Class.new(ActiveRecord::Base)
+
+    assert_nothing_raised { klass.define_attribute_method(:foo) }
+    assert_nothing_raised { klass.define_attribute_method("bar") }
+  end
+
   test "read_attribute with nil should not asplode" do
     assert_nil Topic.new.read_attribute(nil)
   end
@@ -998,7 +1007,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         class_eval(&block)
       end
 
-      assert_empty klass.generated_attribute_methods.instance_methods(false)
+      assert_empty klass.send(:generated_attribute_methods).instance_methods(false)
       klass
     end
 

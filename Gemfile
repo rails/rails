@@ -11,15 +11,18 @@ gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
+gem "thor", github: "erikhuda/thor"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
 
+gem "capybara", "~> 2.13"
+
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
 gem "coffee-rails"
-gem "sass-rails"
+gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
 gem "turbolinks", "~> 5"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -31,16 +34,15 @@ gem "bcrypt", "~> 3.1.11", require: false
 # sprockets.
 gem "uglifier", ">= 1.3.0", require: false
 
-# FIXME: Remove this fork after https://github.com/nex3/rb-inotify/pull/49 is fixed.
-gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
-
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
+gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
+
 group :doc do
-  gem "sdoc", "1.0.0.rc1"
+  gem "sdoc", "> 1.0.0.rc1", "< 2.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
@@ -54,9 +56,12 @@ gem "libxml-ruby", platforms: :ruby
 # Action View. For testing Erubis handler deprecation.
 gem "erubis", "~> 2.7.0", require: false
 
+# for railties app_generator_test
+gem "bootsnap", ">= 1.1.0", require: false
+
 # Active Job.
 group :job do
-  gem "resque", github: "resque/resque", require: false
+  gem "resque", require: false
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
@@ -84,15 +89,23 @@ group :cable do
 
   gem "blade", require: false, platforms: [:ruby]
   gem "blade-sauce_labs_plugin", require: false, platforms: [:ruby]
+  gem "sprockets-export", require: false
+end
+
+group :storage do
+  gem "aws-sdk", "~> 2", require: false
+  gem "google-cloud-storage", "~> 1.3", require: false
+  gem "azure-storage", require: false
+
+  gem "mini_magick"
 end
 
 # Add your own local bundler stuff.
-local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  # FIX: Our test suite isn't ready to run in random order yet.
-  gem "minitest", "< 5.3.4"
+  gem "minitest-bisect"
 
   platforms :mri do
     gem "stackprof"

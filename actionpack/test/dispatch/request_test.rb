@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class BaseRequestTest < ActiveSupport::TestCase
@@ -110,8 +112,8 @@ class RequestIP < BaseRequestTest
       request.remote_ip
     }
     assert_match(/IP spoofing attack/, e.message)
-    assert_match(/HTTP_X_FORWARDED_FOR="1.1.1.1"/, e.message)
-    assert_match(/HTTP_CLIENT_IP="2.2.2.2"/, e.message)
+    assert_match(/HTTP_X_FORWARDED_FOR="1\.1\.1\.1"/, e.message)
+    assert_match(/HTTP_CLIENT_IP="2\.2\.2\.2"/, e.message)
   end
 
   test "remote ip with spoof detection disabled" do
@@ -1024,7 +1026,8 @@ class RequestParameters < BaseRequestTest
       request.path_parameters = { foo: "\xBE" }
     end
 
-    assert_equal "Invalid path parameters: Non UTF-8 value: \xBE", err.message
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid path parameters: Invalid encoding for parameter: �", err.message
   end
 
   test "parameters not accessible after rack parse error of invalid UTF8 character" do
@@ -1095,6 +1098,19 @@ class RequestParameterFilter < BaseRequestTest
       after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
+    end
+  end
+
+  test "parameter filter should maintain hash with indifferent access" do
+    test_hashes = [
+      [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
+      [{ "foo" => "bar" }.with_indifferent_access, []]
+    ]
+
+    test_hashes.each do |before_filter, filter_words|
+      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
+      assert_instance_of ActiveSupport::HashWithIndifferentAccess,
+                         parameter_filter.filter(before_filter)
     end
   end
 

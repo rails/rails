@@ -972,11 +972,11 @@ on. Because this is database-independent, it could be loaded into any database
 that Active Record supports. This could be very useful if you were to
 distribute an application that is able to run against multiple databases.
 
-There is however a trade-off: `db/schema.rb` cannot express database specific
-items such as triggers, stored procedures or check constraints. While in a
-migration you can execute custom SQL statements, the schema dumper cannot
-reconstitute those statements from the database. If you are using features like
-this, then you should set the schema format to `:sql`.
+NOTE: `db/schema.rb` cannot express database specific items such as triggers,
+sequences, stored procedures or check constraints, etc. Please note that while
+custom SQL statements can be run in migrations, these statements cannot be reconstituted
+by the schema dumper. If you are using features like this, then you
+should set the schema format to `:sql`.
 
 Instead of using Active Record's schema dumper, the database's structure will
 be dumped using a tool specific to the database (via the `db:structure:dump`

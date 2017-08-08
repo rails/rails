@@ -1,4 +1,6 @@
-require "abstract_controller/error"
+# frozen_string_literal: true
+
+require_relative "error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/module/anonymous"
@@ -14,8 +16,16 @@ module AbstractController
   # expected to provide their own +render+ method, since rendering means
   # different things depending on the context.
   class Base
+    ##
+    # Returns the body of the HTTP response sent by the controller.
     attr_internal :response_body
+
+    ##
+    # Returns the name of the action this controller is processing.
     attr_internal :action_name
+
+    ##
+    # Returns the formats that can be processed by the controller.
     attr_internal :formats
 
     include ActiveSupport::Configurable

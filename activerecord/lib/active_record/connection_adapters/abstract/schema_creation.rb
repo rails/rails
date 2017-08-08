@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/strip"
 
 module ActiveRecord
@@ -22,25 +24,25 @@ module ActiveRecord
         private
 
           def visit_AlterTable(o)
-            sql = "ALTER TABLE #{quote_table_name(o.name)} "
+            sql = "ALTER TABLE #{quote_table_name(o.name)} ".dup
             sql << o.adds.map { |col| accept col }.join(" ")
             sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
             sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           end
 
           def visit_ColumnDefinition(o)
-            o.sql_type ||= type_to_sql(o.type, o.limit, o.precision, o.scale)
-            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            o.sql_type = type_to_sql(o.type, o.options)
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}".dup
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
           def visit_AddColumnDefinition(o)
-            "ADD #{accept(o.column)}"
+            "ADD #{accept(o.column)}".dup
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} ".dup
 
             statements = o.columns.map { |c| accept c }
             statements << accept(o.primary_keys) if o.primary_keys
@@ -55,7 +57,7 @@ module ActiveRecord
 
             create_sql << "(#{statements.join(', ')})" if statements.present?
             add_table_options!(create_sql, table_options(o))
-            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
+            create_sql << " AS #{to_sql(o.as)}" if o.as
             create_sql
           end
 
@@ -96,18 +98,7 @@ module ActiveRecord
           end
 
           def column_options(o)
-            column_options = {}
-            column_options[:null] = o.null unless o.null.nil?
-            column_options[:default] = o.default unless o.default.nil?
-            column_options[:column] = o
-            column_options[:first] = o.first
-            column_options[:after] = o.after
-            column_options[:auto_increment] = o.auto_increment
-            column_options[:primary_key] = o.primary_key
-            column_options[:collation] = o.collation
-            column_options[:comment] = o.comment
-            column_options[:as] = o.as
-            column_options
+            o.options.merge(column: o)
           end
 
           def add_column_options!(sql, options)
@@ -122,6 +113,11 @@ module ActiveRecord
             if options[:primary_key] == true
               sql << " PRIMARY KEY"
             end
+            sql
+          end
+
+          def to_sql(sql)
+            sql = sql.to_sql if sql.respond_to?(:to_sql)
             sql
           end
 
@@ -144,5 +140,6 @@ module ActiveRecord
           end
       end
     end
+    SchemaCreation = AbstractAdapter::SchemaCreation # :nodoc:
   end
 end

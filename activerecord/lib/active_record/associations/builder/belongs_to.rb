@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation #:nodoc:
     def self.macro
@@ -5,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      super + [:polymorphic, :touch, :counter_cache, :optional]
+      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
@@ -16,6 +18,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      add_default_callbacks(model, reflection)       if reflection.options[:default]
     end
 
     def self.define_accessors(mixin, reflection)
@@ -31,9 +34,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif (@_after_replace_counter_called ||= false)
+          if (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
           elsif saved_change_to_attribute?(foreign_key) && !new_record?
             if reflection.polymorphic?
@@ -116,6 +117,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.after_save    callback.(:saved_changes), if: :saved_changes?
       model.after_touch   callback.(:changes_to_save)
       model.after_destroy callback.(:changes_to_save)
+    end
+
+    def self.add_default_callbacks(model, reflection)
+      model.before_validation lambda { |o|
+        o.association(reflection.name).default(&reflection.options[:default])
+      }
     end
 
     def self.add_destroy_callbacks(model, reflection)

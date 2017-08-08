@@ -15,16 +15,40 @@ module ApplicationTests
       teardown_app
     end
 
+    def test_run_via_backwardscompatibility
+      require "minitest/rails_plugin"
+
+      assert_nothing_raised do
+        Minitest.run_via[:ruby] = true
+      end
+
+      assert Minitest.run_via[:ruby]
+    end
+
     def test_run_single_file
       create_test_file :models, "foo"
       create_test_file :models, "bar"
       assert_match "1 runs, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
+    def test_run_single_file_with_absolute_path
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      assert_match "1 runs, 1 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb")
+    end
+
     def test_run_multiple_files
       create_test_file :models,  "foo"
       create_test_file :models,  "bar"
       assert_match "2 runs, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+    end
+
+    def test_run_multiple_files_with_absolute_paths
+      create_test_file :models,  "foo"
+      create_test_file :controllers,  "foobar_controller"
+      create_test_file :models, "bar"
+
+      assert_match "2 runs, 2 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb #{app_path}/test/controllers/foobar_controller_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -60,16 +84,18 @@ module ApplicationTests
     end
 
     def test_run_units
-      skip "we no longer have the concept of unit tests. Just different directories..."
       create_test_file :models, "foo"
       create_test_file :helpers, "bar_helper"
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
-      run_test_units_command.tap do |output|
-        assert_match "FooTest", output
-        assert_match "BarHelperTest", output
-        assert_match "BazUnitTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:units`.tap do |output|
+          assert_match "FooTest", output
+          assert_match "BarHelperTest", output
+          assert_match "BazUnitTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
@@ -107,16 +133,18 @@ module ApplicationTests
     end
 
     def test_run_functionals
-      skip "we no longer have the concept of functional tests. Just different directories..."
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
-      run_test_functionals_command.tap do |output|
-        assert_match "FooMailerTest", output
-        assert_match "BarControllerTest", output
-        assert_match "BazFunctionalTest", output
-        assert_match "3 runs, 3 assertions, 0 failures", output
+
+      Dir.chdir(app_path) do
+        `bin/rails test:functionals`.tap do |output|
+          assert_match "FooMailerTest", output
+          assert_match "BarControllerTest", output
+          assert_match "BazFunctionalTest", output
+          assert_match "3 runs, 3 assertions, 0 failures", output
+        end
       end
     end
 
@@ -250,6 +278,18 @@ module ApplicationTests
       end
     end
 
+    def test_run_multiple_folders_with_absolute_paths
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
+
+      run_test_command("#{app_path}/test/models #{app_path}/test/controllers").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "AccountsControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_with_ruby_command
       app_file "test/models/post_test.rb", <<-RUBY
         require 'test_helper'
@@ -309,7 +349,7 @@ module ApplicationTests
             assert true
           end
 
-          test "test line filter does not run this" do
+          test "line filter does not run this" do
             assert true
           end
         end
@@ -455,7 +495,7 @@ module ApplicationTests
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
-        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
         require 'bundler/setup' # Set up gems listed in the Gemfile.
       RUBY
@@ -475,7 +515,7 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
 
       output = run_test_command("test/models/post_test.rb")
-      assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+      assert_match %r{Finished in.*\n1 runs, 1 assertions}, output
     end
 
     def test_fail_fast
@@ -560,6 +600,80 @@ module ApplicationTests
       RUBY
       assert_match(/warning: assigned but unused variable/,
         capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+    end
+
+    def test_reset_sessions_before_rollback_on_system_tests
+      app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class ResetSessionBeforeRollbackTest < ApplicationSystemTestCase
+          def teardown_fixtures
+            puts "rollback"
+            super
+          end
+
+          Capybara.singleton_class.prepend(Module.new do
+            def reset_sessions!
+              puts "reset sessions"
+              super
+            end
+          end)
+
+          test "dummy" do
+          end
+        end
+      RUBY
+
+      run_test_command("test/system/reset_session_before_rollback_test.rb").tap do |output|
+        assert_match "reset sessions\nrollback", output
+        assert_match "1 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_system_tests_are_not_run_with_the_default_test_command
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("").tap do |output|
+        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_system_tests_are_not_run_through_rake_test
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rake test` }
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+    end
+
+    def test_system_tests_are_run_through_rake_test_when_given_in_TEST
+      app_file "test/system/dummy_test.rb", <<-RUBY
+        require "application_system_test_case"
+
+        class DummyTest < ApplicationSystemTestCase
+          test "something" do
+            assert true
+          end
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rake test TEST=test/system/dummy_test.rb` }
+      assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
     private

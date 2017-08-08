@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "concurrent/atomic/count_down_latch"
 
@@ -307,14 +309,17 @@ module ActiveRecord
         end
       end
 
-      def test_automatic_reconnect=
+      def test_automatic_reconnect_restores_after_disconnect
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
         assert pool.connection
 
         pool.disconnect!
         assert pool.connection
+      end
 
+      def test_automatic_reconnect_can_be_disabled
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -496,21 +501,8 @@ module ActiveRecord
               if failed
                 second_thread_done.set
 
-                puts
-                puts ">>> test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads / #{group_action_method}"
-                p [first_thread, second_thread]
-                p pool.stat
-                p pool.connections.map(&:owner)
-
                 first_thread.join(2)
                 second_thread.join(2)
-
-                puts "---"
-                p [first_thread, second_thread]
-                p pool.stat
-                p pool.connections.map(&:owner)
-                puts "<<<"
-                puts
               end
 
               first_thread.join(10) || raise("first_thread got stuck")

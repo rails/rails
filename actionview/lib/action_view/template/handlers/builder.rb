@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 module ActionView
   module Template::Handlers
     class Builder
-      # Default format used by Builder.
-      class_attribute :default_format
-      self.default_format = :xml
+      class_attribute :default_format, default: :xml
 
       def call(template)
         require_engine
@@ -14,7 +14,6 @@ module ActionView
       end
 
       private
-
         def require_engine # :doc:
           @required ||= begin
             require "builder"

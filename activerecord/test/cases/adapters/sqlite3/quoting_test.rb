@@ -1,11 +1,17 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "bigdecimal"
-require "yaml"
 require "securerandom"
 
 class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   def setup
     @conn = ActiveRecord::Base.connection
+    @initial_represent_boolean_as_integer = ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+  end
+
+  def teardown
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = @initial_represent_boolean_as_integer
   end
 
   def test_type_cast_binary_encoding_without_logger
@@ -15,67 +21,25 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
     assert_equal expected, @conn.type_cast(binary)
   end
 
-  def test_type_cast_symbol
-    assert_equal "foo", @conn.type_cast(:foo)
-  end
-
-  def test_type_cast_date
-    date = Date.today
-    expected = @conn.quoted_date(date)
-    assert_equal expected, @conn.type_cast(date)
-  end
-
-  def test_type_cast_time
-    time = Time.now
-    expected = @conn.quoted_date(time)
-    assert_equal expected, @conn.type_cast(time)
-  end
-
-  def test_type_cast_numeric
-    assert_equal 10, @conn.type_cast(10)
-    assert_equal 2.2, @conn.type_cast(2.2)
-  end
-
-  def test_type_cast_nil
-    assert_nil @conn.type_cast(nil)
-  end
-
   def test_type_cast_true
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = false
     assert_equal "t", @conn.type_cast(true)
+
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    assert_equal 1, @conn.type_cast(true)
   end
 
   def test_type_cast_false
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = false
     assert_equal "f", @conn.type_cast(false)
+
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    assert_equal 0, @conn.type_cast(false)
   end
 
   def test_type_cast_bigdecimal
     bd = BigDecimal.new "10.0"
     assert_equal bd.to_f, @conn.type_cast(bd)
-  end
-
-  def test_type_cast_unknown_should_raise_error
-    obj = Class.new.new
-    assert_raise(TypeError) { @conn.type_cast(obj) }
-  end
-
-  def test_type_cast_object_which_responds_to_quoted_id
-    quoted_id_obj = Class.new {
-      def quoted_id
-        "'zomg'"
-      end
-
-      def id
-        10
-      end
-    }.new
-    assert_equal 10, @conn.type_cast(quoted_id_obj)
-
-    quoted_id_obj = Class.new {
-      def quoted_id
-        "'zomg'"
-      end
-    }.new
-    assert_raise(TypeError) { @conn.type_cast(quoted_id_obj) }
   end
 
   def test_quoting_binary_strings

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
@@ -90,10 +92,6 @@ module ActiveRecord
           2. Use the #reversible method to define reversible behavior.
         MSG
         send(method, args, &block)
-      end
-
-      def respond_to_missing?(*args) # :nodoc:
-        super || delegate.respond_to?(*args)
       end
 
       ReversibleAndIrreversibleMethods.each do |method|
@@ -225,10 +223,14 @@ module ActiveRecord
           [:add_foreign_key, reversed_args]
         end
 
+        def respond_to_missing?(method, _)
+          super || delegate.respond_to?(method)
+        end
+
         # Forwards any missing method call to the \target.
         def method_missing(method, *args, &block)
-          if @delegate.respond_to?(method)
-            @delegate.send(method, *args, &block)
+          if delegate.respond_to?(method)
+            delegate.public_send(method, *args, &block)
           else
             super
           end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # This is a class that abstracts away an asserted response. It purposely
   # does not inherit from Response because it doesn't need it. That means it

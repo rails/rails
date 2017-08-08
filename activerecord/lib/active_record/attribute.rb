@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Attribute # :nodoc:
     class << self
@@ -122,7 +124,7 @@ module ActiveRecord
 
     def encode_with(coder)
       coder["name"] = name
-      coder["value_before_type_cast"] = value_before_type_cast if value_before_type_cast
+      coder["value_before_type_cast"] = value_before_type_cast unless value_before_type_cast.nil?
       coder["type"] = type if type
       coder["original_attribute"] = original_attribute if original_attribute
       coder["value"] = value if defined?(@value)
@@ -174,7 +176,7 @@ module ActiveRecord
         end
 
         def came_from_user?
-          true
+          !type.value_constructed_by_mass_assignment?(value_before_type_cast)
         end
       end
 

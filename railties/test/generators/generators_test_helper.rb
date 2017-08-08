@@ -9,7 +9,7 @@ module Rails
   class << self
     remove_possible_method :root
     def root
-      @root ||= Pathname.new(File.expand_path("../../fixtures", __FILE__))
+      @root ||= Pathname.new(File.expand_path("../fixtures", __dir__))
     end
   end
 end
@@ -41,7 +41,7 @@ module GeneratorsTestHelper
   end
 
   def copy_routes
-    routes = File.expand_path("../../../lib/rails/generators/rails/app/templates/config/routes.rb", __FILE__)
+    routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb", __dir__)
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination

@@ -1,19 +1,21 @@
-require "active_model/type/helpers"
-require "active_model/type/value"
+# frozen_string_literal: true
 
-require "active_model/type/big_integer"
-require "active_model/type/binary"
-require "active_model/type/boolean"
-require "active_model/type/date"
-require "active_model/type/date_time"
-require "active_model/type/decimal"
-require "active_model/type/float"
-require "active_model/type/immutable_string"
-require "active_model/type/integer"
-require "active_model/type/string"
-require "active_model/type/time"
+require_relative "type/helpers"
+require_relative "type/value"
 
-require "active_model/type/registry"
+require_relative "type/big_integer"
+require_relative "type/binary"
+require_relative "type/boolean"
+require_relative "type/date"
+require_relative "type/date_time"
+require_relative "type/decimal"
+require_relative "type/float"
+require_relative "type/immutable_string"
+require_relative "type/integer"
+require_relative "type/string"
+require_relative "type/time"
+
+require_relative "type/registry"
 
 module ActiveModel
   module Type
@@ -21,16 +23,8 @@ module ActiveModel
 
     class << self
       attr_accessor :registry # :nodoc:
-      delegate :add_modifier, to: :registry
 
-      # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by ActiveRecord::Attributes::ClassMethods#attribute.  If your
-      # type is only meant to be used with a specific database adapter, you can
-      # do so by passing +adapter: :postgresql+. If your type has the same
-      # name as a native type for the current adapter, an exception will be
-      # raised unless you specify an +:override+ option. +override: true+ will
-      # cause your type to be used instead of the native type. +override:
-      # false+ will cause the native type to be used over yours if one exists.
+      # Add a new type to the registry, allowing it to be get through ActiveModel::Type#lookup
       def register(type_name, klass = nil, **options, &block)
         registry.register(type_name, klass, **options, &block)
       end

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "cgi"
 require "erb"
-require "action_view/helpers/form_helper"
+require_relative "form_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"

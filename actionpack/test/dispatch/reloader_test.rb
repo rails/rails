@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
@@ -161,6 +163,5 @@ class ReloaderTest < ActiveSupport::TestCase
                       reloader.check = check
                       reloader
                     end
-
     end
 end

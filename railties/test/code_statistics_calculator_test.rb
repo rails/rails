@@ -317,7 +317,7 @@ class Animal
 
   private
     def temp_file(name, content)
-      dir = File.expand_path "../fixtures/tmp", __FILE__
+      dir = File.expand_path "fixtures/tmp", __dir__
       path = "#{dir}/#{name}"
 
       FileUtils.mkdir_p dir

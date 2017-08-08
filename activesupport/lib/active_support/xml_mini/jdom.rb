@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 raise "JRuby is required to use the JDOM backend for XmlMini" unless RUBY_PLATFORM.include?("java")
 
 require "jruby"
 include Java
 
-require "active_support/core_ext/object/blank"
+require_relative "../core_ext/object/blank"
 
 java_import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
 java_import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory

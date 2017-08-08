@@ -1,5 +1,7 @@
-require "active_support/concern"
-require "active_support/callbacks"
+# frozen_string_literal: true
+
+require_relative "../concern"
+require_relative "../callbacks"
 
 module ActiveSupport
   module Testing

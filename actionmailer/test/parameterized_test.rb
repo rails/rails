@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_job"
 require "mailers/params_mailer"
@@ -14,7 +16,6 @@ class ParameterizedTest < ActiveSupport::TestCase
 
     @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
     ActionMailer::Base.deliver_later_queue_name = :test_queue
-    ActionMailer::Base.delivery_method = :test
 
     @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
   end

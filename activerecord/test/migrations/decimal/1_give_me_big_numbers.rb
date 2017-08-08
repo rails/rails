@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class GiveMeBigNumbers < ActiveRecord::Migration::Current
   def self.up
     create_table :big_numbers do |table|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AsyncJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :async

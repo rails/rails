@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "models/pet"
@@ -549,5 +551,45 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history
+  end
+end
+
+class CallbacksOnActionAndConditionTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class TopicWithCallbacksOnActionAndCondition < ActiveRecord::Base
+    self.table_name = :topics
+
+    after_commit(on: [:create, :update], if: :run_callback?) { |record| record.history << :create_or_update }
+
+    def clear_history
+      @history = []
+    end
+
+    def history
+      @history ||= []
+    end
+
+    def run_callback?
+      self.history << :run_callback?
+      true
+    end
+
+    attr_accessor :save_before_commit_history, :update_title
+  end
+
+  def test_callback_on_action_with_condition
+    topic = TopicWithCallbacksOnActionAndCondition.new
+    topic.save
+    assert_equal [:run_callback?, :create_or_update], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [:run_callback?, :create_or_update], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [], topic.history
   end
 end

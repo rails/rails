@@ -5,16 +5,18 @@ module Rails
         default: Rails::Command.environment.dup,
         desc: "The environment for the runner to operate under (test/development/production)"
 
-      def help
-        super
-        puts self.class.desc
+      no_commands do
+        def help
+          super
+          puts self.class.desc
+        end
       end
 
       def self.banner(*)
-        "#{super} [<'Some.ruby(code)'> | <filename.rb>]"
+        "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
-      def perform(code_or_file = nil, *file_argv)
+      def perform(code_or_file = nil, *command_argv)
         unless code_or_file
           help
           exit 1
@@ -25,9 +27,12 @@ module Rails
         require_application_and_environment!
         Rails.application.load_runner
 
-        if File.exist?(code_or_file)
+        ARGV.replace(command_argv)
+
+        if code_or_file == "-"
+          eval($stdin.read, binding, "stdin")
+        elsif File.exist?(code_or_file)
           $0 = code_or_file
-          ARGV.replace(file_argv)
           Kernel.load code_or_file
         else
           begin

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -9,6 +11,17 @@ module ActiveRecord
         @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
       end
 
+      def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
+        original_rails_env = ENV["RAILS_ENV"]
+        original_rack_env  = ENV["RACK_ENV"]
+        ENV["RAILS_ENV"]   = ENV["RACK_ENV"] = ""
+
+        assert_equal "default_env", ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      ensure
+        ENV["RAILS_ENV"] = original_rails_env
+        ENV["RACK_ENV"]  = original_rack_env
+      end
+
       def test_establish_connection_uses_spec_name
         config = { "readonly" => { "adapter" => "sqlite3" } }
         resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
@@ -18,6 +31,66 @@ module ActiveRecord
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
         @handler.remove_connection("readonly")
+      end
+
+      def test_establish_connection_using_3_levels_config
+        previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+        config = {
+          "default_env" => {
+            "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
+            "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          },
+          "another_env" => {
+            "readonly" => { "adapter" => "sqlite3", "database" => "db/bad-readonly.sqlite3" },
+            "primary"  => { "adapter" => "sqlite3", "database" => "db/bad-primary.sqlite3" }
+          },
+          "common" => { "adapter" => "sqlite3", "database" => "db/common.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:common)
+        @handler.establish_connection(:primary)
+        @handler.establish_connection(:readonly)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
+        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("primary")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("common")
+        assert_equal "db/common.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+        ENV["RAILS_ENV"] = previous_env
+      end
+
+      def test_establish_connection_using_two_level_configurations
+        config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:development)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("development")
+        assert_equal "db/primary.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
+      def test_establish_connection_using_top_level_key_in_two_level_config
+        config = {
+          "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+          "development_readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:development_readonly)
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_equal "db/readonly.sqlite3", pool.spec.config[:database]
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
       end
 
       def test_retrieve_connection

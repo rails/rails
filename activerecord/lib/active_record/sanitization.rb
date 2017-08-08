@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module ActiveRecord
   module Sanitization
@@ -207,9 +208,9 @@ module ActiveRecord
         end
     end
 
-    # TODO: Deprecate this
     def quoted_id # :nodoc:
       self.class.connection.quote(@attributes[self.class.primary_key].value_for_database)
     end
+    deprecate :quoted_id
   end
 end

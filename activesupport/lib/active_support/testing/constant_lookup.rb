@@ -1,5 +1,7 @@
-require "active_support/concern"
-require "active_support/inflector"
+# frozen_string_literal: true
+
+require_relative "../concern"
+require_relative "../inflector"
 
 module ActiveSupport
   module Testing

@@ -262,5 +262,13 @@ module ApplicationTests
         Rails.env = orig_rails_env if orig_rails_env
       end
     end
+
+    test "connections checked out during initialization are returned to the pool" do
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.connection
+      RUBY
+      require "#{app_path}/config/environment"
+      assert !ActiveRecord::Base.connection_pool.active_connection?
+    end
   end
 end

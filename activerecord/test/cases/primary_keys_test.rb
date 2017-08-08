@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/topic"
@@ -7,6 +9,7 @@ require "models/movie"
 require "models/keyboard"
 require "models/mixed_case_monkey"
 require "models/dashboard"
+require "models/non_primary_key"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -45,7 +48,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     assert_nil topic.id
-    assert_nothing_raised { topic.save! }
+    topic.save!
     id = topic.id
 
     topicReloaded = Topic.find(id)
@@ -55,21 +58,34 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
     keyboard = Keyboard.new(name: "HHKB")
-    assert_nothing_raised { keyboard.save! }
+    keyboard.save!
     assert_equal keyboard.id, Keyboard.find_by_name("HHKB").id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
     assert_nil keyboard.id
-    assert_nothing_raised { assert_nil keyboard.key_number }
+    assert_nil keyboard.key_number
   end
 
   def test_customized_string_primary_key_settable_before_save
     subscriber = Subscriber.new
-    assert_nothing_raised { subscriber.id = "webster123" }
+    subscriber.id = "webster123"
     assert_equal "webster123", subscriber.id
     assert_equal "webster123", subscriber.nick
+  end
+
+  def test_update_with_non_primary_key_id_column
+    subscriber = Subscriber.first
+    subscriber.update(update_count: 1)
+    subscriber.reload
+    assert_equal 1, subscriber.update_count
+  end
+
+  def test_update_columns_with_non_primary_key_id_column
+    subscriber = Subscriber.first
+    subscriber.update_columns(id: 1)
+    assert_not_equal 1, subscriber.nick
   end
 
   def test_string_key
@@ -82,11 +98,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     subscriber.id = "jdoe"
     assert_equal("jdoe", subscriber.id)
     subscriber.name = "John Doe"
-    assert_nothing_raised { subscriber.save! }
+    subscriber.save!
     assert_equal("jdoe", subscriber.id)
 
     subscriberReloaded = Subscriber.find("jdoe")
     assert_equal("John Doe", subscriberReloaded.name)
+  end
+
+  def test_id_column_that_is_not_primary_key
+    NonPrimaryKey.create!(id: 100)
+    actual = NonPrimaryKey.find_by(id: 100)
+    assert_match %r{<NonPrimaryKey id: 100}, actual.inspect
   end
 
   def test_find_with_more_than_one_string_key
@@ -113,38 +135,45 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_delete_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.delete(1) }
   end
+
   def test_update_counters_should_quote_pkey_and_quote_counter_columns
     assert_nothing_raised { MixedCaseMonkey.update_counters(1, fleaCount: 99) }
   end
+
   def test_find_with_one_id_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1) }
   end
+
   def test_find_with_multiple_ids_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find([1, 2]) }
   end
+
   def test_instance_update_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).save }
   end
+
   def test_instance_destroy_should_quote_pkey
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 
-  if ActiveRecord::Base.connection.supports_primary_key?
-    def test_primary_key_returns_value_if_it_exists
-      klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "developers"
-      end
+  def test_deprecate_supports_primary_key
+    assert_deprecated { ActiveRecord::Base.connection.supports_primary_key? }
+  end
 
-      assert_equal "id", klass.primary_key
+  def test_primary_key_returns_value_if_it_exists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
     end
 
-    def test_primary_key_returns_nil_if_it_does_not_exist
-      klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "developers_projects"
-      end
+    assert_equal "id", klass.primary_key
+  end
 
-      assert_nil klass.primary_key
+  def test_primary_key_returns_nil_if_it_does_not_exist
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers_projects"
     end
+
+    assert_nil klass.primary_key
   end
 
   def test_quoted_primary_key_after_set_primary_key
@@ -169,6 +198,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_create_without_primary_key_no_extra_query
+    skip if current_adapter?(:OracleAdapter)
+
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "dashboards"
     end
@@ -224,13 +255,13 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
     @connection.drop_table(:auto_increments, if_exists: true)
   end
 
-  def test_primary_key_with_auto_increment
-    @connection.create_table(:auto_increments, id: :integer, auto_increment: true, force: true)
+  def test_primary_key_with_integer
+    @connection.create_table(:auto_increments, id: :integer, force: true)
     assert_auto_incremented
   end
 
-  def test_primary_key_with_auto_increment_and_bigint
-    @connection.create_table(:auto_increments, id: :bigint, auto_increment: true, force: true)
+  def test_primary_key_with_bigint
+    @connection.create_table(:auto_increments, id: :bigint, force: true)
     assert_auto_incremented
   end
 
@@ -277,6 +308,14 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     schema = dump_table_schema "barcodes"
     assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
   end
+
+  if current_adapter?(:Mysql2Adapter) && subsecond_precision_supported?
+    test "schema typed primary key column" do
+      @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
+      schema = dump_table_schema("scheduled_logs")
+      assert_match %r/create_table "scheduled_logs", id: :timestamp, precision: 6/, schema
+    end
+  end
 end
 
 class CompositePrimaryKeyTest < ActiveRecord::TestCase
@@ -287,24 +326,33 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
-    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+    @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
+      t.string :region
+      t.integer :code
+    end
+    @connection.create_table(:barcodes_reverse, primary_key: ["code", "region"], force: true) do |t|
       t.string :region
       t.integer :code
     end
   end
 
   def teardown
-    @connection.drop_table(:barcodes, if_exists: true)
+    @connection.drop_table(:uber_barcodes, if_exists: true)
   end
 
   def test_composite_primary_key
-    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+    assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
+  end
+
+  def test_composite_primary_key_out_of_order
+    skip if current_adapter?(:SQLite3Adapter)
+    assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
   end
 
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
-        "barcodes"
+        "uber_barcodes"
       end
     end
     warning = capture(:stderr) do
@@ -314,8 +362,14 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_collectly_dump_composite_primary_key
-    schema = dump_table_schema "barcodes"
-    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+    schema = dump_table_schema "uber_barcodes"
+    assert_match %r{create_table "uber_barcodes", primary_key: \["region", "code"\]}, schema
+  end
+
+  def test_dumping_composite_primary_key_out_of_order
+    skip if current_adapter?(:SQLite3Adapter)
+    schema = dump_table_schema "barcodes_reverse"
+    assert_match %r{create_table "barcodes_reverse", primary_key: \["code", "region"\]}, schema
   end
 end
 
@@ -357,11 +411,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
 
     setup do
       @connection = ActiveRecord::Base.connection
-      if current_adapter?(:PostgreSQLAdapter)
-        @connection.create_table(:widgets, id: :serial, force: true)
-      else
-        @connection.create_table(:widgets, id: :integer, force: true)
-      end
+      @pk_type = current_adapter?(:PostgreSQLAdapter) ? :serial : :integer
     end
 
     teardown do
@@ -369,23 +419,22 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     end
 
     test "primary key column type with serial/integer" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       column = @connection.columns(:widgets).find { |c| c.name == "id" }
       assert_equal :integer, column.type
       assert_not column.bigint?
     end
 
     test "primary key with serial/integer are automatically numbered" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       widget = Widget.create!
       assert_not_nil widget.id
     end
 
     test "schema dump primary key with serial/integer" do
+      @connection.create_table(:widgets, id: @pk_type, force: true)
       schema = dump_table_schema "widgets"
-      if current_adapter?(:PostgreSQLAdapter)
-        assert_match %r{create_table "widgets", id: :serial, force: :cascade}, schema
-      else
-        assert_match %r{create_table "widgets", id: :integer, force: :cascade}, schema
-      end
+      assert_match %r{create_table "widgets", id: :#{@pk_type}, force: :cascade}, schema
     end
 
     if current_adapter?(:Mysql2Adapter)
@@ -394,11 +443,23 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
         assert column.auto_increment?
         assert_equal :integer, column.type
-        assert_equal 4, column.limit
+        assert_not column.bigint?
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
         assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+      end
+
+      test "bigint primary key with unsigned" do
+        @connection.create_table(:widgets, id: :bigint, unsigned: true, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        assert column.auto_increment?
+        assert_equal :integer, column.type
+        assert column.bigint?
+        assert column.unsigned?
+
+        schema = dump_table_schema "widgets"
+        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, force: :cascade}, schema
       end
     end
   end

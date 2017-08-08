@@ -387,6 +387,11 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
+New Rails projects are configured to use this implementation in development environment by default. 
+
+NOTE: Since processes will not share cache data when using `:memory_store`, 
+it will not be possible to manually read, write or expire the cache via the Rails console.
+
 ### ActiveSupport::Cache::FileStore
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
@@ -396,14 +401,15 @@ config.cache_store = :file_store, "/path/to/cache/directory"
 ```
 
 With this cache store, multiple server processes on the same host can share a
-cache. The cache store is appropriate for low to medium traffic sites that are
+cache. This cache store is appropriate for low to medium traffic sites that are
 served off one or two hosts. Server processes running on different hosts could
 share a cache by using a shared file system, but that setup is not recommended.
 
 As the cache will grow until the disk is full, it is recommended to
 periodically clear out old entries.
 
-This is the default cache store implementation.
+This is the default cache store implementation (at `"#{root}/tmp/cache/"`) if
+no explicit `config.cache_store` is supplied.
 
 ### ActiveSupport::Cache::MemCacheStore
 
@@ -568,6 +574,20 @@ You can also set the strong ETag directly on the response.
 
 ```ruby
   response.strong_etag = response.body # => "618bbc92e2d35ea1945008b42799b0e7"
+```
+
+Caching in Development
+----------------------
+
+It's common to want to test the caching strategy of your application
+in development mode. Rails provides the rake task `dev:cache` to 
+easily toggle caching on/off.
+
+```bash
+$ bin/rails dev:cache
+Development mode is now being cached.
+$ bin/rails dev:cache
+Development mode is no longer being cached.
 ```
 
 References

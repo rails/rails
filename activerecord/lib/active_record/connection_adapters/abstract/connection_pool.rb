@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "concurrent/map"
 require "monitor"
@@ -353,6 +355,16 @@ module ActiveRecord
         @threads_blocking_new_connections = 0
 
         @available = ConnectionLeasingQueue.new self
+
+        @lock_thread = false
+      end
+
+      def lock_thread=(lock_thread)
+        if lock_thread
+          @lock_thread = Thread.current
+        else
+          @lock_thread = nil
+        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -361,7 +373,7 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a cache keyed by a thread.
       def connection
-        @thread_cached_conns[connection_cache_key(Thread.current)] ||= checkout
+        @thread_cached_conns[connection_cache_key(@lock_thread || Thread.current)] ||= checkout
       end
 
       # Returns true if there is an open connection being used for the current thread.
@@ -496,14 +508,16 @@ module ActiveRecord
       # +conn+: an AbstractAdapter object, which was obtained by earlier by
       # calling #checkout on this pool.
       def checkin(conn)
-        synchronize do
-          remove_connection_from_thread_cache conn
+        conn.lock.synchronize do
+          synchronize do
+            remove_connection_from_thread_cache conn
 
-          conn._run_checkin_callbacks do
-            conn.expire
+            conn._run_checkin_callbacks do
+              conn.expire
+            end
+
+            @available.add conn
           end
-
-          @available.add conn
         end
       end
 
@@ -667,7 +681,7 @@ module ActiveRecord
           # this block can't be easily moved into attempt_to_checkout_all_existing_connections's
           # rescue block, because doing so would put it outside of synchronize section, without
           # being in a critical section thread_report might become inaccurate
-          msg = "could not obtain ownership of all database connections in #{checkout_timeout} seconds"
+          msg = "could not obtain ownership of all database connections in #{checkout_timeout} seconds".dup
 
           thread_report = []
           @connections.each do |conn|
@@ -815,7 +829,7 @@ module ActiveRecord
     #   end
     #
     #   class Book < ActiveRecord::Base
-    #     establish_connection "library_db"
+    #     establish_connection :library_db
     #   end
     #
     #   class ScaryBook < Book
@@ -847,9 +861,9 @@ module ActiveRecord
     # All Active Record models use this handler to determine the connection pool that they
     # should use.
     #
-    # The ConnectionHandler class is not coupled with the Active models, as it has no knowlodge
+    # The ConnectionHandler class is not coupled with the Active models, as it has no knowledge
     # about the model. The model needs to pass a specification name to the handler,
-    # in order to lookup the correct connection pool.
+    # in order to look up the correct connection pool.
     class ConnectionHandler
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).

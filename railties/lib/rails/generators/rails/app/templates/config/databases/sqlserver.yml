@@ -1,4 +1,4 @@
-# SQL Server (2012 or higher recommended)
+# SQL Server (2012 or higher required)
 #
 # Install the adapters and driver
 #   gem install tiny_tds
@@ -12,7 +12,7 @@ default: &default
   adapter: sqlserver
   encoding: utf8
   username: sa
-  password: <%= ENV['SA_PASSWORD'] %>
+  password: <%%= ENV['SA_PASSWORD'] %>
   host: localhost
 
 development:

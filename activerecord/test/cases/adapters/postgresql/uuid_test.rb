@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -12,6 +14,10 @@ module PostgresqlUUIDHelper
 
   def uuid_function
     connection.supports_pgcrypto_uuid? ? "gen_random_uuid()" : "uuid_generate_v4()"
+  end
+
+  def uuid_default
+    connection.supports_pgcrypto_uuid? ? {} : { default: uuid_function }
   end
 end
 
@@ -36,7 +42,8 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     drop_table "uuid_data_type"
   end
 
-  if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+  if ActiveRecord::Base.connection.respond_to?(:supports_pgcrypto_uuid?) &&
+      ActiveRecord::Base.connection.supports_pgcrypto_uuid?
     def test_uuid_column_default
       connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
       UUIDType.reset_column_information
@@ -57,6 +64,16 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "uuid_generate_v4()", column.default_function
   ensure
     UUIDType.reset_column_information
+  end
+
+  def test_add_column_with_null_true_and_default_nil
+    connection.add_column :uuid_data_type, :thingy, :uuid, null: true, default: nil
+
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+
+    assert column.null
+    assert_nil column.default
   end
 
   def test_data_type_of_uuid_types
@@ -109,7 +126,9 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
      "Z0000C99-9C0B-4EF8-BB6D-6BB9BD380A11",
      "a0eebc999r0b4ef8ab6d6bb9bd380a11",
      "a0ee-bc99------4ef8-bb6d-6bb9-bd38-0a11",
-     "{a0eebc99-bb6d6bb9-bd380a11}"].each do |invalid_uuid|
+     "{a0eebc99-bb6d6bb9-bd380a11}",
+     "{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11",
+     "a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}"].each do |invalid_uuid|
       uuid = UUIDType.new guid: invalid_uuid
       assert_nil uuid.guid
     end
@@ -178,7 +197,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.uuid "other_uuid_2", default: "my_uuid_generator()"
     end
 
-    connection.create_table("pg_uuids_3", id: :uuid) do |t|
+    connection.create_table("pg_uuids_3", id: :uuid, **uuid_default) do |t|
       t.string "name"
     end
   end
@@ -320,10 +339,10 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
   setup do
     connection.transaction do
-      connection.create_table("pg_uuid_posts", id: :uuid) do |t|
+      connection.create_table("pg_uuid_posts", id: :uuid, **uuid_default) do |t|
         t.string "title"
       end
-      connection.create_table("pg_uuid_comments", id: :uuid) do |t|
+      connection.create_table("pg_uuid_comments", id: :uuid, **uuid_default) do |t|
         t.references :uuid_post, type: :uuid
         t.string "content"
       end
@@ -347,7 +366,6 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
       assert_raise ActiveRecord::RecordNotFound do
         UuidPost.find(123456)
       end
-
     end
 
     def test_find_by_with_uuid

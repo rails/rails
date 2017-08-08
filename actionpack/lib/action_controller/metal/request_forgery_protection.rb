@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
-require "action_controller/metal/exceptions"
+require_relative "exceptions"
 require "active_support/security_utils"
 
 module ActionController #:nodoc:
@@ -85,6 +87,10 @@ module ActionController #:nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
+      # Controls whether forgery protection is enabled by default.
+      config_accessor :default_protect_from_forgery
+      self.default_protect_from_forgery = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -126,6 +132,15 @@ module ActionController #:nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
+      end
+
+      # Turn off request forgery protection. This is a wrapper for:
+      #
+      #   skip_before_action :verify_authenticity_token
+      #
+      # See +skip_before_action+ for allowed options.
+      def skip_forgery_protection(options = {})
+        skip_before_action :verify_authenticity_token, options
       end
 
       private
@@ -213,7 +228,11 @@ module ActionController #:nodoc:
 
         if !verified_request?
           if logger && log_warning_on_csrf_failure
-            logger.warn "Can't verify CSRF token authenticity."
+            if valid_request_origin?
+              logger.warn "Can't verify CSRF token authenticity."
+            else
+              logger.warn "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
+            end
           end
           handle_unverified_request
         end
@@ -262,9 +281,9 @@ module ActionController #:nodoc:
 
       # Returns true or false if a request is verified. Checks:
       #
-      # * Is it a GET or HEAD request?  Gets should be safe and idempotent
+      # * Is it a GET or HEAD request? GETs should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
-      # * Does the X-CSRF-Token header match the form_authenticity_token
+      # * Does the X-CSRF-Token header match the form_authenticity_token?
       def verified_request? # :doc:
         !protect_against_forgery? || request.get? || request.head? ||
           (valid_request_origin? && any_authenticity_token_valid?)
@@ -327,7 +346,7 @@ module ActionController #:nodoc:
         if masked_token.length == AUTHENTICITY_TOKEN_LENGTH
           # This is actually an unmasked token. This is expected if
           # you have just upgraded to masked tokens, but should stop
-          # happening shortly after installing this gem
+          # happening shortly after installing this gem.
           compare_with_real_token masked_token, session
 
         elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
@@ -336,13 +355,13 @@ module ActionController #:nodoc:
           compare_with_real_token(csrf_token, session) ||
             valid_per_form_csrf_token?(csrf_token, session)
         else
-          false # Token is malformed
+          false # Token is malformed.
         end
       end
 
       def unmask_token(masked_token) # :doc:
         # Split the token into the one-time pad and the encrypted
-        # value and decrypt it
+        # value and decrypt it.
         one_time_pad = masked_token[0...AUTHENTICITY_TOKEN_LENGTH]
         encrypted_csrf_token = masked_token[AUTHENTICITY_TOKEN_LENGTH..-1]
         xor_byte_strings(one_time_pad, encrypted_csrf_token)

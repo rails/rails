@@ -1,5 +1,7 @@
-require "action_dispatch/middleware/cookies"
-require "action_dispatch/middleware/flash"
+# frozen_string_literal: true
+
+require_relative "../middleware/cookies"
+require_relative "../middleware/flash"
 
 module ActionDispatch
   module TestProcess

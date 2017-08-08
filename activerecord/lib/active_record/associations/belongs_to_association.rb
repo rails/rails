@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Belongs To Association
   module Associations
@@ -19,6 +21,10 @@ module ActiveRecord
         end
 
         self.target = record
+      end
+
+      def default(&block)
+        writer(owner.instance_exec(&block)) if reader.nil?
       end
 
       def reset

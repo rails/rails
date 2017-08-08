@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -88,6 +90,21 @@ module ActiveRecord
         assert connection.columns(:more_testings).find { |c| c.name == "updated_at" }.null
       ensure
         connection.drop_table :more_testings rescue nil
+      end
+
+      def test_timestamps_have_null_constraints_if_not_present_in_migration_of_change_table
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            change_table :testings do |t|
+              t.timestamps
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration]).migrate
+
+        assert connection.columns(:testings).find { |c| c.name == "created_at" }.null
+        assert connection.columns(:testings).find { |c| c.name == "updated_at" }.null
       end
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table

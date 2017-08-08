@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -45,10 +47,8 @@ module ActiveRecord
       end
     end
 
-    if Enumerator.method_defined? :size
-      test "each without block returns a sized enumerator" do
-        assert_equal 3, result.each.size
-      end
+    test "each without block returns a sized enumerator" do
+      assert_equal 3, result.each.size
     end
 
     test "cast_values returns rows after type casting" do

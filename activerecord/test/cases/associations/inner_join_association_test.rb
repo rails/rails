@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -10,7 +12,7 @@ require "models/tagging"
 require "models/tag"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
            :taggings, :tags
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions

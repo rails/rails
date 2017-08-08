@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Has Many Association
   module Associations
@@ -31,12 +33,7 @@ module ActiveRecord
 
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-
-        if raise
-          record.save!(validate: validate)
-        else
-          record.save(validate: validate)
-        end
+        super
       end
 
       def empty?

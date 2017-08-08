@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # Association proxies in Active Record are middlemen between the object that
@@ -28,12 +30,12 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      delegate :exists?, :update_all, :arel, to: :scope
-
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
-        merge! association.scope(nullify: false)
+
+        extensions = association.extensions
+        extend(*extensions) if extensions.any?
       end
 
       def target
@@ -81,7 +83,7 @@ module ActiveRecord
       #   #      #<Pet id: nil, name: "Choo-Choo">
       #   #    ]
       #
-      #   person.pets.select(:id, :name )
+      #   person.pets.select(:id, :name)
       #   # => [
       #   #      #<Pet id: 1, name: "Fancy-Fancy">,
       #   #      #<Pet id: 2, name: "Spook">,
@@ -746,10 +748,6 @@ module ActiveRecord
       #   #    ]
 
       #--
-      def uniq
-        load_target.uniq
-      end
-
       def calculate(operation, column_name)
         null_scope? ? scope.calculate(operation, column_name) : super
       end
@@ -956,19 +954,10 @@ module ActiveRecord
         @association
       end
 
-      # We don't want this object to be put on the scoping stack, because
-      # that could create an infinite loop where we call an @association
-      # method, which gets the current scope, which is this object, which
-      # delegates to @association, and so on.
-      def scoping
-        @association.scope.scoping { yield }
-      end
-
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
-        @association.scope
+        @scope ||= @association.scope
       end
-      alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
@@ -1101,7 +1090,7 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
-        self
+        reset_scope
       end
 
       # Unloads the association. Returns +self+.
@@ -1123,8 +1112,23 @@ module ActiveRecord
       def reset
         proxy_association.reset
         proxy_association.reset_scope
+        reset_scope
+      end
+
+      def reset_scope # :nodoc:
+        @offsets = {}
+        @scope = nil
         self
       end
+
+      delegate_methods = [
+        QueryMethods,
+        SpawnMethods,
+      ].flat_map { |klass|
+        klass.public_instance_methods(false)
+      } - self.public_instance_methods(false) - [:select] + [:scoping]
+
+      delegate(*delegate_methods, to: :scope)
 
       private
 

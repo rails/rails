@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 require "support/schema_dumping_helper"
@@ -93,8 +95,6 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_empty_string_assignment
-    assert_nothing_raised { PostgresqlPoint.new(x: "") }
-
     p = PostgresqlPoint.new(x: "")
     assert_nil p.x
   end

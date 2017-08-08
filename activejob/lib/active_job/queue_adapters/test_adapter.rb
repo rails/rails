@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveJob
   module QueueAdapters
     # == Test adapter for Active Job
@@ -10,7 +12,7 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter)
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
@@ -24,32 +26,41 @@ module ActiveJob
       end
 
       def enqueue(job) #:nodoc:
+        return if filtered?(job)
+
         job_data = job_to_hash(job)
         enqueue_or_perform(perform_enqueued_jobs, job, job_data)
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
+        return if filtered?(job)
+
         job_data = job_to_hash(job, at: timestamp)
         enqueue_or_perform(perform_enqueued_at_jobs, job, job_data)
       end
 
       private
-
         def job_to_hash(job, extras = {})
           { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
         end
 
         def enqueue_or_perform(perform, job, job_data)
-          if !perform || filtered?(job)
-            enqueued_jobs << job_data
-          else
+          if perform
             performed_jobs << job_data
             Base.execute job.serialize
+          else
+            enqueued_jobs << job_data
           end
         end
 
         def filtered?(job)
-          filter && !Array(filter).include?(job.class)
+          if filter
+            !Array(filter).include?(job.class)
+          elsif reject
+            Array(reject).include?(job.class)
+          else
+            false
+          end
         end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/remove_method"
@@ -47,7 +49,7 @@ module ActiveModel
     # :method: <=>
     #
     # :call-seq:
-    #   ==(other)
+    #   <=>(other)
     #
     # Equivalent to <tt>String#<=></tt>.
     #

@@ -1,4 +1,6 @@
-require "action_dispatch/journey/nfa/dot"
+# frozen_string_literal: true
+
+require_relative "../nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -82,7 +84,7 @@ module ActionDispatch
         end
 
         def visualizer(paths, title = "FSM")
-          viz_dir   = File.join File.dirname(__FILE__), "..", "visualizer"
+          viz_dir   = File.join __dir__, "..", "visualizer"
           fsm_js    = File.read File.join(viz_dir, "fsm.js")
           fsm_css   = File.read File.join(viz_dir, "fsm.css")
           erb       = File.read File.join(viz_dir, "index.html.erb")
@@ -109,7 +111,6 @@ module ActionDispatch
           svg         = to_svg
           javascripts = [states, fsm_js]
 
-          # Annoying hack warnings
           fun_routes  = fun_routes
           stylesheets = stylesheets
           svg         = svg

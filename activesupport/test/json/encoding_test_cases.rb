@@ -1,4 +1,10 @@
+# frozen_string_literal: true
+
 require "bigdecimal"
+require "date"
+require "time"
+require "pathname"
+require "uri"
 
 module JSONTest
   class Foo

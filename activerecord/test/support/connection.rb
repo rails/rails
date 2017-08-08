@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/logger"
 require "models/college"
 require "models/course"
@@ -10,7 +12,10 @@ module ARTest
   end
 
   def self.connection_config
-    config["connections"][connection_name]
+    config.fetch("connections").fetch(connection_name) do
+      puts "Connection #{connection_name.inspect} not found. Available connections: #{config['connections'].keys.join(', ')}"
+      exit 1
+    end
   end
 
   def self.connect

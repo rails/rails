@@ -205,7 +205,14 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exist?(f) }
+        expanded.select do |f|
+          does_exist = File.exist?(f)
+
+          if !does_exist && File.symlink?(f)
+            raise "File #{f.inspect} is a symlink that does not point to a valid file"
+          end
+          does_exist
+        end
       end
 
       def existent_directories

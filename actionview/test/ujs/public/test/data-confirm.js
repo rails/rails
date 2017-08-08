@@ -26,6 +26,13 @@ module('data-confirm', {
       'data-confirm': 'Are you absolutely sure?'
     }))
 
+    $('#qunit-fixture').append($('<button />', {
+      type: 'submit',
+      form: 'confirm',
+      disabled: 'disabled',
+      'data-confirm': 'Are you absolutely sure?'
+    }))
+
     this.windowConfirm = window.confirm
   },
   teardown: function() {
@@ -285,4 +292,25 @@ asyncTest('clicking on the children of a link should also trigger a confirm', 6,
     })
     .find('strong')
     .triggerNative('click')
+})
+
+asyncTest('clicking on the children of a disabled button should not trigger a confirm.', 1, function() {
+  var message
+  // auto-decline:
+  window.confirm = function(msg) { message = msg; return false }
+
+  $('button[data-confirm][disabled]')
+    .html('<strong>Click me</strong>')
+    .bindNative('confirm', function() {
+      App.assertCallbackNotInvoked('confirm')
+    })
+    .find('strong')
+    .bindNative('click', function() {
+      App.assertCallbackInvoked('click')
+    })
+    .triggerNative('click')
+
+  setTimeout(function() {
+    start()
+  }, 50)
 })

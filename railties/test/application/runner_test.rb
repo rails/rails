@@ -35,6 +35,14 @@ module ApplicationTests
       assert_match "42", Dir.chdir(app_path) { `bin/rails runner "puts User.count"` }
     end
 
+    def test_should_set_argv_when_running_code
+      output = Dir.chdir(app_path) {
+        # Both long and short args, at start and end of ARGV
+        `bin/rails runner "puts ARGV.join(',')" --foo a1 -b a2 a3 --moo`
+      }
+      assert_equal "--foo,a1,-b,a2,a3,--moo", output.chomp
+    end
+
     def test_should_run_file
       app_file "bin/count_users.rb", <<-SCRIPT
       puts User.count
@@ -74,6 +82,14 @@ module ApplicationTests
       SCRIPT
 
       assert_match %w( a b ).to_s, Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb" a b` }
+    end
+
+    def test_should_run_stdin
+      app_file "bin/count_users.rb", <<-SCRIPT
+      puts User.count
+      SCRIPT
+
+      assert_match "42", Dir.chdir(app_path) { `cat bin/count_users.rb | bin/rails runner -` }
     end
 
     def test_with_hook

@@ -1,4 +1,6 @@
-require "active_record/relation/batches/batch_enumerator"
+# frozen_string_literal: true
+
+require_relative "batches/batch_enumerator"
 
 module ActiveRecord
   module Batches
@@ -30,14 +32,14 @@ module ActiveRecord
     #   end
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
+    #   an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
-    # size, it can be less than, equal, or greater than the limit.
+    # size: it can be less than, equal to, or greater than the limit.
     #
     # The options +start+ and +finish+ are especially useful if you want
     # multiple workers dealing with the same processing queue. You can make
@@ -89,14 +91,14 @@ module ActiveRecord
     # To be yielded each record one by one, use #find_each instead.
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
+    #   an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
-    # size, it can be less than, equal, or greater than the limit.
+    # size: it can be less than, equal to, or greater than the limit.
     #
     # The options +start+ and +finish+ are especially useful if you want
     # multiple workers dealing with the same processing queue. You can make
@@ -140,9 +142,9 @@ module ActiveRecord
     # If you do not provide a block to #in_batches, it will return a
     # BatchEnumerator which is enumerable.
     #
-    #   Person.in_batches.with_index do |relation, batch_index|
+    #   Person.in_batches.each_with_index do |relation, batch_index|
     #     puts "Processing relation ##{batch_index}"
-    #     relation.each { |relation| relation.delete_all }
+    #     relation.delete_all
     #   end
     #
     # Examples of calling methods on the returned BatchEnumerator object:
@@ -152,12 +154,12 @@ module ActiveRecord
     #   Person.in_batches.each_record(&:party_all_night!)
     #
     # ==== Options
-    # * <tt>:of</tt> - Specifies the size of the batch. Default to 1000.
-    # * <tt>:load</tt> - Specifies if the relation should be loaded. Default to false.
+    # * <tt>:of</tt> - Specifies the size of the batch. Defaults to 1000.
+    # * <tt>:load</tt> - Specifies if the relation should be loaded. Defaults to false.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
-    #                               an order is present in the relation.
+    #   an order is present in the relation.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -186,7 +188,7 @@ module ActiveRecord
     #
     # NOTE: It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
-    # consistent. Therefore the primary key must be orderable, e.g an integer
+    # consistent. Therefore the primary key must be orderable, e.g. an integer
     # or a string.
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
@@ -209,6 +211,7 @@ module ActiveRecord
 
       relation = relation.reorder(batch_order).limit(batch_limit)
       relation = apply_limits(relation, start, finish)
+      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
 
       loop do

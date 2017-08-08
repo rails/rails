@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object/blank"
 
@@ -29,5 +31,15 @@ class GzipTest < ActiveSupport::TestCase
     assert_equal 9, Zlib::GzipReader.new(StringIO.new(gzipped_by_best_compression)).level
 
     assert_equal true, (gzipped_by_best_compression.bytesize < gzipped_by_speed.bytesize)
+  end
+
+  def test_decompress_checks_crc
+    compressed = ActiveSupport::Gzip.compress("Hello World")
+    first_crc_byte_index = compressed.bytesize - 8
+    compressed.setbyte(first_crc_byte_index, compressed.getbyte(first_crc_byte_index) ^ 0xff)
+
+    assert_raises(Zlib::GzipFile::CRCError) do
+      ActiveSupport::Gzip.decompress(compressed)
+    end
   end
 end

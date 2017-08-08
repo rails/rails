@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -10,7 +12,7 @@ require "models/person"
 require "models/reference"
 
 class RelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts, :developers_projects
 
   setup do
     developers(:david)
@@ -229,16 +231,32 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_circular_joins_with_current_scope_does_not_crash
+  def test_scoping_is_correctly_restored
+    Comment.unscoped do
+      SpecialComment.unscoped.created
+    end
+
+    assert_nil Comment.current_scope
+    assert_nil SpecialComment.current_scope
+  end
+
+  def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
-      Post.current_scope.first(10)
+      Post.first(10)
     end
     assert_equal posts, Post.joins(comments: :post).first(10)
+  end
+
+  def test_circular_left_joins_with_scoping_does_not_crash
+    posts = Post.left_joins(comments: :post).scoping do
+      Post.first(10)
+    end
+    assert_equal posts, Post.left_joins(comments: :post).first(10)
   end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.where("salary = 80000").scoping do

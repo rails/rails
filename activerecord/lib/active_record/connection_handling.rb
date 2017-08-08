@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionHandling
-    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"] || ENV["RACK_ENV"] }
+    RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
     # Establishes the connection to the database. Accepts a hash as input where

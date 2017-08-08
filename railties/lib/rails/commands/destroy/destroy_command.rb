@@ -1,10 +1,15 @@
-require "rails/generators"
+require_relative "../../generators"
 
 module Rails
   module Command
     class DestroyCommand < Base # :nodoc:
-      def help
-        Rails::Generators.help self.class.command_name
+      no_commands do
+        def help
+          require_application_and_environment!
+          load_generators
+
+          Rails::Generators.help self.class.command_name
+        end
       end
 
       def perform(*)
@@ -12,9 +17,9 @@ module Rails
         return help unless generator
 
         require_application_and_environment!
-        Rails.application.load_generators
+        load_generators
 
-        Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails.root
+        Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
       end
     end
   end

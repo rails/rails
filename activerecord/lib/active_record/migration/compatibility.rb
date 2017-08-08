@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     module Compatibility # :nodoc: all
@@ -11,7 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
-      V5_1 = Current
+      V5_2 = Current
+
+      class V5_1 < V5_2
+      end
 
       class V5_0 < V5_1
         module TableDefinition
@@ -34,7 +39,7 @@ module ActiveRecord
             end
           end
 
-          # Since 5.1 Postgres adapter uses bigserial type for primary
+          # Since 5.1 PostgreSQL adapter uses bigserial type for primary
           # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
           # serial/int type instead -- the way it used to work before 5.1.
           unless options.key?(:id)
@@ -145,13 +150,13 @@ module ActiveRecord
           def index_name_for_remove(table_name, options = {})
             index_name = index_name(table_name, options)
 
-            unless index_name_exists?(table_name, index_name, true)
+            unless index_name_exists?(table_name, index_name)
               if options.is_a?(Hash) && options.has_key?(:name)
                 options_without_column = options.dup
                 options_without_column.delete :column
                 index_name_without_column = index_name(table_name, options_without_column)
 
-                return index_name_without_column if index_name_exists?(table_name, index_name_without_column, false)
+                return index_name_without_column if index_name_exists?(table_name, index_name_without_column)
               end
 
               raise ArgumentError, "Index name '#{index_name}' on table '#{table_name}' does not exist"

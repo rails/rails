@@ -64,7 +64,7 @@ Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
 a directory for views, and a test.
 
 If you didn't want to use a generator, you could create your own file inside of
-app/mailers, just make sure that it inherits from `ActionMailer::Base`:
+`app/mailers`, just make sure that it inherits from `ActionMailer::Base`:
 
 ```ruby
 class MyMailer < ActionMailer::Base
@@ -550,8 +550,9 @@ url helper.
 <%= user_url(@user, host: 'example.com') %>
 ```
 
-NOTE: non-`GET` links require [jQuery UJS](https://github.com/rails/jquery-ujs)
-and won't work in mailer templates. They will result in normal `GET` requests.
+NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/master/actionview/app/assets/javascripts) or
+[jQuery UJS](https://github.com/rails/jquery-ujs), and won't work in mailer templates.
+They will result in normal `GET` requests.
 
 ### Adding images in Action Mailer Views
 
@@ -780,7 +781,8 @@ config.action_mailer.smtp_settings = {
   enable_starttls_auto: true  }
 ```
 Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
-You can change your gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts or
+You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
+then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
 use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
 
 Mailer Testing

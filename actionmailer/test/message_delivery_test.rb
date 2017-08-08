@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_job"
 require "mailers/delayed_mailer"
@@ -76,14 +78,14 @@ class MessageDeliveryTest < ActiveSupport::TestCase
 
   test "should enqueue a delivery with a delay" do
     travel_to Time.new(2004, 11, 24, 01, 04, 44) do
-      assert_performed_with(job: ActionMailer::DeliveryJob, at: Time.current.to_f + 600.seconds, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
-        @mail.deliver_later wait: 600.seconds
+      assert_performed_with(job: ActionMailer::DeliveryJob, at: Time.current + 10.minutes, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
+        @mail.deliver_later wait: 10.minutes
       end
     end
   end
 
   test "should enqueue a delivery at a specific time" do
-    later_time = Time.now.to_f + 3600
+    later_time = Time.current + 1.hour
     assert_performed_with(job: ActionMailer::DeliveryJob, at: later_time, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
       @mail.deliver_later wait_until: later_time
     end
@@ -94,6 +96,19 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       @mail.deliver_later
     end
   end
+
+  test "should enqueue the job with the correct delivery job" do
+    old_delivery_job = DelayedMailer.delivery_job
+    DelayedMailer.delivery_job = DummyJob
+
+    assert_performed_with(job: DummyJob, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
+      @mail.deliver_later
+    end
+
+    DelayedMailer.delivery_job = old_delivery_job
+  end
+
+  class DummyJob < ActionMailer::DeliveryJob; end
 
   test "can override the queue when enqueuing mail" do
     assert_performed_with(job: ActionMailer::DeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3], queue: "another_queue") do

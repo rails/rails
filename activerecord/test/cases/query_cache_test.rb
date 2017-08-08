@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/task"
@@ -42,7 +44,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Task.find 1
       Task.find 1
-      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
       raise "lol borked"
     }
     assert_raises(RuntimeError) { mw.call({}) }
@@ -130,7 +133,7 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_cache :off, conn
         end
       ensure
-        ActiveRecord::Base.clear_all_connections!
+        ActiveRecord::Base.connection_pool.disconnect!
       end
     end
   end
@@ -149,7 +152,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw = middleware { |env|
       Task.find 1
       Task.find 1
-      assert_equal 1, ActiveRecord::Base.connection.query_cache.length
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
       [200, {}, nil]
     }
     mw.call({})
@@ -201,6 +205,52 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_count_queries_with_cache
     Task.cache do
       assert_queries(1) { Task.count; Task.count }
+    end
+  end
+
+  def test_exists_queries_with_cache
+    Post.cache do
+      assert_queries(1) { Post.exists?; Post.exists? }
+    end
+  end
+
+  def test_select_all_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_all(Post.all) }
+      end
+    end
+  end
+
+  def test_select_one_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_one(Post.all) }
+      end
+    end
+  end
+
+  def test_select_value_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_value(Post.all) }
+      end
+    end
+  end
+
+  def test_select_values_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_values(Post.all) }
+      end
+    end
+  end
+
+  def test_select_rows_with_cache
+    Post.cache do
+      assert_queries(1) do
+        2.times { Post.connection.select_rows(Post.all) }
+      end
     end
   end
 
@@ -274,18 +324,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  def test_cache_is_available_when_connection_is_connected
-    conf = ActiveRecord::Base.configurations
-
-    ActiveRecord::Base.configurations = {}
-    Task.cache do
-      assert_queries(1) { Task.find(1); Task.find(1) }
-    end
-  ensure
-    ActiveRecord::Base.configurations = conf
-  end
-
-  def test_cache_is_not_available_when_using_a_not_connected_connection
+  def test_cache_is_available_when_using_a_not_connected_connection
+    skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
       spec_name = Task.connection_specification_name
       conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
@@ -295,15 +335,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       Task.cache do
         begin
-          if in_memory_db?
-            Task.connection.create_table :tasks do |t|
-              t.datetime :starting
-              t.datetime :ending
-            end
-            ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
-          end
-          Task.connection # warmup postgresql connection setup queries
-          assert_queries(2) { Task.find(1); Task.find(1) }
+          assert_queries(1) { Task.find(1); Task.find(1) }
         ensure
           ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
           Task.connection_specification_name = spec_name
@@ -370,10 +402,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       # Warm the cache
       Task.find(1)
 
-      Task.connection.type_map.clear
-
       # Preload the type cache again (so we don't have those queries issued during our assertions)
-      Task.connection.send(:initialize_type_map, Task.connection.type_map)
+      Task.connection.send(:reload_type_map)
 
       # Clear places where type information is cached
       Task.reset_column_information
@@ -531,5 +561,17 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         p.categories.delete_all
       end
     end
+  end
+
+  test "threads use the same connection" do
+    @connection_1 = ActiveRecord::Base.connection.object_id
+
+    thread_a = Thread.new do
+      @connection_2 = ActiveRecord::Base.connection.object_id
+    end
+
+    thread_a.join
+
+    assert_equal @connection_1, @connection_2
   end
 end

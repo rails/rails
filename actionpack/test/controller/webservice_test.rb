@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/json/decoding"
 
@@ -21,8 +23,8 @@ class WebServiceTest < ActionDispatch::IntegrationTest
           value = ""
         end
 
-        s << ", " unless s.empty?
-        s << "#{k}#{value}"
+        s += ", " unless s.empty?
+        s += "#{k}#{value}"
       end
     end
   end

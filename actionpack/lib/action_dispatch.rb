@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Copyright (c) 2004-2017 David Heinemeier Hansson
 #
@@ -97,6 +99,8 @@ module ActionDispatch
     autoload :TestResponse
     autoload :AssertionResponse
   end
+
+  autoload :SystemTestCase, "action_dispatch/system_test_case"
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"

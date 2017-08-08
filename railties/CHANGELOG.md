@@ -1,156 +1,101 @@
-*   Fix running multiple tests in one `rake` command
+*   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
+    root file containing the current Ruby version when new Rails applications are
+    created.
 
-    e.g. `bin/rake test:models test:controllers`
+    *Alberto Almagro*
 
-    *Dominic Cleal*
+*   Support `-` as a platform-agnostic way to run a script from stdin with
+    `rails runner`
 
-*   Add option to configure Ruby's warning behaviour to test runner.
+    *Cody Cutrer*
 
-    *Yuji Yaginuma*
+*   Add `bootsnap` to default `Gemfile`.
 
-*   Initialize git repo when generating new app, if option `--skip-git`
-    is not provided.
+    *Burke Libbey*
 
-    *Dino Maric*
+*   Properly expand shortcuts for environment's name running the `console`
+    and `dbconsole` commands.
 
-*   Install Byebug gem as default in Windows (mingw and x64_mingw) platform.
+    *Robin Dupret*
 
-    *Junichi Ito*
+*   Passing the environment's name as a regular argument to the
+    `rails dbconsole` and `rails console` commands is deprecated.
+    The `-e` option should be used instead.
 
-*   Make every Rails command work within engines.
+    Previously:
 
-    *Sean Collins*, *Yuji Yaginuma*
+        $ bin/rails dbconsole production
 
-*   Don't generate HTML/ERB templates for scaffold controller with `--api` flag.
+    Now:
 
-    Fixes #27591.
+        $ bin/rails dbconsole -e production
 
-    *Prathamesh Sonpatki*
+    *Robin Dupret*, *Kasper Timm Hansen*
 
-*   Make `Rails.env` fall back to `development` when `RAILS_ENV` and `RACK_ENV` is an empty string.
+*   Allow passing a custom connection name to the `rails dbconsole`
+    command when using a 3-level database configuration.
 
-    *Daniel Deng*
+        $ bin/rails dbconsole -c replica
 
-*   Remove deprecated `CONTROLLER` environment variable for `routes` task.
+    *Robin Dupret*, *Jeremy Daer*
 
-    *Rafael Mendonça França*
+*   Skip unused components when running `bin/rails app:update`.
 
-*   Remove deprecated tasks: `rails:update`, `rails:template`, `rails:template:copy`,
-    `rails:update:configs` and `rails:update:bin`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated file `rails/rack/debugger`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `config.serve_static_files`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `config.static_cache_control`.
-
-    *Rafael Mendonça França*
-
-*   The `log:clear` task clear all environments log files by default.
+    If the initial app generation skipped Action Cable, Active Record etc.,
+    the update task honors those skips too.
 
     *Yuji Yaginuma*
 
-*   Add Webpack support in new apps via the --webpack option, which will delegate to the rails/webpacker gem.
+*   Make Rails' test runner work better with minitest plugins.
 
-    To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:
+    By demoting the Rails test runner to just another minitest plugin —
+    and thereby not eager loading it — we can co-exist much better with
+    other minitest plugins such as pride and minitest-focus.
 
-      `rails new myapp --webpack`
+    *Kasper Timm Hansen*
 
-    To generate a new app that has Webpack + React configured and an example intalled:
+*   Load environment file in `dbconsole` command.
 
-      `rails new myapp --webpack=react`
+    Fixes #29717
 
-    *DHH*
+    *Yuji Yaginuma*
 
-*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+*   Add `rails secrets:show` command.
 
-    *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
+    *Yuji Yaginuma*
 
-*   Removed jquery-rails from default stack, instead rails-ujs that is shipped
-    with Action View is included as default UJS adapter.
+*   Allow mounting the same engine several times in different locations.
 
-    *Guillermo Iguaran*
+    Fixes #20204.
 
-*   The config file `secrets.yml` is now loaded in with all keys as symbols.
-    This allows secrets files to contain more complex information without all
-    child keys being strings while parent keys are symbols.
+    *David Rodríguez*
 
-    *Isaac Sloan*
+*   Clear screenshot files in `tmp:clear` task.
 
-*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+    *Yuji Yaginuma*
+
+*   Add `railtie.rb` to the plugin generator
 
     *Tsukuru Tanimichi*
 
-*   Allow the use of listen's 3.1.x branch
-
-    *Esteban Santana Santana*
-
-*   Run `Minitest.after_run` hooks when running `rails test`.
-
-    *Michael Grosser*
-
-*   Run `before_configuration` callbacks as soon as application constant
-    inherits from `Rails::Application`.
-
-    Fixes #19880.
+*   Deprecate `capify!` method in generators and templates.
 
     *Yuji Yaginuma*
 
-*   A generated app should not include Uglifier with `--skip-javascript` option.
+*   Allow irb options to be passed from `rails console` command.
 
-    *Ben Pickles*
+    Fixes #28988.
 
-*   Set session store to cookie store internally and remove the initializer from
-    the generated app.
+    *Yuji Yaginuma*
 
-    *Prathamesh Sonpatki*
+*   Added a shared section to `config/database.yml` that will be loaded for all environments.
 
-*   Set the server host using the `HOST` environment variable.
+    *Pierre Schambacher*
 
-    *mahnunchik*
+*   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
+    when using Turbolinks.
 
-*   Add public API to register new folders for `rake notes`:
+    *Jan Krutisch*
 
-        config.annotations.register_directories('spec', 'features')
 
-    *John Meehan*
-
-*   Display name of the class defining the initializer along with the initializer
-    name in the output of `rails initializers`.
-
-    Before:
-        disable_dependency_loading
-
-    After:
-        DemoApp::Application.disable_dependency_loading
-
-    *ta1kt0me*
-
-*   Do not run `bundle install` when generating a new plugin.
-
-    Since bundler 1.12.0, the gemspec is validated so the `bundle install`
-    command will fail just after the gem is created causing confusion to the
-    users. This change was a bug fix to correctly validate gemspecs.
-
-    *Rafael Mendonça França*
-
-*   Default `config.assets.quiet = true` in the development environment. Suppress
-    logging of assets requests by default.
-
-    *Kevin McPhillips*
-
-*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
-
-    *Nicholas Firth-McCoy*
-
-*   Added a shared section to `config/secrets.yml` that will be loaded for all environments.
-
-    *DHH*
-
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/railties/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/railties/CHANGELOG.md) for previous changes.

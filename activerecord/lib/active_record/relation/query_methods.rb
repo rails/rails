@@ -1,7 +1,9 @@
-require "active_record/relation/from_clause"
-require "active_record/relation/query_attribute"
-require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
+# frozen_string_literal: true
+
+require_relative "from_clause"
+require_relative "query_attribute"
+require_relative "where_clause"
+require_relative "where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
@@ -72,31 +74,6 @@ module ActiveRecord
           set_value(#{name.inspect}, value)  #   set_value(:includes, value)
         end                                  # end
       CODE
-    end
-
-    def bound_attributes
-      if limit_value
-        limit_bind = Attribute.with_cast_value(
-          "LIMIT".freeze,
-          connection.sanitize_limit(limit_value),
-          Type.default_value,
-        )
-      end
-      if offset_value
-        offset_bind = Attribute.with_cast_value(
-          "OFFSET".freeze,
-          offset_value.to_i,
-          Type.default_value,
-        )
-      end
-      connection.combine_bind_parameters(
-        from_clause: from_clause.binds,
-        join_clause: arel.bind_values,
-        where_clause: where_clause.binds,
-        having_clause: having_clause.binds,
-        limit: limit_bind,
-        offset: offset_bind,
-      )
     end
 
     alias extensions extending_values
@@ -202,12 +179,13 @@ module ActiveRecord
 
     # Works in two unique ways.
     #
-    # First: takes a block so it can be used just like +Array#select+.
+    # First: takes a block so it can be used just like <tt>Array#select</tt>.
     #
     #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
-    # converting them into an array and iterating through them using +Array#select+.
+    # converting them into an array and iterating through them using
+    # <tt>Array#select</tt>.
     #
     # Second: Modifies the SELECT statement for the query so that only certain
     # fields are retrieved:
@@ -248,7 +226,7 @@ module ActiveRecord
         return super()
       end
 
-      raise ArgumentError, "Call this with at least one field" if fields.empty?
+      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
       spawn._select!(*fields)
     end
 
@@ -661,6 +639,7 @@ module ActiveRecord
 
       self.where_clause = self.where_clause.or(other.where_clause)
       self.having_clause = having_clause.or(other.having_clause)
+      self.references_values += other.references_values
 
       self
     end
@@ -801,7 +780,7 @@ module ActiveRecord
         value = sanitize_forbidden_attributes(value)
         self.create_with_value = create_with_value.merge(value)
       else
-        self.create_with_value = {}
+        self.create_with_value = FROZEN_EMPTY_HASH
       end
 
       self
@@ -917,21 +896,27 @@ module ActiveRecord
       self
     end
 
+    def skip_query_cache! # :nodoc:
+      self.skip_query_cache_value = true
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel # :nodoc:
       @arel ||= build_arel
     end
 
-    # Returns a relation value with a given name
-    def get_value(name) # :nodoc:
-      @values[name] || default_value_for(name)
-    end
+    protected
+      # Returns a relation value with a given name
+      def get_value(name) # :nodoc:
+        @values[name] || default_value_for(name)
+      end
 
-    # Sets the relation value with the given name
-    def set_value(name, value) # :nodoc:
-      assert_mutability!
-      @values[name] = value
-    end
+      # Sets the relation value with the given name
+      def set_value(name, value) # :nodoc:
+        assert_mutability!
+        @values[name] = value
+      end
 
     private
 
@@ -955,8 +940,22 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(Arel::Nodes::BindParam.new) if limit_value
-        arel.skip(Arel::Nodes::BindParam.new) if offset_value
+        if limit_value
+          limit_attribute = Attribute.with_cast_value(
+            "LIMIT".freeze,
+            connection.sanitize_limit(limit_value),
+            Type.default_value,
+          )
+          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
+        end
+        if offset_value
+          offset_attribute = Attribute.with_cast_value(
+            "OFFSET".freeze,
+            offset_value.to_i,
+            Type.default_value,
+          )
+          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
+        end
         arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
         build_order(arel)
@@ -1025,17 +1024,11 @@ module ActiveRecord
         join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          @klass,
-          association_joins,
-          join_list
+          klass, table, association_joins, join_list
         )
 
-        join_infos = join_dependency.join_constraints stashed_association_joins, join_type
-
-        join_infos.each do |info|
-          info.joins.each { |join| manager.from(join) }
-          manager.bind_values.concat info.binds
-        end
+        joins = join_dependency.join_constraints(stashed_association_joins, join_type)
+        joins.each { |join| manager.from(join) }
 
         manager.join_sources.concat(join_list)
 
@@ -1053,7 +1046,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
         else
-          arel.project(@klass.arel_table[Arel.star])
+          arel.project(table[Arel.star])
         end
       end
 
@@ -1111,14 +1104,16 @@ module ActiveRecord
       end
 
       VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"] # :nodoc:
+                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|
           next unless arg.is_a?(Hash)
           arg.each do |_key, value|
-            raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
-                                 "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
+            unless VALID_DIRECTIONS.include?(value)
+              raise ArgumentError,
+                "Direction \"#{value}\" is invalid. Valid directions are: #{VALID_DIRECTIONS.to_a.inspect}"
+            end
           end
         end
       end
@@ -1131,7 +1126,7 @@ module ActiveRecord
         validate_order_args(order_args)
 
         references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name
@@ -1141,7 +1136,12 @@ module ActiveRecord
             arel_attribute(arg).asc
           when Hash
             arg.map { |field, dir|
-              arel_attribute(field).send(dir.downcase)
+              case field
+              when Arel::Nodes::SqlLiteral
+                field.send(dir.downcase)
+              else
+                arel_attribute(field).send(dir.downcase)
+              end
             }
           else
             arg
@@ -1171,7 +1171,7 @@ module ActiveRecord
         end
       end
 
-      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having]
+      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope, :references]
       def structurally_incompatible_values_for_or(other)
         STRUCTURAL_OR_METHODS.reject do |method|
           get_value(method) == other.get_value(method)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -220,6 +222,16 @@ module ActiveRecord
         assert TestModel.new.contributor?
 
         change_column "test_models", "contributor", :boolean, default: nil
+        TestModel.reset_column_information
+        assert_not TestModel.new.contributor?
+        assert_nil TestModel.new.contributor
+      end
+
+      def test_change_column_to_drop_default_with_null_false
+        add_column "test_models", "contributor", :boolean, default: true, null: false
+        assert TestModel.new.contributor?
+
+        change_column "test_models", "contributor", :boolean, default: nil, null: false
         TestModel.reset_column_information
         assert_not TestModel.new.contributor?
         assert_nil TestModel.new.contributor

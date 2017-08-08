@@ -46,7 +46,7 @@ $ cd rails
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first SQLite3 and its development files for the `sqlite3` gem. Mac OS X
+Install first SQLite3 and its development files for the `sqlite3` gem. On macOS
 users are done with:
 
 ```bash
@@ -62,7 +62,7 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 If you are on Fedora or CentOS, you're done with
 
 ```bash
-$ sudo yum install sqlite3 sqlite3-devel
+$ sudo yum install libsqlite3x libsqlite3x-devel 
 ```
 
 If you are on Arch Linux, you will need to run:

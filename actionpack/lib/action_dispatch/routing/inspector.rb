@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "delegate"
 require "active_support/core_ext/string/strip"
 
@@ -196,7 +198,7 @@ module ActionDispatch
         @buffer << @view.render(partial: "routes/route", collection: routes)
       end
 
-      # the header is part of the HTML page, so we don't construct it here.
+      # The header is part of the HTML page, so we don't construct it here.
       def header(routes)
       end
 

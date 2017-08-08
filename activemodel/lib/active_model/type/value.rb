@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class Value
@@ -81,6 +83,10 @@ module ActiveModel
       #
       # +new_value+ The current value, after type casting.
       def changed_in_place?(raw_old_value, new_value)
+        false
+      end
+
+      def value_constructed_by_mass_assignment?(_value) # :nodoc:
         false
       end
 

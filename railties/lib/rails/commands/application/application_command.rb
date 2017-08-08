@@ -1,5 +1,5 @@
-require "rails/generators"
-require "rails/generators/rails/app/app_generator"
+require_relative "../../generators"
+require_relative "../../generators/rails/app/app_generator"
 
 module Rails
   module Generators

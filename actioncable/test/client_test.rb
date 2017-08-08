@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "concurrent"
 
@@ -68,12 +70,33 @@ class ClientTest < ActionCable::TestCase
     server.min_threads = 1
     server.max_threads = 4
 
-    t = Thread.new { server.run.join }
-    yield port
+    thread = server.run
 
-  ensure
-    server.stop(true) if server
-    t.join if t
+    begin
+      yield port
+
+    ensure
+      server.stop
+
+      begin
+        thread.join
+
+      rescue IOError
+        # Work around https://bugs.ruby-lang.org/issues/13405
+        #
+        # Puma's sometimes raising while shutting down, when it closes
+        # its internal pipe. We can safely ignore that, but we do need
+        # to do the step skipped by the exception:
+        server.binder.close
+
+      rescue RuntimeError => ex
+        # Work around https://bugs.ruby-lang.org/issues/13239
+        raise unless ex.message =~ /can't modify frozen IOError/
+
+        # Handle this as if it were the IOError: do the same as above.
+        server.binder.close
+      end
+    end
   end
 
   class SyncClient

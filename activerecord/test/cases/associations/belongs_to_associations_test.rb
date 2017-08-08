@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/project"
@@ -116,6 +118,44 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
 
+  def test_default
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, default: -> { david }
+    end
+
+    ship = model.create!
+    assert_equal david, ship.developer
+
+    ship = model.create!(developer: jamis)
+    assert_equal jamis, ship.developer
+
+    ship.update!(developer: nil)
+    assert_equal david, ship.developer
+  end
+
+  def test_default_with_lambda
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, default: -> { default_developer }
+
+      def default_developer
+        Developer.first
+      end
+    end
+
+    ship = model.create!
+    assert_equal developers(:david), ship.developer
+
+    ship = model.create!(developer: developers(:jamis))
+    assert_equal developers(:jamis), ship.developer
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 
@@ -177,6 +217,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end
+
+    Admin::User.reset_column_information
   end
 
   def test_natural_assignment
@@ -342,7 +384,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     sponsor.sponsorable = Member.new name: "Bert"
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
-    assert_equal "members", sponsor.association(:sponsorable).aliased_table_name
   end
 
   def test_with_polymorphic_and_condition
@@ -610,8 +651,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_new_record_with_foreign_key_but_no_object
     client = Client.new("firm_id" => 1)
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.all.merge!(order: "id").first, client.firm_with_basic_id
+    assert_equal Firm.first, client.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
@@ -1130,6 +1170,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+
+  def test_multiple_counter_cache_with_after_create_update
+    post = posts(:welcome)
+    parent = comments(:greetings)
+
+    assert_difference "parent.reload.children_count", +1 do
+      assert_difference "post.reload.comments_count", +1 do
+        CommentWithAfterCreateUpdate.create(body: "foo", post: post, parent: parent)
+      end
+    end
   end
 end
 
