@@ -1,3 +1,23 @@
+*   Remove support for deprecated cookies.secret_token
+
+    The architecture for signed and encrypted cookies had a big upgrade
+    between Rails 3 and Rails 4. To avoid disruptions, a set of "smart"
+    cookie jars were added (#9909) so that developers could upgrade Rails
+    version without affecting users with "legacy" cookies in their browsers.
+
+    Since Rails 4 is now four years old, it is fair to assume that most apps
+    do not need these legacy cookie jars anymore. Deprecation warnings have
+    been in place for many versions and should have helped most developers
+    upgrade their applications accordingly.
+
+    Both signed and encrypted cookies will now be generated using the
+    `secret_key_base` configuration that has existed since Rails 4. The
+    deprecated `secret_token` is now removed. This change also allows to
+    remove many modules and classes that were intended to upgrade legacy
+    cookies into new cookies.
+
+    *claudiob*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,

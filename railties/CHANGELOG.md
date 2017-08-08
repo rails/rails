@@ -1,3 +1,20 @@
+*   Remove support for deprecated secret_token
+
+    The architecture for secrets had a big upgrade between Rails 3 and Rails 4,
+    when the default changed from using `secret_token` to `secret_key_base`.
+
+    `secret_token` has been deprecated for four years but was still in place
+    to support apps that were created before Rails 4 (e.g., to still be able
+    to read the legacy cookies of their older users). Deprecation warnings have
+    been in place for many versions and should have helped most developers
+    upgrade their applications accordingly.
+
+    Removing `secret_token` also allows to remove code that was intended to
+    deal with the condition where both `secret_token` and `secret_key_base`
+    were set.
+
+    *claudiob*
+
 *   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
     root file containing the current Ruby version when new Rails applications are
     created.

@@ -49,10 +49,6 @@ module ActionDispatch
       get_header Cookies::AUTHENTICATED_ENCRYPTED_COOKIE_SALT
     end
 
-    def secret_token
-      get_header Cookies::SECRET_TOKEN
-    end
-
     def secret_key_base
       get_header Cookies::SECRET_KEY_BASE
     end
@@ -156,7 +152,6 @@ module ActionDispatch
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
     AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "action_dispatch.authenticated_encrypted_cookie_salt".freeze
-    SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
     COOKIES_DIGEST = "action_dispatch.cookies_digest".freeze
@@ -188,9 +183,6 @@ module ActionDispatch
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
-      # legacy cookies signed with the old key generator will be transparently upgraded.
-      #
       # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
       #
       # Example:
@@ -200,19 +192,11 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||=
-          if upgrade_legacy_signed_cookies?
-            UpgradeLegacySignedCookieJar.new(self)
-          else
-            SignedCookieJar.new(self)
-          end
+        @signed ||= SignedCookieJar.new(self)
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
       # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
-      #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
-      # legacy cookies signed with the old key generator will be transparently upgraded.
       #
       # If +config.action_dispatch.encrypted_cookie_salt+ and +config.action_dispatch.encrypted_signed_cookie_salt+
       # are both set, legacy cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
@@ -227,9 +211,7 @@ module ActionDispatch
       #   cookies.encrypted[:discount] # => 45
       def encrypted
         @encrypted ||=
-          if upgrade_legacy_signed_cookies?
-            UpgradeLegacyEncryptedCookieJar.new(self)
-          elsif upgrade_legacy_hmac_aes_cbc_cookies?
+          if upgrade_legacy_hmac_aes_cbc_cookies?
             UpgradeLegacyHmacAesCbcCookieJar.new(self)
           else
             EncryptedCookieJar.new(self)
@@ -249,39 +231,11 @@ module ActionDispatch
 
       private
 
-        def upgrade_legacy_signed_cookies?
-          request.secret_token.present? && request.secret_key_base.present?
-        end
-
         def upgrade_legacy_hmac_aes_cbc_cookies?
           request.secret_key_base.present?                       &&
             request.authenticated_encrypted_cookie_salt.present? &&
             request.encrypted_signed_cookie_salt.present?        &&
             request.encrypted_cookie_salt.present?
-        end
-    end
-
-    # Passing the ActiveSupport::MessageEncryptor::NullSerializer downstream
-    # to the Message{Encryptor,Verifier} allows us to handle the
-    # (de)serialization step within the cookie jar, which gives us the
-    # opportunity to detect and migrate legacy cookies.
-    module VerifyAndUpgradeLegacySignedMessage # :nodoc:
-      def initialize(*args)
-        super
-        @legacy_verifier = ActiveSupport::MessageVerifier.new(request.secret_token, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
-      end
-
-      def verify_and_upgrade_legacy_signed_message(name, signed_message)
-        deserialize(name, @legacy_verifier.verify(signed_message)).tap do |value|
-          self[name] = { value: value }
-        end
-      rescue ActiveSupport::MessageVerifier::InvalidSignature
-        nil
-      end
-
-      private
-        def parse(name, signed_message)
-          super || verify_and_upgrade_legacy_signed_message(name, signed_message)
         end
     end
 
@@ -575,14 +529,6 @@ module ActionDispatch
         end
     end
 
-    # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
-    # secrets.secret_token and secrets.secret_key_base are both set. It reads
-    # legacy cookies signed with the old dummy key generator and signs and
-    # re-saves them using the new key generator to provide a smooth upgrade path.
-    class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
-      include VerifyAndUpgradeLegacySignedMessage
-    end
-
     class EncryptedCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
@@ -613,14 +559,6 @@ module ActionDispatch
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
-    end
-
-    # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
-    # instead of EncryptedCookieJar if secrets.secret_token and secrets.secret_key_base
-    # are both set. It reads legacy cookies signed with the old dummy key generator and
-    # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
-    class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:
-      include VerifyAndUpgradeLegacySignedMessage
     end
 
     # UpgradeLegacyHmacAesCbcCookieJar is used by ActionDispatch::Session::CookieStore
