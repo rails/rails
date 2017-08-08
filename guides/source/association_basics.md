@@ -777,6 +777,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
+* `reload_association`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
@@ -794,6 +795,7 @@ author=
 build_author
 create_author
 create_author!
+reload_author
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -806,10 +808,10 @@ The `association` method returns the associated object, if any. If no associated
 @author = @book.author
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
 
 ```ruby
-@author = @book.reload.author
+@author = @book.reload_author
 ```
 
 ##### `association=(associate)`
@@ -1127,6 +1129,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
+* `reload_association`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1144,6 +1147,7 @@ account=
 build_account
 create_account
 create_account!
+reload_account
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1156,10 +1160,10 @@ The `association` method returns the associated object, if any. If no associated
 @account = @supplier.account
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload` on the parent object.
+If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
 
 ```ruby
-@account = @supplier.reload.account
+@account = @supplier.reload_account
 ```
 
 ##### `association=(associate)`
@@ -1409,6 +1413,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection.build(attributes = {}, ...)`
 * `collection.create(attributes = {})`
 * `collection.create!(attributes = {})`
+* `collection.reload`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1437,11 +1442,12 @@ books.exists?(...)
 books.build(attributes = {}, ...)
 books.create(attributes = {})
 books.create!(attributes = {})
+books.reload
 ```
 
 ##### `collection`
 
-The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
 
 ```ruby
 @books = @author.books
@@ -1574,6 +1580,14 @@ The `collection.create` method returns a single or array of new objects of the a
 ##### `collection.create!(attributes = {})`
 
 Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The `collection.reload` method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@books = @author.books.reload
+```
 
 #### Options for `has_many`
 
@@ -1931,6 +1945,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection.build(attributes = {})`
 * `collection.create(attributes = {})`
 * `collection.create!(attributes = {})`
+* `collection.reload`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1959,6 +1974,7 @@ assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
 assemblies.create!(attributes = {})
+assemblies.reload
 ```
 
 ##### Additional Column Methods
@@ -1970,7 +1986,7 @@ WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_
 
 ##### `collection`
 
-The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
 
 ```ruby
 @assemblies = @part.assemblies
@@ -2083,6 +2099,14 @@ The `collection.create` method returns a new object of the associated type. This
 ##### `collection.create!(attributes = {})`
 
 Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The `collection.reload` method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@assemblies = @part.assemblies.reload
+```
 
 #### Options for `has_and_belongs_to_many`
 
