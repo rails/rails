@@ -1,7 +1,7 @@
 .bundle/
 log/*.log
 pkg/
-<% unless options[:skip_test] && options[:dummy_path] == 'test/dummy' -%>
+<% if with_dummy_app? -%>
 <%= dummy_path %>/db/*.sqlite3
 <%= dummy_path %>/db/*.sqlite3-journal
 <%= dummy_path %>/log/*.log
