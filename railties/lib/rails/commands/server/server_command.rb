@@ -2,6 +2,8 @@ require "fileutils"
 require "optparse"
 require "action_dispatch"
 require "rails"
+require "active_support/deprecation"
+require "active_support/core_ext/string/filters"
 require_relative "../../dev_caching"
 
 module Rails
@@ -18,10 +20,15 @@ module Rails
       set_environment
     end
 
-    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
       @app ||= begin
         app = super
+        if app.is_a?(Class)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Use `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
+            Please change `run #{app}` to `run Rails.application` in config.ru.
+          MSG
+        end
         app.respond_to?(:to_app) ? app.to_app : app
       end
     end

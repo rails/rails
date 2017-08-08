@@ -1,3 +1,7 @@
+*   Deprecate support of use `Rails::Application` subclass to start Rails server.
+
+    *Yuji Yaginuma*
+
 *   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
     root file containing the current Ruby version when new Rails applications are
     created.
