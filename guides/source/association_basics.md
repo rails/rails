@@ -829,6 +829,7 @@ author=
 build_author
 create_author
 create_author!
+reload_author
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1180,6 +1181,7 @@ account=
 build_account
 create_account
 create_account!
+reload_account
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1445,6 +1447,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection.build(attributes = {}, ...)`
 * `collection.create(attributes = {})`
 * `collection.create!(attributes = {})`
+* `collection.reload`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1473,11 +1476,12 @@ books.exists?(...)
 books.build(attributes = {}, ...)
 books.create(attributes = {})
 books.create!(attributes = {})
+books.reload
 ```
 
 ##### `collection`
 
-The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
 
 ```ruby
 @books = @author.books
@@ -1610,6 +1614,14 @@ The `collection.create` method returns a single or array of new objects of the a
 ##### `collection.create!(attributes = {})`
 
 Does the same as `collection.create` above, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The `collection.reload` method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@books = @author.books.reload
+```
 
 #### Options for `has_many`
 
@@ -1967,6 +1979,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection.build(attributes = {})`
 * `collection.create(attributes = {})`
 * `collection.create!(attributes = {})`
+* `collection.reload`
 
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
@@ -1995,6 +2008,7 @@ assemblies.exists?(...)
 assemblies.build(attributes = {}, ...)
 assemblies.create(attributes = {})
 assemblies.create!(attributes = {})
+assemblies.reload
 ```
 
 ##### Additional Column Methods
@@ -2006,7 +2020,7 @@ WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_
 
 ##### `collection`
 
-The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns a Relation of all of the associated objects. If there are no associated objects, it returns an empty Relation.
 
 ```ruby
 @assemblies = @part.assemblies
@@ -2117,6 +2131,14 @@ The `collection.create` method returns a new object of the associated type. This
 ##### `collection.create!(attributes = {})`
 
 Does the same as `collection.create`, but raises `ActiveRecord::RecordInvalid` if the record is invalid.
+
+##### `collection.reload`
+
+The `collection.reload` method returns a Relation of all of the associated objects, forcing a database read. If there are no associated objects, it returns an empty Relation.
+
+```ruby
+@assemblies = @part.assemblies.reload
+```
 
 #### Options for `has_and_belongs_to_many`
 
