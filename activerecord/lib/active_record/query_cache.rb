@@ -34,7 +34,7 @@ module ActiveRecord
       [caching_pool, caching_was_enabled]
     end
 
-    def self.complete((caching_pool, caching_was_enabled))
+    def self.complete(caching_pool, caching_was_enabled)
       caching_pool.disable_query_cache! unless caching_was_enabled
 
       ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
