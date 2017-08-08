@@ -317,17 +317,18 @@ module ActiveRecord
     #                                     |            |  belongs_to  |
     #   generated methods                 | belongs_to | :polymorphic | has_one
     #   ----------------------------------+------------+--------------+---------
-    #   other(force_reload=false)         |     X      |      X       |    X
+    #   other                             |     X      |      X       |    X
     #   other=(other)                     |     X      |      X       |    X
     #   build_other(attributes={})        |     X      |              |    X
     #   create_other(attributes={})       |     X      |              |    X
     #   create_other!(attributes={})      |     X      |              |    X
+    #   reload_other                      |     X      |      X       |    X
     #
     # === Collection associations (one-to-many / many-to-many)
     #                                     |       |          | has_many
     #   generated methods                 | habtm | has_many | :through
     #   ----------------------------------+-------+----------+----------
-    #   others(force_reload=false)        |   X   |    X     |    X
+    #   others                            |   X   |    X     |    X
     #   others=(other,other,...)          |   X   |    X     |    X
     #   other_ids                         |   X   |    X     |    X
     #   other_ids=(id,id,...)             |   X   |    X     |    X
@@ -351,6 +352,7 @@ module ActiveRecord
     #   others.exists?                    |   X   |    X     |    X
     #   others.distinct                   |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
+    #   others.reload                     |   X   |    X     |    X
     #
     # === Overriding generated methods
     #
@@ -1162,7 +1164,7 @@ module ActiveRecord
       # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
       #
-      # [collection(force_reload = false)]
+      # [collection]
       #   Returns an array of all the associated objects.
       #   An empty array is returned if none are found.
       # [collection<<(object, ...)]
@@ -1376,7 +1378,7 @@ module ActiveRecord
       # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
       #
-      # [association(force_reload = false)]
+      # [association]
       #   Returns the associated object. +nil+ is returned if none is found.
       # [association=(associate)]
       #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
@@ -1393,6 +1395,8 @@ module ActiveRecord
       # [create_association!(attributes = {})]
       #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
       #   if the record is invalid.
+      # [reload_association]
+      #   Returns the associated object, forcing a database read.
       #
       # === Example
       #
@@ -1402,6 +1406,7 @@ module ActiveRecord
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
       # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
+      # * <tt>Account#reload_beneficiary</tt>
       #
       # === Scopes
       #
@@ -1508,7 +1513,7 @@ module ActiveRecord
       # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
       #
-      # [association(force_reload = false)]
+      # [association]
       #   Returns the associated object. +nil+ is returned if none is found.
       # [association=(associate)]
       #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
@@ -1522,6 +1527,8 @@ module ActiveRecord
       # [create_association!(attributes = {})]
       #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
       #   if the record is invalid.
+      # [reload_association]
+      #   Returns the associated object, forcing a database read.
       #
       # === Example
       #
@@ -1531,6 +1538,7 @@ module ActiveRecord
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
+      # * <tt>Post#reload_author</tt>
       # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # === Scopes
@@ -1666,7 +1674,7 @@ module ActiveRecord
       # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
       #
-      # [collection(force_reload = false)]
+      # [collection]
       #   Returns an array of all the associated objects.
       #   An empty array is returned if none are found.
       # [collection<<(object, ...)]
