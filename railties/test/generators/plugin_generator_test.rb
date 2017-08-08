@@ -501,7 +501,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
     assert_file ".gitignore" do |contents|
-      assert_no_match(/test\dummy/, contents)
+      assert_no_match(/test\/dummy/, contents)
     end
   end
 
