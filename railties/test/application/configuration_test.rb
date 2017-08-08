@@ -414,39 +414,6 @@ module ApplicationTests
       assert_equal "some_value", verifier.verify(message)
     end
 
-    test "application message verifier can be used when the key_generator is ActiveSupport::LegacyKeyGenerator" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
-
-      app "development"
-
-      assert_equal app.env_config["action_dispatch.key_generator"], Rails.application.key_generator
-      assert_equal app.env_config["action_dispatch.key_generator"].class, ActiveSupport::LegacyKeyGenerator
-      message = app.message_verifier(:sensitive_value).generate("some_value")
-      assert_equal "some_value", Rails.application.message_verifier(:sensitive_value).verify(message)
-    end
-
-    test "warns when secrets.secret_key_base is blank and config.secret_token is set" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
-
-      app "development"
-
-      assert_deprecated(/You didn't set `secret_key_base`./) do
-        app.env_config
-      end
-    end
-
     test "raise when secrets.secret_key_base is not a type of string" do
       app_file "config/secrets.yml", <<-YAML
         development:
@@ -456,20 +423,6 @@ module ApplicationTests
       assert_raise(ArgumentError) do
         app "development"
       end
-    end
-
-    test "prefer secrets.secret_token over config.secret_token" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = ""
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_token: 3b7cd727ee24e8444053437c36cc66c3
-      YAML
-
-      app "development"
-
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_token
     end
 
     test "application verifier can build different verifiers" do
@@ -500,32 +453,6 @@ module ApplicationTests
 
       app "development"
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
-    end
-
-    test "secret_key_base is copied from config to secrets when not set" do
-      remove_file "config/secrets.yml"
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
-      RUBY
-
-      app "development"
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
-    end
-
-    test "config.secret_token over-writes a blank secrets.secret_token" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-          secret_token:
-      YAML
-
-      app "development"
-
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.secrets.secret_token
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
@@ -577,7 +504,7 @@ module ApplicationTests
     end
 
     test "config.secret_key_base over-writes a blank secrets.secret_key_base" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
+      app_file "config/initializers/secret_key_base.rb", <<-RUBY
         Rails.application.config.secret_key_base = "iaminallyoursecretkeybase"
       RUBY
       app_file "config/secrets.yml", <<-YAML
@@ -588,41 +515,6 @@ module ApplicationTests
       app "development"
 
       assert_equal "iaminallyoursecretkeybase", app.secrets.secret_key_base
-    end
-
-    test "uses ActiveSupport::LegacyKeyGenerator as app.key_generator when secrets.secret_key_base is blank" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
-
-      app "development"
-
-      assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_nil app.secrets.secret_key_base
-      assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
-    end
-
-    test "uses ActiveSupport::LegacyKeyGenerator with config.secret_token as app.key_generator when secrets.secret_key_base is blank" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = ""
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
-
-      app "development"
-
-      assert_equal "", app.config.secret_token
-      assert_nil app.secrets.secret_key_base
-      e = assert_raise ArgumentError do
-        app.key_generator
-      end
-      assert_match(/\AA secret is required/, e.message)
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
