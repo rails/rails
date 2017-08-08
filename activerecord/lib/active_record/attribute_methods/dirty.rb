@@ -5,7 +5,7 @@ require_relative "../attribute_mutation_tracker"
 
 module ActiveRecord
   module AttributeMethods
-    module Dirty # :nodoc:
+    module Dirty
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
@@ -47,7 +47,7 @@ module ActiveRecord
         clear_mutation_trackers
       end
 
-      def changes_applied
+      def changes_applied # :nodoc:
         @mutations_before_last_save = mutation_tracker
         @mutations_from_database = AttributeMutationTracker.new(@attributes)
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
@@ -55,27 +55,27 @@ module ActiveRecord
         clear_mutation_trackers
       end
 
-      def clear_changes_information
+      def clear_changes_information # :nodoc:
         @mutations_before_last_save = nil
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         forget_attribute_assignments
         clear_mutation_trackers
       end
 
-      def write_attribute_without_type_cast(attr_name, *)
+      def write_attribute_without_type_cast(attr_name, *) # :nodoc:
         result = super
         clear_attribute_change(attr_name)
         result
       end
 
-      def clear_attribute_changes(attr_names)
+      def clear_attribute_changes(attr_names) # :nodoc:
         super
         attr_names.each do |attr_name|
           clear_attribute_change(attr_name)
         end
       end
 
-      def changed_attributes
+      def changed_attributes # :nodoc:
         # This should only be set by methods which will call changed_attributes
         # multiple times when it is known that the computed value cannot change.
         if defined?(@cached_changed_attributes)
@@ -85,17 +85,17 @@ module ActiveRecord
         end
       end
 
-      def changes
+      def changes # :nodoc:
         cache_changed_attributes do
           super
         end
       end
 
-      def previous_changes
+      def previous_changes # :nodoc:
         mutations_before_last_save.changes
       end
 
-      def attribute_changed_in_place?(attr_name)
+      def attribute_changed_in_place?(attr_name) # :nodoc:
         mutation_tracker.changed_in_place?(attr_name)
       end
 
