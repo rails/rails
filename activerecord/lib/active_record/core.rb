@@ -143,7 +143,7 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def allocate
         define_attribute_methods
         super
@@ -251,7 +251,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for association proxies.
+      # Overwrite the default class equality method to provide support for decorated models.
       def ===(object)
         object.is_a?(self)
       end
