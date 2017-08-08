@@ -136,7 +136,7 @@ module RailtiesTest
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output.first)
-        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.last)
+        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.second)
       end
     end
 
@@ -171,7 +171,7 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
+        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.second)
         assert_match(/Copied migration \d+_create_keys\.api_engine\.rb from api_engine/, output.last)
       end
     end
