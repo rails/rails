@@ -234,6 +234,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_action_cable_is_removed_from_frameworks_if_skip_action_cable_is_given
     run_generator [destination_root, "--skip-action-cable"]
     assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
+    assert_no_file "test/dummy/config/cable.yml"
+    assert_no_file "test/dummy/app/assets/javascripts/cable.js"
+    assert_no_directory "test/dummy/app/channels"
+    assert_file "Gemfile" do |content|
+      assert_no_match(/redis/, content)
+    end
   end
 
   def test_ensure_that_database_option_is_passed_to_app_generator
