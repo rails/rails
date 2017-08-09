@@ -1569,7 +1569,7 @@ module ActionView
     # In the above block, a +FormBuilder+ object is yielded as the
     # +person_form+ variable. This allows you to generate the +text_field+
     # and +check_box+ fields by specifying their eponymous methods, which
-    # modify the underlying template and associates the +@person+ model object
+    # modify the underlying template and associates the <tt>@person</tt> model object
     # with the form.
     #
     # The +FormBuilder+ object can be thought of as serving as a proxy for the
