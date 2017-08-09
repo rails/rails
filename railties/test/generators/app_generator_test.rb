@@ -394,6 +394,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_default_frameworks_are_required_when_others_are_removed
+    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets"]
+    assert_file "config/application.rb", /require\s+["']rails["']/
+    assert_file "config/application.rb", /require\s+["']active_model\/railtie["']/
+    assert_file "config/application.rb", /require\s+["']active_job\/railtie["']/
+    assert_file "config/application.rb", /require\s+["']action_controller\/railtie["']/
+    assert_file "config/application.rb", /require\s+["']action_view\/railtie["']/
+  end
+
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
     assert_gem "puma", "'~> 3.7'"
@@ -449,22 +458,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
+
     assert_no_file "config/initializers/assets.rb"
-    assert_file "config/application.rb" do |content|
-      assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
-    end
+
+    assert_file "config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
+
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
       assert_no_match(/coffee-rails/, content)
     end
+
     assert_file "config/environments/development.rb" do |content|
-      assert_no_match(/config\.assets\.debug = true/, content)
+      assert_no_match(/config\.assets\.debug/, content)
     end
+
     assert_file "config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.digest = true/, content)
-      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
-      assert_no_match(/config\.assets\.css_compressor = :sass/, content)
+      assert_no_match(/config\.assets\.digest/, content)
+      assert_no_match(/config\.assets\.js_compressor/, content)
+      assert_no_match(/config\.assets\.css_compressor/, content)
+      assert_no_match(/config\.assets\.compile/, content)
     end
   end
 
@@ -473,7 +486,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
     assert_no_file "app/assets/javascripts/cable.js"
-    assert_no_file "app/channels"
+    assert_no_directory "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
     end
@@ -486,10 +499,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_if_skip_test_is_given
     run_generator [destination_root, "--skip-test"]
+
+    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
     end
+
+    assert_no_directory("test")
   end
 
   def test_generator_if_skip_system_test_is_given
@@ -498,6 +516,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
     end
+
+    assert_directory("test")
+
+    assert_no_directory("test/system")
   end
 
   def test_does_not_generate_system_test_files_if_skip_system_test_is_given
@@ -652,18 +674,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_file_is_added_for_backwards_compatibility
     action :file, "lib/test_file.rb", "heres test data"
     assert_file "lib/test_file.rb", "heres test data"
-  end
-
-  def test_tests_are_removed_from_frameworks_if_skip_test_is_given
-    run_generator [destination_root, "--skip-test"]
-    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
-  end
-
-  def test_no_active_record_or_tests_if_skips_given
-    run_generator [destination_root, "--skip-test", "--skip-active-record"]
-    assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
-    assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
-    assert_file "config/application.rb", /\s+require\s+["']active_job\/railtie["']/
   end
 
   def test_pretend_option
@@ -894,18 +904,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file("test/system/.keep")
     assert_directory("test/system")
-  end
-
-  def test_system_tests_are_not_generated_on_system_test_skip
-    run_generator [destination_root, "--skip-system-test"]
-
-    assert_no_directory("test/system")
-  end
-
-  def test_system_tests_are_not_generated_on_test_skip
-    run_generator [destination_root, "--skip-test"]
-
-    assert_no_directory("test/system")
   end
 
   private
