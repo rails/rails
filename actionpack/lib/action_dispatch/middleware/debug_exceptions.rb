@@ -36,7 +36,7 @@ module ActionDispatch
       end
 
       def debug_hash(object)
-        object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
+        object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $ERROR_INFO.message}" }.join("\n")
       end
 
       def render(*)

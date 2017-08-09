@@ -268,7 +268,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd destination_root
     quietly { system "bundle install" }
     output = `bin/rails db:migrate 2>&1`
-    assert $?.success?, "Command failed: #{output}"
+    assert $CHILD_STATUS.success?, "Command failed: #{output}"
   end
 
   def test_creating_engine_in_full_mode

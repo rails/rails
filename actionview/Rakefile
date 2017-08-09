@@ -46,7 +46,7 @@ namespace :test do
       end
 
       system("npm run lint && phantomjs ../ci/phantomjs.js http://localhost:4567/")
-      status = $?.to_i
+      status = $CHILD_STATUS.to_i
     ensure
       Process.kill("KILL", pid) if pid
       FileUtils.rm_rf("log")

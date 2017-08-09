@@ -1,12 +1,12 @@
-$:.unshift __dir__
+$LOAD_PATH.unshift __dir__
 
 as_lib = File.expand_path("../activesupport/lib", __dir__)
 ap_lib = File.expand_path("../actionpack/lib", __dir__)
 av_lib = File.expand_path("../actionview/lib", __dir__)
 
-$:.unshift as_lib if File.directory?(as_lib)
-$:.unshift ap_lib if File.directory?(ap_lib)
-$:.unshift av_lib if File.directory?(av_lib)
+$LOAD_PATH.unshift as_lib if File.directory?(as_lib)
+$LOAD_PATH.unshift ap_lib if File.directory?(ap_lib)
+$LOAD_PATH.unshift av_lib if File.directory?(av_lib)
 
 require "rails_guides/generator"
 require "active_support/core_ext/object/blank"

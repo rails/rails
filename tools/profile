@@ -106,7 +106,7 @@ begin
   require "active_support/inflector"
   require "active_support/core_ext/string/inflections"
 rescue LoadError
-  STDERR.puts $!.message
+  STDERR.puts $ERROR_INFO.message
   class String
     # File activesupport/lib/active_support/inflector/methods.rb, line 150
     def classify
@@ -125,7 +125,7 @@ rescue LoadError
     end
   end
 end
-if $0 == __FILE__
+if $PROGRAM_NAME == __FILE__
   if (filename = ARGV.shift)
     path = File.expand_path(filename)
     mode = ARGV.shift

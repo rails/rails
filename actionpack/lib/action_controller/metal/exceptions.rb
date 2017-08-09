@@ -7,7 +7,7 @@ module ActionController
   class BadRequest < ActionControllerError #:nodoc:
     def initialize(msg = nil)
       super(msg)
-      set_backtrace $!.backtrace if $!
+      set_backtrace $ERROR_INFO.backtrace if $ERROR_INFO
     end
   end
 

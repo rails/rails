@@ -292,7 +292,7 @@ module ApplicationTests
 
       # loading a specific fixture
       errormsg = Dir.chdir(app_path) { `bin/rails db:fixtures:load FIXTURES=products` }
-      assert $?.success?, errormsg
+      assert $CHILD_STATUS.success?, errormsg
 
       assert_equal 2, ::AppTemplate::Application::Product.count
       assert_equal 0, ::AppTemplate::Application::User.count
@@ -307,7 +307,7 @@ module ApplicationTests
 
       require "#{rails_root}/config/environment"
       errormsg = Dir.chdir(app_path) { `bin/rails db:fixtures:load` }
-      assert $?.success?, errormsg
+      assert $CHILD_STATUS.success?, errormsg
     end
 
     def test_scaffold_tests_pass_by_default

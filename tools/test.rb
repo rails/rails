@@ -1,4 +1,4 @@
-$: << File.expand_path("test", COMPONENT_ROOT)
+$LOAD_PATH << File.expand_path("test", COMPONENT_ROOT)
 
 require "bundler"
 Bundler.setup

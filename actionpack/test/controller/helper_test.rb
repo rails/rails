@@ -52,7 +52,7 @@ class HelpersPathsController < ActionController::Base
   paths = ["helpers2_pack", "helpers1_pack"].map do |path|
     File.join(File.expand_path("../fixtures", __dir__), path)
   end
-  $:.unshift(*paths)
+  $LOAD_PATH.unshift(*paths)
 
   self.helpers_path = paths
   helper :all
@@ -64,7 +64,7 @@ end
 
 class HelpersTypoController < ActionController::Base
   path = File.expand_path("../fixtures/helpers_typo", __dir__)
-  $:.unshift(path)
+  $LOAD_PATH.unshift(path)
   self.helpers_path = path
 end
 

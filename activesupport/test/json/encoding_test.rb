@@ -45,7 +45,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     # There doesn't seem to be a good way to get a handle on a Process::Status object without actually
     # creating a child process, hence this to populate $?
     system("not_a_real_program_#{SecureRandom.hex}")
-    assert_equal %({"exitstatus":#{$?.exitstatus},"pid":#{$?.pid}}), ActiveSupport::JSON.encode($?)
+    assert_equal %({"exitstatus":#{$CHILD_STATUS.exitstatus},"pid":#{$CHILD_STATUS.pid}}), ActiveSupport::JSON.encode($CHILD_STATUS)
   end
 
   def test_hash_encoding

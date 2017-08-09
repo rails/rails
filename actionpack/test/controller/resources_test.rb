@@ -1308,7 +1308,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_named_route(expected, route, options)
-      actual = @controller.send(route, options) rescue $!.class.name
+      actual = @controller.send(route, options) rescue $ERROR_INFO.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 

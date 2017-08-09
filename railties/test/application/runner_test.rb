@@ -108,13 +108,13 @@ module ApplicationTests
 
     def test_runner_detects_syntax_errors
       output = Dir.chdir(app_path) { `bin/rails runner "puts 'hello world" 2>&1` }
-      assert_not $?.success?
+      assert_not $CHILD_STATUS.success?
       assert_match "unterminated string meets end of file", output
     end
 
     def test_runner_detects_bad_script_name
       output = Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
-      assert_not $?.success?
+      assert_not $CHILD_STATUS.success?
       assert_match "undefined local variable or method `iuiqwiourowe' for", output
     end
 

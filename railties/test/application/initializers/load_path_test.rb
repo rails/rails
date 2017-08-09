@@ -19,7 +19,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_includes $:, "#{app_path}/app/models"
+      assert_includes $LOAD_PATH, "#{app_path}/app/models"
     end
 
     test "initializing an application allows to load code on lib path inside application class definition" do
@@ -36,7 +36,7 @@ module ApplicationTests
         require "#{app_path}/config/environment"
       end
 
-      assert_includes $:, "#{app_path}/lib"
+      assert_includes $LOAD_PATH, "#{app_path}/lib"
     end
 
     test "initializing an application eager load any path under app" do

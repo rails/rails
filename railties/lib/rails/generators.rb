@@ -1,5 +1,5 @@
 activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
+$LOAD_PATH.unshift(activesupport_path) if File.directory?(activesupport_path) && !$LOAD_PATH.include?(activesupport_path)
 
 require "thor/group"
 require_relative "command"

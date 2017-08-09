@@ -18,7 +18,7 @@ module ActionDispatch
       # defined for request's content MIME type.
       class ParseError < StandardError
         def initialize
-          super($!.message)
+          super($ERROR_INFO.message)
         end
       end
 

@@ -127,7 +127,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_application_new_exits_with_non_zero_code_on_invalid_application_name
     quietly { system "rails new test --no-rc" }
-    assert_equal false, $?.success?
+    assert_equal false, $CHILD_STATUS.success?
   end
 
   def test_application_new_exits_with_message_and_non_zero_code_when_generating_inside_existing_rails_directory
@@ -138,7 +138,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       output = `rails new mysecondapp`
     end
     assert_equal "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\nType 'rails' for help.\n", output
-    assert_equal false, $?.success?
+    assert_equal false, $CHILD_STATUS.success?
   end
 
   def test_application_new_show_help_message_inside_existing_rails_directory
@@ -148,7 +148,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       `rails new --help`
     end
     assert_match(/rails new APP_PATH \[options\]/, output)
-    assert_equal true, $?.success?
+    assert_equal true, $CHILD_STATUS.success?
   end
 
   def test_application_name_is_detected_if_it_exists_and_app_folder_renamed

@@ -58,7 +58,7 @@ module ActiveRecord
             if mariadb? && version < "10.2.5"
               create_table_info = create_table_info(column.table_name)
               if %r/#{quote_column_name(column.name)} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
-                $~[:expression].inspect
+                $LAST_MATCH_INFO[:expression].inspect
               end
             else
               scope = quoted_scope(column.table_name)

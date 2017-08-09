@@ -459,7 +459,7 @@ module CallbacksTest
       around = AroundPerson.new
       around.save_fails = true
 
-      exception = (around.save rescue $!)
+      exception = (around.save rescue $ERROR_INFO)
 
       # Make sure we have the exception we're expecting
       assert_equal "inside save", exception.message
@@ -499,7 +499,7 @@ module CallbacksTest
       person = Person.new
       person.save_fails = true
 
-      exception = (person.save rescue $!)
+      exception = (person.save rescue $ERROR_INFO)
 
       # Make sure we have the exception we're expecting
       assert_equal "inside save", exception.message

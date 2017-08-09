@@ -98,7 +98,7 @@ module ActiveRecord
   # Wraps the underlying database error as +cause+.
   class StatementInvalid < ActiveRecordError
     def initialize(message = nil)
-      super(message || $!.try(:message))
+      super(message || $ERROR_INFO.try(:message))
     end
   end
 

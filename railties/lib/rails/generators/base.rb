@@ -3,7 +3,7 @@ begin
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
        "of Rails, please make sure thor is installed,\nand run this command " \
-       "as `ruby #{$0} #{(ARGV | ['--dev']).join(" ")}`"
+       "as `ruby #{$PROGRAM_NAME} #{(ARGV | ['--dev']).join(" ")}`"
   exit
 end
 

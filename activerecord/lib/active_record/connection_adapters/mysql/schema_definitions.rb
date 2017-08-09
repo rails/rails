@@ -71,7 +71,7 @@ module ActiveRecord
             options[:auto_increment] = true
             options[:primary_key] = true
           when /\Aunsigned_(?<type>.+)\z/
-            type = $~[:type].to_sym
+            type = $LAST_MATCH_INFO[:type].to_sym
             options[:unsigned] = true
           end
 
