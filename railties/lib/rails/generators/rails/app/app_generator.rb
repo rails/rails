@@ -49,10 +49,6 @@ module Rails
       copy_file "README.md", "README.md"
     end
 
-    def ruby_version
-      template "ruby-version", ".ruby-version"
-    end
-
     def gemfile
       template "Gemfile"
     end
@@ -257,7 +253,6 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
-        build(:ruby_version)
         build(:configru)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
