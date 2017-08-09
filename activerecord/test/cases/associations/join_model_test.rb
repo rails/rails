@@ -404,7 +404,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2
+    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2.sort_by(&:id)
   end
 
   def test_has_many_through_polymorphic_has_many
