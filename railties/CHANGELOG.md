@@ -2,6 +2,12 @@
 
     *Yuji Yaginuma*
 
+*   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
+    root file containing the current Ruby version when new Rails applications are
+    created.
+
+    *Alberto Almagro*
+
 *   Support `-` as a platform-agnostic way to run a script from stdin with
     `rails runner`
 
