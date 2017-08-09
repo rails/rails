@@ -7,7 +7,7 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
-  gem "rails", github: "rails/rails"
+  gem "rails", github: "rails/rails", branch: "5-1-stable"
   gem "benchmark-ips"
 end
 
