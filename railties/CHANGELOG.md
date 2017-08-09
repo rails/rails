@@ -1,3 +1,7 @@
+*   Optimize indentation for generator actions.
+
+    *Yoshiyuki Hirano*
+
 *   Add `--skip-action-cable` option to the plugin generator.
 
     *bogdanvlviv*
