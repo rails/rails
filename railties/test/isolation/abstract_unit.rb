@@ -303,7 +303,7 @@ module TestHelpers
         remove_from_config "config.active_record.*"
       end
 
-      $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
+      $LOAD_PATH.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
   end
 end

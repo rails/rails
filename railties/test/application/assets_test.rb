@@ -20,7 +20,7 @@ module ApplicationTests
         quietly do
           precompile_task = "bin/rails assets:precompile --trace 2>&1"
           output = Dir.chdir(app_path) { %x[ #{precompile_task} ] }
-          assert $?.success?, output
+          assert $CHILD_STATUS.success?, output
           output
         end
       end

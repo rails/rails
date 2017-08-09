@@ -65,9 +65,9 @@ module ActionView
       attr_reader :cause
 
       def initialize(template)
-        super($!.message)
-        set_backtrace($!.backtrace)
-        @cause = $!
+        super($ERROR_INFO.message)
+        set_backtrace($ERROR_INFO.backtrace)
+        @cause = $ERROR_INFO
         @template, @sub_templates = template, nil
       end
 

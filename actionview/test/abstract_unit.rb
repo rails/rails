@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-$:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
+$LOAD_PATH.unshift File.expand_path("lib", __dir__)
+$LOAD_PATH.unshift File.expand_path("fixtures/helpers", __dir__)
+$LOAD_PATH.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
 

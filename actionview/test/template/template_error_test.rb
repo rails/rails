@@ -7,7 +7,7 @@ class TemplateErrorTest < ActiveSupport::TestCase
     error = begin
       raise Exception.new("original")
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new("test") rescue $ERROR_INFO
     end
 
     assert_equal "original", error.message
@@ -19,7 +19,7 @@ class TemplateErrorTest < ActiveSupport::TestCase
       original_exception.set_backtrace(%W[ foo bar baz ])
       raise original_exception
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new("test") rescue $ERROR_INFO
     end
 
     assert_equal %W[ foo bar baz ], error.backtrace
@@ -29,7 +29,7 @@ class TemplateErrorTest < ActiveSupport::TestCase
     error = begin
       raise Exception.new("original")
     rescue Exception
-      raise ActionView::Template::Error.new("test") rescue $!
+      raise ActionView::Template::Error.new("test") rescue $ERROR_INFO
     end
 
     assert_equal "#<ActionView::Template::Error: original>", error.inspect

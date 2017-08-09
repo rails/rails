@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 begin
-  $:.unshift(File.expand_path("../lib", __dir__))
+  $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
   require "active_support"
 rescue IOError
 end
@@ -131,7 +131,7 @@ module ActiveSupport
   end
 end
 
-if __FILE__ == $0
+if __FILE__ == $PROGRAM_NAME
   filename = ActiveSupport::Multibyte::Unicode::UnicodeDatabase.filename
   generator = ActiveSupport::Multibyte::Unicode::DatabaseGenerator.new
   generator.parse

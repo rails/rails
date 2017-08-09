@@ -54,7 +54,7 @@ module AbstractController
       include ActionController::Helpers
 
       path = File.expand_path("../../fixtures/helpers_missing", __dir__)
-      $:.unshift(path)
+      $LOAD_PATH.unshift(path)
       self.helpers_path = path
     end
 

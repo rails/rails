@@ -36,7 +36,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "safe_join should return the safe string separated by $, when second argument is not passed" do
-    default_delimeter = $,
+    default_delimeter = $OUTPUT_FIELD_SEPARATOR
 
     begin
       $, = nil
@@ -107,7 +107,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
   end
 
   test "to_sentence is not affected by $," do
-    separator_was = $,
+    separator_was = $OUTPUT_FIELD_SEPARATOR
     $, = "|"
     begin
       assert_equal "one and two", to_sentence(["one", "two"])

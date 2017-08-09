@@ -35,7 +35,7 @@ module ApplicationTests
       test "tmp:clear should work if folder missing" do
         FileUtils.remove_dir("#{app_path}/tmp")
         errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
-        assert_predicate $?, :success?
+        assert_predicate $CHILD_STATUS, :success?
         assert_empty errormsg
       end
     end

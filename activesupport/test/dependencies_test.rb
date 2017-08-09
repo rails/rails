@@ -296,8 +296,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_doesnt_break_normal_require
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
     with_autoloading_fixtures do
       # The _ = assignments are to prevent warnings
       _ = RequiresConstant
@@ -310,13 +310,13 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:RequiresConstant, :LoadedConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_doesnt_break_normal_require_nested
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
 
     with_autoloading_fixtures do
       # The _ = assignments are to prevent warnings
@@ -330,26 +330,26 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:RequiresConstant, :LoadedConstant, :LoadsConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_require_returns_true_when_file_not_yet_required
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
 
     with_loading do
       assert_equal true, require("loaded_constant")
     end
   ensure
     remove_constants(:LoadedConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
 
     with_loading do
       Object.module_eval "module LoadedConstant; end"
@@ -357,13 +357,13 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_require_returns_false_when_file_already_required
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
 
     with_loading do
       require "loaded_constant"
@@ -371,7 +371,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_require_raises_load_error_when_file_not_found
@@ -382,8 +382,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_load_returns_true_when_file_found
     path = File.expand_path("autoloading_fixtures/load_path", __dir__)
-    original_path = $:.dup
-    $:.push(path)
+    original_path = $LOAD_PATH.dup
+    $LOAD_PATH.push(path)
 
     with_loading do
       assert_equal true, load("loaded_constant.rb")
@@ -391,7 +391,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:LoadedConstant)
-    $:.replace(original_path)
+    $LOAD_PATH.replace(original_path)
   end
 
   def test_load_raises_load_error_when_file_not_found

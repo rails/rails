@@ -320,14 +320,14 @@ Expected: ["id", "name"]
     private
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)
-        assert_not_equal 0, $?.to_i
+        assert_not_equal 0, $CHILD_STATUS.to_i
         assert_includes result, message
         result
       end
 
       def assert_successful_test_run(name)
         result = run_test_file(name)
-        assert_equal 0, $?.to_i, result
+        assert_equal 0, $CHILD_STATUS.to_i, result
         result
       end
 

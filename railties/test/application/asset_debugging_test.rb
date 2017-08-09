@@ -43,7 +43,7 @@ module ApplicationTests
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
       output = Dir.chdir(app_path) { `bin/rails assets:precompile --trace 2>&1` }
-      assert $?.success?, output
+      assert $CHILD_STATUS.success?, output
 
       # Load app env
       app "production"

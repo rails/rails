@@ -88,7 +88,7 @@ module ActiveSupport
                 load_path_args << File.expand_path(p)
               end
 
-              child = IO.popen([env, Gem.ruby, *load_path_args, $0, *ORIG_ARGV, test_opts])
+              child = IO.popen([env, Gem.ruby, *load_path_args, $PROGRAM_NAME, *ORIG_ARGV, test_opts])
 
               begin
                 Process.wait(child.pid)

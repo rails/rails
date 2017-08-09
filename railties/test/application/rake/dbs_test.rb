@@ -60,7 +60,7 @@ module ApplicationTests
         with_database_existing do
           output = `bin/rails db:create 2>&1`
           assert_match(/already exists/, output)
-          assert_equal 0, $?.exitstatus
+          assert_equal 0, $CHILD_STATUS.exitstatus
         end
       end
 
@@ -77,7 +77,7 @@ module ApplicationTests
         with_bad_permissions do
           output = `bin/rails db:create 2>&1`
           assert_match(/Couldn't create database/, output)
-          assert_equal 1, $?.exitstatus
+          assert_equal 1, $CHILD_STATUS.exitstatus
         end
       end
 
@@ -85,7 +85,7 @@ module ApplicationTests
         Dir.chdir(app_path) do
           output = `bin/rails db:drop:_unsafe --trace 2>&1`
           assert_match(/does not exist/, output)
-          assert_equal 0, $?.exitstatus
+          assert_equal 0, $CHILD_STATUS.exitstatus
         end
       end
 
@@ -94,7 +94,7 @@ module ApplicationTests
           with_bad_permissions do
             output = `bin/rails db:drop 2>&1`
             assert_match(/Couldn't drop/, output)
-            assert_equal 1, $?.exitstatus
+            assert_equal 1, $CHILD_STATUS.exitstatus
           end
         end
       end

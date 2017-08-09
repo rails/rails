@@ -1,6 +1,6 @@
 require "net/http"
 
-$:.unshift __dir__
+$LOAD_PATH.unshift __dir__
 require "tasks/release"
 require "railties/lib/rails/api/task"
 
@@ -24,7 +24,7 @@ task default: %w(test test:isolated)
   task task_name do
     errors = []
     FRAMEWORKS.each do |project|
-      system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
+      system(%(cd #{project} && #{$PROGRAM_NAME} #{task_name} --trace)) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
   end
@@ -33,9 +33,9 @@ end
 desc "Smoke-test all projects"
 task :smoke do
   (FRAMEWORKS - %w(activerecord)).each do |project|
-    system %(cd #{project} && #{$0} test:isolated --trace)
+    system %(cd #{project} && #{$PROGRAM_NAME} test:isolated --trace)
   end
-  system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
+  system %(cd activerecord && #{$PROGRAM_NAME} sqlite3:isolated_test --trace)
 end
 
 desc "Install gems for all projects."
