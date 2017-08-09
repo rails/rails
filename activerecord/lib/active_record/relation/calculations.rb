@@ -259,6 +259,9 @@ module ActiveRecord
           column = aggregate_column(column_name)
 
           select_value = operation_over_aggregate_column(column, operation, distinct)
+          if operation == "sum" && distinct
+            select_value.distinct = true
+          end
 
           column_alias = select_value.alias
           column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
