@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, :join_keys, to: :association, prefix: true
+    delegate :foreign_type, :foreign_key, :join_keys, :join_foreign_key, to: :association, prefix: true
     delegate :association_primary_key, to: :association
 
     def initialize(klass, arel_table, association = nil)
@@ -64,10 +64,6 @@ module ActiveRecord
 
     def polymorphic_association?
       association && association.polymorphic?
-    end
-
-    def association_join_fk
-      association.send(:join_fk)
     end
 
     # TODO Change this to private once we've dropped Ruby 2.2 support.

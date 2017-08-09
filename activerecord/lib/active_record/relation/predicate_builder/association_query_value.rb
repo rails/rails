@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       def queries
-        [associated_table.association_join_fk.to_s => ids]
+        [associated_table.association_join_foreign_key.to_s => ids]
       end
 
       # TODO Change this to private once we've dropped Ruby 2.2 support.

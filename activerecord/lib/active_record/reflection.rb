@@ -305,11 +305,15 @@ module ActiveRecord
       end
 
       def get_join_keys(association_klass)
-        JoinKeys.new(join_pk(association_klass), join_fk)
+        JoinKeys.new(join_pk(association_klass), join_foreign_key)
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
         Relation.create(klass, table, predicate_builder)
+      end
+
+      def join_foreign_key
+        active_record_primary_key
       end
 
       protected
@@ -324,10 +328,6 @@ module ActiveRecord
 
         def join_pk(_)
           foreign_key
-        end
-
-        def join_fk
-          active_record_primary_key
         end
     end
 
@@ -754,14 +754,14 @@ module ActiveRecord
         owner[foreign_key]
       end
 
+      def join_foreign_key
+        foreign_key
+      end
+
       private
 
         def calculate_constructable(macro, options)
           !polymorphic?
-        end
-
-        def join_fk
-          foreign_key
         end
 
         def join_pk(klass)
