@@ -136,7 +136,7 @@ module ActiveRecord
           ensure
             tempfile.close
           end
-          FileUtils.mv(tempfile.path, filename)
+          FileUtils.cp(tempfile.path, filename)
         end
     end
   end
