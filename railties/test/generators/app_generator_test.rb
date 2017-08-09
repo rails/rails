@@ -813,7 +813,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby '#{RUBY_VERSION}'/, content)
+      assert_match(/ruby IO.read/, content)
     end
     assert_file ".ruby-version" do |content|
       assert_match(/#{RUBY_VERSION}/, content)
