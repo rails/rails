@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby IO.read(File.expand_path("#{File.dirname(__FILE__)}/.ruby-version")).strip
+ruby IO.read(".ruby-version")
 
 <% unless gemfile_entries.first.comment -%>
 
