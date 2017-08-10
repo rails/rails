@@ -200,7 +200,7 @@ module ActiveRecord
       #
       #   Person.respond_to_attribute?("foo")
       #   # => false
-      def respond_to_attribute?(name)
+      def respond_to_attribute?(name) # :nodoc:
         name = name.to_s
         attribute_names.include?(name) || attribute_aliases.include?(name)
       end
