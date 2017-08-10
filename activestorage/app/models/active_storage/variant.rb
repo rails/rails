@@ -54,7 +54,7 @@ class ActiveStorage::Variant
   # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the `service_url` should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the `service_url` behind a redirect also gives you the power to change services without updating all URLs. And
-  # it allows permanent URLs that redirec to the `service_url` to be cached in the view.
+  # it allows permanent URLs that redirect to the `service_url` to be cached in the view.
   #
   # Use `url_for(variant)` (or the implied form, like `link_to variant` or `redirect_to variant`) to get the stable URL
   # for a variant that points to the `ActiveStorage::VariantsController`, which in turn will use this `#service_call` method
