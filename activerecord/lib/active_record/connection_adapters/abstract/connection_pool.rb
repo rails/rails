@@ -326,8 +326,6 @@ module ActiveRecord
         @spec = spec
 
         @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
-        @reaper = Reaper.new(self, (spec.config[:reaping_frequency] && spec.config[:reaping_frequency].to_f))
-        @reaper.run
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
@@ -357,6 +355,9 @@ module ActiveRecord
         @available = ConnectionLeasingQueue.new self
 
         @lock_thread = false
+
+        @reaper = Reaper.new(self, spec.config[:reaping_frequency] && spec.config[:reaping_frequency].to_f)
+        @reaper.run
       end
 
       def lock_thread=(lock_thread)
