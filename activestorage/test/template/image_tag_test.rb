@@ -1,10 +1,6 @@
 require "test_helper"
 require "database/setup"
 
-class User < ActiveRecord::Base
-  has_one_attached :avatar
-end
-
 class ActiveStorage::ImageTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 

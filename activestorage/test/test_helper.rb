@@ -4,11 +4,15 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
-require "byebug"
+
+begin
+  require "byebug"
+rescue LoadError
+end
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
-ActiveJob::Base.logger = nil
+ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
 require "active_storage"
 
@@ -58,3 +62,8 @@ end
 require "global_id"
 GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.send :include, GlobalID::Identification
+
+class User < ActiveRecord::Base
+  has_one_attached :avatar
+  has_many_attached :highlights
+end

@@ -1,13 +1,6 @@
 require "test_helper"
 require "database/setup"
 
-# ActiveRecord::Base.logger = Logger.new(STDOUT)
-
-class User < ActiveRecord::Base
-  has_one_attached  :avatar
-  has_many_attached :highlights
-end
-
 class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
