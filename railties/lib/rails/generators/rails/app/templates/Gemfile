@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby <%= "'#{RUBY_VERSION}'" -%>
+ruby File.read(File.expand_path('.ruby-version', __dir__))
 
 <% unless gemfile_entries.first.comment -%>
 
