@@ -103,8 +103,7 @@ module ActiveRecord
       #                query methods.
       #   disabled   - Unsafe raw SQL passed to query methods results in
       #                ArguementError.
-      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false
-      self.allow_unsafe_raw_sql = :enabled
+      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false, default: :enabled
 
       ##
       # :singleton-method:
