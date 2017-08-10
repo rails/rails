@@ -1,3 +1,7 @@
+*   Add `--skip-action-cable` option to the plugin generator.
+
+    *bogdanvlviv*
+
 *   Deprecate support of use `Rails::Application` subclass to start Rails server.
 
     *Yuji Yaginuma*
