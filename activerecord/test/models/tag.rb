@@ -6,6 +6,7 @@ class Tag < ActiveRecord::Base
   has_one  :tagging
 
   has_many :tagged_posts, through: :taggings, source: "taggable", source_type: "Post"
+  belongs_to :pet, foreign_key: :animal_id
 end
 
 class OrderedTag < Tag

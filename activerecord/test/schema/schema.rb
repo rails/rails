@@ -98,7 +98,7 @@ ActiveRecord::Schema.define do
   create_table :birds, force: true do |t|
     t.string :name
     t.string :color
-    t.integer :pirate_id
+    t.references :pirate
   end
 
   create_table :books, id: :integer, force: true do |t|
@@ -901,6 +901,7 @@ ActiveRecord::Schema.define do
   create_table :tags, force: true do |t|
     t.column :name, :string
     t.column :taggings_count, :integer, default: 0
+    t.string :animal_id
   end
 
   create_table :taggings, force: true do |t|

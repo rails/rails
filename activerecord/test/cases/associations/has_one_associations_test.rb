@@ -11,12 +11,14 @@ require "models/car"
 require "models/bulb"
 require "models/author"
 require "models/image"
+require "models/pet"
 require "models/post"
 require "models/drink_designer"
 require "models/chef"
 require "models/department"
 require "models/club"
 require "models/membership"
+require "models/tag"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -849,6 +851,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference ["DestroyableAuthor.count", "UndestroyableBook.count"] do
       assert_not author.destroy
+    end
+  end
+
+  test "association keys must match" do
+    pet = Pet.new
+    assert_raise(ActiveRecord::AssociationKeyTypeMismatchError) do
+      pet.tag = Tag.new
     end
   end
 end

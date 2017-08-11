@@ -246,10 +246,20 @@ module ActiveRecord
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass
         end
 
+        def raise_on_key_type_mismatch!
+          primary_key_type = owner.class.columns_hash.fetch(reflection.active_record_primary_key.to_s).sql_type.downcase
+          foreign_key_type = klass.columns_hash.fetch(reflection.foreign_key.to_s).sql_type.downcase
+
+          unless foreign_key_type == primary_key_type
+            raise AssociationKeyTypeMismatchError, "You are attempting to associate a #{klass} with a #{owner.class} but the #{owner.class}'s #{reflection.active_record_primary_key} is a #{primary_key_type} and the #{klass}'s #{reflection.foreign_key} is a #{foreign_key_type}"
+          end
+        end
+
         def creation_attributes
           attributes = {}
 
           if (reflection.has_one? || reflection.collection?) && !options[:through]
+            raise_on_key_type_mismatch!
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.type

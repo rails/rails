@@ -9,6 +9,7 @@ class Pet < ActiveRecord::Base
   has_many :pet_treasures
   has_many :treasures, through: :pet_treasures
   has_many :persons, through: :treasures, source: :looter, source_type: "Person"
+  has_one :tag, foreign_key: :animal_id
 
   class << self
     attr_accessor :after_destroy_output

@@ -29,6 +29,11 @@ module ActiveRecord
   class AssociationTypeMismatch < ActiveRecordError
   end
 
+  # Raised when an association's primary_key has a different type than the foreign_key
+  # that would be used to reference it.
+  class AssociationKeyTypeMismatchError < ActiveRecordError
+  end
+
   # Raised when unserialized object's type mismatches one specified for serializable field.
   class SerializationTypeMismatch < ActiveRecordError
   end
