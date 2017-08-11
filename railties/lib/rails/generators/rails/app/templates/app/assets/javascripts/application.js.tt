@@ -10,11 +10,13 @@
 // Read Sprockets README (https://github.com/rails/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-<% unless options[:skip_javascript] -%>
+<% unless options.skip_javascript? -%>
 //= require rails-ujs
+<% unless options.skip_active_storage? -%>
 //= require activestorage
-<% unless options[:skip_turbolinks] -%>
+<% unless options.skip_turbolinks? -%>
 //= require turbolinks
+<% end -%>
 <% end -%>
 <% end -%>
 //= require_tree .

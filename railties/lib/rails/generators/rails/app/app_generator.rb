@@ -79,7 +79,7 @@ module Rails
       directory "app"
 
       keep_file "app/assets/images"
-      empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
+      empty_directory_with_keep_file "app/assets/javascripts/channels"
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
@@ -113,7 +113,7 @@ module Rails
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
-        template "storage.yml"
+        template "storage.yml" unless options[:skip_active_storage]
 
         directory "environments"
         directory "initializers"
@@ -138,7 +138,7 @@ module Rails
         template "config/cable.yml"
       end
 
-      if !active_storage_config_exist
+      if !options[:skip_active_storage] && !active_storage_config_exist
         template "config/storage.yml"
       end
 
@@ -330,6 +330,10 @@ module Rails
         build(:tmp)
       end
 
+      def create_storage_files
+        build(:storage)
+      end
+
       def create_vendor_files
         build(:vendor)
       end
@@ -397,7 +401,15 @@ module Rails
         if options[:skip_action_cable]
           remove_file "config/cable.yml"
           remove_file "app/assets/javascripts/cable.js"
+          remove_dir "app/assets/javascripts/channels"
           remove_dir "app/channels"
+        end
+      end
+
+      def delete_active_storage_files_skipping_active_storage
+        if options[:skip_active_storage]
+          remove_dir "storage"
+          remove_dir "tmp/storage"
         end
       end
 
