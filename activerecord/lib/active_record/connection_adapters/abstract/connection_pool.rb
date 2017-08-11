@@ -270,7 +270,7 @@ module ActiveRecord
       # Connections must be leased while holding the main pool mutex. This is
       # an internal subclass that also +.leases+ returned connections while
       # still in queue's critical section (queue synchronizes with the same
-      # +@lock+ as the main pool) so that a returned connection is already
+      # <tt>@lock</tt> as the main pool) so that a returned connection is already
       # leased and there is no need to re-enter synchronized block.
       class ConnectionLeasingQueue < Queue # :nodoc:
         include BiasableQueue
@@ -338,7 +338,7 @@ module ActiveRecord
         # then that +thread+ does indeed own that +conn+. However, an absence of a such
         # mapping does not mean that the +thread+ doesn't own the said connection. In
         # that case +conn.owner+ attr should be consulted.
-        # Access and modification of +@thread_cached_conns+ does not require
+        # Access and modification of <tt>@thread_cached_conns</tt> does not require
         # synchronization.
         @thread_cached_conns = Concurrent::Map.new(initial_capacity: @size)
 
@@ -737,10 +737,10 @@ module ActiveRecord
         # Implementation detail: the connection returned by +acquire_connection+
         # will already be "+connection.lease+ -ed" to the current thread.
         def acquire_connection(checkout_timeout)
-          # NOTE: we rely on +@available.poll+ and +try_to_checkout_new_connection+ to
+          # NOTE: we rely on <tt>@available.poll</tt> and +try_to_checkout_new_connection+ to
           # +conn.lease+ the returned connection (and to do this in a +synchronized+
           # section). This is not the cleanest implementation, as ideally we would
-          # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to +@available.poll+
+          # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to <tt>@available.poll</tt>
           # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
           # of the said methods and avoid an additional +synchronize+ overhead.
           if conn = @available.poll || try_to_checkout_new_connection
@@ -764,7 +764,7 @@ module ActiveRecord
           end
         end
 
-        # If the pool is not at a +@size+ limit, establish new connection. Connecting
+        # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.
         #--
         # Implementation constraint: a newly established connection returned by this
