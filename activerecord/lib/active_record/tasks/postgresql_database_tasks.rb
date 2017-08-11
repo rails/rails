@@ -16,7 +16,7 @@ module ActiveRecord
           configuration.merge('encoding' => encoding)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database .* already exists/ === error.message
+        if error.cause.is_a?(PG::DuplicateDatabase)
           raise DatabaseAlreadyExists
         else
           raise
