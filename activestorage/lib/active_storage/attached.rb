@@ -17,7 +17,7 @@ module ActiveStorage
         case attachable
         when ActiveStorage::Blob
           attachable
-        when ActionDispatch::Http::UploadedFile
+        when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
           ActiveStorage::Blob.create_after_upload! \
             io: attachable.open,
             filename: attachable.original_filename,
