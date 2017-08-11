@@ -355,7 +355,7 @@ module ActionView
       # finds the options and details and extracts them. The method also contains
       # logic that handles the type of object passed in as the partial.
       #
-      # If +options[:partial]+ is a string, then the +@path+ instance variable is
+      # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)

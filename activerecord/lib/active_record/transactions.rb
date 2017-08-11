@@ -472,7 +472,7 @@ module ActiveRecord
       # if it's associated with a transaction, then the state of the Active Record
       # object will be updated to reflect the current state of the transaction.
       #
-      # The +@transaction_state+ variable stores the states of the associated
+      # The <tt>@transaction_state</tt> variable stores the states of the associated
       # transaction. This relies on the fact that a transaction can only be in
       # one rollback or commit (otherwise a list of states would be required).
       # Each Active Record object inside of a transaction carries that transaction's
