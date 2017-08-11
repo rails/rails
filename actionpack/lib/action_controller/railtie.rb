@@ -79,5 +79,11 @@ module ActionController
         end
       end
     end
+
+    initializer "action_controller.eager_load_actions" do
+      ActiveSupport.on_load(:after_initialize) do
+        ActionController::Metal.descendants.each(&:action_methods) if config.eager_load
+      end
+    end
   end
 end
