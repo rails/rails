@@ -2165,11 +2165,11 @@ module ActionView
       #     <%= f.submit %>
       #   <% end %>
       #
-      # In the example above, if @post is a new record, it will use "Create Post" as
-      # submit button label, otherwise, it uses "Update Post".
+      # In the example above, if <tt>@post</tt> is a new record, it will use "Create Post" as
+      # submit button label; otherwise, it uses "Update Post".
       #
-      # Those labels can be customized using I18n, under the helpers.submit key and accept
-      # the %{model} as translation interpolation:
+      # Those labels can be customized using I18n under the +helpers.submit+ key and using
+      # <tt>%{model}</tt> for translation interpolation:
       #
       #   en:
       #     helpers:
@@ -2177,7 +2177,7 @@ module ActionView
       #         create: "Create a %{model}"
       #         update: "Confirm changes to %{model}"
       #
-      # It also searches for a key specific for the given object:
+      # It also searches for a key specific to the given object:
       #
       #   en:
       #     helpers:
@@ -2198,11 +2198,11 @@ module ActionView
       #     <%= f.button %>
       #   <% end %>
       #
-      # In the example above, if @post is a new record, it will use "Create Post" as
-      # button label, otherwise, it uses "Update Post".
+      # In the example above, if <tt>@post</tt> is a new record, it will use "Create Post" as
+      # button label; otherwise, it uses "Update Post".
       #
-      # Those labels can be customized using I18n, under the helpers.submit key
-      # (the same as submit helper) and accept the %{model} as translation interpolation:
+      # Those labels can be customized using I18n under the +helpers.submit+ key
+      # (the same as submit helper) and using <tt>%{model}</tt> for translation interpolation:
       #
       #   en:
       #     helpers:
@@ -2210,7 +2210,7 @@ module ActionView
       #         create: "Create a %{model}"
       #         update: "Confirm changes to %{model}"
       #
-      # It also searches for a key specific for the given object:
+      # It also searches for a key specific to the given object:
       #
       #   en:
       #     helpers:
