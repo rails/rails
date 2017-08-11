@@ -192,6 +192,7 @@ ActiveRecord::Schema.define do
     t.string :resource_type
     t.integer :developer_id
     t.datetime :deleted_at
+    t.integer :comments
   end
 
   create_table :companies, force: true do |t|
