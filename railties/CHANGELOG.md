@@ -1,3 +1,7 @@
+*   Skip unused components when running `bin/rails` in Rails plugin.
+
+    *Yoshiyuki Hirano*
+
 *   Add git_source to `Gemfile` for plugin generator.
 
     *Yoshiyuki Hirano*

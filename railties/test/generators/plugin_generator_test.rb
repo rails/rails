@@ -75,6 +75,18 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/rails"
   end
 
+  def test_generating_in_full_mode_with_almost_of_all_skip_options
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T"]
+    assert_file "bin/rails" do |content|
+      assert_no_match(/\s+require\s+["']rails\/all["']/, content)
+    end
+    assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']action_cable\/engine["']/
+    assert_file "bin/rails", /#\s+require\s+["']sprockets\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+  end
+
   def test_generating_test_files_in_full_mode
     run_generator [destination_root, "--full"]
     assert_directory "test/integration/"
@@ -325,7 +337,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "app/mailers"
-    assert_file "bin/rails"
+    assert_file "bin/rails", /\s+require\s+["']rails\/all["']/
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
