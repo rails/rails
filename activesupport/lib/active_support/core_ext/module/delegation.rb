@@ -273,10 +273,22 @@ class Module
       def method_missing(method, *args, &block)
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
-        elsif #{target}.nil?
-          raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
         else
-          super
+          delegation_error_if_target_nil(#{target}, method) do
+            super
+          end
+        end
+      end
+
+      def delegation_error_if_target_nil(target, method)
+        begin
+          yield
+        rescue NoMethodError
+          if target.nil?
+            raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+          else
+            raise
+          end
         end
       end
     RUBY
