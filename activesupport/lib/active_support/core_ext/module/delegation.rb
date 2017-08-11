@@ -274,14 +274,14 @@ class Module
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
-          delegation_error_if_target_nil(#{target}, method) do
+          _delegation_error_if_target_nil(#{target}, method) do
             super
           end
         end
       end
 
-      def delegation_error_if_target_nil(target, method)
-        begin
+      private
+        def _delegation_error_if_target_nil(target, method)
           yield
         rescue NoMethodError
           if target.nil?
@@ -290,7 +290,6 @@ class Module
             raise
           end
         end
-      end
     RUBY
   end
 end
