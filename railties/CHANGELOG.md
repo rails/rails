@@ -1,3 +1,7 @@
+*   Add `--skip-active-storage` option to the app generator.
+
+    *Yoshiyuki Hirano*
+
 *   Add `--skip-action-cable` option to the plugin generator.
 
     *bogdanvlviv*

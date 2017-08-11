@@ -73,6 +73,7 @@ DEFAULT_APP_FILES = %w(
   log
   package.json
   public
+  storage
   test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
@@ -87,6 +88,7 @@ DEFAULT_APP_FILES = %w(
   tmp
   tmp/cache
   tmp/cache/assets
+  tmp/storage
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -395,13 +397,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_frameworks_are_required_when_others_are_removed
-    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets", "--skip-test"]
+    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-active-storage", "--skip-sprockets", "--skip-test"]
     assert_file "config/application.rb", /require\s+["']rails["']/
     assert_file "config/application.rb", /require\s+["']active_model\/railtie["']/
     assert_file "config/application.rb", /require\s+["']active_job\/railtie["']/
     assert_file "config/application.rb", /require\s+["']action_controller\/railtie["']/
     assert_file "config/application.rb", /require\s+["']action_view\/railtie["']/
-    assert_file "config/application.rb", /require\s+["']active_storage\/engine["']/
   end
 
   def test_generator_defaults_to_puma_version
@@ -497,6 +498,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_action_cable_redis_gems
     run_generator
     assert_file "Gemfile", /^# gem 'redis'/
+  end
+
+  def test_generator_if_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+    assert_file "config/application.rb", /#\s+require\s+["']active_storage\/engine["']/
+    assert_no_file "config/storage.yml"
+    assert_no_directory "storage"
+    assert_no_directory "tmp/storage"
+
+    assert_file "app/assets/javascripts/application.js" do |content|
+      assert_no_match(/activestorage/, content)
+    end
+
+    assert_file "config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage\.service/, content)
+    end
+
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage\.service/, content)
+    end
+
+    assert_file "config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage\.service/, content)
+    end
   end
 
   def test_generator_if_skip_test_is_given

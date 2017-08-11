@@ -21,16 +21,17 @@
 !/tmp/.keep
 <% end -%>
 
+<% unless options.skip_active_storage? -%>
 # Ignore uploaded files in development
 /storage/*
 
-<% unless options[:skip_yarn] -%>
+<% end -%>
+<% unless options.skip_yarn? -%>
 /node_modules
 /yarn-error.log
 
 <% end -%>
-
-<% unless options[:api] -%>
+<% unless options.api? -%>
 /public/assets
 <% end -%>
 .byebug_history
