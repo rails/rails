@@ -395,12 +395,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_default_frameworks_are_required_when_others_are_removed
-    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets"]
+    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets", "--skip-test"]
     assert_file "config/application.rb", /require\s+["']rails["']/
     assert_file "config/application.rb", /require\s+["']active_model\/railtie["']/
     assert_file "config/application.rb", /require\s+["']active_job\/railtie["']/
     assert_file "config/application.rb", /require\s+["']action_controller\/railtie["']/
     assert_file "config/application.rb", /require\s+["']action_view\/railtie["']/
+    assert_file "config/application.rb", /require\s+["']active_storage\/engine["']/
   end
 
   def test_generator_defaults_to_puma_version
@@ -486,6 +487,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
     assert_no_file "config/cable.yml"
     assert_no_file "app/assets/javascripts/cable.js"
+    assert_no_directory "app/assets/javascripts/channels"
     assert_no_directory "app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
@@ -592,6 +594,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root])
     assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
+
+    assert_file ".gitignore" do |content|
+      assert_match(/node_modules/, content)
+      assert_match(/yarn-error\.log/, content)
+    end
   end
 
   def test_generator_for_yarn_skipped
