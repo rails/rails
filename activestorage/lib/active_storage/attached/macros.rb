@@ -22,13 +22,11 @@ module ActiveStorage
     # If the +:dependent+ option isn't set, the attachment will be purged
     # (i.e. destroyed) whenever the record is destroyed.
     def has_one_attached(name, dependent: :purge_later)
-      define_method(name) do
-        if instance_variable_defined?("@active_storage_attached_#{name}")
-          instance_variable_get("@active_storage_attached_#{name}")
-        else
-          instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::One.new(name, self))
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
         end
-      end
+      CODE
 
       has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record
       has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
@@ -63,13 +61,11 @@ module ActiveStorage
     # If the +:dependent+ option isn't set, all the attachments will be purged
     # (i.e. destroyed) whenever the record is destroyed.
     def has_many_attached(name, dependent: :purge_later)
-      define_method(name) do
-        if instance_variable_defined?("@active_storage_attached_#{name}")
-          instance_variable_get("@active_storage_attached_#{name}")
-        else
-          instance_variable_set("@active_storage_attached_#{name}", ActiveStorage::Attached::Many.new(name, self))
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
         end
-      end
+      CODE
 
       has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment"
       has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
