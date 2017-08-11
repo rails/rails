@@ -1,3 +1,7 @@
+*   Optimize indentation for generator actions.
+
+    *Yoshiyuki Hirano*
+
 *   Skip unused components when running `bin/rails` in Rails plugin.
 
     *Yoshiyuki Hirano*

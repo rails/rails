@@ -97,16 +97,16 @@ module Rails
       #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
       def environment(data = nil, options = {})
-        sentinel = /class [a-z_:]+ < Rails::Application/i
-        env_file_sentinel = /Rails\.application\.configure do/
-        data = yield if !data && block_given?
+        sentinel = "class Application < Rails::Application\n"
+        env_file_sentinel = "Rails.application.configure do\n"
+        data ||= yield if block_given?
 
         in_root do
           if options[:env].nil?
-            inject_into_file "config/application.rb", "\n    #{data}", after: sentinel, verbose: false
+            inject_into_file "config/application.rb", optimize_indentation(data, 4), after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
-              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
+              inject_into_file "config/environments/#{env}.rb", optimize_indentation(data, 2), after: env_file_sentinel, verbose: false
             end
           end
         end
@@ -137,9 +137,10 @@ module Rails
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      def vendor(filename, data = nil, &block)
+      def vendor(filename, data = nil)
         log :vendor, filename
-        create_file("vendor/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("vendor/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Create a new file in the lib/ directory. Code can be specified
@@ -150,9 +151,10 @@ module Rails
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      def lib(filename, data = nil, &block)
+      def lib(filename, data = nil)
         log :lib, filename
-        create_file("lib/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("lib/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Create a new +Rakefile+ with the provided code (either in a block or a string).
@@ -170,9 +172,10 @@ module Rails
       #   end
       #
       #   rakefile('seed.rake', 'puts "Planting seeds"')
-      def rakefile(filename, data = nil, &block)
+      def rakefile(filename, data = nil)
         log :rakefile, filename
-        create_file("lib/tasks/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("lib/tasks/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
@@ -188,9 +191,10 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      def initializer(filename, data = nil, &block)
+      def initializer(filename, data = nil)
         log :initializer, filename
-        create_file("config/initializers/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("config/initializers/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Generate something using a generator from Rails or a plugin.
@@ -302,6 +306,17 @@ module Rails
             value.inspect
           else
             "'#{value}'"
+          end
+        end
+
+        # Returns optimized string with indentation
+        def optimize_indentation(value, amount = 0) # :doc:
+          return "#{value}\n" unless value.is_a?(String)
+
+          if value.lines.size > 1
+            value.strip_heredoc.indent(amount)
+          else
+            "#{value.strip.indent(amount)}\n"
           end
         end
     end
