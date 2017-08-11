@@ -260,8 +260,38 @@ backends you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the life cycle of a job. Callbacks allow you to
-trigger logic during the life cycle of a job.
+Active Job provides hooks to trigger logic during the life cycle of a job. Like
+other callbacks in Rails, you can implement the callbacks as ordinary methods
+and use a macro-style class method to register them as callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  around_perform :around_cleanup
+
+  def perform
+    # Do something later
+  end
+
+  private
+    def around_cleanup(job)
+      # Do something before perform
+      yield
+      # Do something after perform
+    end
+end
+```
+
+The macro-style class methods can also receive a block. Consider using this
+style if the code inside your block is so short that it fits in a single line.
+For example, you could send metrics for every job enqueued:
+
+```ruby
+class ApplicationJob
+  before_enqueue { |job| $statsd.increment "#{job.name.underscore}.enqueue" }
+end
+```
 
 ### Available callbacks
 
@@ -271,28 +301,6 @@ trigger logic during the life cycle of a job.
 * `before_perform`
 * `around_perform`
 * `after_perform`
-
-### Usage
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :default
-
-  before_enqueue do |job|
-    # Do something with the job instance
-  end
-
-  around_perform do |job, block|
-    # Do something before perform
-    block.call
-    # Do something after perform
-  end
-
-  def perform
-    # Do something later
-  end
-end
-```
 
 
 Action Mailer
