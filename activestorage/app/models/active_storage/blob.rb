@@ -29,7 +29,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
       find ActiveStorage.verifier.verify(id, purpose: :blob_id)
     end
 
-    # Returns a new, unsaved blob instance after the `io` has been uploaded to the service.
+    # Returns a new, unsaved blob instance after the +io+ has been uploaded to the service.
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
       new.tap do |blob|
         blob.filename     = filename
@@ -40,8 +40,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
       end
     end
 
-    # Returns a saved blob instance after the `io` has been uploaded to the service. Note, the blob is first built,
-    # then the `io` is uploaded, then the blob is saved. This is doing to avoid opening a transaction and talking to
+    # Returns a saved blob instance after the +io+ has been uploaded to the service. Note, the blob is first built,
+    # then the +io+ is uploaded, then the blob is saved. This is doing to avoid opening a transaction and talking to
     # the service during that (which is a bad idea and leads to deadlocks).
     def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
       build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
@@ -72,7 +72,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self[:key] ||= self.class.generate_unique_secure_token
   end
 
-  # Returns a `ActiveStorage::Filename` instance of the filename that can be queried for basename, extension, and
+  # Returns a ActiveStorage::Filename instance of the filename that can be queried for basename, extension, and
   # a sanitized version of the filename that's safe to use in URLs.
   def filename
     ActiveStorage::Filename.new(self[:filename])
@@ -98,7 +98,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
-  # Returns a `ActiveStorage::Variant` instance with the set of `transformations` passed in. This is only relevant
+  # Returns a ActiveStorage::Variant instance with the set of +transformations+ passed in. This is only relevant
   # for image files, and it allows any image to be transformed for size, colors, and the like. Example:
   #
   #   avatar.variant(resize: "100x100").processed.service_url
@@ -111,7 +111,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   #   <%= image_tag url_for(Current.user.avatar.variant(resize: "100x100")) %>
   #
-  # This will create a URL for that specific blob with that specific variant, which the `ActiveStorage::VariantsController`
+  # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
   # can then produce on-demand.
   def variant(transformations)
     ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
@@ -119,9 +119,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
 
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
-  # with users. Instead, the `service_url` should only be exposed as a redirect from a stable, possibly authenticated URL.
-  # Hiding the `service_url` behind a redirect also gives you the power to change services without updating all URLs. And
-  # it allows permanent URLs that redirect to the `service_url` to be cached in the view.
+  # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
+  # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
+  # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
   def service_url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
@@ -132,21 +132,21 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
-  # Returns a Hash of headers for `service_url_for_direct_upload` requests.
+  # Returns a Hash of headers for +service_url_for_direct_upload+ requests.
   def service_headers_for_direct_upload
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
-  # Uploads the `io` to the service on the `key` for this blob. Blobs are intended to be immutable, so you shouldn't be
+  # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
   # you should instead simply create a new blob based on the old one.
   #
   # Prior to uploading, we compute the checksum, which is sent to the service for transit integrity validation. If the
-  # checksum does not match what the service receives, an exception will be raised. We also measure the size of the `io`
-  # and store that in `byte_size` on the blob record.
+  # checksum does not match what the service receives, an exception will be raised. We also measure the size of the +io+
+  # and store that in +byte_size+ on the blob record.
   #
-  # Normally, you do not have to call this method directly at all. Use the factory class methods of `build_after_upload`
-  # and `create_after_upload!`.
+  # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
+  # and +create_after_upload!+.
   def upload(io)
     self.checksum  = compute_checksum_in_chunks(io)
     self.byte_size = io.size
@@ -162,7 +162,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
 
   # Deletes the file on the service that's associated with this blob. This should only be done if the blob is going to be
-  # deleted as well or you will essentially have a dead reference. It's recommended to use the `#purge` and `#purge_later`
+  # deleted as well or you will essentially have a dead reference. It's recommended to use the +#purge+ and +#purge_later+
   # methods in most circumstances.
   def delete
     service.delete key
@@ -170,13 +170,13 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate a HTTP connection to the service, which may
-  # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use `#purge_later` instead.
+  # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use +#purge_later+ instead.
   def purge
     delete
     destroy
   end
 
-  # Enqueues a `ActiveStorage::PurgeJob` job that'll call `#purge`. This is the recommended way to purge blobs when the call
+  # Enqueues a ActiveStorage::PurgeJob job that'll call +#purge+. This is the recommended way to purge blobs when the call
   # needs to be made from a transaction, a callback, or any other real-time scenario.
   def purge_later
     ActiveStorage::PurgeJob.perform_later(self)
