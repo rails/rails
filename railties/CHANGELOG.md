@@ -1,3 +1,7 @@
+*   Add git_source to `Gemfile` for plugin generator.
+
+    *Yoshiyuki Hirano*
+
 *   Add `--skip-action-cable` option to the plugin generator.
 
     *bogdanvlviv*
