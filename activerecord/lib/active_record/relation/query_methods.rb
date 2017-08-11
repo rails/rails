@@ -922,9 +922,7 @@ module ActiveRecord
 
       # Extract column names from arguments passed to #order or #reorder.
       def column_names_from_order_arguments(args)
-        args = args.dup
-        orderings = args.extract_options!
-        columns = args | orderings.keys
+        args.flat_map { |arg| arg.is_a?(Hash) ? arg.keys : arg }
       end
 
       def assert_mutability!
