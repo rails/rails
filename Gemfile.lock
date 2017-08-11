@@ -41,6 +41,14 @@ GIT
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
 
+GIT
+  remote: https://github.com/robin850/sdoc.git
+  revision: 0e340352f3ab2f196c8a8743f83c2ee286e4f71c
+  branch: upgrade
+  specs:
+    sdoc (1.0.0.rc2)
+      rdoc (~> 5.0)
+
 PATH
   remote: .
   specs:
@@ -389,8 +397,6 @@ GEM
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
-    sdoc (1.0.0.rc2)
-      rdoc (~> 5.0)
     selenium-webdriver (3.5.1)
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
@@ -521,7 +527,7 @@ DEPENDENCIES
   resque-scheduler
   rubocop (>= 0.47)
   sass-rails!
-  sdoc (> 1.0.0.rc1, < 2.0)
+  sdoc!
   sequel
   sidekiq
   sneakers

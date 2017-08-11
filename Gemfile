@@ -40,7 +40,7 @@ gem "rubocop", ">= 0.47", require: false
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 group :doc do
-  gem "sdoc", "> 1.0.0.rc1", "< 2.0"
+  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
