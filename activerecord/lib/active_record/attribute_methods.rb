@@ -252,7 +252,7 @@ module ActiveRecord
         #   Person.attribute_names_and_aliases
         #   # => ["id", "created_at", "updated_at", "name", "age"]
         def attribute_names_and_aliases
-          @attribute_names_and_aliases ||= attribute_names + attribute_aliases.keys
+          attribute_names + attribute_aliases.keys
         end
     end
 
