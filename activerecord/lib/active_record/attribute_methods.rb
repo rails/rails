@@ -168,8 +168,6 @@ module ActiveRecord
       end
 
       def enforce_raw_sql_whitelist(args, whitelist: attribute_names_and_aliases) # :nodoc:
-        return if allow_unsafe_raw_sql == :enabled
-
         unexpected = args.reject do |arg|
           whitelist.include?(arg.to_s) ||
             arg.kind_of?(Arel::Node) || arg.is_a?(Arel::Nodes::SqlLiteral)

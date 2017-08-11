@@ -78,12 +78,11 @@ module ActiveRecord
 
       # :singleton-method:
       # Specify the behavior for unsafe raw query methods. Values are as follows
-      #   enabled    - Unsafe raw SQL can be passed to query methods.
       #   deprecated - Warnings are logged when unsafe raw SQL is passed to
       #                query methods.
       #   disabled   - Unsafe raw SQL passed to query methods results in
-      #                ArguementError.
-      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false, default: :enabled
+      #                UnknownAttributeReference exception.
+      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false, default: :deprecated
 
       ##
       # :singleton-method:
