@@ -3,7 +3,7 @@ require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as a Active Storage service.
-  # See `ActiveStorage::Service` for the generic API documentation that applies to all services.
+  # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
