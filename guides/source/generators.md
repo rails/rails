@@ -627,7 +627,7 @@ This method also takes a block:
 
 ```ruby
 lib "super_special.rb" do
-  puts "Super special!"
+  "puts 'Super special!'"
 end
 ```
 
@@ -636,7 +636,7 @@ end
 Creates a Rake file in the `lib/tasks` directory of the application.
 
 ```ruby
-rakefile "test.rake", "hello there"
+rakefile "test.rake", 'task(:hello) { puts "Hello, there" }'
 ```
 
 This method also takes a block:
