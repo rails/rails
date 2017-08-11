@@ -614,7 +614,7 @@ $ bin/rails generate system_test users
       create test/system/users_test.rb
 ```
 
-Here's what a freshly-generated system test looks like:
+Here's what a freshly generated system test looks like:
 
 ```ruby
 require "application_system_test_case"
@@ -788,7 +788,7 @@ $ bin/rails generate integration_test user_flows
       create  test/integration/user_flows_test.rb
 ```
 
-Here's what a freshly-generated integration test looks like:
+Here's what a freshly generated integration test looks like:
 
 ```ruby
 require 'test_helper'
