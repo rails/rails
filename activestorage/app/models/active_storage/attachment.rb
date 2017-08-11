@@ -21,7 +21,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   # Purging an attachment means purging the blob, which means talking to the service, which means
   # talking over the internet. Whenever you're doing that, it's a good idea to put that work in a job,
-  # so it doesn't hold up other operations. That's what #purge_later provides.
+  # so it doesn't hold up other operations. That's what +#purge_later+ provides.
   def purge_later
     ActiveStorage::PurgeJob.perform_later(self)
   end
