@@ -1,3 +1,8 @@
+*   `Module#delegate_missing_to` now raises `DelegationError` if target is nil,
+    similar to `Module#delegate`.
+
+    *Anton Khamets*
+
 *   Update `String#camelize` to provide feedback when wrong option is passed
 
     `String#camelize` was returning nil without any feedback when an
