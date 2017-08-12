@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash"
+require "global_id/locator"
+require "global_id/identification"
 
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
