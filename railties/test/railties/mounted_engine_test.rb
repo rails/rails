@@ -208,7 +208,7 @@ module ApplicationTests
       assert_equal "/ada/blog/posts/1", last_response.body
 
       # test generating engine's route from engine with default_url_options
-      get "/john/blog/posts", {}, "SCRIPT_NAME" => "/foo"
+      get "/john/blog/posts", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/john/blog/posts/1", last_response.body
 
       # test generating engine's route from application
@@ -222,10 +222,10 @@ module ApplicationTests
       assert_equal "/john/blog/posts", last_response.body
 
       # test generating engine's route from application with default_url_options
-      get "/engine_route", {}, "SCRIPT_NAME" => "/foo"
+      get "/engine_route", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/anonymous/blog/posts", last_response.body
 
-      get "/url_for_engine_route", {}, "SCRIPT_NAME" => "/foo"
+      get "/url_for_engine_route", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/john/blog/posts", last_response.body
 
       # test generating application's route from engine
@@ -243,14 +243,14 @@ module ApplicationTests
       assert_equal "/anonymous/blog/posts/1", last_response.body
 
       # test generating engine's route from other engine with default_url_options
-      get "/metrics/generate_blog_route", {}, "SCRIPT_NAME" => "/foo"
+      get "/metrics/generate_blog_route", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
-      get "/metrics/generate_blog_route_in_view", {}, "SCRIPT_NAME" => "/foo"
+      get "/metrics/generate_blog_route_in_view", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/anonymous/blog/posts/1", last_response.body
 
       # test generating application's route from engine with default_url_options
-      get "/someone/blog/generate_application_route", {}, "SCRIPT_NAME" => "/foo"
+      get "/someone/blog/generate_application_route", {}, { "SCRIPT_NAME" => "/foo" }
       assert_equal "/foo/", last_response.body
 
       # test polymorphic routes

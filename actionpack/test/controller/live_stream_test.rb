@@ -30,7 +30,7 @@ module ActionController
       def sse_with_retry
         sse = SSE.new(response.stream, retry: 1000)
         sse.write("{\"name\":\"John\"}")
-        sse.write({ name: "Ryan" }, retry: 1500)
+        sse.write({ name: "Ryan" }, { retry: 1500 })
       ensure
         sse.close
       end
@@ -38,7 +38,7 @@ module ActionController
       def sse_with_id
         sse = SSE.new(response.stream)
         sse.write("{\"name\":\"John\"}", id: 1)
-        sse.write({ name: "Ryan" }, id: 2)
+        sse.write({ name: "Ryan" }, { id: 2 })
       ensure
         sse.close
       end

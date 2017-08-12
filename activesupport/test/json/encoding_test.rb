@@ -100,11 +100,11 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_hash_should_allow_key_filtering_with_only
-    assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, only: "a")
+    assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, { only: "a" })
   end
 
   def test_hash_should_allow_key_filtering_with_except
-    assert_equal %({"b":2}), ActiveSupport::JSON.encode({ "foo" => "bar", :b => 2, :c => 3 }, except: ["foo", :c])
+    assert_equal %({"b":2}), ActiveSupport::JSON.encode({ "foo" => "bar", :b => 2, :c => 3 }, { except: ["foo", :c] })
   end
 
   def test_time_to_json_includes_local_offset

@@ -392,9 +392,9 @@ XML
 
   def test_assert_generates
     assert_generates "controller/action/5", controller: "controller", action: "action", id: "5"
-    assert_generates "controller/action/7", { id: "7" }, controller: "controller", action: "action"
-    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, name: "bob"
-    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, name: "bob"
+    assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action" }
+    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, { name: "bob" }
+    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, { name: "bob" }
     assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action", name: "bob" }, {}
   end
 
@@ -405,7 +405,7 @@ XML
   def test_assert_routing_with_method
     with_routing do |set|
       set.draw { resources(:content) }
-      assert_routing({ method: "post", path: "content" }, controller: "content", action: "create")
+      assert_routing({ method: "post", path: "content" }, { controller: "content", action: "create" })
     end
   end
 

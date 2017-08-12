@@ -276,7 +276,7 @@ module ApplicationTests
       assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
       assert_equal etag, last_response.headers["Etag"]
 
-      get "/", {}, "HTTP_IF_NONE_MATCH" => etag
+      get "/", {}, { "HTTP_IF_NONE_MATCH" => etag }
       assert_equal 304, last_response.status
       assert_equal "", last_response.body
       assert_nil last_response.headers["Content-Type"]
