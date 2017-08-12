@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
