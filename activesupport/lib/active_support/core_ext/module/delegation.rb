@@ -274,22 +274,17 @@ class Module
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
-          _delegation_error_if_target_nil("#{target}", #{target}, method) do
+          begin
             super
+          rescue NoMethodError
+            if #{target}.nil?
+              raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+            else
+              raise
+            end
           end
         end
       end
-
-      private
-        def _delegation_error_if_target_nil(target, target_value, method)
-          yield
-        rescue NoMethodError
-          if target_value.nil?
-            raise DelegationError, "\#{method} delegated to \#{target}, but \#{target} is nil"
-          else
-            raise
-          end
-        end
     RUBY
   end
 end
