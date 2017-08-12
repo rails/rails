@@ -35,6 +35,8 @@ class Pirate < ActiveRecord::Base
     before_remove: proc { |p, b| p.ship_log << "before_removing_proc_bird_#{b.id}" },
     after_remove: proc { |p, b| p.ship_log << "after_removing_proc_bird_#{b.id}" }
   has_many :birds_with_reject_all_blank, class_name: "Bird"
+  has_many :mateys, foreign_key: :pirate_id
+  has_one :attacker_matey, foreign_key: :target_id, class_name: "Matey"
 
   has_one :foo_bulb, -> { where name: "foo" }, foreign_key: :car_id, class_name: "Bulb"
 

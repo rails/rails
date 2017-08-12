@@ -28,12 +28,14 @@ require "models/categorization"
 require "models/sponsor"
 require "models/mentor"
 require "models/contract"
+require "models/pirate"
+require "models/matey"
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors, :pirates, :mateys
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favourite_club).find(members(:some_other_guy).id)
@@ -105,6 +107,34 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
   end
+
+  def test_eager_load_has_many_without_primary_key
+    pirate_id = pirates(:blackbeard)
+    mateys = Pirate.eager_load(:mateys).where(id: pirate_id).first.mateys
+    assert_equal 2, mateys.size
+    targets = mateys.collect(&:target)
+    assert targets.include?(pirates(:redbeard))
+    assert targets.include?(pirates(:mark))
+  end
+
+  def test_eager_load_has_many_without_primary_key_does_not_run_additional_query
+    pirates = Pirate.eager_load(:mateys).to_a
+    assert pirates.size > 0
+    assert_no_queries { pirates.map(&:mateys) }
+  end
+
+  def test_eager_load_has_one_without_primary_key
+    pirate_id = pirates(:mark)
+    attacker_matey = Pirate.eager_load(:attacker_matey).where(id: pirate_id).first.attacker_matey
+    assert_equal attacker_matey.pirate , pirates(:blackbeard)
+  end
+
+  def test_eager_load_has_one_without_primary_key_does_not_run_additional_query
+    pirates = Pirate.eager_load(:attacker_matey).to_a
+    assert pirates.size > 0
+    assert_no_queries { pirates.map(&:attacker_matey) }
+  end
+
 
   def test_loading_with_multiple_associations
     posts = Post.all.merge!(includes: [ :comments, :author, :categories ], order: "posts.id").to_a
