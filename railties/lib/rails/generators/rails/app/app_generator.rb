@@ -330,6 +330,10 @@ module Rails
         build(:tmp)
       end
 
+      def create_storage_files
+        build(:storage)
+      end
+
       def create_vendor_files
         build(:vendor)
       end
