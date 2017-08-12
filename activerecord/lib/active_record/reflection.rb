@@ -138,7 +138,7 @@ module ActiveRecord
     #         HasAndBelongsToManyReflection
     #     ThroughReflection
     #     PolymorphicReflection
-    #       RuntimeReflection
+    #     RuntimeReflection
     class AbstractReflection # :nodoc:
       def through_reflection?
         false
@@ -1029,6 +1029,8 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
+      delegate :klass, :scope, :plural_name, :type, :get_join_keys, to: :@reflection
+
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
@@ -1044,28 +1046,8 @@ module ActiveRecord
         scopes << @previous_reflection.source_type_scope
       end
 
-      def klass
-        @reflection.klass
-      end
-
-      def scope
-        @reflection.scope
-      end
-
-      def plural_name
-        @reflection.plural_name
-      end
-
-      def type
-        @reflection.type
-      end
-
       def constraints
         @reflection.constraints + [source_type_info]
-      end
-
-      def get_join_keys(association_klass)
-        @reflection.get_join_keys(association_klass)
       end
 
       private
@@ -1076,7 +1058,9 @@ module ActiveRecord
         end
     end
 
-    class RuntimeReflection < PolymorphicReflection # :nodoc:
+    class RuntimeReflection < AbstractReflection # :nodoc:
+      delegate :scope, :type, :constraints, :get_join_keys, to: :@reflection
+
       def initialize(reflection, association)
         @reflection = reflection
         @association = association
@@ -1084,10 +1068,6 @@ module ActiveRecord
 
       def klass
         @association.klass
-      end
-
-      def constraints
-        @reflection.constraints
       end
 
       def alias_name
