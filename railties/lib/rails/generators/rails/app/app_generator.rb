@@ -75,6 +75,12 @@ module Rails
       template "package.json"
     end
 
+    def dockerfile
+      template "dockerfile", ".dockerignore"
+      template "Dockerfile"
+      template "docker-compose.yml"
+    end
+
     def app
       directory "app"
 
@@ -263,6 +269,7 @@ module Rails
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_yarn]
+        build(:dockerfile) unless options[:skip_dockerfile]
       end
 
       def create_app_files
