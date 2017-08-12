@@ -3,12 +3,15 @@ require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
+  .dockerignore
   .gitignore
   .ruby-version
   README.md
   Gemfile
   Rakefile
   config.ru
+  Dockerfile
+  docker-compose.yml
   app/assets/config/manifest.js
   app/assets/images
   app/assets/javascripts
@@ -405,7 +408,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_defaults_to_puma_version
-    run_generator [destination_root]
+    run_generator
     assert_gem "puma", "'~> 3.7'"
   end
 
@@ -591,7 +594,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_for_yarn
-    run_generator([destination_root])
+    run_generator
     assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
 
@@ -614,6 +617,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/node_modules/, content)
       assert_no_match(/yarn-error\.log/, content)
     end
+  end
+
+  def test_generator_for_dockerfile
+    run_generator
+    assert_file ".dockerignore", /dockerignore/
+    assert_file "docker-compose.yml", /bundle\sexec\srails/
+    assert_file "Dockerfile", /WORKDIR\s\/tmp/
+  end
+
+  def test_generator_if_skip_dockerfile_is_given
+    run_generator([destination_root, "--skip-dockerfile"])
+    assert_no_file ".dockerignore"
+    assert_no_file "docker-compose.yml"
+    assert_no_file "Dockerfile"
   end
 
   def test_inclusion_of_jbuilder
@@ -838,7 +855,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_version_control_initializes_git_repo
-    run_generator [destination_root]
+    run_generator
     assert_directory ".git"
   end
 

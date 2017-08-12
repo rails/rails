@@ -1,3 +1,7 @@
+*   Add Dockerfiles and `--skip-dockerfile` option to the app generator
+
+    *Yoshiyuki Hirano*
+
 *   Optimize indentation for generator actions.
 
     *Yoshiyuki Hirano*

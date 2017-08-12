@@ -1,0 +1,14 @@
+<% if options.skip_git? -%>
+.git
+<% end -%>
+.dockerignore
+log
+tmp
+storage
+<% if sqlite3? -%>
+db/*.sqlite3
+db/*.sqlite3-journal
+<% end -%>
+<% unless options.skip_yarn? -%>
+node_modules
+<% end -%>

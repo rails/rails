@@ -36,6 +36,9 @@ module Rails
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
+        class_option :skip_dockerfile,    type: :boolean, default: false,
+                                          desc: "Don't create a Dockerfile and docker-compose.yml"
+
         class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
                                           desc: "Skip .gitignore file"
 
