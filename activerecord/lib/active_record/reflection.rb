@@ -1073,10 +1073,6 @@ module ActiveRecord
         @reflection.scope
       end
 
-      def table_name
-        @reflection.table_name
-      end
-
       def plural_name
         @reflection.plural_name
       end
@@ -1110,10 +1106,6 @@ module ActiveRecord
 
       def klass
         @association.klass
-      end
-
-      def table_name
-        klass.table_name
       end
 
       def constraints
