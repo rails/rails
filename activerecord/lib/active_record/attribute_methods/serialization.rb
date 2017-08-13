@@ -70,7 +70,7 @@ module ActiveRecord
           end
 
           decorate_attribute_type(attr_name, :serialize) do |type|
-            if type_incompatible_with_serialize?(type)
+            if type_incompatible_with_serialize?(type, class_name_or_coder)
               raise ColumnNotSerializableError.new(attr_name, type)
             end
 
@@ -80,12 +80,9 @@ module ActiveRecord
 
         private
 
-          def type_incompatible_with_serialize?(type)
-            type.is_a?(ActiveRecord::Type::Json) ||
-            (
-              defined?(ActiveRecord::ConnectionAdapters::PostgreSQL) &&
-              type.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array)
-            )
+          def type_incompatible_with_serialize?(type, class_name)
+            type.is_a?(ActiveRecord::Type::Json) && class_name == ::JSON ||
+              type.respond_to?(:type_cast_array, true) && class_name == ::Array
           end
       end
     end
