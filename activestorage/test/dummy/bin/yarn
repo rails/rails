@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 VENDOR_PATH = File.expand_path("..", __dir__)
 Dir.chdir(VENDOR_PATH) do
   begin

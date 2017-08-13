@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   # Decorated proxy object representing of multiple attachments to a model.
   class Attached::Many < Attached

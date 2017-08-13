@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   # Provides the class-level DSL for declaring that an Active Record model has attached blobs.
   module Attached::Macros

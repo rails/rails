@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
 
 require "bundler/setup"

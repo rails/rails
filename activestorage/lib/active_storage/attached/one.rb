@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
