@@ -535,14 +535,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_api_is_given
-    run_generator [destination_root, "--api"]
-    assert_file "Gemfile" do |content|
-      assert_no_match(/capybara/, content)
-      assert_no_match(/selenium-webdriver/, content)
-    end
-  end
-
   def test_inclusion_of_javascript_runtime
     run_generator
     if defined?(JRUBY_VERSION)
