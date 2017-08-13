@@ -584,32 +584,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_for_yarn
-    run_generator([destination_root])
-    assert_file "package.json", /dependencies/
-    assert_file "config/initializers/assets.rb", /node_modules/
-
-    assert_file ".gitignore" do |content|
-      assert_match(/node_modules/, content)
-      assert_match(/yarn-error\.log/, content)
-    end
-  end
-
-  def test_generator_for_yarn_skipped
-    run_generator([destination_root, "--skip-yarn"])
-    assert_no_file "package.json"
-    assert_no_file "bin/yarn"
-
-    assert_file "config/initializers/assets.rb" do |content|
-      assert_no_match(/node_modules/, content)
-    end
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/node_modules/, content)
-      assert_no_match(/yarn-error\.log/, content)
-    end
-  end
-
   def test_inclusion_of_jbuilder
     run_generator
     assert_gem "jbuilder"

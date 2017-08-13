@@ -1,3 +1,7 @@
+*   Add `--skip-yarn` option to the plugin generator.
+
+    *bogdanvlviv*
+
 *   Optimize routes indentation.
 
     *Yoshiyuki Hirano*
