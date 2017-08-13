@@ -488,4 +488,9 @@ class EnumTest < ActiveRecord::TestCase
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
   end
+
+  test "get enum labels" do
+    assert_equal %w(proposed written published), Book.statuses_labels
+    assert_equal %w(unread reading read forgotten), Book.read_statuses_labels
+  end
 end
