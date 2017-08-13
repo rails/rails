@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
