@@ -83,20 +83,8 @@ Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
   Include:
-    - 'activesupport/**/*'
-    - 'activemodel/**/*'
-    - 'actioncable/**/*'
-    - 'activejob/**/*'
-    - 'activerecord/**/*'
-    - 'activestorage/**/*'
-    - 'actionmailer/**/*'
-    - 'actionview/**/*'
-    - 'actionpack/**/*'
-    - 'ci/**/*'
-    - 'guides/**/*'
-    - 'tasks/**/*'
-    - 'tools/**/*'
   Exclude:
+    - 'railties/**/*'
     - 'actionview/test/**/*.builder'
     - 'actionview/test/**/*.ruby'
     - 'actionpack/test/**/*.builder'
