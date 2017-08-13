@@ -8,6 +8,11 @@ module ActiveStorage
 # Abstract baseclass for the concrete ActiveStorage::Attached::One and ActiveStorage::Attached::Many
 # classes that both provide proxy access to the blob association for a record.
   class Attached
+    extend ActiveSupport::Autoload
+    autoload :One
+    autoload :Many
+    autoload :Macros
+
     attr_reader :name, :record
 
     def initialize(name, record)
@@ -34,7 +39,3 @@ module ActiveStorage
       end
   end
 end
-
-require "active_storage/attached/one"
-require "active_storage/attached/many"
-require "active_storage/attached/macros"
