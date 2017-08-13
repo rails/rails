@@ -92,6 +92,7 @@ Style/FrozenStringLiteralComment:
     - 'actionmailer/**/*'
     - 'actionview/**/*'
     - 'actionpack/**/*'
+    - 'ci/**/*'
     - 'guides/**/*'
     - 'tasks/**/*'
     - 'tools/**/*'
