@@ -4,7 +4,7 @@ require "stringio"
 
 require "active_support/inflector"
 require_relative "headers"
-require "action_controller/metal/exceptions"
+require_relative "../../action_controller/metal/exceptions"
 require "rack/request"
 require_relative "cache"
 require_relative "mime_negotiation"
