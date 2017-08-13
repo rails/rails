@@ -82,7 +82,6 @@ Style/MethodDefParentheses:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
-  Include:
   Exclude:
     - 'railties/**/*'
     - 'actionview/test/**/*.builder'
