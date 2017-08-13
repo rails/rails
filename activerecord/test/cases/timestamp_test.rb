@@ -14,7 +14,7 @@ class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
 
   def setup
-    @developer = Developer.first
+    @developer = Developer.find(2)
     @owner = Owner.first
     @developer.update_columns(updated_at: Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
