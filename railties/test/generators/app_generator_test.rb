@@ -73,6 +73,7 @@ DEFAULT_APP_FILES = %w(
   log
   package.json
   public
+  storage
   test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
@@ -87,6 +88,7 @@ DEFAULT_APP_FILES = %w(
   tmp
   tmp/cache
   tmp/cache/assets
+  tmp/storage
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -405,7 +407,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_defaults_to_puma_version
-    run_generator [destination_root]
+    run_generator
     assert_gem "puma", "'~> 3.7'"
   end
 
@@ -591,7 +593,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_for_yarn
-    run_generator([destination_root])
+    run_generator
     assert_file "package.json", /dependencies/
     assert_file "config/initializers/assets.rb", /node_modules/
 
