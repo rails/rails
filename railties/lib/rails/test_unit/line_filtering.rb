@@ -1,5 +1,5 @@
 require "method_source"
-require "rails/test_unit/runner"
+require_relative "runner"
 
 module Rails
   module LineFiltering # :nodoc:
