@@ -94,6 +94,7 @@ Style/FrozenStringLiteralComment:
     - 'actionpack/**/*'
     - 'guides/**/*'
     - 'tasks/**/*'
+    - 'tools/**/*'
   Exclude:
     - 'actionview/test/**/*.builder'
     - 'actionview/test/**/*.ruby'
