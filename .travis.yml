@@ -8,23 +8,18 @@ env:
   global:
     - JRUBY_OPTS='--dev -J-Xmx1024M'
 rvm:
-  - rbx-2
-  - jruby-9.0.5.0
-  - jruby-head
-  - 2.0.0
-  - 2.1
-  - 2.2.5
-  - 2.3.1
+  - 2.2.7
+  - 2.3.4
   - 2.4.1
   - ruby-head
+  - jruby-9.1.12.0
+  - jruby-head
 matrix:
   fast_finish: true
   allow_failures:
-    - rvm: jruby-9.0.5.0
-    - rvm: jruby-head
     - rvm: ruby-head
+    - rvm: jruby-9.1.12.0
     - rvm: jruby-head
-    - rvm: rbx-2
 bundler_args: --jobs 3 --retry 3
 notifications:
   email: false
