@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "isolation/abstract_unit"
 require "rails/generators"
@@ -133,7 +135,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
           api_key: 00112233445566778899aabbccddeeff…
       end_of_secrets
 
-      Rails::Secrets.write(secrets.force_encoding(Encoding::ASCII_8BIT))
+      Rails::Secrets.write(secrets.dup.force_encoding(Encoding::ASCII_8BIT))
 
       Rails::Secrets.read_for_editing do |tmp_path|
         assert_match(/production:\n\s*api_key: 00112233445566778899aabbccddeeff…\n/, File.read(tmp_path))
@@ -153,7 +155,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
       Rails::Secrets.write(secrets)
 
       Rails::Secrets.read_for_editing do |tmp_path|
-        assert_equal(secrets.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
+        assert_equal(secrets.dup.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
       end
 
       assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`

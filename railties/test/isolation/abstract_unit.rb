@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Note:
 # It is important to keep this file as light as possible
 # the goal for tests that require this is to test booting up
@@ -66,7 +68,7 @@ module TestHelpers
     end
 
     def extract_body(response)
-      "".tap do |body|
+      "".dup.tap do |body|
         response[2].each { |chunk| body << chunk }
       end
     end
@@ -222,8 +224,8 @@ module TestHelpers
       FileUtils.mkdir_p(dir)
 
       app = File.readlines("#{app_path}/config/application.rb")
-      app.insert(2, "$:.unshift(\"#{dir}/lib\")")
-      app.insert(3, "require #{name.inspect}")
+      app.insert(4, "$:.unshift(\"#{dir}/lib\")")
+      app.insert(5, "require #{name.inspect}")
 
       File.open("#{app_path}/config/application.rb", "r+") do |f|
         f.puts app

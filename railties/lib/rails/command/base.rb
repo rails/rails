@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thor"
 require "erb"
 
@@ -73,7 +75,7 @@ module Rails
 
         # Use Rails' default banner.
         def banner(*)
-          "#{executable} #{arguments.map(&:usage).join(' ')} [options]".squish!
+          "#{executable} #{arguments.map(&:usage).join(' ')} [options]".squish
         end
 
         # Sets the base_name taking into account the current class namespace.

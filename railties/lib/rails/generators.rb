@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
@@ -271,7 +273,7 @@ module Rails
         else
           options     = sorted_groups.flat_map(&:last)
           suggestions = options.sort_by { |suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
-          msg =  "Could not find generator '#{namespace}'. "
+          msg =  "Could not find generator '#{namespace}'. ".dup
           msg << "Maybe you meant #{ suggestions.map { |s| "'#{s}'" }.to_sentence(last_word_connector: " or ", locale: :en) }\n"
           msg << "Run `rails generate --help` for more options."
           puts msg

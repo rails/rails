@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "stringio"
 require "rack/test"
@@ -503,7 +505,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each(&:upcase!)
+        response[2] = response[2].collect(&:upcase)
         response
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 

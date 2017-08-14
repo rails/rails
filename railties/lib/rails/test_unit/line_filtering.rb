@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "method_source"
 require "rails/test_unit/runner"
 

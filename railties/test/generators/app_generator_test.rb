@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
@@ -880,7 +882,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_after_bundle_callback
     path = "http://example.org/rails_template"
-    template = %{ after_bundle { run 'echo ran after_bundle' } }
+    template = %{ after_bundle { run 'echo ran after_bundle' } }.dup
     template.instance_eval "def read; self; end" # Make the string respond to read
 
     check_open = -> *args do

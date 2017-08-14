@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class ResourceRouteGenerator < NamedBase # :nodoc:
@@ -36,7 +38,7 @@ module Rails
 
       private
         def route_string
-          @route_string ||= ""
+          @route_string ||= "".dup
         end
 
         def write(str, indent)
