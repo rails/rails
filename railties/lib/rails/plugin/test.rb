@@ -2,6 +2,7 @@
 
 require_relative "../test_unit/runner"
 require_relative "../test_unit/reporter"
+require_relative "../test_unit/line_filtering"
 
 Rails::TestUnitReporter.executable = "bin/test"
 
