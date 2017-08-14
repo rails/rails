@@ -1,3 +1,10 @@
+*   Ensure `sum` honors `distinct` on `has_many :through` associations
+
+    Fixes #16791
+
+    *Aaron Wortham
+
+
 ## Rails 5.0.5 (July 31, 2017) ##
 
 *   No changes.
