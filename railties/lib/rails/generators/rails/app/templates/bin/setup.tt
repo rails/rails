@@ -15,12 +15,12 @@ chdir APP_ROOT do
   puts '== Installing dependencies =='
   system! 'gem install bundler --conservative'
   system('bundle check') || system!('bundle install')
-<% unless options[:skip_yarn] -%>
+<% unless options.skip_yarn? -%>
 
   # Install JavaScript dependencies if using Yarn
   # system('bin/yarn')
 <% end -%>
-<% unless options.skip_active_record -%>
+<% unless options.skip_active_record? -%>
 
   # puts "\n== Copying sample files =="
   # unless File.exist?('config/database.yml')
