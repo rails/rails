@@ -56,6 +56,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def travis
+      template "travis.yml", ".travis.yml"
+    end
+
     def lib
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
@@ -210,6 +214,7 @@ task default: :test
         build(:rakefile)
         build(:gemspec)   unless options[:skip_gemspec]
         build(:license)
+        build(:travis)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
       end

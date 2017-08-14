@@ -1,0 +1,5 @@
+sudo: false
+language: ruby
+rvm:
+  - <%= RUBY_VERSION %>
+before_install: gem install bundler -v <%= Bundler::VERSION %>
