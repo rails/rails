@@ -9,3 +9,7 @@ some_other_guy:
 blarpy_winkup:
   id: 3
   name: Blarpy Winkup
+alan:
+  id: 4
+  name: Alan Turing
+  member_type_id: 1

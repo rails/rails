@@ -3,6 +3,10 @@
 class Account < ActiveRecord::Base
   belongs_to :firm, class_name: "Company"
   belongs_to :unautosaved_firm, foreign_key: "firm_id", class_name: "Firm", autosave: false
+  has_many :tags, foreign_key: :creator_id
+  has_many :taggings, through: :tags, source: :taggings
+  has_many :tagged_posts, through: :taggings, source: :taggable, source_type: "Post"
+
 
   alias_attribute :available_credit, :credit_limit
 

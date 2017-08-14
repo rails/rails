@@ -394,7 +394,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
       Member.where("categories.id" => categories(:technology).id),
-      [members(:blarpy_winkup)], :club_category
+      members(:alan, :blarpy_winkup), :club_category
     )
   end
 

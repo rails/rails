@@ -135,6 +135,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
     assert_not_nil assert_no_queries { clubs[0].sponsored_member }
+    assert_equal members(:groucho), clubs(:moustache_club).sponsored_member
+  end
+
+  def test_nested_has_one_through_polymorphic_with_source_type
+    assert_equal clubs(:sponsoring_club), members(:alan).sponsored_clubs.first
+  end
+
+  def test_nested_eager_has_one_through_polymorphic_with_source_type
+    alan_id = members(:alan).id
+    alan = Member.includes(:sponsored_clubs).where(id: alan_id).first
+    # Only the eyebrow fanciers club has a sponsored_member
+    assert_not_nil assert_no_queries { alan.sponsored_clubs }
+    assert_equal clubs(:sponsoring_club), alan.sponsored_clubs.first
   end
 
   def test_has_one_through_nonpreload_eagerloading

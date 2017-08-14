@@ -12,6 +12,20 @@ membership_of_favourite_club:
   favourite: true
   type: Membership
 
+alan_membership_of_crazy_club:
+  joined_on: <%= 3.weeks.ago.to_s(:db) %>
+  club: crazy_club
+  member_id: 4
+  favourite: true
+  type: CurrentMembership
+
+alan_membership_of_sponsoring_club:
+  joined_on: <%= 3.weeks.ago.to_s(:db) %>
+  club_id: 1
+  member_id: 4
+  favourite: true
+  type: CurrentMembership
+
 other_guys_membership:
   joined_on: <%= 4.weeks.ago.to_s(:db) %>
   club: boring_club

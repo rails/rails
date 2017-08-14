@@ -836,6 +836,7 @@ ActiveRecord::Schema.define do
 
   create_table :tags, force: true do |t|
     t.column :name, :string
+    t.column :creator_id, :integer
     t.column :taggings_count, :integer, default: 0
   end
 

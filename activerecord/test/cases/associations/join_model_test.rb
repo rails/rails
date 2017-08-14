@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/tag"
+require "models/account"
 require "models/tagging"
 require "models/post"
 require "models/rating"
@@ -21,7 +22,7 @@ require "models/car"
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
-  fixtures :posts, :authors, :author_addresses, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
+  fixtures :accounts, :posts, :authors, :author_addresses, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
     # Reload edges table from fixtures as otherwise repeated test was failing
     :edges
 
@@ -363,6 +364,17 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_polymorphic_with_source_type
     # added sort by ID as otherwise Oracle select sometimes returned rows in different order
     assert_equal posts(:welcome, :thinking).sort_by(&:id), tags(:general).tagged_posts.sort_by(&:id)
+  end
+
+  def test_nested_has_many_through_polymorphic_with_source_type
+    assert_equal posts(:welcome, :thinking, :misc_by_bob, :misc_by_mary, :other_by_bob, :other_by_mary).sort_by(&:id), accounts(:signals37).tagged_posts.uniq.sort_by(&:id)
+  end
+
+  def test_preload_nested_has_many_through_polymorphic_with_source_type
+    account_id = accounts(:signals37).id
+    account = Account.includes(:tagged_posts).find(account_id)
+    assert_no_queries{ account.tagged_posts }
+    assert_equal posts(:welcome, :thinking, :misc_by_bob, :misc_by_mary, :other_by_bob, :other_by_mary).sort_by(&:id), account.tagged_posts.uniq.sort_by(&:id)
   end
 
   def test_has_many_polymorphic_associations_merges_through_scope
