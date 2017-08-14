@@ -373,7 +373,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_preload_nested_has_many_through_polymorphic_with_source_type
     account_id = accounts(:signals37).id
     account = Account.includes(:tagged_posts).find(account_id)
-    assert_no_queries{ account.tagged_posts }
+    assert_no_queries { account.tagged_posts }
     assert_equal posts(:welcome, :thinking, :misc_by_bob, :misc_by_mary, :other_by_bob, :other_by_mary).sort_by(&:id), account.tagged_posts.uniq.sort_by(&:id)
   end
 
