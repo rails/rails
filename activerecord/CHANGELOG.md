@@ -1,3 +1,7 @@
+*   Add `binary` fixture helper method.
+
+    *Atsushi Yoshida*
+
 *   When using `Relation#or`, extract the common conditions and put them before the OR condition.
 
     *Maxime Handfield Lapointe*

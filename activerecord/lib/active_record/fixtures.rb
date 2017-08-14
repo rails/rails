@@ -1065,6 +1065,10 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
       def get_binding
         binding()
       end
+
+      def binary(path)
+        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
+      end
     end
   end
 end
