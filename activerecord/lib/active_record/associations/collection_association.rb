@@ -60,7 +60,7 @@ module ActiveRecord
         end.values_at(*ids).compact
 
         if records.size != ids.size
-          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
+          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key)
         else
           replace(records)
         end
