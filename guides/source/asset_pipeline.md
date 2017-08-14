@@ -283,10 +283,10 @@ You can view the search path by inspecting
 `Rails.application.config.assets.paths` in the Rails console.
 
 Besides the standard `assets/*` paths, additional (fully qualified) paths can be
-added to the pipeline in `config/application.rb`. For example:
+added to the pipeline in `config/initializers/assets.rb`. For example:
 
 ```ruby
-config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
+Rails.application.config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
 ```
 
 Paths are traversed in the order they occur in the search path. By default,
