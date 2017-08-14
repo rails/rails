@@ -121,14 +121,13 @@ module ActiveSupport
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def encrypt_and_sign(value, expires_at: nil, expires_in: nil, purpose: nil)
-      data = Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)
-      verifier.generate(_encrypt(data))
+      verifier.generate(_encrypt(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def decrypt_and_verify(data, purpose: nil)
-      Messages::Metadata.verify(_decrypt(verifier.verify(data)), purpose)
+      _decrypt(verifier.verify(data), purpose)
     end
 
     # Given a cipher, returns the key length of the cipher to help generate the key of desired size
@@ -137,7 +136,7 @@ module ActiveSupport
     end
 
     private
-      def _encrypt(value)
+      def _encrypt(value, **metadata_options)
         cipher = new_cipher
         cipher.encrypt
         cipher.key = @secret
@@ -146,7 +145,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(@serializer.dump(value))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), metadata_options))
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
@@ -154,7 +153,7 @@ module ActiveSupport
         blob
       end
 
-      def _decrypt(encrypted_message)
+      def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
         encrypted_data, iv, auth_tag = encrypted_message.split("--".freeze).map { |v| ::Base64.strict_decode64(v) }
 
@@ -174,7 +173,8 @@ module ActiveSupport
         decrypted_data = cipher.update(encrypted_data)
         decrypted_data << cipher.final
 
-        @serializer.load(decrypted_data)
+        message = Messages::Metadata.verify(decrypted_data, purpose)
+        @serializer.load(message) if message
       rescue OpenSSLCipherError, TypeError, ArgumentError
         raise InvalidMessage
       end
