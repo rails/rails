@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "<%= File.join('..', options[:dummy_path], 'config/environment') -%>"
 <% unless options[:skip_active_record] -%>
 ActiveRecord::Migrator.migrations_paths = [File.expand_path("../<%= options[:dummy_path] -%>/db/migrate", __dir__)]

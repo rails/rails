@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Engine < Railtie
     class Railties

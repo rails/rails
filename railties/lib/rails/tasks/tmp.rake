@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :tmp do
   desc "Clear cache, socket and screenshot files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear, tmp:screenshots:clear)"
   task clear: ["tmp:cache:clear", "tmp:sockets:clear", "tmp:screenshots:clear"]

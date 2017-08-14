@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../command/environment_argument"
 
 module Rails

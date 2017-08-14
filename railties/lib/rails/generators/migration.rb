@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 require_relative "actions/create_migration"
 

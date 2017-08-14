@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Implements the logic behind the rake tasks for annotations like
 #
 #   rails notes

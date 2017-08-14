@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../generators"
 require_relative "../generators/rails/plugin/plugin_generator"
 

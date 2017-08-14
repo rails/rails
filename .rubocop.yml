@@ -83,7 +83,6 @@ Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
   Exclude:
-    - 'railties/**/*'
     - 'actionview/test/**/*.builder'
     - 'actionview/test/**/*.ruby'
     - 'actionpack/test/**/*.builder'

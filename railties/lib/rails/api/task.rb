@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rdoc/task"
 require_relative "generator"
 

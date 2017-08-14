@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../test_unit/runner"
 require_relative "../test_unit/reporter"
 
