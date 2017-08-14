@@ -35,6 +35,6 @@ module ActiveStorage
   end
 end
 
-require "active_storage/attached/one"
-require "active_storage/attached/many"
-require "active_storage/attached/macros"
+require_relative "attached/one"
+require_relative "attached/many"
+require_relative "attached/macros"
