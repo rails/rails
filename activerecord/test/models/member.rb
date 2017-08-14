@@ -28,6 +28,8 @@ class Member < ActiveRecord::Base
 
   has_many :current_memberships, -> { where favourite: true }
   has_many :clubs, through: :current_memberships
+  has_many :club_sponsors, through: :clubs, source: :sponsors
+  has_many :sponsored_clubs, through: :club_sponsors, source_type: "Club", source: :sponsorable
 
   has_many :tenant_memberships
   has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club

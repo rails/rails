@@ -4,6 +4,7 @@ class Tag < ActiveRecord::Base
   has_many :taggings
   has_many :taggables, through: :taggings
   has_one  :tagging
+  belongs_to :creator, class_name: "Account"
 
   has_many :tagged_posts, through: :taggings, source: "taggable", source_type: "Post"
 end

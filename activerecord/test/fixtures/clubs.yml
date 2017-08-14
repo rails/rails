@@ -1,3 +1,6 @@
+sponsoring_club:
+  id: 1
+  name: Sponsoring club
 boring_club:
   name: Banana appreciation society
   category_id: 1

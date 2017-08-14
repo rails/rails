@@ -1,11 +1,14 @@
 general:
   id: 1
+  creator_id: 1
   name: General
 
 misc:
   id: 2
+  creator_id: 1
   name: Misc
 
 blue:
   id: 3
+  creator_id: 1
   name: Blue
