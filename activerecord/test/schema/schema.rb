@@ -9,7 +9,7 @@ ActiveRecord::Schema.define do
   # ------------------------------------------------------------------- #
 
   create_table :accounts, force: true do |t|
-    t.integer :firm_id
+    t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
   end
@@ -197,11 +197,11 @@ ActiveRecord::Schema.define do
 
   create_table :companies, force: true do |t|
     t.string  :type
-    t.integer :firm_id
+    t.references :firm, index: false
     t.string  :firm_name
     t.string  :name
-    t.integer :client_of
-    t.integer :rating, default: 1
+    t.bigint :client_of
+    t.bigint :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
@@ -236,8 +236,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :contracts, force: true do |t|
-    t.integer :developer_id
-    t.integer :company_id
+    t.references :developer, index: false
+    t.references :company, index: false
   end
 
   create_table :customers, force: true do |t|
@@ -263,7 +263,7 @@ ActiveRecord::Schema.define do
     t.string   :name
     t.string   :first_name
     t.integer  :salary, default: 70000
-    t.integer :firm_id
+    t.references :firm, index: false
     t.integer :mentor_id
     if subsecond_precision_supported?
       t.datetime :created_at, precision: 6
@@ -720,7 +720,7 @@ ActiveRecord::Schema.define do
   create_table :projects, force: true do |t|
     t.string :name
     t.string :type
-    t.integer :firm_id
+    t.references :firm, index: false
     t.integer :mentor_id
   end
 
@@ -809,8 +809,7 @@ ActiveRecord::Schema.define do
 
   create_table :sponsors, force: true do |t|
     t.integer :club_id
-    t.integer :sponsorable_id
-    t.string :sponsorable_type
+    t.references :sponsorable, polymorphic: true, index: false
   end
 
   create_table :string_key_objects, id: false, force: true do |t|
