@@ -102,4 +102,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n  end$/, route)
     end
   end
+
+  def test_namespaced_routes_with_multiple_actions_are_created_in_routes
+    run_generator ["admin/dashboard", "index", "show"]
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
+    end
+  end
 end

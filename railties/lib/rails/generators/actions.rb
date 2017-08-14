@@ -246,7 +246,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file "config/routes.rb", "  #{routing_code}\n", after: sentinel, verbose: false, force: false
+          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
         end
       end
 
