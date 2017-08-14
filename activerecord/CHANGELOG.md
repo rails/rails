@@ -1,3 +1,9 @@
+*   Ensure `sum` honors `distinct` on `has_many :through` associations
+
+    Fixes #16791
+
+    *Aaron Wortham
+
 *   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
 
     *Ryuta Kamizono*
