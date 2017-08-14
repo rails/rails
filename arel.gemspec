@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.description = "Arel Really Exasperates Logicians\n\nArel is a SQL AST manager for Ruby. It\n\n1. Simplifies the generation of complex SQL queries\n2. Adapts to various RDBMSes\n\nIt is intended to be a framework framework; that is, you can build your own ORM\nwith it, focusing on innovative object and collection modeling as opposed to\ndatabase compatibility and query generation."
   s.summary     = "Arel Really Exasperates Logicians  Arel is a SQL AST manager for Ruby"
   s.license     = %q{MIT}
+  s.required_ruby_version = ">= 2.2.2"
 
   s.rdoc_options = ["--main", "README.md"]
   s.extra_rdoc_files = ["History.txt", "MIT-LICENSE.txt", "README.md"]
