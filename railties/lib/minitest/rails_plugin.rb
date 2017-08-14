@@ -1,5 +1,5 @@
 require "active_support/core_ext/module/attribute_accessors"
-require "rails/test_unit/reporter"
+require_relative "../rails/test_unit/reporter"
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
