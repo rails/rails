@@ -162,20 +162,24 @@ class ArticlesController < ApplicationController
   # ...
 
   def create
-    @article = Article.new(params[:article])
+    @article = Article.new(article_params)
     logger.debug "New article: #{@article.attributes.inspect}"
     logger.debug "Article should be valid: #{@article.valid?}"
 
     if @article.save
-      flash[:notice] =  'Article was successfully created.'
       logger.debug "The article was saved and now the user is going to be redirected..."
-      redirect_to(@article)
+      redirect_to @article, notice: 'Article was successfully created.'
     else
-      render action: "new"
+      render :new
     end
   end
 
   # ...
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :published)
+    end
 end
 ```
 
@@ -542,7 +546,7 @@ command later in this guide).
    9
 => 10       respond_to do |format|
    11         format.html # index.html.erb
-   12        format.json { render json: @articles }
+   12         format.json { render json: @articles }
    13      end
    14    end
    15
