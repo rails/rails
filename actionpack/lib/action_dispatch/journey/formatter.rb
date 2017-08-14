@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_controller/metal/exceptions"
+require_relative "../../action_controller/metal/exceptions"
 
 module ActionDispatch
   # :stopdoc:
