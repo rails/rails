@@ -1077,15 +1077,16 @@ module ActiveRecord
         @reflection.constraints + [source_type_info]
       end
 
-      def source_type_info
-        type = @previous_reflection.foreign_type
-        source_type = @previous_reflection.options[:source_type]
-        lambda { |object| where(type => source_type) }
-      end
-
       def get_join_keys(association_klass)
         @reflection.get_join_keys(association_klass)
       end
+
+      private
+        def source_type_info
+          type = @previous_reflection.foreign_type
+          source_type = @previous_reflection.options[:source_type]
+          lambda { |object| where(type => source_type) }
+        end
     end
 
     class RuntimeReflection < PolymorphicReflection # :nodoc:
@@ -1102,10 +1103,6 @@ module ActiveRecord
 
       def constraints
         @reflection.constraints
-      end
-
-      def source_type_info
-        @reflection.source_type_info
       end
 
       def alias_candidate(name)
