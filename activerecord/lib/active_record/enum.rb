@@ -76,6 +76,10 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
+  # It is possible to retrieve an array containing the enum labels by calling:
+  #
+  #   Conversation.statuses_labels # => ["active", "archived"]
+  #
   # You can use the +:_prefix+ or +:_suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
   # are prefixed/suffixed with the name of the enum. It is also possible to
@@ -152,15 +156,22 @@ module ActiveRecord
       klass = self
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
+
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
+        enum_labels = []
         name = name.to_s
+        pluralized_name = name.pluralize
 
         # def self.statuses() statuses end
-        detect_enum_conflict!(name, name.pluralize, true)
-        singleton_class.send(:define_method, name.pluralize) { enum_values }
+        detect_enum_conflict!(name, pluralized_name, true)
+        singleton_class.send(:define_method, pluralized_name) { enum_values }
         defined_enums[name] = enum_values
+
+        # def self.statuses_labels() statuses_labels end
+        detect_enum_conflict!(name, "#{pluralized_name}_labels", true)
+        singleton_class.send(:define_method, "#{pluralized_name}_labels") { enum_labels }
 
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
@@ -187,6 +198,7 @@ module ActiveRecord
             value_method_name = "#{prefix}#{label}#{suffix}"
             enum_values[label] = value
             label = label.to_s
+            enum_labels << label
 
             # def active?() status == "active" end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
