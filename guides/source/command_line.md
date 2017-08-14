@@ -102,6 +102,7 @@ Please choose a generator below.
 
 Rails:
   assets
+  channel
   controller
   generator
   ...
@@ -241,6 +242,8 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
+    invoke  test_unit
+    create    test/system/high_scores_test.rb
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.coffee
