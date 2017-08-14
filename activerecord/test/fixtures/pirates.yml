@@ -13,3 +13,6 @@ mark:
 
 1:
   catchphrase: "#$LABEL pirate!"
+
+pirate_without_mateys:
+  catchphrase: 'Aye'

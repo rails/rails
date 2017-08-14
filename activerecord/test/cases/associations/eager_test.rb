@@ -109,12 +109,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_without_primary_key
-    pirate_id = pirates(:blackbeard)
-    mateys = Pirate.eager_load(:mateys).where(id: pirate_id).first.mateys
+    pirate = pirates(:blackbeard)
+    mateys = Pirate.eager_load(:mateys).where(id: pirate).first.mateys
     assert_equal 2, mateys.size
     targets = mateys.collect(&:target)
     assert targets.include?(pirates(:redbeard))
     assert targets.include?(pirates(:mark))
+    #negative assert
+    pirate = pirates(:pirate_without_mateys)
+    mateys = Pirate.eager_load(:mateys).where(id: pirate).first.mateys
+    assert_equal [], mateys
   end
 
   def test_eager_load_has_many_without_primary_key_does_not_run_additional_query
@@ -124,9 +128,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_one_without_primary_key
-    pirate_id = pirates(:mark)
-    attacker_matey = Pirate.eager_load(:attacker_matey).where(id: pirate_id).first.attacker_matey
+    pirate = pirates(:mark)
+    attacker_matey = Pirate.eager_load(:attacker_matey).where(id: pirate).first.attacker_matey
     assert_equal attacker_matey.pirate , pirates(:blackbeard)
+    #negative
+    pirate = pirates(:pirate_without_mateys)
+    attacker_matey = Pirate.eager_load(:attacker_matey).where(id: pirate).first.attacker_matey
+    assert_nil attacker_matey
   end
 
   def test_eager_load_has_one_without_primary_key_does_not_run_additional_query
