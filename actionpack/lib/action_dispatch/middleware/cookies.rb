@@ -360,7 +360,11 @@ module ActionDispatch
         @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
-      def handle_options(options) #:nodoc:
+      def handle_options(options) # :nodoc:
+        if options[:expires].respond_to?(:from_now)
+          options[:expires] = options[:expires].from_now
+        end
+
         options[:path] ||= "/"
 
         if options[:domain] == :all || options[:domain] == "all"
@@ -488,6 +492,14 @@ module ActionDispatch
         def request; @parent_jar.request; end
 
       private
+        def expiry_options(options)
+          if options[:expires].respond_to?(:from_now)
+            { expires_in: options[:expires] }
+          else
+            { expires_at: options[:expires] }
+          end
+        end
+
         def parse(name, data); data; end
         def commit(options); end
     end
@@ -569,7 +581,7 @@ module ActionDispatch
         end
 
         def commit(options)
-          options[:value] = @verifier.generate(serialize(options[:value]))
+          options[:value] = @verifier.generate(serialize(options[:value]), expiry_options(options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
@@ -609,7 +621,7 @@ module ActionDispatch
         end
 
         def commit(options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), expiry_options(options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
