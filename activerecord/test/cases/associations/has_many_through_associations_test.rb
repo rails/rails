@@ -880,26 +880,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_collection_singular_ids_setter_with_changed_primary_key
-    company = companies(:first_firm)
-    client = companies(:first_client)
-    company.clients_using_primary_key_ids = [client.name]
-    assert_equal [client], company.clients_using_primary_key
-  end
-
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids = [Developer.first.id, -9999]
     e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
     msg = "Couldn't find all Developers with 'id': (1, -9999) (found 1 results, but was looking for 2). Couldn't find Developer with id -9999."
     assert_equal(msg, e.message)
-  end
-
-  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
-    company = companies(:first_firm)
-    ids = [Client.first.name, "unknown client"]
-    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
-    assert_match(/Couldn't find all Clients with 'name'/, e.message)
   end
 
   def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
