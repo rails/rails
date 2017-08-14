@@ -5,6 +5,7 @@ require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
+  .travis.yml
   Gemfile
   Rakefile
   README.md
@@ -60,6 +61,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_generating_without_options
     run_generator
     assert_file "README.md", /Bukkits/
+    assert_file ".travis.yml" do |content|
+      assert_match(/- #{RUBY_VERSION}/, content)
+      assert_match(/before_install: gem install bundler -v #{Bundler::VERSION}/, content)
+    end
     assert_no_file "config/routes.rb"
     assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|

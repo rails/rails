@@ -1,3 +1,7 @@
+*   Add `.travis.yml` to the plugin generator
+
+    *Yoshiyuki Hirano*
+
 *   Optimize indentation for generator actions.
 
     *Yoshiyuki Hirano*
