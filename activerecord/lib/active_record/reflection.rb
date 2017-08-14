@@ -329,6 +329,10 @@ module ActiveRecord
         def join_pk(_)
           foreign_key
         end
+
+        def primary_key(klass)
+          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -697,10 +701,6 @@ module ActiveRecord
         def derive_join_table
           ModelSchema.derive_join_table_name active_record.table_name, klass.table_name
         end
-
-        def primary_key(klass)
-          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
-        end
     end
 
     class HasManyReflection < AssociationReflection # :nodoc:
@@ -1018,10 +1018,6 @@ module ActiveRecord
           else
             through_reflection.add_as_through a
           end
-        end
-
-        def primary_key(klass)
-          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
 
         def inverse_name; delegate_reflection.send(:inverse_name); end
