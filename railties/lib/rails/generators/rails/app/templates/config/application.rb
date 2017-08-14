@@ -31,6 +31,10 @@ module <%= app_const_base %>
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
+
+    # Some configurations such as config.time_zone should be defined here
+    # because they are initialized before Railtie's initializing process.
+    # config.time_zone = 'Central Time (US & Canada)'
 <%- if options[:api] -%>
 
     # Only loads a smaller set of middleware suitable for API only apps.
