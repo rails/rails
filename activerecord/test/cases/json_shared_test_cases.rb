@@ -216,13 +216,37 @@ module JSONSharedTestCases
     assert_equal true, json.payload
   end
 
-  def test_not_compatible_with_serialize_macro
+  def test_not_compatible_with_serialize_json
     new_klass = Class.new(klass) do
       serialize :payload, JSON
     end
     assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
       new_klass.new
     end
+  end
+
+  class MySettings
+    def initialize(hash); @hash = hash end
+    def to_hash; @hash end
+    def self.load(hash); new(hash) end
+    def self.dump(object); object.to_hash end
+  end
+
+  def test_json_with_serialized_attributes
+    new_klass = Class.new(klass) do
+      serialize :settings, MySettings
+    end
+
+    new_klass.create!(settings: MySettings.new("one" => "two"))
+    record = new_klass.first
+
+    assert_instance_of MySettings, record.settings
+    assert_equal({ "one" => "two" }, record.settings.to_hash)
+
+    record.settings = MySettings.new("three" => "four")
+    record.save!
+
+    assert_equal({ "three" => "four" }, record.reload.settings.to_hash)
   end
 
   private
