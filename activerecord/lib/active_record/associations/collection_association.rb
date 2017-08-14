@@ -53,9 +53,12 @@ module ActiveRecord
         pk_type = reflection.association_primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
-        records = klass.where(reflection.association_primary_key => ids).index_by do |r|
-          r.send(reflection.association_primary_key)
+
+        primary_key = reflection.association_primary_key
+        records = klass.where(primary_key => ids).index_by do |r|
+          r.public_send(primary_key)
         end.values_at(*ids).compact
+
         if records.size != ids.size
           klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
         else

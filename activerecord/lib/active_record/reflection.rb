@@ -690,6 +690,10 @@ module ActiveRecord
           Associations::HasManyAssociation
         end
       end
+
+      def association_primary_key(klass = nil)
+        primary_key(klass || self.klass)
+      end
     end
 
     class HasOneReflection < AssociationReflection # :nodoc:
