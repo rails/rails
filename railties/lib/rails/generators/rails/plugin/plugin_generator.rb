@@ -89,14 +89,13 @@ task default: :test
 
     PASSTHROUGH_OPTIONS = [
       :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
-      :javascript, :quiet, :pretend, :force, :skip
+      :javascript, :api, :quiet, :pretend, :skip
     ]
 
     def generate_test_dummy(force = false)
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:api] = options.api?
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
