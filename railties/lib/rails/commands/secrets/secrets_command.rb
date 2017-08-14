@@ -12,11 +12,11 @@ module Rails
         end
       end
 
-      def setup
-        generator.start
+      def setup(path = default_path)
+        generator.start([path])
       end
 
-      def edit
+      def edit(path = default_path)
         if ENV["EDITOR"].to_s.empty?
           say "No $EDITOR to open decrypted secrets in. Assign one like this:"
           say ""
@@ -30,7 +30,7 @@ module Rails
 
         require_application_and_environment!
 
-        Rails::Secrets.read_for_editing do |tmp_path|
+        Rails::Secrets.new(path).read_for_editing do |tmp_path|
           system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
@@ -42,17 +42,21 @@ module Rails
       rescue Errno::ENOENT => error
         raise unless error.message =~ /secrets\.yml\.enc/
 
-        Rails::Secrets.read_template_for_editing do |tmp_path|
+        Rails::Secrets.new(path).read_template_for_editing do |tmp_path|
           system("#{ENV["EDITOR"]} #{tmp_path}")
           generator.skip_secrets_file { setup }
         end
       end
 
-      def show
-        say Rails::Secrets.read
+      def show(path = default_path)
+        say Rails::Secrets.new(path).read
       end
 
       private
+        def default_path
+          "config/secrets.yml.enc"
+        end
+
         def generator
           require_relative "../../generators"
           require_relative "../../generators/rails/encrypted_secrets/encrypted_secrets_generator"
