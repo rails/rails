@@ -47,7 +47,12 @@ module ActiveRecord
     # handle from 10000 and beyond by setting the +:start+ and +:finish+
     # option on each worker.
     #
-    #   # Let's process from record 10_000 on.
+    #   # In worker 1, let's process until 9999 records.
+    #   Person.find_each(finish: 9_999) do |person|
+    #     person.party_all_night!
+    #   end
+    #
+    #   # In worker 2, let's process from record 10_000 and onwards.
     #   Person.find_each(start: 10_000) do |person|
     #     person.party_all_night!
     #   end
