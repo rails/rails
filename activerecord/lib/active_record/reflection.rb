@@ -198,13 +198,7 @@ module ActiveRecord
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
         relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
-        current_scope = klass.current_scope
-
-        if current_scope && current_scope.empty_scope?
-          relation
-        else
-          klass.send(:build_default_scope, relation)
-        end
+        klass.scope_for_association(relation)
       end
 
       def constraints
