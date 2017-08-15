@@ -19,7 +19,7 @@ module ActiveStorage
     # most circumstances.
     #
     # The system has been designed to having you go through the ActiveStorage::Attached::One
-    # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
+    # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
     #
     # If the +:dependent+ option isn't set, the attachment will be purged
     # (i.e. destroyed) whenever the record is destroyed.

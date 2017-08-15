@@ -15,13 +15,13 @@ class ActiveStorage::Variation
   attr_reader :transformations
 
   class << self
-    # Returns a variation instance with the transformations that were encoded by +#encode+.
+    # Returns a variation instance with the transformations that were encoded by +encode+.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
     end
 
     # Returns a signed key for the +transformations+, which can be used to refer to a specific
-    # variation in a URL or combined key (like `ActiveStorage::Variant#key`).
+    # variation in a URL or combined key (like <tt>ActiveStorage::Variant#key</tt>).
     def encode(transformations)
       ActiveStorage.verifier.generate(transformations, purpose: :variation)
     end
@@ -31,7 +31,7 @@ class ActiveStorage::Variation
     @transformations = transformations
   end
 
-  # Accepts an open MiniMagick image instance, like what's return by `MiniMagick::Image.read(io)`,
+  # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
   # and performs the +transformations+ against it. The transformed image instance is then returned.
   def transform(image)
     transformations.each do |(method, argument)|

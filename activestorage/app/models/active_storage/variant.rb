@@ -4,8 +4,8 @@
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# Variants rely on `MiniMagick` for the actual transformations of the file, so you must add `gem "mini_magick"`
-# to your Gemfile if you wish to use variants.
+# Variants rely on {MiniMagick}(https://github.com/minimagick/minimagick) for the actual transformations
+# of the file, so you must add <tt>gem "mini_magick"</tt> to your Gemfile if you wish to use variants.
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service and load it
 # into memory. The larger the image, the more memory is used. Because of this process, you also want to be
@@ -21,7 +21,7 @@
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
 # can then produce on-demand.
 #
-# When you do want to actually produce the variant needed, call +#processed+. This will check that the variant
+# When you do want to actually produce the variant needed, call +processed+. This will check that the variant
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
 # the transformations, upload the variant to the service, and return itself again. Example:
 #
@@ -58,13 +58,12 @@ class ActiveStorage::Variant
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
   #
-  # Use `url_for(variant)` (or the implied form, like `link_to variant` or `redirect_to variant`) to get the stable URL
-  # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +#service_call+ method
+  # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
+  # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +service_call+ method
   # for its redirection.
   def service_url(expires_in: 5.minutes, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
   end
-
 
   private
     def processed?

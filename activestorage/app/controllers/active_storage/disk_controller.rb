@@ -33,7 +33,6 @@ class ActiveStorage::DiskController < ActionController::Base
       ActiveStorage::Blob.service
     end
 
-
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
     end
@@ -41,7 +40,6 @@ class ActiveStorage::DiskController < ActionController::Base
     def disposition_param
       params[:disposition].presence_in(%w( inline attachment )) || "inline"
     end
-
 
     def decode_verified_token
       ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
