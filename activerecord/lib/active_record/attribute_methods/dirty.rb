@@ -62,12 +62,6 @@ module ActiveRecord
         clear_mutation_trackers
       end
 
-      def write_attribute_without_type_cast(attr_name, *) # :nodoc:
-        result = super
-        clear_attribute_change(attr_name)
-        result
-      end
-
       def clear_attribute_changes(attr_names) # :nodoc:
         super
         attr_names.each do |attr_name|
@@ -183,6 +177,11 @@ module ActiveRecord
       end
 
       private
+        def write_attribute_without_type_cast(attr_name, _)
+          result = super
+          clear_attribute_change(attr_name)
+          result
+        end
 
         def mutation_tracker
           unless defined?(@mutation_tracker)
