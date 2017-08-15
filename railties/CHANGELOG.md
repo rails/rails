@@ -10,7 +10,7 @@
 
     *Yoshiyuki Hirano*
 
-*   Add git_source to `Gemfile` for plugin generator.
+*   Add `git_source` to `Gemfile` for plugin generator.
 
     *Yoshiyuki Hirano*
 
@@ -80,7 +80,7 @@
 
 *   Load environment file in `dbconsole` command.
 
-    Fixes #29717
+    Fixes #29717.
 
     *Yuji Yaginuma*
 

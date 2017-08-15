@@ -1,8 +1,8 @@
 *   Ensure `sum` honors `distinct` on `has_many :through` associations
 
-    Fixes #16791
+    Fixes #16791.
 
-    *Aaron Wortham
+    *Aaron Wortham*
 
 *   Add `binary` fixture helper method.
 
