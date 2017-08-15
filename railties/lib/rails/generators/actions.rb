@@ -145,7 +145,7 @@ module Rails
         create_file("vendor/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new file in the lib/ directory. Code can be specified
+      # Create a new file in the <tt>lib/</tt> directory. Code can be specified
       # in a block or a data string can be given.
       #
       #   lib("crypto.rb") do
