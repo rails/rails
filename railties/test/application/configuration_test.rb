@@ -1191,6 +1191,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1202,6 +1203,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1214,6 +1216,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1238,6 +1241,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1249,6 +1253,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1257,6 +1262,7 @@ module ApplicationTests
       app "test"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1265,6 +1271,7 @@ module ApplicationTests
       app "production"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1284,6 +1291,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1295,6 +1303,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1306,6 +1315,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
