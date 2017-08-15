@@ -251,7 +251,7 @@ module ActiveRecord
             end
 
             # if a model does not have primary key than we are using foreign key
-            # which is not unique so we will avoid anytype of cache
+            # which is not unique so we will avoid any type of cache
             model = seen[ar_parent.object_id][node.base_klass][id] if node.primary_key
 
             if model
