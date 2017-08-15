@@ -1261,6 +1261,25 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, users[2].family_members.to_a.size
   end
 
+  def test_through_scope_is_affected_by_unscoping
+    author = authors(:david)
+
+    expected = author.comments.to_a
+    FirstPost.unscoped do
+      assert_equal expected.sort_by(&:id), author.comments_on_first_posts.sort_by(&:id)
+    end
+  end
+
+  def test_through_scope_isnt_affected_by_scoping
+    author = authors(:david)
+
+    expected = author.comments_on_first_posts.to_a
+    FirstPost.where(id: 2).scoping do
+      author.comments_on_first_posts.reset
+      assert_equal expected.sort_by(&:id), author.comments_on_first_posts.sort_by(&:id)
+    end
+  end
+
   def test_incorrectly_ordered_through_associations
     assert_raises(ActiveRecord::HasManyThroughOrderError) do
       DeveloperWithIncorrectlyOrderedHasManyThrough.create(

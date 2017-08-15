@@ -31,6 +31,16 @@ module ActiveRecord
           end
         end
 
+        def scope_for_association(scope = relation) # :nodoc:
+          current_scope = self.current_scope
+
+          if current_scope && current_scope.empty_scope?
+            scope
+          else
+            default_scoped(scope)
+          end
+        end
+
         def default_scoped(scope = relation) # :nodoc:
           build_default_scope(scope) || scope
         end
