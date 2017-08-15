@@ -59,6 +59,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
+
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   # It uses the framework-wide verifier on <tt>ActiveStorage.verifier</tt>, but with a dedicated purpose.
   def signed_id
@@ -120,6 +121,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
   end
 
+
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
@@ -161,6 +163,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   def download(&block)
     service.download key, &block
   end
+
 
   # Deletes the file on the service that's associated with this blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use the +#purge+ and +#purge_later+
