@@ -1,3 +1,9 @@
+*   Allow irb options to be passed from `rails console` command.
+
+    Fixes #28988.
+
+    *Yuji Yaginuma*
+
 ## Rails 5.1.3 (August 03, 2017) ##
 
 *   No changes.
