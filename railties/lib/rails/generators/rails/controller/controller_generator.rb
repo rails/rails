@@ -16,7 +16,7 @@ module Rails
 
       def add_routes
         return if options[:skip_routes]
-        route generate_routing_code(actions)
+        route generate_routing_code
       end
 
       hook_for :template_engine, :test_framework, :helper, :assets
@@ -32,7 +32,7 @@ module Rails
         #     get 'baz/show'
         #   end
         # end
-        def generate_routing_code(action)
+        def generate_routing_code
           depth = 0
           lines = []
 
@@ -46,6 +46,7 @@ module Rails
 
           # Create route
           #     get 'baz/index'
+          #     get 'baz/show'
           actions.each do |action|
             lines << indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
           end
