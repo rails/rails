@@ -458,7 +458,7 @@ Gem plugins currently in development can easily be shared from any Git repositor
 commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
 
 ```ruby
-gem 'yaffle', git: 'git://github.com/yaffle_watcher/yaffle.git'
+gem 'yaffle', git: 'https://github.com/yaffle_watcher/yaffle.git'
 ```
 
 After running `bundle install`, your gem functionality will be available to the application.
