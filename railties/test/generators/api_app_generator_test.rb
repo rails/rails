@@ -36,7 +36,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
-      assert_no_match(/\/public\/asserts/, content)
+      assert_no_match(/\/public\/assets/, content)
     end
 
     assert_file "Gemfile" do |content|
