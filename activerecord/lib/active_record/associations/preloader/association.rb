@@ -130,16 +130,6 @@ module ActiveRecord
           @reflection_scope ||= reflection.scope_for(klass)
         end
 
-        def klass_scope
-          current_scope = klass.current_scope
-
-          if current_scope && current_scope.empty_scope?
-            klass.unscoped
-          else
-            klass.default_scoped
-          end
-        end
-
         def build_scope
           scope = klass.unscoped
 
@@ -176,7 +166,7 @@ module ActiveRecord
           end
 
           scope.unscope_values = Array(values[:unscope]) + Array(preload_values[:unscope])
-          klass_scope.merge(scope)
+          klass.scope_for_association.merge(scope)
         end
       end
     end
