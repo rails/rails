@@ -124,6 +124,8 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
     }
 
+    private_constant :RFC2616, :RFC2518, :RFC3253, :RFC3648, :RFC3744, :RFC5323, :RFC4791, :RFC5789
+
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
     # (for instance, if a HEAD request was converted to a GET,
