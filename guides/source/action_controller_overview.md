@@ -203,7 +203,7 @@ predefined raise/rescue flow that will result in a 400 Bad Request being
 returned if not all required parameters are passed in.
 
 ```ruby
-class PeopleController < ActionController::Base
+class PeopleController < ApplicationController
   # This will raise an ActiveModel::ForbiddenAttributesError exception
   # because it's using mass assignment without an explicit permit
   # step.
@@ -1019,7 +1019,7 @@ all actions inside of the controller the ability to stream data. You can mix in
 the module like so:
 
 ```ruby
-class MyController < ActionController::Base
+class MyController < ApplicationController
   include ActionController::Live
 
   def stream
@@ -1055,7 +1055,7 @@ the singer has finished the previous line), then we could use `ActionController:
 as follows:
 
 ```ruby
-class LyricsController < ActionController::Base
+class LyricsController < ApplicationController
   include ActionController::Live
 
   def show
