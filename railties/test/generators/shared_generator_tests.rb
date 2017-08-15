@@ -22,6 +22,10 @@ module SharedGeneratorTests
     Rails.application = TestApp::Application.instance
   end
 
+  def application_path
+    destination_root
+  end
+
   def test_skeleton_is_created
     run_generator
 
@@ -122,5 +126,31 @@ module SharedGeneratorTests
     end
 
     assert_no_file("app/models/concerns/.keep")
+  end
+
+  def test_generator_for_yarn
+    run_generator
+    assert_file "#{application_path}/package.json", /dependencies/
+    assert_file "#{application_path}/config/initializers/assets.rb", /node_modules/
+
+    assert_file ".gitignore" do |content|
+      assert_match(/node_modules/, content)
+      assert_match(/yarn-error\.log/, content)
+    end
+  end
+
+  def test_generator_for_yarn_skipped
+    run_generator([destination_root, "--skip-yarn"])
+    assert_no_file "#{application_path}/package.json"
+    assert_no_file "#{application_path}/bin/yarn"
+
+    assert_file "#{application_path}/config/initializers/assets.rb" do |content|
+      assert_no_match(/node_modules/, content)
+    end
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(/node_modules/, content)
+      assert_no_match(/yarn-error\.log/, content)
+    end
   end
 end

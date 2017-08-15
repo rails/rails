@@ -26,6 +26,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]
 
+  def application_path
+    "#{destination_root}/test/dummy"
+  end
+
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 

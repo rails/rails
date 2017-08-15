@@ -27,7 +27,6 @@
 <% unless options.skip_yarn? -%>
 /node_modules
 /yarn-error.log
-
 <% end -%>
 
 <% unless options.api? -%>
