@@ -1,3 +1,9 @@
+*   `ActiveRecord::Persistence#increment!` now accepts attribute aliases
+
+    Fixes #30279.
+
+    *Lisa Ugray* and *Wanderson Policarpo*
+
 *   Use given algorithm while removing index from database.
 
     Fixes #24190.

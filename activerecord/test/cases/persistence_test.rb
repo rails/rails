@@ -126,6 +126,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 53, accounts(:signals37, :reload).credit_limit
   end
 
+  def test_increment_aliased_attribute
+    assert_equal 50, accounts(:signals37).available_credit
+    accounts(:signals37).increment! :available_credit
+    assert_equal 51, accounts(:signals37, :reload).available_credit
+
+    accounts(:signals37).increment(:available_credit).increment!(:available_credit)
+    assert_equal 53, accounts(:signals37, :reload).available_credit
+  end
+
   def test_increment_nil_attribute
     assert_nil topics(:first).parent_id
     topics(:first).increment! :parent_id

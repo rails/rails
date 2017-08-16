@@ -128,6 +128,14 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update aliased counter" do
+    Topic.alias_attribute(:replies_count_alias, :replies_count)
+    assert_equal 1, @topic.replies_count
+
+    Topic.update_counters(@topic.id, replies_count_alias: 1)
+    assert_equal 2, @topic.reload.replies_count
+  end
+
   test "update counters of multiple records" do
     t1, t2 = topics(:first, :second)
 
