@@ -101,6 +101,7 @@ module ActiveRecord
         touch = counters.delete(:touch)
 
         updates = counters.map do |counter_name, value|
+          counter_name = canonical_attribute_name(counter_name)
           operator = value < 0 ? "-" : "+"
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"

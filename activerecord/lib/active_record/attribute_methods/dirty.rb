@@ -202,6 +202,7 @@ module ActiveRecord
         end
 
         def clear_attribute_change(attr_name)
+          attr_name = self.class.canonical_attribute_name(attr_name)
           mutation_tracker.forget_change(attr_name)
           mutations_from_database.forget_change(attr_name)
         end
