@@ -619,14 +619,20 @@ module ApplicationTests
       app_file "config/secrets.yml", <<-YAML
         shared:
           api_key: 3b7cd727
+          vars:
+            foo: foo123
+            bar: bar123
 
         development:
           api_key: abc12345
+          vars:
+            bar: bar456
       YAML
 
       app "development"
 
       assert_equal "abc12345", app.secrets.api_key
+      assert_equal({ foo: "foo123", bar: "bar456" }, app.secrets.vars)
     end
 
     test "blank config/secrets.yml does not crash the loading process" do
