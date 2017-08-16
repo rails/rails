@@ -123,6 +123,18 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 1, topics(:first).parent_id
   end
 
+  def test_increment_bang_attribute_alias
+    begin
+      Account.alias_attribute(:credit_limit_alias, :credit_limit)
+
+      assert_equal 50, accounts(:signals37).credit_limit_alias
+      accounts(:signals37).increment! :credit_limit_alias
+      assert_equal 51, accounts(:signals37, :reload).credit_limit_alias
+    ensure
+      Account.undefine_attribute_methods
+    end
+  end
+
   def test_increment_attribute_by
     assert_equal 50, accounts(:signals37).credit_limit
     accounts(:signals37).increment! :credit_limit, 5
