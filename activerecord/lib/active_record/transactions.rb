@@ -190,7 +190,7 @@ module ActiveRecord
     #
     # === Caveats
     #
-    # If you're on MySQL, then do not use Data Definition Language(DDL) operations in nested
+    # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
     # transactions blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
     # releases all savepoints upon executing a DDL operation. When +transaction+
