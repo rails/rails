@@ -67,7 +67,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     generator = Rails::Generators::AppGenerator.new ["rails"],
-      { api: true, update: true }, destination_root: destination_root, shell: @shell
+      { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.send(:update_config_files) }
 
     assert_no_file "config/initializers/cookies_serializer.rb"
@@ -78,7 +78,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     generator = Rails::Generators::AppGenerator.new ["rails"],
-      { api: true, update: true }, destination_root: destination_root, shell: @shell
+      { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.send(:update_bin_files) }
 
     assert_no_file "bin/yarn"

@@ -1297,10 +1297,10 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
@@ -1346,10 +1346,10 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 

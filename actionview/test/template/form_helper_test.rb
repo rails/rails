@@ -1386,7 +1386,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<select name="post[secret]"></select>',
-      select("post", "secret", [], {}, "id" => nil)
+      select("post", "secret", [], {}, { "id" => nil })
     )
     assert_dom_equal(
       text_field("post", "title", "id" => nil),

@@ -53,7 +53,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
   end
 
   def test_invoke_pretended
-    create_migration(default_destination_path, {}, pretend: true)
+    create_migration(default_destination_path, {}, { pretend: true })
 
     assert_no_file @migration.destination
   end
@@ -94,7 +94,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
 
   def test_invoke_forced_pretended_when_exists_not_identical
     migration_exists!
-    create_migration(default_destination_path, { force: true }, pretend: true) do
+    create_migration(default_destination_path, { force: true }, { pretend: true }) do
       "different content"
     end
 
@@ -106,7 +106,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
 
   def test_invoke_skipped_when_exists_not_identical
     migration_exists!
-    create_migration(default_destination_path, {}, skip: true) { "different content" }
+    create_migration(default_destination_path, {}, { skip: true }) { "different content" }
 
     assert_match(/skip  db\/migrate\/2_create_articles\.rb\n/, invoke!)
     assert_no_file @migration.destination
@@ -122,7 +122,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
 
   def test_revoke_pretended
     migration_exists!
-    create_migration(default_destination_path, {}, pretend: true)
+    create_migration(default_destination_path, {}, { pretend: true })
 
     assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
     assert_file @existing_migration.destination

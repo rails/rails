@@ -11,7 +11,7 @@ namespace :app do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
     require_relative "../generators"
     require_relative "../generators/rails/app/app_generator"
-    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
+    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
     generator.apply template, verbose: false
   end
 

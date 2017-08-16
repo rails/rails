@@ -1333,10 +1333,10 @@ module ApplicationTests
         end
       end
 
-      get "/", {}, "HTTP_ACCEPT" => "application/xml"
+      get "/", {}, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "HTML", last_response.body
 
-      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "XML", last_response.body
     end
 
