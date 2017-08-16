@@ -40,7 +40,7 @@ module ActiveSupport
     # * <tt>:run_once</tt> - Given +block+ will run only once.
     def on_load(name, options = {}, &block)
       @loaded[name].each do |base|
-        execute_hook(base, options, block)
+        execute_hook(name, base, options, block)
       end
 
       @load_hooks[name] << [block, options]
@@ -49,7 +49,7 @@ module ActiveSupport
     def run_load_hooks(name, base = Object)
       @loaded[name] << base
       @load_hooks[name].each do |hook, options|
-        execute_hook(base, options, hook)
+        execute_hook(name, base, options, hook)
       end
     end
 
@@ -63,7 +63,7 @@ module ActiveSupport
         end
       end
 
-      def execute_hook(base, options, block)
+      def execute_hook(name, base, options, block)
         with_execution_control(name, block, options[:run_once]) do
           if options[:yield]
             block.call(base)
