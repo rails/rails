@@ -488,4 +488,15 @@ class EnumTest < ActiveRecord::TestCase
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
   end
+
+  test "nil enum values raise an error" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+    end
+
+    e = assert_raises(ArgumentError, "enum value `#{nil}` should not be allowed") do
+      klass.class_eval { enum "status" => { a: nil } }
+    end
+    assert_match(/You tried to define an enum named .* on the model/, e.message)
+  end
 end

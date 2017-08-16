@@ -157,6 +157,8 @@ module ActiveRecord
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
 
+        detect_nil_enum!(name, values)
+
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.pluralize, true)
         singleton_class.send(:define_method, name.pluralize) { enum_values }
@@ -225,6 +227,20 @@ module ActiveRecord
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
           raise_conflict_error(enum_name, method_name, source: "another enum")
+        end
+      end
+
+      ENUM_NIL_MESSAGE = \
+        "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
+        "nil values for enums are not supported."
+
+      def detect_nil_enum!(enum_name, values)
+        # Check if values is a Hash, and if any of the values are nil.
+        if values.respond_to?(:each_pair) && values.any? { |k, v| v.nil? }
+          raise ArgumentError, ENUM_NIL_MESSAGE % {
+            enum: enum_name,
+            klass: name,
+          }
         end
       end
 
