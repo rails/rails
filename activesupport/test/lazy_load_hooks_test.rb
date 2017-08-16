@@ -22,14 +22,19 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
 
   def test_basic_hook_with_two_registrations_only_once
     i = 0
-    ActiveSupport.on_load(:basic_hook_with_two_once, run_once: true) do
+    block = proc { i += incr }
+    ActiveSupport.on_load(:basic_hook_with_two_once, run_once: true, &block)
+    ActiveSupport.on_load(:basic_hook_with_two_once) do
       i += incr
     end
-    assert_equal 0, i
+
+    ActiveSupport.on_load(:different_hook, run_once: true, &block)
+    ActiveSupport.run_load_hooks(:different_hook, FakeContext.new(2))
+    assert_equal 2, i
     ActiveSupport.run_load_hooks(:basic_hook_with_two_once, FakeContext.new(2))
-    assert_equal 2, i
+    assert_equal 6, i
     ActiveSupport.run_load_hooks(:basic_hook_with_two_once, FakeContext.new(5))
-    assert_equal 2, i
+    assert_equal 11, i
   end
 
   def test_hook_registered_after_run
