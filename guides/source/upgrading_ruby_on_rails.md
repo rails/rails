@@ -278,7 +278,7 @@ You can now just call the dependency once with a wildcard.
 
 ### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
 
-`content_tag_for` and `div_for` has been removed in favor of just using `content_tag`. To continue using it, add the `record_tag_helper` gem to your Gemfile:
+`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your Gemfile:
 
 ```ruby
 gem 'record_tag_helper', '~> 1.0'
