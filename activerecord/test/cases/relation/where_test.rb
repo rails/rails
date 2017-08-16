@@ -90,6 +90,21 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_belongs_to_nested_where_with_different_class_name
+      actual = Post.joins(:creator).where(creator: { id: [1, 2] })
+      expected = Post.joins(:author).where(author: { id: [1, 2] })
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_has_many_nested_where_with_different_class_name
+      actual = Author.joins(:other_posts).where(other_posts: { id: [1, 2] })
+      expected = Author.joins(:posts).where(posts: { id: [1, 2] })
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+
     def test_belongs_to_nested_where_with_relation
       author = authors(:david)
 
