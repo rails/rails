@@ -350,7 +350,7 @@ into account, one such example is
 
 ```ruby
 # image_tag("icon.png")
-#   # => <img alt="Icon" src="/assets/icon.png" />
+#   # => <img src="/assets/icon.png" />
 ```
 
 Although the default behavior for `#image_tag` is to always return

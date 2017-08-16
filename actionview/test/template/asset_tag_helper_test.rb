@@ -183,26 +183,26 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   ImageLinkToTag = {
-    %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
+    %(image_tag("xml.png")) => %(<img src="/images/xml.png" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
-    %(image_tag("gold.png", :size => "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
-    %(image_tag("gold.png", :size => 20)) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
-    %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
-    %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
-    %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
-    %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
-    %(image_tag("google.com.png")) => %(<img alt="Google.com" src="/images/google.com.png" />),
-    %(image_tag("slash..png")) => %(<img alt="Slash." src="/images/slash..png" />),
-    %(image_tag(".pdf.png")) => %(<img alt=".pdf" src="/images/.pdf.png" />),
-    %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />),
-    %(image_tag("//www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="//www.rubyonrails.com/images/rails.png" />),
+    %(image_tag("gold.png", :size => "20")) => %(<img height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", :size => 20)) => %(<img height="20" src="/images/gold.png" width="20" />),
+    %(image_tag("gold.png", :size => "45x70")) => %(<img height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("gold.png", "size" => "45x70")) => %(<img height="70" src="/images/gold.png" width="45" />),
+    %(image_tag("error.png", "size" => "45 x 70")) => %(<img src="/images/error.png" />),
+    %(image_tag("error.png", "size" => "x")) => %(<img src="/images/error.png" />),
+    %(image_tag("google.com.png")) => %(<img src="/images/google.com.png" />),
+    %(image_tag("slash..png")) => %(<img src="/images/slash..png" />),
+    %(image_tag(".pdf.png")) => %(<img src="/images/.pdf.png" />),
+    %(image_tag("http://www.rubyonrails.com/images/rails.png")) => %(<img src="http://www.rubyonrails.com/images/rails.png" />),
+    %(image_tag("//www.rubyonrails.com/images/rails.png")) => %(<img src="//www.rubyonrails.com/images/rails.png" />),
     %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />),
     %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :alt => nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
     %(image_tag("")) => %(<img src="" />),
-    %(image_tag("gold.png", data: { title: 'Rails Application' })) => %(<img data-title="Rails Application" src="/images/gold.png" alt="Gold" />),
-    %(image_tag("rss.gif", srcset: "/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w")) => %(<img srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />),
-    %(image_tag("rss.gif", srcset: { "pic_640.jpg" => "640w", "pic_1024.jpg" => "1024w" })) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />),
-    %(image_tag("rss.gif", srcset: [["pic_640.jpg", "640w"], ["pic_1024.jpg", "1024w"]])) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" alt="Rss" />)
+    %(image_tag("gold.png", data: { title: 'Rails Application' })) => %(<img data-title="Rails Application" src="/images/gold.png" />),
+    %(image_tag("rss.gif", srcset: "/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w")) => %(<img srcset="/assets/pic_640.jpg 640w, /assets/pic_1024.jpg 1024w" src="/images/rss.gif" />),
+    %(image_tag("rss.gif", srcset: { "pic_640.jpg" => "640w", "pic_1024.jpg" => "1024w" })) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" />),
+    %(image_tag("rss.gif", srcset: [["pic_640.jpg", "640w"], ["pic_1024.jpg", "1024w"]])) => %(<img srcset="/images/pic_640.jpg 640w, /images/pic_1024.jpg 1024w" src="/images/rss.gif" />)
   }
 
   FaviconLinkToTag = {
