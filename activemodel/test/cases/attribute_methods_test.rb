@@ -181,6 +181,16 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
   end
 
+  test "#attribute_alias? identifies aliases" do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert klass.attribute_alias?(:bar)
+    assert_not klass.attribute_alias?(:foo)
+  end
+
   test "#define_attribute_methods generates attribute methods with spaces in their names" do
     begin
       ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
