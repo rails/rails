@@ -255,12 +255,14 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.illustrator_visibility_invisible.create.illustrator_visibility_invisible?
   end
 
-  test "_before_type_cast returns the enum label (required for form fields)" do
-    if @book.status_came_from_user?
-      assert_equal "published", @book.status_before_type_cast
-    else
-      assert_equal "published", @book.status
-    end
+  test "_before_type_cast" do
+    assert_equal 2, @book.status_before_type_cast
+    assert_equal "published", @book.status
+
+    @book.status = "published"
+
+    assert_equal "published", @book.status_before_type_cast
+    assert_equal "published", @book.status
   end
 
   test "reserved enum names" do
