@@ -397,6 +397,15 @@ When using Ruby 2.4, you can preserve the timezone of the receiver when calling 
 
     ActiveSupport.to_time_preserves_timezone = false
 
+### Changes with JSON/JSONB serialization
+
+In Rails 5.0, how JSON/JSONB attributes are serialized and deserialized changed. Now, if
+you set a column equal to a `String`, Active Record will no longer turn that string
+into a `Hash`, and will instead only return the string. This is not limited to code
+interacting with models, but also affects `:default` column settings in `db/schema.rb`.
+It is recommended that you do not set columns equal to a `String`, but pass a `Hash`
+instead, which will be converted to and from a JSON string automatically.
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
