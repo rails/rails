@@ -20,7 +20,7 @@ module ActiveSupport
     end
 
     def config
-      @config ||= ActiveSupport::InheritableOptions.new(deserialize(read).deep_symbolize_keys)
+      @config ||= ActiveSupport::InheritableOptions.new(deserialize(read))
     end
 
     # Saves the current configuration to file, but won't persist any comments that where there already!
