@@ -23,11 +23,19 @@ module ActiveRecord
       end
 
       def create_table
-        unless table_exists?
+        if table_exists?
+          unless column_names.include?('created_at')
+            connection.add_column(table_name, 'created_at', :datetime, null: false, default: -> { 'CURRENT_TIMESTAMP' })
+          end
+          unless column_names.include?('updated_at')
+            connection.add_column(table_name, 'updated_at', :datetime, null: false, default: -> { 'CURRENT_TIMESTAMP' })
+          end
+        else
           version_options = connection.internal_string_options_for_primary_key
 
           connection.create_table(table_name, id: false) do |t|
             t.string :version, version_options
+            t.timestamps
           end
         end
       end
