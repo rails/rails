@@ -1,3 +1,8 @@
+*   Respect `layout` option when rendering a collection with a non-unique set
+    of partial paths.
+
+    *Steven Harman*
+
 *   Add `srcset` option to `image_tag` helper.
 
     *Roberto Miranda*

@@ -367,6 +367,16 @@ module RenderTestCases
       @view.render(partial: "test/customer", layout: "test/b_layout_for_partial_with_object", object: Customer.new("Amazon"))
   end
 
+  def test_render_partial_with_layout_and_homogeneous_collection
+    assert_equal "<b>hi: Amazon</b><b>hi: Yahoo</b>",
+      @controller_view.render(partial: [ Customer.new("Amazon"), Customer.new("Yahoo") ], layout: "test/b_layout_for_partial", locals: { greeting: "hi" })
+  end
+
+  def test_render_partial_with_layout_and_heterogeneous_collection
+    assert_equal "<b>hi: Amazon</b><b>hi good customer: Yahoo1</b>",
+      @controller_view.render(partial: [ Customer.new("Amazon"), GoodCustomer.new("Yahoo") ], layout: "test/b_layout_for_partial", locals: { greeting: "hi" })
+  end
+
   def test_render_partial_with_empty_array_should_return_nil
     assert_nil @view.render(partial: [])
   end

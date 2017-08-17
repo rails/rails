@@ -456,12 +456,17 @@ module ActionView
           index = partial_iteration.index
           path, as, counter, iteration = collection_data[index]
 
+          if layout = @options[:layout]
+            layout = find_template(layout, keys + [as, counter, iteration])
+          end
+
           locals[as]        = object
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
           template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
           content = template.render(view, locals)
+          content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           content
         end
