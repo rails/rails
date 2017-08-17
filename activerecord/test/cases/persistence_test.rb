@@ -560,7 +560,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_attribute_for_updated_at_on
-    developer = Developer.find(1)
+    developer = Developer.find(2)
     prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_attribute(:updated_at, prev_month)
