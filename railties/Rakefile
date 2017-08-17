@@ -13,7 +13,17 @@ namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
-    Dir[*test_files].each do |file|
+    test_files = Dir[*test_files]
+
+    skip_dirs = (ENV["SKIP_TEST_DIR"] || ENV["SKIP_TEST_DIRS"] || "").split(",")
+
+    if !skip_dirs.empty?
+      test_files.reject! do |filename|
+        skip_dirs.any? { |skip_dir| filename.include?(skip_dir) }
+      end
+    end
+
+    test_files.each do |file|
       next true if file.include?("fixtures")
       dash_i = [
         "test",

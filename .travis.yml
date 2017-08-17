@@ -41,7 +41,8 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=railties"
+    - "GEM=railties:with_application"
+    - "GEM=railties:no_application"
     - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"

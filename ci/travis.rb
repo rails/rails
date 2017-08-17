@@ -154,13 +154,19 @@ if ENV["GEM"] == "aj:integration"
   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
 
+if ENV["GEM"] == "railties:with_application"
+  ENV["TEST_DIRS"] = "application"
+elsif ENV["GEM"] == "railties:no_application"
+  ENV["SKIP_TEST_DIRS"] = "application"
+end
+
 results = {}
 
 ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
     next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
     next if RUBY_VERSION < "2.4" && isolated
-    next if gem == "railties" && isolated
+    next if gem.include?("railties") && isolated
     next if gem == "ac" && isolated
     next if gem == "ac:integration" && isolated
     next if gem == "aj:integration" && isolated
