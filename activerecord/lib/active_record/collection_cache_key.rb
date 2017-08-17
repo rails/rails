@@ -29,7 +29,7 @@ module ActiveRecord
           arel = query.arel
         end
 
-        result = connection.select_one(arel, nil)
+        result = collection.connection.select_one(arel, nil)
 
         if result.blank?
           size = 0
