@@ -225,6 +225,14 @@ module JSONSharedTestCases
     end
   end
 
+  def test_does_not_deserialize_json_string
+    x = klass.create!
+    json_string = { "key" => 123 }.to_json
+
+    x.payload = json_string
+    assert_equal json_string, x.payload
+  end
+
   class MySettings
     def initialize(hash); @hash = hash end
     def to_hash; @hash end
