@@ -1,3 +1,7 @@
+*   Use `Rails.initialize!` instead of `Rails.application.initialize!`
+
+    *Yoshiyuki Hirano*
+
 *   Add `--skip-yarn` option to the plugin generator.
 
     *bogdanvlviv*
