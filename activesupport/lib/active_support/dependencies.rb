@@ -22,6 +22,10 @@ module ActiveSupport #:nodoc:
 
     mattr_accessor :interlock, default: Interlock.new
 
+    # Intervals in which constant resolution mechanism will wait to load
+    # constants before fail with error.
+    mattr_accessor :circular_dependencies_wait, default: false
+
     # :doc:
 
     # Execute the supplied block without interference from any
@@ -495,7 +499,8 @@ module ActiveSupport #:nodoc:
         expanded = File.expand_path(file_path)
         expanded.sub!(/\.rb\z/, "".freeze)
 
-        if loading.include?(expanded)
+        if loading.include?(expanded) && (!circular_dependencies_wait ||
+           Array.wrap(circular_dependencies_wait).all? { |i| sleep(i) && loading.include?(expanded) })
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
         else
           require_or_load(expanded, qualified_name)
