@@ -381,8 +381,6 @@ module ActionView
           else
             polymorphic_url(source)
           end
-        rescue NoMethodError => e
-          raise ArgumentError, "Can't resolve image into URL: #{e}"
         end
 
         def extract_dimensions(size)

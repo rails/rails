@@ -271,6 +271,9 @@ module ActionDispatch
             end
 
             [named_route, args]
+            
+          rescue NoMethodError => e
+            raise ArgumentError, "Can't resolve object into URL: #{e.message}"
           end
 
           def handle_model_call(target, record)

@@ -26,13 +26,16 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
 
   test "error when attachment's empty" do
     @user = User.create!(name: "DHH")
-
     assert_not @user.avatar.attached?
-    assert_raises(ArgumentError) { image_tag(@user.avatar) }
+
+    e = assert_raises(ArgumentError) { image_tag(@user.avatar) }
+    assert_equal "Can't resolve object into URL: to_model delegated to attachment, but attachment is nil", e.message
   end
 
   test "error when object can't be resolved into url" do
     unresolvable_object = ActionView::Helpers::AssetTagHelper
-    assert_raises(ArgumentError) { image_tag(unresolvable_object) }
+
+    e = assert_raises(ArgumentError) { image_tag(unresolvable_object) }
+    assert_match /Can't resolve object into URL: undefined method `to_model'/, e.message
   end
 end
