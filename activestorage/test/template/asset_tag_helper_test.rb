@@ -38,4 +38,25 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
     e = assert_raises(ArgumentError) { image_tag(unresolvable_object) }
     assert_match /Can't resolve object into URL: undefined method `to_model'/, e.message
   end
+
+
+  test "video_tag" do
+    assert_dom_equal %(<video src="#{polymorphic_url @blob}"></video>), video_tag(@blob)
+  end
+
+  test "video_tag with multiple sources" do
+    poster_blob = create_blob
+    video_blob = create_blob
+
+    assert_dom_equal %(
+      <video poster="#{polymorphic_url poster_blob}">
+        <source src="#{polymorphic_url @blob}" />
+        <source src="#{polymorphic_url video_blob}" />
+      </video>
+    ).gsub(/\s{2,}/, ''), video_tag(@blob, video_blob, poster: poster_blob)
+  end
+
+  test "audio_tag" do
+    assert_dom_equal %(<audio src="#{polymorphic_url @blob}"></video>), audio_tag(@blob)
+  end
 end
