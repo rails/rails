@@ -41,6 +41,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "purge removes from external service" do
+    blob = create_blob
+
+    blob.purge
+    assert_not ActiveStorage::Blob.service.exist?(blob.key)
+  end
+
   private
     def expected_url_for(blob, disposition: :inline)
       query_string = { content_type: blob.content_type, disposition: disposition }.to_param
