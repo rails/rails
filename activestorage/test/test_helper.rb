@@ -32,7 +32,7 @@ end
 
 require "tmpdir"
 ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
-ActiveStorage::Service.logger = ActiveSupport::Logger.new(STDOUT)
+ActiveStorage::Service.logger = ActiveSupport::Logger.new(nil)
 
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
