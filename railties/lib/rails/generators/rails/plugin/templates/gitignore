@@ -2,8 +2,10 @@
 log/*.log
 pkg/
 <% if with_dummy_app? -%>
+<% if sqlite3? -%>
 <%= dummy_path %>/db/*.sqlite3
 <%= dummy_path %>/db/*.sqlite3-journal
+<% end -%>
 <%= dummy_path %>/log/*.log
 <% unless options[:skip_yarn] -%>
 <%= dummy_path %>/node_modules/

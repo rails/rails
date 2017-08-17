@@ -129,31 +129,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generating_adds_dummy_app_without_sprockets
-    run_generator [destination_root, "--skip-sprockets"]
-
-    assert_no_file "test/dummy/config/initializers/assets.rb"
-
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']sprockets\/railtie["']/
-
-    assert_file "Gemfile" do |content|
-      assert_no_match(/sass-rails/, content)
-      assert_no_match(/uglifier/, content)
-      assert_no_match(/coffee-rails/, content)
-    end
-
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match(/config\.assets\.debug/, content)
-    end
-
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.digest/, content)
-      assert_no_match(/config\.assets\.js_compressor/, content)
-      assert_no_match(/config\.assets\.css_compressor/, content)
-      assert_no_match(/config\.assets\.compile/, content)
-    end
-  end
-
   def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
     run_generator [destination_root, "-T", "--mountable", "--dummy-path", "my_dummy_app"]
     assert_file "Rakefile", /APP_RAKEFILE/
@@ -202,66 +177,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_generator_without_skips
-    run_generator
-    assert_file "test/dummy/config/application.rb", /\s+require\s+["']rails\/all["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-      assert_match(/^  config\.read_encrypted_secrets = true/, content)
-    end
-  end
-
-  def test_default_frameworks_are_required_when_others_are_removed
-    run_generator [destination_root, "--skip-active-record", "--skip-action-mailer", "--skip-action-cable", "--skip-sprockets"]
-    assert_file "test/dummy/config/application.rb", /require\s+["']rails["']/
-    assert_file "test/dummy/config/application.rb", /require\s+["']active_model\/railtie["']/
-    assert_file "test/dummy/config/application.rb", /require\s+["']active_job\/railtie["']/
-    assert_file "test/dummy/config/application.rb", /require\s+["']action_controller\/railtie["']/
-    assert_file "test/dummy/config/application.rb", /require\s+["']action_view\/railtie["']/
-  end
-
-  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
-  end
-
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
-    assert_no_file "test/dummy/config/database.yml"
     assert_file "test/test_helper.rb" do |contents|
       assert_no_match(/ActiveRecord/, contents)
-    end
-  end
-
-  def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
-    run_generator [destination_root, "--skip-action-mailer"]
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_no_directory "test/dummy/app/mailers"
-  end
-
-  def test_action_cable_is_removed_from_frameworks_if_skip_action_cable_is_given
-    run_generator [destination_root, "--skip-action-cable"]
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_cable\/engine["']/
-    assert_no_file "test/dummy/config/cable.yml"
-    assert_no_file "test/dummy/app/assets/javascripts/cable.js"
-    assert_no_directory "test/dummy/app/channels"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/redis/, content)
     end
   end
 
