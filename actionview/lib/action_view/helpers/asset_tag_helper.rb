@@ -251,7 +251,7 @@ module ActionView
         check_for_image_tag_errors(options)
         skip_pipeline = options.delete(:skip_pipeline)
 
-        src = options[:src] = resolve_image_source(source, skip_pipeline)
+        src = options[:src] = resolve_asset_source(source, type: :image, skip_pipeline: skip_pipeline)
 
         unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
           options[:alt] = options.fetch(:alt) { image_alt(src) }
@@ -259,7 +259,7 @@ module ActionView
 
         if options[:srcset] && !options[:srcset].is_a?(String)
           options[:srcset] = options[:srcset].map do |src_path, size|
-            src_path = path_to_image(src_path, skip_pipeline: skip_pipeline)
+            src_path = resolve_asset_source(src_path, type: :image, skip_pipeline: skip_pipeline)
             "#{src_path} #{size}"
           end.join(", ")
         end
@@ -336,7 +336,7 @@ module ActionView
         public_poster_folder = options.delete(:poster_skip_pipeline)
         sources << options
         multiple_sources_tag_builder("video", sources) do |tag_options|
-          tag_options[:poster] = path_to_image(tag_options[:poster], skip_pipeline: public_poster_folder) if tag_options[:poster]
+          tag_options[:poster] = resolve_asset_source(tag_options[:poster], type: :image, skip_pipeline: public_poster_folder) if tag_options[:poster]
           tag_options[:width], tag_options[:height] = extract_dimensions(tag_options.delete(:size)) if tag_options[:size]
         end
       end
@@ -367,17 +367,17 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", src: send("path_to_#{type}", source, skip_pipeline: skip_pipeline)) }
+              safe_join sources.map { |source| tag("source", src: resolve_asset_source(source, type: type, skip_pipeline: skip_pipeline)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
+            options[:src] = resolve_asset_source(sources.first, type: type, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
           end
         end
 
-        def resolve_image_source(source, skip_pipeline)
+        def resolve_asset_source(source, type:, skip_pipeline:)
           if source.is_a?(Symbol) || source.is_a?(String)
-            path_to_image(source, skip_pipeline: skip_pipeline)
+            send("path_to_#{type}", source, skip_pipeline: skip_pipeline)
           else
             polymorphic_url(source)
           end
