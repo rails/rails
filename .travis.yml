@@ -49,7 +49,8 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=railties"
+    - "GEM=railties TEST_DIR=application/**"
+    - "GEM=railties TEST_DIRS=.,command/**,commands/**,configuration/**,engine/**,generators/**,railties/**,test_unit/**"
     - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
