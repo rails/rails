@@ -909,6 +909,13 @@ class RelationTest < ActiveRecord::TestCase
     assert davids.loaded?
   end
 
+  def test_delete_all_with_eager_loading
+    posts = Post.eager_load(:author).where("authors.id" => nil)
+
+    assert_difference("Post.count", -1) { posts.delete_all }
+    assert ! posts.loaded?
+  end
+
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
@@ -1487,6 +1494,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
+  end
+
+  def test_update_all_with_eager_loading
+    posts = Post.eager_load(:author).where("authors.id" => nil)
+    count = posts.count
+
+    assert_equal count, posts.update_all(author_id: authors(:david).id)
+    assert_equal authors(:david), posts(:authorless).author
   end
 
   def test_update_on_relation

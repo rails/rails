@@ -364,7 +364,11 @@ module ActiveRecord
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
 
-      if has_join_values?
+      if eager_loading?
+        relation = self
+        find_with_associations { |rel| relation = rel }
+        @klass.connection.join_to_update(stmt, relation.arel, arel_attribute(primary_key))
+      elsif has_join_values?
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
@@ -497,7 +501,11 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values?
+      if eager_loading?
+        relation = self
+        find_with_associations { |rel| relation = rel }
+        @klass.connection.join_to_delete(stmt, relation.arel, arel_attribute(primary_key))
+      elsif has_join_values?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
         stmt.wheres = arel.constraints
