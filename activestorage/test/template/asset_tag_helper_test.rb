@@ -53,7 +53,7 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
         <source src="#{polymorphic_url @blob}" />
         <source src="#{polymorphic_url video_blob}" />
       </video>
-    ).gsub(/\s{2,}/, ''), video_tag(@blob, video_blob, poster: poster_blob)
+    ).gsub(/\s{2,}/, ""), video_tag(@blob, video_blob, poster: poster_blob)
   end
 
   test "audio_tag" do

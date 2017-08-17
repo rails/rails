@@ -271,7 +271,7 @@ module ActionDispatch
             end
 
             [named_route, args]
-            
+
           rescue NoMethodError => e
             raise ArgumentError, "Can't resolve object into URL: #{e.message}"
           end
