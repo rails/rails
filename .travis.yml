@@ -114,7 +114,8 @@ notifications:
     on_success: change
     on_failure: always
     channels:
-      - "irc.freenode.org#rails-contrib"
+      # "irc.freenode.org#rails-contrib"
+      - secure: "QFKSOK7xQiWWqTzYfYm0XWoW7idzuxT57MBW9i9EASyRLEPuDwZEubKRP40Y7wPx7ylQd9lp6kJheeLnrDvvTjFbW3sWv9GDRl4WlOU8sG/Kv7MXAASXlDqzyJxxXTtzLeXz2iwY296kOBuKxKxl923eTvEGeocwH02QGo14LpQ="
   campfire:
     on_success: change
     on_failure: always
