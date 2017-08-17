@@ -435,7 +435,7 @@ module ApplicationTests
 
     test "initialization on the assets group should set assets_dir" do
       require "#{app_path}/config/application"
-      Rails.application.initialize!(:assets)
+      Rails.initialize!(:assets)
       assert_not_nil Rails.application.config.action_controller.assets_dir
     end
 

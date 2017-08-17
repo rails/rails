@@ -126,7 +126,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "initialize cant be called twice" do
     require "#{app_path}/config/environment"
-    assert_raise(RuntimeError) { Rails.application.initialize! }
+    assert_raise(RuntimeError) { Rails.initialize! }
   end
 
   test "reload constants on development" do

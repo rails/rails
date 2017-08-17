@@ -53,7 +53,7 @@ module ApplicationTests
           config.middleware.use SuperMiddleware
         end
 
-        Rails.application.initialize!
+        Rails.initialize!
       RUBY
 
       assert_match("SuperMiddleware", Dir.chdir(app_path) { `bin/rails middleware` })
