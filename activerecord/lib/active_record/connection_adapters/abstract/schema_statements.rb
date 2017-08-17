@@ -1041,7 +1041,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version, created_at, updated_at) VALUES (#{quote(version)}, #{quote(Time.now.to_s)}, #{quote(Time.now.to_s)})"
+          execute "INSERT INTO #{sm_table} (version, created_at, updated_at) VALUES (#{quote(version)}, #{now}, #{now})"
         end
 
         inserting = (versions - migrated).select { |v| v < version }
@@ -1352,11 +1352,11 @@ module ActiveRecord
 
           if versions.is_a?(Array)
             sql = "INSERT INTO #{sm_table} (version, created_at, updated_at) VALUES\n".dup
-            sql << versions.map { |v| "(#{quote(v)}, #{quote(Time.now.to_s)}, #{quote(Time.now.to_s)})" }.join(",\n")
+            sql << versions.map { |v| "(#{quote(v)}, #{now}, #{now})" }.join(",\n")
             sql << ";\n\n"
             sql
           else
-            "INSERT INTO #{sm_table} (version, created_at, updated_at) VALUES (#{quote(versions)}, #{quote(Time.now.to_s)}, #{quote(Time.now.to_s)});"
+            "INSERT INTO #{sm_table} (version, created_at, updated_at) VALUES (#{quote(versions)}, #{now}, #{now});"
           end
         end
 
@@ -1366,6 +1366,15 @@ module ActiveRecord
 
         def quoted_scope(name = nil, type: nil)
           raise NotImplementedError
+        end
+
+        def now
+          if self.class.name.match(/Mysql/)
+            # stripping Timezone suffix
+            quote(Time.now.to_s[0..-7])
+          else
+            quote(Time.now.to_s)
+          end
         end
     end
   end
