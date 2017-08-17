@@ -892,7 +892,7 @@ Conditional Validation
 
 Sometimes it will make sense to validate an object only when a given predicate
 is satisfied. You can do that by using the `:if` and `:unless` options, which
-can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if`
+can take a symbol, a `Proc` or an `Array`. You may use the `:if`
 option when you want to specify when the validation **should** happen. If you
 want to specify when the validation **should not** happen, then you may use the
 `:unless` option.
