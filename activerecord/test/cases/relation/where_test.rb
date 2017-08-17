@@ -109,6 +109,15 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_polymorphic_shallow_where_not
+      treasure = treasures(:sapphire)
+
+      expected = [price_estimates(:diamond), price_estimates(:honda)]
+      actual   = PriceEstimate.where.not(estimate_of: treasure)
+
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
+    end
+
     def test_polymorphic_nested_array_where
       treasure = Treasure.new
       treasure.id = 1
@@ -119,6 +128,16 @@ module ActiveRecord
       actual   = PriceEstimate.where(estimate_of: [treasure, hidden])
 
       assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_nested_array_where_not
+      treasure = treasures(:diamond)
+      car = cars(:honda)
+
+      expected = [price_estimates(:sapphire_1), price_estimates(:sapphire_2)]
+      actual   = PriceEstimate.where.not(estimate_of: [treasure, car])
+
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
 
     def test_polymorphic_array_where_multiple_types
