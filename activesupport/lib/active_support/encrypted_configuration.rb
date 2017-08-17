@@ -1,10 +1,12 @@
 require "yaml"
 require "active_support/encrypted_file"
+require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
-    delegate :dig, :fetch, :[], :[]=, to: :config
+    delegate_missing_to :config
 
     def initialize(config_path:, key_path:, env_key:)
       super content_path: config_path, key_path: key_path, env_key: env_key
@@ -18,12 +20,12 @@ module ActiveSupport
     end
 
     def config
-      @config ||= deserialize(read).deep_symbolize_keys
+      @config ||= ActiveSupport::InheritableOptions.new(deserialize(read).deep_symbolize_keys)
     end
 
     # Saves the current configuration to file, but won't persist any comments that where there already!
     def save
-      write serialize(config)
+      write serialize(config.to_h)
     end
 
     private
