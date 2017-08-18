@@ -91,28 +91,6 @@ module ActiveSupport
         end
       end
 
-      # Reads multiple values from the cache using a single call to the
-      # servers for all keys. Options can be passed in the last argument.
-      def read_multi(*names)
-        options = names.extract_options!
-        options = merged_options(options)
-
-        keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
-
-        raw_values = @data.get_multi(keys_to_names.keys)
-        values = {}
-
-        raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-
-          unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
-            values[keys_to_names[key]] = entry.value
-          end
-        end
-
-        values
-      end
-
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
@@ -168,6 +146,24 @@ module ActiveSupport
           rescue_error_with false do
             @data.send(method, key, value, expires_in, options)
           end
+        end
+
+        # Reads multiple entries from the cache implementation.
+        def read_multi_entries(names, options)
+          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+
+          raw_values = @data.get_multi(keys_to_names.keys)
+          values = {}
+
+          raw_values.each do |key, value|
+            entry = deserialize_entry(value)
+
+            unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+              values[keys_to_names[key]] = entry.value
+            end
+          end
+
+          values
         end
 
         # Delete an entry from the cache.

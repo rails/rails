@@ -1,3 +1,7 @@
+*   Add missing instrumentation for `read_multi` in `ActiveSupport::Cache::Store`
+
+    *Ignatius Reza Lesmana*
+
 *   Allow the hash function used to generate non-sensitive digests, such as the
     ETag header, to be specified with `config.active_support.hash_digest_class`.
 

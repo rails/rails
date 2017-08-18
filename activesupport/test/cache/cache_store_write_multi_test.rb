@@ -19,7 +19,7 @@ end
 
 class CacheStoreWriteMultiInstrumentationTest < ActiveSupport::TestCase
   setup do
-    @cache = ActiveSupport::Cache.lookup_store(:null_store)
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store)
   end
 
   test "instrumentation" do
@@ -35,15 +35,15 @@ class CacheStoreWriteMultiInstrumentationTest < ActiveSupport::TestCase
   end
 
   test "instrumentation with fetch_multi as super operation" do
-    skip "fetch_multi isn't instrumented yet"
+    @cache.write("b", "bb")
 
-    events = with_instrumentation "write_multi" do
+    events = with_instrumentation "read_multi" do
       @cache.fetch_multi("a", "b") { |key| key * 2 }
     end
 
-    assert_equal %w[ cache_write_multi.active_support ], events.map(&:name)
-    assert_nil events[0].payload[:super_operation]
-    assert !events[0].payload[:hit]
+    assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
+    assert_equal :fetch_multi, events[0].payload[:super_operation]
+    assert_equal ["b"], events[0].payload[:hits]
   end
 
   private
