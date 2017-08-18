@@ -1,5 +1,3 @@
-import { getMetaValue } from "./helpers"
-
 export class BlobUpload {
   constructor(blob) {
     this.blob = blob
@@ -12,7 +10,6 @@ export class BlobUpload {
     for (const key in headers) {
       this.xhr.setRequestHeader(key, headers[key])
     }
-    this.xhr.setRequestHeader("X-CSRF-Token", getMetaValue("csrf-token"))
     this.xhr.addEventListener("load", event => this.requestDidLoad(event))
     this.xhr.addEventListener("error", event => this.requestDidError(event))
   }
