@@ -11,14 +11,14 @@
 #       export IBM_DB_LIB=/opt/ibm/db2/V9.7/lib32
 #       gem install ibm_db
 #
-#   On Mac OS X 10.5:
+#   On macOS 10.5:
 #       . /home/db2inst1/sqllib/db2profile
 #       export IBM_DB_INCLUDE=/opt/ibm/db2/V9.7/include
 #       export IBM_DB_LIB=/opt/ibm/db2/V9.7/lib32
 #       export ARCHFLAGS="-arch i386"
 #       gem install ibm_db
 #
-#   On Mac OS X 10.6:
+#   On macOS 10.6:
 #       . /home/db2inst1/sqllib/db2profile
 #       export IBM_DB_INCLUDE=/opt/ibm/db2/V9.7/include
 #       export IBM_DB_LIB=/opt/ibm/db2/V9.7/lib64

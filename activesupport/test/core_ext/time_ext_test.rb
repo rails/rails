@@ -607,7 +607,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   # NOTE: this test seems to fail (changeset 1958) only on certain platforms,
-  # like OSX, and FreeBSD 5.4.
+  # like macOS, and FreeBSD 5.4.
   def test_fp_inaccuracy_ticket_1836
     midnight = Time.local(2005, 2, 21, 0, 0, 0)
     assert_equal midnight.midnight, (midnight + 1.hour + 0.000001).midnight
