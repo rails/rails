@@ -576,8 +576,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_taking_with_a_number
+    klass = Class.new(Author) do
+      has_many :posts, -> { order(:id) }
+
+      def self.name
+        "Author"
+      end
+    end
+
     # taking from unloaded Relation
-    bob = Author.find(authors(:bob).id)
+    bob = klass.find(authors(:bob).id)
     new_post = bob.posts.build
     assert_not bob.posts.loaded?
     assert_equal [posts(:misc_by_bob)], bob.posts.take(1)
