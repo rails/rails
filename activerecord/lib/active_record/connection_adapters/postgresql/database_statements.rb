@@ -5,8 +5,7 @@ module ActiveRecord
     module PostgreSQL
       module DatabaseStatements
         def explain(arel, binds = [])
-          sql, binds = to_sql(arel, binds)
-          sql = "EXPLAIN #{sql}"
+          sql = "EXPLAIN #{to_sql(arel, binds)}"
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
         end
 

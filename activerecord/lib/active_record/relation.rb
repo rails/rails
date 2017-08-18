@@ -571,8 +571,7 @@ module ActiveRecord
 
                     conn = klass.connection
                     conn.unprepared_statement {
-                      sql, _ = conn.to_sql(relation.arel)
-                      sql
+                      conn.to_sql(relation.arel)
                     }
                   end
     end

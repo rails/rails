@@ -10,6 +10,11 @@ module ActiveRecord
 
       # Converts an arel AST to SQL
       def to_sql(arel_or_sql_string, binds = [])
+        sql, _ = to_sql_and_binds(arel_or_sql_string, binds)
+        sql
+      end
+
+      def to_sql_and_binds(arel_or_sql_string, binds = []) # :nodoc:
         if arel_or_sql_string.respond_to?(:ast)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
@@ -21,6 +26,7 @@ module ActiveRecord
           [arel_or_sql_string.dup.freeze, binds]
         end
       end
+      private :to_sql_and_binds
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
@@ -39,7 +45,7 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
-        sql, binds = to_sql(arel, binds)
+        sql, binds = to_sql_and_binds(arel, binds)
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
           preparable = false
         else
@@ -139,7 +145,7 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        sql, binds = to_sql(arel)
+        sql, binds = to_sql_and_binds(arel)
         value = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
@@ -147,13 +153,13 @@ module ActiveRecord
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil)
-        sql, binds = to_sql(arel)
+        sql, binds = to_sql_and_binds(arel)
         exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil)
-        sql, binds = to_sql(arel)
+        sql, binds = to_sql_and_binds(arel)
         exec_delete(sql, name, binds)
       end
 
