@@ -335,3 +335,43 @@ FreeBSD users will have to run the following:
 ```bash
 # portmaster databases/redis
 ```
+
+### Active Storage Setup
+
+When working on Active Storage, it is important to note that you need to
+install its JavaScript dependencies while working on that section of the
+codebase. In order to install these dependencies, it is necessary to
+have Yarn, a Node.js package manager, available on your system. A
+prerequisite for installing this package manager is that
+[Node.js](https://nodejs.org) is installed.
+
+
+On OSX, you can run:
+
+```bash
+brew install yarn
+```
+
+On Ubuntu, you can run:
+
+```bash
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+sudo apt-get update && sudo apt-get install yarn
+```
+
+On Fedora or CentOS, just run:
+
+``bash
+sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
+
+sudo yum install yarn
+```
+
+Finally, after installing Yarn, you will need to run the following
+command inside of the `activestorage` directory to install the dependencies:
+
+```bash
+yarn install
+```
