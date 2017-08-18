@@ -21,7 +21,8 @@ The easiest and recommended way to get a development environment ready to hack i
 The Hard Way
 ------------
 
-In case you can't use the Rails development box, see section below, these are the steps to manually build a development box for Ruby on Rails core development.
+In case you can't use the Rails development box, see the steps below to manually
+build a development box for Ruby on Rails core development.
 
 ### Install Git
 
@@ -62,7 +63,7 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 If you are on Fedora or CentOS, you're done with
 
 ```bash
-$ sudo yum install libsqlite3x libsqlite3x-devel 
+$ sudo yum install libsqlite3x libsqlite3x-devel
 ```
 
 If you are on Arch Linux, you will need to run:
@@ -96,7 +97,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 
 NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
 
-You can use [Homebrew](http://brew.sh/) to install memcached on OS X:
+You can use [Homebrew](http://brew.sh/) to install memcached on macOS:
 
 ```bash
 $ brew install memcached
@@ -181,7 +182,7 @@ The Active Record test suite requires a custom config file: `activerecord/test/c
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install
 first the servers, their client libraries, and their development files.
 
-On OS X, you can run:
+On macOS, you can run:
 
 ```bash
 $ brew install mysql
@@ -190,7 +191,7 @@ $ brew install postgresql
 
 Follow the instructions given by Homebrew to start these.
 
-In Ubuntu just run:
+On Ubuntu, just run:
 
 ```bash
 $ sudo apt-get install mysql-server libmysqlclient-dev
@@ -260,34 +261,34 @@ with your development account, on Linux or BSD, you just have to run:
 $ sudo -u postgres createuser --superuser $USER
 ```
 
-and for OS X:
+and for macOS:
 
 ```bash
 $ createuser --superuser $USER
 ```
 
-Then you need to create the test databases with
+Then, you need to create the test databases with:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:postgresql:build
 ```
 
-It is possible to build databases for both PostgreSQL and MySQL with
+It is possible to build databases for both PostgreSQL and MySQL with:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:create
 ```
 
-You can cleanup the databases using
+You can cleanup the databases using:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:drop
 ```
 
-NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
+NOTE: Using the Rake task to create the test databases ensures they have the correct character set and collation.
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
@@ -303,7 +304,7 @@ Redis' documentation discourage installations with package managers as those are
 
 #### Install Redis From Package Manager
 
-On OS X, you can run:
+On macOS, you can run:
 
 ```bash
 $ brew install redis
@@ -311,7 +312,7 @@ $ brew install redis
 
 Follow the instructions given by Homebrew to start these.
 
-In Ubuntu just run:
+On Ubuntu, just run:
 
 ```bash
 $ sudo apt-get install redis-server
@@ -323,7 +324,7 @@ On Fedora or CentOS (requires EPEL enabled), just run:
 $ sudo yum install redis
 ```
 
-If you are running Arch Linux just run:
+If you are running Arch Linux, just run:
 
 ```bash
 $ sudo pacman -S redis
@@ -346,7 +347,7 @@ prerequisite for installing this package manager is that
 [Node.js](https://nodejs.org) is installed.
 
 
-On OSX, you can run:
+On macOS, you can run:
 
 ```bash
 brew install yarn
