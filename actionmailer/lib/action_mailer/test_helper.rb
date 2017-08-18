@@ -89,8 +89,16 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    def assert_enqueued_emails(number, &block)
-      assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+    #
+    # It can be asserted that jobs of a specific kind are enqueued.
+    #
+    #   def test_emails
+    #     assert_enqueued_emails 1, only: MyCustomDeliveryJob do
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #   end
+    def assert_enqueued_emails(number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block)
+      assert_enqueued_jobs number, only: only, &block
     end
 
     # Asserts that no emails are enqueued for later delivery.
@@ -108,8 +116,16 @@ module ActionMailer
     #       # No emails should be enqueued from this block
     #     end
     #   end
-    def assert_no_enqueued_emails(&block)
-      assert_no_enqueued_jobs only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+    #
+    # It can be asserted that no jobs of a specific kind are enqueued.
+    #
+    #   def test_no_email
+    #     assert_no_enqueued_emails only: MyCustomDeliveryJob do
+    #       # No emails should be enqueued from this block
+    #     end
+    #   end
+    def assert_no_enqueued_emails(only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block)
+      assert_no_enqueued_jobs only: only, &block
     end
   end
 end
