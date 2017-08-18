@@ -108,8 +108,10 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   test "creating new direct upload" do
     checksum = Digest::MD5.base64digest("Hello")
 
+    ActiveStorage::DirectUploadsController.skip_forgery_protection
     post rails_direct_uploads_url, params: { blob: {
       filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+    ActiveStorage::DirectUploadsController.protect_from_forgery with: :exception
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
