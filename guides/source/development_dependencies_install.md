@@ -26,20 +26,20 @@ build a development box for Ruby on Rails core development.
 
 ### Install Git
 
-Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
+Ruby on Rails uses Git for source code control. The [Git homepage](https://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
-* [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
-* The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git.
+* [Try Git course](https://try.github.io/) is an interactive course that will teach you the basics.
+* The [official Documentation](https://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git.
 * [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
-* [GitHub](http://help.github.com) offers links to a variety of Git resources.
-* [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
+* [GitHub](https://help.github.com/) offers links to a variety of Git resources.
+* [Pro Git](https://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
 ### Clone the Ruby on Rails Repository
 
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own `rails` subdirectory) and run:
 
 ```bash
-$ git clone git://github.com/rails/rails.git
+$ git clone https://github.com/rails/rails.git
 $ cd rails
 ```
 
@@ -97,7 +97,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 
 NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
 
-You can use [Homebrew](http://brew.sh/) to install memcached on macOS:
+You can use [Homebrew](https://brew.sh/) to install memcached on macOS:
 
 ```bash
 $ brew install memcached
@@ -300,7 +300,7 @@ Action Cable uses Redis as its default subscriptions adapter ([read more](action
 
 #### Install Redis From Source
 
-Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](http://redis.io/download#installation).
+Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](https://redis.io/download#installation).
 
 #### Install Redis From Package Manager
 
