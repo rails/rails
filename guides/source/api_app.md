@@ -18,7 +18,7 @@ What is an API Application?
 
 Traditionally, when people said that they used Rails as an "API", they meant
 providing a programmatically accessible API alongside their web application.
-For example, GitHub provides [an API](http://developer.github.com) that you
+For example, GitHub provides [an API](https://developer.github.com) that you
 can use from your own custom clients.
 
 With the advent of client-side frameworks, more developers are using Rails to
@@ -94,7 +94,7 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](https://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually

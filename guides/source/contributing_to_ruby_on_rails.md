@@ -164,7 +164,7 @@ NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JR
 Translation efforts we know about (various versions):
 
 * **Italian**: [https://github.com/rixlabs/docrails](https://github.com/rixlabs/docrails)
-* **Spanish**: [http://wiki.github.com/gramos/docrails](http://wiki.github.com/gramos/docrails)
+* **Spanish**: [https://wiki.github.com/gramos/docrails](https://wiki.github.com/gramos/docrails)
 * **Polish**: [https://github.com/apohllo/docrails/tree/master](https://github.com/apohllo/docrails/tree/master)
 * **French** : [https://github.com/railsfrance/docrails](https://github.com/railsfrance/docrails)
 * **Czech** : [https://github.com/rubyonrails-cz/docrails/tree/czech](https://github.com/rubyonrails-cz/docrails/tree/czech)
@@ -324,7 +324,7 @@ file.
 
 #### Testing Active Record
 
-First, create the databases you'll need. You can find a list of the required 
+First, create the databases you'll need. You can find a list of the required
 table names, usernames, and passwords in `activerecord/test/config.example.yml`.
 
 For MySQL and PostgreSQL, running the SQL statements `create database

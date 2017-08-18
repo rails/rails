@@ -302,7 +302,7 @@ Resources
 
 ### Learning Rack
 
-* [Official Rack Website](http://rack.github.io)
+* [Official Rack Website](https://rack.github.io)
 * [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
 
 ### Understanding Middlewares

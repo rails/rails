@@ -21,7 +21,7 @@ module ActionDispatch
         #                           This is the default value if the +CI+ environment variables
         #                           is defined.
         # * [+artifact+]            display the screenshot in the terminal, using the terminal
-        #                           artifact format (http://buildkite.github.io/terminal/inline-images/).
+        #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
         def take_screenshot
           save_image
           puts display_image
