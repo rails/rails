@@ -35,15 +35,6 @@ module ApplicationTests
           assert File.exist?("tmp/restart.txt")
         end
       end
-
-      test "rails restart removes server.pid also" do
-        Dir.chdir(app_path) do
-          FileUtils.mkdir_p("tmp/pids")
-          FileUtils.touch("tmp/pids/server.pid")
-          `bin/rails restart`
-          assert_not File.exist?("tmp/pids/server.pid")
-        end
-      end
     end
   end
 end

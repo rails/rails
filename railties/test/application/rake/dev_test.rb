@@ -32,12 +32,16 @@ module ApplicationTests
         end
       end
 
-      test "dev:cache removes server.pid also" do
+      test "dev:cache touches tmp/restart.txt" do
         Dir.chdir(app_path) do
-          FileUtils.mkdir_p("tmp/pids")
-          FileUtils.touch("tmp/pids/server.pid")
           `rails dev:cache`
-          assert_not File.exist?("tmp/pids/server.pid")
+          assert File.exist?("tmp/restart.txt")
+
+          prev_mtime = File.mtime("tmp/restart.txt")
+          sleep(1)
+          `rails dev:cache`
+          curr_mtime = File.mtime("tmp/restart.txt")
+          assert_not_equal prev_mtime, curr_mtime
         end
       end
     end

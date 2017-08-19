@@ -126,6 +126,7 @@ module Rails
         desc: "Specifies the PID file."
       class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
+      class_option "restart", type: :boolean, default: nil, hide: true
 
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
@@ -136,6 +137,7 @@ module Rails
 
       def perform
         set_application_directory!
+        prepare_restart
         Rails::Server.new(server_options).tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -222,7 +224,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@server} #{@original_options.join(" ")}"
+          "bin/rails server #{@server} #{@original_options.join(" ")} --restart"
         end
 
         def pid
@@ -231,6 +233,10 @@ module Rails
 
         def self.banner(*)
           "rails server [puma, thin etc] [options]"
+        end
+
+        def prepare_restart
+          FileUtils.rm_f(options[:pid]) if options[:restart]
         end
     end
   end
