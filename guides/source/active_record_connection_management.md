@@ -4,7 +4,7 @@ Active Record Connection Management
 ===================================
 
 In general, Active Record will automagically manage database connections in an
-effecient manner. See [Configuring a Database](/configuring.html#configuring-a-database)
+efficient manner. See [Configuring a Database](/configuring.html#configuring-a-database)
 and [Database pooling](configuring.html#database-pooling) for information about the
 basics of optimally configuring your application to use available resources.
 
@@ -31,7 +31,8 @@ Here is how to configure a server to set up its pools while booting your app:
 ### Before forking
 
 Before the server forks, you need to disconnect the pool so that the forked processes
-don't get confused. Here's how to do that in a puma config:
+don't use the same connections as the parent process.
+Here's how to do that in a puma config:
 
 ```ruby
 before_fork do
@@ -55,7 +56,7 @@ Spawning processes
 
 When spawning processes, you must do a small amount of manual database pool management.
 
-Let's say you you have a script that you are going to run as a working using `rails runner`,
+Let's say you you have a script that you are going to run as a worker using `rails runner`,
 my_worker.rb. In this script, you are going to start two long-running processes.
 Here's how you would go about doing that:
 
@@ -72,6 +73,10 @@ thing2_pid = Process.fork do
 
   Thing2.new.run
 end
+
+# optional: If you want to do other DB operations in the parent thread,
+# you will need to now reconnect like this:
+ActiveRecord::Base.establish_connection
 
 Process.wait thing1_pid
 Process.wait thing2_pid
