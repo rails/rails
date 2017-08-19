@@ -71,10 +71,17 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_gem_with_version_should_include_version_in_gemfile
     run_generator
+    action :gem, "rspec", ">= 2.0.0.a5"
+    action :gem, "RedCloth", ">= 4.1.0", "< 4.2.0"
+    action :gem, "nokogiri", version: ">= 1.4.2"
+    action :gem, "faker", version: [">= 0.1.0", "< 0.3.0"]
 
-    action :gem, "rspec", ">=2.0.0.a5"
-
-    assert_file "Gemfile", /gem 'rspec', '>=2.0.0.a5'/
+    assert_file "Gemfile" do |content|
+      assert_match(/gem 'rspec', '>= 2\.0\.0\.a5'/, content)
+      assert_match(/gem 'RedCloth', '>= 4\.1\.0', '< 4\.2\.0'/, content)
+      assert_match(/gem 'nokogiri', '>= 1\.4\.2'/, content)
+      assert_match(/gem 'faker', '>= 0\.1\.0', '< 0\.3\.0'/, content)
+    end
   end
 
   def test_gem_should_insert_on_separate_lines
