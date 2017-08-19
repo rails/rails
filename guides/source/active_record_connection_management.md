@@ -87,6 +87,23 @@ the number of connections configured in your app. So if database.yml specified a
 connection pool of 5, then running `rails runner my_worker.rb` will use up to 10
 connections.
 
+### The relationship between parent and child pools
+
+Now, one might imagine that, in the above example (which is exemplary of
+typical code), because...
+
+a) A completely new pool of connections is established in each child process.
+c) No DB operations are done in the children before the child pools are established.
+d) No DB operations are done in the parent before the child pools are established.
+
+...then maybe the disconnect in the parent isn't necessary, since no resources
+are attempted to be shared between processes at the same time?
+
+However, this is not the case. There is no mechanism in Rails for "forgetting"
+the old pool without destroying it. **The parent pool must always be disconnected
+in the parent process first.**
+
+
 Spawning threads
 ----------------
 
