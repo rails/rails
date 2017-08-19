@@ -1424,7 +1424,8 @@ Rails code can often be referenced on load of an application. Rails is responsib
 
 On Load hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
 
-## What are `on_load` hooks?
+What are `on_load` hooks?
+-------------------------
 
 Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
 
@@ -1442,11 +1443,13 @@ ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper }
 
 This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
 
-## How does it work?
+How does it work?
+-----------------
 
 In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
 
-## Modifying code to use `on_load` hooks
+Modifying code to use `on_load` hooks
+-------------------------------------
 
 Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in an `on_load` hook.
 
@@ -1486,7 +1489,8 @@ becomes
 ActiveSupport.on_load(:active_record) { self.include_root_in_json = true } # self refers to ActiveRecord::Base here
 ```
 
-## Available Hooks
+Available Hooks
+---------------
 
 These are the hooks you can use in your own code.
 
@@ -1511,7 +1515,8 @@ To hook into the initialization process of one of the following classes use the 
 | `ActiveSupport::TestCase`         | `active_support_test_case`           |
 | `i18n`                            | `i18n`                               |
 
-## Configuration hooks
+Configuration hooks
+-------------------
 
 These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
 
