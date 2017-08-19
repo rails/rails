@@ -1025,7 +1025,7 @@ Here is a list of common headers:
 * **X-Content-Type-Options:** _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
-* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
 
 Environmental Security
 ----------------------
@@ -1060,7 +1060,7 @@ Additional Resources
 
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
-* Subscribe to the Rails security [mailing list](http://groups.google.com/group/rubyonrails-security).
-* [Brakeman - Rails Security Scanner](http://brakemanscanner.org/) - To perform static security analysis for Rails applications.
+* Subscribe to the Rails security [mailing list](https://groups.google.com/forum/#!forum/rubyonrails-security).
+* [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
 * [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too).
 * A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet).

@@ -1069,7 +1069,7 @@ Customizing the Pipeline
 ### CSS Compression
 
 One of the options for compressing CSS is YUI. The [YUI CSS
-compressor](http://yui.github.io/yuicompressor/css.html) provides
+compressor](https://yui.github.io/yuicompressor/css.html) provides
 minification.
 
 The following line enables YUI compression, and requires the `yui-compressor`
