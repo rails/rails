@@ -4,7 +4,9 @@ Active Record Connection Management
 ===================================
 
 In general, Active Record will automagically manage database connections in an
-effecient manner. See [Configuring a Database](/configuring.html#configuring-a-database) and [Database pooling](configuring.html#database-pooling) for information about the basics of optimally configuring your application to use available resources.
+effecient manner. See [Configuring a Database](/configuring.html#configuring-a-database)
+and [Database pooling](configuring.html#database-pooling) for information about the
+basics of optimally configuring your application to use available resources.
 
 Sometimes, you will need to manage Active Record connections and/or connecton
 pools yourself. These situations are:
@@ -54,7 +56,8 @@ Spawning processes
 When spawning processes, you must do a small amount of manual database pool management.
 
 Let's say you you have a script that you are going to run as a working using `rails runner`,
-my_worker.rb. In this script, you are going to start two long-running processes.  Here's how you would go about doing that:
+my_worker.rb. In this script, you are going to start two long-running processes.
+Here's how you would go about doing that:
 
 ```ruby
 ActiveRecord::Base.connection_pool.disconnect!
@@ -76,14 +79,15 @@ Process.wait thing2_pid
 
 Note that each of the forked processes will have their own connection pool with
 the number of connections configured in your app. So if database.yml specified a
-connection pool of 5, then running `rails runner my_worker.rb` will use up to 10 connections.
+connection pool of 5, then running `rails runner my_worker.rb` will use up to 10
+connections.
 
 Spawning threads
 ----------------
 
-Rails will automatically allow threads to share connections from a connection pool. As long as
-your app is configured to have at least as many connections as there are threads running at
-the same time, you won't have to worry about managing connections.
+Rails will automatically allow threads to share connections from a connection pool.
+As long as your app is configured to have at least as many connections as there are
+threads running at the same time, you won't have to worry about managing connections.
 
 You can experiment with this behavior in the console:
 
