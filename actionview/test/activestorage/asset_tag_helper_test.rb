@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require "test_helper"
-require "database/setup"
+require "active_storage_unit"
 
-class ActiveStorage::ImageTagTest < ActionView::TestCase
+class ActiveStorage::AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   setup do
