@@ -364,7 +364,7 @@ sudo apt-get update && sudo apt-get install yarn
 
 On Fedora or CentOS, just run:
 
-``bash
+```bash
 sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
 
 sudo yum install yarn
