@@ -1,4 +1,5 @@
-require "yaml"
+# frozen_string_literal: true
+
 require "pathname"
 require "active_support/message_encryptor"
 require "active_support/core_ext/string/strip"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/encrypted_file"
 require "active_support/ordered_options"
