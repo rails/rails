@@ -14,7 +14,7 @@ module Rails
       def edit
         require_application_and_environment!
 
-        ensure_editor_available or return
+        ensure_editor_available || (return)
         ensure_master_key_has_been_added
         ensure_credentials_have_been_added
 

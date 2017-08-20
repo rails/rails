@@ -28,7 +28,7 @@ module Rails
 
       def add_credentials_file_silently(template = nil)
         unless File.exist?(CONFIG_PATH)
-          setup = { config_path: CONFIG_PATH, key_path: KEY_PATH, env_key: 'RAILS_MASTER_KEY' }
+          setup = { config_path: CONFIG_PATH, key_path: KEY_PATH, env_key: "RAILS_MASTER_KEY" }
           ActiveSupport::EncryptedConfiguration.new(setup).write(credentials_template)
         end
       end

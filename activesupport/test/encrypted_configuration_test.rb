@@ -24,7 +24,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
 
     begin
       ENV["RAILS_MASTER_KEY"] = ActiveSupport::EncryptedConfiguration.generate_key
-      @credentials.write({ something: { good: true, bad: false }}.to_yaml)
+      @credentials.write({ something: { good: true, bad: false } }.to_yaml)
 
       assert @credentials[:something][:good]
       assert_not @credentials.dig(:something, :bad)
@@ -35,13 +35,13 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   test "reading configuration by key file" do
-    @credentials.write({ something: { good: true }}.to_yaml)
+    @credentials.write({ something: { good: true } }.to_yaml)
 
     assert @credentials.something[:good]
   end
 
   test "change configuration by key file" do
-    @credentials.write({ something: { good: true }}.to_yaml)
+    @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|
       config = YAML.load(config_file.read)
       config_file.write config.merge(new: "things").to_yaml
