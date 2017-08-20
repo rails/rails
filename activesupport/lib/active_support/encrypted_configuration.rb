@@ -23,11 +23,6 @@ module ActiveSupport
       @config ||= ActiveSupport::InheritableOptions.new(deserialize(read))
     end
 
-    # Saves the current configuration to file, but won't persist any comments that where there already!
-    def save
-      write serialize(config.to_h)
-    end
-
     private
       def serialize(config)
         config.present? ? YAML.dump(config) : ""

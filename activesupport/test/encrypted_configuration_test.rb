@@ -37,7 +37,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "reading configuration by key file" do
     @credentials.write({ something: { good: true }}.to_yaml)
 
-    assert @credentials[:something][:good]
+    assert @credentials.something[:good]
   end
 
   test "change configuration by key file" do
@@ -47,17 +47,8 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
       config_file.write config.merge(new: "things").to_yaml
     end
 
-    assert @credentials[:something][:good]
+    assert @credentials.something[:good]
     assert_equal "things", @credentials[:new]
-  end
-
-  test "change configuration and save it by key file" do
-    @credentials.something = "neat"
-    @credentials.save
-
-    reloaded_config = new_credentials_configuration
-
-    assert_equal "neat", reloaded_config.something
   end
 
   test "raises key error when accessing config via bang method" do
