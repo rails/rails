@@ -158,12 +158,18 @@ module Rails
 
     def master_key
       require_relative "../master_key/master_key_generator"
-      Rails::Generators::MasterKeyGenerator.new.add_master_key_file_silently
+
+      after_bundle do
+        Rails::Generators::MasterKeyGenerator.new.add_master_key_file
+      end
     end
 
     def credentials
       require_relative "../credentials/credentials_generator"
-      Rails::Generators::CredentialsGenerator.new.add_credentials_file_silently
+
+      after_bundle do
+        Rails::Generators::CredentialsGenerator.new.add_credentials_file_silently
+      end
     end
 
     def database_yml
