@@ -4,24 +4,23 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnDumper # :nodoc:
-        def prepare_column_options(column)
-          spec = super
-          spec[:unsigned] = "true" if column.unsigned?
-
-          if supports_virtual_columns? && column.virtual?
-            spec[:as] = extract_expression_for_virtual_column(column)
-            spec[:stored] = "true" if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
-            spec = { type: schema_type(column).inspect }.merge!(spec)
-          end
-
-          spec
-        end
-
         def migration_keys
           super + [:unsigned]
         end
 
         private
+          def prepare_column_options(column)
+            spec = super
+            spec[:unsigned] = "true" if column.unsigned?
+
+            if supports_virtual_columns? && column.virtual?
+              spec[:as] = extract_expression_for_virtual_column(column)
+              spec[:stored] = "true" if /\b(?:STORED|PERSISTENT)\b/.match?(column.extra)
+              spec = { type: schema_type(column).inspect }.merge!(spec)
+            end
+
+            spec
+          end
 
           def default_primary_key?(column)
             super && column.auto_increment? && !column.unsigned?
