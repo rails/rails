@@ -7,7 +7,7 @@ module ActiveRecord
     # dumper itself. This code represents the normal case.
     # We can then redefine how certain data types may be handled in the schema dumper on the
     # Adapter level by over-writing this code inside the database specific adapters
-    module ColumnDumper
+    module SchemaDumper # :nodoc:
       def column_spec(column)
         [schema_type_with_virtual(column), prepare_column_options(column)]
       end
@@ -22,7 +22,7 @@ module ActiveRecord
 
       # This can be overridden on an Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
-      # PostgreSQL::ColumnDumper)
+      # PostgreSQL::SchemaDumper)
       def prepare_column_options(column)
         spec = {}
 

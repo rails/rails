@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ColumnDumper # :nodoc:
+      module SchemaDumper # :nodoc:
         # Adds +:array+ option to the default set
         def prepare_column_options(column)
           spec = super
