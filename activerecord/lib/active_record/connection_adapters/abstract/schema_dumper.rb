@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/compact"
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # The goal of this module is to move Adapter specific column
