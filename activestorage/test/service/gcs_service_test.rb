@@ -37,7 +37,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
           "&response-content-disposition=inline%3B+filename%3D%22test.txt%22" +
           "&response-content-type=text%2Fplain"
 
-        assert_equal url, @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: "test.txt", content_type: "text/plain")
+        assert_equal url, @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: "inline; filename=\"test.txt\"", filename: "test.txt", content_type: "text/plain")
       end
     end
   end
