@@ -278,6 +278,11 @@ class CookiesTest < ActionController::TestCase
     def encrypted_cookie
       cookies.encrypted["foo"]
     end
+
+    def cookie_expires_in_two_hours
+      cookies[:user_name] = { value: "assain", expires: 2.hours }
+      head :ok
+    end
   end
 
   tests TestController
@@ -1233,6 +1238,33 @@ class CookiesTest < ActionController::TestCase
     cookies.encrypted["foo"] = "bar"
     get :noop
     assert_equal "bar", @controller.encrypted_cookie
+  end
+
+  def test_signed_cookie_with_expires_set_relatively
+    cookies.signed[:user_name] = { value: "assain", expires: 2.hours }
+
+    travel 1.hour
+    assert_equal "assain", cookies.signed[:user_name]
+
+    travel 2.hours
+    assert_nil cookies.signed[:user_name]
+  end
+
+  def test_encrypted_cookie_with_expires_set_relatively
+    cookies.encrypted[:user_name] = { value: "assain", expires: 2.hours }
+
+    travel 1.hour
+    assert_equal "assain", cookies.encrypted[:user_name]
+
+    travel 2.hours
+    assert_nil cookies.encrypted[:user_name]
+  end
+
+  def test_vanilla_cookie_with_expires_set_relatively
+    travel_to Time.utc(2017, 8, 15) do
+      get :cookie_expires_in_two_hours
+      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 -0000"
+    end
   end
 
   private
