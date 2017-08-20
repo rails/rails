@@ -1,3 +1,8 @@
+*   Add an `:only` option to `assert_enqueued_emails` and `assert_no_enqueued_emails`
+    to filter delivery job.
+
+    *Yuji Yaginuma*
+
 *   Allow Action Mailer classes to configure their delivery job.
 
         class MyMailer < ApplicationMailer

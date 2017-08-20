@@ -12,6 +12,8 @@ class TestHelperMailer < ActionMailer::Base
   end
 end
 
+class DummyJob < ActionMailer::DeliveryJob; end
+
 class TestHelperMailerTest < ActionMailer::TestCase
   include ActiveSupport::Testing::Stream
 
@@ -180,6 +182,21 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_match(/1 .* but 2/, error.message)
   end
 
+  def test_assert_enqueued_emails_with_only_option
+    original_delivery_job = TestHelperMailer.delivery_job
+    TestHelperMailer.delivery_job = DummyJob
+
+    assert_nothing_raised do
+      assert_enqueued_emails 1, only: DummyJob do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  ensure
+    TestHelperMailer.delivery_job = original_delivery_job
+  end
+
   def test_assert_no_enqueued_emails
     assert_nothing_raised do
       assert_no_enqueued_emails do
@@ -206,6 +223,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
 
     assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_enqueued_emails_with_only_option
+    assert_nothing_raised do
+      assert_no_enqueued_emails only: DummyJob do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
   end
 end
 
