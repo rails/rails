@@ -368,10 +368,6 @@ module ActiveRecord
         @use_insert_returning
       end
 
-      def update_table_definition(table_name, base) #:nodoc:
-        PostgreSQL::Table.new(table_name, base)
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         OPERATION_ALIASES.fetch(operation) { operation.downcase }
       end

@@ -99,10 +99,6 @@ module ActiveRecord
           end
       end
 
-      def update_table_definition(table_name, base) # :nodoc:
-        SQLite3::Table.new(table_name, base)
-      end
-
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 

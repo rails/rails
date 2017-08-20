@@ -20,10 +20,6 @@ module ActiveRecord
       include MySQL::ColumnDumper
       include MySQL::SchemaStatements
 
-      def update_table_definition(table_name, base) # :nodoc:
-        MySQL::Table.new(table_name, base)
-      end
-
       ##
       # :singleton-method:
       # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>
