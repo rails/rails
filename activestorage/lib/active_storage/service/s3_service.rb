@@ -52,10 +52,10 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, disposition:, filename:, disposition:, content_type:)
       instrument :url, key do |payload|
         generated_url = object_for(key).presigned_url :get, expires_in: expires_in,
-          response_content_disposition: "#{disposition}; filename=\"#{filename}\"",
+          response_content_disposition: disposition,
           response_content_type: content_type
 
         payload[:url] = generated_url

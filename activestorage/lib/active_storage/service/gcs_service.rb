@@ -47,10 +47,10 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, filename:, content_type:, disposition:)
       instrument :url, key do |payload|
         generated_url = file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"",
+          "response-content-disposition" => disposition,
           "response-content-type" => content_type
         }
 

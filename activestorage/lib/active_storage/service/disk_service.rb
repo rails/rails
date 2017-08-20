@@ -56,7 +56,7 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key do |payload|
         verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
@@ -64,7 +64,7 @@ module ActiveStorage
           if defined?(Rails.application)
             Rails.application.routes.url_helpers.rails_disk_service_path \
               verified_key_with_expiration,
-              disposition: disposition, filename: filename, content_type: content_type
+              filename: filename, disposition: disposition, content_type: content_type
           else
             "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?disposition=#{disposition}&content_type=#{content_type}"
           end
