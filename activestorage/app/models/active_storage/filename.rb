@@ -9,20 +9,22 @@ class ActiveStorage::Filename
     @filename = filename
   end
 
-  # Filename.new("racecar.jpg").extname # => ".jpg"
-  def extname
-    File.extname(@filename)
-  end
-
-  # Filename.new("racecar.jpg").extension # => "jpg"
-  def extension
-    extname.from(1)
-  end
-
   # Filename.new("racecar.jpg").base # => "racecar"
   def base
-    File.basename(@filename, extname)
+    File.basename @filename, extension_with_delimiter
   end
+
+  # Filename.new("racecar.jpg").extension_with_delimiter # => ".jpg"
+  def extension_with_delimiter
+    File.extname @filename
+  end
+
+  # Filename.new("racecar.jpg").extension_without_delimiter # => "jpg"
+  def extension_without_delimiter
+    extension_with_delimiter.from(1).to_s
+  end
+
+  alias_method :extension, :extension_without_delimiter
 
   # Filename.new("foo:bar.jpg").sanitized # => "foo-bar.jpg"
   # Filename.new("foo/bar.jpg").sanitized # => "foo-bar.jpg"
