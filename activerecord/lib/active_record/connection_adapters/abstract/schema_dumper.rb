@@ -22,12 +22,6 @@ module ActiveRecord
         spec
       end
 
-      # Lists the valid migration options
-      def migration_keys # :nodoc:
-        column_options_keys
-      end
-      deprecate :migration_keys
-
       private
         def prepare_column_options(column)
           spec = {}

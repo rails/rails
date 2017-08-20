@@ -4,10 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnDumper # :nodoc:
-        def migration_keys
-          super + [:unsigned]
-        end
-
         private
           def prepare_column_options(column)
             spec = super

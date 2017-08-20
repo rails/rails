@@ -1,3 +1,7 @@
+*   Remove deprecated `#migration_keys`.
+
+    *Ryuta Kamizono*
+
 *   Automatically guess the inverse associations for STI.
 
     *Yuichiro Kaneko*
