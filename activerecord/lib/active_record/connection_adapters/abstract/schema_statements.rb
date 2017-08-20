@@ -1174,6 +1174,10 @@ module ActiveRecord
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
+      def create_schema_dumper(options) # :nodoc:
+        SchemaDumper.create(self, options)
+      end
+
       private
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]

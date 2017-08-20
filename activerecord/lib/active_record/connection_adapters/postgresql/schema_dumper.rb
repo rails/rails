@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
-      module ColumnDumper # :nodoc:
+      class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
           def prepare_column_options(column)
             spec = super

@@ -19,7 +19,7 @@ module ActiveRecord
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
-        new(connection, generate_options(config)).dump(stream)
+        connection.create_schema_dumper(generate_options(config)).dump(stream)
         stream
       end
 
@@ -123,7 +123,7 @@ HEADER
           when String
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
-            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            pkcolspec = column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
@@ -145,7 +145,7 @@ HEADER
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            type, colspec = @connection.column_spec(column)
+            type, colspec = column_spec(column)
             tbl.print "    t.#{type} #{column.name.inspect}"
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts

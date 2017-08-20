@@ -57,7 +57,6 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
-      include SQLite3::ColumnDumper
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
