@@ -335,7 +335,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         # Use a static key
-        secrets.secret_key_base = "known key base"
+        Rails.application.secret_key_base = "known key base"
 
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
@@ -398,7 +398,7 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        secrets.secret_key_base = nil
+        Rails.application.secret_key_base = nil
       RUBY
 
       require "#{app_path}/config/environment"

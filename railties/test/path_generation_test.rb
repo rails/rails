@@ -61,7 +61,7 @@ class PathGenerationTest < ActiveSupport::TestCase
         super
         app = self
         @routes = TestSet.new ->(c) { app.controller = c }
-        secrets.secret_key_base = "foo"
+        self.secret_key_base = "foo"
         secrets.secret_token = "foo"
       end
       def app; routes; end
