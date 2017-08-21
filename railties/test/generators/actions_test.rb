@@ -383,7 +383,6 @@ class ActionsTest < Rails::Generators::TestCase
     File.open(route_path, "wb") { |file| file.write(content) }
 
     routes = <<-F
-# frozen_string_literal: true
 Rails.application.routes.draw do
   root 'welcome#index'
 end
@@ -394,7 +393,6 @@ F
     action :route, "resources :product_lines"
 
     routes = <<-F
-# frozen_string_literal: true
 Rails.application.routes.draw do
   resources :product_lines
   root 'welcome#index'

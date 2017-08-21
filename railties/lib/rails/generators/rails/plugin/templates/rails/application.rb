@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require_relative 'boot'
 
 <% if include_all_railties? -%>
