@@ -401,7 +401,7 @@ To see the previous ten lines you should type `list-` (or `l-`).
    7      byebug
    8      @articles = Article.find_recent
    9
-   10      respond_to do |format|
+   10     respond_to do |format|
 ```
 
 This way you can move inside the file and see the code above the line where you
@@ -540,9 +540,9 @@ command later in this guide).
    7       byebug
    8       @articles = Article.find_recent
    9
-=> 10       respond_to do |format|
-   11         format.html # index.html.erb
-   12         format.json { render json: @articles }
+=> 10      respond_to do |format|
+   11        format.html # index.html.erb
+   12        format.json { render json: @articles }
    13      end
    14    end
    15
