@@ -380,6 +380,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{required}"]
 
     expected_file = <<-FILE.strip_heredoc
+    # frozen_string_literal: true
+
     class Account < ApplicationRecord
       belongs_to :supplier, required: true
     end
@@ -391,6 +393,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
     expected_file = <<-FILE.strip_heredoc
+    # frozen_string_literal: true
+
     class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
@@ -402,6 +406,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{polymorphic.required}"]
 
     expected_file = <<-FILE.strip_heredoc
+    # frozen_string_literal: true
+
     class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
@@ -453,6 +459,8 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_token_option_adds_has_secure_token
     run_generator ["user", "token:token", "auth_token:token"]
     expected_file = <<-FILE.strip_heredoc
+    # frozen_string_literal: true
+
     class User < ApplicationRecord
       has_secure_token
       has_secure_token :auth_token
