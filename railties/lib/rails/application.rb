@@ -411,12 +411,16 @@ module Rails
     # then credentials[:secret_key_base], and finally secrets.secret_key_base. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.test? || Rails.env.development?
+      if defined?(@secret_key_base)
+        @secret_key_base
+      elsif Rails.env.test? || Rails.env.development?
         Digest::MD5.hexdigest self.class.name
       else
-        ENV["SECRET_KEY_BASE"] || credentials[:secret_key_base] || read_secret_key_base_from_secrets
+        ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || read_secret_key_base_from_secrets
       end
     end
+
+    attr_writer :secret_key_base # :nodoc:
 
     # Decrypts the credentials hash as kept in `config/credentials.yml.enc`. This file is encrypted with
     # the Rails master key, which is either taken from ENV["RAILS_MASTER_KEY"] or from loading
