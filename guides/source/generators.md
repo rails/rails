@@ -90,13 +90,15 @@ $ bin/rails generate generator initializer
       create  lib/generators/initializer/initializer_generator.rb
       create  lib/generators/initializer/USAGE
       create  lib/generators/initializer/templates
+      invoke  test_unit
+      create    test/lib/generators/initializer_generator_test.rb
 ```
 
 This is the generator just created:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("templates", __dir__)
+  source_root File.expand_path('templates', __dir__)
 end
 ```
 
@@ -122,7 +124,7 @@ And now let's change the generator to copy this template when invoked:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("templates", __dir__)
+  source_root File.expand_path('templates', __dir__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"
@@ -241,6 +243,8 @@ $ bin/rails generate generator rails/my_helper
       create  lib/generators/rails/my_helper/my_helper_generator.rb
       create  lib/generators/rails/my_helper/USAGE
       create  lib/generators/rails/my_helper/templates
+      invoke  test_unit
+      create    test/lib/generators/rails/my_helper_generator_test.rb
 ```
 
 After that, we can delete both the `templates` directory and the `source_root`
@@ -510,13 +514,13 @@ Available options are:
 Any additional options passed to this method are put on the end of the line:
 
 ```ruby
-gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
+gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
 ```
 
 The above code will put the following line into `Gemfile`:
 
 ```ruby
-gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
+gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
 ```
 
 ### `gem_group`
