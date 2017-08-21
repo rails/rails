@@ -475,12 +475,21 @@ it is (edited):
 ```
 $ bin/rails r 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
+.../app/channels
 .../app/controllers
+.../app/controllers/concerns
 .../app/helpers
+.../app/jobs
 .../app/mailers
 .../app/models
-.../app/controllers/concerns
 .../app/models/concerns
+.../activestorage/app/assets
+.../activestorage/app/controllers
+.../activestorage/app/javascript
+.../activestorage/app/jobs
+.../activestorage/app/models
+.../actioncable/app/assets
+.../actionview/app/assets
 .../test/mailers/previews
 ```
 
