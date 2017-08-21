@@ -34,6 +34,10 @@ class ActiveStorage::Filename
     @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
   end
 
+  def parameters
+    Parameters.new self
+  end
+
   # Returns the sanitized version of the filename.
   def to_s
     sanitized.to_s
