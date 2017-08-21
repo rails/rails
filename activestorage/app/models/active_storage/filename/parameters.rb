@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ActiveStorage::Filename::Parameters
   attr_reader :filename
 
