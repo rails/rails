@@ -457,7 +457,7 @@ module ActionView
           path, as, counter, iteration = collection_data[index]
 
           if layout = @options[:layout]
-            layout = find_template(layout, keys + [as, counter, iteration])
+            layout = (cache[layout] ||= find_template(layout, keys + [as, counter, iteration]))
           end
 
           locals[as]        = object
