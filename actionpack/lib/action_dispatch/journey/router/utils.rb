@@ -27,7 +27,7 @@ module ActionDispatch
         end
 
         # URI path and fragment escaping
-        # http://tools.ietf.org/html/rfc3986
+        # https://tools.ietf.org/html/rfc3986
         class UriEncoder # :nodoc:
           ENCODE   = "%%%02X".freeze
           US_ASCII = Encoding::US_ASCII

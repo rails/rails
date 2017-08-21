@@ -16,7 +16,7 @@ module ActionDispatch
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
         # control the output. Possible values are:
         # * [+inline+ (default)]    display the screenshot in the terminal using the
-        #                           iTerm image protocol (http://iterm2.com/documentation-images.html).
+        #                           iTerm image protocol (https://iterm2.com/documentation-images.html).
         # * [+simple+]              only display the screenshot path.
         #                           This is the default value if the +CI+ environment variables
         #                           is defined.
