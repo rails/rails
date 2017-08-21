@@ -688,18 +688,20 @@ module ActiveRecord
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
+          variables = @config.fetch(:variables, {}).stringify_keys
+
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
-          # (SET TIME ZONE does not use an equals sign like other SET variables)
-          if ActiveRecord::Base.default_timezone == :utc
-            execute("SET time zone 'UTC'", "SCHEMA")
-          elsif @local_tz
-            execute("SET time zone '#{@local_tz}'", "SCHEMA")
+          unless variables["timezone"]
+            if ActiveRecord::Base.default_timezone == :utc
+              variables["timezone"] = "UTC"
+            elsif @local_tz
+              variables["timezone"] = @local_tz
+            end
           end
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
-          variables = @config[:variables] || {}
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
