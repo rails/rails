@@ -170,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
