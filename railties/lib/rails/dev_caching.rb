@@ -19,7 +19,6 @@ module Rails
         end
 
         FileUtils.touch "tmp/restart.txt"
-        FileUtils.rm_f("tmp/pids/server.pid")
       end
 
       def enable_by_argument(caching)
