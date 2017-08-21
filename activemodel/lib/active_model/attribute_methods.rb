@@ -224,6 +224,16 @@ module ActiveModel
         attribute_aliases[name.to_s]
       end
 
+      # Returns the canonical name for the attribute +name+: the original name
+      # if +name+ is an alias, or +name+ as a string if it's not an alias
+      def canonical_attribute_name(name)
+        if attribute_alias?(name)
+          attribute_alias(name)
+        else
+          name.to_s
+        end
+      end
+
       # Declares the attributes that should be prefixed and suffixed by
       # <tt>ActiveModel::AttributeMethods</tt>.
       #

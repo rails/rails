@@ -1,3 +1,7 @@
+* Add method `canonical_attribute_name` for `ActiveModel::AttributeMethods` to give the original name when provided an alias, or the name itself otherwise.
+
+    *Lisa Ugray*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*

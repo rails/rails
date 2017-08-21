@@ -192,6 +192,16 @@ class AttributeMethodsTest < ActiveModel::TestCase
     end
   end
 
+  test "#canonical_attribute_name gives the original attribute name" do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert_equal "foo", klass.canonical_attribute_name(:bar)
+    assert_equal "foo", klass.canonical_attribute_name(:foo)
+  end
+
   test "#alias_attribute works with attributes with spaces in their names" do
     begin
       ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
