@@ -1,3 +1,7 @@
+*   Automatically guess the inverse associations for STI.
+
+    *Yuichiro Kaneko*
+
 *   Ensure `sum` honors `distinct` on `has_many :through` associations
 
     Fixes #16791.
