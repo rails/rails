@@ -8,7 +8,7 @@ require "models/post"
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
     fixtures :posts
-    fixtures :authors
+    fixtures :authors, :author_addresses
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a

@@ -5,7 +5,7 @@ require "models/author"
 require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
-  fixtures :books, :authors
+  fixtures :books, :authors, :author_addresses
 
   setup do
     @book = books(:awdr)
