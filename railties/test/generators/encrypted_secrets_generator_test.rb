@@ -17,8 +17,8 @@ class EncryptedSecretsGeneratorTest < Rails::Generators::TestCase
     assert_file "config/secrets.yml.key", /\w+/
 
     assert File.exist?("config/secrets.yml.enc")
-    assert_no_match(/production:\n#  external_api_key: \w+/, IO.binread("config/secrets.yml.enc"))
-    assert_match(/production:\n#  external_api_key: \w+/, Rails::Secrets.read)
+    assert_no_match(/# production:\n#   external_api_key: \w+/, IO.binread("config/secrets.yml.enc"))
+    assert_match(/# production:\n#   external_api_key: \w+/, Rails::Secrets.read)
   end
 
   def test_appends_to_gitignore

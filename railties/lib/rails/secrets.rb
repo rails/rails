@@ -44,7 +44,7 @@ module Rails
         <<-end_of_template.strip_heredoc
           # See `secrets.yml` for tips on generating suitable keys.
           # production:
-          #  external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289
+          #   external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289
 
         end_of_template
       end
