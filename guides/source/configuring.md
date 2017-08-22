@@ -1004,7 +1004,7 @@ Once you've configured the application server, you must proxy requests to it by 
 
 ```
 upstream application_server {
-  server 0.0.0.0:8080
+  server 0.0.0.0:8080;
 }
 
 server {
