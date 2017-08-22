@@ -18,7 +18,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
       checksum = Digest::MD5.base64digest("Hello")
 
       post rails_direct_uploads_url, params: { blob: {
-        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" }, authenticity_token: authenticity_token }
 
       response.parsed_body.tap do |details|
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
@@ -53,7 +53,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       checksum = Digest::MD5.base64digest("Hello")
 
       post rails_direct_uploads_url, params: { blob: {
-        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" }, authenticity_token: authenticity_token }
 
       @response.parsed_body.tap do |details|
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
@@ -87,7 +87,7 @@ if SERVICE_CONFIGURATIONS[:azure]
       checksum = Digest::MD5.base64digest("Hello")
 
       post rails_direct_uploads_url, params: { blob: {
-        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" }, authenticity_token: authenticity_token }
 
       @response.parsed_body.tap do |details|
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
@@ -107,11 +107,8 @@ end
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
   test "creating new direct upload" do
     checksum = Digest::MD5.base64digest("Hello")
-
-    ActiveStorage::DirectUploadsController.skip_forgery_protection
     post rails_direct_uploads_url, params: { blob: {
-      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
-    ActiveStorage::DirectUploadsController.protect_from_forgery with: :exception
+      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" }, authenticity_token: authenticity_token }
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])

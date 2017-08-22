@@ -57,6 +57,13 @@ class ActiveSupport::TestCase
     def read_image_variant(variant)
       MiniMagick::Image.open variant.service.send(:path_for, variant.key)
     end
+
+    def authenticity_token
+      get root_path
+      regex = /name="csrf-token" content="(?<token>.+)"/
+      parts = @response.body.match(regex)
+      parts["token"]
+    end
 end
 
 require "global_id"
