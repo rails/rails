@@ -50,7 +50,14 @@ module ActionDispatch
     end
 
     def secret_token
-      get_header Cookies::SECRET_TOKEN
+      secret_token = get_header Cookies::SECRET_TOKEN
+      if secret_token
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+         cookies.secret_token is deprecated and will be removed in Rails 6.0.
+         Please use cookies.secret_key_base instead.
+        MSG
+      end
+      secret_token
     end
 
     def secret_key_base

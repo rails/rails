@@ -1,3 +1,16 @@
+*   Deprecate cookies.secret_token
+
+    The architecture for signed and encrypted cookies had a big upgrade
+    between Rails 3 and Rails 4. To avoid disruptions, a set of "smart"
+    cookie jars were added (#9909) so that developers could upgrade Rails
+    version without affecting users with "legacy" cookies in their browsers.
+
+    Since Rails 4 is now four years old, it is fair to assume that most apps
+    do not need these legacy cookie jars anymore. Deprecation warnings have
+    been added tp help developers upgrade their applications accordingly.
+
+    *claudiob*
+
 *   Deprecate `ActionDispatch::TestResponse` response aliases
 
     `#success?`, `#missing?` & `#error?` are not supported by the actual
