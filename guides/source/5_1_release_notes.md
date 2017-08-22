@@ -317,7 +317,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/25257))
 
 Action Cable
------------
+------------
 
 Please refer to the [Changelog][action-cable] for detailed changes.
 
@@ -367,7 +367,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/26703))
 
 Action View
--------------
+-----------
 
 Please refer to the [Changelog][action-view] for detailed changes.
 
@@ -558,7 +558,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/28729))
 
 Active Job
------------
+----------
 
 Please refer to the [Changelog][active-job] for detailed changes.
 

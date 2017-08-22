@@ -100,7 +100,7 @@ NOTE: Check that the gems you are using are threadsafe.
 * **New security headers** ([commit](https://github.com/rails/rails/commit/6794e92b204572d75a07bd6413bdae6ae22d5a82)) - Rails sends the following headers with every HTTP request: `X-Frame-Options` (prevents clickjacking by forbidding the browser from embedding the page in a frame), `X-XSS-Protection` (asks the browser to halt script injection) and `X-Content-Type-Options` (prevents the browser from opening a jpeg as an exe).
 
 Extraction of features to gems
----------------------------
+------------------------------
 
 In Rails 4.0, several features have been extracted into gems. You can simply add the extracted gems to your `Gemfile` to bring the functionality back.
 

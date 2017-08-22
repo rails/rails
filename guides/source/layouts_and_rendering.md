@@ -400,7 +400,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 510              | :not_extended                    |
 |                     | 511              | :network_authentication_required |
 
-NOTE:  If you try to render content along with a non-content status code
+NOTE: If you try to render content along with a non-content status code
 (100-199, 204, 205 or 304), it will be dropped from the response.
 
 ##### The `:formats` Option

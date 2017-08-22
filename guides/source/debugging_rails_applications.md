@@ -245,7 +245,7 @@ evaluated if debug is enabled. This performance savings are only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
 Debugging with the `byebug` gem
----------------------------------
+-------------------------------
 
 When your code is behaving in unexpected ways, you can try printing to logs or
 the console to diagnose the problem. Unfortunately, there are times when this

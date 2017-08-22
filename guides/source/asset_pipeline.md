@@ -822,7 +822,7 @@ would serve the precompiled assets from `/assets` in development, and you would
 not see any local changes until you compile assets again.
 
 In practice, this will allow you to precompile locally, have those files in your
-working tree, and commit those files to source control when needed.  Development
+working tree, and commit those files to source control when needed. Development
 mode will work as expected.
 
 ### Live Compilation

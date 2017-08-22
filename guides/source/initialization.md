@@ -473,7 +473,6 @@ require_relative 'config/environment'
 run <%= app_const %>
 ```
 
-
 The `Rack::Builder.parse_file` method here takes the content from this `config.ru` file and parses it using this code:
 
 ```ruby

@@ -18,7 +18,7 @@ After reading this guide, you will know:
 -------------------------------------------------------------------------------
 
 An Introduction to Ajax
-------------------------
+-----------------------
 
 In order to understand Ajax, you must first understand what a web browser does
 normally.
@@ -57,7 +57,7 @@ will show you how Rails can help you write websites in this way, but it's
 all built on top of this fairly simple technique.
 
 Unobtrusive JavaScript
--------------------------------------
+----------------------
 
 Rails uses a technique called "Unobtrusive JavaScript" to handle attaching
 JavaScript to the DOM. This is generally considered to be a best-practice
@@ -139,7 +139,7 @@ JavaScript) in this style, and you can expect that many libraries will also
 follow this pattern.
 
 Built-in Helpers
-----------------------
+----------------
 
 ### Remote elements
 
@@ -401,7 +401,7 @@ Example usage:
 ```html
 document.body.addEventListener('ajax:success', function(event) {
   var detail = event.detail;
-  var data = detail[0], status = detail[1],  xhr = detail[2];
+  var data = detail[0], status = detail[1], xhr = detail[2];
 })
 ```
 

@@ -63,6 +63,7 @@ The Rails philosophy includes two major guiding principles:
 
 Creating a New Rails Project
 ----------------------------
+
 The best way to read this guide is to follow it step by step. All steps are
 essential to run this example application and no additional code or steps are
 needed.
@@ -364,7 +365,7 @@ end
 ```
 
 If you run `bin/rails routes`, you'll see that it has defined routes for all the
-standard RESTful actions.  The meaning of the prefix column (and other columns)
+standard RESTful actions. The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
@@ -1492,7 +1493,7 @@ Here we're using `link_to` in a different way. We pass the named route as the
 second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
-user, and then submit the link with method `delete`.  This is done via the
+user, and then submit the link with method `delete`. This is done via the
 JavaScript file `rails-ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
