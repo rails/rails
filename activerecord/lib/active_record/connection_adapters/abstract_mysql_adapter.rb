@@ -630,6 +630,7 @@ module ActiveRecord
         ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
+        ER_LOCK_WAIT_TIMEOUT    = 1205
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -653,6 +654,8 @@ module ActiveRecord
             NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
+          when ER_LOCK_WAIT_TIMEOUT
+            TransactionTimeout.new(message)
           else
             super
           end
