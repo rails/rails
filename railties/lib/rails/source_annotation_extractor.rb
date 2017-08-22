@@ -21,7 +21,7 @@ class SourceAnnotationExtractor
     end
 
     # Registers additional directories to be included
-    #  SourceAnnotationExtractor::Annotation.register_directories("spec","another")
+    #   SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
     def self.register_directories(*dirs)
       directories.push(*dirs)
     end
