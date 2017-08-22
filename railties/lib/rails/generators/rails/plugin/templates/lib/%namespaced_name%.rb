@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 <% if engine? -%>
 require "<%= namespaced_name %>/engine"
 <% else -%>
