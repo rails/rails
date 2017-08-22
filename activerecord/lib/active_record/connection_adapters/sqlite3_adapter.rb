@@ -287,7 +287,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
+      # See: https://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
       def valid_alter_table_type?(type)
         type.to_sym != :primary_key

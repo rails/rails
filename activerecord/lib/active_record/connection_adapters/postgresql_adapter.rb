@@ -623,7 +623,7 @@ module ActiveRecord
         # ActiveRecord::PreparedStatementCacheExpired
         #
         # Check here for more details:
-        # http://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
+        # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
         CACHED_PLAN_HEURISTIC = "cached plan must not change result type".freeze
         def is_cached_plan_failure?(e)
           pgerror = e.cause
