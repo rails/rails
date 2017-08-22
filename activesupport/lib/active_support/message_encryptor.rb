@@ -119,13 +119,13 @@ module ActiveSupport
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
-    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
+    # padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
     def encrypt_and_sign(value, expires_at: nil, expires_in: nil, purpose: nil)
       verifier.generate(_encrypt(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
-    # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
+    # avoid padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
     def decrypt_and_verify(data, purpose: nil)
       _decrypt(verifier.verify(data), purpose)
     end
