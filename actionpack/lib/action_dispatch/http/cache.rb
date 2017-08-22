@@ -170,7 +170,6 @@ module ActionDispatch
           set_conditional_cache_control!(@cache_control)
         end
 
-        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
         NO_CACHE              = "no-cache".freeze
         PUBLIC                = "public".freeze
         PRIVATE               = "private".freeze
