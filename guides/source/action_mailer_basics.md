@@ -560,7 +560,7 @@ Unlike controllers, the mailer instance doesn't have any context about the
 incoming request so you'll need to provide the `:asset_host` parameter yourself.
 
 As the `:asset_host` usually is consistent across the application you can
-configure it globally in config/application.rb:
+configure it globally in `config/application.rb`:
 
 ```ruby
 config.action_mailer.asset_host = 'http://example.com'
