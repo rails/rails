@@ -189,7 +189,8 @@ module ActionDispatch
           control.merge! cache_control
 
           if control.empty?
-            self._cache_control = DEFAULT_CACHE_CONTROL
+            # Let middleware handle default behavior
+            self._cache_control = nil
           elsif control[:no_cache]
             self._cache_control = NO_CACHE
             if control[:extras]
