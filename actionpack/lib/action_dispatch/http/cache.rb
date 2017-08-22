@@ -167,9 +167,7 @@ module ActionDispatch
         end
 
         def handle_conditional_get!
-          if etag? || last_modified? || !@cache_control.empty?
-            set_conditional_cache_control!(@cache_control)
-          end
+          set_conditional_cache_control!(@cache_control)
         end
 
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
