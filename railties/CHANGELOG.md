@@ -1,3 +1,15 @@
+*   Deprecate secret_token
+
+    The architecture for secrets had a big upgrade between Rails 3 and Rails 4,
+    when the default changed from using `secret_token` to `secret_key_base`.
+
+    `secret_token` has been deprecated for four years but is still in place
+    to support apps that were created before Rails 4 (e.g., to still be able
+    to read the legacy cookies of their older users). Deprecation warnings have
+    been added to help developers upgrade their applications accordingly.
+
+    *claudiob*
+
 *   Add `--skip-yarn` option to the plugin generator.
 
     *bogdanvlviv*

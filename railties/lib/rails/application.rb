@@ -178,6 +178,10 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+           secrets.secret_token is deprecated and will be removed in Rails 6.0.
+           Please use secrets.secret_key_base instead.
+          MSG
           ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
     end
@@ -511,6 +515,11 @@ module Rails
 
         if secrets.secret_token.blank?
           raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
+        else
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+           secrets.secret_token is deprecated and will be removed in Rails 6.0.
+           Please use secrets.secret_key_base instead.
+          MSG
         end
       end
     end
