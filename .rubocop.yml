@@ -88,6 +88,7 @@ Style/FrozenStringLiteralComment:
     - 'actionview/test/**/*.ruby'
     - 'actionpack/test/**/*.builder'
     - 'actionpack/test/**/*.ruby'
+    - 'activestorage/db/migrate/**/*.rb'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
