@@ -432,9 +432,10 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_class_for_class_name
-    assert_deprecated do
-      assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm), :validate?
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm)
     end
+    assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
   end
 
   def test_join_table

@@ -1848,7 +1848,7 @@ module ActiveRecord
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
 
-          join_model = ActiveSupport::Deprecation.silence { builder.through_model }
+          join_model = builder.through_model
 
           const_set join_model.name, join_model
           private_constant join_model.name
@@ -1877,7 +1877,7 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          ActiveSupport::Deprecation.silence { has_many name, scope, hm_options, &extension }
+          has_many name, scope, hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

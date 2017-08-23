@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing a class to `:class_name` on associations.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated argument `default` from `index_name_exists?`.
 
     *Rafael Mendonça França*
