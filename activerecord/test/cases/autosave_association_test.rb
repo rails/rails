@@ -1711,6 +1711,7 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
 end
 
 class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::TestCase
+  fixtures :posts, :comments
   class Post < ActiveRecord::Base
     has_many :comments, inverse_of: :post
   end
