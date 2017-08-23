@@ -51,8 +51,6 @@ module ActiveRecord
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests
 
-    fixtures :comments
-
     def target
       Comment.all
     end
