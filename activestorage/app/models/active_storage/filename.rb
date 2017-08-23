@@ -11,7 +11,7 @@ class ActiveStorage::Filename
 
   # Filename.new("racecar.jpg").base # => "racecar"
   def base
-    File.basename @filename, extension_with_delimiter
+    File.basename @filename, ".*"
   end
 
   # Filename.new("racecar.jpg").extension_with_delimiter # => ".jpg"
