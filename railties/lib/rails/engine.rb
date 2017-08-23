@@ -621,7 +621,7 @@ module Rails
     end
 
     rake_tasks do
-      next if is_a?(Rails::Application)
+      next if is_a?(Rails::Application) || railtie_name == "active_storage"
       next unless has_migrations?
 
       namespace railtie_name do
