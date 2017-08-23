@@ -196,7 +196,6 @@ module ActionDispatch
 
           if control.empty?
             # Let middleware handle default behavior
-            self._cache_control = nil
           elsif control[:no_cache]
             self._cache_control = NO_CACHE
             if control[:extras]
