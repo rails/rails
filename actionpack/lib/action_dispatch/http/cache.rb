@@ -166,16 +166,23 @@ module ActionDispatch
           @cache_control = cache_control_headers
         end
 
-        def handle_conditional_get!
-          set_conditional_cache_control!(@cache_control)
-        end
-
+        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
         NO_CACHE              = "no-cache".freeze
         PUBLIC                = "public".freeze
         PRIVATE               = "private".freeze
         MUST_REVALIDATE       = "must-revalidate".freeze
 
-        def set_conditional_cache_control!(cache_control)
+        def handle_conditional_get!
+          # Normally default cache control setting is handled by ETag
+          # middleware. But, if an etag is already set, the middleware
+          # defaults to `no-cache` unless a default `Cache-Control` value is
+          # previously set. So, set a default one here.
+          if (etag? || last_modified?) && !self._cache_control
+            self._cache_control = DEFAULT_CACHE_CONTROL
+          end
+        end
+
+        def merge_and_normalize_cache_control!(cache_control)
           control = {}
           cc_headers = cache_control_headers
           if extras = cc_headers.delete(:extras)
