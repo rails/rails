@@ -383,7 +383,7 @@ it would make sense to have an image in one of the asset load paths, such as
 already available in `public/assets` as a fingerprinted file, then that path is
 referenced.
 
-If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -
+If you want to use a [data URI](https://en.wikipedia.org/wiki/Data_URI_scheme) -
 a method of embedding the image data directly into the CSS file - you can use
 the `asset_data_uri` helper.
 
@@ -861,7 +861,7 @@ end
 ### CDNs
 
 CDN stands for [Content Delivery
-Network](http://en.wikipedia.org/wiki/Content_delivery_network), they are
+Network](https://en.wikipedia.org/wiki/Content_delivery_network), they are
 primarily designed to cache assets all over the world so that when a browser
 requests the asset, a cached copy will be geographically close to that browser.
 If you are serving assets directly from your Rails server in production, the
@@ -909,7 +909,7 @@ domain, you do not need to specify a protocol or "scheme" such as `http://` or
 that is generated will match how the webpage is accessed by default.
 
 You can also set this value through an [environment
-variable](http://en.wikipedia.org/wiki/Environment_variable) to make running a
+variable](https://en.wikipedia.org/wiki/Environment_variable) to make running a
 staging copy of your site easier:
 
 ```

@@ -1106,7 +1106,7 @@ on the Rails blog.
 
 The errata for the `PATCH` verb [specifies that a 'diff' media type should be
 used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
-such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```
@@ -1310,7 +1310,7 @@ get 'こんにちは', controller: 'welcome', action: 'index'
   get '/' => 'root#index'
 ```
 
-* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
 Remember you must also remove any references to the middleware from your application code, for example:
 
