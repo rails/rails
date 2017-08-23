@@ -283,7 +283,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
-  fixtures :men, :interests, :posts, :authors
+  fixtures :men, :interests, :posts, :authors, :author_addresses
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     m = men(:gordon)

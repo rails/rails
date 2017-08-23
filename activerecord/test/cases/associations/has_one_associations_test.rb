@@ -15,7 +15,7 @@ require "models/post"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors, :author_addresses
 
   def setup
     Account.destroyed_account_ids.clear
