@@ -1,3 +1,7 @@
+*   Remove deprecated methods `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
+
+    *Rafael Mendonça França*
+
 *   Raises when calling `lock!` in a dirty record.
 
     *Rafael Mendonça França*

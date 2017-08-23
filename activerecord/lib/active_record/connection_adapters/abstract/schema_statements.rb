@@ -1015,16 +1015,6 @@ module ActiveRecord
         insert_versions_sql(versions) if versions.any?
       end
 
-      def initialize_schema_migrations_table # :nodoc:
-        ActiveRecord::SchemaMigration.create_table
-      end
-      deprecate :initialize_schema_migrations_table
-
-      def initialize_internal_metadata_table # :nodoc:
-        ActiveRecord::InternalMetadata.create_table
-      end
-      deprecate :initialize_internal_metadata_table
-
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
       end
