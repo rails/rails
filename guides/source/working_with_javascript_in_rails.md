@@ -256,7 +256,7 @@ attributes to accomplish this.
 #### `data-method`
 
 Activating hyperlinks always results in an HTTP GET request. However, if your
-application is [RESTful](http://en.wikipedia.org/wiki/Representational_State_Transfer),
+application is [RESTful](https://en.wikipedia.org/wiki/Representational_State_Transfer),
 some links are in fact actions that change data on the server, and must be
 performed with non-GET requests. This attribute allows marking up such links
 with an explicit method such as "post", "put" or "delete".

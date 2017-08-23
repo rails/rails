@@ -1539,7 +1539,7 @@ Read the full documentation about enums
 Understanding The Method Chaining
 ---------------------------------
 
-The Active Record pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
+The Active Record pattern implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
 which allow us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an

@@ -66,9 +66,9 @@ Handled at the middleware layer:
   about the request environment, database queries, and basic performance
   information.
 - Security: Rails detects and thwarts [IP spoofing
-  attacks](http://en.wikipedia.org/wiki/IP_address_spoofing) and handles
+  attacks](https://en.wikipedia.org/wiki/IP_address_spoofing) and handles
   cryptographic signatures in a [timing
-  attack](http://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
+  attack](https://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
   an IP spoofing attack or a timing attack is? Exactly.
 - Parameter Parsing: Want to specify your parameters as JSON instead of as a
   URL-encoded String? No problem. Rails will decode the JSON for you and make

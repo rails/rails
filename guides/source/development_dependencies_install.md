@@ -80,7 +80,7 @@ For FreeBSD users, you're done with:
 
 Or compile the `databases/sqlite3` port.
 
-Get a recent version of [Bundler](http://bundler.io/)
+Get a recent version of [Bundler](https://bundler.io/)
 
 ```bash
 $ gem install bundler
