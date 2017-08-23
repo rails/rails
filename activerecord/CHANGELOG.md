@@ -1,3 +1,7 @@
+*   Raises when calling `lock!` in a dirty record.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing a class to `:class_name` on associations.
 
     *Rafael Mendonça França*
