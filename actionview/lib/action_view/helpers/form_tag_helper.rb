@@ -534,22 +534,22 @@ module ActionView
       #
       # ==== Examples
       #   image_submit_tag("login.png")
-      #   # => <input alt="Login" src="/assets/login.png" type="image" />
+      #   # => <input src="/assets/login.png" type="image" />
       #
       #   image_submit_tag("purchase.png", disabled: true)
-      #   # => <input alt="Purchase" disabled="disabled" src="/assets/purchase.png" type="image" />
+      #   # => <input disabled="disabled" src="/assets/purchase.png" type="image" />
       #
       #   image_submit_tag("search.png", class: 'search_button', alt: 'Find')
-      #   # => <input alt="Find" class="search_button" src="/assets/search.png" type="image" />
+      #   # => <input class="search_button" src="/assets/search.png" type="image" />
       #
       #   image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
-      #   # => <input alt="Agree" class="agree_disagree_button" disabled="disabled" src="/assets/agree.png" type="image" />
+      #   # => <input class="agree_disagree_button" disabled="disabled" src="/assets/agree.png" type="image" />
       #
       #   image_submit_tag("save.png", data: { confirm: "Are you sure?" })
-      #   # => <input alt="Save" src="/assets/save.png" data-confirm="Are you sure?" type="image" />
+      #   # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-        tag :input, { "alt" => image_alt(source), "type" => "image", "src" => path_to_image(source) }.update(options)
+        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.

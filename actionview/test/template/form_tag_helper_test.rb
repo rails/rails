@@ -641,7 +641,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
       image_submit_tag("save.gif", data: { confirm: "Are you sure?" })
     )
   end
