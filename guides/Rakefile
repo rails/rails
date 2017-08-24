@@ -24,7 +24,7 @@ namespace :guides do
       ruby "rails_guides.rb"
     end
 
-    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
+    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from https://www.amazon.com/gp/feature.html?docId=1000765211"
     task kindle: :encoding do
       require "kindlerb"
       unless Kindlerb.kindlegen_available?
