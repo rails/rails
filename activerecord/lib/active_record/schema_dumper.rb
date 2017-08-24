@@ -163,8 +163,6 @@ HEADER
           stream.puts "#   #{e.message}"
           stream.puts
         end
-
-        stream
       end
 
       # Keep it for indexing materialized views
