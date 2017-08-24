@@ -968,13 +968,12 @@ side of the association.
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
 ##### `:dependent`
-Controls what happens to associated objects when their owner is destroyed:
+If you set the `:dependent` option to:
 
-* `:destroy` causes the associated objects to also be destroyed.
-* `:delete_all` causes the associated objects to be deleted directly from the database (callbacks are not executed).
-* `:nullify` causes the foreign keys to be set to `NULL` (callbacks are not executed).
-* `:restrict_with_exception` causes an exception to be raised if there are associated records.
-* `:restrict_with_error` causes an error to be added to the owner if there are associated objects.
+* `:destroy`, when the object is destroyed, `destroy` will be called on its
+associated objects.
+* `:delete`, when the object is destroyed, all its associated objects will be
+deleted directly from the database without calling their `destroy` method.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
