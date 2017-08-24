@@ -40,18 +40,14 @@ module ActiveRecord
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests
 
-    fixtures :posts
-
     def target
-      Post.first.comments
+      Post.new.comments
     end
   end
 
   class DelegationRelationTest < ActiveRecord::TestCase
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests
-
-    fixtures :comments
 
     def target
       Comment.all
