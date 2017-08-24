@@ -41,6 +41,10 @@ class String
 
   # The reverse of +pluralize+, returns the singular form of a word in a string.
   #
+  # If the optional parameter +count+ is specified,
+  # the singular form will be returned if <tt>count == 1</tt>.
+  # For any other value of +count+ the plural will be returned.
+  #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
   # By default, this parameter is set to <tt>:en</tt>.
@@ -52,9 +56,17 @@ class String
   #   'word'.singularize             # => "word"
   #   'the blue mailmen'.singularize # => "the blue mailman"
   #   'CamelOctopi'.singularize      # => "CamelOctopus"
+  #   'apples'.singularize(1)        # => "apple"
+  #   'apples'.singularize(2)        # => "apples"
   #   'leyes'.singularize(:es)       # => "ley"
-  def singularize(locale = :en)
-    ActiveSupport::Inflector.singularize(self, locale)
+  #   'leyes'.singularize(2, :es)    # => "leyes"
+  def singularize(count = 1, locale = :en)
+    count, locale = 1, count if count.is_a?(Symbol)
+    if count != 1
+      dup
+    else
+      ActiveSupport::Inflector.singularize(self, locale)
+    end
   end
 
   # +constantize+ tries to find a declared constant with the name specified
