@@ -433,6 +433,13 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("sociedad", "sociedades".singularize(:es))
     assert_equal("sociedade", "sociedades".singularize)
 
+    assert_equal("hijos", "hijo".with_count(2, :es))
+    assert_equal("luces", "luz".with_count(2, :es))
+    assert_equal("luzs", "luz".with_count(2))
+
+    assert_equal("sociedad", "sociedades".with_count(1, :es))
+    assert_equal("sociedade", "sociedades".with_count(1))
+
     assert_equal("los", "el".pluralize(:es))
     assert_equal("els", "el".pluralize)
 

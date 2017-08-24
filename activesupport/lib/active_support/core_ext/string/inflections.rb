@@ -69,6 +69,38 @@ class String
     end
   end
 
+  # Returns either the plural or the singular form of the word in the string.
+  #
+  # If the optional parameter +count+ is specified,
+  # the singular form will be returned if <tt>count == 1</tt>.
+  # For any other value of +count+ the plural will be returned.
+  #
+  # If the optional parameter +locale+ is specified,
+  # the word will be singularized as a word of that language.
+  # By default, this parameter is set to <tt>:en</tt>.
+  # You must define your own inflection rules for languages other than English.
+  #
+  #   'post'.with_count(1)             # => "post"
+  #   'posts'.with_count(1)            # => "post"
+  #   'post'.with_count(2)             # => "posts"
+  #   'posts'.with_count(2)            # => "posts"
+  #   'octopi'.with_count(2)           # => "octopus"
+  #   'sheep'.with_count(2)            # => "sheep"
+  #   'word'.with_count(2)             # => "word"
+  #   'the blue mailmen'.with_count(2) # => "the blue mailman"
+  #   'CamelOctopi'.with_count(1)      # => "CamelOctopus"
+  #   'apples'.with_count(1)           # => "apple"
+  #   'apples'.with_count(2)           # => "apples"
+  #   'leyes'.with_count(:es)          # => "ley"
+  #   'leyes'.with_count(2, :es)       # => "leyes"
+  def with_count(count, locale = :en)
+    if count == 1
+      ActiveSupport::Inflector.singularize(self, locale)
+    else
+      ActiveSupport::Inflector.pluralize(self, locale)
+    end
+  end
+
   # +constantize+ tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.constantize
