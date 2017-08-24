@@ -552,17 +552,11 @@ module ActiveRecord
       def call(env)
         mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
         if @last_check < mtime
-          ActiveRecord::Migration.check_pending!(connection)
+          ActiveRecord::Migration.check_pending!
           @last_check = mtime
         end
         @app.call(env)
       end
-
-      private
-
-        def connection
-          ActiveRecord::Base.connection
-        end
     end
 
     class << self
@@ -574,8 +568,8 @@ module ActiveRecord
       end
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
-      def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
+      def check_pending!
+        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
       end
 
       def load_schema_if_pending!
@@ -1031,7 +1025,7 @@ module ActiveRecord
       end
       deprecate :schema_migrations_table_name
 
-      def get_all_versions(connection = Base.connection)
+      def get_all_versions
         if SchemaMigration.table_exists?
           SchemaMigration.all_versions.map(&:to_i)
         else
@@ -1039,12 +1033,12 @@ module ActiveRecord
         end
       end
 
-      def current_version(connection = Base.connection)
-        get_all_versions(connection).max || 0
+      def current_version
+        get_all_versions.max || 0
       end
 
-      def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      def needs_migration?
+        (migrations(migrations_paths).collect(&:version) - get_all_versions).size > 0
       end
 
       def any_migrations?
