@@ -29,7 +29,7 @@ module ActionView
     # Helpers take that into account:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets.example.com/assets/rails.png" />
+    #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
@@ -42,7 +42,7 @@ module ActionView
     # "assets0.example.com", ..., "assets3.example.com".
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets0.example.com/assets/rails.png" />
+    #   # => <img src="http://assets0.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
@@ -68,7 +68,7 @@ module ActionView
     #     "http://assets#{Digest::MD5.hexdigest(source).to_i(16) % 2 + 1}.example.com"
     #   }
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets1.example.com/assets/rails.png" />
+    #   # => <img src="http://assets1.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://assets2.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
@@ -87,7 +87,7 @@ module ActionView
     #      end
     #    }
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="http://assets.example.com/assets/rails.png" />
+    #   # => <img src="http://assets.example.com/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="http://stylesheets.example.com/assets/application.css" media="screen" rel="stylesheet" />
     #
