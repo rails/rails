@@ -34,7 +34,8 @@ information (publishers), send data to an abstract class of recipients
 (subscribers), without specifying individual recipients. Action Cable uses this
 approach to communicate between the server and many clients.
 
-## Server-Side Components
+Server-Side Components
+----------------------
 
 ### Connections
 
@@ -135,7 +136,8 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-## Client-Side Components
+Client-Side Components
+----------------------
 
 ### Connections
 
@@ -184,7 +186,8 @@ App.cable.subscriptions.create { channel: "ChatChannel", room: "1st Room" }
 App.cable.subscriptions.create { channel: "ChatChannel", room: "2nd Room" }
 ```
 
-## Client-Server Interactions
+Client-Server Interactions
+--------------------------
 
 ### Streams
 
@@ -351,7 +354,8 @@ The rebroadcast will be received by all connected clients, _including_ the
 client that sent the message. Note that params are the same as they were when
 you subscribed to the channel.
 
-## Full-Stack Examples
+Full-Stack Examples
+-------------------
 
 The following setup steps are common to both examples:
 
@@ -523,7 +527,8 @@ and unpacked for the data argument arriving to `received`.
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
 repository for a full example of how to setup Action Cable in a Rails app and adding channels.
 
-## Configuration
+Configuration
+-------------
 
 Action Cable has two required configurations: a subscription adapter and allowed request origins.
 
@@ -545,6 +550,7 @@ production:
   url: redis://10.10.3.153:6381
   channel_prefix: appname_production
 ```
+
 #### Adapter Configuration
 
 Below is a list of the subscription adapters available for end users.
@@ -613,7 +619,8 @@ connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least that available. You can change that in
 `config/database.yml` through the `pool` attribute.
 
-## Running Standalone Cable Servers
+Running Standalone Cable Servers
+--------------------------------
 
 ### In App
 
@@ -666,7 +673,8 @@ The WebSocket server doesn't have access to the session, but it has
 access to the cookies. This can be used when you need to handle
 authentication. You can see one way of doing that with Devise in this [article](http://www.rubytutorial.io/actioncable-devise-authentication).
 
-## Dependencies
+Dependencies
+------------
 
 Action Cable provides a subscription adapter interface to process its
 pubsub internals. By default, asynchronous, inline, PostgreSQL, evented
@@ -676,7 +684,8 @@ in new Rails applications is the asynchronous (`async`) adapter.
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby),
 [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
-## Deployment
+Deployment
+----------
 
 Action Cable is powered by a combination of WebSockets and threads. Both the
 framework plumbing and user-specified channel work are handled internally by
