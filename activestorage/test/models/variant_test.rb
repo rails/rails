@@ -20,12 +20,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "resized and monochrome variation" do
-    variant = @blob.variant(resize: "100x100", monochrome: true).processed
+  test "monochrome variation" do
+    variant = @blob.variant(monochrome: true).processed
 
     image = read_image_variant(variant)
-    assert_equal 100, image.width
-    assert_equal 67, image.height
     assert_match(/Gray/, image.colorspace)
   end
 
