@@ -1724,6 +1724,10 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
     end
   end
 
+  def setup
+    Comment.delete_all
+  end
+
   def test_after_save_callback_with_autosave
     post = Post.new(title: "Test", body: "...")
     comment = post.comments.build(body: "...")
