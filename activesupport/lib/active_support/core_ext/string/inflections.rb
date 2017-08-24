@@ -84,14 +84,15 @@ class String
   #   'posts'.with_count(1)            # => "post"
   #   'post'.with_count(2)             # => "posts"
   #   'posts'.with_count(2)            # => "posts"
-  #   'octopi'.with_count(2)           # => "octopus"
+  #   'octopi'.with_count(1)           # => "octopus"
   #   'sheep'.with_count(2)            # => "sheep"
   #   'word'.with_count(2)             # => "word"
-  #   'the blue mailmen'.with_count(2) # => "the blue mailman"
+  #   'the blue mailmen'.with_count(1) # => "the blue mailman"
+  #   'green woman'.with_count(2)  _   # => "green women"
   #   'CamelOctopi'.with_count(1)      # => "CamelOctopus"
   #   'apples'.with_count(1)           # => "apple"
   #   'apples'.with_count(2)           # => "apples"
-  #   'leyes'.with_count(:es)          # => "ley"
+  #   'leyes'.with_count(1, :es)       # => "ley"
   #   'leyes'.with_count(2, :es)       # => "leyes"
   def with_count(count, locale = :en)
     if count == 1
