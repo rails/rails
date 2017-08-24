@@ -28,4 +28,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 67, image.height
     assert_match(/Gray/, image.colorspace)
   end
+
+  test "rotate variation" do
+    variant = @blob.variant(rotate: "-90").processed
+
+    image = read_image_variant(variant)
+    assert_equal 2736, image.width
+    assert_equal 4104, image.height
+  end
 end
