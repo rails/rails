@@ -1,3 +1,5 @@
+## Rails 5.1.4.rc1 (August 24, 2017) ##
+
 *   Allow irb options to be passed from `rails console` command.
 
     Fixes #28988.
