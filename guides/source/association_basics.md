@@ -663,11 +663,11 @@ By default, associations look for objects only within the current module's scope
 module MyApplication
   module Business
     class Supplier < ApplicationRecord
-       has_one :account
+      has_one :account
     end
 
     class Account < ApplicationRecord
-       belongs_to :supplier
+      belongs_to :supplier
     end
   end
 end
@@ -679,13 +679,13 @@ This will work fine, because both the `Supplier` and the `Account` class are def
 module MyApplication
   module Business
     class Supplier < ApplicationRecord
-       has_one :account
+      has_one :account
     end
   end
 
   module Billing
     class Account < ApplicationRecord
-       belongs_to :supplier
+      belongs_to :supplier
     end
   end
 end
@@ -697,14 +697,14 @@ To associate a model with a model in a different namespace, you must specify the
 module MyApplication
   module Business
     class Supplier < ApplicationRecord
-       has_one :account,
+      has_one :account,
         class_name: "MyApplication::Billing::Account"
     end
   end
 
   module Billing
     class Account < ApplicationRecord
-       belongs_to :supplier,
+      belongs_to :supplier,
         class_name: "MyApplication::Business::Supplier"
     end
   end

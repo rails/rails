@@ -928,7 +928,7 @@ each of the seven default actions, you can use the following command:
 $ bin/rails generate test_unit:scaffold article
 ...
 invoke  test_unit
-create test/controllers/articles_controller_test.rb
+create    test/controllers/articles_controller_test.rb
 ...
 ```
 
