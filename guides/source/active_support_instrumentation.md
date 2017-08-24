@@ -245,7 +245,7 @@ Action View
 ```
 
 Active Record
-------------
+-------------
 
 ### sql.active_record
 
@@ -364,7 +364,6 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 }
 ```
 
-
 ### cache_fetch_hit.active_support
 
 This event is only used when `#fetch` is called with a block.
@@ -420,7 +419,7 @@ INFO. Cache stores may add their own keys
 ```
 
 Active Job
---------
+----------
 
 ### enqueue_at.active_job
 

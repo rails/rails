@@ -384,7 +384,7 @@ end
 ```
 
 In this case it will look for templates at `app/views/notifications` with name
-`another`.  You can also specify an array of paths for `template_path`, and they
+`another`. You can also specify an array of paths for `template_path`, and they
 will be searched in order.
 
 If you want more flexibility you can also pass a block and render specific
@@ -663,7 +663,7 @@ end
 ```
 
 Action Mailer Callbacks
----------------------------
+-----------------------
 
 Action Mailer allows for you to specify a `before_action`, `after_action` and
 `around_action`.

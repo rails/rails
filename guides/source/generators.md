@@ -471,6 +471,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 
 Adding Command Line Arguments
 -----------------------------
+
 Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](http://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
 
 ```

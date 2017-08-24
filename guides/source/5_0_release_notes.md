@@ -458,7 +458,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/24387))
 
 Action View
--------------
+-----------
 
 Please refer to the [Changelog][action-view] for detailed changes.
 
@@ -873,7 +873,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/18439))
 
 Active Job
------------
+----------
 
 Please refer to the [Changelog][active-job] for detailed changes.
 

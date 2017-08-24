@@ -26,7 +26,8 @@ into small units of work and run in parallel, really.
 
 
 The Purpose of Active Job
------------------------------
+-------------------------
+
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place. We can then have framework features and other gems build on top of that,
 without having to worry about API differences between various job runners such as
@@ -379,7 +380,7 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   rescue_from(ActiveRecord::RecordNotFound) do |exception|
-   # Do something with the exception
+    # Do something with the exception
   end
 
   def perform

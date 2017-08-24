@@ -92,7 +92,6 @@ by underscores. Examples:
 | `Mouse`          | `mice`         |
 | `Person`         | `people`       |
 
-
 ### Schema Conventions
 
 Active Record uses naming conventions for the columns in database tables,

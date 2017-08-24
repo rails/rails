@@ -137,7 +137,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
 methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+`false`, `true`, and symbols as well as instances `Float`, `Fixnum`, 
 and `Bignum` instances.
 
 ```ruby
@@ -1984,12 +1984,13 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 Extensions to `BigDecimal`
 --------------------------
+
 ### `to_s`
 
 The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s  # => "5.0"
+BigDecimal.new(5.00, 6).to_s       # => "5.0"
 ```
 
 and that symbol specifiers are also supported:
@@ -3641,7 +3642,7 @@ Durations can be added to and subtracted from time objects:
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now + 1.year
-#  => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+# => Tue, 09 Aug 2011 23:21:11 UTC +00:00
 now - 1.week
 # => Mon, 02 Aug 2010 23:21:11 UTC +00:00
 ```
