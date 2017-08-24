@@ -1709,7 +1709,7 @@ Specifically performs these transformations:
   * Capitalizes the first word.
 
 The capitalization of the first word can be turned off by setting the
-+:capitalize+ option to false (default is true).
+`:capitalize` option to false (default is true).
 
 ```ruby
 "name".humanize                         # => "Name"
@@ -2359,7 +2359,7 @@ This method is similar in purpose to `Kernel#Array`, but there are some differen
 
 * If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, if the argument does not respond to +to_ary+ it returns an array with the argument as its single element.
+* It does not call `to_a` on the argument, if the argument does not respond to `to_ary` it returns an array with the argument as its single element.
 
 The last point is particularly worth comparing for some enumerables:
 
