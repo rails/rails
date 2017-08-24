@@ -17,7 +17,6 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
-      include MySQL::ColumnDumper
       include MySQL::SchemaStatements
 
       ##

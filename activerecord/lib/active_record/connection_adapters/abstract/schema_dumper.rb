@@ -4,31 +4,24 @@ require "active_support/core_ext/hash/compact"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # The goal of this module is to move Adapter specific column
-    # definitions to the Adapter instead of having it in the schema
-    # dumper itself. This code represents the normal case.
-    # We can then redefine how certain data types may be handled in the schema dumper on the
-    # Adapter level by over-writing this code inside the database specific adapters
-    module ColumnDumper
-      def column_spec(column)
-        [schema_type_with_virtual(column), prepare_column_options(column)]
+    class SchemaDumper < SchemaDumper # :nodoc:
+      def self.create(connection, options)
+        new(connection, options)
       end
-
-      def column_spec_for_primary_key(column)
-        return {} if default_primary_key?(column)
-        spec = { id: schema_type(column).inspect }
-        spec.merge!(prepare_column_options(column).except!(:null))
-        spec[:default] ||= "nil" if explicit_primary_key_default?(column)
-        spec
-      end
-
-      # Lists the valid migration options
-      def migration_keys # :nodoc:
-        column_options_keys
-      end
-      deprecate :migration_keys
 
       private
+        def column_spec(column)
+          [schema_type_with_virtual(column), prepare_column_options(column)]
+        end
+
+        def column_spec_for_primary_key(column)
+          return {} if default_primary_key?(column)
+          spec = { id: schema_type(column).inspect }
+          spec.merge!(prepare_column_options(column).except!(:null))
+          spec[:default] ||= "nil" if explicit_primary_key_default?(column)
+          spec
+        end
+
         def prepare_column_options(column)
           spec = {}
           spec[:limit] = schema_limit(column)
@@ -51,7 +44,7 @@ module ActiveRecord
         end
 
         def schema_type_with_virtual(column)
-          if supports_virtual_columns? && column.virtual?
+          if @connection.supports_virtual_columns? && column.virtual?
             :virtual
           else
             schema_type(column)
@@ -68,7 +61,7 @@ module ActiveRecord
 
         def schema_limit(column)
           limit = column.limit unless column.bigint?
-          limit.inspect if limit && limit != native_database_types[column.type][:limit]
+          limit.inspect if limit && limit != @connection.native_database_types[column.type][:limit]
         end
 
         def schema_precision(column)
@@ -81,7 +74,7 @@ module ActiveRecord
 
         def schema_default(column)
           return unless column.has_default?
-          type = lookup_cast_type_from_column(column)
+          type = @connection.lookup_cast_type_from_column(column)
           default = type.deserialize(column.default)
           if default.nil?
             schema_expression(column)

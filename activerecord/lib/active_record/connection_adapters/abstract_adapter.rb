@@ -72,7 +72,6 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
