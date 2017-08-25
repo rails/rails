@@ -62,7 +62,7 @@ module ActiveRecord
         class_attribute :time_zone_aware_types, instance_writer: false, default: [ :datetime, :time ]
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         private
 
           def inherited(subclass)

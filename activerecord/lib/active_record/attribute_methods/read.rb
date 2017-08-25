@@ -5,7 +5,7 @@ module ActiveRecord
     module Read
       extend ActiveSupport::Concern
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         private
 
           # We want to generate the methods via module_eval rather than
