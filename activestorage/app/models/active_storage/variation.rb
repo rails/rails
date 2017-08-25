@@ -3,7 +3,7 @@
 require "active_support/core_ext/object/inclusion"
 
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
-# the `ActiveStorage::Blob#variant` method and should rarely be used directly.
+# the ActiveStorage::Blob#variant method and should rarely be used directly.
 #
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
