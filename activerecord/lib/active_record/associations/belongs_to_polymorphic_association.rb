@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Belongs To Polymorphic Association
   module Associations
+    # = Active Record Belongs To Polymorphic Association
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def klass
         type = owner[reflection.foreign_type]

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Through Association
   module Associations
+    # = Active Record Through Association
     module ThroughAssociation #:nodoc:
       delegate :source_reflection, :through_reflection, to: :reflection
 
