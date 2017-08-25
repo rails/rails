@@ -571,7 +571,7 @@ module ActiveRecord
                     relation = self
 
                     if eager_loading?
-                      find_with_associations { |rel| relation = rel }
+                      find_with_associations { |rel, _| relation = rel }
                     end
 
                     conn = klass.connection
@@ -664,7 +664,19 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
-        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
+        @records =
+          if eager_loading?
+            find_with_associations do |relation, join_dependency|
+              if ActiveRecord::NullRelation === relation
+                []
+              else
+                rows = connection.select_all(relation.arel, "SQL", relation.bound_attributes)
+                join_dependency.instantiate(rows, &block)
+              end.freeze
+            end
+          else
+            klass.find_by_sql(arel, bound_attributes, &block).freeze
+          end
 
         preload = preload_values
         preload += includes_values unless eager_loading?
