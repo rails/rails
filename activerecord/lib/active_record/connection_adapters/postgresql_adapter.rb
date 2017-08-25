@@ -576,7 +576,6 @@ module ActiveRecord
             result = exec_cache(sql, name, binds)
           end
           ret = yield result
-          result.clear
           ret
         end
 

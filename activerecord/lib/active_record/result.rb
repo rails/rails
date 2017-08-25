@@ -56,13 +56,13 @@ module ActiveRecord
       if block_given?
         hash_rows.each { |row| yield row }
       else
-        hash_rows.to_enum { @rows.size }
+        hash_rows.to_enum { length }
       end
     end
 
     # Returns an array of hashes representing each row record.
     def to_hash
-      hash_rows
+      hash_rows.to_a
     end
 
     alias :map! :map
@@ -70,7 +70,7 @@ module ActiveRecord
 
     # Returns true if there are no records, otherwise false.
     def empty?
-      rows.empty?
+      length == 0
     end
 
     # Returns an array of hashes representing each row record.
@@ -110,6 +110,7 @@ module ActiveRecord
       @rows         = rows.dup
       @column_types = column_types.dup
       @hash_rows    = nil
+      super
     end
 
     private

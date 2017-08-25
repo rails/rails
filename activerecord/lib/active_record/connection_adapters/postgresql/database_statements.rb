@@ -77,6 +77,46 @@ module ActiveRecord
           end
         end
 
+        class PGResult < ActiveRecord::Result
+          def initialize(result, types = {})
+            @result = result
+            # Instances of this should never access the `@rows` ivar.
+            super(nil, nil, types)
+          end
+
+          def length
+            @result.ntuples
+          end
+
+          def rows
+            @result.values
+          end
+
+          def columns
+            @result.fields
+          end
+
+          # Returns the first record from the rows collection.
+          # If the rows collection is empty, returns +nil+.
+          def first
+            return nil if empty?
+            @result.first
+          end
+
+          # Returns the last record from the rows collection.
+          # If the rows collection is empty, returns +nil+.
+          def last
+            return nil if empty?
+            @result.last
+          end
+
+          private
+
+            def hash_rows
+              @result
+            end
+        end
+
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
           execute_and_clear(sql, name, binds, prepare: prepare) do |result|
             types = {}
@@ -86,7 +126,7 @@ module ActiveRecord
               fmod  = result.fmod i
               types[fname] = get_oid_type(ftype, fmod, fname)
             end
-            ActiveRecord::Result.new(fields, result.values, types)
+            PGResult.new(result, types)
           end
         end
 
