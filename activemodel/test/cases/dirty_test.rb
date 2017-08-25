@@ -40,6 +40,10 @@ class DirtyTest < ActiveModel::TestCase
       @size = val
     end
 
+    def invalid_attr
+      attribute_will_change!(:foobar)
+    end
+
     def save
       changes_applied
     end
@@ -218,5 +222,11 @@ class DirtyTest < ActiveModel::TestCase
     assert @model.changed?
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
+  end
+
+  test "invalid attribute_will_change call" do
+    @model.invalid_attr
+    # TODO: this probably should be `refute`, but that would change some behaviour
+    assert @model.changed?
   end
 end
