@@ -119,7 +119,7 @@ module ActiveRecord
       end
 
       def aliases
-        Aliases.new join_root.each_with_index.map { |join_part, i|
+        @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
           columns = join_part.column_names.each_with_index.map { |column_name, j|
             Aliases::Column.new column_name, "t#{i}_r#{j}"
           }
@@ -127,7 +127,7 @@ module ActiveRecord
         }
       end
 
-      def instantiate(result_set, aliases)
+      def instantiate(result_set, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
         seen = Hash.new { |i, object_id|
@@ -150,7 +150,7 @@ module ActiveRecord
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
-            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases)
+            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
             construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
           }
         end

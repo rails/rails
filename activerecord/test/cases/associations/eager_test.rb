@@ -40,6 +40,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil member.favourite_club
   end
 
+  def test_should_work_inverse_of_with_eager_load
+    author = authors(:david)
+    assert_same author, author.posts.first.author
+    assert_same author, author.posts.eager_load(:comments).first.author
+  end
+
   def test_loading_with_one_association
     posts = Post.all.merge!(includes: :comments).to_a
     post = posts.find { |p| p.id == 1 }

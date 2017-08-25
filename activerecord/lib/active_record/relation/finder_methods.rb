@@ -372,16 +372,7 @@ module ActiveRecord
         relation = select aliases.columns
         relation = apply_join_dependency(relation, join_dependency)
 
-        if block_given?
-          yield relation
-        else
-          if ActiveRecord::NullRelation === relation
-            []
-          else
-            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL") }
-            join_dependency.instantiate(rows, aliases)
-          end
-        end
+        yield relation, join_dependency
       end
 
       def construct_relation_for_exists(relation, conditions)
