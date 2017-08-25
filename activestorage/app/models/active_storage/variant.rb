@@ -4,7 +4,7 @@
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# Variants rely on {MiniMagick}(https://github.com/minimagick/minimagick) for the actual transformations
+# Variants rely on {MiniMagick}[https://github.com/minimagick/minimagick] for the actual transformations
 # of the file, so you must add <tt>gem "mini_magick"</tt> to your Gemfile if you wish to use variants.
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service and load it
