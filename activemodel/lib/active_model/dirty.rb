@@ -242,7 +242,7 @@ module ActiveModel
 
         begin
           value = _read_attribute(attr)
-          value = value.duplicable? ? value.clone : value
+          value = value.duplicable? ? value.dup : value
         rescue TypeError, NoMethodError
         end
 
