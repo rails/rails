@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/hash_with_indifferent_access"
-require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   # == Active \Model \Dirty
@@ -239,11 +238,8 @@ module ActiveModel
       # Handles <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
         return if attribute_changed?(attr)
-
-        begin
+        if respond_to?(attr)
           value = _read_attribute(attr)
-          value = value.duplicable? ? value.dup : value
-        rescue TypeError, NoMethodError
         end
 
         set_attribute_was(attr, value)
