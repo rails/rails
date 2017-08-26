@@ -109,7 +109,7 @@ module ActionDispatch
       end
 
       # Hook overridden in controller to add request information
-      # with `default_url_options`. Application logic should not
+      # with +default_url_options+. Application logic should not
       # go into url_options.
       def url_options
         default_url_options

@@ -97,7 +97,7 @@ module ActionDispatch
         # support strong ETags and will ignore weak ETags entirely.
         #
         # Weak ETags are what we almost always need, so they're the default.
-        # Check out `#strong_etag=` to provide a strong ETag validator.
+        # Check out #strong_etag= to provide a strong ETag validator.
         def etag=(weak_validators)
           self.weak_etag = weak_validators
         end
