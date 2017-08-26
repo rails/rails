@@ -283,6 +283,11 @@ module ActiveSupport
           constant.const_get(name)
         else
           candidate = constant.const_get(name)
+          # There seems to be a bug with const_get where it can return a constant that is not the direct descendant of
+          # the constant but of one of the parents. Usually it returns nil on the second call. To guard against this, we
+          # check if the candidate is a constant of the current constant and raise NameError if it isn't found
+          Object.const_get(camel_cased_word) unless constant.constants.include?(candidate)
+
           next candidate if constant.const_defined?(name, false)
           next candidate unless Object.const_defined?(name)
 
