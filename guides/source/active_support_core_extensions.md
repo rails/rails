@@ -135,9 +135,9 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
+In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except
 methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`,
 and `Bignum` instances.
 
 ```ruby

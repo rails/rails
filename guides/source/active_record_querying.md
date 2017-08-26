@@ -1393,7 +1393,7 @@ end
 ```
 
 NOTE: The `default_scope` is also applied while creating/building a record
-when the scope arguments are given as a `Hash`. It is not applied while 
+when the scope arguments are given as a `Hash`. It is not applied while
 updating a record. E.g.:
 
 ```ruby

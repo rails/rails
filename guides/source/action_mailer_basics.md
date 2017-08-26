@@ -413,7 +413,7 @@ inside of Action Controller, so you can use all the same options, such as
 
 #### Caching mailer view
 
-You can perform fragment caching in mailer views like in application views using the `cache` method. 
+You can perform fragment caching in mailer views like in application views using the `cache` method.
 
 ```
 <% cache do %>
