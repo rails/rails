@@ -28,6 +28,21 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "display_image return artifact format when specify RAILS_SYSTEM_TESTING_SCREENSHOT environment" do
+    begin
+      original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
+      ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
+
+      new_test = DrivenBySeleniumWithChrome.new("x")
+
+      new_test.stub :passed?, false do
+        assert_match "\e]1338;url=artifact://tmp/screenshots/failures_x.png\a", new_test.send(:display_image)
+      end
+    ensure
+      ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
+    end
+  end
 end
 
 class RackTestScreenshotsTest < DrivenByRackTest
