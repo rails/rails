@@ -147,7 +147,7 @@ module ActiveRecord
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
   # that is included in ActiveRecord::FixtureSet.context_class.
   #
-  # - define a helper method in `test_helper.rb`
+  # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
