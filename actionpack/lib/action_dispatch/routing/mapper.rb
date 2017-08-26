@@ -473,7 +473,7 @@ module ActionDispatch
         #   <tt>params[<:param>]</tt>.
         #   In your router:
         #
-        #      resources :user, param: :name
+        #      resources :users, param: :name
         #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
