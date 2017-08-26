@@ -413,7 +413,7 @@ inside of Action Controller, so you can use all the same options, such as
 
 #### Caching mailer view
 
-You can do cache in mailer views like in application views using `cache` method.
+You can perform fragment caching in mailer views like in application views using the `cache` method. 
 
 ```
 <% cache do %>
@@ -426,6 +426,9 @@ And in order to use this feature, you need to configure your application with th
 ```
   config.action_mailer.perform_caching = true
 ```
+
+Fragment caching is also supported in multipart emails.
+Read more about caching in the [Rails caching guide](caching_with_rails.html).
 
 ### Action Mailer Layouts
 
