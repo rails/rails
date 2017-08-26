@@ -66,7 +66,7 @@ module ActiveStorage
               verified_key_with_expiration,
               filename: filename, disposition: disposition, content_type: content_type
           else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?disposition=#{disposition}&content_type=#{content_type}"
+            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}&disposition=#{disposition}"
           end
 
         payload[:url] = generated_url
