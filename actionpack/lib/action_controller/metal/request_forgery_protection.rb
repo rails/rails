@@ -22,7 +22,7 @@ module ActionController #:nodoc:
   # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
   # use session-oriented authentication for these types of requests, by using
-  # the `protect_from_forgery` method in our controllers.
+  # the <tt>protect_from_forgery</tt> method in our controllers.
   #
   # GET requests are not protected since they don't have side effects like writing
   # to the database and don't leak sensitive information. JavaScript requests are
