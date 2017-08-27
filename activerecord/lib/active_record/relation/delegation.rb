@@ -75,13 +75,6 @@ module ActiveRecord
             end
           end
         end
-
-        def delegate(method, opts = {})
-          @delegation_mutex.synchronize do
-            return if method_defined?(method)
-            super
-          end
-        end
       end
 
       private
@@ -93,7 +86,6 @@ module ActiveRecord
           elsif arel.respond_to?(method)
             ActiveSupport::Deprecation.warn \
               "Delegating #{method} to arel is deprecated and will be removed in Rails 6.0."
-            self.class.delegate method, to: :arel
             arel.public_send(method, *args, &block)
           else
             super
