@@ -456,7 +456,7 @@ module ActionView
       # submit tag but it isn't supported in legacy browsers. However,
       # the button tag does allow for richer labels such as images and emphasis,
       # so this helper will also accept a block. By default, it will create
-      # a button tag with type `submit`, if type is not given.
+      # a button tag with type <tt>submit</tt>, if type is not given.
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
