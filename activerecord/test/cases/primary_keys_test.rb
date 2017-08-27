@@ -434,7 +434,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with serial/integer" do
       @connection.create_table(:widgets, id: @pk_type, force: true)
       schema = dump_table_schema "widgets"
-      assert_match %r{create_table "widgets", id: :#{@pk_type}, force: :cascade}, schema
+      assert_match %r{create_table "widgets", id: :#{@pk_type}, }, schema
     end
 
     if current_adapter?(:Mysql2Adapter)
@@ -447,7 +447,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :integer, unsigned: true, }, schema
       end
 
       test "bigint primary key with unsigned" do
@@ -459,7 +459,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, }, schema
       end
     end
   end

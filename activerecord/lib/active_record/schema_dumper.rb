@@ -132,14 +132,13 @@ HEADER
           else
             tbl.print ", id: false"
           end
-          tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts " do |t|"
+          tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
           columns.each do |column|
