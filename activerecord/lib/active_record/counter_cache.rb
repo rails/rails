@@ -45,6 +45,7 @@ module ActiveRecord
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          raise ArgumentError, "'counter_cache: true declaration is missing in the model" if reflection.nil?
           counter_name = reflection.counter_cache_column
 
           updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
