@@ -6,24 +6,38 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
   test "image path is saved in tmp directory" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    end
   end
 
   test "image path includes failures text if test did not pass" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    new_test.stub :passed?, false do
-      assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      new_test.stub :passed?, false do
+        assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
+      end
     end
   end
 
   test "image path does not include failures text if test skipped" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    new_test.stub :passed?, false do
-      new_test.stub :skipped?, true do
-        assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      new_test.stub :passed?, false do
+        new_test.stub :skipped?, true do
+          assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+        end
       end
+    end
+  end
+
+  test "image path returns the relative path from current directory" do
+    new_test = DrivenBySeleniumWithChrome.new("x")
+
+    Rails.stub :root, Pathname.getwd.join("..") do
+      assert_equal "../tmp/screenshots/x.png", new_test.send(:image_path)
     end
   end
 end
