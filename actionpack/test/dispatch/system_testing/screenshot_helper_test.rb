@@ -8,23 +8,29 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
   test "image path is saved in tmp directory" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    end
   end
 
   test "image path includes failures text if test did not pass" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    new_test.stub :passed?, false do
-      assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      new_test.stub :passed?, false do
+        assert_equal "tmp/screenshots/failures_x.png", new_test.send(:image_path)
+      end
     end
   end
 
   test "image path does not include failures text if test skipped" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    new_test.stub :passed?, false do
-      new_test.stub :skipped?, true do
-        assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      new_test.stub :passed?, false do
+        new_test.stub :skipped?, true do
+          assert_equal "tmp/screenshots/x.png", new_test.send(:image_path)
+        end
       end
     end
   end
@@ -36,11 +42,21 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
 
       new_test = DrivenBySeleniumWithChrome.new("x")
 
-      new_test.stub :passed?, false do
-        assert_match "\e]1338;url=artifact://tmp/screenshots/failures_x.png\a", new_test.send(:display_image)
+      Rails.stub :root, Pathname.getwd do
+        new_test.stub :passed?, false do
+          assert_match %r|url=artifact://.+?tmp/screenshots/failures_x\.png|, new_test.send(:display_image)
+        end
       end
     ensure
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
+    end
+  end
+
+  test "image path returns the relative path from current directory" do
+    new_test = DrivenBySeleniumWithChrome.new("x")
+
+    Rails.stub :root, Pathname.getwd.join("..") do
+      assert_equal "../tmp/screenshots/x.png", new_test.send(:image_path)
     end
   end
 end

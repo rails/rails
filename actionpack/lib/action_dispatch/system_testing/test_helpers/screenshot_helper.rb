@@ -44,11 +44,15 @@ module ActionDispatch
           end
 
           def image_path
-            "tmp/screenshots/#{image_name}.png"
+            @image_path ||= absolute_image_path.relative_path_from(Pathname.pwd).to_s
+          end
+
+          def absolute_image_path
+            Rails.root.join("tmp/screenshots/#{image_name}.png")
           end
 
           def save_image
-            page.save_screenshot(Rails.root.join(image_path))
+            page.save_screenshot(absolute_image_path)
           end
 
           def output_type
@@ -69,10 +73,10 @@ module ActionDispatch
 
             case output_type
             when "artifact"
-              message << "\e]1338;url=artifact://#{image_path}\a\n"
+              message << "\e]1338;url=artifact://#{absolute_image_path}\a\n"
             when "inline"
-              name = inline_base64(File.basename(image_path))
-              image = inline_base64(File.read(image_path))
+              name = inline_base64(File.basename(absolute_image_path))
+              image = inline_base64(File.read(absolute_image_path))
               message << "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a\n"
             end
 

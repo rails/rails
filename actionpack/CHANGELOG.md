@@ -1,3 +1,9 @@
+*   Make `take_failed_screenshot` work within engine.
+
+    Fixes #30405.
+
+    *Yuji Yaginuma*
+
 *   Deprecate `ActionDispatch::TestResponse` response aliases
 
     `#success?`, `#missing?` & `#error?` are not supported by the actual
