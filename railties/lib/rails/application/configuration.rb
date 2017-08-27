@@ -151,7 +151,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in `config/database.yml`.
+      # values stored in <tt>config/database.yml</tt>.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
