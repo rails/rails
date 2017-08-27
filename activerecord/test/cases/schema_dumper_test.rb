@@ -207,18 +207,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_should_use_false_as_default
-    output = standard_dump
+    output = dump_table_schema "booleans"
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_text_field
-    output = standard_dump
+    output = dump_table_schema "admin_users"
     assert_match %r{t\.text\s+"params"$}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_binary_field
-    output = standard_dump
+    output = dump_table_schema "binaries"
     assert_match %r{t\.binary\s+"data"$}, output
+  end
+
+  def test_schema_dump_does_not_include_limit_for_float_field
+    output = dump_table_schema "numeric_data"
+    assert_match %r{t\.float\s+"temperature"$}, output
   end
 
   if current_adapter?(:Mysql2Adapter)
