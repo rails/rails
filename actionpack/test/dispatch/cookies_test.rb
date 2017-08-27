@@ -694,8 +694,10 @@ class CookiesTest < ActionController::TestCase
   def test_signed_uses_signed_cookie_jar_if_only_secret_token_is_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = nil
-    get :set_signed_cookie
-    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+    ActiveSupport::Deprecation.silence do
+      get :set_signed_cookie
+      assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+    end
   end
 
   def test_signed_uses_signed_cookie_jar_if_only_secret_key_base_is_set
@@ -708,15 +710,19 @@ class CookiesTest < ActionController::TestCase
   def test_signed_uses_upgrade_legacy_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    get :set_signed_cookie
-    assert_kind_of ActionDispatch::Cookies::UpgradeLegacySignedCookieJar, cookies.signed
+    ActiveSupport::Deprecation.silence do
+      get :set_signed_cookie
+      assert_kind_of ActionDispatch::Cookies::UpgradeLegacySignedCookieJar, cookies.signed
+    end
   end
 
   def test_signed_or_encrypted_uses_signed_cookie_jar_if_only_secret_token_is_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = nil
-    get :get_encrypted_cookie
-    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed_or_encrypted
+    ActiveSupport::Deprecation.silence do
+      get :get_encrypted_cookie
+      assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed_or_encrypted
+    end
   end
 
   def test_signed_or_encrypted_uses_encrypted_cookie_jar_if_only_secret_key_base_is_set
@@ -729,8 +735,10 @@ class CookiesTest < ActionController::TestCase
   def test_signed_or_encrypted_uses_upgrade_legacy_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    get :get_encrypted_cookie
-    assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.signed_or_encrypted
+    ActiveSupport::Deprecation.silence do
+      get :get_encrypted_cookie
+      assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.signed_or_encrypted
+    end
   end
 
   def test_encrypted_uses_encrypted_cookie_jar_if_only_secret_key_base_is_set
@@ -743,8 +751,10 @@ class CookiesTest < ActionController::TestCase
   def test_encrypted_uses_upgrade_legacy_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
-    get :get_encrypted_cookie
-    assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.encrypted
+    ActiveSupport::Deprecation.silence do
+      get :get_encrypted_cookie
+      assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.encrypted
+    end
   end
 
   def test_legacy_signed_cookie_is_read_and_transparently_upgraded_by_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
@@ -754,7 +764,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
 
     @request.headers["Cookie"] = "user_id=#{legacy_value}"
-    get :get_signed_cookie
+    ActiveSupport::Deprecation.silence { get :get_signed_cookie }
 
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
 
@@ -773,7 +783,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate("bar")
 
     @request.headers["Cookie"] = "foo=#{legacy_value}"
-    get :get_encrypted_cookie
+    ActiveSupport::Deprecation.silence { get :get_encrypted_cookie }
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
@@ -792,7 +802,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate(45)
 
     @request.headers["Cookie"] = "user_id=#{legacy_value}"
-    get :get_signed_cookie
+    ActiveSupport::Deprecation.silence { get :get_signed_cookie }
 
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
 
@@ -810,7 +820,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate("bar")
 
     @request.headers["Cookie"] = "foo=#{legacy_value}"
-    get :get_encrypted_cookie
+    ActiveSupport::Deprecation.silence { get :get_encrypted_cookie }
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
@@ -829,7 +839,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate(45)
 
     @request.headers["Cookie"] = "user_id=#{legacy_value}"
-    get :get_signed_cookie
+    ActiveSupport::Deprecation.silence { get :get_signed_cookie }
 
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
 
@@ -847,7 +857,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate("bar")
 
     @request.headers["Cookie"] = "foo=#{legacy_value}"
-    get :get_encrypted_cookie
+    ActiveSupport::Deprecation.silence { get :get_encrypted_cookie }
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
@@ -866,7 +876,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
 
     @request.headers["Cookie"] = "user_id=#{legacy_value}"
-    get :get_signed_cookie
+    ActiveSupport::Deprecation.silence { get :get_signed_cookie }
 
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
 
@@ -884,7 +894,7 @@ class CookiesTest < ActionController::TestCase
     legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate("bar")
 
     @request.headers["Cookie"] = "foo=#{legacy_value}"
-    get :get_encrypted_cookie
+    ActiveSupport::Deprecation.silence { get :get_encrypted_cookie }
 
     assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
 
@@ -900,7 +910,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
 
     @request.headers["Cookie"] = "user_id=45"
-    get :get_signed_cookie
+    ActiveSupport::Deprecation.silence { get :get_signed_cookie }
 
     assert_nil @controller.send(:cookies).signed[:user_id]
     assert_nil @response.cookies["user_id"]
@@ -911,7 +921,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
 
     @request.headers["Cookie"] = "foo=baz"
-    get :get_encrypted_cookie
+    ActiveSupport::Deprecation.silence { get :get_encrypted_cookie }
 
     assert_nil @controller.send(:cookies).encrypted[:foo]
     assert_nil @response.cookies["foo"]
