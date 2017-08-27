@@ -4,7 +4,7 @@ require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View Capture Helper
-  module Helpers
+  module Helpers #:nodoc:
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #

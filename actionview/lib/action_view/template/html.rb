@@ -2,7 +2,7 @@
 
 module ActionView #:nodoc:
   # = Action View HTML Template
-  class Template
+  class Template #:nodoc:
     class HTML #:nodoc:
       attr_accessor :type
 
