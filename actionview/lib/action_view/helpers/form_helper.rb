@@ -14,7 +14,7 @@ require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
-  module Helpers
+  module Helpers #:nodoc:
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #

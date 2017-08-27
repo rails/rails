@@ -3,7 +3,7 @@
 require_relative "tag_helper"
 
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',

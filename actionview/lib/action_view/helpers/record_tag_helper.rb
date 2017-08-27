@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     module RecordTagHelper
       def div_for(*) # :nodoc:
         raise NoMethodError, "The `div_for` method has been removed from " \

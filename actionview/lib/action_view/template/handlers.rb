@@ -2,7 +2,7 @@
 
 module ActionView #:nodoc:
   # = Action View Template Handlers
-  class Template
+  class Template #:nodoc:
     module Handlers #:nodoc:
       autoload :Raw, "action_view/template/handlers/raw"
       autoload :ERB, "action_view/template/handlers/erb"
