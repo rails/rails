@@ -63,19 +63,19 @@ module ActionDispatch
 
         str = threads.map do |thread, info|
           if info[:exclusive]
-            lock_state = "Exclusive"
+            lock_state = "Exclusive".dup
           elsif info[:sharing] > 0
-            lock_state = "Sharing"
+            lock_state = "Sharing".dup
             lock_state << " x#{info[:sharing]}" if info[:sharing] > 1
           else
-            lock_state = "No lock"
+            lock_state = "No lock".dup
           end
 
           if info[:waiting]
             lock_state << " (yielded share)"
           end
 
-          msg = "Thread #{info[:index]} [0x#{thread.__id__.to_s(16)} #{thread.status || 'dead'}]  #{lock_state}\n"
+          msg = "Thread #{info[:index]} [0x#{thread.__id__.to_s(16)} #{thread.status || 'dead'}]  #{lock_state}\n".dup
 
           if info[:sleeper]
             msg << "  Waiting in #{info[:sleeper]}"
