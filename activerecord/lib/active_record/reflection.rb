@@ -1100,10 +1100,6 @@ module ActiveRecord
         @reflection.constraints
       end
 
-      def alias_candidate(name)
-        "#{plural_name}_#{name}_join"
-      end
-
       def alias_name
         Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
