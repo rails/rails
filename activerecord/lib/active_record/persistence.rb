@@ -353,7 +353,7 @@ module ActiveRecord
     # Wrapper around #increment that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
@@ -374,7 +374,7 @@ module ActiveRecord
     # Wrapper around #decrement that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def decrement!(attribute, by = 1, touch: nil)
