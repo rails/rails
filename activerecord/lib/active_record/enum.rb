@@ -8,6 +8,8 @@ module ActiveRecord
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
+  #     # You can also declare using hash example:
+  #     # enum status: { active: 0, archived: 1 }
   #   end
   #
   #   # conversation.update! status: 0
