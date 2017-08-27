@@ -5,6 +5,7 @@ require "models/bird"
 require "models/post"
 require "models/comment"
 require "models/company"
+require "models/contract"
 require "models/customer"
 require "models/developer"
 require "models/computer"
@@ -12,7 +13,6 @@ require "models/invoice"
 require "models/line_item"
 require "models/order"
 require "models/parrot"
-require "models/person"
 require "models/pirate"
 require "models/reader"
 require "models/ship"
@@ -496,7 +496,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
-  fixtures :companies, :people
+  fixtures :companies, :developers
 
   def test_invalid_adding
     firm = Firm.find(1)
@@ -591,12 +591,12 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_assign_ids_for_through_a_belongs_to
-    post = Post.new(title: "Assigning IDs works!", body: "You heard it here first, folks!")
-    post.person_ids = [people(:david).id, people(:michael).id]
-    post.save
-    post.reload
-    assert_equal 2, post.people.length
-    assert_includes post.people, people(:david)
+    firm = Firm.new("name" => "Apple")
+    firm.developer_ids = [developers(:david).id, developers(:jamis).id]
+    firm.save
+    firm.reload
+    assert_equal 2, firm.developers.length
+    assert_includes firm.developers, developers(:david)
   end
 
   def test_build_before_save
