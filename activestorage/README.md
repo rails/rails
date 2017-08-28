@@ -136,6 +136,40 @@ Active Storage, with its included JavaScript library, supports uploading directl
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
+## Download and installation
+
+The latest version of Active Storage can be installed with RubyGems, or with npm.
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/activestorage
+
+## Installation with RubyGems
+
+```
+$ gem install activestorage
+```
+
+## Installation with npm
+
+```
+$ npm install --save activestorage
+```
+
 ## License
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+## Support
+
+API documentation is at:
+
+* http://api.rubyonrails.org
+
+Bug reports can be filed for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
