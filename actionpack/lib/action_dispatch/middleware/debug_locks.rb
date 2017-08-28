@@ -43,7 +43,7 @@ module ActionDispatch
 
     private
       def render_details(req)
-        threads = ActiveSupport::Dependencies.interlock.raw_state do |threads|
+        threads = ActiveSupport::Dependencies.interlock.raw_state do |raw_threads|
           # The Interlock itself comes to a complete halt as long as this block
           # is executing. That gives us a more consistent picture of everything,
           # but creates a pretty strong Observer Effect.
@@ -53,12 +53,12 @@ module ActionDispatch
           # strictly diagnostic tool (to be used when something has gone wrong),
           # and not for any sort of general monitoring.
 
-          threads.each.with_index do |(thread, info), idx|
+          raw_threads.each.with_index do |(thread, info), idx|
             info[:index] = idx
             info[:backtrace] = thread.backtrace
           end
 
-          threads
+          raw_threads
         end
 
         str = threads.map do |thread, info|
