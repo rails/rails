@@ -1,3 +1,9 @@
+*   Make `take_failed_screenshot` work within engine.
+
+    Fixes #30405.
+
+    *Yuji Yaginuma*
+
 ## Rails 5.1.4.rc1 (August 24, 2017) ##
 
 *   No changes.
