@@ -406,6 +406,8 @@ module ActiveRecord
       #
       #   Defaults to false.
       #
+      #   Only supported on the MySQL adapter, ignored elsewhere.
+      #
       # ====== Add a column
       #
       #   change_table(:suppliers) do |t|
