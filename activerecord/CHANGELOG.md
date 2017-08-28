@@ -1,3 +1,8 @@
+*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
+    when lock wait time expires.
+
+    *Gabriel Courtemanche*
+
 *   Remove deprecated `#migration_keys`.
 
     *Ryuta Kamizono*
