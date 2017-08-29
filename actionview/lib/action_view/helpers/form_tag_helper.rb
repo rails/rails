@@ -26,7 +26,7 @@ module ActionView
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
       # ==== Options
-      # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
+      # * <tt>:multipart</tt> - If set to +true+, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
       #   If "patch", "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
       #   is added to simulate the verb over post.
@@ -37,9 +37,9 @@ module ActionView
       #   This is helpful when you're fragment-caching the form. Remote forms get the
       #   authenticity token from the <tt>meta</tt> tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
+      # * <tt>:remote</tt> - If set to +true+, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
+      # * <tt>:enforce_utf8</tt> - If set to +false+, a hidden input with name utf8 is not output.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -75,16 +75,16 @@ module ActionView
         end
       end
 
-      # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to true, a multiple
+      # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to +true+, a multiple
       # choice selection box.
       #
       # Helpers::FormOptions can be used to create common select boxes such as countries, time zones, or
       # associated records. <tt>option_tags</tt> is a string containing the option tags for the select box.
       #
       # ==== Options
-      # * <tt>:multiple</tt> - If set to true, the selection will allow multiple choices.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
+      # * <tt>:multiple</tt> - If set to +true+, the selection will allow multiple choices.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
+      # * <tt>:include_blank</tt> - If set to +true+, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
       # * Any other key creates standard HTML attributes for the tag.
       #
@@ -159,7 +159,7 @@ module ActionView
       # or a search query.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
       # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
@@ -251,8 +251,8 @@ module ActionView
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to +true+, *in most updated browsers* the user will be allowed to select multiple files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
@@ -280,7 +280,7 @@ module ActionView
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
       # * Any other key creates standard HTML attributes for the tag.
@@ -316,9 +316,9 @@ module ActionView
       # * <tt>:size</tt> - A string specifying the dimensions (columns by rows) of the textarea (e.g., "25x10").
       # * <tt>:rows</tt> - Specify the number of rows in the textarea
       # * <tt>:cols</tt> - Specify the number of columns in the textarea
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * <tt>:escape</tt> - By default, the contents of the text input are HTML escaped.
-      #   If you need unescaped contents, set this to false.
+      #   If you need unescaped contents, set this to +false+.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -355,7 +355,7 @@ module ActionView
       # Creates a check box form input tag.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -383,7 +383,7 @@ module ActionView
       # select from a group of options.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -408,7 +408,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If +true+, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Data attributes
@@ -460,7 +460,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to
+      # * <tt>:disabled</tt> - If +true+, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -523,7 +523,7 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Data attributes

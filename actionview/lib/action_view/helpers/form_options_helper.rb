@@ -14,7 +14,7 @@ module ActionView
     #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
     #
-    # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    # * <tt>:include_blank</tt> - set to +true+ or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
     #     select("post", "category", Post::CATEGORIES, {include_blank: true})
     #
@@ -41,7 +41,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
+    # * <tt>:prompt</tt> - set to +true+ or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
     #     select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
     #
@@ -84,7 +84,7 @@ module ActionView
     #
     #     collection_select(:post, :category_id, Category.all, :id, :name, {disabled: -> (category) { category.archived? }})
     #
-    #   If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
+    #   If the categories "2008 stuff" and "Christmas" return +true+ when the method <tt>archived?</tt> is called, this would return:
     #     <select name="post[category_id]" id="post_category_id">
     #       <option value="1" disabled="disabled">2008 stuff</option>
     #       <option value="2" disabled="disabled">Christmas</option>
@@ -382,7 +382,7 @@ module ActionView
       # If +selected+ is specified as a value or array of values, the element(s) returning a match on +value_method+
       # will be selected option tag(s).
       #
-      # If +selected+ is specified as a Proc, those members of the collection that return true for the anonymous
+      # If +selected+ is specified as a Proc, those members of the collection that return +true+ for the anonymous
       # function are the selected values.
       #
       # +selected+ can also be a hash, specifying both <tt>:selected</tt> and/or <tt>:disabled</tt> values as required.
@@ -501,7 +501,7 @@ module ActionView
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.
       #
       # Options:
-      # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
+      # * <tt>:prompt</tt> - set to +true+ or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
       # * <tt>:divider</tt> - the divider for the options groups.
       #

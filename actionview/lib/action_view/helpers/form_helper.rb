@@ -184,10 +184,10 @@ module ActionView
       #   This is helpful when you're fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      # * <tt>:remote</tt> - If set to +true+, will allow the Unobtrusive
       #   JavaScript drivers to control the submit behavior. By default this
       #   behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      # * <tt>:enforce_utf8</tt> - If set to +false+, a hidden input with name
       #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
@@ -609,7 +609,7 @@ module ActionView
       # * <tt>:local</tt> - By default form submits are remote and unobstrusive XHRs.
       #   Disable remote submits with <tt>local: true</tt>.
       # * <tt>:skip_enforcing_utf8</tt> - By default a hidden field named +utf8+
-      #   is output to enforce UTF-8 submits. Set to true to skip the field.
+      #   is output to enforce UTF-8 submits. Set to +true+ to skip the field.
       # * <tt>:builder</tt> - Override the object used to build the form.
       # * <tt>:id</tt> - Optional HTML id attribute.
       # * <tt>:class</tt> - Optional HTML class attribute.
@@ -1203,8 +1203,8 @@ module ActionView
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:disabled</tt> - If set to +true+, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to +true+, *in most updated browsers* the user will be allowed to select multiple files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples

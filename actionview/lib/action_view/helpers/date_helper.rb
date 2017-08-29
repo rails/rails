@@ -17,8 +17,8 @@ module ActionView
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
     #   would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
-    # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
-    # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
+    # * <tt>:include_blank</tt> - set to +true+ if it should be possible to set an empty date.
+    # * <tt>:discard_type</tt> - set to +true+ if you want to discard the type part of the select name. If set to +true+,
     #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of \date[month].
     module DateHelper
@@ -183,13 +183,13 @@ module ActionView
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       #
       # ==== Options
-      # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
+      # * <tt>:use_month_numbers</tt> - Set to +true+ if you want to use month numbers rather than month names (e.g.
       #   "2" instead of "February").
-      # * <tt>:use_two_digit_numbers</tt> - Set to true if you want to display two digit month and day numbers (e.g.
+      # * <tt>:use_two_digit_numbers</tt> - Set to +true+ if you want to display two digit month and day numbers (e.g.
       #   "02" instead of "February" and "08" instead of "8").
-      # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
+      # * <tt>:use_short_month</tt>   - Set to +true+ if you want to use abbreviated month names instead of full
       #   month names (e.g. "Feb" instead of "February").
-      # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
+      # * <tt>:add_month_numbers</tt>  - Set to +true+ if you want to use both month numbers and month names (e.g.
       #   "2 - February" instead of "February").
       # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
@@ -205,12 +205,12 @@ module ActionView
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
-      # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
+      # * <tt>:discard_day</tt>       - Set to +true+ if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
-      # * <tt>:discard_month</tt>     - Set to true if you don't want to show a month select. This includes the month
-      #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to true.
-      # * <tt>:discard_year</tt>      - Set to true if you don't want to show a year select. This includes the year
+      # * <tt>:discard_month</tt>     - Set to +true+ if you don't want to show a month select. This includes the month
+      #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to +true+.
+      # * <tt>:discard_year</tt>      - Set to +true+ if you don't want to show a year select. This includes the year
       #   as a hidden field instead of showing a select field.
       # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
@@ -220,16 +220,16 @@ module ActionView
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
       # * <tt>:selected</tt>          - Set a date that overrides the actual value.
-      # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
-      # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
+      # * <tt>:disabled</tt>          - Set to +true+ if you want show the select fields as disabled.
+      # * <tt>:prompt</tt>            - Set to +true+ (for a generic prompt), a prompt string or a hash of prompt strings
       #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
       #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
       #   or the given prompt string.
-      # * <tt>:with_css_classes</tt>  - Set to true or a hash of strings. Use true if you want to assign generic styles for
+      # * <tt>:with_css_classes</tt>  - Set to +true+ or a hash of strings. Use +true+ if you want to assign generic styles for
       #   select tags. This automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second'. A hash of
       #   strings for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt>, <tt>:second</tt>
       #   will extend the select type with the given value. Use +html_options+ to modify every select tag in the set.
-      # * <tt>:use_hidden</tt>         - Set to true if you only want to generate hidden input tags.
+      # * <tt>:use_hidden</tt>         - Set to +true+ if you only want to generate hidden input tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -561,7 +561,7 @@ module ActionView
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
       # The <tt>date</tt> can also be substituted for a day number.
-      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
+      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to +true+.
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
       #   my_date = Time.now + 2.days
@@ -589,11 +589,11 @@ module ActionView
       # Returns a select tag with options for each of the months January through December with the current month
       # selected. The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are
       # used as values (what's submitted to the server). It's also possible to use month numbers for the presentation
-      # instead of names -- set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you
-      # want both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to true. If you would prefer
-      # to show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to true. If you want
+      # instead of names -- set the <tt>:use_month_numbers</tt> key in +options+ to +true+ for this to happen. If you
+      # want both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to +true+. If you would prefer
+      # to show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to +true+. If you want
       # to use your own month names, set the <tt>:use_month_names</tt> key in +options+ to an array of 12 month names.
-      # If you want to display months with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
+      # If you want to display months with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to +true+.
       # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
       #
       #   # Generates a select field for months that defaults to the current month that

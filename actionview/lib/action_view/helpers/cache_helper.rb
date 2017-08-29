@@ -57,7 +57,7 @@ module ActionView
       # Additionally, the digestor will automatically look through your template file for
       # explicit and implicit dependencies, and include those as part of the digest.
       #
-      # The digestor can be bypassed by passing skip_digest: true as an option to the cache call:
+      # The digestor can be bypassed by passing <tt>skip_digest: true</tt> as an option to the cache call:
       #
       #   <% cache project, skip_digest: true do %>
       #     <b>All the topics on this project</b>
@@ -174,7 +174,7 @@ module ActionView
         nil
       end
 
-      # Cache fragments of a view if +condition+ is true
+      # Cache fragments of a view if +condition+ is +true+
       #
       #   <% cache_if admin?, project do %>
       #     <b>All the topics on this project</b>
@@ -190,7 +190,7 @@ module ActionView
         nil
       end
 
-      # Cache fragments of a view unless +condition+ is true
+      # Cache fragments of a view unless +condition+ is +true+
       #
       #   <% cache_unless admin?, project do %>
       #     <b>All the topics on this project</b>
@@ -201,7 +201,7 @@ module ActionView
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying +skip_digest:+ true to cache, the digestion of cache
+      # call. By supplying <tt>skip_digest: true</tt> to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
