@@ -23,7 +23,7 @@ module ActionDispatch
 
     # Takes a path to a file. If the file is found, has valid encoding, and has
     # correct read permissions, the return value is a URI-escaped string
-    # representing the filename. Otherwise, false is returned.
+    # representing the filename. Otherwise, +false+ is returned.
     #
     # Used by the +Static+ class to check the existence of a valid file
     # in the server's +public/+ directory (see Static#call).

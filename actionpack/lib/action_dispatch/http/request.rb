@@ -90,7 +90,7 @@ module ActionDispatch
       end
     end
 
-    # Returns true if the request has a header matching the given key parameter.
+    # Returns +true+ if the request has a header matching the given key parameter.
     #
     #    request.key? :ip_spoofing_check # => true
     def key?(key)
@@ -242,7 +242,7 @@ module ActionDispatch
       super.to_i
     end
 
-    # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
+    # Returns +true+ if the "X-Requested-With" header contains "XMLHttpRequest"
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
@@ -382,7 +382,7 @@ module ActionDispatch
       get_header("REDIRECT_X_HTTP_AUTHORIZATION")
     end
 
-    # True if the request came from localhost, 127.0.0.1, or ::1.
+    # Returns +true+ if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end

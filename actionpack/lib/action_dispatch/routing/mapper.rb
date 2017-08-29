@@ -560,8 +560,8 @@ module ActionDispatch
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
         # [:anchor]
-        #   Boolean to anchor a <tt>match</tt> pattern. Default is true. When set to
-        #   false, the pattern matches any request prefixed with the given path.
+        #   Boolean to anchor a <tt>match</tt> pattern. Default is +true+. When set to
+        #   +false+, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
         #     match 'path', to: 'c#a', anchor: false, via: :get

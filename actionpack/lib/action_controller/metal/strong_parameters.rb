@@ -139,7 +139,7 @@ module ActionController
     # :call-seq:
     #   empty?()
     #
-    # Returns true if the parameters have no key/value pairs.
+    # Returns +true+ if the parameters have no key/value pairs.
 
     ##
     # :method: has_key?
@@ -147,7 +147,7 @@ module ActionController
     # :call-seq:
     #   has_key?(key)
     #
-    # Returns true if the given key is present in the parameters.
+    # Returns +true+ if the given key is present in the parameters.
 
     ##
     # :method: has_value?
@@ -155,7 +155,7 @@ module ActionController
     # :call-seq:
     #   has_value?(value)
     #
-    # Returns true if the given value is present for some key in the parameters.
+    # Returns +true+ if the given value is present for some key in the parameters.
 
     ##
     # :method: include?
@@ -163,7 +163,7 @@ module ActionController
     # :call-seq:
     #   include?(key)
     #
-    # Returns true if the given key is present in the parameters.
+    # Returns +true+ if the given key is present in the parameters.
 
     ##
     # :method: key?
@@ -171,7 +171,7 @@ module ActionController
     # :call-seq:
     #   key?(key)
     #
-    # Returns true if the given key is present in the parameters.
+    # Returns +true+ if the given key is present in the parameters.
 
     ##
     # :method: keys
@@ -195,7 +195,7 @@ module ActionController
     # :call-seq:
     #   value?(value)
     #
-    # Returns true if the given value is present for some key in the parameters.
+    # Returns +true+ if the given value is present for some key in the parameters.
 
     ##
     # :method: values
@@ -210,7 +210,7 @@ module ActionController
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
     # because they are added by Rails and should be of no concern. One way
-    # to change these is to specify `always_permitted_parameters` in your
+    # to change these is to specify +always_permitted_parameters+ in your
     # config. For instance:
     #
     #    config.always_permitted_parameters = %w( controller action format )
@@ -237,7 +237,7 @@ module ActionController
       @permitted = self.class.permit_all_parameters
     end
 
-    # Returns true if another +Parameters+ object contains the same content and
+    # Returns +true+ if another +Parameters+ object contains the same content and
     # permitted flag.
     def ==(other)
       if other.respond_to?(:permitted?)
