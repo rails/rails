@@ -1,3 +1,15 @@
+*	Add alias key to as_json
+
+	When I have 2 or more has_many associations, I want to use the second has_many association
+	name with content of first has_many associations.
+
+	Example:
+	  user = User.last
+	  user.as_json(include: { friends: { alias: :new_friends } }) # will produce:
+	  {"email"=>"david@example.com", "gender"=>"male", "name"=>"David", "new_friends"=>[]}
+
+    *Yoga Hapriana*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*
