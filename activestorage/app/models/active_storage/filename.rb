@@ -9,25 +9,33 @@ class ActiveStorage::Filename
     @filename = filename
   end
 
-  # Filename.new("racecar.jpg").base # => "racecar"
+  # Returns the basename of the filename.
+  #
+  #   ActiveStorage::Filename.new("racecar.jpg").base # => "racecar"
   def base
     File.basename @filename, extension_with_delimiter
   end
 
-  # Filename.new("racecar.jpg").extension_with_delimiter # => ".jpg"
+  # Returns the extension with delimiter of the filename.
+  #
+  #   ActiveStorage::Filename.new("racecar.jpg").extension_with_delimiter # => ".jpg"
   def extension_with_delimiter
     File.extname @filename
   end
 
-  # Filename.new("racecar.jpg").extension_without_delimiter # => "jpg"
+  # Returns the extension without delimiter of the filename.
+  #
+  #   ActiveStorage::Filename.new("racecar.jpg").extension_without_delimiter # => "jpg"
   def extension_without_delimiter
     extension_with_delimiter.from(1).to_s
   end
 
   alias_method :extension, :extension_without_delimiter
 
-  # Filename.new("foo:bar.jpg").sanitized # => "foo-bar.jpg"
-  # Filename.new("foo/bar.jpg").sanitized # => "foo-bar.jpg"
+  # Returns the sanitized filename.
+  #
+  #   ActiveStorage::Filename.new("foo:bar.jpg").sanitized # => "foo-bar.jpg"
+  #   ActiveStorage::Filename.new("foo/bar.jpg").sanitized # => "foo-bar.jpg"
   #
   # ...and any other character unsafe for URLs or storage is converted or stripped.
   def sanitized

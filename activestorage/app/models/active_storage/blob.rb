@@ -3,8 +3,8 @@
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
-# 1) Subsequent to the file being uploaded server-side to the service via <tt>create_after_upload!</tt>.
-# 2) Ahead of the file being directly uploaded client-side to the service via <tt>create_before_direct_upload!</tt>.
+# 1. Subsequent to the file being uploaded server-side to the service via <tt>create_after_upload!</tt>.
+# 2. Ahead of the file being directly uploaded client-side to the service via <tt>create_before_direct_upload!</tt>.
 #
 # The first option doesn't require any client-side JavaScript integration, and can be used by any other back-end
 # service that deals with files. The second option is faster, since you're not using your own server as a staging
