@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Belongs To Association
   module Associations
+    # = Active Record Belongs To Association
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def handle_dependency
         target.send(options[:dependent]) if load_target

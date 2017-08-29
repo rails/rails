@@ -13,7 +13,7 @@ module ActionView
     # the assets exist before linking to them:
     #
     #   image_tag("rails.png")
-    #   # => <img alt="Rails" src="/assets/rails.png" />
+    #   # => <img src="/assets/rails.png" />
     #   stylesheet_link_tag("application")
     #   # => <link href="/assets/application.css?body=1" media="screen" rel="stylesheet" />
     module AssetTagHelper
@@ -200,15 +200,13 @@ module ActionView
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
-      # path or a file.
+      # path, a file or an Active Storage attachment.
       #
       # ==== Options
       #
       # You can add HTML attributes using the +options+. The +options+ supports
       # additional keys for convenience and conformance:
       #
-      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
-      #   +source+ is used (capitalized and without the extension)
       # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
@@ -217,34 +215,41 @@ module ActionView
       #
       # ==== Examples
       #
+      # Assets (images that are part of your app):
+      #
       #   image_tag("icon")
-      #   # => <img alt="Icon" src="/assets/icon" />
+      #   # => <img src="/assets/icon" />
       #   image_tag("icon.png")
-      #   # => <img alt="Icon" src="/assets/icon.png" />
+      #   # => <img src="/assets/icon.png" />
       #   image_tag("icon.png", size: "16x10", alt: "Edit Entry")
       #   # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
       #   image_tag("/icons/icon.gif", size: "16")
-      #   # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #   # => <img src="/icons/icon.gif" width="16" height="16" />
       #   image_tag("/icons/icon.gif", height: '32', width: '32')
-      #   # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
+      #   # => <img height="32" src="/icons/icon.gif" width="32" />
       #   image_tag("/icons/icon.gif", class: "menu_icon")
-      #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #   # => <img class="menu_icon" src="/icons/icon.gif" />
       #   image_tag("/icons/icon.gif", data: { title: 'Rails Application' })
       #   # => <img data-title="Rails Application" src="/icons/icon.gif" />
       #   image_tag("icon.png", srcset: { "icon_2x.png" => "2x", "icon_4x.png" => "4x" })
       #   # => <img src="/assets/icon.png" srcset="/assets/icon_2x.png 2x, /assets/icon_4x.png 4x">
       #   image_tag("pic.jpg", srcset: [["pic_1024.jpg", "1024w"], ["pic_1980.jpg", "1980w"]], sizes: "100vw")
       #   # => <img src="/assets/pic.jpg" srcset="/assets/pic_1024.jpg 1024w, /assets/pic_1980.jpg 1980w" sizes="100vw">
+      #
+      # Active Storage (images that are uploaded by the users of your app):
+      #
+      #   image_tag(user.avatar)
+      #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize: "100x100"))
+      #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" />
+      #   image_tag(user.avatar.variant(resize: "100x100"), size: '100')
+      #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" />
       def image_tag(source, options = {})
         options = options.symbolize_keys
         check_for_image_tag_errors(options)
         skip_pipeline = options.delete(:skip_pipeline)
 
-        src = options[:src] = path_to_image(source, skip_pipeline: skip_pipeline)
-
-        unless src.start_with?("cid:") || src.start_with?("data:") || src.blank?
-          options[:alt] = options.fetch(:alt) { image_alt(src) }
-        end
+        options[:src] = resolve_image_source(source, skip_pipeline)
 
         if options[:srcset] && !options[:srcset].is_a?(String)
           options[:srcset] = options[:srcset].map do |src_path, size|
@@ -275,6 +280,8 @@ module ActionView
       #   image_alt('underscored_file_name.png')
       #   # => Underscored file name
       def image_alt(src)
+        ActiveSupport::Deprecation.warn("image_alt is deprecated and will be removed from Rails 6.0. You must explicitly set alt text on images.")
+
         File.basename(src, ".*".freeze).sub(/-[[:xdigit:]]{32,64}\z/, "".freeze).tr("-_".freeze, " ".freeze).capitalize
       end
 
@@ -362,6 +369,16 @@ module ActionView
             options[:src] = send("path_to_#{type}", sources.first, skip_pipeline: skip_pipeline)
             content_tag(type, nil, options)
           end
+        end
+
+        def resolve_image_source(source, skip_pipeline)
+          if source.is_a?(Symbol) || source.is_a?(String)
+            path_to_image(source, skip_pipeline: skip_pipeline)
+          else
+            polymorphic_url(source)
+          end
+        rescue NoMethodError => e
+          raise ArgumentError, "Can't resolve image into URL: #{e}"
         end
 
         def extract_dimensions(size)

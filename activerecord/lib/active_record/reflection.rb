@@ -221,13 +221,8 @@ module ActiveRecord
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        current_scope = klass.current_scope
-
-        if current_scope && current_scope.empty_scope?
-          build_scope(table, predicate_builder)
-        else
-          klass.default_scoped(build_scope(table, predicate_builder))
-        end
+        relation = build_scope(table, predicate_builder)
+        klass.scope_for_association(relation)
       end
 
       def constraints
@@ -305,11 +300,15 @@ module ActiveRecord
       end
 
       def get_join_keys(association_klass)
-        JoinKeys.new(join_pk(association_klass), join_fk)
+        JoinKeys.new(join_pk(association_klass), join_foreign_key)
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
         Relation.create(klass, table, predicate_builder)
+      end
+
+      def join_foreign_key
+        active_record_primary_key
       end
 
       protected
@@ -326,8 +325,8 @@ module ActiveRecord
           foreign_key
         end
 
-        def join_fk
-          active_record_primary_key
+        def primary_key(klass)
+          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
     end
 
@@ -512,7 +511,7 @@ module ActiveRecord
       alias :check_eager_loadable! :check_preloadable!
 
       def join_id_for(owner) # :nodoc:
-        owner[active_record_primary_key]
+        owner[join_foreign_key]
       end
 
       def through_reflection
@@ -658,7 +657,7 @@ module ActiveRecord
         # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
-            klass.name == reflection.active_record.name &&
+            klass <= reflection.active_record &&
             can_find_inverse_of_automatically?(reflection)
         end
 
@@ -697,10 +696,6 @@ module ActiveRecord
         def derive_join_table
           ModelSchema.derive_join_table_name active_record.table_name, klass.table_name
         end
-
-        def primary_key(klass)
-          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
-        end
     end
 
     class HasManyReflection < AssociationReflection # :nodoc:
@@ -714,6 +709,10 @@ module ActiveRecord
         else
           Associations::HasManyAssociation
         end
+      end
+
+      def association_primary_key(klass = nil)
+        primary_key(klass || self.klass)
       end
     end
 
@@ -750,18 +749,14 @@ module ActiveRecord
         end
       end
 
-      def join_id_for(owner) # :nodoc:
-        owner[foreign_key]
+      def join_foreign_key
+        foreign_key
       end
 
       private
 
         def calculate_constructable(macro, options)
           !polymorphic?
-        end
-
-        def join_fk
-          foreign_key
         end
 
         def join_pk(klass)
@@ -780,7 +775,7 @@ module ActiveRecord
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
-      delegate :foreign_key, :foreign_type, :association_foreign_key,
+      delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for,
                :active_record_primary_key, :type, :get_join_keys, to: :source_reflection
 
       def initialize(delegate_reflection)
@@ -943,10 +938,6 @@ module ActiveRecord
         through_reflection.options
       end
 
-      def join_id_for(owner) # :nodoc:
-        source_reflection.join_id_for(owner)
-      end
-
       def check_validity!
         if through_reflection.nil?
           raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
@@ -1024,10 +1015,6 @@ module ActiveRecord
           end
         end
 
-        def primary_key(klass)
-          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
-        end
-
         def inverse_name; delegate_reflection.send(:inverse_name); end
 
         def derive_class_name
@@ -1049,20 +1036,12 @@ module ActiveRecord
 
       def scopes
         scopes = @previous_reflection.scopes
-        if @previous_reflection.options[:source_type]
-          scopes + [@previous_reflection.source_type_scope]
-        else
-          scopes
-        end
+        scopes << @previous_reflection.source_type_scope
       end
 
       def join_scopes(table, predicate_builder) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        if @previous_reflection.options[:source_type]
-          scopes + [@previous_reflection.source_type_scope]
-        else
-          scopes
-        end
+        scopes << @previous_reflection.source_type_scope
       end
 
       def klass
@@ -1071,10 +1050,6 @@ module ActiveRecord
 
       def scope
         @reflection.scope
-      end
-
-      def table_name
-        @reflection.table_name
       end
 
       def plural_name
@@ -1089,15 +1064,16 @@ module ActiveRecord
         @reflection.constraints + [source_type_info]
       end
 
-      def source_type_info
-        type = @previous_reflection.foreign_type
-        source_type = @previous_reflection.options[:source_type]
-        lambda { |object| where(type => source_type) }
-      end
-
       def get_join_keys(association_klass)
         @reflection.get_join_keys(association_klass)
       end
+
+      private
+        def source_type_info
+          type = @previous_reflection.foreign_type
+          source_type = @previous_reflection.options[:source_type]
+          lambda { |object| where(type => source_type) }
+        end
     end
 
     class RuntimeReflection < PolymorphicReflection # :nodoc:
@@ -1112,20 +1088,8 @@ module ActiveRecord
         @association.klass
       end
 
-      def table_name
-        klass.table_name
-      end
-
       def constraints
         @reflection.constraints
-      end
-
-      def source_type_info
-        @reflection.source_type_info
-      end
-
-      def alias_candidate(name)
-        "#{plural_name}_#{name}_join"
       end
 
       def alias_name

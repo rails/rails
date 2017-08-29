@@ -1,9 +1,8 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
-git_source(:github) do |repo_name|
-  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
-  "https://github.com/#{repo_name}.git"
-end
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
@@ -11,7 +10,6 @@ gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
-gem "thor", github: "erikhuda/thor"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
@@ -39,10 +37,14 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
+# https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
+# https://github.com/puma/puma/pull/1345
+gem "stopgap_13632", platforms: :mri if %w(2.2.7 2.3.4 2.4.1).include? RUBY_VERSION
+
 group :doc do
-  gem "sdoc", "> 1.0.0.rc1", "< 2.0"
+  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"

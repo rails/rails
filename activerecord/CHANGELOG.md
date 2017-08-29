@@ -1,3 +1,26 @@
+*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
+    when lock wait time expires.
+
+    *Gabriel Courtemanche*
+
+*   Remove deprecated `#migration_keys`.
+
+    *Ryuta Kamizono*
+
+*   Automatically guess the inverse associations for STI.
+
+    *Yuichiro Kaneko*
+
+*   Ensure `sum` honors `distinct` on `has_many :through` associations
+
+    Fixes #16791.
+
+    *Aaron Wortham*
+
+*   Add `binary` fixture helper method.
+
+    *Atsushi Yoshida*
+
 *   When using `Relation#or`, extract the common conditions and put them before the OR condition.
 
     *Maxime Handfield Lapointe*
@@ -9,7 +32,7 @@
 
     *Sean Griffin*
 
-*   ApplicationRecord is no longer generated when generating models.  If you
+*   `ApplicationRecord` is no longer generated when generating models. If you
     need to generate it, it can be created with `rails g application_record`.
 
     *Lisa Ugray*
@@ -83,7 +106,7 @@
 
 *   Fix transactions to apply state to child transactions
 
-    Previously if you had a nested transaction and the outer transaction was rolledback the record from the
+    Previously, if you had a nested transaction and the outer transaction was rolledback, the record from the
     inner transaction would still be marked as persisted.
 
     This change fixes that by applying the state of the parent transaction to the child transaction when the
@@ -149,7 +172,7 @@
 
     *Kir Shatrov*
 
-*   Prevent making bind param if casted value is nil.
+*   Prevent creation of bind param if casted value is nil.
 
     *Ryuta Kamizono*
 
@@ -210,7 +233,7 @@
 
     *bogdanvlviv*
 
-*   When calling the dynamic fixture accessor method with no arguments it now returns all fixtures of this type.
+*   When calling the dynamic fixture accessor method with no arguments, it now returns all fixtures of this type.
     Previously this method always returned an empty array.
 
     *Kevin McPhillips*

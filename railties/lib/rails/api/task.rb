@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rdoc/task"
 require_relative "generator"
 
@@ -67,6 +69,7 @@ module Rails
         "activestorage" => {
           include: %w(
             README.md
+            app/**/active_storage/**/*.rb
             lib/active_storage/**/*.rb
           )
         },

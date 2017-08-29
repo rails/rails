@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/plugin_test_helper"
 
 class PluginTestRunnerTest < ActiveSupport::TestCase

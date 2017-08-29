@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../resource_helpers"
 require_relative "../model/model_generator"
 

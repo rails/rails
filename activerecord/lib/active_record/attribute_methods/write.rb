@@ -9,7 +9,7 @@ module ActiveRecord
         attribute_method_suffix "="
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         private
 
           def define_method_attribute=(name)

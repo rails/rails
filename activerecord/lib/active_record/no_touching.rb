@@ -6,7 +6,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Lets you selectively disable calls to `touch` for the
+      # Lets you selectively disable calls to +touch+ for the
       # duration of a block.
       #
       # ==== Examples

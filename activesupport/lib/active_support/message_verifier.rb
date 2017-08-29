@@ -124,7 +124,8 @@ module ActiveSupport
       if valid_message?(signed_message)
         begin
           data = signed_message.split("--".freeze)[0]
-          Messages::Metadata.verify(@serializer.load(decode(data)), purpose)
+          message = Messages::Metadata.verify(decode(data), purpose)
+          @serializer.load(message) if message
         rescue ArgumentError => argument_error
           return if argument_error.message.include?("invalid base64")
           raise
@@ -156,7 +157,7 @@ module ActiveSupport
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"
     def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
-      data = encode(@serializer.dump(Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)))
+      data = encode(Messages::Metadata.wrap(@serializer.dump(value), expires_at: expires_at, expires_in: expires_in, purpose: purpose))
       "#{data}--#{generate_digest(data)}"
     end
 

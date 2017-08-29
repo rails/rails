@@ -175,7 +175,7 @@ class Game < ApplicationRecord
 end
 ```
 
-With `touch` set to true, any action which changes `updated_at` for a game
+With `touch` set to `true`, any action which changes `updated_at` for a game
 record will also change it for the associated product, thereby expiring the
 cache.
 
@@ -272,7 +272,7 @@ Sometimes you need to cache a particular value or query result instead of cachin
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, that block will be executed in the event of a cache miss. The return value of the block will be written to the cache under the given cache key, and that return value will be returned. In case of cache hit, the cached value will be returned without executing the block.
 
-Consider the following example. An application has a `Product` model with an instance method that looks up the product’s price on a competing website. The data returned by this method would be perfect for low-level caching:
+Consider the following example. An application has a `Product` model with an instance method that looks up the product's price on a competing website. The data returned by this method would be perfect for low-level caching:
 
 ```ruby
 class Product < ApplicationRecord
@@ -284,7 +284,7 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache-key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model’s `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -387,9 +387,9 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
-New Rails projects are configured to use this implementation in development environment by default. 
+New Rails projects are configured to use this implementation in development environment by default.
 
-NOTE: Since processes will not share cache data when using `:memory_store`, 
+NOTE: Since processes will not share cache data when using `:memory_store`,
 it will not be possible to manually read, write or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
@@ -580,7 +580,7 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to 
+in development mode. Rails provides the rake task `dev:cache` to
 easily toggle caching on/off.
 
 ```bash

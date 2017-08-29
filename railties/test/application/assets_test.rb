@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "active_support/json"
@@ -475,9 +477,9 @@ module ApplicationTests
 
       class ::PostsController < ActionController::Base; end
 
-      get "/posts", {}, "HTTPS" => "off"
+      get "/posts", {}, { "HTTPS" => "off" }
       assert_match('src="http://example.com/assets/application.self.js', last_response.body)
-      get "/posts", {}, "HTTPS" => "on"
+      get "/posts", {}, { "HTTPS" => "on" }
       assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 

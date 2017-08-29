@@ -330,7 +330,7 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
+    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
       conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
@@ -344,8 +344,8 @@ module ActiveRecord
         raise RecordNotFound.new(error, name, key, ids)
       else
         error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
-        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
-
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
+        error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
         raise RecordNotFound.new(error, name, primary_key, ids)
       end
     end
@@ -372,16 +372,7 @@ module ActiveRecord
         relation = select aliases.columns
         relation = apply_join_dependency(relation, join_dependency)
 
-        if block_given?
-          yield relation
-        else
-          if ActiveRecord::NullRelation === relation
-            []
-          else
-            rows = skip_query_cache_if_necessary { connection.select_all(relation.arel, "SQL") }
-            join_dependency.instantiate(rows, aliases)
-          end
-        end
+        yield relation, join_dependency
       end
 
       def construct_relation_for_exists(relation, conditions)

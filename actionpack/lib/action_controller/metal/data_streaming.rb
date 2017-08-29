@@ -56,14 +56,14 @@ module ActionController #:nodoc:
       #
       # Read about the other Content-* HTTP headers if you'd like to
       # provide the user with more information (such as Content-Description) in
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
+      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
       #
       # Also be aware that the document may be cached by proxies and browsers.
       # The Pragma and Cache-Control headers declare how the file may be cached
       # by intermediaries. They default to require clients to validate with
       # the server before releasing cached responses. See
-      # http://www.mnot.net/cache_docs/ for an overview of web caching and
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+      # https://www.mnot.net/cache_docs/ for an overview of web caching and
+      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)

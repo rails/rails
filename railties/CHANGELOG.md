@@ -1,5 +1,33 @@
+*   Add `--skip-yarn` option to the plugin generator.
+
+    *bogdanvlviv*
+
+*   Optimize routes indentation.
+
+    *Yoshiyuki Hirano*
+
+*   Optimize indentation for generator actions.
+
+    *Yoshiyuki Hirano*
+
+*   Skip unused components when running `bin/rails` in Rails plugin.
+
+    *Yoshiyuki Hirano*
+
+*   Add `git_source` to `Gemfile` for plugin generator.
+
+    *Yoshiyuki Hirano*
+
+*   Add `--skip-action-cable` option to the plugin generator.
+
+    *bogdanvlviv*
+
+*   Deprecate support of use `Rails::Application` subclass to start Rails server.
+
+    *Yuji Yaginuma*
+
 *   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
-    root file containing current Ruby version when new Rails applications are
+    root file containing the current Ruby version when new Rails applications are
     created.
 
     *Alberto Almagro*
@@ -32,7 +60,7 @@
 
     *Robin Dupret*, *Kasper Timm Hansen*
 
-*   Allow to pass a custom connection name to the `rails dbconsole`
+*   Allow passing a custom connection name to the `rails dbconsole`
     command when using a 3-level database configuration.
 
         $ bin/rails dbconsole -c replica
@@ -56,7 +84,7 @@
 
 *   Load environment file in `dbconsole` command.
 
-    Fixes #29717
+    Fixes #29717.
 
     *Yuji Yaginuma*
 

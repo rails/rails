@@ -184,13 +184,18 @@ end
 class SpecialPost < Post; end
 
 class StiPost < Post
-  self.abstract_class = true
   has_one :special_comment, class_name: "SpecialComment"
+end
+
+class AbstractStiPost < Post
+  self.abstract_class = true
 end
 
 class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
+
+class SubAbstractStiPost < AbstractStiPost; end
 
 class FirstPost < ActiveRecord::Base
   self.inheritance_column = :disabled

@@ -406,6 +406,8 @@ module ActiveRecord
       #
       #   Defaults to false.
       #
+      #   Only supported on the MySQL adapter, ignored elsewhere.
+      #
       # ====== Add a column
       #
       #   change_table(:suppliers) do |t|
@@ -780,7 +782,7 @@ module ActiveRecord
       def rename_index(table_name, old_name, new_name)
         validate_index_length!(table_name, new_name)
 
-        # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
+        # this is a naive implementation; some DBs may support this more efficiently (PostgreSQL, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
         add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique)
@@ -1172,6 +1174,10 @@ module ActiveRecord
       # Changes the comment for a column or removes it if +nil+.
       def change_column_comment(table_name, column_name, comment) #:nodoc:
         raise NotImplementedError, "#{self.class} does not support changing column comments"
+      end
+
+      def create_schema_dumper(options) # :nodoc:
+        SchemaDumper.create(self, options)
       end
 
       private

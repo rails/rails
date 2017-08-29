@@ -51,9 +51,10 @@ module ActionCable
           server.connection_identifiers
         end
 
-        private
+        protected
           attr_reader :server
 
+        private
           def set_identifier_instance_vars(ids)
             raise InvalidIdentifiersError unless valid_identifiers?(ids)
             ids.each { |k, v| instance_variable_set("@#{k}", v) }

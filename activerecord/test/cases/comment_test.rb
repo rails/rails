@@ -111,7 +111,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
       # And check that these changes are reflected in dump
       output = dump_table_schema "commenteds"
-      assert_match %r[create_table "commenteds",.+\s+comment: "A table with comment"], output
+      assert_match %r[create_table "commenteds",.*\s+comment: "A table with comment"], output
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output

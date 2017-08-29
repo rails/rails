@@ -99,11 +99,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_create_model_with_inheritance_and_custom_base_class
-    post = SubStiPost.create title: "SubStiPost", body: "SubStiPost body"
-    assert_instance_of SubStiPost, post
+    post = SubAbstractStiPost.create title: "SubAbstractStiPost", body: "SubAbstractStiPost body"
+    assert_instance_of SubAbstractStiPost, post
 
     tagging = tags(:misc).taggings.create(taggable: post)
-    assert_equal "SubStiPost", tagging.taggable_type
+    assert_equal "SubAbstractStiPost", tagging.taggable_type
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_inheritance
@@ -404,7 +404,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2
+    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2.sort_by(&:id)
   end
 
   def test_has_many_through_polymorphic_has_many

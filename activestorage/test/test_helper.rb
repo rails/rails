@@ -1,16 +1,24 @@
+# frozen_string_literal: true
+
 require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
 
 require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
-require "byebug"
+
+begin
+  require "byebug"
+rescue LoadError
+end
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
-ActiveJob::Base.logger = nil
+ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-require "active_storage"
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
@@ -24,7 +32,7 @@ end
 
 require "tmpdir"
 ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
-ActiveStorage::Service.logger = ActiveSupport::Logger.new(STDOUT)
+ActiveStorage::Service.logger = ActiveSupport::Logger.new(nil)
 
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
@@ -54,3 +62,8 @@ end
 require "global_id"
 GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.send :include, GlobalID::Identification
+
+class User < ActiveRecord::Base
+  has_one_attached :avatar
+  has_many_attached :highlights
+end

@@ -78,6 +78,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "2 updated", Topic.find(2).content
   end
 
+  def test_class_level_update_is_affected_by_scoping
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.update(topic_data.keys, topic_data.values) }
+    end
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
   def test_delete_all
     assert Topic.count > 0
 
@@ -912,13 +922,33 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
   end
 
+  def test_class_level_destroy_is_affected_by_scoping
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.destroy(1) }
+    end
+    assert_nothing_raised { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
+  end
+
   def test_class_level_delete
-    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
-    Topic.find(1).replies << should_be_destroyed_reply
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
 
     Topic.delete(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
-    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
+  end
+
+  def test_class_level_delete_is_affected_by_scoping
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
+
+    Topic.where("1=0").scoping { Topic.delete(1) }
+    assert_nothing_raised { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
   end
 
   def test_create_with_custom_timestamps

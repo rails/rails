@@ -68,11 +68,11 @@ module ActiveRecord
           foreign_key = join_keys.foreign_key
 
           value = transform_value(owner[foreign_key])
-          scope = scope.where(table.name => { key => value })
+          scope = apply_scope(scope, table, key, value)
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.base_class.name)
-            scope = scope.where(table.name => { reflection.type => polymorphic_type })
+            scope = apply_scope(scope, table, reflection.type, polymorphic_type)
           end
 
           scope
@@ -91,10 +91,10 @@ module ActiveRecord
 
           if reflection.type
             value = transform_value(next_reflection.klass.base_class.name)
-            scope = scope.where(table.name => { reflection.type => value })
+            scope = apply_scope(scope, table, reflection.type, value)
           end
 
-          scope = scope.joins(join(foreign_table, constraint))
+          scope.joins!(join(foreign_table, constraint))
         end
 
         class ReflectionProxy < SimpleDelegator # :nodoc:
@@ -163,6 +163,14 @@ module ActiveRecord
           end
 
           scope
+        end
+
+        def apply_scope(scope, table, key, value)
+          if scope.table == table
+            scope.where!(key => value)
+          else
+            scope.where!(table.name => { key => value })
+          end
         end
 
         def eval_scope(reflection, table, scope, owner)

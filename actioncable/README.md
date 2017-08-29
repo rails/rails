@@ -53,7 +53,7 @@ module ApplicationCable
 
     private
       def find_verified_user
-        if verified_user = User.find_by(id: cookies.signed[:user_id])
+        if verified_user = User.find_by(id: cookies.encrypted[:user_id])
           verified_user
         else
           reject_unauthorized_connection
@@ -549,7 +549,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 Action Cable is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 ## Support

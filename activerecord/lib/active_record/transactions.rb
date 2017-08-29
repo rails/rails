@@ -170,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
@@ -190,7 +190,7 @@ module ActiveRecord
     #
     # === Caveats
     #
-    # If you're on MySQL, then do not use Data Definition Language(DDL) operations in nested
+    # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
     # transactions blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
     # releases all savepoints upon executing a DDL operation. When +transaction+
@@ -472,7 +472,7 @@ module ActiveRecord
       # if it's associated with a transaction, then the state of the Active Record
       # object will be updated to reflect the current state of the transaction.
       #
-      # The +@transaction_state+ variable stores the states of the associated
+      # The <tt>@transaction_state</tt> variable stores the states of the associated
       # transaction. This relies on the fact that a transaction can only be in
       # one rollback or commit (otherwise a list of states would be required).
       # Each Active Record object inside of a transaction carries that transaction's

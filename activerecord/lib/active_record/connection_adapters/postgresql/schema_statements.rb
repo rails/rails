@@ -586,6 +586,14 @@ module ActiveRecord
           [super, *order_columns].join(", ")
         end
 
+        def update_table_definition(table_name, base) # :nodoc:
+          PostgreSQL::Table.new(table_name, base)
+        end
+
+        def create_schema_dumper(options) # :nodoc:
+          PostgreSQL::SchemaDumper.create(self, options)
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)

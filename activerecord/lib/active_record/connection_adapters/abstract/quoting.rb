@@ -7,7 +7,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Quoting
       # Quotes the column value to help prevent
-      # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
+      # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 

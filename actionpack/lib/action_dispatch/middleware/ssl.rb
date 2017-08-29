@@ -94,7 +94,7 @@ module ActionDispatch
         end
       end
 
-      # http://tools.ietf.org/html/rfc6797#section-6.1
+      # https://tools.ietf.org/html/rfc6797#section-6.1
       def build_hsts_header(hsts)
         value = "max-age=#{hsts[:expires].to_i}".dup
         value << "; includeSubDomains" if hsts[:subdomains]

@@ -125,7 +125,7 @@ use ActionDispatch::Flash
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run MyApp.application.routes
+run MyApp::Application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
@@ -302,7 +302,7 @@ Resources
 
 ### Learning Rack
 
-* [Official Rack Website](http://rack.github.io)
+* [Official Rack Website](https://rack.github.io)
 * [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
 
 ### Understanding Middlewares

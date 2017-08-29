@@ -383,7 +383,7 @@ indicates whether boolean values are stored in sqlite3 databases as 1 and 0 or
 set to false is deprecated. SQLite databases have used 't' and 'f' to serialize
 boolean values and must have old data converted to 1 and 0 (its native boolean
 serialization) before setting this flag to true. Conversion can be accomplished
-by setting up a rake task which runs
+by setting up a Rake task which runs
 
     ```ruby
     ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
@@ -423,7 +423,7 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`.  This is false by default, but enabled when loading defaults for Rails 5.2.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is false by default, but enabled when loading defaults for Rails 5.2.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -1004,7 +1004,7 @@ Once you've configured the application server, you must proxy requests to it by 
 
 ```
 upstream application_server {
-  server 0.0.0.0:8080
+  server 0.0.0.0:8080;
 }
 
 server {

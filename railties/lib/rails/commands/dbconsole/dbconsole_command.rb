@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../command/environment_argument"
 
 module Rails
@@ -58,7 +60,7 @@ module Rails
         logon = ""
 
         if config["username"]
-          logon = config["username"]
+          logon = config["username"].dup
           logon << "/#{config['password']}" if config["password"] && @options["include_password"]
           logon << "@#{config['database']}" if config["database"]
         end
@@ -73,7 +75,7 @@ module Rails
         args += ["-P", "#{config['password']}"] if config["password"]
 
         if config["host"]
-          host_arg = "#{config['host']}"
+          host_arg = "#{config['host']}".dup
           host_arg << ":#{config['port']}" if config["port"]
           args += ["-S", host_arg]
         end

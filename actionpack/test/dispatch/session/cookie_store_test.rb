@@ -26,6 +26,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
     end
 
+    def set_session_value_expires_in_five_hours
+      session[:foo] = "bar"
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash, expires_in: 5.hours))
+    end
+
     def get_session_value
       render plain: "foo: #{session[:foo].inspect}"
     end
@@ -283,7 +288,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         cookies[SessionKey] = SignedBar
 
-        get "/set_session_value"
+        get "/set_session_value_expires_in_five_hours"
         assert_response :success
 
         cookie_body = response.body
@@ -299,7 +304,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         get "/no_session_access"
         assert_response :success
 
-        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+        assert_equal "_myapp_session=#{cookies[SessionKey]}; path=/; expires=#{expected_expiry}; HttpOnly",
           headers["Set-Cookie"]
       end
     end

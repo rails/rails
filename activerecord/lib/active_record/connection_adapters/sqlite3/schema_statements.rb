@@ -39,6 +39,14 @@ module ActiveRecord
           end
         end
 
+        def update_table_definition(table_name, base)
+          SQLite3::Table.new(table_name, base)
+        end
+
+        def create_schema_dumper(options)
+          SQLite3::SchemaDumper.create(self, options)
+        end
+
         private
           def schema_creation
             SQLite3::SchemaCreation.new(self)

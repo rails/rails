@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "stringio"
 require "rack/test"
@@ -136,7 +138,7 @@ module RailtiesTest
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output.first)
-        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.last)
+        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.second)
       end
     end
 
@@ -171,7 +173,7 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
+        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.second)
         assert_match(/Copied migration \d+_create_keys\.api_engine\.rb from api_engine/, output.last)
       end
     end
@@ -503,7 +505,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each(&:upcase!)
+        response[2] = response[2].collect(&:upcase)
         response
       end
     end
@@ -1295,10 +1297,10 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
@@ -1344,10 +1346,10 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 

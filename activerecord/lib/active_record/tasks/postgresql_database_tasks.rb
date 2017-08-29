@@ -22,7 +22,7 @@ module ActiveRecord
           configuration.merge("encoding" => encoding)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database .* already exists/.match?(error.message)
+        if error.cause.is_a?(PG::DuplicateDatabase)
           raise DatabaseAlreadyExists
         else
           raise
@@ -136,7 +136,7 @@ module ActiveRecord
           ensure
             tempfile.close
           end
-          FileUtils.mv(tempfile.path, filename)
+          FileUtils.cp(tempfile.path, filename)
         end
     end
   end

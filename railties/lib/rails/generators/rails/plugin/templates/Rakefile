@@ -13,17 +13,16 @@ RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('README.md')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
-
 <% if engine? && !options[:skip_active_record] && with_dummy_app? -%>
+
 APP_RAKEFILE = File.expand_path("<%= dummy_path -%>/Rakefile", __dir__)
 load 'rails/tasks/engine.rake'
-<% end %>
-
+<% end -%>
 <% if engine? -%>
-load 'rails/tasks/statistics.rake'
-<% end %>
 
+load 'rails/tasks/statistics.rake'
+<% end -%>
 <% unless options[:skip_gemspec] -%>
 
 require 'bundler/gem_tasks'
-<% end %>
+<% end -%>

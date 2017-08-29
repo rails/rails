@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
 
@@ -72,9 +74,9 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
     task gem => %w(update_versions pkg) do
       cmd = ""
-      cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "bundle exec rake package && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      cmd += "cd #{framework} && " unless framework == "rails"
+      cmd += "bundle exec rake package && " unless framework == "rails"
+      cmd += "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
@@ -104,7 +106,7 @@ namespace :changelog do
       current_contents = File.read(fname)
 
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
-      header << "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
       contents = header + current_contents
       File.open(fname, "wb") { |f| f.write contents }
     end

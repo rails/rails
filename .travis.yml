@@ -22,11 +22,11 @@ before_install:
   - "gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+  - "[[ -z $encrypted_8a915ebdd931_key && -z $encrypted_8a915ebdd931_iv ]] || openssl aes-256-cbc -K $encrypted_8a915ebdd931_key -iv $encrypted_8a915ebdd931_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
   - "[[ $GEM != 'av:ujs' ]] || [[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
-
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
@@ -40,12 +40,10 @@ script: 'ci/travis.rb'
 env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
-    - "AWS_ACCESS_KEY_ID=AKIAIDIA2E7SSMYGNB7A"
-    - secure: "XohvFnYff1yf8qlawCujI+CIqHK08KOw34pPprd4QYuG0SJCzBdNN7efBBj5gLX1PI6DwkDLNv51Oi31xPh7yJFuzRAkB0FPdyKM7UyYZ7BMaTqx8LVC89lZJ8VIu19kDP/8sdOm0HN/huOM5kO3jZJFLpi2Tj313TjmzWZFPq0="
   matrix:
     - "GEM=railties"
     - "GEM=ap,ac"
-    - "GEM=am,amo,as,av,aj"
+    - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
@@ -116,7 +114,8 @@ notifications:
     on_success: change
     on_failure: always
     channels:
-      - "irc.freenode.org#rails-contrib"
+      # "irc.freenode.org#rails-contrib"
+      - secure: "QFKSOK7xQiWWqTzYfYm0XWoW7idzuxT57MBW9i9EASyRLEPuDwZEubKRP40Y7wPx7ylQd9lp6kJheeLnrDvvTjFbW3sWv9GDRl4WlOU8sG/Kv7MXAASXlDqzyJxxXTtzLeXz2iwY296kOBuKxKxl923eTvEGeocwH02QGo14LpQ="
   campfire:
     on_success: change
     on_failure: always

@@ -1,3 +1,17 @@
+*   Make `take_failed_screenshot` work within engine.
+
+    Fixes #30405.
+
+    *Yuji Yaginuma*
+
+*   Deprecate `ActionDispatch::TestResponse` response aliases
+
+    `#success?`, `#missing?` & `#error?` are not supported by the actual
+    `ActionDispatch::Response` object and can produce false-positives. Instead,
+    use the response helpers provided by `Rack::Response`.
+
+    *Trevor Wistaff*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,
@@ -14,11 +28,11 @@
 
 *   `driven_by` now registers poltergeist and capybara-webkit
 
-    If driver poltergeist or capybara-webkit is set for System Tests,
+    If poltergeist or capybara-webkit are set as drivers is set for System Tests,
     `driven_by` will register the driver and set additional options passed via
-    `:options` param.
+    the `:options` parameter.
 
-    Refer to drivers documentation to learn what options can be passed.
+    Refer to the respective driver's documentation to see what options can be passed.
 
     *Mario Chavez*
 

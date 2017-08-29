@@ -466,11 +466,10 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
     with_partial_writes(Topic) do
-      Topic.create!(author_name: "Bill", content: { a: "a" })
-      topic = Topic.select("id, author_name").first
+      topic = Topic.create!(author_name: "Bill", content: { a: "a" })
+      topic = Topic.select("id, author_name").find(topic.id)
       topic.update_columns author_name: "John"
-      topic = Topic.first
-      assert_not_nil topic.content
+      assert_not_nil topic.reload.content
     end
   end
 

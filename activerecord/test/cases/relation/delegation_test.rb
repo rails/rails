@@ -32,6 +32,7 @@ module ActiveRecord
     def test_deprecate_arel_delegation
       AREL_METHODS.each do |method|
         assert_deprecated { target.public_send(method) }
+        assert_deprecated { target.public_send(method) }
       end
     end
   end
@@ -40,18 +41,14 @@ module ActiveRecord
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests
 
-    fixtures :posts
-
     def target
-      Post.first.comments
+      Post.new.comments
     end
   end
 
   class DelegationRelationTest < ActiveRecord::TestCase
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests
-
-    fixtures :comments
 
     def target
       Comment.all

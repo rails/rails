@@ -50,19 +50,19 @@ class TextHelperTest < ActionView::TestCase
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
     assert_equal "<p><b> test with unsafe string </b>code!</p>",
-      simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: true)
+      simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: true })
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
-    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: false)
+    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: false })
   end
 
   def test_simple_format_with_custom_wrapper
-    assert_equal "<div></div>", simple_format(nil, {}, wrapper_tag: "div")
+    assert_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
   end
 
   def test_simple_format_with_custom_wrapper_and_multi_line_breaks
-    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, wrapper_tag: "div")
+    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, { wrapper_tag: "div" })
   end
 
   def test_simple_format_should_not_change_the_text_passed

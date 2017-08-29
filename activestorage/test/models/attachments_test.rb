@@ -1,12 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "database/setup"
-
-# ActiveRecord::Base.logger = Logger.new(STDOUT)
-
-class User < ActiveRecord::Base
-  has_one_attached  :avatar
-  has_many_attached :highlights
-end
 
 class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -25,9 +20,15 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
-  test "attach new blob" do
+  test "attach new blob from a Hash" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attach new blob from an UploadedFile" do
+    file = file_fixture "racecar.jpg"
+    @user.avatar.attach Rack::Test::UploadedFile.new file
+    assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
   test "access underlying associations of new blob" do

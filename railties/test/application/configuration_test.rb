@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -238,6 +240,66 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "does not eager load controller actions in development" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads controller actions in production" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(index show).to_set, PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "does not eager load mailer actions in development" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsMailer.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads mailer actions in production" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
@@ -453,10 +515,8 @@ module ApplicationTests
           secret_key_base: 123
       YAML
 
-      app "development"
-
       assert_raise(ArgumentError) do
-        app.key_generator
+        app "development"
       end
     end
 
@@ -1146,6 +1206,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1157,6 +1218,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1169,6 +1231,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1193,6 +1256,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1204,6 +1268,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1212,6 +1277,7 @@ module ApplicationTests
       app "test"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1220,6 +1286,7 @@ module ApplicationTests
       app "production"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1239,6 +1306,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1250,6 +1318,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1261,6 +1330,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
@@ -1278,10 +1348,10 @@ module ApplicationTests
         end
       end
 
-      get "/", {}, "HTTP_ACCEPT" => "application/xml"
+      get "/", {}, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "HTML", last_response.body
 
-      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "XML", last_response.body
     end
 

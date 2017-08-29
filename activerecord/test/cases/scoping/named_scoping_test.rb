@@ -117,7 +117,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_equal Post.containing_the_letter_a, authors(:david).posts
     assert !Post.containing_the_letter_a.empty?
 
-    assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
+    expected = authors(:david).posts & Post.containing_the_letter_a
+    assert_equal expected.sort_by(&:id), authors(:david).posts.containing_the_letter_a.sort_by(&:id)
   end
 
   def test_scope_with_STI
@@ -129,7 +130,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
 
-    assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
+    expected = authors(:david).comments & Comment.containing_the_letter_e
+    assert_equal expected.sort_by(&:id), authors(:david).comments.containing_the_letter_e.sort_by(&:id)
   end
 
   def test_scopes_honor_current_scopes_from_when_defined

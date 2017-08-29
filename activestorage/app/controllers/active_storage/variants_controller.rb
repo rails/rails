@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Take a signed permanent reference for a variant and turn it into an expiring service URL for download.
 # Note: These URLs are publicly accessible. If you need to enforce access protection beyond the
 # security-through-obscurity factor of the signed blob and variation reference, you'll need to implement your own
@@ -5,6 +7,7 @@
 class ActiveStorage::VariantsController < ActionController::Base
   def show
     if blob = find_signed_blob
+      expires_in 5.minutes # service_url defaults to 5 minutes
       redirect_to ActiveStorage::Variant.new(blob, decoded_variation).processed.service_url(disposition: disposition_param)
     else
       head :not_found

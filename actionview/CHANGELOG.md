@@ -1,3 +1,9 @@
+*   Remove default `alt` text generation.
+
+    Fixes #30096
+
+    *Cameron Cundiff*
+
 *   Add `srcset` option to `image_tag` helper.
 
     *Roberto Miranda*

@@ -33,11 +33,11 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_generates_with_defaults
-    assert_generates("/articles/1/edit", { controller: "articles", action: "edit" }, id: "1")
+    assert_generates("/articles/1/edit", { controller: "articles", action: "edit" }, { id: "1" })
   end
 
   def test_assert_generates_with_extras
-    assert_generates("/articles", { controller: "articles", action: "index", page: "1" }, {}, page: "1")
+    assert_generates("/articles", { controller: "articles", action: "index", page: "1" }, {}, { page: "1" })
   end
 
   def test_assert_recognizes
@@ -50,8 +50,8 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_recognizes_with_method
-    assert_recognizes({ controller: "articles", action: "create" }, path: "/articles", method: :post)
-    assert_recognizes({ controller: "articles", action: "update", id: "1" }, path: "/articles/1", method: :put)
+    assert_recognizes({ controller: "articles", action: "create" }, { path: "/articles", method: :post })
+    assert_recognizes({ controller: "articles", action: "update", id: "1" }, { path: "/articles/1", method: :put })
   end
 
   def test_assert_recognizes_with_hash_constraint
@@ -96,11 +96,11 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_with_defaults
-    assert_routing("/articles/1/edit", { controller: "articles", action: "edit", id: "1" }, id: "1")
+    assert_routing("/articles/1/edit", { controller: "articles", action: "edit", id: "1" }, { id: "1" })
   end
 
   def test_assert_routing_with_extras
-    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, {}, page: "1")
+    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, {}, { page: "1" })
   end
 
   def test_assert_routing_with_hash_constraint
