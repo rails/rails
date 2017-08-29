@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../base"
 require "pathname"
 require "active_support/encrypted_file"

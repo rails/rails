@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../base"
 require_relative "../master_key/master_key_generator"
 require "active_support/encrypted_configuration"
