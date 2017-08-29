@@ -4,7 +4,7 @@ require "delegate"
 
 module ActionMailer
   # The <tt>ActionMailer::MessageDelivery</tt> class is used by
-  # <tt>ActionMailer::Base</tt> when creating a new mailer.
+  # ActionMailer::Base when creating a new mailer.
   # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
   # created <tt>Mail::Message</tt>. You can get direct access to the
   # <tt>Mail::Message</tt>, deliver the email or schedule the email to be sent

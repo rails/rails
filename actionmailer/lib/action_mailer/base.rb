@@ -59,7 +59,7 @@ module ActionMailer
   # The hash passed to the mail method allows you to specify any header that a <tt>Mail::Message</tt>
   # will accept (any valid email header including optional fields).
   #
-  # The mail method, if not passed a block, will inspect your views and send all the views with
+  # The +mail+ method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.text.erb+ view
   # file as well as the +welcome.html.erb+ view file in a +multipart/alternative+ email.
   #
@@ -138,7 +138,7 @@ module ActionMailer
   # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
   # default settings per-mailer.
   #
-  # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
+  # By default when <tt>config.force_ssl</tt> is +true+, URLs generated for hosts will use the HTTPS protocol.
   #
   # = Sending mail
   #
@@ -316,7 +316,7 @@ module ActionMailer
   #
   # = Callbacks
   #
-  # You can specify callbacks using before_action and after_action for configuring your messages.
+  # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages.
   # This may be useful, for example, when you want to add default inline attachments for all
   # messages sent out by a certain mailer class:
   #
