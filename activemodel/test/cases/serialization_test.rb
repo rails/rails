@@ -174,4 +174,10 @@ class SerializationTest < ActiveModel::TestCase
                            { "name" => "Sue", "email" => "sue@example.com", "gender" => "female" }] }
     assert_equal expected, @user.serializable_hash(include: [{ address: { only: "street" } }, :friends])
   end
+
+  def test_method_serializable_hash_should_work_with_alias
+    @user.friends = []
+    expected = { "email" => "david@example.com", "gender" => "male", "name" => "David", "new_friends" => [] }
+    assert_equal expected, @user.serializable_hash(include: [friends: { alias: :new_friends }])
+  end
 end

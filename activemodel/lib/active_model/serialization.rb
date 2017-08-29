@@ -184,7 +184,9 @@ module ActiveModel
 
         includes.each do |association, opts|
           if records = send(association)
-            yield association, records, opts
+            alias_association = opts[:alias]
+            assoc = alias_association.present? ? alias_association : association
+            yield assoc, records, opts
           end
         end
       end
