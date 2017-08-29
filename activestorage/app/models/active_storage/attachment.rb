@@ -14,17 +14,15 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   delegate_missing_to :blob
 
-  # Purging an attachment will purge the blob (delete the file on the service, then destroy the record)
-  # and then destroy the attachment itself.
+  # Synchronously purges the blob (deletes it from the configured service) and destroys the attachment.
   def purge
     blob.purge
     destroy
   end
 
-  # Purging an attachment means purging the blob, which means talking to the service, which means
-  # talking over the Internet. Whenever you're doing that, it's a good idea to put that work in a job,
-  # so it doesn't hold up other operations. That's what +purge_later+ provides.
+  # Destroys the attachment and asynchronously purges the blob (deletes it from the configured service).
   def purge_later
-    ActiveStorage::PurgeJob.perform_later(self)
+    blob.purge_later
+    destroy
   end
 end
