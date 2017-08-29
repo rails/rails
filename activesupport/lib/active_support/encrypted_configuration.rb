@@ -8,7 +8,8 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
-    delegate_missing_to :config
+    delegate :[], :fetch, to: :config
+    delegate_missing_to :options
 
     def initialize(config_path:, key_path:, env_key:)
       super content_path: config_path, key_path: key_path, env_key: env_key
@@ -22,10 +23,14 @@ module ActiveSupport
     end
 
     def config
-      @config ||= ActiveSupport::InheritableOptions.new(deserialize(read))
+      @config ||= deserialize(read).deep_symbolize_keys
     end
 
     private
+      def options
+        @options ||= ActiveSupport::InheritableOptions.new(config)
+      end
+
       def serialize(config)
         config.present? ? YAML.dump(config) : ""
       end
