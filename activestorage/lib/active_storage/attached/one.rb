@@ -21,8 +21,9 @@ module ActiveStorage
     #   person.avatar.attach(io: File.open("~/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      write_attachment \
-        ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
+      purge_dependent_attachment do
+        write_attachment create_attachment_from(attachable)
+      end
     end
 
     # Returns +true+ if an attachment has been made.
@@ -53,6 +54,23 @@ module ActiveStorage
     end
 
     private
+      def purge_dependent_attachment
+        if attached? && dependent == :purge_later
+          blob.tap do
+            transaction do
+              destroy
+              yield
+            end
+          end.purge_later
+        else
+          yield
+        end
+      end
+
+      def create_attachment_from(attachable)
+        ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
+      end
+
       def write_attachment(attachment)
         record.public_send("#{name}_attachment=", attachment)
       end

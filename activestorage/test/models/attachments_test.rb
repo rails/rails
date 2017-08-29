@@ -31,6 +31,31 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
+  test "replace attached blob" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_no_difference -> { ActiveStorage::Blob.count } do
+        @user.avatar.attach create_blob(filename: "town.jpg")
+      end
+    end
+
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "replace attached blob unsuccessfully" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_raises do
+        @user.avatar.attach nil
+      end
+    end
+
+    assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
+  end
+
   test "access underlying associations of new blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal @user, @user.avatar_attachment.record
