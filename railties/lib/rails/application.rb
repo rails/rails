@@ -538,7 +538,7 @@ module Rails
           "Read the upgrade documentation to learn more about this new config option."
 
         if secrets.secret_token.blank?
-          raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
+          raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value with `rails credentials:edit`"
         end
       end
 
