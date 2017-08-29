@@ -77,7 +77,7 @@ module ActiveStorage
       raise NotImplementedError
     end
 
-    # Return true if a file exists at the +key+.
+    # Return +true+ if a file exists at the +key+.
     def exist?(key)
       raise NotImplementedError
     end

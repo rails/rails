@@ -25,7 +25,7 @@ module ActiveStorage
         ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
     end
 
-    # Returns true if an attachment has been made.
+    # Returns +true+ if an attachment has been made.
     #
     #   class User < ActiveRecord::Base
     #     has_one_attached :avatar
