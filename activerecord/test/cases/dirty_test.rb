@@ -817,6 +817,40 @@ class DirtyTest < ActiveRecord::TestCase
     refute person.changed?
   end
 
+  test "saved_changes in double save" do
+    double_saved_changes = nil
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        if followers_count == 0
+          self.followers_count = 1
+          save!
+        else
+          double_saved_changes = saved_changes
+        end
+      end
+    end
+    person = klass.create!(first_name: "Sean")
+    assert_nil double_saved_changes["first_name"]
+    assert_equal [0, 1], double_saved_changes["followers_count"]
+  end
+
+  test "saved_changes? after nested save" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        if followers_count == 0
+          self.followers_count = 1
+          save!
+        end
+      end
+    end
+    person = klass.create!(first_name: "Sean")
+    assert_equal true, person.saved_changes?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
