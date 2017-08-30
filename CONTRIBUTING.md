@@ -14,7 +14,7 @@
   * [**Action Pack** (controllers, routing) issues](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
   * [**Generic template** for other issues](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
 
-* For more detailed information on submitting a bug report and creating an issue, visit our [reporting guidelines](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#reporting-an-issue).
+* For more detailed information on submitting a bug report and creating an issue, visit our [reporting guidelines](http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#reporting-an-issue).
 
 #### **Did you write a patch that fixes a bug?**
 
@@ -22,7 +22,7 @@
 
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
 
-* Before submitting, please read the [Contributing to Ruby on Rails](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) guide to know more about coding conventions and benchmarks.
+* Before submitting, please read the [Contributing to Ruby on Rails](http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html) guide to know more about coding conventions and benchmarks.
 
 #### **Did you fix whitespace, format code, or make a purely cosmetic patch?**
 
@@ -40,7 +40,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 #### **Do you want to contribute to the Rails documentation?**
 
-* Please read [Contributing to the Rails Documentation](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation).
+* Please read [Contributing to the Rails Documentation](http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation).
 
 Ruby on Rails is a volunteer effort. We encourage you to pitch in and [join the team](http://contributors.rubyonrails.org)!
 
