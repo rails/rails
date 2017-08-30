@@ -80,7 +80,7 @@ and may also be used independently outside Rails.
 [![Code Triage Badge](https://www.codetriage.com/rails/rails/badges/users.svg)](https://www.codetriage.com/rails/rails)
 
 We encourage you to contribute to Ruby on Rails! Please check out the
-[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+[Contributing to Ruby on Rails guide](http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
 
 Trying to report a possible security vulnerability in Rails? Please
 check out our [security policy](http://rubyonrails.org/security/) for
