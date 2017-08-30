@@ -295,6 +295,16 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_dump_execution_fails
+        filename = "awesome-file.sql"
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", filename, "my-app-db").returns(nil)
+
+        e = assert_raise(RuntimeError) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+        assert_match("failed to execute:", e.message)
+      end
+
       private
         def with_dump_schemas(value, &block)
           old_dump_schemas = ActiveRecord::Base.dump_schemas
