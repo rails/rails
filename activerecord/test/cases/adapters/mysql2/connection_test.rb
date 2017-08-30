@@ -122,7 +122,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_mysql_default_in_strict_mode
     result = @connection.select_value("SELECT @@SESSION.sql_mode")
-    assert_match %r(STRICT_ALL_TABLES), result
+    assert_match %r(STRICT_ALL_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO), result
   end
 
   def test_mysql_strict_mode_disabled

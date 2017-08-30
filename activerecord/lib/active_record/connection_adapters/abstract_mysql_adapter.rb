@@ -770,7 +770,8 @@ module ActiveRecord
               sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
               sql_mode = "REPLACE(#{sql_mode}, 'TRADITIONAL', '')"
             end
-            sql_mode = "CONCAT(#{sql_mode}, ',NO_AUTO_VALUE_ON_ZERO')"
+            extra_sql_modes = %w(NO_AUTO_VALUE_ON_ZERO NO_ZERO_DATE NO_ZERO_IN_DATE ERROR_FOR_DIVISION_BY_ZERO)
+            sql_mode = "CONCAT(#{sql_mode}, ',#{extra_sql_modes.join(',')}')"
           end
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
