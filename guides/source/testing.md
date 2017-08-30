@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-A Guide to Testing Rails Applications
-=====================================
+Testing Rails Applications
+==========================
 
 This guide covers built-in mechanisms in Rails for testing your application.
 

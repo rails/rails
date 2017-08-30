@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-Ruby on Rails Security Guide
-============================
+Securing Rails Applications
+===========================
 
 This manual describes common security problems in web applications and how to avoid them with Rails.
 
