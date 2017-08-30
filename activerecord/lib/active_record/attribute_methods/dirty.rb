@@ -64,6 +64,7 @@ module ActiveRecord
 
       def changes_internally_applied # :nodoc:
         @mutations_before_last_save = mutation_tracker
+        apply_mutations_from_database_to_mutation_tracker
         forget_attribute_assignments
         @mutations_from_database = AttributeMutationTracker.new(@attributes)
       end
@@ -101,6 +102,7 @@ module ActiveRecord
           @cached_changed_attributes
         else
           emit_warning_if_needed("changed_attributes", "saved_changes.transform_values(&:first)")
+          apply_mutations_from_database_to_mutation_tracker
           super.reverse_merge(mutation_tracker.changed_values).freeze
         end
       end
@@ -327,6 +329,14 @@ module ActiveRecord
 
         def clear_changed_attributes_cache
           remove_instance_variable(:@cached_changed_attributes) if defined?(@cached_changed_attributes)
+        end
+
+        def apply_mutations_from_database_to_mutation_tracker
+          return if mutation_tracker.equal?(mutations_from_database)
+          @attributes.each_value do |attribute|
+            next unless attribute.changed?
+            mutation_tracker.attributes.write_from_user(attribute.name, attribute.value)
+          end
         end
     end
   end

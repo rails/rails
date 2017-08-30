@@ -817,6 +817,54 @@ class DirtyTest < ActiveRecord::TestCase
     refute person.changed?
   end
 
+  test "changes with unsaved changes in after save callback" do
+    changes_in_after_save = nil
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        self.comments = "unsaved comments"
+        changes_in_after_save = ActiveSupport::Deprecation.silence { changes }
+      end
+    end
+    person = klass.create!(first_name: "Sean")
+    assert_equal [nil, "Sean"], changes_in_after_save["first_name"]
+    assert_equal [nil, "unsaved comments"], changes_in_after_save["comments"]
+  end
+
+  test "changes with reversed unsaved change in after save callback" do
+    changes_in_after_save = nil
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        self.first_name = nil
+        changes_in_after_save = ActiveSupport::Deprecation.silence { changes }
+      end
+    end
+    person = klass.create!(first_name: "Sean")
+    assert_nil changes_in_after_save["first_name"]
+  end
+
+  test "changes in double save" do
+    double_save_changes = nil
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      after_save do
+        if followers_count == 0
+          self.followers_count = 1
+          save!
+        else
+          double_save_changes = ActiveSupport::Deprecation.silence { changes }
+        end
+      end
+    end
+    person = klass.create!(first_name: "Sean")
+    assert_equal [nil, "Sean"], double_save_changes["first_name"]
+    assert_equal [0, 1], double_save_changes["followers_count"]
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
