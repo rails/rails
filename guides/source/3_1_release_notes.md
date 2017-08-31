@@ -99,7 +99,7 @@ gem 'jquery-rails'
     # config.assets.manifest = YOUR_PATH
 
     # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-    # config.assets.precompile `= %w( search.js )
+    # config.assets.precompile `= %w( admin.js admin.css )
 
 
     # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
@@ -151,7 +151,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - [bundler homepage](http://bundler.io/)
+More information: - [bundler homepage](https://bundler.io/)
 
 ### Living on the Edge
 
@@ -558,4 +558,4 @@ Credits
 
 See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev)

@@ -1,7 +1,19 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeMethods
     module Serialization
       extend ActiveSupport::Concern
+
+      class ColumnNotSerializableError < StandardError
+        def initialize(name, type)
+          super <<-EOS.strip_heredoc
+            Column `#{name}` of type #{type.class} does not support `serialize` feature.
+            Usually it means that you are trying to use `serialize`
+            on a column that already implements serialization natively.
+          EOS
+        end
+      end
 
       module ClassMethods
         # If you have an attribute that needs to be saved to the database as an
@@ -26,7 +38,7 @@ module ActiveRecord
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
-        # * +class_name_or_coder+ - Optional, a coder object, which responds to `.load` / `.dump`
+        # * +class_name_or_coder+ - Optional, a coder object, which responds to +.load+ and +.dump+
         #   or a class name that the object type should be equal to.
         #
         # ==== Example
@@ -50,17 +62,28 @@ module ActiveRecord
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
           coder = if class_name_or_coder == ::JSON
-                    Coders::JSON
-                  elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-                    class_name_or_coder
-                  else
-                    Coders::YAMLColumn.new(class_name_or_coder)
-                  end
+            Coders::JSON
+          elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
+            class_name_or_coder
+          else
+            Coders::YAMLColumn.new(attr_name, class_name_or_coder)
+          end
 
           decorate_attribute_type(attr_name, :serialize) do |type|
+            if type_incompatible_with_serialize?(type, class_name_or_coder)
+              raise ColumnNotSerializableError.new(attr_name, type)
+            end
+
             Type::Serialized.new(type, coder)
           end
         end
+
+        private
+
+          def type_incompatible_with_serialize?(type, class_name)
+            type.is_a?(ActiveRecord::Type::Json) && class_name == ::JSON ||
+              type.respond_to?(:type_cast_array, true) && class_name == ::Array
+          end
       end
     end
   end

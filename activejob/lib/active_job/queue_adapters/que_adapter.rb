@@ -1,4 +1,6 @@
-require 'que'
+# frozen_string_literal: true
+
+require "que"
 
 module ActiveJob
   module QueueAdapters

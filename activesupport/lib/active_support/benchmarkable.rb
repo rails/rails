@@ -1,5 +1,7 @@
-require 'active_support/core_ext/benchmark'
-require 'active_support/core_ext/hash/keys'
+# frozen_string_literal: true
+
+require_relative "core_ext/benchmark"
+require_relative "core_ext/hash/keys"
 
 module ActiveSupport
   module Benchmarkable
@@ -39,7 +41,7 @@ module ActiveSupport
 
         result = nil
         ms = Benchmark.ms { result = options[:silence] ? logger.silence { yield } : yield }
-        logger.send(options[:level], '%s (%.1fms)' % [ message, ms ])
+        logger.send(options[:level], "%s (%.1fms)" % [ message, ms ])
         result
       else
         yield

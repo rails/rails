@@ -1,0 +1,16 @@
+The most common rails commands are:
+ generate     Generate new code (short-cut alias: "g")
+ console      Start the Rails console (short-cut alias: "c")
+ server       Start the Rails server (short-cut alias: "s")
+ test         Run tests except system tests (short-cut alias: "t")
+ test:system  Run system tests
+ dbconsole    Start a console for the database specified in config/database.yml
+              (short-cut alias: "db")
+<% unless engine? %>
+ new          Create a new Rails application. "rails new my_app" creates a
+              new application called MyApp in "./my_app"
+<% end %>
+
+All commands can be run with -h (or --help) for more information.
+In addition to those commands, there are:
+

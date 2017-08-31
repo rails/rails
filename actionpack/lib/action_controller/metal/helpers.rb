@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
@@ -5,7 +7,7 @@ module ActionController
   #
   # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
-  # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
+  # will include all helpers. These helpers are only accessible on the controller through <tt>#helpers</tt>
   #
   # In previous versions of \Rails the controller will include a helper which
   # matches the name of the controller, e.g., <tt>MyController</tt> will automatically
@@ -53,9 +55,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      class_attribute :helpers_path, :include_all_helpers
-      self.helpers_path ||= []
-      self.include_all_helpers = true
+      class_attribute :helpers_path, default: []
+      class_attribute :include_all_helpers, default: true
     end
 
     module ClassMethods
@@ -71,7 +72,7 @@ module ActionController
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
-      # Provides a proxy to access helpers methods from outside the view.
+      # Provides a proxy to access helper methods from outside the view.
       def helpers
         @helper_proxy ||= begin
           proxy = ActionView::Base.new
@@ -108,10 +109,15 @@ module ActionController
       end
 
       private
-      # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
-      def all_application_helpers
-        all_helpers_from_path(helpers_path)
-      end
+        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
+        def all_application_helpers
+          all_helpers_from_path(helpers_path)
+        end
+    end
+
+    # Provides a proxy to access helper methods from outside the view.
+    def helpers
+      @_helper_proxy ||= view_context
     end
   end
 end

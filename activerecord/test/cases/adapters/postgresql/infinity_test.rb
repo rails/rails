@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
@@ -15,7 +17,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    @connection.drop_table 'postgresql_infinities', if_exists: true
+    @connection.drop_table "postgresql_infinities", if_exists: true
   end
 
   test "type casting infinity on a float column" do
@@ -25,12 +27,12 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "type casting string on a float column" do
-    record = PostgresqlInfinity.new(float: 'Infinity')
+    record = PostgresqlInfinity.new(float: "Infinity")
     assert_equal Float::INFINITY, record.float
-    record = PostgresqlInfinity.new(float: '-Infinity')
+    record = PostgresqlInfinity.new(float: "-Infinity")
     assert_equal(-Float::INFINITY, record.float)
-    record = PostgresqlInfinity.new(float: 'NaN')
-    assert_send [record.float, :nan?]
+    record = PostgresqlInfinity.new(float: "NaN")
+    assert record.float.nan?, "Expected #{record.float} to be NaN"
   end
 
   test "update_all with infinity on a float column" do

@@ -1,31 +1,29 @@
-require 'ostruct'
+# frozen_string_literal: true
+
+require "ostruct"
 
 class TestServer
   include ActionCable::Server::Connections
+  include ActionCable::Server::Broadcasting
 
-  attr_reader :logger, :config
+  attr_reader :logger, :config, :mutex
 
-  def initialize
+  def initialize(subscription_adapter: SuccessAdapter)
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
-    @config = OpenStruct.new(log_tags: [], subscription_adapter: SuccessAdapter)
-    @config.use_faye = ENV['FAYE'].present?
-    @config.client_socket_class = if @config.use_faye
-                                    ActionCable::Connection::FayeClientSocket
-                                  else
-                                    ActionCable::Connection::ClientSocket
-                                  end
+
+    @config = OpenStruct.new(log_tags: [], subscription_adapter: subscription_adapter)
+
+    @mutex = Monitor.new
   end
 
   def pubsub
-    @config.subscription_adapter.new(self)
+    @pubsub ||= @config.subscription_adapter.new(self)
   end
 
   def event_loop
-    @event_loop ||= if @config.use_faye
-                      ActionCable::Connection::FayeEventLoop.new
-                    else
-                      ActionCable::Connection::StreamEventLoop.new
-                    end
+    @event_loop ||= ActionCable::Connection::StreamEventLoop.new.tap do |loop|
+      loop.instance_variable_set(:@executor, Concurrent.global_io_executor)
+    end
   end
 
   def worker_pool

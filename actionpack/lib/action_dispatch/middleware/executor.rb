@@ -1,4 +1,6 @@
-require 'rack/body_proxy'
+# frozen_string_literal: true
+
+require "rack/body_proxy"
 
 module ActionDispatch
   class Executor

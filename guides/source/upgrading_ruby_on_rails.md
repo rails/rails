@@ -22,10 +22,10 @@ When changing Rails versions, it's best to move slowly, one minor version at a t
 
 The process should go as follows:
 
-1. Write tests and make sure they pass
-2. Move to the latest patch version after your current version
-3. Fix tests and deprecated features
-4. Move to the latest patch version of the next minor version
+1. Write tests and make sure they pass.
+2. Move to the latest patch version after your current version.
+3. Fix tests and deprecated features.
+4. Move to the latest patch version of the next minor version.
 
 Repeat this process until you reach your target Rails version. Each time you move versions, you will need to change the Rails version number in the Gemfile (and possibly other gem versions) and run `bundle update`. Then run the Update task mentioned below to update configuration files, then run your tests.
 
@@ -42,9 +42,9 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
-### The Task
+### The Update Task
 
-Rails provides the `app:update` task. After updating the Rails version
+Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
 in the Gemfile, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
@@ -65,16 +65,54 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.0 to Rails 5.1
+-------------------------------------
+
+For more information on changes made to Rails 5.1 please see the [release notes](5_1_release_notes.html).
+
+### Top-level `HashWithIndifferentAccess` is soft-deprecated
+
+If your application uses the the top-level `HashWithIndifferentAccess` class, you
+should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
+
+It is only soft-deprecated, which means that your code will not break at the
+moment and no deprecation warning will be displayed, but this constant will be
+removed in the future.
+
+Also, if you have pretty old YAML documents containing dumps of such objects,
+you may need to load and dump them again to make sure that they reference
+the right constant, and that loading them won't break in the future.
+
+### `application.secrets` now loaded with all keys as symbols
+
+If your application stores nested configuration in `config/secrets.yml`, all keys
+are now loaded as symbols, so access using strings should be changed.
+
+From:
+
+```ruby
+Rails.application.secrets[:smtp_settings]["address"]
+```
+
+To:
+
+```ruby
+Rails.application.secrets[:smtp_settings][:address]
+```
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
-### Ruby 2.2.2+
+For more information on changes made to Rails 5.0 please see the [release notes](5_0_release_notes.html).
 
-ToDo...
+### Ruby 2.2.2+ required
 
-### Active Record models now inherit from ApplicationRecord by default
+From Ruby on Rails 5.0 onwards, Ruby 2.2.2+ is the only supported Ruby version.
+Make sure you are on Ruby 2.2.2 version or greater, before you proceed.
 
-In Rails 4.2 an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
+### Active Record Models Now Inherit from ApplicationRecord by Default
+
+In Rails 4.2, an Active Record model inherits from `ActiveRecord::Base`. In Rails 5.0,
 all models inherit from `ApplicationRecord`.
 
 `ApplicationRecord` is a new superclass for all app models, analogous to app
@@ -82,7 +120,7 @@ controllers subclassing `ApplicationController` instead of
 `ActionController::Base`. This gives apps a single spot to configure app-wide
 model behavior.
 
-When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_record.rb` file in `app/models/` and add the following content:
 
 ```
@@ -91,7 +129,9 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-### Halting callback chains via `throw(:abort)`
+Then make sure that all your models inherit from it.
+
+### Halting Callback Chains via `throw(:abort)`
 
 In Rails 4.2, when a 'before' callback returns `false` in Active Record
 and Active Model, then the entire callback chain is halted. In other words,
@@ -116,12 +156,12 @@ halted the chain when any value was returned.
 
 See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
-### ActiveJob jobs now inherit from ApplicationJob by default
+### ActiveJob Now Inherits from ApplicationJob by Default
 
-In Rails 4.2 an ActiveJob inherits from `ActiveJob::Base`. In Rails 5.0 this
+In Rails 4.2, an Active Job inherits from `ActiveJob::Base`. In Rails 5.0, this
 behavior has changed to now inherit from `ApplicationJob`.
 
-When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+When upgrading from Rails 4.2 to Rails 5.0, you need to create an
 `application_job.rb` file in `app/jobs/` and add the following content:
 
 ```
@@ -132,6 +172,239 @@ end
 Then make sure that all your job classes inherit from it.
 
 See [#19034](https://github.com/rails/rails/pull/19034) for more details.
+
+### Rails Controller Testing
+
+#### Extraction of some helper methods to `rails-controller-testing`
+
+`assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
+continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
+your Gemfile.
+
+If you are using Rspec for testing, please see the extra configuration required in the gem's
+documentation.
+
+#### New behavior when uploading files
+
+If you are using `ActionDispatch::Http::UploadedFile` in your tests to
+upload files, you will need to change to use the similar `Rack::Test::UploadedFile`
+class instead.
+
+See [#26404](https://github.com/rails/rails/issues/26404) for more details.
+
+### Autoloading is Disabled After Booting in the Production Environment
+
+Autoloading is now disabled after booting in the production environment by
+default.
+
+Eager loading the application is part of the boot process, so top-level
+constants are fine and are still autoloaded, no need to require their files.
+
+Constants in deeper places only executed at runtime, like regular method bodies,
+are also fine because the file defining them will have been eager loaded while booting.
+
+For the vast majority of applications this change needs no action. But in the
+very rare event that your application needs autoloading while running in
+production mode, set `Rails.application.config.enable_dependency_loading` to
+true.
+
+### XML Serialization
+
+`ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
+gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
+to your Gemfile.
+
+### Removed Support for Legacy `mysql` Database Adapter
+
+Rails 5 removes support for the legacy `mysql` database adapter. Most users should be able to
+use `mysql2` instead. It will be converted to a separate gem when we find someone to maintain
+it.
+
+### Removed Support for Debugger
+
+`debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
+
+### Use bin/rails for running tasks and tests
+
+Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
+these changes are in parallel with rake, but some were ported over altogether.
+
+To use the new test runner simply type `bin/rails test`.
+
+`rake dev:cache` is now `rails dev:cache`.
+
+Run `bin/rails` to see the list of commands available.
+
+### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
+
+Calling `params` in your application will now return an object instead of a hash. If your
+parameters are already permitted, then you will not need to make any changes. If you are using `map`
+and other methods that depend on being able to read the hash regardless of `permitted?` you will
+need to upgrade your application to first permit and then convert to a hash.
+
+    params.permit([:proceed_to, :return_to]).to_h
+
+### `protect_from_forgery` Now Defaults to `prepend: false`
+
+`protect_from_forgery` defaults to `prepend: false` which means that it will be inserted into
+the callback chain at the point in which you call it in your application. If you want
+`protect_from_forgery` to always run first, then you should change your application to use
+`protect_from_forgery prepend: true`.
+
+### Default Template Handler is Now RAW
+
+Files without a template handler in their extension will be rendered using the raw handler.
+Previously Rails would render files using the ERB template handler.
+
+If you do not want your file to be handled via the raw handler, you should add an extension
+to your file that can be parsed by the appropriate template handler.
+
+### Added Wildcard Matching for Template Dependencies
+
+You can now use wildcard matching for your template dependencies. For example, if you were
+defining your templates as such:
+
+```erb
+<% # Template Dependency: recordings/threads/events/subscribers_changed %>
+<% # Template Dependency: recordings/threads/events/completed %>
+<% # Template Dependency: recordings/threads/events/uncompleted %>
+```
+
+You can now just call the dependency once with a wildcard.
+
+```erb
+<% # Template Dependency: recordings/threads/events/* %>
+```
+
+### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
+
+`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your Gemfile:
+
+```ruby
+gem 'record_tag_helper', '~> 1.0'
+```
+
+See [#18411](https://github.com/rails/rails/pull/18411) for more details.
+
+### Removed Support for `protected_attributes` Gem
+
+The `protected_attributes` gem is no longer supported in Rails 5.
+
+### Removed support for `activerecord-deprecated_finders` gem
+
+The `activerecord-deprecated_finders` gem is no longer supported in Rails 5.
+
+### `ActiveSupport::TestCase` Default Test Order is Now Random
+
+When tests are run in your application, the default order is now `:random`
+instead of `:sorted`. Use the following config option to set it back to `:sorted`.
+
+```ruby
+# config/environments/test.rb
+Rails.application.configure do
+  config.active_support.test_order = :sorted
+end
+```
+
+### `ActionController::Live` became a `Concern`
+
+If you include `ActionController::Live` in another module that is included in your controller, then you
+should also extend the module with `ActiveSupport::Concern`. Alternatively, you can use the `self.included` hook
+to include `ActionController::Live` directly to the controller once the `StreamingSupport` is included.
+
+This means that if your application used to have its own streaming module, the following code
+would break in production mode:
+
+```ruby
+# This is a work-around for streamed controllers performing authentication with Warden/Devise.
+# See https://github.com/plataformatec/devise/issues/2332
+# Authenticating in the router is another solution as suggested in that issue
+class StreamingSupport
+  include ActionController::Live # this won't work in production for Rails 5
+  # extend ActiveSupport::Concern # unless you uncomment this line.
+
+  def process(name)
+    super(name)
+  rescue ArgumentError => e
+    if e.message == 'uncaught throw :warden'
+      throw :warden
+    else
+      raise e
+    end
+  end
+end
+```
+
+### New Framework Defaults
+
+#### Active Record `belongs_to` Required by Default Option
+
+`belongs_to` will now trigger a validation error by default if the association is not present.
+
+This can be turned off per-association with `optional: true`.
+
+This default will be automatically configured in new applications. If existing application
+want to add this feature it will need to be turned on in an initializer.
+
+    config.active_record.belongs_to_required_by_default = true
+
+#### Per-form CSRF Tokens
+
+Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
+created by JavaScript. With this option turned on, forms in your application will each have their
+own CSRF token that is specified to the action and method for that form.
+
+    config.action_controller.per_form_csrf_tokens = true
+
+#### Forgery Protection with Origin Check
+
+You can now configure your application to check if the HTTP `Origin` header should be checked
+against the site's origin as an additional CSRF defense. Set the following in your config to
+true:
+
+    config.action_controller.forgery_protection_origin_check = true
+
+#### Allow Configuration of Action Mailer Queue Name
+
+The default mailer queue name is `mailers`. This configuration option allows you to globally change
+the queue name. Set the following in your config:
+
+    config.action_mailer.deliver_later_queue_name = :new_queue_name
+
+#### Support Fragment Caching in Action Mailer Views
+
+Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
+should support caching.
+
+    config.action_mailer.perform_caching = true
+
+#### Configure the Output of `db:structure:dump`
+
+If you're using `schema_search_path` or other PostgreSQL extensions, you can control how the schema is
+dumped. Set to `:all` to generate all dumps, or to `:schema_search_path` to generate from schema search path.
+
+    config.active_record.dump_schemas = :all
+
+#### Configure SSL Options to Enable HSTS with Subdomains
+
+Set the following in your config to enable HSTS when using subdomains:
+
+    config.ssl_options = { hsts: { subdomains: true } }
+
+#### Preserve Timezone of the Receiver
+
+When using Ruby 2.4, you can preserve the timezone of the receiver when calling `to_time`.
+
+    ActiveSupport.to_time_preserves_timezone = false
+
+### Changes with JSON/JSONB serialization
+
+In Rails 5.0, how JSON/JSONB attributes are serialized and deserialized changed. Now, if
+you set a column equal to a `String`, Active Record will no longer turn that string
+into a `Hash`, and will instead only return the string. This is not limited to code
+interacting with models, but also affects `:default` column settings in `db/schema.rb`.
+It is recommended that you do not set columns equal to a `String`, but pass a `Hash`
+instead, which will be converted to and from a JSON string automatically.
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
@@ -417,7 +690,7 @@ secrets, you need to:
 
 3. Remove the `secret_token.rb` initializer.
 
-4. Use `rails secret` to generate new keys for the `development` and `test` sections.
+4. Use `rake secret` to generate new keys for the `development` and `test` sections.
 
 5. Restart your server.
 
@@ -494,7 +767,7 @@ There are a few major changes related to JSON handling in Rails 4.1.
 MultiJSON has reached its [end-of-life](https://github.com/rails/rails/pull/10576)
 and has been removed from Rails.
 
-If your application currently depend on MultiJSON directly, you have a few options:
+If your application currently depends on MultiJSON directly, you have a few options:
 
 1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
 
@@ -833,7 +1106,7 @@ on the Rails blog.
 
 The errata for the `PATCH` verb [specifies that a 'diff' media type should be
 used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
-such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```
@@ -880,7 +1153,7 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 
 * Rails 4.0 has removed the identity map from Active Record, due to [some inconsistencies with associations](https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6). If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: `config.active_record.identity_map`.
 
-* The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
+* The `delete` method in collection associations can now receive `Integer` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
 
 * In Rails 4.0 when a column or a table is renamed the related indexes are also renamed. If you have migrations which rename the indexes, they are no longer needed.
 
@@ -978,7 +1251,7 @@ Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for d
 
 * Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use `ActionController::Base.default_static_extension` instead.
 
-* Rails 4.0 has removed Action and Page caching from Action Pack. You will need to add the `actionpack-action_caching` gem in order to use `caches_action` and the `actionpack-page_caching` to use `caches_pages` in your controllers.
+* Rails 4.0 has removed Action and Page caching from Action Pack. You will need to add the `actionpack-action_caching` gem in order to use `caches_action` and the `actionpack-page_caching` to use `caches_page` in your controllers.
 
 * Rails 4.0 has removed the XML parameters parser. You will need to add the `actionpack-xml_parser` gem if you require this feature.
 
@@ -1037,7 +1310,7 @@ get 'こんにちは', controller: 'welcome', action: 'index'
   get '/' => 'root#index'
 ```
 
-* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
 Remember you must also remove any references to the middleware from your application code, for example:
 
@@ -1068,6 +1341,10 @@ Also check your environment settings for `config.action_dispatch.best_standards_
 ### Active Support
 
 Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
+
+#### Cache
+
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](http://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 
@@ -1217,7 +1494,7 @@ config.assets.digest = true
 # config.assets.manifest = YOUR_PATH
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+# config.assets.precompile += %w( admin.js admin.css )
 
 # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
 # config.force_ssl = true

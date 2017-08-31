@@ -1,10 +1,9 @@
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/file_update_checker'
-require 'rails/engine/configuration'
-require 'rails/source_annotation_extractor'
+# frozen_string_literal: true
 
-require 'active_support/deprecation'
-require 'active_support/core_ext/string/strip' # for strip_heredoc
+require "active_support/core_ext/kernel/reporting"
+require "active_support/file_update_checker"
+require_relative "../engine/configuration"
+require_relative "../source_annotation_extractor"
 
 module Rails
   class Application
@@ -16,14 +15,14 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :read_encrypted_secrets, :log_level
 
-      attr_writer :log_level
-      attr_reader :encoding, :api_only, :static_cache_control
+      attr_reader :encoding, :api_only
 
       def initialize(*)
         super
-        self.encoding = "utf-8"
+        self.encoding                    = Encoding::UTF_8
         @allow_concurrency               = nil
         @consider_all_requests_local     = false
         @filter_parameters               = []
@@ -34,11 +33,10 @@ module Rails
         @public_file_server.index_name   = "index"
         @force_ssl                       = false
         @ssl_options                     = {}
-        @session_store                   = :cookie_store
-        @session_options                 = {}
+        @session_store                   = nil
         @time_zone                       = "UTC"
         @beginning_of_week               = :monday
-        @log_level                       = nil
+        @log_level                       = :debug
         @generators                      = app_generators
         @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                  = [:all]
@@ -54,35 +52,63 @@ module Rails
         @api_only                        = false
         @debug_exception_response_format = nil
         @x                               = Custom.new
+        @enable_dependency_loading       = false
+        @read_encrypted_secrets          = false
       end
 
-      def static_cache_control=(value)
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `static_cache_control` is deprecated and will be removed in Rails 5.1.
-          Please use
-          `config.public_file_server.headers = { 'Cache-Control' => '#{value}' }`
-          instead.
-        eow
+      def load_defaults(target_version)
+        case target_version.to_s
+        when "5.0"
+          if respond_to?(:action_controller)
+            action_controller.per_form_csrf_tokens = true
+            action_controller.forgery_protection_origin_check = true
+          end
 
-        @static_cache_control = value
-      end
+          ActiveSupport.to_time_preserves_timezone = true
 
-      def serve_static_files
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled` instead.
-        eow
+          if respond_to?(:active_record)
+            active_record.belongs_to_required_by_default = true
+          end
 
-        @public_file_server.enabled
-      end
+          self.ssl_options = { hsts: { subdomains: true } }
 
-      def serve_static_files=(value)
-        ActiveSupport::Deprecation.warn <<-eow.strip_heredoc
-          `serve_static_files` is deprecated and will be removed in Rails 5.1.
-          Please use `public_file_server.enabled = #{value}` instead.
-        eow
+        when "5.1"
+          load_defaults "5.0"
 
-        @public_file_server.enabled = value
+          if respond_to?(:assets)
+            assets.unknown_asset_fallback = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = true
+          end
+
+        when "5.2"
+          load_defaults "5.1"
+
+          if respond_to?(:active_record)
+            active_record.cache_versioning = true
+            # Remove the temporary load hook from SQLite3Adapter when this is removed
+            ActiveSupport.on_load(:active_record_sqlite3adapter) do
+              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+            end
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_authenticated_cookie_encryption = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.use_authenticated_message_encryption = true
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.default_protect_from_forgery = true
+          end
+
+        else
+          raise "Unknown version #{target_version.to_s.inspect}"
+        end
       end
 
       def encoding=(value)
@@ -112,7 +138,7 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config/secrets.yml"
+          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
@@ -125,7 +151,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in `config/database.yml`.
+      # values stored in <tt>config/database.yml</tt>.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
@@ -133,8 +159,15 @@ module Rails
         config = if yaml && yaml.exist?
           require "yaml"
           require "erb"
-          YAML.load(ERB.new(yaml.read).result) || {}
-        elsif ENV['DATABASE_URL']
+          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
+          shared = loaded_yaml.delete("shared")
+          if shared
+            loaded_yaml.each do |_k, values|
+              values.reverse_merge!(shared)
+            end
+          end
+          Hash.new(shared).merge(loaded_yaml)
+        elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
@@ -151,40 +184,44 @@ module Rails
         raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
       end
 
-      def log_level
-        @log_level ||= (Rails.env.production? ? :info : :debug)
-      end
-
       def colorize_logging
         ActiveSupport::LogSubscriber.colorize_logging
       end
 
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
-        self.generators.colorize_logging = val
+        generators.colorize_logging = val
       end
 
-      def session_store(*args)
-        if args.empty?
-          case @session_store
-          when :disabled
-            nil
-          when :active_record_store
+      def session_store(new_session_store = nil, **options)
+        if new_session_store
+          if new_session_store == :active_record_store
             begin
               ActionDispatch::Session::ActiveRecordStore
             rescue NameError
               raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
                 "Please add `activerecord-session_store` to your Gemfile to use it."
             end
+          end
+
+          @session_store = new_session_store
+          @session_options = options || {}
+        else
+          case @session_store
+          when :disabled
+            nil
+          when :active_record_store
+            ActionDispatch::Session::ActiveRecordStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else
             @session_store
           end
-        else
-          @session_store = args.shift
-          @session_options = args.shift || {}
         end
+      end
+
+      def session_store? #:nodoc:
+        @session_store
       end
 
       def annotations
@@ -204,6 +241,10 @@ module Rails
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
           end
+        end
+
+        def respond_to_missing?(symbol, *)
+          true
         end
       end
     end

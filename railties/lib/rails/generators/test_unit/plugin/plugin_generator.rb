@@ -1,4 +1,6 @@
-require 'rails/generators/test_unit'
+# frozen_string_literal: true
+
+require_relative "../../test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -6,7 +8,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "Test"
 
       def create_test_files
-        directory '.', 'test'
+        directory ".", "test"
       end
     end
   end

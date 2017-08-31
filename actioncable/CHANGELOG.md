@@ -1,52 +1,26 @@
-*   Allow channel identifiers with no backslahes/escaping to be accepted
-    by the subscription storer.
+*   Hash long stream identifiers when using PostgreSQL adapter.
 
-    *Jon Moss*
+    PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
+    Provided fix minifies identifiers longer than 63 chars by hashing them with SHA1.
 
-*   Safely support autoloading and class unloading, by preventing concurrent
-    loads, and disconnecting all cables during reload.
+    Fixes #28751.
 
-    *Matthew Draper*
+    *Vladimir Dementyev*
 
-*   Ensure ActionCable behaves correctly for non-string queue names.
+*   Action Cable's `redis` adapter allows for other common redis-rb options (`host`, `port`, `db`, `password`) in cable.yml.
 
-    *Jay Hayes*
+    Previously, it accepts only a [redis:// url](https://www.iana.org/assignments/uri-schemes/prov/redis) as an option.
+    While we can add all of these options to the `url` itself, it is not explicitly documented. This alternative setup
+    is shown as the first example in the [Redis rubygem](https://github.com/redis/redis-rb#getting-started), which
+    makes this set of options as sensible as using just the `url`.
 
-## Rails 5.0.0.beta3 (February 24, 2016) ##
+    *Marc Rendl Ignacio*
 
-*   Added `em_redis_connector` and `redis_connector` to
-   `ActionCable::SubscriptionAdapter::EventedRedis` and added `redis_connector`
-    to `ActionCable::SubscriptionAdapter::Redis`, so you can overwrite with your
-    own initializers. This is used when you want to use different-than-standard
-    Redis adapters, like for Makara distributed Redis.
+*   Action Cable socket errors are now logged to the console
 
-    *DHH*
+    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
 
-## Rails 5.0.0.beta2 (February 01, 2016) ##
+    *Edward Poot*
 
-*   Support PostgreSQL pubsub adapter.
 
-    *Jon Moss*
-
-*   Remove EventMachine dependency.
-
-    *Matthew Draper*
-
-*   Remove Celluloid dependency.
-
-    *Mike Perham*
-
-*   Create notion of an `ActionCable::SubscriptionAdapter`.
-    Separate out Redis functionality into
-    `ActionCable::SubscriptionAdapter::Redis`, and add a
-    PostgreSQL adapter as well. Configuration file for
-    ActionCable was changed from`config/redis/cable.yml` to
-    `config/cable.yml`.
-
-    *Jon Moss*
-
-## Rails 5.0.0.beta1 (December 18, 2015) ##
-
-*   Added to Rails!
-
-    *DHH*
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.

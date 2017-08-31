@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has Many Association
   module Associations
+    # = Active Record Has Many Association
     # This is the proxy that handles a has many association.
     #
     # If the association has a <tt>:through</tt> option further specialization
@@ -16,37 +18,22 @@ module ActiveRecord
         when :restrict_with_error
           unless empty?
             record = owner.class.human_attribute_name(reflection.name).downcase
-            message = owner.errors.generate_message(:base, :'restrict_dependent_destroy.many', record: record, raise: true) rescue nil
-            if message
-              ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-                The error key `:'restrict_dependent_destroy.many'` has been deprecated and will be removed in Rails 5.1.
-                Please use `:'restrict_dependent_destroy.has_many'` instead.
-              MESSAGE
-            end
-            owner.errors.add(:base, message || :'restrict_dependent_destroy.has_many', record: record)
+            owner.errors.add(:base, :'restrict_dependent_destroy.has_many', record: record)
             throw(:abort)
           end
 
+        when :destroy
+          # No point in executing the counter update since we're going to destroy the parent anyway
+          load_target.each { |t| t.destroyed_by_association = reflection }
+          destroy_all
         else
-          if options[:dependent] == :destroy
-            # No point in executing the counter update since we're going to destroy the parent anyway
-            load_target.each { |t| t.destroyed_by_association = reflection }
-            destroy_all
-          else
-            delete_all
-          end
+          delete_all
         end
       end
 
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-        set_inverse_instance(record)
-
-        if raise
-          record.save!(:validate => validate)
-        else
-          record.save(:validate => validate)
-        end
+        super
       end
 
       def empty?
@@ -74,7 +61,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if reflection.has_cached_counter?
-            owner._read_attribute reflection.counter_cache_column
+            owner._read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count
           end
@@ -82,7 +69,7 @@ module ActiveRecord
           # If there's nothing in the database and @target has no new records
           # we are certain the current target is an empty array. This is a
           # documented side-effect of the method that may avoid an extra SELECT.
-          @target ||= [] and loaded! if count == 0
+          (@target ||= []) && loaded! if count == 0
 
           [association_scope.limit_value, count].compact.min
         end
@@ -110,7 +97,7 @@ module ActiveRecord
         end
 
         def delete_or_nullify_all_records(method)
-          count = delete_count(method, self.scope)
+          count = delete_count(method, scope)
           update_counter(-count)
         end
 

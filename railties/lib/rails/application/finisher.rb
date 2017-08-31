@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Application
     module Finisher
@@ -21,12 +23,23 @@ module Rails
 
       initializer :add_builtin_route do |app|
         if Rails.env.development?
-          app.routes.append do
-            get '/rails/info/properties' => "rails/info#properties", internal: true
-            get '/rails/info/routes'     => "rails/info#routes", internal: true
-            get '/rails/info'            => "rails/info#index", internal: true
-            get '/'                      => "rails/welcome#index", internal: true
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes", internal: true
+            get "/rails/info"            => "rails/info#index", internal: true
           end
+
+          app.routes.append do
+            get "/"                      => "rails/welcome#index", internal: true
+          end
+        end
+      end
+
+      # Setup default session store if not already set in config/application.rb
+      initializer :setup_default_session_store, before: :build_middleware_stack do |app|
+        unless app.config.session_store?
+          app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
+          app.config.session_store :cookie_store, key: "_#{app_name}_session"
         end
       end
 
@@ -62,22 +75,40 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
+      class MutexHook
+        def initialize(mutex = Mutex.new)
+          @mutex = mutex
+        end
+
+        def run
+          @mutex.lock
+        end
+
+        def complete(_state)
+          @mutex.unlock
+        end
+      end
+
+      module InterlockHook
+        def self.run
+          ActiveSupport::Dependencies.interlock.start_running
+        end
+
+        def self.complete(_state)
+          ActiveSupport::Dependencies.interlock.done_running
+        end
+      end
+
       initializer :configure_executor_for_concurrency do |app|
         if config.allow_concurrency == false
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe
 
-          mutex = Mutex.new
-          app.executor.to_run(prepend: true) do
-            mutex.lock
-          end
-          app.executor.to_complete(:after) do
-            mutex.unlock
-          end
+          app.executor.register_hook(MutexHook.new, outer: true)
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
-          # historical behaviour for true.
+          # historical behavior for true.
 
         else
           # Default concurrency setting: enabled, but safe
@@ -86,12 +117,7 @@ module Rails
             # Without cache_classes + eager_load, the load interlock
             # is required for proper operation
 
-            app.executor.to_run(prepend: true) do
-              ActiveSupport::Dependencies.interlock.start_running
-            end
-            app.executor.to_complete(:after) do
-              ActiveSupport::Dependencies.interlock.done_running
-            end
+            app.executor.register_hook(InterlockHook, outer: true)
           end
         end
       end
@@ -100,8 +126,9 @@ module Rails
       # the hook are taken into account.
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
+        reloader.eager_load = app.config.eager_load
         reloader.execute_if_updated
-        self.reloaders << reloader
+        reloaders << reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -137,7 +164,7 @@ module Rails
 
         if config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
-          self.reloaders << reloader
+          reloaders << reloader
 
           # Prepend this callback to have autoloaded constants cleared before
           # any other possible reloading, in case they need to autoload fresh
@@ -160,7 +187,7 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.eager_load && config.cache_classes
+        if config.eager_load && config.cache_classes && !config.enable_dependency_loading
           ActiveSupport::Dependencies.unhook!
         end
       end

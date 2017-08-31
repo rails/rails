@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActionView #:nodoc:
   # = Action View HTML Template
-  class Template
+  class Template #:nodoc:
     class HTML #:nodoc:
       attr_accessor :type
 
@@ -11,12 +13,10 @@ module ActionView #:nodoc:
       end
 
       def identifier
-        'html template'
+        "html template"
       end
 
-      def inspect
-        'html template'
-      end
+      alias_method :inspect, :identifier
 
       def to_str
         ERB::Util.h(@string)

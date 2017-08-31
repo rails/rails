@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/core_ext/name_error'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/core_ext/name_error"
 
 class NameErrorTest < ActiveSupport::TestCase
   def test_name_error_should_set_missing_name

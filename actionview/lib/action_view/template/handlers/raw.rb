@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ActionView
   module Template::Handlers
     class Raw
       def call(template)
-        "#{template.source.inspect};"
+        "#{template.source.inspect}.html_safe;"
       end
     end
   end

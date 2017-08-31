@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     # PostgreSQL-specific extensions to column definitions in a table.
@@ -8,7 +10,6 @@ module ActiveRecord
       def serial?
         return unless default_function
 
-        table_name = @table_name || '(?<table_name>.+)'
         %r{\Anextval\('"?#{table_name}_#{name}_seq"?'::regclass\)\z} === default_function
       end
     end

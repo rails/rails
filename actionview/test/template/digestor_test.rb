@@ -1,6 +1,8 @@
-require 'abstract_unit'
-require 'fileutils'
-require 'action_view/dependency_tracker'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "fileutils"
+require "action_view/dependency_tracker"
 
 class FixtureTemplate
   attr_reader :source, :handler
@@ -14,10 +16,17 @@ class FixtureTemplate
 end
 
 class FixtureFinder < ActionView::LookupContext
-  FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
+  FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
 
   def initialize(details = {})
-    super(ActionView::PathSet.new(['digestor']), details, [])
+    super(ActionView::PathSet.new(["digestor", "digestor/api"]), details, [])
+    @rendered_format = :html
+  end
+end
+
+class ActionView::Digestor::Node
+  def flatten
+    [self] + children.flat_map(&:flatten)
   end
 end
 
@@ -61,25 +70,21 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_explicit_dependency_wildcard_picks_up_added_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-
-    assert_digest_difference("events/index") do
-      add_template("events/_uncompleted")
+    disable_resolver_caching do
+      assert_digest_difference("events/index") do
+        add_template("events/_uncompleted")
+      end
     end
-  ensure
-    remove_template("events/_uncompleted")
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_explicit_dependency_wildcard_picks_up_removed_file
-    old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
-    add_template("events/_subscribers_changed")
+    disable_resolver_caching do
+      add_template("events/_subscribers_changed")
 
-    assert_digest_difference("events/index") do
-      remove_template("events/_subscribers_changed")
+      assert_digest_difference("events/index") do
+        remove_template("events/_subscribers_changed")
+      end
     end
-  ensure
-    ActionView::Resolver.caching = old_caching
   end
 
   def test_second_level_dependency
@@ -119,25 +124,25 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template_for_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       dependencies("messages/something_missing")
     end
   end
 
   def test_logging_of_missing_template_for_nested_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       nested_dependencies("messages/something_missing")
     end
   end
 
   def test_getting_of_singly_nested_dependencies
     singly_nested_dependencies = ["messages/header", "messages/form", "messages/message", "events/event", "comments/comment"]
-    assert_equal singly_nested_dependencies, nested_dependencies('messages/edit')
+    assert_equal singly_nested_dependencies, nested_dependencies("messages/edit")
   end
 
   def test_getting_of_doubly_nested_dependencies
-    doubly_nested = [{"comments/comments"=>["comments/comment"]}, "messages/message"]
-    assert_equal doubly_nested, nested_dependencies('messages/peek')
+    doubly_nested = [{ "comments/comments" => ["comments/comment"] }, "messages/message"]
+    assert_equal doubly_nested, nested_dependencies("messages/peek")
   end
 
   def test_nested_template_directory
@@ -147,8 +152,23 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_nested_template_deps
-    nested_deps = ["messages/header", {"comments/comments"=>["comments/comment"]}, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
+    nested_deps = ["messages/header", { "comments/comments" => ["comments/comment"] }, "messages/actions/move", "events/event", "messages/something_missing", "messages/something_missing_1", "messages/message", "messages/form"]
     assert_equal nested_deps, nested_dependencies("messages/show")
+  end
+
+  def test_nested_template_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    nested_deps = [{ "comments/comments" => ["comments/comment"] }]
+    assert_equal nested_deps, nested_dependencies("messages/thread")
+  end
+
+  def test_template_formats_of_nested_deps_with_non_default_rendered_format
+    finder.rendered_format = nil
+    assert_equal [:json], tree_template_formats("messages/thread").uniq
+  end
+
+  def test_template_formats_of_dependencies_with_same_logical_name_and_different_rendered_format
+    assert_equal [:html], tree_template_formats("messages/show").uniq
   end
 
   def test_recursion_in_renders
@@ -177,7 +197,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_dont_generate_a_digest_for_missing_templates
-    assert_equal '', digest("nothing/there")
+    assert_equal "", digest("nothing/there")
   end
 
   def test_collection_dependency
@@ -198,7 +218,7 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_details_are_included_in_cache_key
     # Cache the template digest.
-    @finder = FixtureFinder.new({:formats => [:html]})
+    @finder = FixtureFinder.new(formats: [:html])
     old_digest = digest("events/_event")
 
     # Change the template; the cached digest remains unchanged.
@@ -262,6 +282,13 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_phone, digest_fridge_phone
   end
 
+  def test_different_formats_with_same_logical_template_names_results_in_different_digests
+    html_digest = digest("comments/_comment", format: :html)
+    json_digest = digest("comments/_comment", format: :json)
+
+    assert_not_equal html_digest, json_digest
+  end
+
   def test_digest_cache_cleanup_with_recursion
     first_digest = digest("level/_recursion")
     second_digest = digest("level/_recursion")
@@ -273,20 +300,16 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_digest_cache_cleanup_with_recursion_and_template_caching_off
-    resolver_before = ActionView::Resolver.caching
-    ActionView::Resolver.caching = false
+    disable_resolver_caching do
+      first_digest = digest("level/_recursion")
+      second_digest = digest("level/_recursion")
 
-    first_digest = digest("level/_recursion")
-    second_digest = digest("level/_recursion")
+      assert first_digest
 
-    assert first_digest
-
-    # If the cache is cleaned up correctly, subsequent digests should return the same
-    assert_equal first_digest, second_digest
-  ensure
-    ActionView::Resolver.caching = resolver_before
+      # If the cache is cleaned up correctly, subsequent digests should return the same
+      assert_equal first_digest, second_digest
+    end
   end
-
 
   private
     def assert_logged(message)
@@ -316,8 +339,11 @@ class TemplateDigestorTest < ActionView::TestCase
 
     def digest(template_name, options = {})
       options = options.dup
+      finder_options = options.extract!(:variants, :format)
 
-      finder.variants = options.delete(:variants) || []
+      finder.variants = finder_options[:variants] || []
+      finder.rendered_format = finder_options[:format] if finder_options[:format]
+
       ActionView::Digestor.digest(name: template_name, finder: finder, dependencies: (options[:dependencies] || []))
     end
 
@@ -329,6 +355,18 @@ class TemplateDigestorTest < ActionView::TestCase
     def nested_dependencies(template_name)
       tree = ActionView::Digestor.tree(template_name, finder)
       tree.children.map(&:to_dep_map)
+    end
+
+    def tree_template_formats(template_name)
+      tree = ActionView::Digestor.tree(template_name, finder)
+      tree.flatten.map(&:template).compact.flat_map(&:formats)
+    end
+
+    def disable_resolver_caching
+      old_caching, ActionView::Resolver.caching = ActionView::Resolver.caching, false
+      yield
+    ensure
+      ActionView::Resolver.caching = old_caching
     end
 
     def finder

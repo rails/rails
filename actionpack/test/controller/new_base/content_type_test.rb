@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module ContentType
   class BaseController < ActionController::Base
@@ -44,7 +46,7 @@ module ContentType
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            get ':controller', :action => 'index'
+            get ":controller", action: "index"
           end
         end
 

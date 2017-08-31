@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Array
   # Returns the tail of the array from +position+.
   #
@@ -31,7 +33,7 @@ class Array
   #
   #   people = ["David", "Rafael", "Aaron", "Todd"]
   #   people.without "Aaron", "Todd"
-  #     => ["David", "Rafael"]
+  #   # => ["David", "Rafael"]
   #
   # Note: This is an optimization of `Enumerable#without` that uses `Array#-`
   # instead of `Array#reject` for performance reasons.

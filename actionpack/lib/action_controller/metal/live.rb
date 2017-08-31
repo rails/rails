@@ -1,9 +1,11 @@
-require 'action_dispatch/http/response'
-require 'delegate'
-require 'active_support/json'
+# frozen_string_literal: true
+
+require "action_dispatch/http/response"
+require "delegate"
+require "active_support/json"
 
 module ActionController
-  # Mix this module in to your controller, and all actions in that controller
+  # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
   #   class MyController < ActionController::Base
@@ -20,7 +22,7 @@ module ActionController
   #     end
   #   end
   #
-  # There are a few caveats with this use. You *cannot* write headers after the
+  # There are a few caveats with this module. You *cannot* write headers after the
   # response has been committed (Response#committed? will return truthy).
   # Calling +write+ or +close+ on the response stream will cause the response
   # object to be committed. Make sure all headers are set before calling write
@@ -84,7 +86,6 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported
     # by Chrome, Firefox, Opera, and Safari.
     class SSE
-
       WHITELISTED_OPTIONS = %w( retry event id )
 
       def initialize(stream, options = {})
@@ -163,14 +164,6 @@ module ActionController
         end
       end
 
-      def each
-        @response.sending!
-        while str = @buf.pop
-          yield str
-        end
-        @response.sent!
-      end
-
       # Write a 'close' event to the buffer; the producer/writing thread
       # uses this to notify us that it's finished supplying content.
       #
@@ -210,23 +203,36 @@ module ActionController
       def call_on_error
         @error_callback.call
       end
+
+      private
+
+        def each_chunk(&block)
+          loop do
+            str = nil
+            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+              str = @buf.pop
+            end
+            break unless str
+            yield str
+          end
+        end
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
       private
 
-      def before_committed
-        super
-        jar = request.cookie_jar
-        # The response can be committed multiple times
-        jar.write self unless committed?
-      end
+        def before_committed
+          super
+          jar = request.cookie_jar
+          # The response can be committed multiple times
+          jar.write self unless committed?
+        end
 
-      def build_buffer(response, body)
-        buf = Live::Buffer.new response
-        body.each { |part| buf.write part }
-        buf
-      end
+        def build_buffer(response, body)
+          buf = Live::Buffer.new response
+          body.each { |part| buf.write part }
+          buf
+        end
     end
 
     def process(name)
@@ -235,15 +241,15 @@ module ActionController
 
       error = nil
       # This processes the action in a child thread. It lets us return the
-      # response code and headers back up the rack stack, and still process
-      # the body in parallel with sending data to the client
+      # response code and headers back up the Rack stack, and still process
+      # the body in parallel with sending data to the client.
       new_controller_thread {
         ActiveSupport::Dependencies.interlock.running do
           t2 = Thread.current
 
           # Since we're processing the view in a different thread, copy the
           # thread locals from the main thread to the child thread. :'(
-          locals.each { |k,v| t2[k] = v }
+          locals.each { |k, v| t2[k] = v }
 
           begin
             super(name)
@@ -274,9 +280,9 @@ module ActionController
       raise error if error
     end
 
-    # Spawn a new thread to serve up the controller in.  This is to get
+    # Spawn a new thread to serve up the controller in. This is to get
     # around the fact that Rack isn't based around IOs and we need to use
-    # a thread to stream data from the response bodies.  Nobody should call
+    # a thread to stream data from the response bodies. Nobody should call
     # this method except in Rails internals. Seriously!
     def new_controller_thread # :nodoc:
       Thread.new {
@@ -291,7 +297,7 @@ module ActionController
       return unless logger
 
       logger.fatal do
-        message = "\n#{exception.class} (#{exception.message}):\n"
+        message = "\n#{exception.class} (#{exception.message}):\n".dup
         message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
         message << "  " << exception.backtrace.join("\n  ")
         "#{message}\n\n"

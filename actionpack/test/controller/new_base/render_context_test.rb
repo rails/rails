@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 # This is testing the decoupling of view renderer and view context
 # by allowing the controller to be used as view context. This is
@@ -18,23 +20,21 @@ module RenderContext
 
     def hello_world
       @value = "Hello"
-      render :action => "hello_world", :layout => false
+      render action: "hello_world", layout: false
     end
 
     def with_layout
       @value = "Hello"
-      render :action => "hello_world", :layout => "basic"
+      render action: "hello_world", layout: "basic"
     end
 
-    protected
+    protected def __controller_method__
+      "controller context!"
+    end
 
     # 3) Set view_context to self
-    def view_context
+    private def view_context
       self
-    end
-
-    def __controller_method__
-      "controller context!"
     end
   end
 

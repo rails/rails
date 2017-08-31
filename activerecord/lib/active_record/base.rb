@@ -1,25 +1,28 @@
-require 'yaml'
-require 'active_support/benchmarkable'
-require 'active_support/dependencies'
-require 'active_support/descendants_tracker'
-require 'active_support/time'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/hash/deep_merge'
-require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/hash/transform_values'
-require 'active_support/core_ext/string/behavior'
-require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/class/subclasses'
-require 'active_record/attribute_decorators'
-require 'active_record/errors'
-require 'active_record/log_subscriber'
-require 'active_record/explain_subscriber'
-require 'active_record/relation/delegation'
-require 'active_record/attributes'
-require 'active_record/type_caster'
+# frozen_string_literal: true
+
+require "yaml"
+require "active_support/benchmarkable"
+require "active_support/dependencies"
+require "active_support/descendants_tracker"
+require "active_support/time"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/hash/deep_merge"
+require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/hash/transform_values"
+require "active_support/core_ext/string/behavior"
+require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/class/subclasses"
+require_relative "attribute_decorators"
+require_relative "define_callbacks"
+require_relative "errors"
+require_relative "log_subscriber"
+require_relative "explain_subscriber"
+require_relative "relation/delegation"
+require_relative "attributes"
+require_relative "type_caster"
 
 module ActiveRecord #:nodoc:
   # = Active Record
@@ -169,7 +172,8 @@ module ActiveRecord #:nodoc:
   # ActiveRecord::RecordNotFound error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
-  # It's also possible to use multiple attributes in the same find by separating them with "_and_".
+  # It's also possible to use multiple attributes in the same <tt>find_by_</tt> by separating them with
+  # "_and_".
   #
   #  Person.find_by(user_name: user_name, password: password)
   #  Person.find_by_user_name_and_password(user_name, password) # with dynamic finder
@@ -302,6 +306,7 @@ module ActiveRecord #:nodoc:
     include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
+    include DefineCallbacks
     include AttributeMethods
     include Callbacks
     include Timestamp
@@ -311,8 +316,8 @@ module ActiveRecord #:nodoc:
     include NestedAttributes
     include Aggregations
     include Transactions
-    include NoTouching
     include TouchLater
+    include NoTouching
     include Reflection
     include Serialization
     include Store

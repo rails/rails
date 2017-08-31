@@ -1,7 +1,9 @@
-require 'securerandom'
-require 'concurrent/scheduled_task'
-require 'concurrent/executor/thread_pool_executor'
-require 'concurrent/utility/processor_counter'
+# frozen_string_literal: true
+
+require "securerandom"
+require "concurrent/scheduled_task"
+require "concurrent/executor/thread_pool_executor"
+require "concurrent/utility/processor_counter"
 
 module ActiveJob
   module QueueAdapters
@@ -29,7 +31,7 @@ module ActiveJob
     # jobs. Since jobs share a single thread pool, long-running jobs will block
     # short-lived jobs. Fine for dev/test; bad for production.
     class AsyncAdapter
-      # See {Concurrent::ThreadPoolExecutor}[http://ruby-concurrency.github.io/concurrent-ruby/Concurrent/ThreadPoolExecutor.html] for executor options.
+      # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/Concurrent/ThreadPoolExecutor.html] for executor options.
       def initialize(**executor_options)
         @scheduler = Scheduler.new(**executor_options)
       end

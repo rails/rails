@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 # -*- frozen-string-literal: true -*-
 
-require 'singleton'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/string/starts_ends_with'
+require "singleton"
+require "active_support/core_ext/string/starts_ends_with"
 
 module Mime
   class Mimes
@@ -45,35 +46,9 @@ module Mime
       return type if type.is_a?(Type)
       EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
     end
-
-    def const_missing(sym)
-      ext = sym.downcase
-      if Mime[ext]
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Accessing mime types via constants is deprecated.
-          Please change `Mime::#{sym}` to `Mime[:#{ext}]`.
-        MSG
-        Mime[ext]
-      else
-        super
-      end
-    end
-
-    def const_defined?(sym, inherit = true)
-      ext = sym.downcase
-      if Mime[ext]
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Accessing mime types via constants is deprecated.
-          Please change `Mime.const_defined?(#{sym})` to `Mime[:#{ext}]`.
-        MSG
-        true
-      else
-        super
-      end
-    end
   end
 
-  # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
+  # Encapsulates the notion of a MIME type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
   #     def show
@@ -91,7 +66,7 @@ module Mime
 
     @register_callbacks = []
 
-    # A simple helper class used in parsing the accept header
+    # A simple helper class used in parsing the accept header.
     class AcceptItem #:nodoc:
       attr_accessor :index, :name, :q
       alias :to_s :name
@@ -99,7 +74,7 @@ module Mime
       def initialize(index, name, q = nil)
         @index = index
         @name = name
-        q ||= 0.0 if @name == '*/*'.freeze # default wildcard match to end of list
+        q ||= 0.0 if @name == "*/*".freeze # Default wildcard match to end of list.
         @q = ((q || 1.0).to_f * 100).to_i
       end
 
@@ -114,25 +89,25 @@ module Mime
       def self.sort!(list)
         list.sort!
 
-        text_xml_idx = find_item_by_name list, 'text/xml'
+        text_xml_idx = find_item_by_name list, "text/xml"
         app_xml_idx = find_item_by_name list, Mime[:xml].to_s
 
-        # Take care of the broken text/xml entry by renaming or deleting it
+        # Take care of the broken text/xml entry by renaming or deleting it.
         if text_xml_idx && app_xml_idx
           app_xml = list[app_xml_idx]
           text_xml = list[text_xml_idx]
 
-          app_xml.q = [text_xml.q, app_xml.q].max # set the q value to the max of the two
-          if app_xml_idx > text_xml_idx  # make sure app_xml is ahead of text_xml in the list
+          app_xml.q = [text_xml.q, app_xml.q].max # Set the q value to the max of the two.
+          if app_xml_idx > text_xml_idx  # Make sure app_xml is ahead of text_xml in the list.
             list[app_xml_idx], list[text_xml_idx] = text_xml, app_xml
             app_xml_idx, text_xml_idx = text_xml_idx, app_xml_idx
           end
-          list.delete_at(text_xml_idx)                 # delete text_xml from the list
+          list.delete_at(text_xml_idx)  # Delete text_xml from the list.
         elsif text_xml_idx
           list[text_xml_idx].name = Mime[:xml].to_s
         end
 
-        # Look for more specific XML-based types and sort them ahead of app/xml
+        # Look for more specific XML-based types and sort them ahead of app/xml.
         if app_xml_idx
           app_xml = list[app_xml_idx]
           idx = app_xml_idx
@@ -141,7 +116,7 @@ module Mime
             type = list[idx]
             break if type.q < app_xml.q
 
-            if type.name.ends_with? '+xml'
+            if type.name.ends_with? "+xml"
               list[app_xml_idx], list[idx] = list[idx], app_xml
               app_xml_idx = idx
             end
@@ -174,7 +149,7 @@ module Mime
         EXTENSION_LOOKUP[extension.to_s]
       end
 
-      # Registers an alias that's not used on mime type lookup, but can be referenced directly. Especially useful for
+      # Registers an alias that's not used on MIME type lookup, but can be referenced directly. Especially useful for
       # rendering different HTML versions depending on the user agent, like an iPhone.
       def register_alias(string, symbol, extension_synonyms = [])
         register(string, symbol, [], extension_synonyms, true)
@@ -195,12 +170,12 @@ module Mime
       end
 
       def parse(accept_header)
-        if !accept_header.include?(',')
+        if !accept_header.include?(",")
           accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = [], 0
-          accept_header.split(',').each do |header|
+          accept_header.split(",").each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
 
             next unless params
@@ -304,33 +279,35 @@ module Mime
 
     def all?; false; end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-    attr_reader :string, :synonyms
+      attr_reader :string, :synonyms
 
     private
 
-    def to_ary; end
-    def to_a; end
+      def to_ary; end
+      def to_a; end
 
-    def method_missing(method, *args)
-      if method.to_s.ends_with? '?'
-        method[0..-2].downcase.to_sym == to_sym
-      else
-        super
+      def method_missing(method, *args)
+        if method.to_s.ends_with? "?"
+          method[0..-2].downcase.to_sym == to_sym
+        else
+          super
+        end
       end
-    end
 
-    def respond_to_missing?(method, include_private = false) #:nodoc:
-      method.to_s.ends_with? '?'
-    end
+      def respond_to_missing?(method, include_private = false)
+        (method.to_s.ends_with? "?") || super
+      end
   end
 
   class AllType < Type
     include Singleton
 
     def initialize
-      super '*/*', :all
+      super "*/*", :all
     end
 
     def all?; true; end
@@ -351,15 +328,15 @@ module Mime
 
     def ref; end
 
-    def respond_to_missing?(method, include_private = false)
-      method.to_s.ends_with? '?'
-    end
-
     private
-    def method_missing(method, *args)
-      false if method.to_s.ends_with? '?'
-    end
+      def respond_to_missing?(method, _)
+        method.to_s.ends_with? "?"
+      end
+
+      def method_missing(method, *args)
+        false if method.to_s.ends_with? "?"
+      end
   end
 end
 
-require 'action_dispatch/http/mime_types'
+require_relative "mime_types"

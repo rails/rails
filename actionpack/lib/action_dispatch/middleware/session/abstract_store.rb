@@ -1,34 +1,25 @@
-require 'rack/utils'
-require 'rack/request'
-require 'rack/session/abstract/id'
-require 'action_dispatch/middleware/cookies'
-require 'action_dispatch/request/session'
+# frozen_string_literal: true
+
+require "rack/utils"
+require "rack/request"
+require "rack/session/abstract/id"
+require_relative "../cookies"
+require_relative "../../request/session"
 
 module ActionDispatch
   module Session
     class SessionRestoreError < StandardError #:nodoc:
-
-      def initialize(const_error = nil)
-        if const_error
-          ActiveSupport::Deprecation.warn("Passing #original_exception is deprecated and has no effect. " \
-                                          "Exceptions will automatically capture the original exception.", caller)
-        end
-
-        super("Session contains objects whose class definition isn't available.\n" +
-          "Remember to require the classes for all objects kept in the session.\n" +
+      def initialize
+        super("Session contains objects whose class definition isn't available.\n" \
+          "Remember to require the classes for all objects kept in the session.\n" \
           "(Original exception: #{$!.message} [#{$!.class}])\n")
         set_backtrace $!.backtrace
-      end
-
-      def original_exception
-        ActiveSupport::Deprecation.warn("#original_exception is deprecated. Use #cause instead.", caller)
-        cause
       end
     end
 
     module Compatibility
       def initialize(app, options = {})
-        options[:key] ||= '_session_id'
+        options[:key] ||= "_session_id"
         super
       end
 
@@ -38,14 +29,13 @@ module ActionDispatch
         sid
       end
 
-    protected
+    private
 
-      def initialize_sid
+      def initialize_sid # :doc:
         @default_options.delete(:sidbits)
         @default_options.delete(:secure_random)
       end
 
-      private
       def make_request(env)
         ActionDispatch::Request.new env
       end
@@ -65,7 +55,7 @@ module ActionDispatch
       rescue ArgumentError => argument_error
         if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
           begin
-            # Note that the regexp does not allow $1 to end with a ':'
+            # Note that the regexp does not allow $1 to end with a ':'.
             $1.constantize
           rescue LoadError, NameError
             raise ActionDispatch::Session::SessionRestoreError
@@ -94,9 +84,9 @@ module ActionDispatch
 
       private
 
-      def set_cookie(request, session_id, cookie)
-        request.cookie_jar[key] = cookie
-      end
+        def set_cookie(request, session_id, cookie)
+          request.cookie_jar[key] = cookie
+        end
     end
   end
 end

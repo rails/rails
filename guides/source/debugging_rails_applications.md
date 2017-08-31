@@ -162,41 +162,41 @@ class ArticlesController < ApplicationController
   # ...
 
   def create
-    @article = Article.new(params[:article])
+    @article = Article.new(article_params)
     logger.debug "New article: #{@article.attributes.inspect}"
     logger.debug "Article should be valid: #{@article.valid?}"
 
     if @article.save
-      flash[:notice] =  'Article was successfully created.'
       logger.debug "The article was saved and now the user is going to be redirected..."
-      redirect_to(@article)
+      redirect_to @article, notice: 'Article was successfully created.'
     else
-      render action: "new"
+      render :new
     end
   end
 
   # ...
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :published)
+    end
 end
 ```
 
 Here's an example of the log generated when this controller action is executed:
 
 ```
-Processing ArticlesController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
-  Session ID: BAh7BzoMY3NyZl9pZCIlMDY5MWU1M2I1ZDRjODBlMzkyMWI1OTg2NWQyNzViZjYiCmZsYXNoSUM6J0FjdGl
-vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e5f6b3b06c4d724596a4
-  Parameters: {"commit"=>"Create", "article"=>{"title"=>"Debugging Rails",
- "body"=>"I'm learning how to print in logs!!!", "published"=>"0"},
- "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"articles"}
-New article: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
- "published"=>false, "created_at"=>nil}
+Started POST "/articles" for 127.0.0.1 at 2017-08-20 20:53:10 +0900
+Processing by ArticlesController#create as HTML
+  Parameters: {"utf8"=>"✓", "authenticity_token"=>"xhuIbSBFytHCE1agHgvrlKnSVIOGD6jltW2tO+P6a/ACjQ3igjpV4OdbsZjIhC98QizWH9YdKokrqxBCJrtoqQ==", "article"=>{"title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>"0"}, "commit"=>"Create Article"}
+New article: {"id"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!", "published"=>false, "created_at"=>nil, "updated_at"=>nil}
 Article should be valid: true
-  Article Create (0.000443)   INSERT INTO "articles" ("updated_at", "title", "body", "published",
- "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
- 'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
+   (0.1ms)  BEGIN
+  SQL (0.4ms)  INSERT INTO "articles" ("title", "body", "published", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5) RETURNING "id"  [["title", "Debugging Rails"], ["body", "I'm learning how to print in logs!!!"], ["published", "f"], ["created_at", "2017-08-20 11:53:10.010435"], ["updated_at", "2017-08-20 11:53:10.010435"]]
+   (0.3ms)  COMMIT
 The article was saved and now the user is going to be redirected...
-Redirected to # Article:0x20af760>
-Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/articles]
+Redirected to http://localhost:3000/articles/1
+Completed 302 Found in 4ms (ActiveRecord: 0.8ms)
 ```
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels to avoid filling your production logs with useless trivia.
@@ -255,7 +255,8 @@ is your best companion.
 
 The debugger can also help you if you want to learn about the Rails source code
 but don't know where to start. Just debug any request to your application and
-use this guide to learn how to move from the code you have written into the underlying Rails code.
+use this guide to learn how to move from the code you have written into the
+underlying Rails code.
 
 ### Setup
 
@@ -312,16 +313,14 @@ For example:
 
 ```bash
 => Booting Puma
-=> Rails 5.0.0 application starting in development on http://0.0.0.0:3000
+=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
 Puma starting in single mode...
-* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Version 3.4.0 (ruby 2.3.1-p112), codename: Owl Bowl Brawl
 * Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
 Use Ctrl-C to stop
-
-
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
   ActiveRecord::SchemaMigration Load (0.2ms)  SELECT "schema_migrations".* FROM "schema_migrations"
 Processing by ArticlesController#index as HTML
@@ -337,7 +336,6 @@ Processing by ArticlesController#index as HTML
    10:     respond_to do |format|
    11:       format.html # index.html.erb
    12:       format.json { render json: @articles }
-
 (byebug)
 ```
 
@@ -347,11 +345,45 @@ by asking the debugger for help. Type: `help`
 ```
 (byebug) help
 
-  h[elp][ <cmd>[ <subcmd>]]
+  break      -- Sets breakpoints in the source code
+  catch      -- Handles exception catchpoints
+  condition  -- Sets conditions on breakpoints
+  continue   -- Runs until program ends, hits a breakpoint or reaches a line
+  debug      -- Spawns a subdebugger
+  delete     -- Deletes breakpoints
+  disable    -- Disables breakpoints or displays
+  display    -- Evaluates expressions every time the debugger stops
+  down       -- Moves to a lower frame in the stack trace
+  edit       -- Edits source files
+  enable     -- Enables breakpoints or displays
+  finish     -- Runs the program until frame returns
+  frame      -- Moves to a frame in the call stack
+  help       -- Helps you using byebug
+  history    -- Shows byebug's history of commands
+  info       -- Shows several informations about the program being debugged
+  interrupt  -- Interrupts the program
+  irb        -- Starts an IRB session
+  kill       -- Sends a signal to the current process
+  list       -- Lists lines of source code
+  method     -- Shows methods of an object, class or module
+  next       -- Runs one or more lines of code
+  pry        -- Starts a Pry session
+  quit       -- Exits byebug
+  restart    -- Restarts the debugged program
+  save       -- Saves current byebug session to a file
+  set        -- Modifies byebug settings
+  show       -- Shows byebug settings
+  source     -- Restores a previously saved byebug session
+  step       -- Steps into blocks or methods one or more times
+  thread     -- Commands to manipulate threads
+  tracevar   -- Enables tracing of a global variable
+  undisplay  -- Stops displaying all or some expressions when program stops
+  untracevar -- Stops tracing a global variable
+  up         -- Moves to a higher frame in the stack trace
+  var        -- Shows variables and its values
+  where      -- Displays the backtrace
 
-  help                -- prints this help.
-  help <cmd>          -- prints help on command <cmd>.
-  help <cmd> <subcmd> -- prints help on <cmd>'s subcommand <subcmd>.
+(byebug)
 ```
 
 To see the previous ten lines you should type `list-` (or `l-`).
@@ -369,13 +401,12 @@ To see the previous ten lines you should type `list-` (or `l-`).
    7      byebug
    8      @articles = Article.find_recent
    9
-   10      respond_to do |format|
-
+   10     respond_to do |format|
 ```
 
-This way you can move inside the file and see the code above
-the line where you added the `byebug` call. Finally, to see where you are in
-the code again you can type `list=`
+This way you can move inside the file and see the code above the line where you
+added the `byebug` call. Finally, to see where you are in the code again you can
+type `list=`
 
 ```
 (byebug) list=
@@ -391,7 +422,6 @@ the code again you can type `list=`
    10:     respond_to do |format|
    11:       format.html # index.html.erb
    12:       format.json { render json: @articles }
-
 (byebug)
 ```
 
@@ -413,46 +443,45 @@ then `backtrace` will supply the answer.
 ```
 (byebug) where
 --> #0  ArticlesController.index
-      at /PathTo/project/test_app/app/controllers/articles_controller.rb:8
-    #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/implicit_render.rb:4
+      at /PathToProject/app/controllers/articles_controller.rb:8
+    #1  ActionController::BasicImplicitRender.send_action(method#String, *args#Array)
+      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/basic_implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb:189
-    #3  ActionController::Rendering.process_action(action#NilClass, *args#NilClass)
-      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/rendering.rb:10
+      at /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb:181
+    #3  ActionController::Rendering.process_action(action, *args)
+      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/rendering.rb:30
 ...
 ```
 
 The current frame is marked with `-->`. You can move anywhere you want in this
-trace (thus changing the context) by using the `frame _n_` command, where _n_ is
+trace (thus changing the context) by using the `frame n` command, where _n_ is
 the specified frame number. If you do that, `byebug` will display your new
 context.
 
 ```
 (byebug) frame 2
 
-[184, 193] in /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb
-   184:       # is the intended way to override action dispatching.
-   185:       #
-   186:       # Notice that the first argument is the method to be dispatched
-   187:       # which is *not* necessarily the same as the action name.
-   188:       def process_action(method_name, *args)
-=> 189:         send_action(method_name, *args)
-   190:       end
-   191:
-   192:       # Actually call the method associated with the action. Override
-   193:       # this method if you wish to change how action methods are called,
-
+[176, 185] in /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb
+   176:       # is the intended way to override action dispatching.
+   177:       #
+   178:       # Notice that the first argument is the method to be dispatched
+   179:       # which is *not* necessarily the same as the action name.
+   180:       def process_action(method_name, *args)
+=> 181:         send_action(method_name, *args)
+   182:       end
+   183:
+   184:       # Actually call the method associated with the action. Override
+   185:       # this method if you wish to change how action methods are called,
 (byebug)
 ```
 
 The available variables are the same as if you were running the code line by
 line. After all, that's what debugging is.
 
-You can also use `up [n]` (`u` for abbreviated) and `down [n]` commands in order
-to change the context _n_ frames up or down the stack respectively. _n_ defaults
-to one. Up in this case is towards higher-numbered stack frames, and down is
-towards lower-numbered stack frames.
+You can also use `up [n]` and `down [n]` commands in order to change the context
+_n_ frames up or down the stack respectively. _n_ defaults to one. Up in this
+case is towards higher-numbered stack frames, and down is towards lower-numbered
+stack frames.
 
 ### Threads
 
@@ -461,11 +490,11 @@ the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
 * `thread`: shows the current thread.
-* `thread list`: is used to list all threads and their statuses. The plus +
-character and the number indicates the current thread of execution.
-* `thread stop _n_`: stop thread _n_.
-* `thread resume _n_`: resumes thread _n_.
-* `thread switch _n_`: switches the current thread context to _n_.
+* `thread list`: is used to list all threads and their statuses. The current
+thread is marked with a plus (+) sign.
+* `thread stop n`: stops thread _n_.
+* `thread resume n`: resumes thread _n_.
+* `thread switch n`: switches the current thread context to _n_.
 
 This command is very helpful when you are debugging concurrent threads and need
 to verify that there are no race conditions in your code.
@@ -492,9 +521,9 @@ current context:
    12:       format.json { render json: @articles }
 
 (byebug) instance_variables
-[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
- :@_response_body, :@marked_for_same_origin_verification, :@_config]
+[:@_action_has_layout, :@_routes, :@_request, :@_response, :@_lookup_context,
+ :@_action_name, :@_response_body, :@marked_for_same_origin_verification,
+ :@_config]
 ```
 
 As you may have figured out, all of the variables that you can access from a
@@ -504,14 +533,15 @@ command later in this guide).
 
 ```
 (byebug) next
+
 [5, 14] in /PathTo/project/app/controllers/articles_controller.rb
    5     # GET /articles.json
    6     def index
    7       byebug
    8       @articles = Article.find_recent
    9
-=> 10       respond_to do |format|
-   11         format.html # index.html.erb
+=> 10      respond_to do |format|
+   11        format.html # index.html.erb
    12        format.json { render json: @articles }
    13      end
    14    end
@@ -523,29 +553,35 @@ And then ask again for the instance_variables:
 
 ```
 (byebug) instance_variables
-[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
- :@_response, :@_prefixes, :@_lookup_context, :@_action_name,
- :@_response_body, :@marked_for_same_origin_verification, :@_config,
- :@articles]
+[:@_action_has_layout, :@_routes, :@_request, :@_response, :@_lookup_context,
+ :@_action_name, :@_response_body, :@marked_for_same_origin_verification,
+ :@_config, :@articles]
 ```
 
-Now `@articles` is included in the instance variables, because the line defining it
-was executed.
+Now `@articles` is included in the instance variables, because the line defining
+it was executed.
 
 TIP: You can also step into **irb** mode with the command `irb` (of course!).
-This will start an irb session within the context you invoked it. But
-be warned: this is an experimental feature.
+This will start an irb session within the context you invoked it.
 
 The `var` method is the most convenient way to show variables and their values.
 Let's have `byebug` help us with it.
 
 ```
 (byebug) help var
-v[ar] cl[ass]                   show class variables of self
-v[ar] const <object>            show constants of object
-v[ar] g[lobal]                  show global variables
-v[ar] i[nstance] <object>       show instance variables of object
-v[ar] l[ocal]                   show local variables
+
+  [v]ar <subcommand>
+
+  Shows variables and its values
+
+
+  var all      -- Shows local, global and instance variables of self.
+  var args     -- Information about arguments of the current scope
+  var const    -- Shows constants of an object.
+  var global   -- Shows global variables.
+  var instance -- Shows instance variables of self or a specific object.
+  var local    -- Shows local variables in current scope.
+
 ```
 
 This is a great way to inspect the values of the current context variables. For
@@ -563,16 +599,16 @@ You can also inspect for an object method this way:
 @_start_transaction_state = {}
 @aggregation_cache = {}
 @association_cache = {}
-@attributes = {"id"=>nil, "created_at"=>nil, "updated_at"=>nil}
-@attributes_cache = {}
-@changed_attributes = nil
-...
+@attributes = #<ActiveRecord::AttributeSet:0x007fd0682a9b18 @attributes={"id"=>#<ActiveRecord::Attribute::FromDatabase:0x007fd0682a9a00 @name="id", @value_be...
+@destroyed = false
+@destroyed_by_association = nil
+@marked_for_destruction = false
+@new_record = true
+@readonly = false
+@transaction_state = nil
 ```
 
-TIP: The commands `p` (print) and `pp` (pretty print) can be used to evaluate
-Ruby expressions and display the value of variables to the console.
-
-You can use also `display` to start watching variables. This is a good way of
+You can also use `display` to start watching variables. This is a good way of
 tracking the values of a variable while the execution goes on.
 
 ```
@@ -581,7 +617,7 @@ tracking the values of a variable while the execution goes on.
 ```
 
 The variables inside the displayed list will be printed with their values after
-you move in the stack. To stop displaying a variable use `undisplay _n_` where
+you move in the stack. To stop displaying a variable use `undisplay n` where
 _n_ is the variable number (1 in the last example).
 
 ### Step by Step
@@ -591,32 +627,23 @@ available variables. But let's continue and move on with the application
 execution.
 
 Use `step` (abbreviated `s`) to continue running your program until the next
-logical stopping point and return control to the debugger.
-
-You may also use `next` which is similar to step, but function or method calls
-that appear within the line of code are executed without stopping.
-
-TIP: You can also use `step n` or `next n` to move forwards `n` steps at once.
-
-The difference between `next` and `step` is that `step` stops at the next line
-of code executed, doing just a single step, while `next` moves to the next line
-without descending inside methods.
+logical stopping point and return control to the debugger. `next` is similar to
+`step`, but while `step` stops at the next line of code executed, doing just a
+single step, `next` moves to the next line without descending inside methods.
 
 For example, consider the following situation:
 
-```ruby
+```
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:39:23 +0200
 Processing by ArticlesController#index as HTML
 
-[1, 8] in /home/davidr/Proyectos/test_app/app/models/article.rb
+[1, 6] in /PathToProject/app/models/article.rb
    1: class Article < ApplicationRecord
-   2:
-   3:   def self.find_recent(limit = 10)
-   4:     byebug
-=> 5:     where('created_at > ?', 1.week.ago).limit(limit)
-   6:   end
-   7:
-   8: end
+   2:   def self.find_recent(limit = 10)
+   3:     byebug
+=> 4:     where('created_at > ?', 1.week.ago).limit(limit)
+   5:   end
+   6: end
 
 (byebug)
 ```
@@ -628,11 +655,7 @@ method.
 
 ```
 (byebug) next
-
-Next advances to the next line (line 6: `end`), which returns to the next line
-of the caller method:
-
-[4, 13] in /PathTo/project/test_app/app/controllers/articles_controller.rb
+[4, 13] in /PathToProject/app/controllers/articles_controller.rb
     4:   # GET /articles
     5:   # GET /articles.json
     6:   def index
@@ -653,22 +676,23 @@ Ruby instruction to be executed -- in this case, Active Support's `week` method.
 ```
 (byebug) step
 
-[50, 59] in /PathToGems/activesupport-5.0.0/lib/active_support/core_ext/numeric/time.rb
-   50:     ActiveSupport::Duration.new(self * 24.hours, [[:days, self]])
-   51:   end
-   52:   alias :day :days
-   53:
-   54:   def weeks
-=> 55:     ActiveSupport::Duration.new(self * 7.days, [[:days, self * 7]])
-   56:   end
-   57:   alias :week :weeks
-   58:
-   59:   def fortnights
-
+[49, 58] in /PathToGems/activesupport-5.1.0/lib/active_support/core_ext/numeric/time.rb
+   49:
+   50:   # Returns a Duration instance matching the number of weeks provided.
+   51:   #
+   52:   #   2.weeks # => 14 days
+   53:   def weeks
+=> 54:     ActiveSupport::Duration.weeks(self)
+   55:   end
+   56:   alias :week :weeks
+   57:
+   58:   # Returns a Duration instance matching the number of fortnights provided.
 (byebug)
 ```
 
 This is one of the best ways to find bugs in your code.
+
+TIP: You can also use `step n` or `next n` to move forward `n` steps at once.
 
 ### Breakpoints
 
@@ -678,19 +702,18 @@ is reached. The debugger shell is invoked in that line.
 You can add breakpoints dynamically with the command `break` (or just `b`).
 There are 3 possible ways of adding breakpoints manually:
 
-* `break line`: set breakpoint in the _line_ in the current source file.
-* `break file:line [if expression]`: set breakpoint in the _line_ number inside
-the _file_. If an _expression_ is given it must evaluated to _true_ to fire up
-the debugger.
+* `break n`: set breakpoint in line number _n_ in the current source file.
+* `break file:n [if expression]`: set breakpoint in line number _n_ inside
+file named _file_. If an _expression_ is given it must evaluated to _true_ to
+fire up the debugger.
 * `break class(.|\#)method [if expression]`: set breakpoint in _method_ (. and
 \# for class and instance method respectively) defined in _class_. The
-_expression_ works the same way as with file:line.
-
+_expression_ works the same way as with file:n.
 
 For example, in the previous situation
 
 ```
-[4, 13] in /PathTo/project/app/controllers/articles_controller.rb
+[4, 13] in /PathToProject/app/controllers/articles_controller.rb
     4:   # GET /articles
     5:   # GET /articles.json
     6:   def index
@@ -703,20 +726,20 @@ For example, in the previous situation
    13:   end
 
 (byebug) break 11
-Created breakpoint 1 at /PathTo/project/app/controllers/articles_controller.rb:11
+Successfully created breakpoint with id 1
 
 ```
 
-Use `info breakpoints _n_` or `info break _n_` to list breakpoints. If you
-supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.
+Use `info breakpoints` to list breakpoints. If you supply a number, it lists
+that breakpoint. Otherwise it lists all breakpoints.
 
 ```
 (byebug) info breakpoints
 Num Enb What
-1   y   at /PathTo/project/app/controllers/articles_controller.rb:11
+1   y   at /PathToProject/app/controllers/articles_controller.rb:11
 ```
 
-To delete breakpoints: use the command `delete _n_` to remove the breakpoint
+To delete breakpoints: use the command `delete n` to remove the breakpoint
 number _n_. If no number is specified, it deletes all breakpoints that are
 currently active.
 
@@ -728,10 +751,11 @@ No breakpoints.
 
 You can also enable or disable breakpoints:
 
-* `enable breakpoints`: allow a _breakpoints_ list or all of them if no list is
-specified, to stop your program. This is the default state when you create a
+* `enable breakpoints [n [m [...]]]`: allows a specific breakpoint list or all
+breakpoints to stop your program. This is the default state when you create a
 breakpoint.
-* `disable breakpoints`: the _breakpoints_ will have no effect on your program.
+* `disable breakpoints [n [m [...]]]`: make certain (or all) breakpoints have
+no effect on your program.
 
 ### Catching Exceptions
 
@@ -746,24 +770,22 @@ To list all active catchpoints use `catch`.
 There are two ways to resume execution of an application that is stopped in the
 debugger:
 
-* `continue [line-specification]` \(or `c`): resume program execution, at the
-address where your script last stopped; any breakpoints set at that address are
-bypassed. The optional argument line-specification allows you to specify a line
-number to set a one-time breakpoint which is deleted when that breakpoint is
-reached.
-* `finish [frame-number]` \(or `fin`): execute until the selected stack frame
-returns. If no frame number is given, the application will run until the
-currently selected frame returns. The currently selected frame starts out the
-most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been
-performed. If a frame number is given it will run until the specified frame
-returns.
+* `continue [n]`: resumes program execution at the address where your script last
+stopped; any breakpoints set at that address are bypassed. The optional argument
+`n` allows you to specify a line number to set a one-time breakpoint which is
+deleted when that breakpoint is reached.
+* `finish [n]`: execute until the selected stack frame returns. If no frame
+number is given, the application will run until the currently selected frame
+returns. The currently selected frame starts out the most-recent frame or 0 if
+no frame positioning (e.g up, down or frame) has been performed. If a frame
+number is given it will run until the specified frame returns.
 
 ### Editing
 
 Two commands allow you to open code from the debugger into an editor:
 
-* `edit [file:line]`: edit _file_ using the editor specified by the EDITOR
-environment variable. A specific _line_ can also be given.
+* `edit [file:n]`: edit file named _file_ using the editor specified by the
+EDITOR environment variable. A specific line _n_ can also be given.
 
 ### Quitting
 
@@ -777,21 +799,43 @@ will be stopped and you will have to start it again.
 
 `byebug` has a few available options to tweak its behavior:
 
-* `set autoreload`: Reload source code when changed (defaults: true).
-* `set autolist`: Execute `list` command on every breakpoint (defaults: true).
-* `set listsize _n_`: Set number of source lines to list by default to _n_
-(defaults: 10)
-* `set forcestep`: Make sure the `next` and `step` commands always move to a new
-line.
+```
+(byebug) help set
 
-You can see the full list by using `help set`. Use `help set _subcommand_` to
-learn about a particular `set` command.
+  set <setting> <value>
+
+  Modifies byebug settings
+
+  Boolean values take "on", "off", "true", "false", "1" or "0". If you
+  don't specify a value, the boolean setting will be enabled. Conversely,
+  you can use "set no<setting>" to disable them.
+
+  You can see these environment settings with the "show" command.
+
+  List of supported settings:
+
+  autosave       -- Automatically save command history record on exit
+  autolist       -- Invoke list command on every stop
+  width          -- Number of characters per line in byebug's output
+  autoirb        -- Invoke IRB on every stop
+  basename       -- <file>:<line> information after every stop uses short paths
+  linetrace      -- Enable line execution tracing
+  autopry        -- Invoke Pry on every stop
+  stack_on_error -- Display stack trace when `eval` raises an exception
+  fullpath       -- Display full file names in backtraces
+  histfile       -- File where cmd history is saved to. Default: ./.byebug_history
+  listsize       -- Set number of source lines to list by default
+  post_mortem    -- Enable/disable post-mortem mode
+  callstyle      -- Set how you want method call parameters to be displayed
+  histsize       -- Maximum number of commands that can be stored in byebug history
+  savefile       -- File where settings are saved to. Default: ~/.byebug_save
+```
 
 TIP: You can save these settings in an `.byebugrc` file in your home directory.
 The debugger reads these global settings when it starts. For example:
 
 ```bash
-set forcestep
+set callstyle short
 set listsize 25
 ```
 
@@ -901,16 +945,10 @@ development that will end your tailing of development.log. Have all information
 about your Rails app requests in the browser — in the Developer Tools panel.
 Provides insight to db/rendering/total times, parameter list, rendered views and
 more.
+* [Pry](https://github.com/pry/pry) An IRB alternative and runtime developer console.
 
 References
 ----------
 
-* [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
-* [debugger Homepage](https://github.com/cldwalker/debugger)
 * [byebug Homepage](https://github.com/deivid-rodriguez/byebug)
 * [web-console Homepage](https://github.com/rails/web-console)
-* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
-* [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
-* [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
-* [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
-* [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)

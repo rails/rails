@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "active_support/core_ext/string/strip"
 
@@ -7,7 +9,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
     end
 
     def teardown
@@ -55,7 +56,7 @@ module ApplicationTests
         Rails.application.initialize!
       RUBY
 
-      assert_match("SuperMiddleware", Dir.chdir(app_path){ `bin/rails middleware` })
+      assert_match("SuperMiddleware", Dir.chdir(app_path) { `bin/rails middleware` })
     end
 
     def test_initializers_are_executed_in_rake_tasks
@@ -70,7 +71,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails do_nothing` }
+      output = Dir.chdir(app_path) { `bin/rails do_nothing` }
       assert_match "Doing something...", output
     end
 
@@ -83,7 +84,7 @@ module ApplicationTests
         end
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         class Hello
           def world
             puts 'Hello world'
@@ -92,7 +93,7 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails do_nothing` }
-      assert_match 'Hello world', output
+      assert_match "Hello world", output
     end
 
     def test_should_not_eager_load_model_for_rake
@@ -103,23 +104,23 @@ module ApplicationTests
         end
       RUBY
 
-      add_to_env_config 'production', <<-RUBY
+      add_to_env_config "production", <<-RUBY
         config.eager_load = true
       RUBY
 
-      app_file 'app/models/hello.rb', <<-RUBY
+      app_file "app/models/hello.rb", <<-RUBY
         raise 'should not be pre-required for rake even eager_load=true'
       RUBY
 
       Dir.chdir(app_path) do
-        assert system('bin/rails do_nothing RAILS_ENV=production'),
-               'should not be pre-required for rake even eager_load=true'
+        assert system("bin/rails do_nothing RAILS_ENV=production"),
+               "should not be pre-required for rake even eager_load=true"
       end
     end
 
     def test_code_statistics_sanity
-      assert_match "Code LOC: 18     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        Dir.chdir(app_path){ `bin/rails stats` }
+      assert_match "Code LOC: 25     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        Dir.chdir(app_path) { `bin/rails stats` }
     end
 
     def test_rails_routes_calls_the_route_inspector
@@ -129,49 +130,35 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      output = Dir.chdir(app_path) { `bin/rails routes` }
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+      MESSAGE
     end
 
-    def test_rails_routes_with_controller_environment
+    def test_singular_resource_output_in_rake_routes
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-          get '/basketball', to: 'basketball#index'
+          resource :post
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes CONTROLLER=cart` }
-      assert_equal ["Passing `CONTROLLER` to `bin/rails routes` is deprecated and will be removed in Rails 5.1.",
-                    "Please use `bin/rails routes -c controller_name` instead.",
-                    "Prefix Verb URI Pattern     Controller#Action",
-                    "  cart GET  /cart(.:format) cart#show\n"].join("\n"), output
+      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
+                         " new_post GET    /post/new(.:format)  posts#new",
+                         "edit_post GET    /post/edit(.:format) posts#edit",
+                         "     post GET    /post(.:format)      posts#show",
+                         "          PATCH  /post(.:format)      posts#update",
+                         "          PUT    /post(.:format)      posts#update",
+                         "          DELETE /post(.:format)      posts#destroy",
+                         "          POST   /post(.:format)      posts#create\n"].join("\n")
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
-    end
-
-    def test_rails_routes_with_namespaced_controller_environment
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          namespace :admin do
-            resource :post
-          end
-        end
-      RUBY
-      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         "     admin_post POST   /admin/post(.:format)      admin/posts#create",
-                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
-                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "                GET    /admin/post(.:format)      admin/posts#show",
-                         "                PATCH  /admin/post(.:format)      admin/posts#update",
-                         "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy\n"].join("\n")
-
-      output = Dir.chdir(app_path){ `bin/rails routes -c Admin::PostController` }
-      assert_equal expected_output, output
-
-      output = Dir.chdir(app_path){ `bin/rails routes -c PostController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
       assert_equal expected_output, output
     end
 
@@ -184,13 +171,23 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g show` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      output = Dir.chdir(app_path) { `bin/rails routes -g show` }
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      MESSAGE
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g POST` }
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n       POST /cart(.:format) cart#create\n", output
+      output = Dir.chdir(app_path) { `bin/rails routes -g POST` }
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                    Controller#Action
+                                POST /cart(.:format)                                cart#create
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
+      MESSAGE
 
-      output = Dir.chdir(app_path){ `bin/rails routes -g basketballs` }
+      output = Dir.chdir(app_path) { `bin/rails routes -g basketballs` }
       assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
                    "basketballs GET  /basketballs(.:format) basketball#index\n", output
     end
@@ -203,14 +200,38 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c Cart` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c Cart` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-      output = Dir.chdir(app_path){ `bin/rails routes -c CartController` }
+      output = Dir.chdir(app_path) { `bin/rails routes -c CartController` }
       assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+    end
+
+    def test_rails_routes_with_namespaced_controller_search_key
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          namespace :admin do
+            resource :post
+          end
+        end
+      RUBY
+      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
+                         "                PATCH  /admin/post(.:format)      admin/posts#update",
+                         "                PUT    /admin/post(.:format)      admin/posts#update",
+                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c Admin::PostController` }
+      assert_equal expected_output, output
+
+      output = Dir.chdir(app_path) { `bin/rails routes -c PostController` }
+      assert_equal expected_output, output
     end
 
     def test_rails_routes_displays_message_when_no_routes_are_defined
@@ -219,12 +240,33 @@ module ApplicationTests
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path){ `bin/rails routes` }
-        You don't have any routes defined!
+      assert_equal <<-MESSAGE.strip_heredoc, Dir.chdir(app_path) { `bin/rails routes` }
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+      MESSAGE
+    end
 
-        Please add some routes in config/routes.rb.
+    def test_rake_routes_with_rake_options
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+        end
+      RUBY
 
-        For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
+      output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
+
+      assert_equal <<-MESSAGE.strip_heredoc, output
+                         Prefix Verb URI Pattern                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                   cart#show
+             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
+           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
+           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
       MESSAGE
     end
 
@@ -237,7 +279,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path){ `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
+      output = Dir.chdir(app_path) { `bin/rails log_something RAILS_ENV=production && cat log/production.log` }
       assert_match "Sample log message", output
     end
 
@@ -276,7 +318,7 @@ module ApplicationTests
          RAILS_ENV=test bin/rails db:migrate test`
       end
 
-      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -307,18 +349,8 @@ module ApplicationTests
          RAILS_ENV=test bin/rails db:migrate test`
       end
 
-      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
-    end
-
-    def test_db_test_clone_when_using_sql_format
-      add_to_config "config.active_record.schema_format = :sql"
-      output = Dir.chdir(app_path) do
-        `bin/rails generate scaffold user username:string;
-         bin/rails db:migrate;
-         bin/rails db:test:clone 2>&1 --trace`
-      end
-      assert_match(/Execute db:test:clone_structure/, output)
     end
 
     def test_db_test_prepare_when_using_sql_format
@@ -336,7 +368,7 @@ module ApplicationTests
         # ensure we have a schema_migrations table to dump
         `bin/rails db:migrate db:structure:dump SCHEMA=db/my_structure.sql`
       end
-      assert File.exist?(File.join(app_path, 'db', 'my_structure.sql'))
+      assert File.exist?(File.join(app_path, "db", "my_structure.sql"))
     end
 
     def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
@@ -357,24 +389,24 @@ module ApplicationTests
          bin/rails generate model product name:string;
          bin/rails db:migrate db:schema:cache:dump`
       end
-      assert File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_rake_clear_schema_cache
       Dir.chdir(app_path) do
         `bin/rails db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exist?(File.join(app_path, 'db', 'schema_cache.dump'))
+      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates
       Dir.chdir(app_path) do
         `bin/rails app:templates:copy`
         %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
         end
         %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
         end
       end
     end
@@ -388,13 +420,6 @@ module ApplicationTests
       end
 
       assert_match(/Hello, World!/, output)
-    end
-
-    def test_tmp_clear_should_work_if_folder_missing
-      FileUtils.remove_dir("#{app_path}/tmp")
-      errormsg = Dir.chdir(app_path) { `bin/rails tmp:clear` }
-      assert_predicate $?, :success?
-      assert_empty errormsg
     end
   end
 end

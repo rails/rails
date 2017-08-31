@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
@@ -21,6 +23,22 @@ module ActiveRecord
         @data_sources = @data_sources.dup
       end
 
+      def encode_with(coder)
+        coder["columns"] = @columns
+        coder["columns_hash"] = @columns_hash
+        coder["primary_keys"] = @primary_keys
+        coder["data_sources"] = @data_sources
+        coder["version"] = ActiveRecord::Migrator.current_version
+      end
+
+      def init_with(coder)
+        @columns = coder["columns"]
+        @columns_hash = coder["columns_hash"]
+        @primary_keys = coder["primary_keys"]
+        @data_sources = coder["data_sources"]
+        @version = coder["version"]
+      end
+
       def primary_keys(table_name)
         @primary_keys[table_name] ||= data_source_exists?(table_name) ? connection.primary_key(table_name) : nil
       end
@@ -32,9 +50,6 @@ module ActiveRecord
 
         @data_sources[name] = connection.data_source_exists?(name)
       end
-      alias table_exists? data_source_exists?
-      deprecate :table_exists? => "use #data_source_exists? instead"
-
 
       # Add internal cache for table with +table_name+.
       def add(table_name)
@@ -48,8 +63,6 @@ module ActiveRecord
       def data_sources(name)
         @data_sources[name]
       end
-      alias tables data_sources
-      deprecate :tables => "use #data_sources instead"
 
       # Get the columns for a table
       def columns(table_name)
@@ -84,8 +97,6 @@ module ActiveRecord
         @primary_keys.delete name
         @data_sources.delete name
       end
-      alias clear_table_cache! clear_data_source_cache!
-      deprecate :clear_table_cache! => "use #clear_data_source_cache! instead"
 
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.

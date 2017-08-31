@@ -1,10 +1,19 @@
-require 'sidekiq/api'
+# frozen_string_literal: true
 
-require 'sidekiq/testing'
+require "sidekiq/api"
+
+require "sidekiq/testing"
 Sidekiq::Testing.disable!
 
-module SidekiqJobsManager
+Sidekiq.configure_server do |config|
+  config.redis = { url: "redis://:password@127.0.0.1:6379/12" }
+end
 
+Sidekiq.configure_client do |config|
+  config.redis = { url: "redis://:password@127.0.0.1:6379/12" }
+end
+
+module SidekiqJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
@@ -29,7 +38,7 @@ module SidekiqJobsManager
       # Sidekiq is not warning-clean :(
       $VERBOSE = false
 
-      $stdin.reopen('/dev/null')
+      $stdin.reopen(File::NULL)
       $stdout.sync = true
       $stderr.sync = true
 
@@ -49,12 +58,11 @@ module SidekiqJobsManager
         self_write.puts("TERM")
       end
 
-      require 'sidekiq/launcher'
-      sidekiq = Sidekiq::Launcher.new({queues: ["integration_tests"],
+      require "sidekiq/launcher"
+      sidekiq = Sidekiq::Launcher.new(queues: ["integration_tests"],
                                        environment: "test",
                                        concurrency: 1,
-                                       timeout: 1,
-                                      })
+                                       timeout: 1)
       Sidekiq.average_scheduled_poll_interval = 0.5
       Sidekiq.options[:poll_interval_average] = 1
       begin
@@ -79,7 +87,7 @@ module SidekiqJobsManager
 
   def stop_workers
     if @pid
-      Process.kill 'TERM', @pid
+      Process.kill "TERM", @pid
       Process.wait @pid
     end
   end

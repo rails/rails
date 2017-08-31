@@ -1,13 +1,18 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
   def test_prepare_callback
-    prepared = false
+    prepared = completed = false
     reloader.to_prepare { prepared = true }
+    reloader.to_complete { completed = true }
 
     assert !prepared
+    assert !completed
     reloader.prepare!
     assert prepared
+    assert !completed
 
     prepared = false
     reloader.wrap do
@@ -17,17 +22,26 @@ class ReloaderTest < ActiveSupport::TestCase
     assert !prepared
   end
 
+  def test_prepend_prepare_callback
+    i = 10
+    reloader.to_prepare { i += 1 }
+    reloader.to_prepare(prepend: true) { i = 0 }
+
+    reloader.prepare!
+    assert_equal 1, i
+  end
+
   def test_only_run_when_check_passes
     r = new_reloader { true }
     invoked = false
     r.to_run { invoked = true }
-    r.wrap { }
+    r.wrap {}
     assert invoked
 
     r = new_reloader { false }
     invoked = false
     r.to_run { invoked = true }
-    r.wrap { }
+    r.wrap {}
     assert !invoked
   end
 
@@ -39,7 +53,7 @@ class ReloaderTest < ActiveSupport::TestCase
     reloader.executor.to_run { called << :executor_run }
     reloader.executor.to_complete { called << :executor_complete }
 
-    reloader.wrap { }
+    reloader.wrap {}
     assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete], called
 
     called = []
@@ -49,7 +63,7 @@ class ReloaderTest < ActiveSupport::TestCase
     reloader.check = lambda { false }
 
     called = []
-    reloader.wrap { }
+    reloader.wrap {}
     assert_equal [:executor_run, :executor_complete], called
 
     called = []

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Connection
     extend ActiveSupport::Autoload
@@ -8,8 +10,6 @@ module ActionCable
       autoload :ClientSocket
       autoload :Identification
       autoload :InternalChannel
-      autoload :FayeClientSocket
-      autoload :FayeEventLoop
       autoload :MessageBuffer
       autoload :Stream
       autoload :StreamEventLoop

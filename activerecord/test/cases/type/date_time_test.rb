@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/task"
 
 module ActiveRecord
   module Type
-    class IntegerTest < ActiveRecord::TestCase
+    class DateTimeTest < ActiveRecord::TestCase
       def test_datetime_seconds_precision_applied_to_timestamp
         skip "This test is invalid if subsecond precision isn't supported" unless subsecond_precision_supported?
         p = Task.create!(starting: ::Time.now)

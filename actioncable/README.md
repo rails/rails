@@ -7,7 +7,6 @@ and scalable. It's a full-stack offering that provides both a client-side
 JavaScript framework and a server-side Ruby framework. You have access to your full
 domain model written with Active Record or your ORM of choice.
 
-
 ## Terminology
 
 A single Action Cable server can handle multiple connection instances. It has one
@@ -52,10 +51,10 @@ module ApplicationCable
       self.current_user = find_verified_user
     end
 
-    protected
+    private
       def find_verified_user
-        if current_user = User.find_by(id: cookies.signed[:user_id])
-          current_user
+        if verified_user = User.find_by(id: cookies.encrypted[:user_id])
+          verified_user
         else
           reject_unauthorized_connection
         end
@@ -86,12 +85,17 @@ end
 
 The client-side needs to setup a consumer instance of this connection. That's done like so:
 
-```coffeescript
-# app/assets/javascripts/cable.coffee
-#= require action_cable
+```js
+// app/assets/javascripts/cable.js
+//= require action_cable
+//= require_self
+//= require_tree ./channels
 
-@App = {}
-App.cable = ActionCable.createConsumer("ws://cable.example.com")
+(function() {
+  this.App || (this.App = {});
+
+  App.cable = ActionCable.createConsumer("ws://cable.example.com");
+}).call(this);
 ```
 
 The `ws://cable.example.com` address must point to your Action Cable server(s), and it
@@ -163,7 +167,7 @@ App.cable.subscriptions.create "AppearanceChannel",
   buttonSelector = "[data-behavior~=appear_away]"
 
   install: ->
-    $(document).on "page:change.appearance", =>
+    $(document).on "turbolinks:load.appearance", =>
       @appear()
 
     $(document).on "click.appearance", buttonSelector, =>
@@ -178,7 +182,7 @@ App.cable.subscriptions.create "AppearanceChannel",
 ```
 
 Simply calling `App.cable.subscriptions.create` will setup the subscription, which will call `AppearanceChannel#subscribed`,
-which in turn is linked to original `App.cable` -> `ApplicationCable::Connection` instances.
+which in turn is linked to the original `App.cable` -> `ApplicationCable::Connection` instances.
 
 Next, we link the client-side `appear` method to `AppearanceChannel#appear(data)`. This is possible because the server-side
 channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
@@ -293,8 +297,7 @@ The rebroadcast will be received by all connected clients, _including_ the clien
 
 ### More complete examples
 
-See the [rails/actioncable-examples](http://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
-
+See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples) repository for a full example of how to setup Action Cable in a Rails app, and how to add channels.
 
 ## Configuration
 
@@ -323,7 +326,10 @@ Rails.application.paths.add "config/cable", with: "somewhere/else/cable.yml"
 
 ### Allowed Request Origins
 
-Action Cable will only accept requests from specified origins, which are passed to the server config as an array. The origins can be instances of strings or regular expressions, against which a check for match will be performed.
+Action Cable will only accept requests from specific origins.
+
+By default, only an origin matching the cable server itself will be permitted.
+Additional origins can be specified using strings or regular expressions, provided in an array.
 
 ```ruby
 Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonrails.com', /http:\/\/ruby.*/]
@@ -331,10 +337,17 @@ Rails.application.config.action_cable.allowed_request_origins = ['http://rubyonr
 
 When running in the development environment, this defaults to "http://localhost:3000".
 
-To disable and allow requests from any origin:
+To disable protection and allow requests from any origin:
 
 ```ruby
 Rails.application.config.action_cable.disable_request_forgery_protection = true
+```
+
+To disable automatic access for same-origin requests, and strictly allow
+only the configured origins:
+
+```ruby
+Rails.application.config.action_cable.allow_same_origin_as_host = false
 ```
 
 ### Consumer Configuration
@@ -373,11 +386,11 @@ App.cable = ActionCable.createConsumer()
 
 ### Other Configurations
 
-The other common option to configure is the log tags applied to the per-connection logger. Here's close to what we're using in Basecamp:
+The other common option to configure is the log tags applied to the per-connection logger. Here's an example that uses the user account id if available, else "no-account" while tagging:
 
 ```ruby
-Rails.application.config.action_cable.log_tags = [
-  -> request { request.env['bc.account_id'] || "no-account" },
+config.action_cable.log_tags = [
+  -> request { request.env['user_account_id'] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
@@ -385,7 +398,7 @@ Rails.application.config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
 
-Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 100, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
+Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 4, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
 
 
 ## Running the cable server
@@ -396,14 +409,14 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../../config/environment', __FILE__)
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server
 ```
 
 Then you start the server using a binstub in bin/cable ala:
-```
+```sh
 #!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
@@ -412,12 +425,12 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/cable`, mount the server at that path:
+If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
 
 ```ruby
-# config/routes.rb
-Example::Application.routes.draw do
-  mount ActionCable.server => '/cable'
+# config/application.rb
+class Application < Rails::Application
+  config.action_cable.mount_path = '/websocket'
 end
 ```
 
@@ -425,7 +438,7 @@ For every instance of your server you create and for every worker your server sp
 
 ### Notes
 
-Beware that currently the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
+Beware that currently, the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
@@ -455,11 +468,88 @@ with all the popular application servers -- Unicorn, Puma and Passenger.
 Action Cable does not work with WEBrick, because WEBrick does not support the
 Rack socket hijacking API.
 
+## Frontend assets
+
+Action Cable's frontend assets are distributed through two channels: the
+official gem and npm package, both titled `actioncable`.
+
+### Gem usage
+
+Through the `actioncable` gem, Action Cable's frontend assets are
+available through the Rails Asset Pipeline. Create a `cable.js` or
+`cable.coffee` file (this is automatically done for you with Rails
+generators), and then simply require the assets:
+
+In JavaScript...
+
+```javascript
+//= require action_cable
+```
+
+... and in CoffeeScript:
+
+```coffeescript
+#= require action_cable
+```
+
+### npm usage
+
+In addition to being available through the `actioncable` gem, Action Cable's
+frontend JS assets are also bundled in an officially supported npm module,
+intended for usage in standalone frontend applications that communicate with a
+Rails application. A common use case for this could be if you have a decoupled
+frontend application written in React, Ember.js, etc. and want to add real-time
+WebSocket functionality.
+
+### Installation
+
+```
+npm install actioncable --save
+```
+
+### Usage
+
+The `ActionCable` constant is available as a `require`-able module, so
+you only have to require the package to gain access to the API that is
+provided.
+
+In JavaScript...
+
+```javascript
+ActionCable = require('actioncable')
+
+var cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create('AppearanceChannel', {
+  // normal channel code goes here...
+});
+```
+
+and in CoffeeScript...
+
+```coffeescript
+ActionCable = require('actioncable')
+
+cable = ActionCable.createConsumer('wss://RAILS-API-PATH.com/cable')
+
+cable.subscriptions.create 'AppearanceChannel',
+    # normal channel code goes here...
+```
+
+## Download and Installation
+
+The latest version of Action Cable can be installed with [RubyGems](#gem-usage),
+or with [npm](#npm-usage).
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actioncable
+
 ## License
 
 Action Cable is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 ## Support

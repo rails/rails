@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class TypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
-        attr_reader :extra, :strict
+        undef to_yaml if method_defined?(:to_yaml)
 
-        def initialize(type_metadata, extra: "", strict: false)
+        attr_reader :extra
+
+        def initialize(type_metadata, extra: "")
           super(type_metadata)
           @type_metadata = type_metadata
           @extra = extra
-          @strict = strict
         end
 
         def ==(other)
@@ -23,9 +26,9 @@ module ActiveRecord
 
         protected
 
-        def attributes_for_hash
-          [self.class, @type_metadata, extra, strict]
-        end
+          def attributes_for_hash
+            [self.class, @type_metadata, extra]
+          end
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Object
   # Returns true if this object is included in the argument. Argument must be
   # any object which responds to +#include?+. Usage:
@@ -22,6 +24,6 @@ class Object
   #
   # @return [Object]
   def presence_in(another_object)
-    self.in?(another_object) ? self : nil
+    in?(another_object) ? self : nil
   end
 end

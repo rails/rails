@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class EngineTest < ActiveSupport::TestCase
   test "reports routes as available only if they're actually present" do

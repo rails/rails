@@ -1,4 +1,6 @@
-require 'active_support/execution_wrapper'
+# frozen_string_literal: true
+
+require_relative "execution_wrapper"
 
 module ActiveSupport
   #--
@@ -43,7 +45,13 @@ module ActiveSupport
     # Initiate a manual reload
     def self.reload!
       executor.wrap do
-        new.tap(&:run!).complete!
+        new.tap do |instance|
+          begin
+            instance.run!
+          ensure
+            instance.complete!
+          end
+        end
       end
       prepare!
     end
@@ -63,11 +71,8 @@ module ActiveSupport
       end
     end
 
-    class_attribute :executor
-    class_attribute :check
-
-    self.executor = Executor
-    self.check = lambda { false }
+    class_attribute :executor, default: Executor
+    class_attribute :check, default: lambda { false }
 
     def self.check! # :nodoc:
       @should_reload ||= check.call

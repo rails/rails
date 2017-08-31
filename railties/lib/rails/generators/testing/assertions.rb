@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     module Testing
@@ -29,10 +31,10 @@ module Rails
 
           contents.each do |content|
             case content
-              when String
-                assert_equal content, read
-              when Regexp
-                assert_match content, read
+            when String
+              assert_equal content, read
+            when Regexp
+              assert_match content, read
             end
           end
         end
@@ -113,7 +115,11 @@ module Rails
         #
         #   assert_field_default_value :string, "MyString"
         def assert_field_default_value(attribute_type, value)
-          assert_equal(value, create_generated_attribute(attribute_type).default)
+          if value.nil?
+            assert_nil(create_generated_attribute(attribute_type).default)
+          else
+            assert_equal(value, create_generated_attribute(attribute_type).default)
+          end
         end
       end
     end

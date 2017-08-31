@@ -1,5 +1,7 @@
-require 'active_support/core_ext/string/filters'
-require 'active_support/core_ext/array/extract_options'
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/filters"
+require "active_support/core_ext/array/extract_options"
 
 module ActionView
   # = Action View Text Helpers
@@ -135,7 +137,7 @@ module ActionView
         else
           match = Array(phrases).map do |p|
             Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join('|')
+          end.join("|")
 
           if block_given?
             text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
@@ -151,7 +153,7 @@ module ActionView
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
       # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, nil is returned.
+      # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
@@ -187,7 +189,7 @@ module ActionView
         unless separator.empty?
           text.split(separator).each do |value|
             if value.match(regex)
-              regex = phrase = value
+              phrase = value
               break
             end
           end
@@ -225,14 +227,7 @@ module ActionView
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
-      def pluralize(count, singular, deprecated_plural = nil, plural: nil, locale: I18n.locale)
-        if deprecated_plural
-          ActiveSupport::Deprecation.warn("Passing plural as a positional argument " \
-            "is deprecated and will be removed in Rails 5.1. Use e.g. " \
-            "pluralize(1, 'person', plural: 'people') instead.")
-          plural ||= deprecated_plural
-        end
-
+      def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
@@ -269,10 +264,11 @@ module ActionView
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
-      # Two or more consecutive newlines(<tt>\n\n</tt>) are considered as a
-      # paragraph and wrapped in <tt><p></tt> tags. One newline (<tt>\n</tt>) is
-      # considered as a linebreak and a <tt><br /></tt> tag is appended. This
-      # method does not remove the newlines from the +text+.
+      # Two or more consecutive newlines(<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
+      # considered a paragraph and wrapped in <tt><p></tt> tags. One newline
+      # (<tt>\n</tt> or <tt>\r\n</tt>) is considered a linebreak and a
+      # <tt><br /></tt> tag is appended. This method does not remove the
+      # newlines from the +text+.
       #
       # You can pass any HTML attributes into <tt>html_options</tt>. These
       # will be added to all created paragraphs.
@@ -357,7 +353,7 @@ module ActionView
       #  <% end %>
       def cycle(first_value, *values)
         options = values.extract_options!
-        name = options.fetch(:name, 'default')
+        name = options.fetch(:name, "default")
 
         values.unshift(*first_value)
 
@@ -431,17 +427,17 @@ module ActionView
 
         private
 
-        def next_index
-          step_index(1)
-        end
+          def next_index
+            step_index(1)
+          end
 
-        def previous_index
-          step_index(-1)
-        end
+          def previous_index
+            step_index(-1)
+          end
 
-        def step_index(n)
-          (@index + n) % @values.size
-        end
+          def step_index(n)
+            (@index + n) % @values.size
+          end
       end
 
       private

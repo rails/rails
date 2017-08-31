@@ -15,7 +15,7 @@ After reading this guide, you will know:
 What is Action View?
 --------------------
 
-In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller will be concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
+In Rails, web requests are handled by [Action Controller](action_controller_overview.html) and Action View. Typically, Action Controller is concerned with communicating with the database and performing CRUD actions where necessary. Action View is then responsible for compiling the response.
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
@@ -177,7 +177,7 @@ would produce:
 }
 ```
 
-See the [Jbuilder documention](https://github.com/rails/jbuilder#jbuilder) for
+See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
 more examples and information.
 
 #### Template Caching
@@ -254,12 +254,6 @@ as if we had written:
 <%= render partial: "product", locals: { product: @product } %>
 ```
 
-With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
-
-```erb
-<%= render partial: "product", as: "item" %>
-```
-
 The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (e.g. in a different instance variable or in a local variable).
 
 For example, instead of:
@@ -274,10 +268,16 @@ we would do:
 <%= render partial: "product", object: @item %>
 ```
 
-The `object` and `as` options can also be used together:
+With the `as` option we can specify a different name for the said local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
 <%= render partial: "product", object: @item, as: "item" %>
+```
+
+This is equivalent to
+
+```erb
+<%= render partial: "product", locals: { item: @item } %>
 ```
 
 #### Rendering Collections
@@ -414,12 +414,12 @@ By default, Rails links to these assets on the current host in the public folder
 
 ```ruby
 config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
+image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
 #### auto_discovery_link_tag
 
-Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
+Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) # =>
@@ -453,7 +453,7 @@ image_url("edit.png") # => http://www.example.com/assets/edit.png
 Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
 
 ```ruby
-image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
+image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
 
 #### javascript_include_tag
@@ -462,25 +462,6 @@ Returns an HTML script tag for each of the sources provided. You can pass in the
 
 ```ruby
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
-```
-
-If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass `:defaults` as the source. When using `:defaults`, if an `application.js` file exists in your `app/assets/javascripts` directory, it will be included as well.
-
-```ruby
-javascript_include_tag :defaults
-```
-
-You can also include all JavaScript files in the `app/assets/javascripts` directory using `:all` as the source.
-
-```ruby
-javascript_include_tag :all
-```
-
-You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-javascript_include_tag :all, cache: true # =>
-  <script src="/javascripts/all.js"></script>
 ```
 
 #### javascript_path
@@ -505,19 +486,6 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 ```ruby
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
-```
-
-You can also include all styles in the stylesheet directory using `:all` as the source:
-
-```ruby
-stylesheet_link_tag :all
-```
-
-You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-stylesheet_link_tag :all, cache: true
-# => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 ```
 
 #### stylesheet_path
@@ -1419,7 +1387,7 @@ number_to_percentage(100, precision: 0)        # => 100%
 
 #### number_to_phone
 
-Formats a number into a US phone number.
+Formats a number into a phone number (US by default).
 
 ```ruby
 number_to_phone(1235551234) # => 123-555-1234
@@ -1439,7 +1407,7 @@ Formats a number with the specified level of `precision`, which defaults to 3.
 
 ```ruby
 number_with_precision(111.2345)     # => 111.235
-number_with_precision(111.2345, 2)  # => 111.23
+number_with_precision(111.2345, precision: 2)  # => 111.23
 ```
 
 ### SanitizeHelper
@@ -1493,7 +1461,7 @@ strip_links('Blog: <a href="http://myblog.com/">Visit</a>.')
 #### strip_tags(html)
 
 Strips all HTML tags from the html, including comments.
-This uses the html-scanner tokenizer and so its HTML parsing ability is limited by that of html-scanner.
+This functionality is powered by the rails-html-sanitizer gem.
 
 ```ruby
 strip_tags("Strip <i>these</i> tags!")

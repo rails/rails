@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require 'models/post'
-require 'models/topic'
-require 'models/comment'
-require 'models/reply'
-require 'models/author'
-require 'models/developer'
-require 'models/computer'
+require "models/post"
+require "models/topic"
+require "models/comment"
+require "models/reply"
+require "models/author"
+require "models/developer"
+require "models/computer"
 
 class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -23,8 +25,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     all_posts = Topic.base
 
     assert_queries(1) do
-      all_posts.collect
-      all_posts.collect
+      all_posts.collect { true }
+      all_posts.collect { true }
     end
   end
 
@@ -33,8 +35,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     all_posts.to_a
 
     new_post = Topic.create!
-    assert !all_posts.include?(new_post)
-    assert all_posts.reload.include?(new_post)
+    assert_not_includes all_posts, new_post
+    assert_includes all_posts.reload, new_post
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
@@ -46,11 +48,18 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_calling_merge_at_first_in_scope
+    Topic.class_eval do
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+    end
+    assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
+  end
+
   def test_method_missing_priority_when_delegating
     klazz = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
-      scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
-      scope :to,    Proc.new { where('written_on <= ?', Time.now) }
+      scope :since, Proc.new { where("written_on >= ?", Time.now - 1.day) }
+      scope :to,    Proc.new { where("written_on <= ?", Time.now) }
     end
     assert_equal klazz.to.since.to_a, klazz.since.to.to_a
   end
@@ -62,10 +71,10 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.all.merge!(:where => {:approved => true}).to_a.empty?
+    assert !Topic.all.merge!(where: { approved: true }).to_a.empty?
 
-    assert_equal Topic.all.merge!(:where => {:approved => true}).to_a, Topic.approved
-    assert_equal Topic.where(:approved => true).count, Topic.approved.count
+    assert_equal Topic.all.merge!(where: { approved: true }).to_a, Topic.approved
+    assert_equal Topic.where(approved: true).count, Topic.approved.count
   end
 
   def test_scopes_with_string_name_can_be_composed
@@ -75,8 +84,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.all.merge!(:where => {:approved => true}).to_a), Topic.approved)
-    assert_equal((replied = Topic.all.merge!(:where => 'replies_count > 0').to_a), Topic.replied)
+    assert_equal((approved = Topic.all.merge!(where: { approved: true }).to_a), Topic.approved)
+    assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -84,8 +93,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes
-    topics_written_before_the_third = Topic.where('written_on < ?', topics(:third).written_on)
-    topics_written_before_the_second = Topic.where('written_on < ?', topics(:second).written_on)
+    topics_written_before_the_third = Topic.where("written_on < ?", topics(:third).written_on)
+    topics_written_before_the_second = Topic.where("written_on < ?", topics(:second).written_on)
     assert_not_equal topics_written_before_the_second, topics_written_before_the_third
 
     assert_equal topics_written_before_the_third, Topic.written_before(topics(:third).written_on)
@@ -101,26 +110,28 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scope_with_object
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
-    assert objects.all?(&:approved?), 'all objects should be approved'
+    assert objects.all?(&:approved?), "all objects should be approved"
   end
 
   def test_has_many_associations_have_access_to_scopes
     assert_not_equal Post.containing_the_letter_a, authors(:david).posts
     assert !Post.containing_the_letter_a.empty?
 
-    assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
+    expected = authors(:david).posts & Post.containing_the_letter_a
+    assert_equal expected.sort_by(&:id), authors(:david).posts.containing_the_letter_a.sort_by(&:id)
   end
 
   def test_scope_with_STI
-    assert_equal 3,Post.containing_the_letter_a.count
-    assert_equal 1,SpecialPost.containing_the_letter_a.count
+    assert_equal 3, Post.containing_the_letter_a.count
+    assert_equal 1, SpecialPost.containing_the_letter_a.count
   end
 
   def test_has_many_through_associations_have_access_to_scopes
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
 
-    assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
+    expected = authors(:david).comments & Comment.containing_the_letter_e
+    assert_equal expected.sort_by(&:id), authors(:david).comments.containing_the_letter_e.sort_by(&:id)
   end
 
   def test_scopes_honor_current_scopes_from_when_defined
@@ -154,13 +165,13 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_first_and_last_should_allow_integers_for_limit
-    assert_equal Topic.base.first(2), Topic.base.to_a.first(2)
+    assert_equal Topic.base.first(2), Topic.base.order("id").to_a.first(2)
     assert_equal Topic.base.last(2), Topic.base.order("id").to_a.last(2)
   end
 
   def test_first_and_last_should_not_use_query_when_results_are_loaded
     topics = Topic.base
-    topics.reload # force load
+    topics.load # force load
     assert_no_queries do
       topics.first
       topics.last
@@ -171,7 +182,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.empty?  # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.empty?  # use loaded (no query)
     end
   end
@@ -180,7 +191,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.any?    # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.any?    # use loaded (no query)
     end
   end
@@ -196,7 +207,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_any_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.load # force load
     assert_no_queries { assert topics.any? }
   end
 
@@ -210,7 +221,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     topics = Topic.base
     assert_queries(2) do
       topics.many?   # use count query
-      topics.collect # force load
+      topics.load    # force load
       topics.many?   # use loaded (no query)
     end
   end
@@ -226,14 +237,14 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_many_should_not_fire_query_if_scope_loaded
     topics = Topic.base
-    topics.collect # force load
+    topics.load # force load
     assert_no_queries { assert topics.many? }
   end
 
   def test_many_should_return_false_if_none_or_one
-    topics = Topic.base.where(:id => 0)
+    topics = Topic.base.where(id: 0)
     assert !topics.many?
-    topics = Topic.base.where(:id => 1)
+    topics = Topic.base.where(id: 1)
     assert !topics.many?
   end
 
@@ -273,7 +284,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_should_build_on_top_of_chained_scopes
     topic = Topic.approved.by_lifo.build({})
     assert topic.approved
-    assert_equal 'lifo', topic.author_name
+    assert_equal "lifo", topic.author_name
   end
 
   def test_reserved_scope_names
@@ -301,7 +312,7 @@ class NamedScopingTest < ActiveRecord::TestCase
       :relation,      # private class method on AR::Base
       :new,           # redefined class method on AR::Base
       :all,           # a default scope
-      :public,        # some imporant methods on Module and Class
+      :public,        # some important methods on Module and Class
       :protected,
       :private,
       :name,
@@ -320,12 +331,12 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     conflicts.each do |name|
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
-        klass.class_eval { scope name, ->{ where(approved: true) } }
+        klass.class_eval { scope name, -> { where(approved: true) } }
       end
       assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
 
       e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
-        subklass.class_eval { scope name, ->{ where(approved: true) } }
+        subklass.class_eval { scope name, -> { where(approved: true) } }
       end
       assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
     end
@@ -333,12 +344,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     non_conflicts.each do |name|
       assert_nothing_raised do
         silence_warnings do
-          klass.class_eval { scope name, ->{ where(approved: true) } }
+          klass.class_eval { scope name, -> { where(approved: true) } }
         end
       end
 
       assert_nothing_raised do
-        subklass.class_eval { scope name, ->{ where(approved: true) } }
+        subklass.class_eval { scope name, -> { where(approved: true) } }
       end
     end
   end
@@ -350,7 +361,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
       scope :"title containing space", -> { where("title LIKE '% %'") }
-      scope :approved, -> { where(:approved => true) }
+      scope :approved, -> { where(approved: true) }
     end
     assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
     assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
@@ -365,7 +376,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_use_where_in_query_for_scope
-    assert_equal Developer.where(name: 'Jamis').to_set, Developer.where(id: Developer.jamises).to_set
+    assert_equal Developer.where(name: "Jamis").to_set, Developer.where(id: Developer.jamises).to_set
   end
 
   def test_size_should_use_count_when_results_are_not_loaded
@@ -377,7 +388,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_size_should_use_length_when_results_are_loaded
     topics = Topic.base
-    topics.reload # force load
+    topics.load # force load
     assert_no_queries do
       topics.size # use loaded (no query)
     end
@@ -424,12 +435,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 4, Topic.approved.count
 
     assert_queries(5) do
-      Topic.approved.find_each(:batch_size => 1) {|t| assert t.approved? }
+      Topic.approved.find_each(batch_size: 1) { |t| assert t.approved? }
     end
 
     assert_queries(3) do
-      Topic.approved.find_in_batches(:batch_size => 2) do |group|
-        group.each {|t| assert t.approved? }
+      Topic.approved.find_in_batches(batch_size: 2) do |group|
+        group.each { |t| assert t.approved? }
       end
     end
   end
@@ -455,13 +466,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:public_method, :protected_method, :private_method].each do |reserved_method|
       assert Topic.respond_to?(reserved_method, true)
       ActiveRecord::Base.logger.expects(:warn)
-      silence_warnings { Topic.scope(reserved_method, -> { }) }
+      silence_warnings { Topic.scope(reserved_method, -> {}) }
     end
   end
 
   def test_scopes_on_relations
     # Topic.replied
-    approved_topics = Topic.all.approved.order('id DESC')
+    approved_topics = Topic.all.approved.order("id DESC")
     assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
@@ -469,7 +480,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_index_on_scope
-    approved = Topic.approved.order('id ASC')
+    approved = Topic.approved.order("id ASC")
     assert_equal topics(:second), approved[0]
     assert approved.loaded?
   end
@@ -510,7 +521,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_to_get_newest
     post = posts(:welcome)
     old_last_comment = post.comments.newest
-    new_comment = post.comments.create(:body => "My new comment")
+    new_comment = post.comments.create(body: "My new comment")
     assert_equal new_comment, post.comments.newest
     assert_not_equal old_last_comment, post.comments.newest
   end
@@ -533,15 +544,34 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_eager_default_scope_relations_are_remove
     klass = Class.new(ActiveRecord::Base)
-    klass.table_name = 'posts'
+    klass.table_name = "posts"
 
     assert_raises(ArgumentError) do
-      klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
+      klass.send(:default_scope, klass.where(id: posts(:welcome).id))
     end
   end
 
   def test_subclass_merges_scopes_properly
-    assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
+    assert_equal 1, SpecialComment.where(body: "go crazy").created.count
   end
 
+  def test_model_class_should_respond_to_extending
+    assert_raises OopsError do
+      Comment.unscoped.oops_comments.destroy_all
+    end
+  end
+
+  def test_model_class_should_respond_to_none
+    assert !Topic.none?
+    Topic.delete_all
+    assert Topic.none?
+  end
+
+  def test_model_class_should_respond_to_one
+    assert !Topic.one?
+    Topic.delete_all
+    assert !Topic.one?
+    Topic.create!
+    assert Topic.one?
+  end
 end

@@ -1,4 +1,6 @@
-require 'action_dispatch/journey/gtg/transition_table'
+# frozen_string_literal: true
+
+require_relative "transition_table"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -17,7 +19,7 @@ module ActionDispatch
         def transition_table
           dtrans   = TransitionTable.new
           marked   = {}
-          state_id = Hash.new { |h,k| h[k] = h.length }
+          state_id = Hash.new { |h, k| h[k] = h.length }
 
           start   = firstpos(root)
           dstates = [start]
@@ -75,7 +77,7 @@ module ActionDispatch
           when Nodes::Unary
             nullable?(node.left)
           else
-            raise ArgumentError, 'unknown nullable: %s' % node.class.name
+            raise ArgumentError, "unknown nullable: %s" % node.class.name
           end
         end
 
@@ -96,7 +98,7 @@ module ActionDispatch
           when Nodes::Terminal
             nullable?(node) ? [] : [node]
           else
-            raise ArgumentError, 'unknown firstpos: %s' % node.class.name
+            raise ArgumentError, "unknown firstpos: %s" % node.class.name
           end
         end
 
@@ -117,7 +119,7 @@ module ActionDispatch
           when Nodes::Unary
             lastpos(node.left)
           else
-            raise ArgumentError, 'unknown lastpos: %s' % node.class.name
+            raise ArgumentError, "unknown lastpos: %s" % node.class.name
           end
         end
 

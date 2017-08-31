@@ -1,12 +1,14 @@
-require 'global_id/railtie'
-require 'active_job'
+# frozen_string_literal: true
+
+require "global_id/railtie"
+require "active_job"
 
 module ActiveJob
   # = Active Job Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
 
-    initializer 'active_job.logger' do
+    initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
@@ -15,7 +17,7 @@ module ActiveJob
       options.queue_adapter ||= :async
 
       ActiveSupport.on_load(:active_job) do
-        options.each { |k,v| send("#{k}=", v) }
+        options.each { |k, v| send("#{k}=", v) }
       end
     end
 

@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnMethods
         def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if type == :bigint && !options.key?(:default)
+          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
           super
         end
 
@@ -56,33 +58,30 @@ module ActiveRecord
         end
       end
 
-      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :charset, :unsigned
-      end
-
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        def new_column_definition(name, type, options) # :nodoc:
-          column = super
-          case column.type
+        def new_column_definition(name, type, **options) # :nodoc:
+          case type
+          when :virtual
+            type = options[:type]
           when :primary_key
-            column.type = :integer
-            column.auto_increment = true
+            type = :integer
+            options[:limit] ||= 8
+            options[:auto_increment] = true
+            options[:primary_key] = true
           when /\Aunsigned_(?<type>.+)\z/
-            column.type = $~[:type].to_sym
-            column.unsigned = true
+            type = $~[:type].to_sym
+            options[:unsigned] = true
           end
-          column.unsigned ||= options[:unsigned]
-          column.charset = options[:charset]
-          column
+
+          super
         end
 
         private
-
-        def create_column_definition(name, type)
-          MySQL::ColumnDefinition.new(name, type)
-        end
+          def aliased_types(name, fallback)
+            fallback
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

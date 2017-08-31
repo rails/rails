@@ -1,5 +1,7 @@
-require 'test_helper'
-require 'stubs/test_server'
+# frozen_string_literal: true
+
+require "test_helper"
+require "stubs/test_server"
 
 class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
   ## TEST THAT ERRORS ARE RETURNED FOR INHERITORS THAT DON'T OVERRIDE METHODS
@@ -15,59 +17,49 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
   test "#broadcast returns NotImplementedError by default" do
     assert_raises NotImplementedError do
-      BrokenAdapter.new(@server).broadcast('channel', 'payload')
+      BrokenAdapter.new(@server).broadcast("channel", "payload")
     end
   end
 
   test "#subscribe returns NotImplementedError by default" do
-    callback = lambda { puts 'callback' }
-    success_callback = lambda { puts 'success' }
+    callback = lambda { puts "callback" }
+    success_callback = lambda { puts "success" }
 
     assert_raises NotImplementedError do
-      BrokenAdapter.new(@server).subscribe('channel', callback, success_callback)
+      BrokenAdapter.new(@server).subscribe("channel", callback, success_callback)
     end
   end
 
   test "#unsubscribe returns NotImplementedError by default" do
-    callback = lambda { puts 'callback' }
+    callback = lambda { puts "callback" }
 
     assert_raises NotImplementedError do
-      BrokenAdapter.new(@server).unsubscribe('channel', callback)
+      BrokenAdapter.new(@server).unsubscribe("channel", callback)
     end
   end
 
   # TEST METHODS THAT ARE REQUIRED OF THE ADAPTER'S BACKEND STORAGE OBJECT
 
   test "#broadcast is implemented" do
-    broadcast = SuccessAdapter.new(@server).broadcast('channel', 'payload')
-
-    assert_respond_to(SuccessAdapter.new(@server), :broadcast)
-
     assert_nothing_raised do
-      broadcast
+      SuccessAdapter.new(@server).broadcast("channel", "payload")
     end
   end
 
   test "#subscribe is implemented" do
-    callback = lambda { puts 'callback' }
-    success_callback = lambda { puts 'success' }
-    subscribe = SuccessAdapter.new(@server).subscribe('channel', callback, success_callback)
-
-    assert_respond_to(SuccessAdapter.new(@server), :subscribe)
+    callback = lambda { puts "callback" }
+    success_callback = lambda { puts "success" }
 
     assert_nothing_raised do
-      subscribe
+      SuccessAdapter.new(@server).subscribe("channel", callback, success_callback)
     end
   end
 
   test "#unsubscribe is implemented" do
-    callback = lambda { puts 'callback' }
-    unsubscribe = SuccessAdapter.new(@server).unsubscribe('channel', callback)
-
-    assert_respond_to(SuccessAdapter.new(@server), :unsubscribe)
+    callback = lambda { puts "callback" }
 
     assert_nothing_raised do
-      unsubscribe
+      SuccessAdapter.new(@server).unsubscribe("channel", callback)
     end
   end
 end

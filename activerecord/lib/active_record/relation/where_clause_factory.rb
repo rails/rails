@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Relation
     class WhereClauseFactory # :nodoc:
@@ -7,8 +9,6 @@ module ActiveRecord
       end
 
       def build(opts, other)
-        binds = []
-
         case opts
         when String, Array
           parts = [klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
@@ -17,22 +17,19 @@ module ActiveRecord
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
           attributes.stringify_keys!
 
-          attributes, binds = predicate_builder.create_binds(attributes)
-
           parts = predicate_builder.build_from_hash(attributes)
         when Arel::Nodes::Node
           parts = [opts]
-          binds = other
         else
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
 
-        WhereClause.new(parts, binds)
+        WhereClause.new(parts)
       end
 
       protected
 
-      attr_reader :klass, :predicate_builder
+        attr_reader :klass, :predicate_builder
     end
   end
 end

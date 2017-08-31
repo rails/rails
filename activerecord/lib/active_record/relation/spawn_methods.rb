@@ -1,10 +1,11 @@
-require 'active_support/core_ext/hash/except'
-require 'active_support/core_ext/hash/slice'
-require 'active_record/relation/merger'
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/slice"
+require_relative "merger"
 
 module ActiveRecord
   module SpawnMethods
-
     # This is overridden by Associations::CollectionProxy
     def spawn #:nodoc:
       clone
@@ -67,7 +68,7 @@ module ActiveRecord
 
     private
 
-      def relation_with(values) # :nodoc:
+      def relation_with(values)
         result = Relation.create(klass, table, predicate_builder, values)
         result.extend(*extending_values) if extending_values.any?
         result

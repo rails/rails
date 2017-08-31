@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class MultibyteProxyText < ActiveSupport::TestCase
   class AsciiOnlyEncoder
@@ -6,7 +8,7 @@ class MultibyteProxyText < ActiveSupport::TestCase
     alias to_s wrapped_string
 
     def initialize(string)
-      @wrapped_string = string.gsub(/[^\u0000-\u007F]/, '?')
+      @wrapped_string = string.gsub(/[^\u0000-\u007F]/, "?")
     end
   end
 

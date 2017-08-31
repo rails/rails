@@ -1,6 +1,8 @@
-require 'active_support/core_ext/hash/slice'
-require "rails/generators/rails/app/app_generator"
-require 'date'
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/slice"
+require_relative "../app/app_generator"
+require "date"
 
 module Rails
   # The plugin builder allows you to override elements of the plugin
@@ -18,20 +20,20 @@ module Rails
     def app
       if mountable?
         if api?
-          directory 'app', exclude_pattern: %r{app/(views|helpers)}
+          directory "app", exclude_pattern: %r{app/(views|helpers)}
         else
-          directory 'app'
+          directory "app"
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
         end
       elsif full?
-        empty_directory_with_keep_file 'app/models'
-        empty_directory_with_keep_file 'app/controllers'
-        empty_directory_with_keep_file 'app/mailers'
+        empty_directory_with_keep_file "app/models"
+        empty_directory_with_keep_file "app/controllers"
+        empty_directory_with_keep_file "app/mailers"
 
         unless api?
           empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
-          empty_directory_with_keep_file 'app/helpers'
-          empty_directory_with_keep_file 'app/views'
+          empty_directory_with_keep_file "app/helpers"
+          empty_directory_with_keep_file "app/views"
         end
       end
     end
@@ -60,7 +62,12 @@ module Rails
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
       template "lib/%namespaced_name%/version.rb"
-      template "lib/%namespaced_name%/engine.rb" if engine?
+
+      if engine?
+        template "lib/%namespaced_name%/engine.rb"
+      else
+        template "lib/%namespaced_name%/railtie.rb"
+      end
     end
 
     def config
@@ -71,8 +78,8 @@ module Rails
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
-#{rakefile_test_tasks}
 
+#{rakefile_test_tasks}
 task default: :test
       EOF
       if engine?
@@ -81,16 +88,17 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
-      :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
+      :javascript, :skip_yarn, :api, :quiet, :pretend, :skip
     ]
 
     def generate_test_dummy(force = false)
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
+      opts[:skip_turbolinks] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,9 +120,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
-        remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
@@ -149,7 +155,7 @@ task default: :test
     end
 
     def bin(force = false)
-      bin_file = engine? ? 'bin/rails.tt' : 'bin/test.tt'
+      bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
       template bin_file, force: force do |content|
         "#{shebang}\n" + content
       end
@@ -186,7 +192,7 @@ task default: :test
                                   desc: "Skip gemspec file"
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
-                                        desc: "If creating plugin in application's directory " +
+                                        desc: "If creating plugin in application's directory " \
                                                  "skip adding entry to Gemfile"
 
       class_option :api,          type: :boolean, default: false,
@@ -195,10 +201,6 @@ task default: :test
       def initialize(*args)
         @dummy_path = nil
         super
-
-        unless plugin_path
-          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
-        end
       end
 
       public_task :set_default_accessors!
@@ -258,7 +260,7 @@ task default: :test
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each do |callback|
@@ -270,8 +272,8 @@ task default: :test
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
           underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
           underscored.downcase!
 
           underscored
@@ -283,10 +285,10 @@ task default: :test
       end
 
       def namespaced_name
-        @namespaced_name ||= name.gsub('-', '/')
+        @namespaced_name ||= name.tr("-", "/")
       end
 
-    protected
+    private
 
       def create_dummy_app(path = nil)
         dummy_path(path) if path
@@ -304,7 +306,7 @@ task default: :test
       end
 
       def engine?
-        full? || mountable?
+        full? || mountable? || options[:engine]
       end
 
       def full?
@@ -320,7 +322,7 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != "test/dummy"
       end
 
       def api?
@@ -328,7 +330,7 @@ task default: :test
       end
 
       def self.banner
-        "rails plugin new #{self.arguments.map(&:usage).join(' ')} [options]"
+        "rails plugin new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
       def original_name
@@ -340,7 +342,7 @@ task default: :test
       end
 
       def wrap_in_modules(unwrapped_code)
-        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, '')
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join
@@ -357,7 +359,7 @@ task default: :test
       end
 
       def camelized
-        @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
+        @camelized ||= name.gsub(/\W/, "_").squeeze("_").camelize
       end
 
       def author
@@ -415,7 +417,6 @@ task default: :test
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false
@@ -437,12 +438,12 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path
         return unless inside_application?
-        app_path.sub(/^#{rails_app_path}\//, '')
+        app_path.sub(/^#{rails_app_path}\//, "")
       end
     end
   end

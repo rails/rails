@@ -1,5 +1,6 @@
-module ActiveModel
+# frozen_string_literal: true
 
+module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { greater_than: :>, greater_than_or_equal_to: :>=,
@@ -27,8 +28,6 @@ module ActiveModel
           raw_value = value
         end
 
-        return if options[:allow_nil] && raw_value.nil?
-
         unless is_number?(raw_value)
           record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
           return
@@ -39,7 +38,9 @@ module ActiveModel
           return
         end
 
-        unless raw_value.is_a?(Numeric)
+        if raw_value.is_a?(Numeric)
+          value = raw_value
+        else
           value = parse_raw_value_as_a_number(raw_value)
         end
 
@@ -64,7 +65,7 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
       def is_number?(raw_value)
         !parse_raw_value_as_a_number(raw_value).nil?
@@ -73,6 +74,7 @@ module ActiveModel
       end
 
       def parse_raw_value_as_a_number(raw_value)
+        return raw_value.to_i if is_integer?(raw_value)
         Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
@@ -97,8 +99,6 @@ module ActiveModel
         end
       end
 
-      private
-
       def record_attribute_changed_in_place?(record, attr_name)
         record.respond_to?(:attribute_changed_in_place?) &&
           record.attribute_changed_in_place?(attr_name.to_s)
@@ -108,7 +108,7 @@ module ActiveModel
     module HelperMethods
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with Kernel.Float (if <tt>only_integer</tt>
-      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\Z/</tt>
+      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\z/</tt>
       # (if <tt>only_integer</tt> is set to +true+).
       #
       #   class Person < ActiveRecord::Base
@@ -120,7 +120,7 @@ module ActiveModel
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
-      #   +false+). Notice that for fixnum and float columns empty strings are
+      #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
       #   supplied value.
@@ -139,7 +139,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # See <tt>ActiveModel::Validations#validates</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which
       # corresponds to a method:

@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 begin
-  require 'dalli'
+  require "dalli"
 rescue LoadError => e
   $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
-require 'digest/md5'
-require 'active_support/core_ext/marshal'
-require 'active_support/core_ext/array/extract_options'
+require "digest/md5"
+require_relative "../core_ext/marshal"
+require_relative "../core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://memcached.org/
+    # https://memcached.org
     #
     # This is currently the most popular cache store for production websites.
     #
@@ -26,24 +28,24 @@ module ActiveSupport
     class MemCacheStore < Store
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
-        protected
-        def read_entry(key, options)
-          entry = super
-          if options[:raw] && local_cache && entry
-            entry = deserialize_entry(entry.value)
+        private
+          def read_entry(key, options)
+            entry = super
+            if options[:raw] && local_cache && entry
+              entry = deserialize_entry(entry.value)
+            end
+            entry
           end
-          entry
-        end
 
-        def write_entry(key, entry, options) # :nodoc:
-          if options[:raw] && local_cache
-            raw_entry = Entry.new(entry.value.to_s)
-            raw_entry.expires_at = entry.expires_at
-            super(key, raw_entry, options)
-          else
-            super
+          def write_entry(key, entry, options)
+            if options[:raw] && local_cache
+              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry.expires_at = entry.expires_at
+              super(key, raw_entry, options)
+            else
+              super
+            end
           end
-        end
       end
 
       prepend Strategy::LocalCache
@@ -85,7 +87,7 @@ module ActiveSupport
           @data = addresses.first
         else
           mem_cache_options = options.dup
-          UNIVERSAL_OPTIONS.each{|name| mem_cache_options.delete(name)}
+          UNIVERSAL_OPTIONS.each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
       end
@@ -96,13 +98,19 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        keys_to_names = Hash[names.map{|name| [normalize_key(name, options), name]}]
-        raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
+        keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+
+        raw_values = @data.get_multi(keys_to_names.keys)
         values = {}
+
         raw_values.each do |key, value|
           entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
+
+          unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+            values[keys_to_names[key]] = entry.value
+          end
         end
+
         values
       end
 
@@ -110,9 +118,9 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def increment(name, amount = 1, options = nil) # :nodoc:
+      def increment(name, amount = 1, options = nil)
         options = merged_options(options)
-        instrument(:increment, name, :amount => amount) do
+        instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
             @data.incr(normalize_key(name, options), amount)
           end
@@ -123,9 +131,9 @@ module ActiveSupport
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
       # to zero.
-      def decrement(name, amount = 1, options = nil) # :nodoc:
+      def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
-        instrument(:decrement, name, :amount => amount) do
+        instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
             @data.decr(normalize_key(name, options), amount)
           end
@@ -143,14 +151,14 @@ module ActiveSupport
         @data.stats
       end
 
-      protected
+      private
         # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
+        def read_entry(key, options)
           rescue_error_with(nil) { deserialize_entry(@data.get(key, options)) }
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
@@ -164,11 +172,9 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
+        def delete_entry(key, options)
           rescue_error_with(false) { @data.delete(key) }
         end
-
-      private
 
         # Memcache keys are binaries. So we need to force their encoding to binary
         # before applying the regular expression to ensure we are escaping all
@@ -176,16 +182,8 @@ module ActiveSupport
         def normalize_key(key, options)
           key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
-          key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+          key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
-          key
-        end
-
-        def escape_key(key)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `escape_key` is deprecated and will be removed from Rails 5.1.
-            Please use `normalize_key` which will return a fully resolved key or nothing.
-          MESSAGE
           key
         end
 

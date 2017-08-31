@@ -1,18 +1,21 @@
-require 'rails/ruby_version_check'
+# frozen_string_literal: true
 
-require 'pathname'
+require_relative "rails/ruby_version_check"
 
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/array/extract_options'
+require "pathname"
 
-require 'rails/application'
-require 'rails/version'
+require "active_support"
+require "active_support/dependencies/autoload"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/object/blank"
 
-require 'active_support/railtie'
-require 'action_dispatch/railtie'
+require_relative "rails/application"
+require_relative "rails/version"
+
+require "active_support/railtie"
+require "action_dispatch/railtie"
 
 # UTF-8 is the default internal and external encoding.
 silence_warnings do
@@ -46,14 +49,14 @@ module Rails
 
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
-        # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
-        require 'rails/backtrace_cleaner'
+        # Relies on Active Support, so we have to lazy load to postpone definition until Active Support has been loaded
+        require_relative "rails/backtrace_cleaner"
         Rails::BacktraceCleaner.new
       end
     end
 
-    # Returns a Pathname object of the current rails project,
-    # otherwise it returns nil if there is no project:
+    # Returns a Pathname object of the current Rails project,
+    # otherwise it returns +nil+ if there is no project:
     #
     #   Rails.root
     #     # => #<Pathname:/Users/someuser/some/path/project>
@@ -67,7 +70,7 @@ module Rails
     #   Rails.env.development? # => true
     #   Rails.env.production? # => false
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
     end
 
     # Sets the Rails environment.
@@ -77,7 +80,7 @@ module Rails
       @_env = ActiveSupport::StringInquirer.new(environment)
     end
 
-    # Returns all rails groups for loading based on:
+    # Returns all Rails groups for loading based on:
     #
     # * The Rails environment;
     # * The environment variable RAILS_GROUPS;
@@ -86,8 +89,8 @@ module Rails
     #   groups assets: [:development, :test]
     #
     #   # Returns
-    #   # => [:default, :development, :assets] for Rails.env == "development"
-    #   # => [:default, :production]           for Rails.env == "production"
+    #   # => [:default, "development", :assets] for Rails.env == "development"
+    #   # => [:default, "production"]           for Rails.env == "production"
     def groups(*groups)
       hash = groups.extract_options!
       env = Rails.env
@@ -100,7 +103,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # rails project, otherwise it returns nil if there is no project:
+    # Rails project, otherwise it returns +nil+ if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>

@@ -1,13 +1,13 @@
 body {
   background-color: #fff;
   color: #333;
+  margin: 33px;
 }
 
 body, p, ol, ul, td {
   font-family: verdana, arial, helvetica, sans-serif;
   font-size: 13px;
   line-height: 18px;
-  margin: 33px;
 }
 
 pre {
@@ -34,9 +34,7 @@ th {
 }
 
 td {
-  padding-bottom: 7px;
-  padding-left: 5px;
-  padding-right: 5px;
+  padding: 0 5px 7px;
 }
 
 div.field,
@@ -57,8 +55,7 @@ div.actions {
 #error_explanation {
   width: 450px;
   border: 2px solid red;
-  padding: 7px;
-  padding-bottom: 0;
+  padding: 7px 7px 0;
   margin-bottom: 20px;
   background-color: #f0f0f0;
 }
@@ -68,8 +65,7 @@ div.actions {
   font-weight: bold;
   padding: 5px 5px 5px 15px;
   font-size: 12px;
-  margin: -7px;
-  margin-bottom: 0;
+  margin: -7px -7px 0;
   background-color: #c00;
   color: #fff;
 }

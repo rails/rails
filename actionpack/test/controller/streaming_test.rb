@@ -1,10 +1,12 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module ActionController
   class StreamingResponseTest < ActionController::TestCase
     class TestController < ActionController::Base
       def self.controller_path
-        'test'
+        "test"
       end
 
       def basic_stream

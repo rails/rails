@@ -1,5 +1,7 @@
-require 'cases/helper'
-require 'models/content'
+# frozen_string_literal: true
+
+require "cases/helper"
+require "models/content"
 
 class BidirectionalDestroyDependenciesTest < ActiveRecord::TestCase
   fixtures :content, :content_positions

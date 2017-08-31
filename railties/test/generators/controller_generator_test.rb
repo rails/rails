@@ -1,5 +1,7 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/controller/controller_generator'
+# frozen_string_literal: true
+
+require "generators/generators_test_helper"
+require "rails/generators/rails/controller/controller_generator"
 
 class ControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -19,7 +21,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_check_class_collision
     Object.send :const_set, :ObjectController, Class.new
-    content = capture(:stderr){ run_generator ["object"] }
+    content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'ObjectController' is either already used in your application or reserved/, content)
   ensure
     Object.send :remove_const, :ObjectController
@@ -65,7 +67,7 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_add_routes
     run_generator
-    assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
+    assert_file "config/routes.rb", /^  get 'account\/foo'/, /^  get 'account\/bar'/
   end
 
   def test_skip_routes
@@ -98,6 +100,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["admin/dashboard", "index"]
     assert_file "config/routes.rb" do |route|
       assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n  end$/, route)
+    end
+  end
+
+  def test_namespaced_routes_with_multiple_actions_are_created_in_routes
+    run_generator ["admin/dashboard", "index", "show"]
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
     end
   end
 end

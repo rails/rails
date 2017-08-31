@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code
@@ -28,7 +30,7 @@ module ActionView
     # returns the correct buffer on +yield+. This is usually
     # overwritten by helpers to add more behavior.
     # :api: plugin
-    def _layout_for(name=nil)
+    def _layout_for(name = nil)
       name ||= :layout
       view_flow.get(name).html_safe
     end

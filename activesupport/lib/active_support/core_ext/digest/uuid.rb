@@ -1,4 +1,6 @@
-require 'securerandom'
+# frozen_string_literal: true
+
+require "securerandom"
 
 module Digest
   module UUID
@@ -12,7 +14,7 @@ module Digest
     # Using Digest::MD5 generates version 3 UUIDs; Digest::SHA1 generates version 5 UUIDs.
     # uuid_from_hash always generates the same UUID for a given name and namespace combination.
     #
-    # See RFC 4122 for details of UUID at: http://www.ietf.org/rfc/rfc4122.txt
+    # See RFC 4122 for details of UUID at: https://www.ietf.org/rfc/rfc4122.txt
     def self.uuid_from_hash(hash_class, uuid_namespace, name)
       if hash_class == Digest::MD5
         version = 3
@@ -26,7 +28,7 @@ module Digest
       hash.update(uuid_namespace)
       hash.update(name)
 
-      ary = hash.digest.unpack('NnnnnN')
+      ary = hash.digest.unpack("NnnnnN")
       ary[2] = (ary[2] & 0x0FFF) | (version << 12)
       ary[3] = (ary[3] & 0x3FFF) | 0x8000
 
@@ -35,12 +37,12 @@ module Digest
 
     # Convenience method for uuid_from_hash using Digest::MD5.
     def self.uuid_v3(uuid_namespace, name)
-      self.uuid_from_hash(Digest::MD5, uuid_namespace, name)
+      uuid_from_hash(Digest::MD5, uuid_namespace, name)
     end
 
     # Convenience method for uuid_from_hash using Digest::SHA1.
     def self.uuid_v5(uuid_namespace, name)
-      self.uuid_from_hash(Digest::SHA1, uuid_namespace, name)
+      uuid_from_hash(Digest::SHA1, uuid_namespace, name)
     end
 
     # Convenience method for SecureRandom.uuid.

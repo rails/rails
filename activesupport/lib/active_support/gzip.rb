@@ -1,5 +1,7 @@
-require 'zlib'
-require 'stringio'
+# frozen_string_literal: true
+
+require "zlib"
+require "stringio"
 
 module ActiveSupport
   # A convenient wrapper for the zlib standard library that allows
@@ -9,7 +11,7 @@ module ActiveSupport
   #   # => "\x1F\x8B\b\x00o\x8D\xCDO\x00\x03K\xCE\xCF-(J-.V\xC8MU\x04\x00R>n\x83\f\x00\x00\x00"
   #
   #   ActiveSupport::Gzip.decompress(gzip)
-  #   # => "compress me!" 
+  #   # => "compress me!"
   module Gzip
     class Stream < StringIO
       def initialize(*)
@@ -21,11 +23,11 @@ module ActiveSupport
 
     # Decompresses a gzipped string.
     def self.decompress(source)
-      Zlib::GzipReader.new(StringIO.new(source)).read
+      Zlib::GzipReader.wrap(StringIO.new(source), &:read)
     end
 
     # Compresses a string using gzip.
-    def self.compress(source, level=Zlib::DEFAULT_COMPRESSION, strategy=Zlib::DEFAULT_STRATEGY)
+    def self.compress(source, level = Zlib::DEFAULT_COMPRESSION, strategy = Zlib::DEFAULT_STRATEGY)
       output = Stream.new
       gz = Zlib::GzipWriter.new(output, level, strategy)
       gz.write(source)

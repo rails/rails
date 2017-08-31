@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
 class RespondToController < ActionController::Base
@@ -45,12 +47,11 @@ class RespondToController < ActionController::Base
 
   def json_xml_or_html
     respond_to do |type|
-      type.json { render body: 'JSON' }
-      type.xml { render :xml => 'XML' }
-      type.html { render body: 'HTML' }
+      type.json { render body: "JSON" }
+      type.xml { render xml: "XML" }
+      type.html { render body: "HTML" }
     end
   end
-
 
   def forced_xml
     request.format = :xml
@@ -70,6 +71,14 @@ class RespondToController < ActionController::Base
   def using_defaults
     respond_to do |type|
       type.html
+      type.xml
+    end
+  end
+
+  def missing_templates
+    respond_to do |type|
+      # This test requires a block that is empty
+      type.json {}
       type.xml
     end
   end
@@ -101,7 +110,6 @@ class RespondToController < ActionController::Base
     end
   end
 
-
   def custom_constant_handling
     respond_to do |type|
       type.html   { render body: "HTML"   }
@@ -125,8 +133,8 @@ class RespondToController < ActionController::Base
 
   def handle_any_any
     respond_to do |type|
-      type.html { render body: 'HTML' }
-      type.any { render body: 'Whatever you ask for, I got it' }
+      type.html { render body: "HTML" }
+      type.any { render body: "Whatever you ask for, I got it" }
     end
   end
 
@@ -139,7 +147,7 @@ class RespondToController < ActionController::Base
   # wip
   def json_with_callback
     respond_to do |type|
-      type.json { render :json => 'JS', :callback => 'alert' }
+      type.json { render json: "JS", callback: "alert" }
     end
   end
 
@@ -156,8 +164,8 @@ class RespondToController < ActionController::Base
     request.format = "iphone" if request.env["HTTP_ACCEPT"] == "text/iphone"
 
     respond_to do |type|
-      type.html   { @type = "Firefox"; render :action => "iphone_with_html_response_type" }
-      type.iphone { @type = "iPhone" ; render :action => "iphone_with_html_response_type" }
+      type.html   { @type = "Firefox"; render action: "iphone_with_html_response_type" }
+      type.iphone { @type = "iPhone" ; render action: "iphone_with_html_response_type" }
     end
   end
 
@@ -216,7 +224,7 @@ class RespondToController < ActionController::Base
   def variant_any
     respond_to do |format|
       format.html do |variant|
-        variant.any(:tablet, :phablet){ render body: "any" }
+        variant.any(:tablet, :phablet) { render body: "any" }
         variant.phone { render body: "phone" }
       end
     end
@@ -233,7 +241,7 @@ class RespondToController < ActionController::Base
 
   def variant_inline_any
     respond_to do |format|
-      format.html.any(:tablet, :phablet){ render body: "any" }
+      format.html.any(:tablet, :phablet) { render body: "any" }
       format.html.phone { render body: "phone" }
     end
   end
@@ -254,7 +262,7 @@ class RespondToController < ActionController::Base
 
   def variant_any_with_none
     respond_to do |format|
-      format.html.any(:none, :phone){ render body: "none or phone" }
+      format.html.any(:none, :phone) { render body: "none or phone" }
     end
   end
 
@@ -262,19 +270,19 @@ class RespondToController < ActionController::Base
     respond_to do |format|
       format.html { render body: "HTML" }
       format.any(:js, :xml) do |variant|
-        variant.phone{ render body: "phone" }
-        variant.any(:tablet, :phablet){ render body: "tablet" }
+        variant.phone { render body: "phone" }
+        variant.any(:tablet, :phablet) { render body: "tablet" }
       end
     end
   end
 
-  protected
+  private
     def set_layout
       case action_name
-        when "all_types_with_layout", "iphone_with_html_response_type"
-          "respond_to/layouts/standard"
-        when "iphone_with_html_response_type_without_layout"
-          "respond_to/layouts/missing"
+      when "all_types_with_layout", "iphone_with_html_response_type"
+        "respond_to/layouts/standard"
+      when "iphone_with_html_response_type_without_layout"
+        "respond_to/layouts/missing"
       end
     end
 end
@@ -298,10 +306,10 @@ class RespondToControllerTest < ActionController::TestCase
   def test_html
     @request.accept = "text/html"
     get :js_or_html
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     get :html_or_xml
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     assert_raises(ActionController::UnknownFormat) do
       get :just_xml
@@ -311,29 +319,29 @@ class RespondToControllerTest < ActionController::TestCase
   def test_all
     @request.accept = "*/*"
     get :js_or_html
-    assert_equal 'HTML', @response.body # js is not part of all
+    assert_equal "HTML", @response.body # js is not part of all
 
     get :html_or_xml
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     get :just_xml
-    assert_equal 'XML', @response.body
+    assert_equal "XML", @response.body
   end
 
   def test_xml
     @request.accept = "application/xml"
     get :html_xml_or_rss
-    assert_equal 'XML', @response.body
+    assert_equal "XML", @response.body
   end
 
   def test_js_or_html
     @request.accept = "text/javascript, text/html"
     get :js_or_html, xhr: true
-    assert_equal 'JS', @response.body
+    assert_equal "JS", @response.body
 
     @request.accept = "text/javascript, text/html"
     get :html_or_xml, xhr: true
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     @request.accept = "text/javascript, text/html"
 
@@ -345,25 +353,25 @@ class RespondToControllerTest < ActionController::TestCase
   def test_json_or_yaml_with_leading_star_star
     @request.accept = "*/*, application/json"
     get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     @request.accept = "*/* , application/json"
     get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_json_or_yaml
     get :json_or_yaml, xhr: true
-    assert_equal 'JSON', @response.body
+    assert_equal "JSON", @response.body
 
-    get :json_or_yaml, format: 'json'
-    assert_equal 'JSON', @response.body
+    get :json_or_yaml, format: "json"
+    assert_equal "JSON", @response.body
 
-    get :json_or_yaml, format: 'yaml'
-    assert_equal 'YAML', @response.body
+    get :json_or_yaml, format: "yaml"
+    assert_equal "YAML", @response.body
 
-    { 'YAML' => %w(text/yaml),
-      'JSON' => %w(application/json text/x-json)
+    { "YAML" => %w(text/yaml),
+      "JSON" => %w(application/json text/x-json)
     }.each do |body, content_types|
       content_types.each do |content_type|
         @request.accept = content_type
@@ -376,20 +384,20 @@ class RespondToControllerTest < ActionController::TestCase
   def test_js_or_anything
     @request.accept = "text/javascript, */*"
     get :js_or_html, xhr: true
-    assert_equal 'JS', @response.body
+    assert_equal "JS", @response.body
 
     get :html_or_xml, xhr: true
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     get :just_xml, xhr: true
-    assert_equal 'XML', @response.body
+    assert_equal "XML", @response.body
   end
 
   def test_using_defaults
     @request.accept = "*/*"
     get :using_defaults
     assert_equal "text/html", @response.content_type
-    assert_equal 'Hello world!', @response.body
+    assert_equal "Hello world!", @response.body
 
     @request.accept = "application/xml"
     get :using_defaults
@@ -415,7 +423,7 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "*/*"
     get :using_defaults_with_type_list
     assert_equal "text/html", @response.content_type
-    assert_equal 'Hello world!', @response.body
+    assert_equal "Hello world!", @response.body
 
     @request.accept = "application/xml"
     get :using_defaults_with_type_list
@@ -440,7 +448,7 @@ class RespondToControllerTest < ActionController::TestCase
   def test_synonyms
     @request.accept = "application/javascript"
     get :js_or_html
-    assert_equal 'JS', @response.body
+    assert_equal "JS", @response.body
 
     @request.accept = "application/x-xml"
     get :html_xml_or_rss
@@ -451,82 +459,82 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "application/crazy-xml"
     get :custom_type_handling
     assert_equal "application/crazy-xml", @response.content_type
-    assert_equal 'Crazy XML', @response.body
+    assert_equal "Crazy XML", @response.body
 
     @request.accept = "text/html"
     get :custom_type_handling
     assert_equal "text/html", @response.content_type
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_xhtml_alias
     @request.accept = "application/xhtml+xml,application/xml"
     get :html_or_xml
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_firefox_simulation
     @request.accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
     get :html_or_xml
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_handle_any
     @request.accept = "*/*"
     get :handle_any
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
 
     @request.accept = "text/javascript"
     get :handle_any
-    assert_equal 'Either JS or XML', @response.body
+    assert_equal "Either JS or XML", @response.body
 
     @request.accept = "text/xml"
     get :handle_any
-    assert_equal 'Either JS or XML', @response.body
+    assert_equal "Either JS or XML", @response.body
   end
 
   def test_handle_any_any
     @request.accept = "*/*"
     get :handle_any_any
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_handle_any_any_parameter_format
-    get :handle_any_any, format: 'html'
-    assert_equal 'HTML', @response.body
+    get :handle_any_any, format: "html"
+    assert_equal "HTML", @response.body
   end
 
   def test_handle_any_any_explicit_html
     @request.accept = "text/html"
     get :handle_any_any
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_handle_any_any_javascript
     @request.accept = "text/javascript"
     get :handle_any_any
-    assert_equal 'Whatever you ask for, I got it', @response.body
+    assert_equal "Whatever you ask for, I got it", @response.body
   end
 
   def test_handle_any_any_xml
     @request.accept = "text/xml"
     get :handle_any_any
-    assert_equal 'Whatever you ask for, I got it', @response.body
+    assert_equal "Whatever you ask for, I got it", @response.body
   end
 
-  def test_handle_any_any_unkown_format
-    get :handle_any_any, format: 'php'
-    assert_equal 'Whatever you ask for, I got it', @response.body
+  def test_handle_any_any_unknown_format
+    get :handle_any_any, format: "php"
+    assert_equal "Whatever you ask for, I got it", @response.body
   end
 
   def test_browser_check_with_any_any
     @request.accept = "application/json, application/xml"
     get :json_xml_or_html
-    assert_equal 'JSON', @response.body
+    assert_equal "JSON", @response.body
 
     @request.accept = "application/json, application/xml, */*"
     get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    assert_equal "HTML", @response.body
   end
 
   def test_html_type_with_layout
@@ -536,15 +544,15 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_json_with_callback_sets_javascript_content_type
-    @request.accept = 'application/json'
+    @request.accept = "application/json"
     get :json_with_callback
-    assert_equal '/**/alert(JS)', @response.body
-    assert_equal 'text/javascript', @response.content_type
+    assert_equal "/**/alert(JS)", @response.body
+    assert_equal "text/javascript", @response.content_type
   end
 
   def test_xhr
     get :js_or_html, xhr: true
-    assert_equal 'JS', @response.body
+    assert_equal "JS", @response.body
   end
 
   def test_custom_constant
@@ -625,6 +633,13 @@ class RespondToControllerTest < ActionController::TestCase
     end
   end
 
+  def test_missing_templates
+    get :missing_templates, format: :json
+    assert_response :no_content
+    get :missing_templates, format: :xml
+    assert_response :no_content
+  end
+
   def test_invalid_variant
     assert_raises(ActionController::UnknownFormat) do
       get :variant_with_implicit_template_rendering, params: { v: :invalid }
@@ -662,7 +677,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :variant_without_implicit_template_rendering, xhr: true, params: { v: :does_not_matter }
     assert_response :no_content
 
-    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+    assert_equal 1, logger.logged(:info).select { |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end
@@ -671,10 +686,10 @@ class RespondToControllerTest < ActionController::TestCase
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
 
-    get :variant_without_implicit_template_rendering, format: 'json', params: { v: :does_not_matter }
+    get :variant_without_implicit_template_rendering, format: "json", params: { v: :does_not_matter }
     assert_response :no_content
 
-    assert_equal 1, logger.logged(:info).select{ |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
+    assert_equal 1, logger.logged(:info).select { |s| s == NO_CONTENT_WARNING }.size, "Implicit head :no_content not logged"
   ensure
     ActionController::Base.logger = old_logger
   end

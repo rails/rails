@@ -50,7 +50,7 @@ class Role < ApplicationRecord
 end
 ```
 
-Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same.
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -81,10 +81,9 @@ The methods are:
 * `reorder`
 * `reverse_order`
 * `select`
-* `distinct`
 * `where`
 
-All of the above methods return an instance of `ActiveRecord::Relation`.
+Finder methods that return a collection, such as `where` and `group`, return an instance of `ActiveRecord::Relation`.  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
 The primary operation of `Model.find(options)` can be summarized as:
 
@@ -119,7 +118,7 @@ You can also use this method to query for multiple objects. Call the `find` meth
 
 ```ruby
 # Find the clients with primary keys 1 and 10.
-client = Client.find([1, 10]) # Or even Client.find(1, 10)
+clients = Client.find([1, 10]) # Or even Client.find(1, 10)
 # => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
 ```
 
@@ -151,11 +150,11 @@ The `take` method returns `nil` if no record is found and no exception will be r
 You can pass in a numerical argument to the `take` method to return up to that number of results. For example
 
 ```ruby
-client = Client.take(2)
+clients = Client.take(2)
 # => [
-  #<Client id: 1, first_name: "Lifo">,
-  #<Client id: 220, first_name: "Sara">
-]
+#   #<Client id: 1, first_name: "Lifo">,
+#   #<Client id: 220, first_name: "Sara">
+# ]
 ```
 
 The SQL equivalent of the above is:
@@ -190,12 +189,12 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example
 
 ```ruby
-client = Client.first(3)
+clients = Client.first(3)
 # => [
-  #<Client id: 1, first_name: "Lifo">,
-  #<Client id: 2, first_name: "Fifo">,
-  #<Client id: 3, first_name: "Filo">
-]
+#   #<Client id: 1, first_name: "Lifo">,
+#   #<Client id: 2, first_name: "Fifo">,
+#   #<Client id: 3, first_name: "Filo">
+# ]
 ```
 
 The SQL equivalent of the above is:
@@ -204,7 +203,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
 ```
 
-On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`. 
+On a collection that is ordered using `order`, `first` will return the first record ordered by the specified attribute for `order`.
 
 ```ruby
 client = Client.order(:first_name).first
@@ -241,12 +240,12 @@ If your [default scope](active_record_querying.html#applying-a-default-scope) co
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example
 
 ```ruby
-client = Client.last(3)
+clients = Client.last(3)
 # => [
-  #<Client id: 219, first_name: "James">,
-  #<Client id: 220, first_name: "Sara">,
-  #<Client id: 221, first_name: "Russel">
-]
+#   #<Client id: 219, first_name: "James">,
+#   #<Client id: 220, first_name: "Sara">,
+#   #<Client id: 221, first_name: "Russel">
+# ]
 ```
 
 The SQL equivalent of the above is:
@@ -255,7 +254,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
 ```
 
-On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`. 
+On a collection that is ordered using `order`, `last` will return the last record ordered by the specified attribute for `order`.
 
 ```ruby
 client = Client.order(:first_name).last
@@ -314,7 +313,7 @@ We often need to iterate over a large set of records, as when we send a newslett
 This may appear straightforward:
 
 ```ruby
-# This is very inefficient when the users table has thousands of rows.
+# This may consume too much memory if the table is big.
 User.all.each do |user|
   NewsMailer.weekly(user).deliver_now
 end
@@ -328,7 +327,7 @@ TIP: The `find_each` and `find_in_batches` methods are intended for use in the b
 
 #### `find_each`
 
-The `find_each` method retrieves a batch of records and then yields _each_ record to the block individually as a model. In the following example, `find_each` will retrieve 1000 records (the current default for both `find_each` and `find_in_batches`) and then yield each record individually to the block as a model. This process is repeated until all of the records have been processed:
+The `find_each` method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves users in batches of 1000 and yields them to the block one by one:
 
 ```ruby
 User.find_each do |user|
@@ -336,7 +335,9 @@ User.find_each do |user|
 end
 ```
 
-To add conditions to a `find_each` operation you can chain other Active Record methods such as `where`:
+This process is repeated, fetching more batches as needed, until all of the records have been processed.
+
+`find_each` works on model classes, as seen above, and also on relations:
 
 ```ruby
 User.where(weekly_subscriber: true).find_each do |user|
@@ -344,11 +345,16 @@ User.where(weekly_subscriber: true).find_each do |user|
 end
 ```
 
+as long as they have no ordering, since the method needs to force an order
+internally to iterate.
+
+If an order is present in the receiver the behaviour depends on the flag
+`config.active_record.error_on_ignored_order`. If true, `ArgumentError` is
+raised, otherwise the order is ignored and a warning issued, which is the
+default. This can be overridden with the option `:error_on_ignore`, explained
+below.
+
 ##### Options for `find_each`
-
-The `find_each` method accepts most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_each`.
-
-Three additional options, `:batch_size`, `:start` and `:finish`, are available as well.
 
 **`:batch_size`**
 
@@ -364,10 +370,10 @@ end
 
 By default, records are fetched in ascending order of the primary key, which must be an integer. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
-For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
+For example, to send newsletters only to users with the primary key starting from 2000:
 
 ```ruby
-User.find_each(start: 2000, batch_size: 5000) do |user|
+User.find_each(start: 2000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
@@ -375,12 +381,12 @@ end
 **`:finish`**
 
 Similar to the `:start` option, `:finish` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
-This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:start` and `:finish`
+This would be useful, for example, if you wanted to run a batch process using a subset of records based on `:start` and `:finish`.
 
-For example, to send newsletters only to users with the primary key starting from 2000 up to 10000 and to retrieve them in batches of 5000:
+For example, to send newsletters only to users with the primary key starting from 2000 up to 10000:
 
 ```ruby
-User.find_each(start: 2000, finish: 10000, batch_size: 5000) do |user|
+User.find_each(start: 2000, finish: 10000) do |user|
   NewsMailer.weekly(user).deliver_now
 end
 ```
@@ -389,20 +395,36 @@ Another example would be if you wanted multiple workers handling the same
 processing queue. You could have each worker handle 10000 records by setting the
 appropriate `:start` and `:finish` options on each worker.
 
+**`:error_on_ignore`**
+
+Overrides the application config to specify if an error should be raised when an
+order is present in the relation.
+
 #### `find_in_batches`
 
 The `find_in_batches` method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
 
 ```ruby
-# Give add_invoices an array of 1000 invoices at a time
+# Give add_invoices an array of 1000 invoices at a time.
 Invoice.find_in_batches do |invoices|
   export.add_invoices(invoices)
 end
 ```
 
+`find_in_batches` works on model classes, as seen above, and also on relations:
+
+```ruby
+Invoice.pending.find_in_batches do |invoice|
+  pending_invoices_export.add_invoices(invoices)
+end
+```
+
+as long as they have no ordering, since the method needs to force an order
+internally to iterate.
+
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size`, `:start` and `:finish` options as `find_each`.
+The `find_in_batches` method accepts the same options as `find_each`.
 
 Conditions
 ----------
@@ -472,6 +494,12 @@ NOTE: Only equality, range and subset checking are possible with Hash conditions
 Client.where(locked: true)
 ```
 
+This will generate SQL like this:
+
+```sql
+SELECT * FROM clients WHERE (clients.locked = 1)
+```
+
 The field name can also be a string:
 
 ```ruby
@@ -484,8 +512,6 @@ In the case of a belongs_to relationship, an association key can be used to spec
 Article.where(author: author)
 Author.joins(:articles).where(articles: { author: author })
 ```
-
-NOTE: The values cannot be symbols. For example, you cannot do `Client.where(status: :active)`.
 
 #### Range Conditions
 
@@ -517,13 +543,30 @@ SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 
 ### NOT Conditions
 
-`NOT` SQL queries can be built by `where.not`.
+`NOT` SQL queries can be built by `where.not`:
 
 ```ruby
-Article.where.not(author: author)
+Client.where.not(locked: true)
 ```
 
-In other words, this query can be generated by calling `where` with no argument, then immediately chain with `not` passing `where` conditions.
+In other words, this query can be generated by calling `where` with no argument, then immediately chain with `not` passing `where` conditions.  This will generate SQL like this:
+
+```sql
+SELECT * FROM clients WHERE (clients.locked != 1)
+```
+
+### OR Conditions
+
+`OR` conditions between two relations can be built by calling `or` on the first
+relation, and passing the second one as an argument.
+
+```ruby
+Client.where(locked: true).or(Client.where(orders_count: [1,3,5]))
+```
+
+```sql
+SELECT * FROM clients WHERE (clients.locked = 1 OR clients.orders_count IN (1,3,5))
+```
 
 Ordering
 --------
@@ -568,6 +611,7 @@ If you want to call `order` multiple times, subsequent orders will be appended t
 Client.order("orders_count ASC").order("created_at DESC")
 # SELECT * FROM clients ORDER BY orders_count ASC, created_at DESC
 ```
+WARNING: If you are using **MySQL 5.7.5** and above, then on selecting fields from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
 Selecting Specific Fields
 -------------------------
@@ -980,13 +1024,13 @@ There are multiple ways to use the `joins` method.
 You can just supply the raw SQL specifying the `JOIN` clause to `joins`:
 
 ```ruby
-Author.joins("INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'")
+Author.joins("INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'")
 ```
 
 This will result in the following SQL:
 
 ```sql
-SELECT clients.* FROM clients INNER JOIN posts ON posts.author_id = author.id AND posts.published = 't'
+SELECT authors.* FROM authors INNER JOIN posts ON posts.author_id = authors.id AND posts.published = 't'
 ```
 
 #### Using Array/Hash of Named Associations
@@ -1111,7 +1155,7 @@ If you want to select a set of records whether or not they have associated
 records you can use the `left_outer_joins` method.
 
 ```ruby
-Author.left_outer_joins(:posts).uniq.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
+Author.left_outer_joins(:posts).distinct.select('authors.*, COUNT(posts.*) AS posts_count').group('authors.id')
 ```
 
 Which produces:
@@ -1217,7 +1261,8 @@ articles, all the articles would still be loaded. By using `joins` (an INNER
 JOIN), the join conditions **must** match, otherwise no records will be
 returned.
 
-
+NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not present be on the loaded models.
+This is because it is ambiguous whether they should appear on the parent record, or the child.
 
 Scopes
 ------
@@ -1347,8 +1392,9 @@ class Client < ApplicationRecord
 end
 ```
 
-NOTE: The `default_scope` is also applied while creating/building a record.
-It is not applied while updating a record. E.g.:
+NOTE: The `default_scope` is also applied while creating/building a record
+when the scope arguments are given as a `Hash`. It is not applied while
+updating a record. E.g.:
 
 ```ruby
 class Client < ApplicationRecord
@@ -1357,6 +1403,17 @@ end
 
 Client.new          # => #<Client id: nil, active: true>
 Client.unscoped.new # => #<Client id: nil, active: nil>
+```
+
+Be aware that, when given in the `Array` format, `default_scope` query arguments
+cannot be converted to a `Hash` for default attribute assignment. E.g.:
+
+```ruby
+class Client < ApplicationRecord
+  default_scope { where("active = ?", true) }
+end
+
+Client.new # => #<Client id: nil, active: nil>
 ```
 
 ### Merging of scopes
@@ -1482,7 +1539,7 @@ Read the full documentation about enums
 Understanding The Method Chaining
 ---------------------------------
 
-The Active Record pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
+The Active Record pattern implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
 which allow us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
@@ -1510,7 +1567,7 @@ SELECT people.id, people.name, comments.text
 FROM people
 INNER JOIN comments
   ON comments.person_id = people.id
-WHERE comments.created_at = '2015-01-01'
+WHERE comments.created_at > '2015-01-01'
 ```
 
 ### Retrieving specific data from multiple tables
@@ -1613,7 +1670,7 @@ now want the client named 'Nick':
 
 ```ruby
 nick = Client.find_or_initialize_by(first_name: 'Nick')
-# => <Client id: nil, first_name: "Nick", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+# => #<Client id: nil, first_name: "Nick", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
 nick.persisted?
 # => false
@@ -1645,10 +1702,10 @@ Client.find_by_sql("SELECT * FROM clients
   INNER JOIN orders ON clients.id = orders.client_id
   ORDER BY clients.created_at desc")
 # =>  [
-  #<Client id: 1, first_name: "Lucas" >,
-  #<Client id: 2, first_name: "Jan" >,
-  # ...
-]
+#   #<Client id: 1, first_name: "Lucas" >,
+#   #<Client id: 2, first_name: "Jan" >,
+#   ...
+# ]
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
@@ -1660,9 +1717,9 @@ Client.find_by_sql("SELECT * FROM clients
 ```ruby
 Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'")
 # => [
-  {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
-  {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
-]
+#   {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
+#   {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
+# ]
 ```
 
 ### `pluck`
@@ -1834,7 +1891,7 @@ Which will execute:
 
 ```sql
 SELECT count(DISTINCT clients.id) AS count_all FROM clients
-  LEFT OUTER JOIN orders ON orders.client_id = client.id WHERE
+  LEFT OUTER JOIN orders ON orders.client_id = clients.id WHERE
   (clients.first_name = 'Ryan' AND orders.status = 'received')
 ```
 
@@ -1915,7 +1972,7 @@ EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`
 2 rows in set (0.00 sec)
 ```
 
-under MySQL.
+under MySQL and MariaDB.
 
 Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
@@ -1975,7 +2032,7 @@ EXPLAIN for: SELECT `articles`.* FROM `articles`  WHERE `articles`.`user_id` IN 
 1 row in set (0.00 sec)
 ```
 
-under MySQL.
+under MySQL and MariaDB.
 
 ### Interpreting EXPLAIN
 
@@ -1986,4 +2043,6 @@ following pointers may be helpful:
 
 * MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
 
-* PostgreSQL: [Using EXPLAIN](http://www.postgresql.org/docs/current/static/using-explain.html)
+* MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
+
+* PostgreSQL: [Using EXPLAIN](https://www.postgresql.org/docs/current/static/using-explain.html)

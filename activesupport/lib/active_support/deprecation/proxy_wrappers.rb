@@ -1,4 +1,7 @@
-require 'active_support/inflector/methods'
+# frozen_string_literal: true
+
+require_relative "../inflector/methods"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport
   class Deprecation
@@ -10,7 +13,7 @@ module ActiveSupport
         super
       end
 
-      instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$/ }
+      instance_methods.each { |m| undef_method m unless /^__|^object_id$/.match?(m) }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.
@@ -121,10 +124,11 @@ module ActiveSupport
     #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < DeprecationProxy
-      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance)
+      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
+        @message = message
       end
 
       # Returns the class of the new constant.
@@ -142,7 +146,7 @@ module ActiveSupport
         end
 
         def warn(callstack, called, args)
-          @deprecator.warn("#{@old_const} is deprecated! Use #{@new_const} instead.", callstack)
+          @deprecator.warn(@message, callstack)
         end
     end
   end

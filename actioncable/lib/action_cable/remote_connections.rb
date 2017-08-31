@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   # If you need to disconnect a given connection, you can go through the
   # RemoteConnections. You can find the connections you're looking for by
@@ -28,7 +30,7 @@ module ActionCable
 
     private
       # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
-      # Exists for the solely for the purpose of calling #disconnect on that connection.
+      # Exists solely for the purpose of calling #disconnect on that connection.
       class RemoteConnection
         class InvalidIdentifiersError < StandardError; end
 
@@ -41,20 +43,21 @@ module ActionCable
 
         # Uses the internal channel to disconnect the connection.
         def disconnect
-          server.broadcast internal_channel, type: 'disconnect'
+          server.broadcast internal_channel, type: "disconnect"
         end
 
         # Returns all the identifiers that were applied to this connection.
-        def identifiers
+        redefine_method :identifiers do
           server.connection_identifiers
         end
 
-        private
+        protected
           attr_reader :server
 
+        private
           def set_identifier_instance_vars(ids)
             raise InvalidIdentifiersError unless valid_identifiers?(ids)
-            ids.each { |k,v| instance_variable_set("@#{k}", v) }
+            ids.each { |k, v| instance_variable_set("@#{k}", v) }
           end
 
           def valid_identifiers?(ids)

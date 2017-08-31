@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -12,14 +14,13 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
     end
 
     def teardown
       teardown_app
     end
 
-    test "rails app is present" do
+    test "Rails app is present" do
       assert File.exist?(app_path("config"))
     end
 
@@ -37,7 +38,7 @@ module ApplicationTests
 
     test "the config object is available on the application object" do
       rackup
-      assert_equal 'UTC', Rails.application.config.time_zone
+      assert_equal "UTC", Rails.application.config.time_zone
     end
   end
 end

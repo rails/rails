@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Helpers
     module ActionCableHelper
@@ -6,7 +8,7 @@ module ActionCable
       #
       #   <head>
       #     <%= action_cable_meta_tag %>
-      #     <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+      #     <%= javascript_include_tag 'application', 'data-turbolinks-track' => 'reload' %>
       #   </head>
       #
       # This is then used by Action Cable to determine the URL of your WebSocket server.

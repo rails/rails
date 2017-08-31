@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "ipaddr"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL

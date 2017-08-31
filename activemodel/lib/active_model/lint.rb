@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Lint
     # == Active \Model \Lint \Tests
@@ -20,7 +22,6 @@ module ActiveModel
     # to <tt>to_model</tt>. It is perfectly fine for <tt>to_model</tt> to return
     # +self+.
     module Tests
-
       # Passes if the object's model responds to <tt>to_key</tt> and if calling
       # this method returns +nil+ when the object is not persisted.
       # Fails otherwise.

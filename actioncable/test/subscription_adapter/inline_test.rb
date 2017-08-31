@@ -1,5 +1,7 @@
-require 'test_helper'
-require_relative './common'
+# frozen_string_literal: true
+
+require "test_helper"
+require_relative "common"
 
 class InlineAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
@@ -12,6 +14,6 @@ class InlineAdapterTest < ActionCable::TestCase
   end
 
   def cable_config
-    { adapter: 'inline' }
+    { adapter: "inline" }
   end
 end

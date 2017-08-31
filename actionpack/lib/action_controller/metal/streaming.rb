@@ -1,9 +1,11 @@
-require 'rack/chunked'
+# frozen_string_literal: true
+
+require "rack/chunked"
 
 module ActionController #:nodoc:
   # Allows views to be streamed back to the client as they are rendered.
   #
-  # The default way Rails renders views is by first rendering the template
+  # By default, Rails renders views by first rendering the template
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #
@@ -193,10 +195,10 @@ module ActionController #:nodoc:
   module Streaming
     extend ActiveSupport::Concern
 
-    protected
+    private
 
       # Set proper cache control and transfer encoding when streaming
-      def _process_options(options) #:nodoc:
+      def _process_options(options)
         super
         if options[:stream]
           if request.version == "HTTP/1.0"
@@ -210,7 +212,7 @@ module ActionController #:nodoc:
       end
 
       # Call render_body if we are streaming instead of usual +render+.
-      def _render_template(options) #:nodoc:
+      def _render_template(options)
         if options.delete(:stream)
           Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
         else

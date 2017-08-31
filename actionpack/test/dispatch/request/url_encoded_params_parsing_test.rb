@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
@@ -18,7 +20,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses unbalanced query string with array" do
     query    = "location[]=1&location[]=2&age_group[]=2"
-    expected = { 'location' => ["1", "2"], 'age_group' => ["2"] }
+    expected = { "location" => ["1", "2"], "age_group" => ["2"] }
     assert_parses expected, query
   end
 
@@ -55,7 +57,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       "products[second]=Pc",
       "=Save"
     ].join("&")
-    expected =  {
+    expected = {
       "customers" => {
         "boston" => {
           "first" => {
@@ -107,7 +109,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     query = [
       "customers[boston][first][name]=David",
       "something_else=blah",
-      "logo=#{File.expand_path(__FILE__)}"
+      "logo=#{__FILE__}"
     ].join("&")
     expected = {
       "customers" => {
@@ -118,7 +120,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
         }
       },
       "something_else" => "blah",
-      "logo" => File.expand_path(__FILE__),
+      "logo" => __FILE__,
     }
     assert_parses expected, query
   end
@@ -141,7 +143,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
-            post ':action', to: ::UrlEncodedParamsParsingTest::TestController
+            post ":action", to: ::UrlEncodedParamsParsingTest::TestController
           end
         end
         yield

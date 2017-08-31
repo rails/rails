@@ -1,4 +1,6 @@
-require 'active_support/callbacks'
+# frozen_string_literal: true
+
+require "active_support/callbacks"
 
 module ActionCable
   module Channel

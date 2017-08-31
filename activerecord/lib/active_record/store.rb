@@ -1,4 +1,6 @@
-require 'active_support/core_ext/hash/indifferent_access'
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -78,7 +80,7 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(options[:coder])
+        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
         store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
       end
 
@@ -114,25 +116,24 @@ module ActiveRecord
 
       def stored_attributes
         parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
-        if self.local_stored_attributes
-          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+        if local_stored_attributes
+          parent.merge!(local_stored_attributes) { |k, a, b| a | b }
         end
         parent
       end
     end
 
-    protected
-      def read_store_attribute(store_attribute, key)
+    private
+      def read_store_attribute(store_attribute, key) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.read(self, store_attribute, key)
       end
 
-      def write_store_attribute(store_attribute, key, value)
+      def write_store_attribute(store_attribute, key, value) # :doc:
         accessor = store_accessor_for(store_attribute)
         accessor.write(self, store_attribute, key, value)
       end
 
-    private
       def store_accessor_for(store_attribute)
         type_for_attribute(store_attribute.to_s).accessor
       end
@@ -177,34 +178,34 @@ module ActiveRecord
         end
       end
 
-    class IndifferentCoder # :nodoc:
-      def initialize(coder_or_class_name)
-        @coder =
-          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
-            coder_or_class_name
+      class IndifferentCoder # :nodoc:
+        def initialize(attr_name, coder_or_class_name)
+          @coder =
+            if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+              coder_or_class_name
+            else
+              ActiveRecord::Coders::YAMLColumn.new(attr_name, coder_or_class_name || Object)
+            end
+        end
+
+        def dump(obj)
+          @coder.dump self.class.as_indifferent_hash(obj)
+        end
+
+        def load(yaml)
+          self.class.as_indifferent_hash(@coder.load(yaml || ""))
+        end
+
+        def self.as_indifferent_hash(obj)
+          case obj
+          when ActiveSupport::HashWithIndifferentAccess
+            obj
+          when Hash
+            obj.with_indifferent_access
           else
-            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+            ActiveSupport::HashWithIndifferentAccess.new
           end
-      end
-
-      def dump(obj)
-        @coder.dump self.class.as_indifferent_hash(obj)
-      end
-
-      def load(yaml)
-        self.class.as_indifferent_hash(@coder.load(yaml || ''))
-      end
-
-      def self.as_indifferent_hash(obj)
-        case obj
-        when ActiveSupport::HashWithIndifferentAccess
-          obj
-        when Hash
-          obj.with_indifferent_access
-        else
-          ActiveSupport::HashWithIndifferentAccess.new
         end
       end
-    end
   end
 end

@@ -1,15 +1,17 @@
-require 'abstract_unit'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/testing/stream'
-require 'active_support/testing/method_call_assertions'
-require 'rails/generators'
-require 'rails/generators/test_case'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/core_ext/module/remove_method"
+require "active_support/testing/stream"
+require "active_support/testing/method_call_assertions"
+require "rails/generators"
+require "rails/generators/test_case"
 
 module Rails
   class << self
     remove_possible_method :root
     def root
-      @root ||= Pathname.new(File.expand_path('../../fixtures', __FILE__))
+      @root ||= Pathname.new(File.expand_path("../fixtures", __dir__))
     end
   end
 end
@@ -20,9 +22,9 @@ Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "t
 # Rails.application.config.generators to Rails::Generators
 Rails.application.load_generators
 
-require 'active_record'
-require 'action_dispatch'
-require 'action_view'
+require "active_record"
+require "action_dispatch"
+require "action_view"
 
 module GeneratorsTestHelper
   include ActiveSupport::Testing::Stream
@@ -34,17 +36,16 @@ module GeneratorsTestHelper
       setup :prepare_destination
 
       begin
-        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ''))
+        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ""))
       rescue
       end
     end
   end
 
   def copy_routes
-    routes = File.expand_path("../../../lib/rails/generators/rails/app/templates/config/routes.rb", __FILE__)
+    routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb", __dir__)
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination
   end
-
 end

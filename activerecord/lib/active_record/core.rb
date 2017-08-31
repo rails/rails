@@ -1,7 +1,8 @@
-require 'thread'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/filters'
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/string/filters"
+require "concurrent/map"
 
 module ActiveRecord
   module Core
@@ -56,8 +57,7 @@ module ActiveRecord
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
       # dates and times from the database. This is set to :utc by default.
-      mattr_accessor :default_timezone, instance_writer: false
-      self.default_timezone = :utc
+      mattr_accessor :default_timezone, instance_writer: false, default: :utc
 
       ##
       # :singleton-method:
@@ -67,22 +67,39 @@ module ActiveRecord
       # ActiveRecord::Schema file which can be loaded into any database that
       # supports migrations. Use :ruby if you want to have different database
       # adapters for, e.g., your development and test environments.
-      mattr_accessor :schema_format, instance_writer: false
-      self.schema_format = :ruby
+      mattr_accessor :schema_format, instance_writer: false, default: :ruby
 
       ##
       # :singleton-method:
-      # Specifies if an error should be raised on query limit or order being
+      # Specifies if an error should be raised if the query has an order being
       # ignored when doing batch queries. Useful in applications where the
-      # limit or scope being ignored is error-worthy, rather than a warning.
-      mattr_accessor :error_on_ignored_order_or_limit, instance_writer: false
-      self.error_on_ignored_order_or_limit = false
+      # scope being ignored is error-worthy, rather than a warning.
+      mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
+
+      def self.error_on_ignored_order_or_limit
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The flag error_on_ignored_order_or_limit is deprecated. Limits are
+          now supported. Please use error_on_ignored_order instead.
+        MSG
+        error_on_ignored_order
+      end
+
+      def error_on_ignored_order_or_limit
+        self.class.error_on_ignored_order_or_limit
+      end
+
+      def self.error_on_ignored_order_or_limit=(value)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The flag error_on_ignored_order_or_limit is deprecated. Limits are
+          now supported. Please use error_on_ignored_order= instead.
+        MSG
+        self.error_on_ignored_order = value
+      end
 
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
-      mattr_accessor :timestamped_migrations, instance_writer: false
-      self.timestamped_migrations = true
+      mattr_accessor :timestamped_migrations, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -90,8 +107,7 @@ module ActiveRecord
       # db:migrate rake task. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
-      mattr_accessor :dump_schema_after_migration, instance_writer: false
-      self.dump_schema_after_migration = true
+      mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -100,8 +116,7 @@ module ActiveRecord
       # schema_search_path are dumped. Use :all to dump all schemas regardless
       # of schema_search_path, or a string of comma separated schemas for a
       # custom list.
-      mattr_accessor :dump_schemas, instance_writer: false
-      self.dump_schemas = :schema_search_path
+      mattr_accessor :dump_schemas, instance_writer: false, default: :schema_search_path
 
       ##
       # :singleton-method:
@@ -110,7 +125,6 @@ module ActiveRecord
       # be used to identify queries which load thousands of records and
       # potentially cause memory bloat.
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
-      self.warn_on_records_fetched_greater_than = nil
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
@@ -129,14 +143,14 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def allocate
         define_attribute_methods
         super
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = {}.extend(Mutex_m)
+        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
       def inherited(child_class) # :nodoc:
@@ -151,41 +165,36 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column) ||
-                        ids.first.kind_of?(Array)
+                        columns_hash.include?(inheritance_column)
 
-        id  = ids.first
-        if ActiveRecord::Base === id
-          id = id.id
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            You are passing an instance of ActiveRecord::Base to `find`.
-            Please pass the id of the object by calling `.id`
-          MSG
-        end
+        id = ids.first
+
+        return super if StatementCache.unsupported_value?(id)
 
         key = primary_key
 
         statement = cached_find_by_statement(key) { |params|
           where(key => params.bind).limit(1)
         }
-        record = statement.execute([id], self, connection).first
+
+        record = statement.execute([id], connection).first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
         end
         record
-      rescue RangeError
+      rescue ::RangeError
         raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
                                  name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || !(Hash === args.first) || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any?
 
         hash = args.first
 
-        return super if hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v
+        return super if !(Hash === hash) || hash.values.any? { |v|
+          StatementCache.unsupported_value?(v)
         }
 
         # We can't cache Post.find_by(author: david) ...yet
@@ -200,16 +209,16 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, self, connection).first
+          statement.execute(hash.values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue RangeError
+        rescue ::RangeError
           nil
         end
       end
 
       def find_by!(*args) # :nodoc:
-        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}", name)
+        find_by(*args) || raise(RecordNotFound.new("Couldn't find #{name}", name))
       end
 
       def initialize_generated_modules # :nodoc:
@@ -219,7 +228,9 @@ module ActiveRecord
       def generated_association_methods
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
+          private_constant :GeneratedAssociationMethods
           include mod
+
           mod
         end
       end
@@ -233,14 +244,14 @@ module ActiveRecord
         elsif !connected?
           "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
-          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ', '
+          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
         else
           "#{super}(Table doesn't exist)"
         end
       end
 
-      # Overwrite the default class equality method to provide support for association proxies.
+      # Overwrite the default class equality method to provide support for decorated models.
       def ===(object)
         object.is_a?(self)
       end
@@ -248,20 +259,10 @@ module ActiveRecord
       # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
       #
       #   class Post < ActiveRecord::Base
-      #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
+      #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
-      end
-
-      # Returns the Arel engine.
-      def arel_engine # :nodoc:
-        @arel_engine ||=
-          if Base == self || connection_handler.retrieve_connection_pool(self)
-            self
-          else
-            superclass.arel_engine
-          end
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
@@ -279,25 +280,24 @@ module ActiveRecord
 
       private
 
-      def cached_find_by_statement(key, &block) # :nodoc:
-        @find_by_statement_cache[key] || @find_by_statement_cache.synchronize {
-          @find_by_statement_cache[key] ||= StatementCache.create(connection, &block)
-        }
-      end
-
-      def relation # :nodoc:
-        relation = Relation.create(self, arel_table, predicate_builder)
-
-        if finder_needs_type_condition? && !ignore_default_scope?
-          relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
-        else
-          relation
+        def cached_find_by_statement(key, &block)
+          cache = @find_by_statement_cache[connection.prepared_statements]
+          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
         end
-      end
 
-      def table_metadata # :nodoc:
-        TableMetadata.new(self, arel_table)
-      end
+        def relation
+          relation = Relation.create(self, arel_table, predicate_builder)
+
+          if finder_needs_type_condition? && !ignore_default_scope?
+            relation.where(type_condition).create_with(inheritance_column.to_s => sti_name)
+          else
+            relation
+          end
+        end
+
+        def table_metadata
+          TableMetadata.new(self, arel_table)
+        end
     end
 
     # New objects can be instantiated as either empty (pass no construction parameter) or pre-set with
@@ -309,8 +309,8 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      @attributes = self.class._default_attributes.deep_dup
       self.class.define_attribute_methods
+      @attributes = self.class._default_attributes.deep_dup
 
       init_internals
       initialize_internals_callback
@@ -337,13 +337,15 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder)
       coder = LegacyYamlAdapter.convert(self.class, coder)
-      @attributes = coder['attributes']
+      @attributes = self.class.yaml_encoder.decode(coder)
 
       init_internals
 
-      @new_record = coder['new_record']
+      @new_record = coder["new_record"]
 
       self.class.define_attribute_methods
+
+      yield self if block_given?
 
       _run_find_callbacks
       _run_initialize_callbacks
@@ -403,11 +405,9 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      # FIXME: Remove this when we better serialize attributes
-      coder['raw_attributes'] = attributes_before_type_cast
-      coder['attributes'] = @attributes
-      coder['new_record'] = new_record?
-      coder['active_record_yaml_version'] = 1
+      self.class.yaml_encoder.encode(@attributes, coder)
+      coder["new_record"] = new_record?
+      coder["active_record_yaml_version"] = 2
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
@@ -431,7 +431,7 @@ module ActiveRecord
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
       if id
-        id.hash
+        self.class.hash ^ id.hash
       else
         super
       end
@@ -453,7 +453,7 @@ module ActiveRecord
     # Allows sort on objects
     def <=>(other_object)
       if other_object.is_a?(self.class)
-        self.to_key <=> other_object.to_key
+        to_key <=> other_object.to_key
       else
         super
       end
@@ -479,14 +479,15 @@ module ActiveRecord
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
-                     self.class.column_names.collect { |name|
-                       if has_attribute?(name)
-                         "#{name}: #{attribute_for_inspect(name)}"
-                       end
-                     }.compact.join(", ")
-                   else
-                     "not initialized"
-                   end
+        self.class.attribute_names.collect do |name|
+          if has_attribute?(name)
+            "#{name}: #{attribute_for_inspect(name)}"
+          end
+        end.compact.join(", ")
+      else
+        "not initialized"
+      end
+
       "#<#{self.class} #{inspection}>"
     end
 
@@ -497,64 +498,63 @@ module ActiveRecord
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
-          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+          pp.seplist(column_names, proc { pp.text "," }) do |column_name|
             column_value = read_attribute(column_name)
-            pp.breakable ' '
+            pp.breakable " "
             pp.group(1) do
               pp.text column_name
-              pp.text ':'
+              pp.text ":"
               pp.breakable
               pp.pp column_value
             end
           end
         else
-          pp.breakable ' '
-          pp.text 'not initialized'
+          pp.breakable " "
+          pp.text "not initialized"
         end
       end
     end
 
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
-      Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
+      Hash[methods.flatten.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
     private
 
-    # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
-    # of the array, and then rescues from the possible NoMethodError. If those elements are
-    # ActiveRecord::Base's, then this triggers the various method_missing's that we have,
-    # which significantly impacts upon performance.
-    #
-    # So we can avoid the method_missing hit by explicitly defining #to_ary as nil here.
-    #
-    # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
-    def to_ary # :nodoc:
-      nil
-    end
-
-    def init_internals
-      @readonly                 = false
-      @destroyed                = false
-      @marked_for_destruction   = false
-      @destroyed_by_association = nil
-      @new_record               = true
-      @txn                      = nil
-      @_start_transaction_state = {}
-      @transaction_state        = nil
-    end
-
-    def initialize_internals_callback
-    end
-
-    def thaw
-      if frozen?
-        @attributes = @attributes.dup
+      # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
+      # the array, and then rescues from the possible +NoMethodError+. If those elements are
+      # +ActiveRecord::Base+'s, then this triggers the various +method_missing+'s that we have,
+      # which significantly impacts upon performance.
+      #
+      # So we can avoid the +method_missing+ hit by explicitly defining +#to_ary+ as +nil+ here.
+      #
+      # See also https://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
+      def to_ary
+        nil
       end
-    end
 
-    def custom_inspect_method_defined?
-      self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
-    end
+      def init_internals
+        @readonly                 = false
+        @destroyed                = false
+        @marked_for_destruction   = false
+        @destroyed_by_association = nil
+        @new_record               = true
+        @_start_transaction_state = {}
+        @transaction_state        = nil
+      end
+
+      def initialize_internals_callback
+      end
+
+      def thaw
+        if frozen?
+          @attributes = @attributes.dup
+        end
+      end
+
+      def custom_inspect_method_defined?
+        self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+      end
   end
 end

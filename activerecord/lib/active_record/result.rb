@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   ###
   # This class encapsulates a result returned from calling
@@ -32,8 +34,6 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    IDENTITY_TYPE = Type::Value.new # :nodoc:
-
     attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows, column_types = {})
@@ -43,10 +43,15 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    # Returns the number of elements in the rows array.
     def length
       @rows.length
     end
 
+    # Calls the given block once for each element in row collection, passing
+    # row as parameter.
+    #
+    # Returns an +Enumerator+ if no block is given.
     def each
       if block_given?
         hash_rows.each { |row| yield row }
@@ -55,6 +60,7 @@ module ActiveRecord
       end
     end
 
+    # Returns an array of hashes representing each row record.
     def to_hash
       hash_rows
     end
@@ -62,11 +68,12 @@ module ActiveRecord
     alias :map! :map
     alias :collect! :map
 
-    # Returns true if there are no records.
+    # Returns true if there are no records, otherwise false.
     def empty?
       rows.empty?
     end
 
+    # Returns an array of hashes representing each row record.
     def to_ary
       hash_rows
     end
@@ -75,8 +82,18 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    # Returns the first record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
+    def first
+      return nil if @rows.empty?
+      Hash[@columns.zip(@rows.first)]
+    end
+
+    # Returns the last record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
     def last
-      hash_rows.last
+      return nil if @rows.empty?
+      Hash[@columns.zip(@rows.last)]
     end
 
     def cast_values(type_overrides = {}) # :nodoc:
@@ -97,36 +114,36 @@ module ActiveRecord
 
     private
 
-    def column_type(name, type_overrides = {})
-      type_overrides.fetch(name) do
-        column_types.fetch(name, IDENTITY_TYPE)
-      end
-    end
-
-    def hash_rows
-      @hash_rows ||=
-        begin
-          # We freeze the strings to prevent them getting duped when
-          # used as keys in ActiveRecord::Base's @attributes hash
-          columns = @columns.map { |c| c.dup.freeze }
-          @rows.map { |row|
-            # In the past we used Hash[columns.zip(row)]
-            #  though elegant, the verbose way is much more efficient
-            #  both time and memory wise cause it avoids a big array allocation
-            #  this method is called a lot and needs to be micro optimised
-            hash = {}
-
-            index = 0
-            length = columns.length
-
-            while index < length
-              hash[columns[index]] = row[index]
-              index += 1
-            end
-
-            hash
-          }
+      def column_type(name, type_overrides = {})
+        type_overrides.fetch(name) do
+          column_types.fetch(name, Type.default_value)
         end
-    end
+      end
+
+      def hash_rows
+        @hash_rows ||=
+          begin
+            # We freeze the strings to prevent them getting duped when
+            # used as keys in ActiveRecord::Base's @attributes hash
+            columns = @columns.map { |c| c.dup.freeze }
+            @rows.map { |row|
+              # In the past we used Hash[columns.zip(row)]
+              #  though elegant, the verbose way is much more efficient
+              #  both time and memory wise cause it avoids a big array allocation
+              #  this method is called a lot and needs to be micro optimised
+              hash = {}
+
+              index = 0
+              length = columns.length
+
+              while index < length
+                hash[columns[index]] = row[index]
+                index += 1
+              end
+
+              hash
+            }
+          end
+      end
   end
 end

@@ -16,7 +16,6 @@
 .large {font-size: larger;}
 .hide {display: none;}
 
-li ul, li ol { margin:0 1.5em; }
 ul, ol { margin: 0 1.5em 1.5em 1.5em; }
 
 ul { list-style-type: disc; }
@@ -294,6 +293,10 @@ a, a:link, a:visited {
 
 #mainCol a, #subCol a, #feature a {color: #980905;}
 #mainCol a code, #subCol a code, #feature a code {color: #980905;}
+
+#mainCol a.anchorlink, #mainCol a.anchorlink code {color: #333;}
+#mainCol a.anchorlink { text-decoration: none; }
+#mainCol a.anchorlink:hover { text-decoration: underline; }
 
 /* Navigation
 --------------------------------------- */
@@ -601,6 +604,8 @@ h6 {
   font-size: 1em;
   font-weight: normal;
 }
+
+#subCol li ul, li ol { margin:0 1.5em; }
 
 div.code_container {
   background: #EEE url(../images/tab_grey.gif) no-repeat left top;

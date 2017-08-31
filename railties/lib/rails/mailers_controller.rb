@@ -1,10 +1,14 @@
-require 'rails/application_controller'
+# frozen_string_literal: true
+
+require_relative "application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
   before_action :require_local!, unless: :show_previews?
   before_action :find_preview, only: :preview
+
+  helper_method :part_query
 
   def index
     @previews = ActionMailer::Preview.all
@@ -14,12 +18,12 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   def preview
     if params[:path] == @preview.preview_name
       @page_title = "Mailer Previews for #{@preview.preview_name}"
-      render action: 'mailer'
+      render action: "mailer"
     else
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
-        @email = @preview.call(@email_action)
+        @email = @preview.call(@email_action, params)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
@@ -32,7 +36,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
           end
         else
           @part = find_preferred_part(request.format, Mime[:html], Mime[:text])
-          render action: 'email', layout: false, formats: %w[html]
+          render action: "email", layout: false, formats: %w[html]
         end
       else
         raise AbstractController::ActionNotFound, "Email '#{@email_action}' not found in #{@preview.name}"
@@ -40,15 +44,15 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
   end
 
-  protected
-    def show_previews?
+  private
+    def show_previews? # :doc:
       ActionMailer::Base.show_previews
     end
 
-    def find_preview
+    def find_preview # :doc:
       candidates = []
-      params[:path].to_s.scan(%r{/|$}){ candidates << $` }
-      preview = candidates.detect{ |candidate| ActionMailer::Preview.exists?(candidate) }
+      params[:path].to_s.scan(%r{/|$}) { candidates << $` }
+      preview = candidates.detect { |candidate| ActionMailer::Preview.exists?(candidate) }
 
       if preview
         @preview = ActionMailer::Preview.find(preview)
@@ -57,23 +61,27 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       end
     end
 
-    def find_preferred_part(*formats)
+    def find_preferred_part(*formats) # :doc:
       formats.each do |format|
         if part = @email.find_first_mime_type(format)
           return part
         end
       end
 
-      if formats.any?{ |f| @email.mime_type == f }
+      if formats.any? { |f| @email.mime_type == f }
         @email
       end
     end
 
-    def find_part(format)
+    def find_part(format) # :doc:
       if part = @email.find_first_mime_type(format)
         part
       elsif @email.mime_type == format
         @email
       end
+    end
+
+    def part_query(mime_type)
+      request.query_parameters.merge(part: mime_type).to_query
     end
 end

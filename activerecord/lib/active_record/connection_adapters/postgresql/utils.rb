@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -19,9 +21,9 @@ module ActiveRecord
 
         def quoted
           if schema
-            PGconn.quote_ident(schema) << SEPARATOR << PGconn.quote_ident(identifier)
+            PG::Connection.quote_ident(schema) << SEPARATOR << PG::Connection.quote_ident(identifier)
           else
-            PGconn.quote_ident(identifier)
+            PG::Connection.quote_ident(identifier)
           end
         end
 
@@ -35,16 +37,18 @@ module ActiveRecord
         end
 
         protected
+
+          def parts
+            @parts ||= [@schema, @identifier].compact
+          end
+
+        private
           def unquote(part)
             if part && part.start_with?('"')
               part[1..-2]
             else
               part
             end
-          end
-
-          def parts
-            @parts ||= [@schema, @identifier].compact
           end
       end
 
@@ -53,7 +57,7 @@ module ActiveRecord
 
         # Returns an instance of <tt>ActiveRecord::ConnectionAdapters::PostgreSQL::Name</tt>
         # extracted from +string+.
-        # +schema+ is nil if not specified in +string+.
+        # +schema+ is +nil+ if not specified in +string+.
         # +schema+ and +identifier+ exclude surrounding quotes (regardless of whether provided in +string+)
         # +string+ supports the range of schema/table references understood by PostgreSQL, for example:
         #

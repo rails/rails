@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AbstractDoubloon < ActiveRecord::Base
   # This has functionality that might be shared by multiple classes.
 
@@ -8,5 +10,5 @@ end
 class Doubloon < AbstractDoubloon
   # This uses an abstract class that defines attributes and associations.
 
-  self.table_name = 'doubloons'
+  self.table_name = "doubloons"
 end

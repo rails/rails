@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Assertions
     # A small suite of assertions that test responses from \Rails applications.
@@ -45,12 +47,12 @@ module ActionDispatch
       #   # Asserts that the redirection was to the named route login_url
       #   assert_redirected_to login_url
       #
-      #   # Asserts that the redirection was to the url for @customer
+      #   # Asserts that the redirection was to the URL for @customer
       #   assert_redirected_to @customer
       #
       #   # Asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      def assert_redirected_to(options = {}, message=nil)
+      def assert_redirected_to(options = {}, message = nil)
         assert_response(:redirect, message)
         return true if options === @response.location
 
@@ -79,11 +81,16 @@ module ActionDispatch
         def generate_response_message(expected, actual = @response.response_code)
           "Expected response to be a <#{code_with_name(expected)}>,"\
           " but was a <#{code_with_name(actual)}>"
-          .concat location_if_redirected
+            .dup.concat(location_if_redirected).concat(response_body_if_short)
+        end
+
+        def response_body_if_short
+          return "" if @response.body.size > 500
+          "\nResponse body: #{@response.body}"
         end
 
         def location_if_redirected
-          return '' unless @response.redirection? && @response.location.present?
+          return "" unless @response.redirection? && @response.location.present?
           location = normalize_argument_to_redirection(@response.location)
           " redirect to <#{location}>"
         end

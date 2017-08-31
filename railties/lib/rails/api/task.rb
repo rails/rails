@@ -1,33 +1,35 @@
-require 'rdoc/task'
+# frozen_string_literal: true
+
+require "rdoc/task"
+require_relative "generator"
 
 module Rails
   module API
     class Task < RDoc::Task
       RDOC_FILES = {
-        'activesupport' => {
-          :include => %w(
+        "activesupport" => {
+          include: %w(
             README.rdoc
             lib/active_support/**/*.rb
-          ),
-          :exclude => 'lib/active_support/vendor/*'
+          )
         },
 
-        'activerecord' => {
-          :include => %w(
+        "activerecord" => {
+          include: %w(
             README.rdoc
             lib/active_record/**/*.rb
           )
         },
 
-        'activemodel' => {
-          :include => %w(
+        "activemodel" => {
+          include: %w(
             README.rdoc
             lib/active_model/**/*.rb
           )
         },
 
-        'actionpack' => {
-          :include => %w(
+        "actionpack" => {
+          include: %w(
             README.rdoc
             lib/abstract_controller/**/*.rb
             lib/action_controller/**/*.rb
@@ -35,41 +37,53 @@ module Rails
           )
         },
 
-        'actionview' => {
-          :include => %w(
+        "actionview" => {
+          include: %w(
             README.rdoc
             lib/action_view/**/*.rb
           ),
-          :exclude => 'lib/action_view/vendor/*'
+          exclude: "lib/action_view/vendor/*"
         },
 
-        'actionmailer' => {
-          :include => %w(
+        "actionmailer" => {
+          include: %w(
             README.rdoc
             lib/action_mailer/**/*.rb
           )
         },
 
-        'activejob' => {
-          :include => %w(
+        "activejob" => {
+          include: %w(
             README.md
             lib/active_job/**/*.rb
           )
         },
 
-        'actioncable' => {
-          :include => %w(
+        "actioncable" => {
+          include: %w(
             README.md
             lib/action_cable/**/*.rb
           )
         },
 
-        'railties' => {
-          :include => %w(
+        "activestorage" => {
+          include: %w(
+            README.md
+            app/**/active_storage/**/*.rb
+            lib/active_storage/**/*.rb
+          )
+        },
+
+        "railties" => {
+          include: %w(
             README.rdoc
             lib/**/*.rb
           ),
-          :exclude => 'lib/rails/generators/rails/**/templates/**/*.rb'
+          exclude: %w(
+            lib/rails/generators/**/templates/**/*.rb
+            lib/rails/test_unit/*
+            lib/rails/api/generator.rb
+          )
         }
       }
 
@@ -80,7 +94,7 @@ module Rails
         # Be lazy computing stuff to have as light impact as possible to
         # the rest of tasks.
         before_running_rdoc do
-          load_and_configure_sdoc
+          configure_sdoc
           configure_rdoc_files
           setup_horo_variables
         end
@@ -91,20 +105,15 @@ module Rails
         # no-op
       end
 
-      def load_and_configure_sdoc
-        require 'sdoc'
-
-        self.title    = 'Ruby on Rails API'
+      def configure_sdoc
+        self.title    = "Ruby on Rails API"
         self.rdoc_dir = api_dir
 
-        options << '-m'  << api_main
-        options << '-e'  << 'UTF-8'
+        options << "-m"  << api_main
+        options << "-e"  << "UTF-8"
 
-        options << '-f'  << 'sdoc'
-        options << '-T'  << 'rails'
-      rescue LoadError
-        $stderr.puts %(Unable to load SDoc, please add\n\n    gem 'sdoc', require: false\n\nto the Gemfile.)
-        exit 1
+        options << "-f"  << "api"
+        options << "-T"  << "rails"
       end
 
       def configure_rdoc_files
@@ -121,22 +130,35 @@ module Rails
             rdoc_files.exclude("#{cdr}/#{pattern}")
           end
         end
+
+        # Only generate documentation for files that have been
+        # changed since the API was generated.
+        if Dir.exist?("doc/rdoc") && !ENV["ALL"]
+          last_generation = DateTime.rfc2822(File.open("doc/rdoc/created.rid", &:readline))
+
+          rdoc_files.keep_if do |file|
+            File.mtime(file).to_datetime > last_generation
+          end
+
+          # Nothing to do
+          exit(0) if rdoc_files.empty?
+        end
       end
 
       def setup_horo_variables
-        ENV['HORO_PROJECT_NAME']    = 'Ruby on Rails'
-        ENV['HORO_PROJECT_VERSION'] = rails_version
+        ENV["HORO_PROJECT_NAME"]    = "Ruby on Rails"
+        ENV["HORO_PROJECT_VERSION"] = rails_version
       end
 
       def api_main
-        component_root_dir('railties') + '/RDOC_MAIN.rdoc'
+        component_root_dir("railties") + "/RDOC_MAIN.rdoc"
       end
     end
 
     class RepoTask < Task
-      def load_and_configure_sdoc
+      def configure_sdoc
         super
-        options << '-g' # link to GitHub, SDoc flag
+        options << "-g" # link to GitHub, SDoc flag
       end
 
       def component_root_dir(component)
@@ -144,7 +166,7 @@ module Rails
       end
 
       def api_dir
-        'doc/rdoc'
+        "doc/rdoc"
       end
     end
 
@@ -156,7 +178,7 @@ module Rails
 
     class StableTask < RepoTask
       def rails_version
-        File.read('RAILS_VERSION').strip
+        File.read("RAILS_VERSION").strip
       end
     end
   end

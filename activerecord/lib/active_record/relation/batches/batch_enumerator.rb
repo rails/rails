@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Batches
     class BatchEnumerator
@@ -7,7 +9,7 @@ module ActiveRecord
         @of       = of
         @relation = relation
         @start = start
-        @finish   = finish
+        @finish = finish
       end
 
       # Looping through a collection of records from the database (using the
@@ -42,7 +44,7 @@ module ActiveRecord
       # Delegates #delete_all, #update_all, #destroy_all methods to each batch.
       #
       #   People.in_batches.delete_all
-      #   People.in_batches.destroy_all('age < 10')
+      #   People.where('age < 10').in_batches.destroy_all
       #   People.in_batches.update_all('age = age + 1')
       [:delete_all, :update_all, :destroy_all].each do |method|
         define_method(method) do |*args, &block|

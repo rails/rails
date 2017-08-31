@@ -1,4 +1,7 @@
-require 'active_support/per_thread_registry'
+# frozen_string_literal: true
+
+require_relative "per_thread_registry"
+require_relative "notifications"
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
@@ -23,9 +26,8 @@ module ActiveSupport
   # the +sql+ method.
   class Subscriber
     class << self
-
       # Attach the subscriber to a namespace.
-      def attach_to(namespace, subscriber=new, notifier=ActiveSupport::Notifications)
+      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications)
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
@@ -52,11 +54,15 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
       attr_reader :subscriber, :notifier, :namespace
 
-      def add_event_subscriber(event)
+      private
+
+      def add_event_subscriber(event) # :doc:
         return if %w{ start finish }.include?(event.to_s)
 
         pattern = "#{event}.#{namespace}"
@@ -91,7 +97,7 @@ module ActiveSupport
       event.end = finished
       event.payload.merge!(payload)
 
-      method = name.split('.'.freeze).first
+      method = name.split(".".freeze).first
       send(method, event)
     end
 

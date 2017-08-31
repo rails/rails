@@ -1,8 +1,9 @@
-require 'action_dispatch/routing/polymorphic_routes'
+# frozen_string_literal: true
+
+require "action_dispatch/routing/polymorphic_routes"
 
 module ActionView
   module RoutingUrlFor
-
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
     # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
@@ -123,18 +124,15 @@ module ActionView
       controller.url_options
     end
 
-    def _routes_context #:nodoc:
-      controller
-    end
-    protected :_routes_context
-
-    def optimize_routes_generation? #:nodoc:
-      controller.respond_to?(:optimize_routes_generation?, true) ?
-        controller.optimize_routes_generation? : super
-    end
-    protected :optimize_routes_generation?
-
     private
+      def _routes_context
+        controller
+      end
+
+      def optimize_routes_generation?
+        controller.respond_to?(:optimize_routes_generation?, true) ?
+          controller.optimize_routes_generation? : super
+      end
 
       def _generate_paths_by_default
         true

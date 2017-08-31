@@ -1,7 +1,9 @@
-require 'active_support/ordered_options'
-require 'active_support/core_ext/object'
-require 'rails/paths'
-require 'rails/rack'
+# frozen_string_literal: true
+
+require "active_support/ordered_options"
+require "active_support/core_ext/object"
+require_relative "paths"
+require_relative "rack"
 
 module Rails
   module Configuration
@@ -91,8 +93,8 @@ module Rails
       attr_reader :hidden_namespaces
 
       def initialize
-        @aliases = Hash.new { |h,k| h[k] = {} }
-        @options = Hash.new { |h,k| h[k] = {} }
+        @aliases = Hash.new { |h, k| h[k] = {} }
+        @options = Hash.new { |h, k| h[k] = {} }
         @fallbacks = {}
         @templates = []
         @colorize_logging = true
@@ -112,7 +114,7 @@ module Rails
       end
 
       def method_missing(method, *args)
-        method = method.to_s.sub(/=$/, '').to_sym
+        method = method.to_s.sub(/=$/, "").to_sym
 
         return @options[method] if args.empty?
 

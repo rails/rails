@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -15,6 +17,7 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
       t.bigint  :unsigned_bigint,  unsigned: true
       t.float   :unsigned_float,   unsigned: true
       t.decimal :unsigned_decimal, unsigned: true, precision: 10, scale: 2
+      t.column  :unsigned_zerofill, "int unsigned zerofill"
     end
   end
 
@@ -28,16 +31,16 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
   end
 
   test "minus value is out of range" do
-    assert_raise(RangeError) do
+    assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_integer: -10)
     end
-    assert_raise(RangeError) do
+    assert_raise(ActiveModel::RangeError) do
       UnsignedType.create(unsigned_bigint: -10)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_float: -10.0)
     end
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raise(ActiveRecord::RangeError) do
       UnsignedType.create(unsigned_decimal: -10.0)
     end
   end
@@ -50,16 +53,16 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
       t.unsigned_decimal :unsigned_decimal_t, precision: 10, scale: 2
     end
 
-    @connection.columns("unsigned_types").select { |c| /^unsigned_/ === c.name }.each do |column|
+    @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|
       assert column.unsigned?
     end
   end
 
   test "schema dump includes unsigned option" do
     schema = dump_table_schema "unsigned_types"
-    assert_match %r{t.integer\s+"unsigned_integer",\s+unsigned: true$}, schema
-    assert_match %r{t.integer\s+"unsigned_bigint",\s+limit: 8,\s+unsigned: true$}, schema
-    assert_match %r{t.float\s+"unsigned_float",\s+limit: 24,\s+unsigned: true$}, schema
-    assert_match %r{t.decimal\s+"unsigned_decimal",\s+precision: 10,\s+scale: 2,\s+unsigned: true$}, schema
+    assert_match %r{t\.integer\s+"unsigned_integer",\s+unsigned: true$}, schema
+    assert_match %r{t\.bigint\s+"unsigned_bigint",\s+unsigned: true$}, schema
+    assert_match %r{t\.float\s+"unsigned_float",\s+unsigned: true$}, schema
+    assert_match %r{t\.decimal\s+"unsigned_decimal",\s+precision: 10,\s+scale: 2,\s+unsigned: true$}, schema
   end
 end

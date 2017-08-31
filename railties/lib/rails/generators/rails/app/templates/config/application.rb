@@ -11,6 +11,7 @@ require "active_job/railtie"
 require "action_controller/railtie"
 <%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
 require "action_view/railtie"
+require "active_storage/engine"
 <%= comment_if :skip_action_cable %>require "action_cable/engine"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test %>require "rails/test_unit/railtie"
@@ -22,15 +23,22 @@ Bundler.require(*Rails.groups)
 
 module <%= app_const_base %>
   class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults <%= Rails::VERSION::STRING.to_f %>
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
-<%- if options[:api] -%>
+<%- if options.api? -%>
 
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+<%- elsif !depends_on_system_test? -%>
+
+    # Don't generate system test files.
+    config.generators.system_tests = nil
 <%- end -%>
   end
 end

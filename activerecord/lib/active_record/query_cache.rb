@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Query Cache
   class QueryCache
@@ -5,44 +7,43 @@ module ActiveRecord
       # Enable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def cache(&block)
-        if ActiveRecord::Base.connected?
-          connection.cache(&block)
-        else
+        if configurations.empty?
           yield
+        else
+          connection.cache(&block)
         end
       end
 
       # Disable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def uncached(&block)
-        if ActiveRecord::Base.connected?
-          connection.uncached(&block)
-        else
+        if configurations.empty?
           yield
+        else
+          connection.uncached(&block)
         end
       end
     end
 
+    def self.run
+      caching_pool = ActiveRecord::Base.connection_pool
+      caching_was_enabled = caching_pool.query_cache_enabled
+
+      caching_pool.enable_query_cache!
+
+      [caching_pool, caching_was_enabled]
+    end
+
+    def self.complete((caching_pool, caching_was_enabled))
+      caching_pool.disable_query_cache! unless caching_was_enabled
+
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+      end
+    end
+
     def self.install_executor_hooks(executor = ActiveSupport::Executor)
-      executor.to_run do
-        connection    = ActiveRecord::Base.connection
-        enabled       = connection.query_cache_enabled
-        connection_id = ActiveRecord::Base.connection_id
-        connection.enable_query_cache!
-
-        @restore_query_cache_settings = lambda do
-          ActiveRecord::Base.connection_id = connection_id
-          ActiveRecord::Base.connection.clear_query_cache
-          ActiveRecord::Base.connection.disable_query_cache! unless enabled
-        end
-      end
-
-      executor.to_complete do
-        @restore_query_cache_settings.call if defined?(@restore_query_cache_settings)
-
-        # FIXME: This should be skipped when env['rack.test']
-        ActiveRecord::Base.clear_active_connections!
-      end
+      executor.register_hook(self)
     end
   end
 end

@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class ExecutorTest < ActiveSupport::TestCase
   class MyBody < Array
@@ -119,8 +121,8 @@ class ExecutorTest < ActiveSupport::TestCase
 
   private
     def call_and_return_body(&block)
-      app = middleware(block || proc { [200, {}, 'response'] })
-      _, _, body = app.call({'rack.input' => StringIO.new('')})
+      app = middleware(block || proc { [200, {}, "response"] })
+      _, _, body = app.call("rack.input" => StringIO.new(""))
       body
     end
 

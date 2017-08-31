@@ -1,4 +1,6 @@
-require 'action_view/helpers/tags/placeholderable'
+# frozen_string_literal: true
+
+require_relative "placeholderable"
 
 module ActionView
   module Helpers
@@ -17,15 +19,15 @@ module ActionView
 
         class << self
           def field_type
-            @field_type ||= self.name.split("::").last.sub("Field", "").downcase
+            @field_type ||= name.split("::").last.sub("Field", "").downcase
           end
         end
 
         private
 
-        def field_type
-          self.class.field_type
-        end
+          def field_type
+            self.class.field_type
+          end
       end
     end
   end

@@ -1,7 +1,9 @@
-require 'concurrent/map'
-require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/module/attribute_accessors'
-require 'action_view/template/resolver'
+# frozen_string_literal: true
+
+require "concurrent/map"
+require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/attribute_accessors"
+require_relative "template/resolver"
 
 module ActionView
   # = Action View Lookup Context
@@ -14,14 +16,12 @@ module ActionView
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
 
-    mattr_accessor :fallbacks
-    @@fallbacks = FallbackFileSystemResolver.instances
+    mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 
-    mattr_accessor :registered_details
-    self.registered_details = []
+    mattr_accessor :registered_details, default: []
 
     def self.register_detail(name, &block)
-      self.registered_details << name
+      registered_details << name
       Accessors::DEFAULT_PROCS[name] = block
 
       Accessors.send :define_method, :"default_#{name}", &block
@@ -63,7 +63,7 @@ module ActionView
           details = details.dup
           details[:formats] &= Template::Types.symbols
         end
-        @details_keys[details] ||= new
+        @details_keys[details] ||= Concurrent::Map.new
       end
 
       def self.clear
@@ -71,13 +71,7 @@ module ActionView
       end
 
       def self.digest_caches
-        @details_keys.values.map(&:digest_cache)
-      end
-
-      attr_reader :digest_cache
-
-      def initialize
-        @digest_cache = Concurrent::Map.new
+        @details_keys.values
       end
     end
 
@@ -99,9 +93,9 @@ module ActionView
         @cache = old_value
       end
 
-    protected
+    private
 
-      def _set_detail(key, value)
+      def _set_detail(key, value) # :doc:
         @details = @details.dup if @details_key
         @details_key = nil
         @details[key] = value
@@ -155,16 +149,16 @@ module ActionView
         added_resolvers.times { view_paths.pop }
       end
 
-    protected
+    private
 
-      def args_for_lookup(name, prefixes, partial, keys, details_options) #:nodoc:
+      def args_for_lookup(name, prefixes, partial, keys, details_options)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(details_options)
         [name, prefixes, partial || false, details, details_key, keys]
       end
 
       # Compute details hash and key according to user options (e.g. passed from #render).
-      def detail_args_for(options)
+      def detail_args_for(options) # :doc:
         return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
 
@@ -177,13 +171,13 @@ module ActionView
         [user_details, details_key]
       end
 
-      def args_for_any(name, prefixes, partial) # :nodoc:
+      def args_for_any(name, prefixes, partial)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
         [name, prefixes, partial || false, details, details_key]
       end
 
-      def detail_args_for_any # :nodoc:
+      def detail_args_for_any
         @detail_args_for_any ||= begin
           details = {}
 
@@ -206,15 +200,15 @@ module ActionView
       # Support legacy foo.erb names even though we now ignore .erb
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
-      def normalize_name(name, prefixes) #:nodoc:
+      def normalize_name(name, prefixes)
         prefixes = prefixes.presence
-        parts    = name.to_s.split('/'.freeze)
+        parts    = name.to_s.split("/".freeze)
         parts.shift if parts.first.empty?
-        name     = parts.pop
+        name = parts.pop
 
         return name, prefixes || [""] if parts.empty?
 
-        parts    = parts.join('/'.freeze)
+        parts    = parts.join("/".freeze)
         prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
 
         return name, prefixes
@@ -236,7 +230,7 @@ module ActionView
     end
 
     def digest_cache
-      details_key.digest_cache
+      details_key
     end
 
     def initialize_details(target, details)

@@ -1,6 +1,8 @@
-require 'cases/helper'
-require 'models/contact'
-require 'models/helicopter'
+# frozen_string_literal: true
+
+require "cases/helper"
+require "models/contact"
+require "models/helicopter"
 
 class ConversionTest < ActiveModel::TestCase
   test "to_model default implementation returns self" do

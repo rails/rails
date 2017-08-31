@@ -1,4 +1,6 @@
-require 'abstract_controller/collector'
+# frozen_string_literal: true
+
+require "abstract_controller/collector"
 
 module ActionController #:nodoc:
   module MimeResponds
@@ -181,8 +183,8 @@ module ActionController #:nodoc:
     #
     #   request.variant = [:tablet, :phone]
     #
-    # which will work similarly to formats and MIME types negotiation. If there will be no
-    # +:tablet+ variant declared, +:phone+ variant will be picked:
+    # This will work similarly to formats and MIME types negotiation. If there
+    # is no +:tablet+ variant declared, the +:phone+ variant will be used:
     #
     #   respond_to do |format|
     #     format.html.none
@@ -198,7 +200,7 @@ module ActionController #:nodoc:
         _process_format(format)
         _set_rendered_content_type format
         response = collector.response
-        response ? response.call : render({})
+        response.call if response
       else
         raise ActionController::UnknownFormat
       end
@@ -280,8 +282,8 @@ module ActionController #:nodoc:
 
         def any(*args, &block)
           if block_given?
-            if args.any? && args.none?{ |a| a == @variant }
-              args.each{ |v| @variants[v] = block }
+            if args.any? && args.none? { |a| a == @variant }
+              args.each { |v| @variants[v] = block }
             else
               @variants[:any] = block
             end

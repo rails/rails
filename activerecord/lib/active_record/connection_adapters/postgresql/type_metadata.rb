@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLTypeMetadata < DelegateClass(SqlTypeMetadata)
+      undef to_yaml if method_defined?(:to_yaml)
+
       attr_reader :oid, :fmod, :array
 
       def initialize(type_metadata, oid: nil, fmod: nil)
@@ -8,7 +12,7 @@ module ActiveRecord
         @type_metadata = type_metadata
         @oid = oid
         @fmod = fmod
-        @array = /\[\]$/ === type_metadata.sql_type
+        @array = /\[\]$/.match?(type_metadata.sql_type)
       end
 
       def sql_type
@@ -27,9 +31,9 @@ module ActiveRecord
 
       protected
 
-      def attributes_for_hash
-        [self.class, @type_metadata, oid, fmod]
-      end
+        def attributes_for_hash
+          [self.class, @type_metadata, oid, fmod]
+        end
     end
   end
 end

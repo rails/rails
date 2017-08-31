@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_model/type"
 
@@ -9,6 +11,14 @@ module ActiveModel
         assert_equal BigDecimal.new("0"), type.cast(BigDecimal.new("0"))
         assert_equal BigDecimal.new("123"), type.cast(123.0)
         assert_equal BigDecimal.new("1"), type.cast(:"1")
+      end
+
+      def test_type_cast_decimal_from_invalid_string
+        type = Decimal.new
+        assert_nil type.cast("")
+        assert_equal BigDecimal.new("1"), type.cast("1ignore")
+        assert_equal BigDecimal.new("0"), type.cast("bad1")
+        assert_equal BigDecimal.new("0"), type.cast("bad")
       end
 
       def test_type_cast_decimal_from_float_with_large_precision
@@ -48,9 +58,16 @@ module ActiveModel
       def test_changed?
         type = Decimal.new
 
-        assert type.changed?(5.0, 5.0, '5.0wibble')
-        assert_not type.changed?(5.0, 5.0, '5.0')
-        assert_not type.changed?(-5.0, -5.0, '-5.0')
+        assert type.changed?(5.0, 5.0, "5.0wibble")
+        assert_not type.changed?(5.0, 5.0, "5.0")
+        assert_not type.changed?(-5.0, -5.0, "-5.0")
+      end
+
+      def test_scale_is_applied_before_precision_to_prevent_rounding_errors
+        type = Decimal.new(precision: 5, scale: 3)
+
+        assert_equal BigDecimal("1.250"), type.cast(1.250473853637869)
+        assert_equal BigDecimal("1.250"), type.cast("1.250473853637869")
       end
     end
   end

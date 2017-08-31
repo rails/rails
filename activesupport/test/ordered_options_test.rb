@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/ordered_options'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/ordered_options"
 
 class OrderedOptionsTest < ActiveSupport::TestCase
   def test_usage

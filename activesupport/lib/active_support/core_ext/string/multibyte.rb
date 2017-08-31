@@ -1,4 +1,6 @@
-require 'active_support/multibyte'
+# frozen_string_literal: true
+
+require_relative "../../multibyte"
 
 class String
   # == Multibyte proxy

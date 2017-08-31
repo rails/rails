@@ -1,4 +1,6 @@
-require 'rails/generators/migration'
+# frozen_string_literal: true
+
+require "rails/generators/migration"
 
 module ActiveRecord
   module Generators # :nodoc:
@@ -19,6 +21,14 @@ module ActiveRecord
         def primary_key_type
           key_type = options[:primary_key_type]
           ", id: :#{key_type}" if key_type
+        end
+
+        def db_migrate_path
+          if defined?(Rails.application) && Rails.application
+            Rails.application.config.paths["db/migrate"].to_ary.first
+          else
+            "db/migrate"
+          end
         end
     end
   end

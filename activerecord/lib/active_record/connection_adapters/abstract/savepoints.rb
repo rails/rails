@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
-    module Savepoints #:nodoc:
-      def supports_savepoints?
-        true
+    module Savepoints
+      def current_savepoint_name
+        current_transaction.savepoint_name
       end
 
       def create_savepoint(name = current_savepoint_name)

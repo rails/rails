@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AbstractController
   module Caching
     extend ActiveSupport::Concern
@@ -29,13 +31,15 @@ module AbstractController
       extend ConfigMethods
 
       config_accessor :default_static_extension
-      self.default_static_extension ||= '.html'
+      self.default_static_extension ||= ".html"
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
 
-      class_attribute :_view_cache_dependencies
-      self._view_cache_dependencies = []
+      config_accessor :enable_fragment_cache_logging
+      self.enable_fragment_cache_logging = false
+
+      class_attribute :_view_cache_dependencies, default: []
       helper_method :view_cache_dependencies if respond_to?(:helper_method)
     end
 
@@ -49,9 +53,9 @@ module AbstractController
       self.class._view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
     end
 
-    protected
+    private
       # Convenience accessor.
-      def cache(key, options = {}, &block)
+      def cache(key, options = {}, &block) # :doc:
         if cache_configured?
           cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)
         else

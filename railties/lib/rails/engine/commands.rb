@@ -1,14 +1,9 @@
-require 'rails/engine/commands_tasks'
+# frozen_string_literal: true
 
-ARGV << '--help' if ARGV.empty?
+unless defined?(APP_PATH)
+  if File.exist?(File.expand_path("test/dummy/config/application.rb", ENGINE_ROOT))
+    APP_PATH = File.expand_path("test/dummy/config/application", ENGINE_ROOT)
+  end
+end
 
-aliases = {
-  "g" => "generate",
-  "d" => "destroy",
-  "t" => "test"
-}
-
-command = ARGV.shift
-command = aliases[command] || command
-
-Rails::Engine::CommandsTasks.new(ARGV).run_command!(command)
+require_relative "../commands"

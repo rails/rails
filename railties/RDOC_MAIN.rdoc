@@ -1,7 +1,7 @@
 == Welcome to \Rails
 
 \Rails is a web-application framework that includes everything needed to create
-database-backed web applications according to the {Model-View-Controller (MVC)}[http://en.wikipedia.org/wiki/Model-view-controller] pattern.
+database-backed web applications according to the {Model-View-Controller (MVC)}[https://en.wikipedia.org/wiki/Model-view-controller] pattern.
 
 Understanding the MVC pattern is key to understanding \Rails. MVC divides your application
 into three layers, each with a specific responsibility.
@@ -35,17 +35,17 @@ can read more about Action Pack in its {README}[link:files/actionpack/README_rdo
 
 1. Install \Rails at the command prompt if you haven't yet:
 
-    gem install rails
+    $ gem install rails
 
 2. At the command prompt, create a new \Rails application:
 
-    rails new myapp
+    $ rails new myapp
 
    where "myapp" is the application name.
 
 3. Change directory to +myapp+ and start the web server:
 
-    cd myapp; rails server
+    $ cd myapp; rails server
 
    Run with <tt>--help</tt> or <tt>-h</tt> for options.
 
@@ -57,7 +57,7 @@ can read more about Action Pack in its {README}[link:files/actionpack/README_rdo
 
 * The \README file created within your application.
 * {Getting Started with \Rails}[http://guides.rubyonrails.org/getting_started.html].
-* {Ruby on \Rails Tutorial}[http://www.railstutorial.org/book].
+* {Ruby on \Rails Tutorial}[https://www.railstutorial.org/book].
 * {Ruby on \Rails Guides}[http://guides.rubyonrails.org].
 * {The API Documentation}[http://api.rubyonrails.org].
 
@@ -70,4 +70,4 @@ to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 == License
 
-Ruby on \Rails is released under the {MIT License}[http://www.opensource.org/licenses/MIT].
+Ruby on \Rails is released under the {MIT License}[https://opensource.org/licenses/MIT].

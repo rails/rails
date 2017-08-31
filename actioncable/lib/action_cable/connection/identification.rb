@@ -1,4 +1,6 @@
-require 'set'
+# frozen_string_literal: true
+
+require "set"
 
 module ActionCable
   module Connection
@@ -6,8 +8,7 @@ module ActionCable
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :identifiers
-        self.identifiers = Set.new
+        class_attribute :identifiers, default: Set.new
       end
 
       class_methods do

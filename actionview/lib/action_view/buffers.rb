@@ -1,4 +1,6 @@
-require 'active_support/core_ext/string/output_safety'
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/output_safety"
 
 module ActionView
   class OutputBuffer < ActiveSupport::SafeBuffer #:nodoc:

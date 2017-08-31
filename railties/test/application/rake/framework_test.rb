@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
-require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   module RakeTests
@@ -8,7 +9,6 @@ module ApplicationTests
 
       def setup
         build_app
-        boot_rails
         FileUtils.rm_rf("#{app_path}/config/environments")
       end
 
@@ -17,14 +17,14 @@ module ApplicationTests
       end
 
       def load_tasks
-        require 'rake'
-        require 'rdoc/task'
-        require 'rake/testtask'
+        require "rake"
+        require "rdoc/task"
+        require "rake/testtask"
 
         Rails.application.load_tasks
       end
 
-      test 'requiring the rake task should not define method .app_generator on Object' do
+      test "requiring the rake task should not define method .app_generator on Object" do
         require "#{app_path}/config/environment"
 
         load_tasks
@@ -34,7 +34,7 @@ module ApplicationTests
         end
       end
 
-      test 'requiring the rake task should not define method .invoke_from_app_generator on Object' do
+      test "requiring the rake task should not define method .invoke_from_app_generator on Object" do
         require "#{app_path}/config/environment"
 
         load_tasks

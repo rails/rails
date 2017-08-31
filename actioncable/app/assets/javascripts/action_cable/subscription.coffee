@@ -8,6 +8,12 @@
 #     connected: ->
 #       # Called once the subscription has been successfully completed
 #
+#     disconnected: ({ willAttemptReconnect: boolean }) ->
+#       # Called when the client has disconnected with the server.
+#       # The object will have an `willAttemptReconnect` property which
+#       # says whether the client has the intention of attempting
+#       # to reconnect.
+#
 #     appear: ->
 #       @perform 'appear', appearing_on: @appearingOn()
 #

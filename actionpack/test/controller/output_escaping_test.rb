@@ -1,7 +1,8 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class OutputEscapingTest < ActiveSupport::TestCase
-
   test "escape_html shouldn't die when passed nil" do
     assert ERB::Util.h(nil).blank?
   end
@@ -13,5 +14,4 @@ class OutputEscapingTest < ActiveSupport::TestCase
   test "escapeHTML shouldn't touch explicitly safe strings" do
     assert_equal "<", ERB::Util.h("<".html_safe)
   end
-
 end

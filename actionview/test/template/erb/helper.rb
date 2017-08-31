@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ERBTest
   class ViewContext
     include ActionView::Helpers::UrlHelper
@@ -14,7 +16,7 @@ module ERBTest
   class BlockTestCase < ActiveSupport::TestCase
     def render_content(start, inside)
       template = block_helper(start, inside)
-      ActionView::Template::Handlers::Erubis.new(template).evaluate(ViewContext.new)
+      ActionView::Template::Handlers::ERB.erb_implementation.new(template).evaluate(ViewContext.new)
     end
 
     def block_helper(str, rest)

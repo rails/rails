@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Schema
   #
@@ -37,10 +39,10 @@ module ActiveRecord
     # The +info+ hash is optional, and if given is used to define metadata
     # about the current schema (currently, only the schema's version):
     #
-    #   ActiveRecord::Schema.define(version: 20380119000001) do
+    #   ActiveRecord::Schema.define(version: 2038_01_19_000001) do
     #     ...
     #   end
-    def self.define(info={}, &block)
+    def self.define(info = {}, &block)
       new.define(info, &block)
     end
 
@@ -48,7 +50,7 @@ module ActiveRecord
       instance_eval(&block)
 
       if info[:version].present?
-        initialize_schema_migrations_table
+        ActiveRecord::SchemaMigration.create_table
         connection.assume_migrated_upto_version(info[:version], migrations_paths)
       end
 
@@ -61,7 +63,7 @@ module ActiveRecord
       #
       #   ActiveRecord::Schema.new.migrations_paths
       #   # => ["db/migrate"] # Rails migration path by default.
-      def migrations_paths # :nodoc:
+      def migrations_paths
         ActiveRecord::Migrator.migrations_paths
       end
   end

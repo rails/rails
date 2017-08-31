@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
-    module Helpers
-      class AcceptsMultiparameterTime < Module # :nodoc:
+    module Helpers # :nodoc: all
+      class AcceptsMultiparameterTime < Module
         def initialize(defaults: {})
           define_method(:cast) do |value|
             if value.is_a?(Hash)
@@ -17,6 +19,10 @@ module ActiveModel
             else
               super(value)
             end
+          end
+
+          define_method(:value_constructed_by_mass_assignment?) do |value|
+            value.is_a?(Hash)
           end
 
           define_method(:value_from_multiparameter_assignment) do |values_hash|

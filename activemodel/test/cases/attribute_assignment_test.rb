@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/hash_with_indifferent_access"
@@ -16,9 +18,11 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       raise ErrorFromAttributeWriter
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-    attr_writer :metadata
+      attr_writer :metadata
   end
 
   class ErrorFromAttributeWriter < StandardError

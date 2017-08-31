@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require 'models/developer'
-require 'models/computer'
+require "models/developer"
+require "models/computer"
 
 class Mysql2ExplainTest < ActiveRecord::Mysql2TestCase
   fixtures :developers

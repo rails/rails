@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -26,12 +28,12 @@ module ActiveRecord
           pp = []
 
           pp << header.center(width).rstrip
-          pp << '-' * width
+          pp << "-" * width
 
-          pp += lines.map {|line| " #{line}"}
+          pp += lines.map { |line| " #{line}" }
 
           nrows = result.rows.length
-          rows_label = nrows == 1 ? 'row' : 'rows'
+          rows_label = nrows == 1 ? "row" : "rows"
           pp << "(#{nrows} #{rows_label})"
 
           pp.join("\n") + "\n"

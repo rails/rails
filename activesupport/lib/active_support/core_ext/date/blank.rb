@@ -1,4 +1,6 @@
-require 'date'
+# frozen_string_literal: true
+
+require "date"
 
 class Date #:nodoc:
   # No Date is blank:
