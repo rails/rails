@@ -35,7 +35,11 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key do
-        file_for(key).try(:delete)
+        begin
+          file_for(key).try(:delete)
+        rescue Google::Cloud::NotFoundError
+          # Ignore files already deleted
+        end
       end
     end
 
