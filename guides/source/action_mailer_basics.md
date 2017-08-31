@@ -788,6 +788,34 @@ You can change your Gmail settings [here](https://www.google.com/settings/securi
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
 use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
 
+### Using Action Mailer with secure connections
+
+It is useful to be familiar with the differences between ports 25, 465 and 587 if using ActionMailer with a secure SMTP connection.
+
+SMTP only has two IANA designated ports: 25 and 587. Any server responding to these ports should speak the SMTP protocol, making it possible for ActionMailer and its underlying libraries to send mail.
+
+Port 587 is recommended for sending secure mail. A server listening on 587 implies that it requires successful authentication before it will agree to send mail. The Gmail configuration example above uses this port.
+
+There is another port in widespread use despite being deprecated: 465. Mail servers running on port 465 will often require that a TLS connection is established before any SMTP commands can be issued. This means that client libraries like ActionMailer will not receive an SMTP welcome message when connecting, resulting in timeouts or other errors. Client libraries will need to be told that a TLS connection needs to be established before mail can be sent.
+
+Here is an example ActionMailer configuration for Amazon SES on port 465:
+
+```ruby
+config.action_mailer.delivery_method = :smtp
+config.action_mailer.smtp_settings = {
+  address:              'email-smtp.eu-west-1.amazonaws.com',
+  port:                 465,
+  domain:               'example.com',
+  user_name:            '<username>',
+  password:             '<password>',
+  enable_starttls_auto: true,
+  ssl:                  true,
+  tls:                  true
+  }
+```
+
+Note the addition of `ssl: true, tls: true` to the configuration. This is not necessary when using port 587 as ActionMailer will be able to negotiate security settings by itself (if `enable_starttls_auto` is set to `true`).
+
 Mailer Testing
 --------------
 
