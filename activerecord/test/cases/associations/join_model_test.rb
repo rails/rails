@@ -496,25 +496,25 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     post_thinking = posts(:thinking)
     assert_nothing_raised { post_thinking.tags << push }
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 1, post_thinking.reload.tags.size)
     assert_equal(count + 1, post_thinking.tags.reload.size)
 
     assert_kind_of Tag, post_thinking.tags.create!(name: "foo")
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 2, post_thinking.reload.tags.size)
     assert_equal(count + 2, post_thinking.tags.reload.size)
 
     assert_nothing_raised { post_thinking.tags.concat(Tag.create!(name: "abc"), Tag.create!(name: "def")) }
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 4, post_thinking.reload.tags.size)
     assert_equal(count + 4, post_thinking.tags.reload.size)
 
