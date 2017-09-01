@@ -302,14 +302,10 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
-  def test_cache_does_not_wrap_string_results_in_arrays
+  def test_cache_does_not_wrap_results_in_arrays
     Task.cache do
-      # Oracle adapter returns count() as Integer or Float
-      if current_adapter?(:OracleAdapter)
-        assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
-        # Future versions of the sqlite3 adapter will return numeric
-        assert_instance_of 0.class, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
+      if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
+        assert_equal 2, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       else
         assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       end
