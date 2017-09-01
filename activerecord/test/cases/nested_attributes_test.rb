@@ -982,6 +982,19 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   end
 end
 
+class TestNestedAttributesWithBlankLineinIdKey < ActiveRecord::TestCase
+  def setup
+    @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    @bird = @pirate.birds.create!(name: "Berri", color: "red")
+  end
+
+  def test_should_not_raise_exception_for_id_with_blank_line
+    assert_nothing_raised ActiveRecord::RecordNotFound, "Couldn't find Bird with ID= #{@bird.id} for Pirate with ID=#{@pirate.id}" do
+      @pirate.update(birds_attributes: { id: " #{@bird.id}" })
+    end
+  end
+end
+
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
