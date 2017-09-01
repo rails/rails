@@ -331,7 +331,7 @@ module ActionView
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        locals.each_with_object("".dup) { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        locals.each_with_object("".dup) { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name
