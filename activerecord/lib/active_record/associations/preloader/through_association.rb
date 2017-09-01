@@ -91,6 +91,8 @@ module ActiveRecord
                 scope.where_clause = reflection_scope.where_clause
                 if joins = values[:joins]
                   scope.joins!(source_reflection.name => joins)
+                elsif klass.finder_needs_type_condition?
+                  scope.joins!(source_reflection.name)
                 end
                 if left_outer_joins = values[:left_outer_joins]
                   scope.left_outer_joins!(source_reflection.name => left_outer_joins)
