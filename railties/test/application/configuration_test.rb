@@ -40,10 +40,7 @@ module ApplicationTests
       @app ||= begin
         ENV["RAILS_ENV"] = env
 
-        # FIXME: shush Sass warning spam, not relevant to testing Railties
-        Kernel.silence_warnings do
-          require "#{app_path}/config/environment"
-        end
+        require "#{app_path}/config/environment"
 
         Rails.application
       ensure
