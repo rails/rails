@@ -103,13 +103,11 @@ class Class
       remove_possible_singleton_method("#{name}=")
       define_singleton_method("#{name}=") do |val|
         singleton_class.class_eval do
-          remove_possible_method(name)
           define_method(name) { val }
         end
 
         if singleton_class?
           class_eval do
-            remove_possible_method(name)
             define_method(name) do
               if instance_variable_defined? ivar
                 instance_variable_get ivar
@@ -123,7 +121,6 @@ class Class
       end
 
       if instance_reader
-        remove_possible_method name
         define_method(name) do
           if instance_variable_defined?(ivar)
             instance_variable_get ivar

@@ -98,4 +98,10 @@ class ClassAttributeTest < ActiveSupport::TestCase
     val = @klass.send(:setting=, 1)
     assert_equal 1, val
   end
+
+  test 'setter is synchronized' do
+    100.times.map { |i|
+      Thread.new { @klass.setting = i }
+    }.each(&:join)
+  end
 end
