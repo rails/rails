@@ -148,7 +148,7 @@ module ActiveRecord
         end
 
         def polymorphic_options
-          as_options(polymorphic).merge(null: options[:null])
+          as_options(polymorphic).merge(options.slice(:null, :first, :after))
         end
 
         def index_options
