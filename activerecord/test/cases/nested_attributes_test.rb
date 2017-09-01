@@ -989,7 +989,7 @@ class TestNestedAttributesWithBlankLineinIdKey < ActiveRecord::TestCase
   end
 
   def test_should_not_raise_exception_for_id_with_blank_line
-    assert_nothing_raised ActiveRecord::RecordNotFound, "Couldn't find Bird with ID= #{@bird.id} for Pirate with ID=#{@pirate.id}" do
+    assert_nothing_raised do
       @pirate.update(birds_attributes: { id: " #{@bird.id}" })
     end
   end
