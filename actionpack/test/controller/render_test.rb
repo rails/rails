@@ -606,6 +606,18 @@ class MetalRenderTest < ActionController::TestCase
   end
 end
 
+class ActionControllerRenderTest < ActionController::TestCase
+  class MinimalController < ActionController::Metal
+    include AbstractController::Rendering
+    include ActionController::Rendering
+  end
+
+  def test_direct_render_to_string_with_body
+    mc = MinimalController.new
+    assert_equal "Hello world!", mc.render_to_string(body: ["Hello world!"])
+  end
+end
+
 class ActionControllerBaseRenderTest < ActionController::TestCase
   def test_direct_render_to_string
     ac = ActionController::Base.new()
