@@ -37,7 +37,7 @@ module Rails
       end
 
       def key
-        ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
+        read_key_from_env || read_key_file || handle_missing_key
       end
 
       def template
@@ -77,6 +77,10 @@ module Rails
       private
         def handle_missing_key
           raise MissingKeyError
+        end
+
+        def read_key_from_env
+          @env_rails_master_key ||= ENV.delete("RAILS_MASTER_KEY")
         end
 
         def read_key_file

@@ -54,6 +54,18 @@ class Rails::SecretsTest < ActiveSupport::TestCase
     end
   end
 
+  test "reading from ENV variable and then clearing it" do
+    run_secrets_generator do
+      begin
+        ENV["RAILS_MASTER_KEY"] = "00112233445566778899aabbccddeeff"
+
+        assert_equal "00112233445566778899aabbccddeeff", Rails::Secrets.key
+      ensure
+        assert_nil ENV["RAILS_MASTER_KEY"]
+      end
+    end
+  end
+
   test "reading from key file" do
     run_secrets_generator do
       File.binwrite("config/secrets.yml.key", "00112233445566778899aabbccddeeff")
