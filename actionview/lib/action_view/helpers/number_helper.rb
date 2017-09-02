@@ -15,7 +15,7 @@ module ActionView
     # unchanged if can't be converted into a valid number.
     module NumberHelper
       # Raised when argument +number+ param given to the helpers is invalid and
-      # the option :raise is set to  +true+.
+      # the option <tt>:raise</tt> is set to +true+.
       class InvalidNumberError < StandardError
         attr_accessor :number
         def initialize(number)
@@ -37,7 +37,7 @@ module ActionView
       #   number.
       # * <tt>:pattern</tt> - Specifies how the number is divided into three
       #   groups with the custom regexp to override the default format.
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -98,7 +98,7 @@ module ActionView
       #   number given by <tt>:format</tt>).  Accepts the same fields
       #   than <tt>:format</tt>, except <tt>%n</tt> is here the
       #   absolute value of the number.
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -142,7 +142,7 @@ module ActionView
       #   +false+).
       # * <tt>:format</tt> - Specifies the format of the percentage
       #   string The number field is <tt>%n</tt> (defaults to "%n%").
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -176,7 +176,7 @@ module ActionView
       # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
       #   deriving the placement of delimiter. Helpful when using currency formats
       #   like INR.
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -221,7 +221,7 @@ module ActionView
       # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
       #   insignificant zeros after the decimal separator (defaults to
       #   +false+).
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -269,7 +269,7 @@ module ActionView
       # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
       #   insignificant zeros after the decimal separator (defaults to
       #   +true+)
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples
@@ -335,7 +335,7 @@ module ActionView
       #   (defaults to "%n %u"). The field types are:
       #   * %u - The quantifier (ex.: 'thousand')
       #   * %n - The number
-      # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
+      # * <tt>:raise</tt> - If +true+, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
       # ==== Examples

@@ -197,7 +197,7 @@ module ActionView
       # It returns an empty HTML tag of type +name+ which by default is XHTML
       # compliant. Set +open+ to true to create an open tag compatible
       # with HTML 4.0 and below. Add HTML attributes by passing an attributes
-      # hash to +options+. Set +escape+ to false to disable attribute value
+      # hash to +options+. Set +escape+ to +false+ to disable attribute value
       # escaping.
       #
       # ==== Options
@@ -244,12 +244,12 @@ module ActionView
       # HTML attributes by passing an attributes hash to +options+.
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +options+ as the second parameter.
-      # Set escape to false to disable attribute value escaping.
+      # Set +escape+ to +false+ to disable attribute value escaping.
       # Note: this is legacy syntax, see +tag+ method description for details.
       #
       # ==== Options
       # The +options+ hash can be used with attributes with no value like (<tt>disabled</tt> and
-      # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
+      # <tt>readonly</tt>), which you can give a value of +true+ in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
       # ==== Examples

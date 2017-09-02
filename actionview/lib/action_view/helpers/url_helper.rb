@@ -223,9 +223,9 @@ module ActionView
       # There are a few special +html_options+:
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
-      # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
+      # * <tt>:disabled</tt> - If set to +true+, it will generate a disabled button.
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
+      # * <tt>:remote</tt> -  If set to +true+, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
@@ -381,7 +381,7 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ unless +condition+ is true, in which case only the name is
+      # +options+ unless +condition+ is +true+, in which case only the name is
       # returned. To specialize the default behavior (i.e., show a login link rather
       # than just the plaintext link text), you can pass a block that
       # accepts the name or the full argument list for +link_to_unless+.
@@ -405,7 +405,7 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
-      # +options+ if +condition+ is true, otherwise only the name is
+      # +options+ if +condition+ is +true+, otherwise only the name is
       # returned. To specialize the default behavior, you can pass a block that
       # accepts the name or the full argument list for +link_to_unless+ (see the examples
       # in +link_to_unless+).

@@ -230,7 +230,7 @@ module ActionView
           # set by the <tt>layout</tt> method.
           #
           # ==== Returns
-          # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
+          # * <tt>Boolean</tt> - +true+ if the action has a layout definition, +false+ otherwise.
           def _conditional_layout?
             return unless super
 
@@ -364,9 +364,9 @@ module ActionView
     # Controls whether an action should be rendered using a layout.
     # If you want to disable any <tt>layout</tt> settings for the
     # current action so that it is rendered without a layout then
-    # either override this method in your controller to return false
+    # either override this method in your controller to return +false+
     # for that action or set the <tt>action_has_layout</tt> attribute
-    # to false before rendering.
+    # to +false+ before rendering.
     def action_has_layout?
       @_action_has_layout
     end

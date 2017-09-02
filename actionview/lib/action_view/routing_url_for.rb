@@ -12,8 +12,8 @@ module ActionView
     #
     # ==== Options
     # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path.
-    # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>true</tt> by default unless <tt>:host</tt> is specified).
-    # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2005/". Note that this
+    # * <tt>:only_path</tt> - If +true+, returns the relative URL (omitting the protocol, host name, and port) (<tt>true</tt> by default unless <tt>:host</tt> is specified).
+    # * <tt>:trailing_slash</tt> - If +true+, adds a trailing slash, as in "/archive/2005/". Note that this
     #   is currently not recommended since it breaks caching.
     # * <tt>:host</tt> - Overrides the default (current) host if provided.
     # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
