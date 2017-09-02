@@ -40,7 +40,7 @@ module ActionController
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = "".dup
         result.each { |r| string << r }
         string
       else
