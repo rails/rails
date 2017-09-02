@@ -869,10 +869,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def find_all_ordered(className, include = nil)
-    className.all.merge!(order: "#{className.table_name}.#{className.primary_key}", includes: include).to_a
-  end
-
   def test_limited_eager_with_order
     assert_equal(
       posts(:thinking, :sti_comments),
@@ -1510,4 +1506,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
     Author.preload(:readonly_comments).first!
   end
+
+  private
+    def find_all_ordered(klass, include = nil)
+      klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
 end
