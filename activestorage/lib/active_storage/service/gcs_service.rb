@@ -9,8 +9,8 @@ module ActiveStorage
   class Service::GCSService < Service
     attr_reader :client, :bucket
 
-    def initialize(project:, keyfile:, bucket:)
-      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile)
+    def initialize(project:, keyfile:, bucket:, **options)
+      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile, **options)
       @bucket = @client.bucket(bucket)
     end
 
