@@ -28,6 +28,8 @@ namespace :test do
     require "bundler/setup" unless defined?(Bundler)
     require "active_support"
 
+    failing_files = []
+
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     Dir[*test_files].each do |file|
@@ -46,8 +48,19 @@ namespace :test do
       Process.waitpid fork { ARGV.clear; load file }
 
       unless $?.success?
-        raise "Command failed with status (#{$?.exitstatus}): #{fake_command}"
+        failing_files << file
       end
+    end
+
+    unless failing_files.empty?
+      puts
+      puts "Failed in:"
+      failing_files.each do |file|
+        puts "  #{file}"
+      end
+      puts
+
+      raise "Failure in isolated test runner"
     end
   end
 end
