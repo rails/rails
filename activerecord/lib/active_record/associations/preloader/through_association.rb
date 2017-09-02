@@ -94,6 +94,12 @@ module ActiveRecord
                 scope.includes!(source_reflection.name)
               end
 
+              if values[:references] && !values[:references].empty?
+                scope.references!(values[:references])
+              else
+                scope.references!(source_reflection.table_name)
+              end
+
               if joins = values[:joins]
                 scope.joins!(source_reflection.name => joins)
               end
@@ -102,7 +108,6 @@ module ActiveRecord
                 scope.left_outer_joins!(source_reflection.name => left_outer_joins)
               end
 
-              scope.references! values[:references]
               if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end

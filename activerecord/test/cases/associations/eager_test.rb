@@ -1307,6 +1307,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
   end
 
+  def test_preloading_has_many_through_with_custom_scope
+    project = Project.includes(:developers_named_david_with_hash_conditions).find(projects(:active_record).id)
+    assert_equal [developers(:david)], project.developers_named_david_with_hash_conditions
+  end
+
   test "scoping with a circular preload" do
     assert_equal Comment.find(1), Comment.preload(post: :comments).scoping { Comment.find(1) }
   end
