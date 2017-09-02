@@ -44,7 +44,7 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
           stmt[:stmt].close
         end

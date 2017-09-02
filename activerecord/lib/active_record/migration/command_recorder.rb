@@ -110,7 +110,7 @@ module ActiveRecord
 
       private
 
-        module StraightReversions
+        module StraightReversions # :nodoc:
           private
             { transaction:       :transaction,
               execute_block:     :execute_block,
