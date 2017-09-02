@@ -211,7 +211,7 @@ module ApplicationTests
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nil defined?(ActiveRecord::Base)
+      assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
     test "use schema cache dump" do

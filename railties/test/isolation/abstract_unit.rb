@@ -299,7 +299,7 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"
@@ -329,4 +329,22 @@ Module.new do
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
+
+  # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
+  # app-specific one: we don't want to require every gem that lists.
+  contents = File.read("#{app_template_path}/config/application.rb")
+  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks).each { |r| require r }")
+  File.write("#{app_template_path}/config/application.rb", contents)
+
+  require "rails"
+
+  require "active_model"
+  require "active_job"
+  require "active_record"
+  require "action_controller"
+  require "action_mailer"
+  require "action_view"
+  require "active_storage"
+  require "action_cable"
+  require "sprockets"
 end unless defined?(RAILS_ISOLATED_ENGINE)
