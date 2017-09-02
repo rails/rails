@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../deprecation"
+require "active_support/deprecation"
 require_relative "../core_ext/regexp"
 
 module ActiveSupport

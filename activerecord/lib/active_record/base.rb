@@ -20,7 +20,7 @@ require_relative "define_callbacks"
 require_relative "errors"
 require_relative "log_subscriber"
 require_relative "explain_subscriber"
-require_relative "relation/delegation"
+require "active_record/relation/delegation"
 require_relative "attributes"
 require_relative "type_caster"
 

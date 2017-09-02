@@ -10,7 +10,7 @@ require_relative "../hash/except"
 require_relative "../hash/slice"
 require_relative "instance_variables"
 require "time"
-require_relative "../time/conversions"
+require "active_support/core_ext/time/conversions"
 require_relative "../date_time/conversions"
 require_relative "../date/conversions"
 

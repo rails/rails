@@ -7,7 +7,7 @@ require_relative "core_ext/class/attribute"
 require_relative "core_ext/kernel/reporting"
 require_relative "core_ext/kernel/singleton_class"
 require_relative "core_ext/string/filters"
-require_relative "deprecation"
+require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
