@@ -330,7 +330,7 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
-        # Double assign to suppress the dreaded 'assigned but unused variable' warning
+        # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object("".dup) { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
