@@ -182,7 +182,7 @@ module ActionController
           authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message)
         end
 
-        # Authenticate with HTTP Digest, returns true or false
+        # Authenticate with HTTP Digest, returns +true+ or +false+
         def authenticate_with_http_digest(realm = "Application", &password_procedure)
           HttpAuthentication::Digest.authenticate(request, realm, &password_procedure)
         end
@@ -193,12 +193,12 @@ module ActionController
         end
       end
 
-      # Returns false on a valid response, true otherwise
+      # Returns +false+ on a valid response, +true+ otherwise
       def authenticate(request, realm, &password_procedure)
         request.authorization && validate_digest_response(request, realm, &password_procedure)
       end
 
-      # Returns false unless the request credentials response value matches the expected value.
+      # Returns +false+ unless the request credentials response value matches the expected value.
       # First try the password as a ha1 digest password. If this fails, then try it as a plain
       # text password.
       def validate_digest_response(request, realm, &password_procedure)

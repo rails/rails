@@ -6,7 +6,7 @@ module ActionDispatch
   #
   # By default, ActionDispatch::Reloader is included in the middleware stack
   # only in the development environment; specifically, when +config.cache_classes+
-  # is false.
+  # is +false+.
   class Reloader < Executor
   end
 end

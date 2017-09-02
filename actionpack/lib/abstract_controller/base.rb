@@ -144,11 +144,11 @@ module AbstractController
       self.class.action_methods
     end
 
-    # Returns true if a method for the action is available and
-    # can be dispatched, false otherwise.
+    # Returns +true+ if a method for the action is available and
+    # can be dispatched, +false+ otherwise.
     #
     # Notice that <tt>action_methods.include?("foo")</tt> may return
-    # false and <tt>available_action?("foo")</tt> returns true because
+    # +false+ and <tt>available_action?("foo")</tt> returns +true+ because
     # this method considers actions that are also available
     # through other means, for example, implicit render ones.
     #
@@ -165,9 +165,9 @@ module AbstractController
       response_body
     end
 
-    # Returns true if the given controller is capable of rendering
+    # Returns +true+ if the given controller is capable of rendering
     # a path. A subclass of +AbstractController::Base+
-    # may return false. An Email controller for example does not
+    # may return +false+. An Email controller for example does not
     # support paths, only full URLs.
     def self.supports_path?
       true
@@ -175,7 +175,7 @@ module AbstractController
 
     private
 
-      # Returns true if the name can be considered an action because
+      # Returns +true+ if the name can be considered an action because
       # it has a method defined in the controller.
       #
       # ==== Parameters
@@ -213,7 +213,7 @@ module AbstractController
       # Takes an action name and returns the name of the method that will
       # handle the action.
       #
-      # It checks if the action name is valid and returns false otherwise.
+      # It checks if the action name is valid and returns +false+ otherwise.
       #
       # See method_for_action for more information.
       #
@@ -242,7 +242,7 @@ module AbstractController
       # also provide a method (like +_handle_method_missing+) to handle
       # the case.
       #
-      # If none of these conditions are true, and +method_for_action+
+      # If none of these conditions are +true+, and +method_for_action+
       # returns +nil+, an +AbstractController::ActionNotFound+ exception will be raised.
       #
       # ==== Parameters
@@ -259,7 +259,7 @@ module AbstractController
         end
       end
 
-      # Checks if the action name is valid and returns false otherwise.
+      # Checks if the action name is valid and returns +false+ otherwise.
       def _valid_action_name?(action_name)
         !action_name.to_s.include? File::SEPARATOR
       end
