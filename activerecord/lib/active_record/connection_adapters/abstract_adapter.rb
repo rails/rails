@@ -248,6 +248,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter supports forcing of index on query?
+      def supports_use_index?
+        false
+      end
+
       # Does this adapter support explain?
       def supports_explain?
         false
