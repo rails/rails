@@ -74,6 +74,7 @@ module ActiveRecord
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
+  autoload :UseIndex
 
   eager_autoload do
     autoload :ActiveRecordError, "active_record/errors"

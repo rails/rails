@@ -76,6 +76,10 @@ module ActiveRecord
         !mariadb? && version >= "8.0.1"
       end
 
+      def supports_use_index?
+        true
+      end
+
       def supports_transaction_isolation?
         true
       end
