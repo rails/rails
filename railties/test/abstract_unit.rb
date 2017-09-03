@@ -15,10 +15,6 @@ require "rails/all"
 module TestApp
   class Application < Rails::Application
     config.root = __dir__
-
-    def secret_key_base
-      "b3c631c314c0bbca50c1b2843150fe33"
-    end
   end
 end
 
