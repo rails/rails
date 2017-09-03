@@ -347,4 +347,7 @@ Module.new do
   require "active_storage"
   require "action_cable"
   require "sprockets"
+
+  require "action_view/helpers"
+  require "action_dispatch/routing/route_set"
 end unless defined?(RAILS_ISOLATED_ENGINE)
