@@ -174,7 +174,8 @@ module ActiveRecord
         end
 
         def eval_scope(reflection, table, scope, owner)
-          reflection.build_scope(table).instance_exec(owner, &scope)
+          relation = reflection.build_scope(table)
+          relation.instance_exec(owner, &scope) || relation
         end
     end
   end

@@ -113,7 +113,7 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.scope_for(klass)
+            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
           end
 
           def build_scope

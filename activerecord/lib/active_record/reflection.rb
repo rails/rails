@@ -214,7 +214,7 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
-          [build_scope(table, predicate_builder).instance_exec(&scope)]
+          [scope_for(build_scope(table, predicate_builder))]
         else
           []
         end
@@ -391,8 +391,8 @@ module ActiveRecord
           active_record == other_aggregation.active_record
       end
 
-      def scope_for(klass)
-        scope ? klass.unscoped.instance_exec(nil, &scope) : klass.unscoped
+      def scope_for(relation, owner = nil)
+        relation.instance_exec(owner, &scope) || relation
       end
 
       private
