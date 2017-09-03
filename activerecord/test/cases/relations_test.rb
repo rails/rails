@@ -1334,6 +1334,29 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_create_by(name: "bob")
   end
 
+  class BirdWithVirtualAttribute < Bird
+    attribute :virtual_attribute
+  end
+
+  def test_find_or_create_by_with_virtual_attributes
+    bird = BirdWithVirtualAttribute.find_or_create_by(name: "bob", virtual_attribute: "foo")
+    assert_equal "foo", bird.virtual_attribute
+
+    bird = BirdWithVirtualAttribute.find_or_create_by(name: "bob", virtual_attribute: "foo")
+    assert_equal "foo", bird.virtual_attribute
+  end
+
+  def test_find_or_initialize_by_with_virtual_attributes
+    bird = BirdWithVirtualAttribute.find_or_initialize_by(name: "bob", virtual_attribute: "foo")
+    assert_equal "foo", bird.virtual_attribute
+
+    bird = BirdWithVirtualAttribute.create!(name: "bob", virtual_attribute: "foo")
+    assert_equal "foo", bird.virtual_attribute
+
+    bird = BirdWithVirtualAttribute.find_or_initialize_by(name: "bob", virtual_attribute: "foo")
+    assert_equal "foo", bird.virtual_attribute
+  end
+
   def test_find_or_create_by_with_create_with
     assert_nil Bird.find_by(name: "bob")
 

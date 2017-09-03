@@ -213,20 +213,20 @@ module ActiveRecord
     #  end
     #
     def find_or_create_by(attributes, &block)
-      find_by(attributes) || create(attributes, &block)
+      find_by_with_virtual_attributes(attributes) || create(attributes, &block)
     end
 
     # Like #find_or_create_by, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      find_by_with_virtual_attributes(attributes) || create!(attributes, &block)
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
-      find_by(attributes) || new(attributes, &block)
+      find_by_with_virtual_attributes(attributes) || new(attributes, &block)
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and
