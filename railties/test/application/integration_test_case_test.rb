@@ -15,7 +15,7 @@ module ApplicationTests
     end
 
     test "resets Action Mailer test deliveries" do
-      script("generate mailer BaseMailer welcome")
+      rails "generate", "mailer", "BaseMailer", "welcome"
 
       app_file "test/integration/mailer_integration_test.rb", <<-RUBY
         require 'test_helper'
@@ -39,8 +39,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails test 2>&1` }
-      assert_equal 0, $?.to_i, output
+      output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
   end
@@ -67,8 +66,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails test 2>&1` }
-      assert_equal 0, $?.to_i, output
+      output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
   end
