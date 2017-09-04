@@ -9,6 +9,7 @@ require_relative "testing/deprecation"
 require_relative "testing/declarative"
 require_relative "testing/isolation"
 require_relative "testing/constant_lookup"
+require_relative "testing/context"
 require_relative "testing/time_helpers"
 require_relative "testing/file_fixtures"
 require_relative "core_ext/kernel/reporting"
@@ -51,6 +52,7 @@ module ActiveSupport
     include ActiveSupport::Testing::TimeHelpers
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
+    extend ActiveSupport::Testing::Context
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises
