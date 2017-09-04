@@ -81,12 +81,12 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
-            values = reflection_scope.values
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
             elsif !reflection_scope.where_clause.empty?
               scope.where_clause = reflection_scope.where_clause
+              values = reflection_scope.values
 
               if includes = values[:includes]
                 scope.includes!(source_reflection.name => includes)
