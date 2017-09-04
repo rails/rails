@@ -2,6 +2,8 @@ module ActiveRecord
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new
 
+    attr_reader :attributes
+
     def initialize(attributes)
       @attributes = attributes
       @forced_changes = Set.new
@@ -70,7 +72,7 @@ module ActiveRecord
     # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-      attr_reader :attributes, :forced_changes, :deprecated_forced_changes
+      attr_reader :forced_changes, :deprecated_forced_changes
 
     private
 
