@@ -146,8 +146,8 @@ module ActiveRecord
             reflection.constraints.each do |scope_chain_item|
               item = eval_scope(reflection, table, scope_chain_item, owner)
 
-              if scope_chain_item == refl.scope
-                scope.merge! item.except(:where, :includes)
+              if reflection.class_name == refl.class_name
+                scope.merge! item.except(:where, :includes, :unscope, :order)
               end
 
               reflection.all_includes do
