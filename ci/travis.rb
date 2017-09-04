@@ -154,34 +154,32 @@ if ENV["GEM"] == "aj:integration"
   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
 
-results = {}
+[false, true].each do |isolated|
+  next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
+  next if RUBY_VERSION < "2.4" && isolated
 
-ENV["GEM"].split(",").each do |gem|
-  [false, true].each do |isolated|
-    next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
-    next if RUBY_VERSION < "2.4" && isolated
-    next if gem == "railties" && isolated
+  failures = []
+
+  ENV["GEM"].split(",").each do |gem|
     next if gem == "ac" && isolated
-    next if gem == "ac:integration" && isolated
-    next if gem == "aj:integration" && isolated
-    next if gem == "guides" && isolated
-    next if gem == "av:ujs" && isolated
     next if gem == "ast" && isolated
+    next if gem == "av:ujs" && isolated
+    next if gem == "guides" && isolated
+    next if gem =~ /:integration/ && isolated
+    next if gem == "railties" && isolated
 
     build = Build.new(gem, isolated: isolated)
-    results[build.key] = build.run!
+    failures << build.key unless build.run!
+  end
+
+  unless failures.empty?
+    puts
+    puts "Rails build FAILED"
+    puts "Failed components: #{failures.join(', ')}"
+    exit(false)
   end
 end
 
-failures = results.select { |key, value| !value  }
-
-if failures.empty?
-  puts
-  puts "Rails build finished successfully"
-  exit(true)
-else
-  puts
-  puts "Rails build FAILED"
-  puts "Failed components: #{failures.map(&:first).join(', ')}"
-  exit(false)
-end
+puts
+puts "Rails build finished successfully"
+exit(true)
