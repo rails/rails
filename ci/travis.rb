@@ -78,8 +78,13 @@ class Build
       end
       tasks
     else
-      ["test", ("isolated" if isolated?), ("integration" if integration?), ("ujs" if ujs?)].compact.join(":")
+      ["test", ("isolated" if isolated?), ("integration" if integration?), ("ujs" if ujs?), subset].compact.join(":")
     end
+  end
+
+  def subset
+    n = component.split(":").last
+    n if n =~ /\A\d+\z/
   end
 
   def key
@@ -166,7 +171,7 @@ end
     next if gem == "av:ujs" && isolated
     next if gem == "guides" && isolated
     next if gem =~ /:integration/ && isolated
-    next if gem == "railties" && isolated
+    next if gem =~ /railties:/ && isolated
 
     build = Build.new(gem, isolated: isolated)
     failures << build.key unless build.run!
