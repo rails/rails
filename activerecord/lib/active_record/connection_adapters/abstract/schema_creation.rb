@@ -60,7 +60,7 @@ module ActiveRecord
           end
 
           def visit_PrimaryKeyDefinition(o)
-            "PRIMARY KEY (#{o.name.join(', ')})"
+            "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
           end
 
           def visit_ForeignKeyDefinition(o)
