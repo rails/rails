@@ -197,15 +197,14 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         if scope
-          [ActiveRecord::Relation.create(klass, table, predicate_builder)
-            .instance_exec(&scope)]
+          [build_scope(table, predicate_builder).instance_exec(&scope)]
         else
           []
         end
       end
 
       def klass_join_scope(table, predicate_builder) # :nodoc:
-        relation = ActiveRecord::Relation.create(klass, table, predicate_builder)
+        relation = build_scope(table, predicate_builder)
         klass.scope_for_association(relation)
       end
 
