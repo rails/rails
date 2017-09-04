@@ -27,7 +27,7 @@ module ActiveRecord
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! reflection.extensions
-        add_constraints(scope, owner, reflection, chain_head, chain_tail)
+        add_constraints(scope, owner, chain_head, chain_tail)
       end
 
       def join_type
@@ -126,7 +126,7 @@ module ActiveRecord
           [runtime_reflection, previous_reflection]
         end
 
-        def add_constraints(scope, owner, refl, chain_head, chain_tail)
+        def add_constraints(scope, owner, chain_head, chain_tail)
           owner_reflection = chain_tail
           table = owner_reflection.alias_name
           scope = last_chain_scope(scope, table, owner_reflection, owner)
@@ -146,7 +146,7 @@ module ActiveRecord
             reflection.constraints.each do |scope_chain_item|
               item = eval_scope(reflection, table, scope_chain_item, owner)
 
-              if scope_chain_item == refl.scope
+              if scope_chain_item == chain_head.scope
                 scope.merge! item.except(:where, :includes)
               end
 
