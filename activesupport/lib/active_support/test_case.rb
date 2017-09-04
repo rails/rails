@@ -51,6 +51,7 @@ module ActiveSupport
     include ActiveSupport::Testing::TimeHelpers
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
+    extend ActiveSupport::Testing::Context
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises
