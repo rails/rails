@@ -39,6 +39,35 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.catchphrase_change
   end
 
+  def test_indifferent_access_dirty_attributes_methods
+    pirate = Pirate.new catchphrase: "arrr"
+
+    # will_save_change_to_attribute?
+    assert pirate.will_save_change_to_attribute?(:catchphrase)
+    assert_equal pirate.will_save_change_to_attribute?("catchphrase"), pirate.will_save_change_to_attribute?(:catchphrase)
+
+    # attribute_change_to_be_saved
+    assert pirate.attribute_change_to_be_saved(:catchphrase)
+    assert_equal pirate.attribute_change_to_be_saved("catchphrase"), pirate.attribute_change_to_be_saved(:catchphrase)
+
+    # Saved
+    pirate.save!
+
+    # attribute_before_last_save
+    assert_nil pirate.attribute_before_last_save(:catchphrase)
+
+    # attribute_in_database
+    assert_equal "arrr", pirate.attribute_in_database(:catchphrase)
+    assert_equal pirate.attribute_in_database("catchphrase"), pirate.attribute_in_database(:catchphrase)
+
+    # saved_change_to_attribute?
+    assert pirate.saved_change_to_attribute?(:catchphrase)
+    assert_equal pirate.saved_change_to_attribute?("catchphrase"), pirate.saved_change_to_attribute?(:catchphrase)
+    # saved_change_to_attribute
+    assert [nil, "arrr"], pirate.saved_change_to_attribute(:catchphrase)
+    assert_equal pirate.saved_change_to_attribute("catchphrase"), pirate.saved_change_to_attribute(:catchphrase)
+  end
+
   def test_time_attributes_changes_with_time_zone
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
