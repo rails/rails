@@ -162,6 +162,17 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
+  def conditional_hello_with_expires_and_confliciting_cache_control_headers
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    expires_now
+    render action: "hello_world"
+  end
+
+  def conditional_hello_without_expires_and_confliciting_cache_control_headers
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    render action: "hello_world"
+  end
+
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -366,6 +377,16 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_cache_control_headers
     assert_match(/no-cache/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
+  end
+
+  def test_expires_now_with_conflicting_cache_control_headers
+    get :conditional_hello_with_expires_and_confliciting_cache_control_headers
+    assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
+  def test_no_expires_now_with_conflicting_cache_control_headers
+    get :conditional_hello_without_expires_and_confliciting_cache_control_headers
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_date_header_when_expires_in
