@@ -17,17 +17,22 @@
   "author": "Javan Makhmali <javan@javan.us>",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^6.25.0",
-    "babel-loader": "^7.1.1",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.3.0",
     "eslint-plugin-import": "^2.7.0",
-    "spark-md5": "^3.0.0",
-    "webpack": "^3.4.0"
+    "rollup": "^0.45.2",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-uglify": "^2.0.1",
+    "rollup-watch": "^4.3.1",
+    "spark-md5": "^3.0.0"
   },
   "scripts": {
     "prebuild": "yarn lint",
-    "build": "webpack -p",
-    "lint": "eslint app/javascript"
+    "build": "yarn run rollup -- -c rollup.config.js",
+    "watch": "yarn run rollup -- -c rollup.config.js -w",
+    "lint": "yarn run eslint app/javascript/*.js"
   }
 }
