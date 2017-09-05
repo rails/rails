@@ -1,0 +1,29 @@
+<header>
+  <h1>Missing Exact Template Error</h1>
+</header>
+<div id="container">
+  <h2>
+    <%= h @exception.message %>
+    NOTE! For XHR/Ajax or API requests, this action would normally
+    respond with 204 No Content: an empty white screen. Since you're
+    loading it in a web browser, we assume that you expected to
+    actually render a template, not nothing, so we're showing an
+    error to be extra-clear. If you expect 204 No Content, carry on.
+    That's what you'll get from an XHR or API request. Give it a shot.
+  </h2>
+  <%= render template: "rescues/_trace" %>
+
+  <% if @routes_inspector %>
+    <h2>
+      Routes
+    </h2>
+
+    <p>
+      Routes match in priority from top to bottom
+    </p>
+
+    <%= @routes_inspector.format(ActionDispatch::Routing::HtmlTableFormatter.new(self)) %>
+  <% end %>
+
+  <%= render template: "rescues/_request_and_response" %>
+</div>
