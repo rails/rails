@@ -215,20 +215,16 @@ module ApplicationTests
     end
 
     test "use schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "expire schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump db:rollback`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
       require "#{app_path}/config/environment"
       assert !ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end

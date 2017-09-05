@@ -17,12 +17,12 @@ module ApplicationTests
 
       test "rails restart touches tmp/restart.txt" do
         Dir.chdir(app_path) do
-          `bin/rails restart`
+          rails "restart"
           assert File.exist?("tmp/restart.txt")
 
           prev_mtime = File.mtime("tmp/restart.txt")
           sleep(1)
-          `bin/rails restart`
+          rails "restart"
           curr_mtime = File.mtime("tmp/restart.txt")
           assert_not_equal prev_mtime, curr_mtime
         end
@@ -31,7 +31,7 @@ module ApplicationTests
       test "rails restart should work even if tmp folder does not exist" do
         Dir.chdir(app_path) do
           FileUtils.remove_dir("tmp")
-          `bin/rails restart`
+          rails "restart"
           assert File.exist?("tmp/restart.txt")
         end
       end

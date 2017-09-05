@@ -31,7 +31,7 @@ module ApplicationTests
     end
 
     test "allow running plugin new generator inside Rails app directory" do
-      FileUtils.cd(rails_root) { `ruby bin/rails plugin new vendor/plugins/bukkits` }
+      rails "plugin", "new", "vendor/plugins/bukkits"
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
     end
 
@@ -167,7 +167,7 @@ module ApplicationTests
         config.api_only = true
       RUBY
 
-      FileUtils.cd(rails_root) { `bin/rails generate mailer notifier foo` }
+      rails "generate", "mailer", "notifier", "foo"
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.text.erb"))
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
     end
@@ -190,10 +190,10 @@ module ApplicationTests
 
     test "help does not show hidden namespaces" do
       FileUtils.cd(rails_root) do
-        output = `bin/rails generate --help`
+        output = rails("generate", "--help")
         assert_no_match "active_record:migration", output
 
-        output = `bin/rails destroy --help`
+        output = rails("destroy", "--help")
         assert_no_match "active_record:migration", output
       end
     end

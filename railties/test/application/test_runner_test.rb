@@ -59,7 +59,7 @@ module ApplicationTests
         def; end
       RUBY
 
-      error = capture(:stderr) { run_test_command("test/models/error_test.rb") }
+      error = capture(:stderr) { run_test_command("test/models/error_test.rb", stderr: true) }
       assert_match "syntax error", error
     end
 
@@ -91,13 +91,11 @@ module ApplicationTests
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:units`.tap do |output|
-          assert_match "FooTest", output
-          assert_match "BarHelperTest", output
-          assert_match "BazUnitTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:units").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarHelperTest", output
+        assert_match "BazUnitTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -140,13 +138,11 @@ module ApplicationTests
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:functionals`.tap do |output|
-          assert_match "FooMailerTest", output
-          assert_match "BarControllerTest", output
-          assert_match "BazFunctionalTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:functionals").tap do |output|
+        assert_match "FooMailerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "BazFunctionalTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -524,11 +520,11 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
 
       assert_match(/Interrupt/,
-        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast") })
+        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
     end
 
     def test_raise_error_when_specified_file_does_not_exist
-      error = capture(:stderr) { run_test_command("test/not_exists.rb") }
+      error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
     end
 
@@ -554,14 +550,16 @@ module ApplicationTests
 
     def test_rails_db_create_all_restores_db_connection
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
     def test_rails_db_create_all_restores_db_connection_after_drop
       create_test_file :models, "account"
-      Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
-      output = Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all" # create all to avoid warnings
+      rails "db:drop:all", "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
@@ -601,7 +599,7 @@ module ApplicationTests
         end
       RUBY
       assert_match(/warning: assigned but unused variable/,
-        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w", stderr: true) })
     end
 
     def test_reset_sessions_before_rollback_on_system_tests
@@ -679,12 +677,12 @@ module ApplicationTests
     end
 
     private
-      def run_test_command(arguments = "test/unit/test_test.rb")
-        Dir.chdir(app_path) { `bin/rails t #{arguments}` }
+      def run_test_command(arguments = "test/unit/test_test.rb", **opts)
+        rails "t", *Shellwords.split(arguments), allow_failure: true, **opts
       end
 
       def create_model_with_fixture
-        script "generate model user name:string"
+        rails "generate", "model", "user", "name:string"
 
         app_file "test/fixtures/users.yml", <<-YAML.strip_heredoc
           vampire:
@@ -755,17 +753,17 @@ module ApplicationTests
       end
 
       def create_scaffold
-        script "generate scaffold user name:string"
-        Dir.chdir(app_path) { File.exist?("app/models/user.rb") }
+        rails "generate", "scaffold", "user", "name:string"
+        assert File.exist?("#{app_path}/app/models/user.rb")
         run_migration
       end
 
       def create_controller
-        script "generate controller admin/dashboard index"
+        rails "generate", "controller", "admin/dashboard", "index"
       end
 
       def run_migration
-        Dir.chdir(app_path) { `bin/rails db:migrate` }
+        rails "db:migrate"
       end
   end
 end

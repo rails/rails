@@ -108,7 +108,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         config.dereferenced_secret = Rails.application.secrets.some_secret
       end_of_config
 
-      assert_equal "yeah yeah\n", `bin/rails runner -e production "puts Rails.application.config.dereferenced_secret"`
+      assert_equal "yeah yeah\n", rails("runner", "-e", "production", "puts Rails.application.config.dereferenced_secret", fork: false)
     end
   end
 
@@ -141,7 +141,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         assert_match(/production:\n\s*api_key: 00112233445566778899aabbccddeeff…\n/, File.read(tmp_path))
       end
 
-      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
+      assert_equal "00112233445566778899aabbccddeeff…\n", rails("runner", "-e", "production", "puts Rails.application.secrets.api_key", fork: false)
     end
   end
 
@@ -158,7 +158,7 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         assert_equal(secrets.dup.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
       end
 
-      assert_equal "00112233445566778899aabbccddeeff…\n", `bin/rails runner -e production "puts Rails.application.secrets.api_key"`
+      assert_equal "00112233445566778899aabbccddeeff…\n", rails("runner", "-e", "production", "puts Rails.application.secrets.api_key", fork: false)
     end
   end
 

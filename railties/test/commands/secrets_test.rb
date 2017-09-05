@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "env_helpers"
 require "rails/command"
 require "rails/commands/secrets/secrets_command"
 
 class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::Isolation, EnvHelpers
 
   def setup
     build_app
@@ -36,14 +37,16 @@ class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
 
   private
     def run_edit_command(editor: "cat")
-      Dir.chdir(app_path) { `EDITOR="#{editor}" bin/rails secrets:edit` }
+      switch_env("EDITOR", editor) do
+        rails "secrets:edit"
+      end
     end
 
     def run_show_command
-      Dir.chdir(app_path) { `bin/rails secrets:show` }
+      rails "secrets:show"
     end
 
     def run_setup_command
-      Dir.chdir(app_path) { `bin/rails secrets:setup` }
+      rails "secrets:setup"
     end
 end

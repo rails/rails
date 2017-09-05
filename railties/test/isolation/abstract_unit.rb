@@ -236,10 +236,88 @@ module TestHelpers
       end
     end
 
-    def script(script)
-      Dir.chdir(app_path) do
-        `#{Gem.ruby} #{app_path}/bin/rails #{script}`
+    # Invoke a bin/rails command inside the app
+    #
+    # allow_failures:: true to return normally if the command exits with
+    #   a non-zero status. By default, this method will raise.
+    # stderr:: true to pass STDERR output straight to the "real" STDERR.
+    #   By default, the STDERR and STDOUT of the process will be
+    #   combined in the returned string.
+    # fork:: false to not use fork even when it's available. By default,
+    #   when possible, the command is executed in a fork of the current
+    #   process, avoiding the need to load core Rails libraries anew.
+    def rails(*args, allow_failure: false, stderr: false, fork: true)
+      args = args.flatten
+
+      command = "bin/rails #{Shellwords.join args}#{' 2>&1' unless stderr}"
+
+      # Don't fork if the environment has disabled it
+      fork = false if ENV["NO_FORK"]
+
+      # Don't fork if the runtime isn't able to
+      fork = false if !Process.respond_to?(:fork)
+
+      # Don't fork if we're re-invoking minitest
+      fork = false if args.first == "t" || args.grep(/\Atest(:|\z)/).any?
+
+      if fork
+        out_read, out_write = IO.pipe
+        if stderr
+          err_read, err_write = IO.pipe
+        else
+          err_write = out_write
+        end
+
+        pid = fork do
+          out_read.close
+          err_read.close if err_read
+
+          $stdin.reopen(File::NULL, "r")
+          $stdout.reopen(out_write)
+          $stderr.reopen(err_write)
+
+          at_exit do
+            case $!
+            when SystemExit
+              exit! $!.status
+            when nil
+              exit! 0
+            else
+              err_write.puts "#{$!.class}: #{$!}"
+              exit! 1
+            end
+          end
+
+          Rails.instance_variable_set :@_env, nil
+
+          $-v = $-w = false
+          Dir.chdir app_path unless Dir.pwd == app_path
+
+          ARGV.replace(args)
+          load "./bin/rails"
+
+          exit! 0
+        end
+
+        out_write.close
+
+        if err_read
+          err_write.close
+
+          $stderr.write err_read.read
+        end
+
+        output = out_read.read
+
+        Process.waitpid pid
+
+      else
+        output = `cd #{app_path}; #{command}`
       end
+
+      raise "rails command failed (#{$?.exitstatus}): #{command}\n#{output}" unless allow_failure || $?.success?
+
+      output
     end
 
     def add_to_top_of_config(str)
