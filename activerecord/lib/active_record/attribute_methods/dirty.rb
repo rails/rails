@@ -63,7 +63,7 @@ module ActiveRecord
       end
 
       def changes_internally_applied # :nodoc:
-        @mutations_before_last_save = mutation_tracker
+        @mutations_before_last_save = mutations_from_database
         forget_attribute_assignments
         @mutations_from_database = AttributeMutationTracker.new(@attributes)
       end
@@ -71,7 +71,8 @@ module ActiveRecord
       def changes_applied # :nodoc:
         @previous_mutation_tracker = mutation_tracker
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-        clear_mutation_trackers
+        @mutation_tracker = nil
+        @mutations_from_database = nil
       end
 
       def clear_changes_information # :nodoc:
