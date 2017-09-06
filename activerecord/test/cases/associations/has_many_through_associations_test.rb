@@ -1250,6 +1250,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     TenantMembership.current_member = nil
   end
 
+  def test_has_many_through_able_overwrite_source_association_order
+    assert_equal [], Member.first.unordered_clubs.order_values
+  end
+
   def test_has_many_through_with_scope_should_respect_table_alias
     family = Family.create!
     users = 3.times.map { User.create! }

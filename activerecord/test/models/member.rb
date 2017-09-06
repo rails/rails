@@ -32,6 +32,9 @@ class Member < ActiveRecord::Base
   has_many :tenant_memberships
   has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club
 
+  has_many :ordered_memberships, -> { order(:created_at) }, class_name: 'Membership'
+  has_many :unordered_clubs, -> { unscope(:order) }, through: :ordered_memberships, class_name: "Club", source: :club
+
   has_one :club_through_many, through: :current_memberships, source: :club
 
   belongs_to :admittable, polymorphic: true
