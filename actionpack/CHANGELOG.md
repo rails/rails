@@ -1,5 +1,5 @@
 *  Cookies `:expires` option supports `ActiveSupport::Duration` object.
-    
+
         cookies[:user_name] = { value: "assain", expires: 1.hour }
         cookies[:key] = { value: "a yummy cookie", expires: 6.months }
 
