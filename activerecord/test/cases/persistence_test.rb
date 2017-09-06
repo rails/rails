@@ -473,6 +473,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_instance_of Reply, Reply.find(reply.id)
   end
 
+  def test_becomes_default_sti_subclass
+    original_type = Topic.columns_hash["type"].default
+    ActiveRecord::Base.connection.change_column_default :topics, :type, "Reply"
+    Topic.reset_column_information
+
+    reply = topics(:second)
+    assert_instance_of Reply, reply
+
+    topic = reply.becomes(Topic)
+    assert_instance_of Topic, topic
+
+  ensure
+    ActiveRecord::Base.connection.change_column_default :topics, :type, original_type
+    Topic.reset_column_information
+  end
+
   def test_update_after_create
     klass = Class.new(Topic) do
       def self.name; "Topic"; end
