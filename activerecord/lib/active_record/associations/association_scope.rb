@@ -24,10 +24,10 @@ module ActiveRecord
         scope = klass.unscoped
         owner = association.owner
         alias_tracker = AliasTracker.create(klass.connection, klass.table_name)
-        chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
+        chain = get_chain(reflection, association, alias_tracker)
 
         scope.extending! reflection.extensions
-        add_constraints(scope, owner, chain_head, chain_tail)
+        add_constraints(scope, owner, chain)
       end
 
       def join_type
@@ -98,7 +98,6 @@ module ActiveRecord
         end
 
         class ReflectionProxy < SimpleDelegator # :nodoc:
-          attr_accessor :next
           attr_reader :alias_name
 
           def initialize(reflection, alias_name)
@@ -111,36 +110,32 @@ module ActiveRecord
 
         def get_chain(reflection, association, tracker)
           name = reflection.name
-          runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
-          previous_reflection = runtime_reflection
+          chain = [Reflection::RuntimeReflection.new(reflection, association)]
           reflection.chain.drop(1).each do |refl|
             alias_name = tracker.aliased_table_for(
               refl.table_name,
               refl.alias_candidate(name),
               refl.klass.type_caster
             )
-            proxy = ReflectionProxy.new(refl, alias_name)
-            previous_reflection.next = proxy
-            previous_reflection = proxy
+            chain << ReflectionProxy.new(refl, alias_name)
           end
-          [runtime_reflection, previous_reflection]
+          chain
         end
 
-        def add_constraints(scope, owner, chain_head, chain_tail)
-          owner_reflection = chain_tail
+        def add_constraints(scope, owner, chain)
+          owner_reflection = chain.last
           table = owner_reflection.alias_name
           scope = last_chain_scope(scope, table, owner_reflection, owner)
 
-          reflection = chain_head
-          while reflection
+          chain.each_cons(2) do |reflection, next_reflection|
             table = reflection.alias_name
-            next_reflection = reflection.next
+            foreign_table = next_reflection.alias_name
+            scope = next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
+          end
 
-            unless reflection == chain_tail
-              foreign_table = next_reflection.alias_name
-              scope = next_chain_scope(scope, table, reflection, foreign_table, next_reflection)
-            end
-
+          chain_head = chain.first
+          chain.reverse_each do |reflection|
+            table = reflection.alias_name
             # Exclude the scope of the association itself, because that
             # was already merged in the #scope method.
             reflection.constraints.each do |scope_chain_item|
@@ -158,8 +153,6 @@ module ActiveRecord
               scope.where_clause += item.where_clause
               scope.order_values |= item.order_values
             end
-
-            reflection = next_reflection
           end
 
           scope

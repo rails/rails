@@ -1077,8 +1077,6 @@ module ActiveRecord
     end
 
     class RuntimeReflection < PolymorphicReflection # :nodoc:
-      attr_accessor :next
-
       def initialize(reflection, association)
         @reflection = reflection
         @association = association
