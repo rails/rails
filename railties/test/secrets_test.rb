@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
 require "isolation/abstract_unit"
 require "rails/generators"
 require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
@@ -20,12 +19,13 @@ class Rails::SecretsTest < ActiveSupport::TestCase
   test "setting read to false skips parsing" do
     run_secrets_generator do
       Rails::Secrets.write(<<-end_of_secrets)
-        test:
+        production:
           yeah_yeah: lets-walk-in-the-cool-evening-light
       end_of_secrets
 
-      Rails.application.config.read_encrypted_secrets = false
-      Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
+      add_to_env_config("production", "config.read_encrypted_secrets = false")
+      app("production")
+
       assert_not Rails.application.secrets.yeah_yeah
     end
   end
@@ -82,17 +82,18 @@ class Rails::SecretsTest < ActiveSupport::TestCase
   test "merging secrets with encrypted precedence" do
     run_secrets_generator do
       File.write("config/secrets.yml", <<-end_of_secrets)
-        test:
+        production:
           yeah_yeah: lets-go-walking-down-this-empty-street
       end_of_secrets
 
       Rails::Secrets.write(<<-end_of_secrets)
-        test:
+        production:
           yeah_yeah: lets-walk-in-the-cool-evening-light
       end_of_secrets
 
-      Rails.application.config.read_encrypted_secrets = true
-      Rails.application.instance_variable_set(:@secrets, nil) # Dance around caching 💃🕺
+      add_to_env_config("production", "config.read_encrypted_secrets = true")
+      app("production")
+
       assert_equal "lets-walk-in-the-cool-evening-light", Rails.application.secrets.yeah_yeah
     end
   end
@@ -108,7 +109,9 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         config.dereferenced_secret = Rails.application.secrets.some_secret
       end_of_config
 
-      assert_equal "yeah yeah\n", rails("runner", "-e", "production", "puts Rails.application.config.dereferenced_secret", fork: false)
+      app("production")
+
+      assert_equal "yeah yeah", Rails.application.config.dereferenced_secret
     end
   end
 
@@ -141,7 +144,9 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         assert_match(/production:\n\s*api_key: 00112233445566778899aabbccddeeff…\n/, File.read(tmp_path))
       end
 
-      assert_equal "00112233445566778899aabbccddeeff…\n", rails("runner", "-e", "production", "puts Rails.application.secrets.api_key", fork: false)
+      app("production")
+
+      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.secrets.api_key
     end
   end
 
@@ -158,7 +163,9 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         assert_equal(secrets.dup.force_encoding(Encoding::ASCII_8BIT), IO.binread(tmp_path))
       end
 
-      assert_equal "00112233445566778899aabbccddeeff…\n", rails("runner", "-e", "production", "puts Rails.application.secrets.api_key", fork: false)
+      app("production")
+
+      assert_equal "00112233445566778899aabbccddeeff…", Rails.application.secrets.api_key
     end
   end
 
@@ -168,9 +175,6 @@ class Rails::SecretsTest < ActiveSupport::TestCase
         capture(:stdout) do
           Rails::Generators::EncryptedSecretsGenerator.start
         end
-
-        # Make config.paths["config/secrets"] to be relative to app_path
-        Rails.application.config.root = app_path
 
         yield
       end
