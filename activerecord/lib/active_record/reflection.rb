@@ -1070,8 +1070,8 @@ module ActiveRecord
         @association.klass
       end
 
-      def alias_name
-        Arel::Table.new(table_name, type_caster: klass.type_caster)
+      def aliased_table
+        @aliased_table ||= Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
 
       def all_includes; yield; end
