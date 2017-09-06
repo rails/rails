@@ -433,6 +433,7 @@ module ActionDispatch # :nodoc:
     def before_committed
       return if committed?
       assign_default_content_type_and_charset!
+      merge_and_normalize_cache_control!(@cache_control)
       handle_conditional_get!
       handle_no_content!
     end

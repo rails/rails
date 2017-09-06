@@ -12,6 +12,7 @@ require "rails/test_help"
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 <% unless engine? -%>
+require "rails/test_unit/reporter"
 Rails::TestUnitReporter.executable = 'bin/test'
 <% end -%>
 

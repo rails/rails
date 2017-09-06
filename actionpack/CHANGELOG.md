@@ -1,3 +1,24 @@
+*  Cookies `:expires` option supports `ActiveSupport::Duration` object.
+    
+        cookies[:user_name] = { value: "assain", expires: 1.hour }
+        cookies[:key] = { value: "a yummy cookie", expires: 6.months }
+
+    Pull Request: #30121
+
+    *Assain Jaleel*
+
+*  Enforce signed/encrypted cookie expiry server side.
+
+    Rails can thwart attacks by malicious clients that don't honor a cookie's expiry.
+
+    It does so by stashing the expiry within the written cookie and relying on the
+    signing/encrypting to vouch that it hasn't been tampered with. Then on a
+    server-side read, the expiry is verified and any expired cookie is discarded.
+
+    Pull Request: #30121
+
+    *Assain Jaleel*
+
 *   Make `take_failed_screenshot` work within engine.
 
     Fixes #30405.

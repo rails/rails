@@ -378,10 +378,10 @@ class ResponseTest < ActiveSupport::TestCase
     app = lambda { |env| @response.to_a }
     env = Rack::MockRequest.env_for("/")
 
-    status, headers, body = app.call(env)
+    _status, headers, _body = app.call(env)
     assert_nil headers["Content-Length"]
 
-    status, headers, body = Rack::ContentLength.new(app).call(env)
+    _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_equal "5", headers["Content-Length"]
   end
 end

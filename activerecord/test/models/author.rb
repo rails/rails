@@ -21,7 +21,7 @@ class Author < ActiveRecord::Base
   end
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
-  has_many :comments_with_include, -> { includes(:post) }, through: :posts, source: :comments
+  has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
 
   has_many :first_posts
   has_many :comments_on_first_posts, -> { order("posts.id desc, comments.id asc") }, through: :first_posts, source: :comments
@@ -78,7 +78,7 @@ class Author < ActiveRecord::Base
            after_add: [:log_after_adding,  Proc.new { |o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}" }]
   has_many :unchangeable_posts, class_name: "Post", before_add: :raise_exception, after_add: :log_after_adding
 
-  has_many :categorizations
+  has_many :categorizations, -> {}
   has_many :categories, through: :categorizations
   has_many :named_categories, through: :categorizations
 

@@ -530,6 +530,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
   end
 
+  def test_preloading_has_many_through_with_implicit_source
+    authors = Author.includes(:very_special_comments).to_a
+    assert_no_queries do
+      special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
+      assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
+    end
+  end
+
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
     author = Author.all.merge!(includes: :special_nonexistent_post_comments, order: "authors.id").first
     assert_equal [], author.special_nonexistent_post_comments
@@ -859,10 +867,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal(projects, developer.projects)
     end
-  end
-
-  def find_all_ordered(className, include = nil)
-    className.all.merge!(order: "#{className.table_name}.#{className.primary_key}", includes: include).to_a
   end
 
   def test_limited_eager_with_order
@@ -1299,6 +1303,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
   end
 
+  def test_preloading_has_many_through_with_custom_scope
+    project = Project.includes(:developers_named_david_with_hash_conditions).find(projects(:active_record).id)
+    assert_equal [developers(:david)], project.developers_named_david_with_hash_conditions
+  end
+
   test "scoping with a circular preload" do
     assert_equal Comment.find(1), Comment.preload(post: :comments).scoping { Comment.find(1) }
   end
@@ -1497,4 +1506,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
     Author.preload(:readonly_comments).first!
   end
+
+  private
+    def find_all_ordered(klass, include = nil)
+      klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
 end

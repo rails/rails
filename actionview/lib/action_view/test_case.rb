@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 require "action_controller"
 require "action_controller/test_case"
 require "action_view"
@@ -171,7 +171,7 @@ module ActionView
 
       def say_no_to_protect_against_forgery!
         _helpers.module_eval do
-          remove_possible_method :protect_against_forgery?
+          silence_redefinition_of_method :protect_against_forgery?
           def protect_against_forgery?
             false
           end
