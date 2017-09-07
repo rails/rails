@@ -1,3 +1,7 @@
+*   Support multiple versions arguments for `gem` method of Generators.
+
+    *Yoshiyuki Hirano*
+
 *   Add `--skip-yarn` option to the plugin generator.
 
     *bogdanvlviv*

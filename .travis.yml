@@ -13,13 +13,13 @@ services:
   - memcached
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.6"
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "gem update --system"
-  - "gem update bundler"
+  - "travis_retry gem update --system"
+  - "travis_retry gem update bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
   - "[[ -z $encrypted_8a915ebdd931_key && -z $encrypted_8a915ebdd931_iv ]] || openssl aes-256-cbc -K $encrypted_8a915ebdd931_key -iv $encrypted_8a915ebdd931_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
@@ -85,7 +85,7 @@ matrix:
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
-        mariadb: 10.0
+        mariadb: 10.2
     - rvm: 2.3.4
       env:
         - "GEM=ar:sqlite3_mem"
@@ -94,17 +94,17 @@ matrix:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-9.1.13.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-9.1.13.0
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-9.1.13.0
     - env: "GEM=ac:integration"
   fast_finish: true
 

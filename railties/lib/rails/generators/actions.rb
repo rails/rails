@@ -13,17 +13,22 @@ module Rails
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
-      #   gem "rails", "3.0", git: "git://github.com/rails/rails"
+      #   gem "rails", "3.0", git: "https://github.com/rails/rails"
+      #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
       def gem(*args)
         options = args.extract_options!
-        name, version = args
+        name, *versions = args
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
         parts, message = [ quote(name) ], name.dup
-        if version ||= options.delete(:version)
-          parts   << quote(version)
-          message << " (#{version})"
+
+        if versions = versions.any? ? versions : options.delete(:version)
+          _versions = Array(versions)
+          _versions.each do |version|
+            parts << quote(version)
+          end
+          message << " (#{_versions.join(", ")})"
         end
         message = options[:git] if options[:git]
 

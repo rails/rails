@@ -334,14 +334,24 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
       t.string :region
       t.integer :code
     end
+    @connection.create_table(:travels, primary_key: ["from", "to"], force: true) do |t|
+      t.string :from
+      t.string :to
+    end
   end
 
   def teardown
-    @connection.drop_table(:uber_barcodes, if_exists: true)
+    @connection.drop_table :uber_barcodes, if_exists: true
+    @connection.drop_table :barcodes_reverse, if_exists: true
+    @connection.drop_table :travels, if_exists: true
   end
 
   def test_composite_primary_key
     assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
+  end
+
+  def test_composite_primary_key_with_reserved_words
+    assert_equal ["from", "to"], @connection.primary_keys("travels")
   end
 
   def test_composite_primary_key_out_of_order

@@ -256,7 +256,8 @@ module ActiveRecord
             else
               model = construct_model(ar_parent, node, row, model_cache, id, aliases)
 
-              if node.reflection.scope_for(node.base_klass).readonly_value
+              if node.reflection.scope &&
+                  node.reflection.scope_for(node.base_klass.unscoped).readonly_value
                 model.readonly!
               end
 

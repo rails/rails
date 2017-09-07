@@ -81,23 +81,33 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
-            values = reflection_scope.values
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
-            else
-              unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(values[:includes] || options[:source])
-                scope.where_clause = reflection_scope.where_clause
-                if joins = values[:joins]
-                  scope.joins!(source_reflection.name => joins)
-                end
-                if left_outer_joins = values[:left_outer_joins]
-                  scope.left_outer_joins!(source_reflection.name => left_outer_joins)
-                end
+            elsif !reflection_scope.where_clause.empty?
+              scope.where_clause = reflection_scope.where_clause
+              values = reflection_scope.values
+
+              if includes = values[:includes]
+                scope.includes!(source_reflection.name => includes)
+              else
+                scope.includes!(source_reflection.name)
               end
 
-              scope.references! values[:references]
+              if values[:references] && !values[:references].empty?
+                scope.references!(values[:references])
+              else
+                scope.references!(source_reflection.table_name)
+              end
+
+              if joins = values[:joins]
+                scope.joins!(source_reflection.name => joins)
+              end
+
+              if left_outer_joins = values[:left_outer_joins]
+                scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+              end
+
               if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end

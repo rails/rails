@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * What Action View is and how to use it with Rails.
 * How best to use templates, partials, and layouts.
-* What helpers are provided by Action View and how to make your own.
+* What helpers are provided by Action View.
 * How to use localized views.
 
 --------------------------------------------------------------------------------

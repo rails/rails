@@ -113,7 +113,7 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.scope_for(klass)
+            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
           end
 
           def build_scope
@@ -123,7 +123,7 @@ module ActiveRecord
               scope.where!(reflection.type => model.base_class.sti_name)
             end
 
-            scope.merge!(reflection_scope)
+            scope.merge!(reflection_scope) if reflection.scope
             scope.merge!(preload_scope) if preload_scope
             scope
           end

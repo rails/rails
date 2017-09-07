@@ -9,8 +9,8 @@ module ActiveStorage
   class Service::GCSService < Service
     attr_reader :client, :bucket
 
-    def initialize(project:, keyfile:, bucket:)
-      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile)
+    def initialize(project:, keyfile:, bucket:, **options)
+      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile, **options)
       @bucket = @client.bucket(bucket)
     end
 
@@ -35,7 +35,11 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key do
-        file_for(key).try(:delete)
+        begin
+          file_for(key).try(:delete)
+        rescue Google::Cloud::NotFoundError
+          # Ignore files already deleted
+        end
       end
     end
 
