@@ -609,6 +609,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
+  def test_webpack
+    run_generator [destination_root, "--webpack=webpack"]
+    assert_gem "webpacker"
+  end
+
+  def test_webpack_when_skip_bundle_is_given
+    assert_not_called(generator([destination_root], skip_bundle: true, webpack: "webpack"), :rails_command) do
+      quietly { generator.invoke_all }
+      assert_gem "webpacker"
+    end
+  end
+
   def test_spring
     run_generator
     assert_gem "spring"

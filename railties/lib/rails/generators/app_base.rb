@@ -422,7 +422,7 @@ module Rails
       end
 
       def run_webpack
-        if !(webpack = options[:webpack]).nil?
+        if bundle_install? && !(webpack = options[:webpack]).nil?
           rails_command "webpacker:install"
           rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
         end
