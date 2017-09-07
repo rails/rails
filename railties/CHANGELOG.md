@@ -1,3 +1,8 @@
+## Rails 5.1.4 (September 07, 2017) ##
+
+*   No changes.
+
+
 ## Rails 5.1.4.rc1 (August 24, 2017) ##
 
 *   Allow irb options to be passed from `rails console` command.
