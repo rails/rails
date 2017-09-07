@@ -154,14 +154,6 @@ module ActiveRecord
         klass.new(attributes, &block)
       end
 
-      def quoted_table_name
-        klass.quoted_table_name
-      end
-
-      def primary_key_type
-        klass.type_for_attribute(klass.primary_key)
-      end
-
       # Returns the class name for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
