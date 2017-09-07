@@ -83,7 +83,10 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     column = UUIDType.columns_hash["thingy"]
 
     assert column.array?
-    assert [], column.default
+    assert_equal "{}", column.default
+
+    schema = dump_table_schema "uuid_data_type"
+    assert_match %r{t\.uuid "thingy", default: \[\], array: true$}, schema
   end
 
   def test_data_type_of_uuid_types
