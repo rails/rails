@@ -170,7 +170,13 @@ module ActionController
     # See https://groups.google.com/forum/#!topic/rubyonrails-core/K8t4-DZ_DkQ/discussion for
     # more background information.
     def self.add_serializer(key, &block)
-      SERIALIZERS[key.to_sym] = block
+      config = { key.to_sym => block }
+      SERIALIZERS.update(config)
+      ActionController::Metal.descendants.each do |descendant|
+        next unless defined?(descendant._serializers)
+        serializers = config.merge(descendant._serializers)
+        descendant._serializers = serializers.freeze
+      end
     end
 
     # This method is the opposite of add_serializer method.
@@ -179,7 +185,13 @@ module ActionController
     #
     #   ActionController.remove_serializer(:csv)
     def self.remove_serializer(key)
-      SERIALIZERS.delete(key.to_sym)
+      key = key.to_sym
+      SERIALIZERS.delete(key)
+      ActionController::Metal.descendants.each do |descendant|
+        next unless defined?(descendant._serializers)
+        serializers = descendant._serializers.except(key)
+        descendant._serializers = serializers.freeze
+      end
     end
 
     def self._render_with_renderer_method_name(key)
