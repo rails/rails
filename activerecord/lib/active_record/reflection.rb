@@ -365,6 +365,17 @@ module ActiveRecord
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
+      #
+      #   class Company < ActiveRecord::Base
+      #     has_many :clients
+      #   end
+      #
+      #   Company.reflect_on_association(:clients).klass
+      #   # => Client
+      #
+      # <b>Note:</b> Do not call +klass.new+ or +klass.create+ to instantiate
+      # a new association object. Use +build_association+ or +create_association+
+      # instead. This allows plugins to hook into association object creation.
       def klass
         @klass ||= compute_class(class_name)
       end
@@ -405,22 +416,6 @@ module ActiveRecord
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
-      # Returns the target association's class.
-      #
-      #   class Author < ActiveRecord::Base
-      #     has_many :books
-      #   end
-      #
-      #   Author.reflect_on_association(:books).klass
-      #   # => Book
-      #
-      # <b>Note:</b> Do not call +klass.new+ or +klass.create+ to instantiate
-      # a new association object. Use +build_association+ or +create_association+
-      # instead. This allows plugins to hook into association object creation.
-      def klass
-        @klass ||= compute_class(class_name)
-      end
-
       def compute_class(name)
         active_record.send(:compute_type, name)
       end
