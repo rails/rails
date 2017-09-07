@@ -76,6 +76,16 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_nil column.default
   end
 
+  def test_add_column_with_default_array
+    connection.add_column :uuid_data_type, :thingy, :uuid, array: true, default: []
+
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+
+    assert column.array?
+    assert [], column.default
+  end
+
   def test_data_type_of_uuid_types
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
