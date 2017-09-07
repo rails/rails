@@ -53,7 +53,7 @@ module ActionController
     end
 
     included do
-      class_attribute :_renderers, default: Set.new.freeze
+      class_attribute :_renderers, default: RENDERERS.dup.freeze
       class_attribute :_serializers, default: SERIALIZERS.dup
     end
 
