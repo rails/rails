@@ -249,11 +249,11 @@ module ActionController
         next unless options.key?(renderer_name)
         _process_options(options)
 
-        renderer_target_method_name = Renderers._render_with_renderer_method_name(renderer_name)
-        renderer_target_value = options.delete(renderer_name)
+        renderer_method_name = Renderers._render_with_renderer_method_name(renderer_name)
+        rendered_value = options.delete(renderer_name)
         serializer_name = options.key?(:serializer_name) ? options.delete(:serializer_name).to_sym : renderer_name
-        serialized_value = _serializers[serializer_name].call(renderer_target_value, options)
-        return send(renderer_target_method_name, serialized_value, options)
+        serialized_value = _serializers[serializer_name].call(rendered_value, options)
+        return send(renderer_method_name, serialized_value, options)
       end
       nil
     end
