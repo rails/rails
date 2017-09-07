@@ -48,7 +48,7 @@ module ActionController
     # TODO: update text
     # Default serializers are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
     SERIALIZERS = Hash.new do |h, format|
-      fail ActionController::MissingSerializer, "There is no '#{format}' serializer.\n" <<
+      fail ActionController::MissingSerializer, "There is no '#{format}' serializer.\n" \
       "Known serializers are #{h.keys}"
     end
 
