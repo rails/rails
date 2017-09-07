@@ -121,6 +121,11 @@ module ActionController
     end
 
     # TODO: update text
+    #
+    #
+    #
+    #
+    #
     # Serializers define a method called within a renderer specific to
     # transforming the object into a mime-compatible type.
     # See <tt>Renderers.add</tt>
