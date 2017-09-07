@@ -336,12 +336,6 @@ GEM
     psych (2.2.4)
     public_suffix (2.0.5)
     puma (3.9.1)
-    qu (0.2.0)
-      multi_json
-    qu-redis (0.2.0)
-      qu (= 0.2.0)
-      redis-namespace
-      simple_uuid
     que (0.14.0)
     racc (1.4.14)
     rack (2.0.3)
@@ -415,7 +409,6 @@ GEM
       faraday (~> 0.9)
       jwt (~> 1.5)
       multi_json (~> 1.10)
-    simple_uuid (0.4.0)
     sinatra (2.0.0)
       mustermann (~> 1.0)
       rack (~> 2.0)
@@ -515,7 +508,6 @@ DEPENDENCIES
   pg (>= 0.18.0)
   psych (~> 2.0)
   puma
-  qu-redis
   que
   queue_classic!
   racc (>= 1.4.6)

@@ -74,7 +74,7 @@ group :job do
   gem "backburner", require: false
   #TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
-  gem "qu-redis", require: false
+  # gem "qu-redis", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
