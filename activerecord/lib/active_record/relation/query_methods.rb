@@ -1185,7 +1185,7 @@ module ActiveRecord
       end
 
       Relation::SINGLE_VALUE_METHODS.each do |value|
-        DEFAULT_VALUES[value] = nil if DEFAULT_VALUES[value].nil?
+        DEFAULT_VALUES[value] = nil
       end
 
       def default_value_for(name)
