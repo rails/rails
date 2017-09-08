@@ -43,15 +43,12 @@ module ActiveRecord
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
       #
       #    User.where.not(name: "Jon", role: "admin")
+      #    # SELECT * FROM users WHERE NOT (name = 'Jon' AND role = 'admin')
+      #
+      #    User.where.not(name: "Jon").where.not(role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
-        opts = sanitize_forbidden_attributes(opts)
-
-        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
-
-        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
-        @scope.where_clause += where_clause.invert
-        @scope
+        @scope.where_not!(opts, rest)
       end
     end
 
@@ -588,6 +585,14 @@ module ActiveRecord
       opts = sanitize_forbidden_attributes(opts)
       references!(PredicateBuilder.references(opts)) if Hash === opts
       self.where_clause += where_clause_factory.build(opts, rest)
+      self
+    end
+
+    def where_not!(opts, *rest) # :nodoc:
+      opts = sanitize_forbidden_attributes(opts)
+      references!(PredicateBuilder.references(opts)) if Hash === opts
+      where_clause = where_clause_factory.build(opts, rest)
+      self.where_clause += where_clause.invert
       self
     end
 

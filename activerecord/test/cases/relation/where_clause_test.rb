@@ -87,7 +87,38 @@ class ActiveRecord::Relation
       end
     end
 
-    test "invert replaces each part of the predicate with its inverse" do
+    test "invert replaces single in predicate with its inverse" do
+      original = WhereClause.new([table["id"].in([1, 2, 3])], [])
+      expected = WhereClause.new([table["id"].not_in([1, 2, 3])], [])
+
+      assert_equal expected, original.invert
+    end
+
+    test "invert replaces single eq predicate with its inverse" do
+      original = WhereClause.new([table["id"].eq(1)], [])
+      expected = WhereClause.new([table["id"].not_eq(1)], [])
+
+      assert_equal expected, original.invert
+    end
+
+    test "invert replaces single string predicate with its inverse" do
+      original = WhereClause.new(["sql literal"], [])
+      expected = WhereClause.new([
+        Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal"))], [
+      ])
+
+      assert_equal expected, original.invert
+    end
+
+    test "invert replaces single object predicate with its inverse" do
+      random_object = Object.new
+      original = WhereClause.new([random_object], [])
+      expected = WhereClause.new([Arel::Nodes::Not.new(random_object)], [])
+
+      assert_equal expected, original.invert
+    end
+
+    test "invert replaces multimle predicates with single inverse" do
       random_object = Object.new
       original = WhereClause.new([
         table["id"].in([1, 2, 3]),
@@ -95,12 +126,16 @@ class ActiveRecord::Relation
         "sql literal",
         random_object
       ])
-      expected = WhereClause.new([
-        table["id"].not_in([1, 2, 3]),
-        table["id"].not_eq(1),
-        Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal")),
-        Arel::Nodes::Not.new(random_object)
-      ])
+      expected = WhereClause.new(
+        Arel::Nodes::Not.new(
+          Arel::Nodes::And.new([
+            table["id"].in([1, 2, 3]),
+            table["id"].eq(1),
+            Arel::Nodes::Grouping.new(Arel.sql("sql literal")),
+            random_object
+          ])
+        )
+      )
 
       assert_equal expected, original.invert
     end
