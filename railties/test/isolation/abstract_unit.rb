@@ -243,11 +243,9 @@ module TestHelpers
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be
     #   combined in the returned string.
-    # fork:: false to not use fork even when it's available. By default,
-    #   when possible, the command is executed in a fork of the current
-    #   process, avoiding the need to load core Rails libraries anew.
-    def rails(*args, allow_failure: false, stderr: false, fork: true)
+    def rails(*args, allow_failure: false, stderr: false)
       args = args.flatten
+      fork = true
 
       command = "bin/rails #{Shellwords.join args}#{' 2>&1' unless stderr}"
 
