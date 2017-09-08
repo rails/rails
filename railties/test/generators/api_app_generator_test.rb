@@ -63,6 +63,11 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generator_if_webpack_is_given
+    stderr_output = capture(:stderr) { run_generator [destination_root, "--api", "--webpack=webpack"] }
+    assert_equal(stderr_output, "Invalid options are supplied. Please use either --api or --webpack.\n")
+  end
+
   def test_app_update_does_not_generate_unnecessary_config_files
     run_generator
 
