@@ -97,7 +97,7 @@ module AbstractController
     # Normalize options.
     # :api: plugin
     def _normalize_options(options)
-      options
+      # noop
     end
 
     # Process extra options.

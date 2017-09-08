@@ -139,7 +139,8 @@ module ActionView
       # Normalize options.
       # :api: private
       def _normalize_options(options)
-        options = super(options)
+        super
+
         if options[:partial] == true
           options[:partial] = action_name
         end
@@ -149,7 +150,6 @@ module ActionView
         end
 
         options[:template] ||= (options[:action] || action_name).to_s
-        options
       end
   end
 end
