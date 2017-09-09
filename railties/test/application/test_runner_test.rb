@@ -164,6 +164,17 @@ module ApplicationTests
       end
     end
 
+    def test_run_folder_with_trailing_slash
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      create_test_file :controllers, "foobar_controller"
+      run_test_command("test/models/").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_named_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
         require 'test_helper'
@@ -268,8 +279,21 @@ module ApplicationTests
     def test_run_multiple_folders
       create_test_file :models, "account"
       create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
 
       run_test_command("test/models test/controllers").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "AccountsControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_run_multiple_folders_with_trailing_slashes
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
+
+      run_test_command("test/models/ test/controllers/").tap do |output|
         assert_match "AccountTest", output
         assert_match "AccountsControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
