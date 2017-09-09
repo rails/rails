@@ -26,7 +26,7 @@ module Minitest
       options[:color] = value
     end
 
-    opts.on("-s", "--skip-rails-reporter", "Skip Rails' custom Minitest reporter") do |value|
+    opts.on("--skip-rails-reporter", "Skip Rails' custom Minitest reporter") do |value|
       options[:skip_reporter] = value
     end
 
