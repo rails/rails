@@ -79,7 +79,7 @@ class Hash
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
       end
-    end.compact.sort! * "&"
+    end.compact * "&"
   end
 
   alias_method :to_param, :to_query
