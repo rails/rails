@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "aws-sdk"
+require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
