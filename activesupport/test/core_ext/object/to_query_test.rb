@@ -59,7 +59,7 @@ class ToQueryTest < ActiveSupport::TestCase
       a: 1, b: { c: 3, d: {} }
     assert_query_equal "",
       a: { b: { c: {} } }
-    assert_query_equal "b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=&p=12",
+    assert_query_equal "p=12&b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=",
       p: 12, b: { c: false, e: nil, f: "" }
     assert_query_equal "b%5Bc%5D=3&b%5Bf%5D=",
       b: { c: 3, k: {}, f: "" }
@@ -74,7 +74,7 @@ class ToQueryTest < ActiveSupport::TestCase
 
   def test_hash_sorted_lexicographically
     hash = { type: "human", name: "Nakshay" }
-    assert_equal "name=Nakshay&type=human", hash.to_query
+    assert_equal "type=human&name=Nakshay", hash.to_query
   end
 
   private
