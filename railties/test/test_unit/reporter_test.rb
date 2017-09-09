@@ -157,6 +157,13 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
   end
 
+  test "skips Rails custom reporting" do
+    skip_reporter = Rails::TestUnitReporter.new @output, skip_reporter: true
+    skip_reporter.record(failed_test)
+
+    assert_no_match "bin/rails", @output.string
+  end
+
   private
     def assert_rerun_snippet_count(snippet_count)
       assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
