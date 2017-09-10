@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "aws-sdk"
+require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
@@ -54,7 +54,7 @@ module ActiveStorage
 
     def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key do |payload|
-        generated_url = object_for(key).presigned_url :get, expires_in: expires_in,
+        generated_url = object_for(key).presigned_url :get, expires_in: expires_in.to_i,
           response_content_disposition: disposition,
           response_content_type: content_type
 
@@ -66,7 +66,7 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key do |payload|
-        generated_url = object_for(key).presigned_url :put, expires_in: expires_in,
+        generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
           content_type: content_type, content_length: content_length, content_md5: checksum
 
         payload[:url] = generated_url
