@@ -27,6 +27,7 @@ Rails.ajax = (options) ->
     xhr.send(options.data)
   else
     fire(document, 'ajaxStop') # to be compatible with jQuery.ajax
+  xhr
 
 prepareOptions = (options) ->
   options.url = options.url or location.href
