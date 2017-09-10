@@ -4,7 +4,9 @@ class Module
   # Allows you to make aliases for attributes, which includes
   # getter, setter, and a predicate.
   #
-  #   class Content < ActiveRecord::Base
+  #   require 'active_support/core_ext/module/aliasing.rb'
+  #
+  #   class Content
   #     # has a title attribute
   #   end
   #
