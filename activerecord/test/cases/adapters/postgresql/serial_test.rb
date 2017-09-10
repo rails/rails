@@ -86,3 +86,39 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
     assert_match %r{t\.bigint\s+"serials_id",\s+default: -> \{ "nextval\('postgresql_big_serials_id_seq'::regclass\)" \}$}, output
   end
 end
+
+module SequenceNameDetectionTestCases
+  class CollidedSequenceNameTest < ActiveRecord::PostgreSQLTestCase
+    include SchemaDumpingHelper
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :foo_bar, force: true do |t|
+        t.serial :baz_id
+      end
+      @connection.create_table :foo, force: true do |t|
+        t.serial :bar_id
+        t.bigserial :bar_baz_id
+      end
+    end
+
+    def teardown
+      @connection.drop_table :foo_bar, if_exists: true
+      @connection.drop_table :foo, if_exists: true
+    end
+
+    def test_serial_columns
+      columns = @connection.columns(:foo)
+      columns.each do |column|
+        assert_equal :integer, column.type
+        assert column.serial?
+      end
+    end
+
+    def test_schema_dump_with_collided_sequence_name
+      output = dump_table_schema "foo"
+      assert_match %r{t\.serial\s+"bar_id",\s+null: false$}, output
+      assert_match %r{t\.bigserial\s+"bar_baz_id",\s+null: false$}, output
+    end
+  end
+end
