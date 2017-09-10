@@ -116,8 +116,6 @@ A standard Rails application depends on several gems, specifically:
 * mail
 * mime-types
 * rack
-* rack-cache
-* rack-mount
 * rack-test
 * rails
 * railties
