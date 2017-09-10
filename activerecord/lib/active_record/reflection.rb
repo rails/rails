@@ -138,7 +138,7 @@ module ActiveRecord
     #         HasAndBelongsToManyReflection
     #     ThroughReflection
     #     PolymorphicReflection
-    #       RuntimeReflection
+    #     RuntimeReflection
     class AbstractReflection # :nodoc:
       def through_reflection?
         false
@@ -152,14 +152,6 @@ module ActiveRecord
       # be passed to the class's constructor.
       def build_association(attributes, &block)
         klass.new(attributes, &block)
-      end
-
-      def quoted_table_name
-        klass.quoted_table_name
-      end
-
-      def primary_key_type
-        klass.type_for_attribute(klass.primary_key)
       end
 
       # Returns the class name for the macro.
@@ -373,6 +365,17 @@ module ActiveRecord
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
+      #
+      #   class Company < ActiveRecord::Base
+      #     has_many :clients
+      #   end
+      #
+      #   Company.reflect_on_association(:clients).klass
+      #   # => Client
+      #
+      # <b>Note:</b> Do not call +klass.new+ or +klass.create+ to instantiate
+      # a new association object. Use +build_association+ or +create_association+
+      # instead. This allows plugins to hook into association object creation.
       def klass
         @klass ||= compute_class(class_name)
       end
@@ -413,22 +416,6 @@ module ActiveRecord
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
-      # Returns the target association's class.
-      #
-      #   class Author < ActiveRecord::Base
-      #     has_many :books
-      #   end
-      #
-      #   Author.reflect_on_association(:books).klass
-      #   # => Book
-      #
-      # <b>Note:</b> Do not call +klass.new+ or +klass.create+ to instantiate
-      # a new association object. Use +build_association+ or +create_association+
-      # instead. This allows plugins to hook into association object creation.
-      def klass
-        @klass ||= compute_class(class_name)
-      end
-
       def compute_class(name)
         active_record.send(:compute_type, name)
       end
@@ -1029,6 +1016,8 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
+      delegate :klass, :scope, :plural_name, :type, :get_join_keys, to: :@reflection
+
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
@@ -1044,28 +1033,8 @@ module ActiveRecord
         scopes << @previous_reflection.source_type_scope
       end
 
-      def klass
-        @reflection.klass
-      end
-
-      def scope
-        @reflection.scope
-      end
-
-      def plural_name
-        @reflection.plural_name
-      end
-
-      def type
-        @reflection.type
-      end
-
       def constraints
         @reflection.constraints + [source_type_info]
-      end
-
-      def get_join_keys(association_klass)
-        @reflection.get_join_keys(association_klass)
       end
 
       private
@@ -1076,8 +1045,8 @@ module ActiveRecord
         end
     end
 
-    class RuntimeReflection < PolymorphicReflection # :nodoc:
-      attr_accessor :next
+    class RuntimeReflection < AbstractReflection # :nodoc:
+      delegate :scope, :type, :constraints, :get_join_keys, to: :@reflection
 
       def initialize(reflection, association)
         @reflection = reflection
@@ -1088,12 +1057,8 @@ module ActiveRecord
         @association.klass
       end
 
-      def constraints
-        @reflection.constraints
-      end
-
-      def alias_name
-        Arel::Table.new(table_name, type_caster: klass.type_caster)
+      def aliased_table
+        @aliased_table ||= Arel::Table.new(table_name, type_caster: klass.type_caster)
       end
 
       def all_includes; yield; end

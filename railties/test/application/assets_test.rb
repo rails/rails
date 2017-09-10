@@ -62,10 +62,7 @@ module ApplicationTests
 
       add_to_env_config "development", "config.assets.digest = false"
 
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        require "#{app_path}/config/environment"
-      end
+      require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
       assert_equal 'a = "/assets/rails.png";', last_response.body.strip

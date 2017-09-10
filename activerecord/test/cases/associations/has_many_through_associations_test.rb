@@ -1250,6 +1250,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     TenantMembership.current_member = nil
   end
 
+  def test_has_many_through_with_unscope_should_affect_to_through_scope
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).unordered_comments
+  end
+
   def test_has_many_through_with_scope_should_respect_table_alias
     family = Family.create!
     users = 3.times.map { User.create! }

@@ -40,6 +40,7 @@ class Author < ActiveRecord::Base
            class_name: "Post"
 
   has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts, source: :comments
+  has_many :unordered_comments, -> { unscope(:order).distinct }, through: :posts_sorted_by_id_limited, source: :comments
   has_many :funky_comments, through: :posts, source: :comments
   has_many :ordered_uniq_comments, -> { distinct.order("comments.id") }, through: :posts, source: :comments
   has_many :ordered_uniq_comments_desc, -> { distinct.order("comments.id DESC") }, through: :posts, source: :comments
