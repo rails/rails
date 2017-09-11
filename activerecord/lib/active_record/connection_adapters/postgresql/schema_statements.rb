@@ -21,6 +21,7 @@ module ActiveRecord
           column = options.fetch(:column) { return super }
           if column.type == :uuid && options[:default] =~ /\(\)/
             sql << " DEFAULT #{options[:default]}"
+            sql << " NOT NULL" if options[:null] == false
           else
             super
           end

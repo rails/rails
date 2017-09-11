@@ -258,6 +258,28 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   end
 end
 
+class PostgresqlUUIDTestNotNull < ActiveRecord::TestCase
+  include PostgresqlUUIDHelper
+  include SchemaDumpingHelper
+
+  setup do
+    enable_extension!('uuid-ossp', connection)
+
+    connection.create_table "uuid_data_type" do |t|
+      t.uuid 'guid', default: "uuid_generate_v4()", null: false
+    end
+  end
+
+  teardown do
+    drop_table "uuid_data_type"
+  end
+
+  def test_allows_not_null
+    schema = dump_table_schema("uuid_data_type")
+    assert_match(/\bt\.uuid "guid", default: "uuid_generate_v4\(\)", null: false/, schema)
+  end
+end
+
 class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
 
