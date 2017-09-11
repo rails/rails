@@ -81,15 +81,15 @@ matrix:
       services:
         - memcached
         - rabbitmq
-    - rvm: 2.3.4
+    - rvm: 2.4.1
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.2
-    - rvm: 2.3.4
+    - rvm: 2.4.1
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.3.4
+    - rvm: 2.4.1
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
