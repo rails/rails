@@ -225,7 +225,7 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
         file ||= schema_file(format)
 
         case format
@@ -240,7 +240,7 @@ module ActiveRecord
           raise ArgumentError, "unknown format #{format.inspect}"
         end
         ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+        ActiveRecord::InternalMetadata[:environment] = environment
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
@@ -253,8 +253,8 @@ module ActiveRecord
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration|
-          load_schema configuration, format, file
+        each_current_configuration(environment) { |configuration, configuration_environment|
+          load_schema configuration, format, file, configuration_environment
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
@@ -301,9 +301,10 @@ module ActiveRecord
           environments = [environment]
           environments << "test" if environment == "development"
 
-          configurations = ActiveRecord::Base.configurations.values_at(*environments)
-          configurations.compact.each do |configuration|
-            yield configuration unless configuration["database"].blank?
+          ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
+            next unless configuration["database"]
+
+            yield configuration, configuration_environment
           end
         end
 

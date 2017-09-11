@@ -298,6 +298,45 @@ module ApplicationTests
           ENV["RACK_ENV"] = @old_rack_env
         end
       end
+
+      test "db:setup sets ar_internal_metadata" do
+        app_file "db/schema.rb", ""
+        rails "db:setup"
+
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
+
+        app_file "db/structure.sql", ""
+        app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
+          Rails.application.config.active_record.schema_format = :sql
+        RUBY
+
+        rails "db:setup"
+
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
+      end
+
+      test "db:test:prepare sets test ar_internal_metadata" do
+        app_file "db/schema.rb", ""
+        rails "db:test:prepare"
+
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+
+        assert_equal "test", test_environment.call
+
+        app_file "db/structure.sql", ""
+        app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
+          Rails.application.config.active_record.schema_format = :sql
+        RUBY
+
+        rails "db:test:prepare"
+
+        assert_equal "test", test_environment.call
+      end
     end
   end
 end
