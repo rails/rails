@@ -64,7 +64,7 @@ DEFAULT_APP_FILES = %w(
   config/locales/en.yml
   config/puma.rb
   config/routes.rb
-  config/secrets.yml
+  config/credentials.yml.enc
   config/spring.rb
   config/storage.yml
   db
@@ -287,8 +287,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root, "--skip-action-cable"]
 
     FileUtils.cd(app_root) do
-      # For avoid conflict file
-      FileUtils.rm("#{app_root}/config/secrets.yml")
       quietly { system("bin/rails app:update") }
     end
 

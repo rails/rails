@@ -176,6 +176,10 @@ class Rails::SecretsTest < ActiveSupport::TestCase
           Rails::Generators::EncryptedSecretsGenerator.start
         end
 
+        add_to_config <<-RUBY
+          config.read_encrypted_secrets = true
+        RUBY
+
         yield
       end
     end

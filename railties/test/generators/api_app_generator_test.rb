@@ -125,7 +125,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/locales/en.yml
         config/puma.rb
         config/routes.rb
-        config/secrets.yml
+        config/credentials.yml.enc
         config/spring.rb
         config/storage.yml
         db

@@ -5,6 +5,7 @@ require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
+require "active_support/encrypted_configuration"
 require_relative "engine"
 require_relative "secrets"
 
@@ -171,12 +172,9 @@ module Rails
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
-        if secrets.secret_key_base
-          unless secrets.secret_key_base.kind_of?(String)
-            raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, change this value in `config/secrets.yml`"
-          end
-          key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
-          ActiveSupport::CachingKeyGenerator.new(key_generator)
+        if secret_key_base
+          ActiveSupport::CachingKeyGenerator.new \
+            ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
         else
           ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
@@ -246,13 +244,11 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= begin
-        validate_secret_key_config!
-
         super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => secrets.secret_token,
-          "action_dispatch.secret_key_base" => secrets.secret_key_base,
+          "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
@@ -406,6 +402,33 @@ module Rails
       @secrets = secrets
     end
 
+    # The secret_key_base is used as the input secret to the application's key generator, which in turn
+    # is used to create all the MessageVerfiers, including the one that signs and encrypts cookies.
+    #
+    # In test and development, this is simply derived as a MD5 hash of the application's name.
+    #
+    # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
+    # then credentials[:secret_key_base], and finally secrets.secret_key_base. For most applications,
+    # the correct place to store it is in the encrypted credentials file.
+    def secret_key_base
+      if Rails.env.test? || Rails.env.development?
+        Digest::MD5.hexdigest self.class.name
+      else
+        validate_secret_key_base \
+          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
+      end
+    end
+
+    # Decrypts the credentials hash as kept in `config/credentials.yml.enc`. This file is encrypted with
+    # the Rails master key, which is either taken from ENV["RAILS_MASTER_KEY"] or from loading
+    # `config/master.key`.
+    def credentials
+      @credentials ||= ActiveSupport::EncryptedConfiguration.new \
+        config_path: Rails.root.join("config/credentials.yml.enc"),
+        key_path: Rails.root.join("config/master.key"),
+        env_key: "RAILS_MASTER_KEY"
+    end
+
     def to_app #:nodoc:
       self
     end
@@ -504,14 +527,13 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_config! #:nodoc:
-      if secrets.secret_key_base.blank?
-        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " \
-          "Read the upgrade documentation to learn more about this new config option."
-
-        if secrets.secret_token.blank?
-          raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
-        end
+    def validate_secret_key_base(secret_key_base)
+      if secret_key_base.is_a?(String) && secret_key_base.present?
+        secret_key_base
+      elsif secret_key_base
+        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+      elsif secrets.secret_token.blank?
+        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
       end
     end
 
