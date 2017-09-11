@@ -72,7 +72,11 @@ module ActiveRecord
           end
 
           def key_conversion_required?
-            @key_conversion_required ||= association_key_type != owner_key_type
+            unless defined?(@key_conversion_required)
+              @key_conversion_required = (association_key_type != owner_key_type)
+            end
+
+            @key_conversion_required
           end
 
           def convert_key(key)
