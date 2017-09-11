@@ -38,12 +38,12 @@ module Rails
       private
         def ensure_editor_available
           if ENV["EDITOR"].to_s.empty?
-            say "No $EDITOR to open decrypted secrets in. Assign one like this:"
+            say "No $EDITOR to open credentials in. Assign one like this:"
             say ""
             say %(EDITOR="mate --wait" bin/rails credentials:edit)
             say ""
             say "For editors that fork and exit immediately, it's important to pass a wait flag,"
-            say "otherwise the secrets will be saved immediately with no chance to edit."
+            say "otherwise the credentials will be saved immediately with no chance to edit."
 
             false
           else
