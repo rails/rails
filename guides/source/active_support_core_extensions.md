@@ -535,7 +535,9 @@ Extensions to `Module`
 Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (one mnemonic is that they go in the same order as if you did an assignment):
 
 ```ruby
-class User < ApplicationRecord
+require 'active_support/core_ext/module/aliasing.rb'
+
+class User
   # You can refer to the email column as "login".
   # This can be meaningful for authentication code.
   alias_attribute :login, :email
