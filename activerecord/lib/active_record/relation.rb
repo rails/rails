@@ -376,50 +376,6 @@ module ActiveRecord
       @klass.connection.update stmt, "SQL"
     end
 
-    # Updates an object (or multiple objects) and saves it to the database, if validations pass.
-    # The resulting object is returned whether the object was saved successfully to the database or not.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes or an array of hashes.
-    #
-    # ==== Examples
-    #
-    #   # Updates one record
-    #   Person.update(15, user_name: 'Samuel', group: 'expert')
-    #
-    #   # Updates multiple records
-    #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
-    #   Person.update(people.keys, people.values)
-    #
-    #   # Updates multiple records from the result of a relation
-    #   people = Person.where(group: 'expert')
-    #   people.update(group: 'masters')
-    #
-    # Note: Updating a large number of records will run an
-    # UPDATE query for each record, which may cause a performance
-    # issue. When running callbacks is not needed for each record update,
-    # it is preferred to use #update_all for updating all records
-    # in a single query.
-    def update(id = :all, attributes)
-      if id.is_a?(Array)
-        id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
-      elsif id == :all
-        records.each { |record| record.update(attributes) }
-      else
-        if ActiveRecord::Base === id
-          raise ArgumentError, <<-MSG.squish
-            You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
-        object = find(id)
-        object.update(attributes)
-        object
-      end
-    end
-
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
@@ -438,33 +394,6 @@ module ActiveRecord
     #   Person.where(age: 0..18).destroy_all
     def destroy_all
       records.each(&:destroy).tap { reset }
-    end
-
-    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
-    # therefore all callbacks and filters are fired off before the object is deleted. This method is
-    # less efficient than #delete but allows cleanup methods and other actions to be run.
-    #
-    # This essentially finds the object (or multiple objects) with the given id, creates a new object
-    # from the attributes, and then calls destroy on it.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - Can be either an Integer or an Array of Integers.
-    #
-    # ==== Examples
-    #
-    #   # Destroy a single object
-    #   Todo.destroy(1)
-    #
-    #   # Destroy multiple objects
-    #   todos = [1,2,3]
-    #   Todo.destroy(todos)
-    def destroy(id)
-      if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
-      else
-        find(id).destroy
-      end
     end
 
     # Deletes the records without instantiating the records
@@ -507,29 +436,6 @@ module ActiveRecord
 
       reset
       affected
-    end
-
-    # Deletes the row with a primary key matching the +id+ argument, using a
-    # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-    # Record objects are not instantiated, so the object's callbacks are not
-    # executed, including any <tt>:dependent</tt> association options.
-    #
-    # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-    #
-    # Note: Although it is often much faster than the alternative,
-    # #destroy, skipping callbacks might bypass business logic in
-    # your application that ensures referential integrity or performs other
-    # essential jobs.
-    #
-    # ==== Examples
-    #
-    #   # Delete a single row
-    #   Todo.delete(1)
-    #
-    #   # Delete multiple rows
-    #   Todo.delete([2,3,4])
-    def delete(id_or_array)
-      where(primary_key => id_or_array).delete_all
     end
 
     # Causes the records to be loaded from the database if they have not
