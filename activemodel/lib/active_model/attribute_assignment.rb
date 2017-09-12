@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/keys"
+require_relative "forbidden_attributes_protection"
 
 module ActiveModel
   module AttributeAssignment
