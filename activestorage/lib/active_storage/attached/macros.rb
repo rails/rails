@@ -22,7 +22,7 @@ module ActiveStorage
     # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
     #
     # If the +:dependent+ option isn't set, the attachment will be purged
-    # (i.e. destroyed) whenever the record is destroyed.
+    # (i.e. destroyed) async, via Active Job.
     def has_one_attached(name, dependent: :purge_later)
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
@@ -61,7 +61,7 @@ module ActiveStorage
     # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
     #
     # If the +:dependent+ option isn't set, all the attachments will be purged
-    # (i.e. destroyed) whenever the record is destroyed.
+    # (i.e. destroyed) async, via Active Job.
     def has_many_attached(name, dependent: :purge_later)
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
