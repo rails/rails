@@ -54,7 +54,7 @@ module ActionController
 
     included do
       class_attribute :_renderers, default: RENDERERS.dup.freeze
-      class_attribute :_serializers, default: SERIALIZERS.dup
+      class_attribute :_serializers, default: SERIALIZERS.dup, instance_writer: false
     end
 
     # Used in <tt>ActionController::Base</tt>
