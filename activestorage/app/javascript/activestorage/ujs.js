@@ -53,6 +53,7 @@ function submitForm(form) {
   if (button) {
     const { disabled } = button
     button.disabled = false
+    button.focus()
     button.click()
     button.disabled = disabled
   } else {
