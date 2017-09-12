@@ -228,13 +228,13 @@ module ActiveRecord
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
         file ||= schema_file(format)
 
+        check_schema_file(file)
+        ActiveRecord::Base.establish_connection(configuration)
+
         case format
         when :ruby
-          check_schema_file(file)
-          ActiveRecord::Base.establish_connection(configuration)
           load(file)
         when :sql
-          check_schema_file(file)
           structure_load(configuration, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"

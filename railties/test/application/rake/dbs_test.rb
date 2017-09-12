@@ -189,6 +189,14 @@ module ApplicationTests
         db_structure_dump_and_load database_url_db_name
       end
 
+      test "db:structure:dump and db:structure:load set ar_internal_metadata" do
+        require "#{app_path}/config/environment"
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+
+        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
+      end
+
       test "db:structure:dump does not dump schema information when no migrations are used" do
         # create table without migrations
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
