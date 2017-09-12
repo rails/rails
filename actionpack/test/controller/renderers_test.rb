@@ -205,7 +205,7 @@ class RenderersTest < ActionController::TestCase
       get :respond_to_mime, format: "json", params: { serializer_name: :custom_json }
     end
 
-    ActionController::Renderers.add_serializer :custom_json do |json, options|
+    TestController.add_serializer :custom_json do |json, options|
       return json if json.is_a?(String)
 
       json = json.as_json(options) if json.respond_to?(:as_json)
@@ -216,6 +216,6 @@ class RenderersTest < ActionController::TestCase
     get :respond_to_mime, format: "json", params: { serializer_name: :custom_json }
     assert_equal JSON.pretty_generate(JsonRenderable.new.as_json), @response.body
   ensure
-    ActionController::Renderers.remove_serializer(:custom_json)
+    TestController.remove_serializer(:custom_json)
   end
 end

@@ -177,11 +177,11 @@ module ActionController
     def self.add_serializer(key, &block)
       config = { key.to_sym => block }
       SERIALIZERS.update(config)
-      ActionController::Metal.descendants.each do |descendant|
-        next unless defined?(descendant._serializers)
-        serializers = config.merge(descendant._serializers)
-        descendant._serializers = serializers.freeze
-      end
+      # ActionController::Metal.descendants.each do |descendant|
+      #   next unless defined?(descendant._serializers)
+      #   serializers = config.merge(descendant._serializers)
+      #   descendant._serializers = serializers.freeze
+      # end
     end
 
     # This method is the opposite of add_serializer method.
@@ -192,11 +192,11 @@ module ActionController
     def self.remove_serializer(key)
       key = key.to_sym
       SERIALIZERS.delete(key)
-      ActionController::Metal.descendants.each do |descendant|
-        next unless defined?(descendant._serializers)
-        serializers = descendant._serializers.except(key)
-        descendant._serializers = serializers.freeze
-      end
+      # ActionController::Metal.descendants.each do |descendant|
+      #   next unless defined?(descendant._serializers)
+      #   serializers = descendant._serializers.except(key)
+      #   descendant._serializers = serializers.freeze
+      # end
     end
 
     def self._render_with_renderer_method_name(key)
@@ -249,6 +249,24 @@ module ActionController
       def serializing(options)
         serializers = _serializers.merge(options)
         self._serializers = serializers.freeze
+      end
+
+      # To add a csv serializer:
+      #
+      #   TestController.add(:csv, &block)
+      def add_serializer(key, &block)
+        config = { key.to_sym => block }
+        serializing(config)
+      end
+
+      # This method is the opposite of add_serializer method.
+      #
+      # To remove a csv serializer:
+      #
+      #   TestController.remove_serializer(:csv)
+      def remove_serializer(key)
+        key = key.to_sym
+        self._serializers = _serializers.except(key).freeze
       end
     end
 
