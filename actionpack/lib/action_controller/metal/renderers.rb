@@ -30,6 +30,13 @@ module ActionController
     Renderers.remove_serializer(key)
   end
 
+  # See <tt>Renderers::MissingRenderer</tt>
+  class MissingSerializer < LoadError
+    def initialize(format)
+      super "No serializer defined for format: #{format}"
+    end
+  end
+
   module Renderers
     extend ActiveSupport::Concern
 
@@ -39,7 +46,10 @@ module ActionController
 
     # A Hash mapping serializer names to callables.
     # Default serializer names are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
-    SERIALIZERS = Hash.new
+    SERIALIZERS = Hash.new do |h, format|
+      fail ActionController::MissingSerializer, "There is no '#{format}' serializer.\n" \
+      "Known serializers are #{h.keys}"
+    end
 
     included do
       class_attribute :_renderers, default: Set.new.freeze

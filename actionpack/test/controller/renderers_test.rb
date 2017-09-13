@@ -109,4 +109,20 @@ class RenderersTest < ActionController::TestCase
     ActionController.remove_renderer :csv
     ActionController.remove_serializer :csv
   end
+
+  def test_respond_to_raises_missing_serializer_when_only_renderer_defined
+    ActionController.add_renderer :csv do |value, options|
+      send_data value, type: Mime[:csv]
+    end
+    @request.accept = "text/csv"
+
+    assert_raise ActionController::MissingSerializer do
+      get :respond_to_mime
+    end
+
+    assert_equal Mime[:csv], @response.content_type
+    assert_equal "", @response.body
+  ensure
+    ActionController.remove_renderer :csv
+  end
 end
