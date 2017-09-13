@@ -403,12 +403,12 @@ module Rails
     end
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
-    # is used to create all the MessageVerfiers, including the one that signs and encrypts cookies.
+    # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
     #
     # In test and development, this is simply derived as a MD5 hash of the application's name.
     #
     # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
-    # then credentials[:secret_key_base], and finally secrets.secret_key_base. For most applications,
+    # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.test? || Rails.env.development?
