@@ -60,6 +60,9 @@ class RenderersTest < ActionController::TestCase
   def test_explicit_render_using_custom_render_option
     ActionController.add_renderer :simon do |says, options|
       self.content_type = Mime[:text]
+      says
+    end
+    ActionController.add_serializer :simon do |says, options|
       "Simon says: #{says}"
     end
 
@@ -67,6 +70,7 @@ class RenderersTest < ActionController::TestCase
     assert_equal "Simon says: foo", @response.body
   ensure
     ActionController.remove_renderer :simon
+    ActionController.remove_serializer :simon
   end
 
   def test_explicit_render_raises_missing_template_when_no_such_renderer
@@ -89,8 +93,11 @@ class RenderersTest < ActionController::TestCase
   end
 
   def test_responds_to_csv_format_when_adding_csv_renderer_via_renderers_add
-    ActionController::Renderers.add :csv do |value, options|
-      send_data value.to_csv, type: Mime[:csv]
+    ActionController.add_renderer :csv do |value, options|
+      send_data value, type: Mime[:csv]
+    end
+    ActionController.add_serializer :csv do |value, options|
+      value.to_csv
     end
     @request.accept = "text/csv"
 
@@ -99,6 +106,7 @@ class RenderersTest < ActionController::TestCase
     assert_equal Mime[:csv], @response.content_type
     assert_equal "c,s,v", @response.body
   ensure
-    ActionController::Renderers.remove :csv
+    ActionController.remove_renderer :csv
+    ActionController.remove_serializer :csv
   end
 end
