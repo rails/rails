@@ -244,12 +244,12 @@ module ActionController
     end
 
     def _render_to_body_with_renderer(options)
-      _renderers.each do |name|
-        next unless options.key?(name)
+      _renderers.each do |renderer_format|
+        next unless options.key?(renderer_format)
         _process_options(options)
-        renderer_method_name = Renderers._render_with_renderer_method_name(name)
-        value_to_render = options.delete(name)
-        serialized_value = _serializers[name].call(value_to_render, options)
+        renderer_method_name = Renderers._render_with_renderer_method_name(renderer_format)
+        value_to_render = options.delete(renderer_format)
+        serialized_value = _serializers[renderer_format].call(value_to_render, options)
         return send(renderer_method_name, serialized_value, options)
       end
       nil
