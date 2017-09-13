@@ -9,10 +9,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        build_app(initializers: true)
-      end
+      build_app(initializers: true)
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -34,11 +31,6 @@ module ApplicationTests
 
     def teardown
       teardown_app
-    end
-
-    # FIXME: shush Sass warning spam, not relevant to testing Railties
-    def get(*)
-      Kernel.silence_warnings { super }
     end
 
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do

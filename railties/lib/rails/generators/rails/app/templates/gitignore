@@ -7,6 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
 <% if sqlite3? -%>
 # Ignore the default SQLite database.
 /db/*.sqlite3

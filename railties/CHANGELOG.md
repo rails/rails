@@ -1,3 +1,9 @@
+*   Derive `secret_key_base` from the app name in development and test environments.
+
+    Spares away needless secret configs.
+
+    *DHH*, *Kasper Timm Hansen*
+
 *   Support multiple versions arguments for `gem` method of Generators.
 
     *Yoshiyuki Hirano*

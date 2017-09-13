@@ -56,10 +56,7 @@ module TestHelpers
       @app ||= begin
         ENV["RAILS_ENV"] = env
 
-        # FIXME: shush Sass warning spam, not relevant to testing Railties
-        Kernel.silence_warnings do
-          require "#{app_path}/config/environment"
-        end
+        require "#{app_path}/config/environment"
 
         Rails.application
       end
@@ -108,7 +105,6 @@ module TestHelpers
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
-      ENV["SECRET_KEY_BASE"] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
@@ -166,9 +162,10 @@ module TestHelpers
       require "action_controller/railtie"
       require "action_view/railtie"
 
-      @app = Class.new(Rails::Application)
+      @app = Class.new(Rails::Application) do
+        def self.name; "RailtiesTestApp"; end
+      end
       @app.config.eager_load = false
-      @app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
       @app.config.active_support.test_order = :random
@@ -243,11 +240,9 @@ module TestHelpers
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be
     #   combined in the returned string.
-    # fork:: false to not use fork even when it's available. By default,
-    #   when possible, the command is executed in a fork of the current
-    #   process, avoiding the need to load core Rails libraries anew.
-    def rails(*args, allow_failure: false, stderr: false, fork: true)
+    def rails(*args, allow_failure: false, stderr: false)
       args = args.flatten
+      fork = true
 
       command = "bin/rails #{Shellwords.join args}#{' 2>&1' unless stderr}"
 

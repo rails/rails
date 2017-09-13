@@ -1172,21 +1172,24 @@ module ActiveRecord
       end
       alias having_clause_factory where_clause_factory
 
+      DEFAULT_VALUES = {
+        create_with: FROZEN_EMPTY_HASH,
+        readonly: false,
+        where: Relation::WhereClause.empty,
+        having: Relation::WhereClause.empty,
+        from: Relation::FromClause.empty
+      }
+
+      Relation::MULTI_VALUE_METHODS.each do |value|
+        DEFAULT_VALUES[value] ||= FROZEN_EMPTY_ARRAY
+      end
+
+      Relation::SINGLE_VALUE_METHODS.each do |value|
+        DEFAULT_VALUES[value] = nil if DEFAULT_VALUES[value].nil?
+      end
+
       def default_value_for(name)
-        case name
-        when :create_with
-          FROZEN_EMPTY_HASH
-        when :readonly
-          false
-        when :where, :having
-          Relation::WhereClause.empty
-        when :from
-          Relation::FromClause.empty
-        when *Relation::MULTI_VALUE_METHODS
-          FROZEN_EMPTY_ARRAY
-        when *Relation::SINGLE_VALUE_METHODS
-          nil
-        else
+        DEFAULT_VALUES.fetch(name) do
           raise ArgumentError, "unknown relation value #{name.inspect}"
         end
       end

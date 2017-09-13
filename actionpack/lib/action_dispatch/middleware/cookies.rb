@@ -89,13 +89,11 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: Time.utc(2020, 10, 15, 5) }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's `secrets.secret_key_base` value.
   #   # It can be read using the signed method `cookies.signed[:name]`
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets an encrypted cookie value before sending it to the client which
   #   # prevent users from reading and tampering with its value.
-  #   # The cookie is signed by your app's `secrets.secret_key_base` value.
   #   # It can be read using the encrypted method `cookies.encrypted[:name]`
   #   cookies.encrypted[:discount] = 45
   #
@@ -191,10 +189,10 @@ module ActionDispatch
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
+      # If +secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
       #
       # Example:
       #
@@ -214,13 +212,13 @@ module ActionDispatch
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
       # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
+      # If +secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
       # If +config.action_dispatch.encrypted_cookie_salt+ and +config.action_dispatch.encrypted_signed_cookie_salt+
       # are both set, legacy cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
       #
       # Example:
       #
@@ -591,7 +589,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
-    # secrets.secret_token and secrets.secret_key_base are both set. It reads
+    # secrets.secret_token and secret_key_base are both set. It reads
     # legacy cookies signed with the old dummy key generator and signs and
     # re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
@@ -605,7 +603,7 @@ module ActionDispatch
         super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
-          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " \
+          raise "You didn't set secret_key_base, which is required for this cookie jar. " \
             "Read the upgrade documentation to learn more about this new config option."
         end
 
@@ -631,7 +629,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
-    # instead of EncryptedCookieJar if secrets.secret_token and secrets.secret_key_base
+    # instead of EncryptedCookieJar if secrets.secret_token and secret_key_base
     # are both set. It reads legacy cookies signed with the old dummy key generator and
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:

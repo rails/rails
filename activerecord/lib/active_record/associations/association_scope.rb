@@ -30,10 +30,6 @@ module ActiveRecord
         add_constraints(scope, owner, chain)
       end
 
-      def join_type
-        Arel::Nodes::InnerJoin
-      end
-
       def self.get_bind_values(owner, chain)
         binds = []
         last_reflection = chain.last
@@ -59,7 +55,7 @@ module ActiveRecord
 
       private
         def join(table, constraint)
-          table.create_join(table, table.create_on(constraint), join_type)
+          table.create_join(table, table.create_on(constraint))
         end
 
         def last_chain_scope(scope, reflection, owner)
