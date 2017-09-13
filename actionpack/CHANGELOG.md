@@ -1,3 +1,53 @@
+*   Add `ActionController::Renderers::SERIALIZERS` to separate rendering from serialization.
+
+    Serializers can be globally added via `ActionController.add_serializer`
+    and removed via `ActionController.remove_serializer`, usually in conjunction with
+    the existing `ActionController.add_renderer` and `ActionController.remove_renderer`.
+
+    Similarly, controllers now have a `class_attribute :_serializers` which is inherited from
+    `ActionController::Renderers::SERIALIZERS`, in addition to the existing
+    `class_attribute :_renderers` which is inherited from `ActionController::Renderers::RENDERERS`.
+
+    `ActionController::Renderers#render_to_body` now renders the body in two steps.
+    (This is assuming a renderer is found for the format being rendered.)
+
+    First, it formats the body using the serializer defined in the controller's `_serializers[serializer_name]`.
+    Second, it passes the serialization to the renderer where other aspects of the response are handled.
+    Renderers now only handle non-serialization concerns, such as setting the
+    mime-type, how the data is returned, and handling callbacks.
+
+    The `serializer_name` is the name of the format being rendered, e.g. `json`.
+
+    The serializer is a callable object that accepts the same arguments as the renderer,
+    i.e. the object and the rendering options.  For example,
+    `render json: model` will serialize `model` as `_serializers[:json].call(model, options)`.
+
+    The controller with raise an `ActionController::MissingSerializer` if no serializer is found
+    for the format being rendered.
+
+    Successful rendering requires an existing renderer and serializer.
+
+    Per-controller serializers can be easily configured using the `serializing` macro.
+
+        class TheController < ApplicationController
+          serializing json: ->(json, options) do
+           if json.is_a?(String)
+              json
+            else
+              json = json.as_json(options) if json.respond_to?(:as_json)
+              JSON.pretty_generate(json, options)
+            end
+          end
+        end
+
+        class UserController < ApplicationController
+          serializing json: ->(json, options) do
+            UserSerializer.new(json, options).as_json(options)
+          end
+        end
+
+    *Benjamin Fleischer*
+
 *   Add tests and documentation for `ActionController::Renderers::use_renderers`.
 
     *Benjamin Fleischer*
