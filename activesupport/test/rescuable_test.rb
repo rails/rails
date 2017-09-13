@@ -121,10 +121,33 @@ class CoolStargate < Stargate
   end
 end
 
+class StargateUniverse < Stargate
+  class CauseError < StandardError; end
+  class WrapperError < StandardError; end
+
+  rescue_from StandardError, with: :standard
+  rescue_from CauseError, with: :cause
+
+  def raise_exception_with_cause
+    raise CauseError
+  rescue
+    raise WrapperError
+  end
+
+  def standard(error)
+    @result = "standard"
+  end
+
+  def cause(error)
+    @result = "cause"
+  end
+end
+
 class RescuableTest < ActiveSupport::TestCase
   def setup
     @stargate = Stargate.new
     @cool_stargate = CoolStargate.new
+    @stargate_universe = StargateUniverse.new
   end
 
   def test_rescue_from_with_method
@@ -162,6 +185,11 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_falls_back_to_exception_cause
     @stargate.dispatch :fall_back_to_cause
     assert_equal "dex", @stargate.result
+  end
+
+  def test_rescue_falls_back_to_exception_cause_even_if_handler_of_super_exception_exists
+    @stargate_universe.dispatch :raise_exception_with_cause
+    assert_equal "cause", @stargate_universe.result
   end
 
   def test_unhandled_exceptions
