@@ -271,7 +271,7 @@ module ActiveRecord
       end
 
       def batch_order
-        "#{quoted_table_name}.#{quoted_primary_key} ASC"
+        arel_attribute(primary_key).asc
       end
 
       def act_on_ignored_order(error_on_ignore)

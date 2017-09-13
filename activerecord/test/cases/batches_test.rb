@@ -614,6 +614,17 @@ class EachTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  test ".find_each respects table alias" do
+    assert_queries(1) do
+      table_alias = Post.arel_table.alias("omg_posts")
+      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
+
+      posts = ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
+      posts.find_each {}
+    end
+  end
+
   test ".find_each bypasses the query cache for its own queries" do
     Post.cache do
       assert_queries(2) do
