@@ -59,8 +59,8 @@ class RenderersTest < ActionController::TestCase
 
   def test_explicit_render_using_custom_render_option
     ActionController.add_renderer :simon do |says, options|
-      self.content_type  = Mime[:text]
-      self.response_body = "Simon says: #{says}"
+      self.content_type = Mime[:text]
+      "Simon says: #{says}"
     end
 
     get :render_simon_says
