@@ -120,6 +120,7 @@ module ActiveModel
 
         types.each do |type|
           send("_define_#{type}_model_callback", self, callback)
+          send("_define_skip_#{type}_model_callback", self, callback)
         end
       end
     end
@@ -132,9 +133,21 @@ module ActiveModel
         end
       end
 
+      def _define_skip_before_model_callback(klass, callback)
+        klass.define_singleton_method("skip_before_#{callback}") do |*args, &block|
+          skip_callback(:"#{callback}", :before, *args, &block)
+        end
+      end
+
       def _define_around_model_callback(klass, callback)
         klass.define_singleton_method("around_#{callback}") do |*args, &block|
           set_callback(:"#{callback}", :around, *args, &block)
+        end
+      end
+
+      def _define_skip_around_model_callback(klass, callback)
+        klass.define_singleton_method("skip_around_#{callback}") do |*args, &block|
+          skip_callback(:"#{callback}", :around, *args, &block)
         end
       end
 
@@ -147,6 +160,18 @@ module ActiveModel
           }
           options[:if] = Array(options[:if]) << conditional
           set_callback(:"#{callback}", :after, *(args << options), &block)
+        end
+      end
+
+      def _define_skip_after_model_callback(klass, callback)
+        klass.define_singleton_method("skip_after_#{callback}") do |*args, &block|
+          options = args.extract_options!
+          options[:prepend] = true
+          conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
+            v != false
+          }
+          options[:if] = Array(options[:if]) << conditional
+          skip_callback(:"#{callback}", :after, *(args << options), &block)
         end
       end
   end

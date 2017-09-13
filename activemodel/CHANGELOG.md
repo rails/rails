@@ -1,3 +1,7 @@
+*   Define skip callbacks on `#define_model_callbacks`
+
+    *Yoshiyuki Hirano*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*

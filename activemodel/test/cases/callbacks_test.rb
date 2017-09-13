@@ -52,10 +52,21 @@ class CallbacksTest < ActiveModel::TestCase
     end
   end
 
+  class ModelCallbacksChild < ModelCallbacks
+    skip_before_create :before_create
+  end
+
   test "complete callback chain" do
     model = ModelCallbacks.new
     model.create
     assert_equal model.callbacks, [ :before_create, :before_around_create, :create,
+                                    :after_around_create, :after_create, :final_callback]
+  end
+
+  test "skip callback chain" do
+    model = ModelCallbacksChild.new
+    model.create
+    assert_equal model.callbacks, [ :before_around_create, :create,
                                     :after_around_create, :after_create, :final_callback]
   end
 
