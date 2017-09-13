@@ -74,22 +74,26 @@ class RenderersTest < ActionController::TestCase
   end
 
   def test_explicit_render_raises_missing_template_when_no_such_renderer
-    assert_raise ActionView::MissingTemplate do
+    exception = assert_raise ActionView::MissingTemplate do
       get :render_simon_says
     end
     assert_equal Mime[:html], @response.content_type
     assert_equal "", @response.body
+    expected_message = "Missing template renderers_test/test/render_simon_says with {:locale=>[:en], :formats=>[:html], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}. Searched in:"
+    assert exception.message.start_with?(expected_message), "Expected\n#{exception.message}\nto start with\n#{expected_message}"
   end
 
   def test_respond_to_raises_missing_template_when_no_renderer
     @request.accept = "text/csv"
 
-    assert_raise ActionView::MissingTemplate do
+    exception = assert_raise ActionView::MissingTemplate do
       get :respond_to_mime
     end
 
     assert_equal Mime[:csv], @response.content_type
     assert_equal "", @response.body
+    expected_message = "Missing template renderers_test/test/respond_to_mime with {:locale=>[:en], :formats=>[:csv], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}. Searched in:"
+    assert exception.message.start_with?(expected_message), "Expected\n#{exception.message}\nto start with\n#{expected_message}"
   end
 
   def test_responds_to_csv_format_when_adding_csv_renderer_via_renderers_add
@@ -116,12 +120,14 @@ class RenderersTest < ActionController::TestCase
     end
     @request.accept = "text/csv"
 
-    assert_raise ActionController::MissingSerializer do
+    exception = assert_raise ActionController::MissingSerializer do
       get :respond_to_mime
     end
 
     assert_equal Mime[:csv], @response.content_type
     assert_equal "", @response.body
+    expected_message = "No serializer defined for format: There is no 'csv' serializer.\nKnown serializers are [:json, :js, :xml]"
+    assert_equal expected_message, exception.message
   ensure
     ActionController.remove_renderer :csv
   end
