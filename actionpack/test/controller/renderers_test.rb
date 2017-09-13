@@ -57,7 +57,7 @@ class RenderersTest < ActionController::TestCase
     @controller.logger = ActiveSupport::Logger.new(nil)
   end
 
-  def test_using_custom_render_option
+  def test_explicit_render_using_custom_render_option
     ActionController.add_renderer :simon do |says, options|
       self.content_type  = Mime[:text]
       self.response_body = "Simon says: #{says}"
@@ -69,20 +69,25 @@ class RenderersTest < ActionController::TestCase
     ActionController.remove_renderer :simon
   end
 
-  def test_raises_missing_template_no_renderer
+  def test_respond_to_raises_missing_template_when_no_renderer
+    @request.accept = "text/csv"
+
     assert_raise ActionView::MissingTemplate do
-      get :respond_to_mime, format: "csv"
+      get :respond_to_mime
     end
+
     assert_equal Mime[:csv], @response.content_type
     assert_equal "", @response.body
   end
 
-  def test_adding_csv_rendering_via_renderers_add
+  def test_responds_to_csv_format_when_adding_csv_renderer_via_renderers_add
     ActionController::Renderers.add :csv do |value, options|
       send_data value.to_csv, type: Mime[:csv]
     end
     @request.accept = "text/csv"
-    get :respond_to_mime, format: "csv"
+
+    get :respond_to_mime
+
     assert_equal Mime[:csv], @response.content_type
     assert_equal "c,s,v", @response.body
   ensure
