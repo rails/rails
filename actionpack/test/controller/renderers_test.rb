@@ -69,6 +69,14 @@ class RenderersTest < ActionController::TestCase
     ActionController.remove_renderer :simon
   end
 
+  def test_explicit_render_raises_missing_template_when_no_such_renderer
+    assert_raise ActionView::MissingTemplate do
+      get :render_simon_says
+    end
+    assert_equal Mime[:html], @response.content_type
+    assert_equal "", @response.body
+  end
+
   def test_respond_to_raises_missing_template_when_no_renderer
     @request.accept = "text/csv"
 
