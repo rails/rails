@@ -1,3 +1,7 @@
+*   Add tests and documentation for `ActionController::Renderers::use_renderers`.
+
+    *Benjamin Fleischer*
+
 *  Cookies `:expires` option supports `ActiveSupport::Duration` object.
 
         cookies[:user_name] = { value: "assain", expires: 1.hour }
