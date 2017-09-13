@@ -153,6 +153,17 @@ module ActionController
     #     JSON.pretty_generate(json, options)
     #   end
     #
+    #   Or in the controller:
+    #
+    #   class TheController < ApplicationController
+    #     serializing json: ->(json, options) do
+    #       return json if json.is_a?(String)
+    #
+    #       json = json.as_json(options) if json.respond_to?(:as_json)
+    #       JSON.pretty_generate(json, options)
+    #     end
+    #   end
+    #
     # See https://groups.google.com/forum/#!topic/rubyonrails-core/K8t4-DZ_DkQ/discussion for
     # more background information.
     def self.add_serializer(key, &block)
@@ -213,6 +224,14 @@ module ActionController
         self._renderers = renderers.freeze
       end
       alias use_renderer use_renderers
+
+      # Accepts a Hash of formats to serializers.
+      # The serializer applies to the current controller its subclasses.
+      # The serializer must respond to call and accept an object and options.
+      def serializing(options)
+        serializers = _serializers.merge(options)
+        self._serializers = serializers.freeze
+      end
     end
 
     # Called by +render+ in <tt>AbstractController::Rendering</tt>

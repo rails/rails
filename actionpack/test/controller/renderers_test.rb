@@ -11,17 +11,6 @@ class RenderersTest < ActionController::TestCase
       "<#{options[:root]}/>"
     end
   end
-  class JsonRenderable
-    def as_json(options = {})
-      hash = { a: :b, c: :d, e: :f }
-      hash.except!(*options[:except]) if options[:except]
-      hash
-    end
-
-    def to_json(options = {})
-      super except: [:c, :e]
-    end
-  end
   class CsvRenderable
     def to_csv
       "c,s,v"
@@ -34,9 +23,7 @@ class RenderersTest < ActionController::TestCase
 
     def respond_to_mime
       respond_to do |type|
-        type.json do
-          render json: JsonRenderable.new
-        end
+        type.json { render json: { a: :b, c: :d, e: :f } }
         type.js   { render json: "JS", callback: "alert" }
         type.csv  { render csv: CsvRenderable.new    }
         type.xml  { render xml: XmlRenderable.new     }
@@ -130,5 +117,83 @@ class RenderersTest < ActionController::TestCase
     assert_equal expected_message, exception.message
   ensure
     ActionController.remove_renderer :csv
+  end
+
+  # Isolate Controller.serializing tests since they change the
+  # class_attribute which has effects on serializers defined
+  # in other tests.
+  class IsolatedRenderersTest < ActionController::TestCase
+    class JsonRenderable
+      def as_json(options = {})
+        hash = { a: :b, c: :d, e: :f }
+        hash.except!(*options[:except]) if options[:except]
+        hash
+      end
+
+      def to_json(options = {})
+        super except: [:c, :e]
+      end
+    end
+
+    class TestController < ActionController::Base
+      def respond_to_mime
+        respond_to do |type|
+          type.json do
+            render json: JsonRenderable.new
+          end
+        end
+      end
+    end
+    class SerializingController < TestController
+      serializing json: ->(json, options) do
+        return json if json.is_a?(String)
+
+        json = json.as_json(options) if json.respond_to?(:as_json)
+        json = JSON.pretty_generate(json, options)
+        json
+      end
+    end
+    class SerializingInheritedController < SerializingController
+    end
+
+    class RenderersControllerDefaultTest < IsolatedRenderersTest
+      tests TestController
+
+      def test_serializers_are_inherited_by_default
+        @request.accept = "application/json"
+        get :respond_to_mime
+        assert_equal JsonRenderable.new.to_json, @response.body
+        assert_equal ActionController::Base._serializers[:json], @controller.class._serializers[:json]
+      end
+    end
+
+    class RenderersControllerSerializingTest < IsolatedRenderersTest
+      tests SerializingController
+
+      def test_replacing_serializer_per_controller
+        @request.accept = "application/json"
+        get :respond_to_mime
+
+        assert_equal JSON.pretty_generate(JsonRenderable.new.as_json), @response.body
+
+        refute_equal TestController._serializers[:json], @controller.class._serializers[:json]
+        refute_equal ActionController::Base._serializers[:json], @controller.class._serializers[:json]
+      end
+    end
+
+    class RenderersInheritedControllerSerializingTest < IsolatedRenderersTest
+      tests SerializingInheritedController
+
+      def test_replaced_serializer_is_inherited
+        @request.accept = "application/json"
+        get :respond_to_mime
+
+        assert_equal JSON.pretty_generate(JsonRenderable.new.as_json), @response.body
+
+        assert_equal SerializingController._serializers[:json], @controller.class._serializers[:json]
+        refute_equal TestController._serializers[:json], @controller.class._serializers[:json]
+        refute_equal ActionController::Base._serializers[:json], @controller.class._serializers[:json]
+      end
+    end
   end
 end
