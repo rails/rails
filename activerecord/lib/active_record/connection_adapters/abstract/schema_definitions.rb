@@ -306,6 +306,7 @@ module ActiveRecord
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
+      #     t.string  :mpn, null: false, index: { unique: true }
       #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps null: false
