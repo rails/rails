@@ -1,9 +1,25 @@
+*   Support descending order for `find_each`, `find_in_batches` and `in_batches`.
+
+    Batch processing methods allow you to work with the records in batches, greatly reducing memory consumption, but records are always batched from oldest id to newest.
+
+    This change allows reversing the order, batching from newest to oldest. This is useful when you need to process newer batches of records first.
+
+    Pass `order: :desc` to yield batches in descending order. The default remains `order: :asc`.
+
+    ```ruby
+    Person.find_each(order: :desc) do |person|
+      person.party_all_night!
+    end
+    ```
+
+    *Alexey Vasiliev*
+
 *   Fix insert_all with enum values
 
     Fixes #38716.
 
     *Joel Blum*
-    
+
 *   Add support for `db:rollback:name` for multiple database applications.
 
     Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.
