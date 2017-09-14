@@ -83,10 +83,8 @@ module ApplicationTests
       end
 
       test "db:drop failure because database does not exist" do
-        Dir.chdir(app_path) do
-          output = rails("db:drop:_unsafe", "--trace")
-          assert_match(/does not exist/, output)
-        end
+        output = rails("db:drop:_unsafe", "--trace")
+        assert_match(/does not exist/, output)
       end
 
       test "db:drop failure because bad permissions" do
@@ -100,13 +98,11 @@ module ApplicationTests
       end
 
       def db_migrate_and_status(expected_database)
-        Dir.chdir(app_path) do
-          rails "generate", "model", "book", "title:string"
-          rails "db:migrate"
-          output = rails("db:migrate:status")
-          assert_match(%r{database:\s+\S*#{Regexp.escape(expected_database)}}, output)
-          assert_match(/up\s+\d{14}\s+Create books/, output)
-        end
+        rails "generate", "model", "book", "title:string"
+        rails "db:migrate"
+        output = rails("db:migrate:status")
+        assert_match(%r{database:\s+\S*#{Regexp.escape(expected_database)}}, output)
+        assert_match(/up\s+\d{14}\s+Create books/, output)
       end
 
       test "db:migrate and db:migrate:status without database_url" do
@@ -161,12 +157,11 @@ module ApplicationTests
 
       test "db:fixtures:load with namespaced fixture" do
         require "#{app_path}/config/environment"
-        Dir.chdir(app_path) do
-          rails "generate", "model", "admin::book", "title:string"
-          rails "db:migrate", "db:fixtures:load"
-          require "#{app_path}/app/models/admin/book"
-          assert_equal 2, Admin::Book.count
-        end
+
+        rails "generate", "model", "admin::book", "title:string"
+        rails "db:migrate", "db:fixtures:load"
+        require "#{app_path}/app/models/admin/book"
+        assert_equal 2, Admin::Book.count
       end
 
       def db_structure_dump_and_load(expected_database)
@@ -205,56 +200,52 @@ module ApplicationTests
       end
 
       test "db:schema:load and db:structure:load do not purge the existing database" do
-        Dir.chdir(app_path) do
-          rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
+        rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
 
-          app_file "db/schema.rb", <<-RUBY
-            ActiveRecord::Schema.define(version: 20140423102712) do
-              create_table(:comments) {}
-            end
-          RUBY
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table(:comments) {}
+          end
+        RUBY
 
-          list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
 
-          assert_equal '["posts"]', list_tables[]
-          rails "db:schema:load"
-          assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
+        assert_equal '["posts"]', list_tables[]
+        rails "db:schema:load"
+        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
 
-          app_file "db/structure.sql", <<-SQL
-            CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
-          SQL
+        app_file "db/structure.sql", <<-SQL
+          CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
+        SQL
 
-          rails "db:structure:load"
-          assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
-        end
+        rails "db:structure:load"
+        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
       end
 
       test "db:schema:load with inflections" do
-        Dir.chdir(app_path) do
-          app_file "config/initializers/inflection.rb", <<-RUBY
-            ActiveSupport::Inflector.inflections do |inflect|
-              inflect.irregular 'goose', 'geese'
+        app_file "config/initializers/inflection.rb", <<-RUBY
+          ActiveSupport::Inflector.inflections do |inflect|
+            inflect.irregular 'goose', 'geese'
+          end
+        RUBY
+        app_file "config/initializers/primary_key_table_name.rb", <<-RUBY
+          ActiveRecord::Base.primary_key_prefix_type = :table_name
+        RUBY
+        app_file "db/schema.rb", <<-RUBY
+          ActiveRecord::Schema.define(version: 20140423102712) do
+            create_table("goose".pluralize) do |t|
+              t.string :name
             end
-          RUBY
-          app_file "config/initializers/primary_key_table_name.rb", <<-RUBY
-            ActiveRecord::Base.primary_key_prefix_type = :table_name
-          RUBY
-          app_file "db/schema.rb", <<-RUBY
-            ActiveRecord::Schema.define(version: 20140423102712) do
-              create_table("goose".pluralize) do |t|
-                t.string :name
-              end
-            end
-          RUBY
+          end
+        RUBY
 
-          rails "db:schema:load"
+        rails "db:schema:load"
 
-          tables = rails("runner", "p ActiveRecord::Base.connection.tables").strip
-          assert_match(/"geese"/, tables)
+        tables = rails("runner", "p ActiveRecord::Base.connection.tables").strip
+        assert_match(/"geese"/, tables)
 
-          columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
-          assert_equal columns, '["gooseid", "name"]'
-        end
+        columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
+        assert_equal columns, '["gooseid", "name"]'
       end
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
@@ -300,10 +291,8 @@ module ApplicationTests
             puts ActiveRecord::Base.connection_config[:database]
           RUBY
 
-          Dir.chdir(app_path) do
-            database_path = rails("db:setup")
-            assert_equal "development.sqlite3", File.basename(database_path.strip)
-          end
+          database_path = rails("db:setup")
+          assert_equal "development.sqlite3", File.basename(database_path.strip)
         ensure
           ENV["RAILS_ENV"] = @old_rails_env
           ENV["RACK_ENV"] = @old_rack_env

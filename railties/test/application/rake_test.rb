@@ -40,7 +40,7 @@ module ApplicationTests
       with_rails_env "test" do
         rails "generate", "model", "product", "name:string"
         rails "db:create", "db:migrate"
-        output = Dir.chdir(app_path) { rails("db:test:prepare", "test") }
+        output = rails("db:test:prepare", "test")
 
         refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
@@ -372,14 +372,12 @@ module ApplicationTests
     end
 
     def test_copy_templates
-      Dir.chdir(app_path) do
-        rails "app:templates:copy"
-        %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
-        end
-        %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
-        end
+      rails "app:templates:copy"
+      %w(controller mailer scaffold).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
+      end
+      %w(controller helper scaffold_controller assets).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
     end
 
