@@ -20,15 +20,11 @@ module Rails
           say "If you lose the key, no one, including you, can access anything encrypted with it."
 
           say ""
-          add_master_key_file_silently key
+          create_file MASTER_KEY_PATH, key
           say ""
 
           ignore_master_key_file
         end
-      end
-
-      def add_master_key_file_silently(key = nil)
-        create_file MASTER_KEY_PATH, key || ActiveSupport::EncryptedFile.generate_key
       end
 
       private
