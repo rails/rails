@@ -43,8 +43,7 @@ module ActiveRecord
              :to_sentence, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, to: :klass
+    delegate :primary_key, :connection, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
