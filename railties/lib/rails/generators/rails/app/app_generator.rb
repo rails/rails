@@ -159,6 +159,8 @@ module Rails
     end
 
     def master_key
+      return if options[:pretend]
+
       require_relative "../master_key/master_key_generator"
 
       after_bundle do
@@ -167,6 +169,8 @@ module Rails
     end
 
     def credentials
+      return if options[:pretend]
+
       require_relative "../credentials/credentials_generator"
 
       after_bundle do
