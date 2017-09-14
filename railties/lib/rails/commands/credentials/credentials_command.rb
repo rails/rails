@@ -53,7 +53,6 @@ module Rails
 
         def ensure_master_key_has_been_added
           master_key_generator.add_master_key_file
-          master_key_generator.ignore_master_key_file
         end
 
         def ensure_credentials_have_been_added
