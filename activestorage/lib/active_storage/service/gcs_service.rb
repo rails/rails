@@ -36,7 +36,7 @@ module ActiveStorage
     def delete(key)
       instrument :delete, key do
         begin
-          file_for(key).try(:delete)
+          file_for(key).delete
         rescue Google::Cloud::NotFoundError
           # Ignore files already deleted
         end
@@ -45,7 +45,7 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key do |payload|
-        answer = file_for(key).present?
+        answer = file_for(key).exists?
         payload[:exist] = answer
         answer
       end
@@ -81,7 +81,7 @@ module ActiveStorage
 
     private
       def file_for(key)
-        bucket.file(key)
+        bucket.file(key, skip_lookup: true)
       end
   end
 end
