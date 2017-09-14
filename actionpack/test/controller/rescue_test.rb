@@ -294,7 +294,7 @@ class RescueControllerTest < ActionController::TestCase
 
   test "rescue when wrapper has more specific handler than cause" do
     get :exception_with_more_specific_handler_for_wrapper
-    assert_response :forbidden
+    assert_response :unprocessable_entity
   end
 
   test "rescue when cause has more specific handler than wrapper" do

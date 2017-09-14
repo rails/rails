@@ -85,19 +85,13 @@ module ActiveSupport
       #     end
       #
       # Returns the exception if it was handled and +nil+ if it was not.
-      def rescue_with_handler(exception, object: self, visited_exceptions: [])
-        visited_exceptions << exception
+      def rescue_with_handler(exception, object: self)
+        target_exception = highest_priority_exception_in_cause_chain(exception)
+        return nil unless target_exception
 
-        if handler = handler_for_rescue(exception, object: object)
-          handler.call exception
-          exception
-        elsif exception
-          if visited_exceptions.include?(exception.cause)
-            nil
-          else
-            rescue_with_handler(exception.cause, object: object, visited_exceptions: visited_exceptions)
-          end
-        end
+        handler = handler_for_rescue(target_exception, object: object)
+        handler.call target_exception
+        target_exception
       end
 
       def handler_for_rescue(exception, object: self) #:nodoc:
@@ -156,6 +150,28 @@ module ActiveSupport
           else
             class_or_name
           end
+        end
+
+        def highest_priority_exception_in_cause_chain(exception)
+          exceptions = cause_chain(exception)
+          self.rescue_handlers.reverse_each do |class_or_name, _|
+            klass = constantize_rescue_handler_class(class_or_name)
+            next unless klass
+
+            exceptions.each do |exception|
+              return exception if klass === exception
+            end
+          end
+          nil
+        end
+
+        # Enumerate exception and its causes
+        def cause_chain(exception)
+          exceptions = [exception]
+          while exception = exception.cause
+            exceptions << exception
+          end
+          exceptions
         end
     end
 
