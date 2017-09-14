@@ -333,9 +333,7 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
-      output = with_rails_env("test") do
-        rails "db:test:prepare", "--trace"
-      end
+      output = rails("db:test:prepare", "--trace")
       assert_match(/Execute db:test:load_structure/, output)
     end
 
