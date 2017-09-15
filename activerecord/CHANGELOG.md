@@ -1,3 +1,7 @@
+*   Remove deprecated configuration `.error_on_ignored_order_or_limit`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated arguments from `#verify!`.
 
     *Rafael Mendonça França*
