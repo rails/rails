@@ -1,3 +1,7 @@
+*   Remove deprecated method `supports_primary_key?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated method `supports_migrations?`.
 
     *Rafael Mendonça França*

@@ -196,11 +196,6 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      def supports_primary_key? # :nodoc:
-        true
-      end
-      deprecate :supports_primary_key?
-
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?
