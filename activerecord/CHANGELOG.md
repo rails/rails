@@ -1,3 +1,7 @@
+*   Remove deprecated method `supports_migrations?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
 
     *Rafael Mendonça França*

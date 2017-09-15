@@ -196,11 +196,6 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      def supports_migrations? # :nodoc:
-        true
-      end
-      deprecate :supports_migrations?
-
       def supports_primary_key? # :nodoc:
         true
       end
