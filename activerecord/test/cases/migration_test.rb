@@ -1106,8 +1106,4 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
   end
-
-  def test_deprecate_schema_migrations_table_name
-    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
-  end
 end

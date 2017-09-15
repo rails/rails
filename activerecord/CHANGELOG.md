@@ -1,3 +1,7 @@
+*   Remove deprecated method `ActiveRecord::Migrator.schema_migrations_table_name`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated method `supports_primary_key?`.
 
     *Rafael Mendonça França*
