@@ -52,7 +52,7 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.7
+  - 2.2.8
   - 2.3.4
   - 2.4.1
   - ruby-head
@@ -61,7 +61,7 @@ matrix:
   include:
     - rvm: 2.4.1
       env: "GEM=av:ujs"
-    - rvm: 2.2.7
+    - rvm: 2.2.8
       env: "GEM=aj:integration"
       services:
         - memcached
