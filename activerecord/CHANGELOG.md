@@ -1,3 +1,7 @@
+*   Remove deprecated arguments from `#verify!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated argument `name` from `#indexes`.
 
     *Rafael Mendonça França*
