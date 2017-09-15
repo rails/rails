@@ -92,14 +92,18 @@ module ActionView
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
       #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
       def truncate(text, options = {}, &block)
-        if text
-          length  = options.fetch(:length, 30)
+        return unless text
 
-          content = text.truncate(length, options)
-          content = options[:escape] == false ? content.html_safe : ERB::Util.html_escape(content)
-          content << capture(&block) if block_given? && text.length > length
-          content
+        unless text.is_a?(String)
+          raise ArgumentError, "can't truncate other than String, got #{text.class}"
         end
+
+        length  = options.fetch(:length, 30)
+
+        content = text.truncate(length, options)
+        content = options[:escape] == false ? content.html_safe : ERB::Util.html_escape(content)
+        content << capture(&block) if block_given? && text.length > length
+        content
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
