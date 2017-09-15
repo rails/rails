@@ -1165,7 +1165,7 @@ it look as follows:
 ```html+erb
 <h1>Edit article</h1>
 
-<%= form_with(model: @article) do |form| %>
+<%= form_with(model: @article, local: true) do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1768,7 +1768,7 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1834,7 +1834,7 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1864,7 +1864,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with(model: [ @article, @article.comments.build ]) do |form| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
