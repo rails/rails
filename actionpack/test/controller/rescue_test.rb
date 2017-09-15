@@ -308,6 +308,40 @@ class RescueControllerTest < ActionController::TestCase
   end
 end
 
+class RaiseTemplateErrorWithCauseController < ActionController::Base
+  class CauseError < StandardError
+  end
+
+  def raise_template_error_with_cause
+    raise CauseError
+  rescue
+    raise ActionView::Template::Error.new(nil)
+  end
+end
+
+class RescueStandardErrorController < RaiseTemplateErrorWithCauseController
+  rescue_from StandardError, with: lambda { head :internal_server_error }
+  rescue_from CauseError, with: lambda { head :not_found }
+end
+
+class RescueStandardErrorControllerTest < ActionController::TestCase
+  test "rescue cause of action view template error" do
+    get :raise_template_error_with_cause
+    assert_response :not_found
+  end
+end
+
+class RescueTemplateErrorController < RaiseTemplateErrorWithCauseController
+  rescue_from ActionView::Template::Error, with: lambda { head :internal_server_error }
+end
+
+class RescueTemplateErrorControllerTest < ActionController::TestCase
+  test "rescue action view template error if its handler explicitly defined" do
+    get :raise_template_error_with_cause
+    assert_response :internal_server_error
+  end
+end
+
 class RescueTest < ActionDispatch::IntegrationTest
   class TestController < ActionController::Base
     class RecordInvalid < StandardError
