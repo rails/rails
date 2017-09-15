@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "concurrent/map"
 
 module ActiveRecord
@@ -173,11 +172,6 @@ module ActiveRecord
       def scopes
         scope ? [scope] : []
       end
-
-      def scope_chain
-        chain.map(&:scopes)
-      end
-      deprecate :scope_chain
 
       def build_join_constraint(table, foreign_table)
         key         = join_keys.key
