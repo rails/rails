@@ -1,3 +1,7 @@
+*   Remove deprecated method `#sanitize_conditions`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated method `#scope_chain`.
 
     *Rafael Mendonça França*
