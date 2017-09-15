@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil)
+      def indexes(table_name)
         raise NotImplementedError, "#indexes is not implemented"
       end
 

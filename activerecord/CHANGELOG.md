@@ -1,3 +1,7 @@
+*   Remove deprecated argument `name` from `#indexes`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated method `ActiveRecord::Migrator.schema_migrations_table_name`.
 
     *Rafael Mendonça França*
