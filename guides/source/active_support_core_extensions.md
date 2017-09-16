@@ -674,44 +674,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-### Reachable
-
-A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
-
-That is what ordinarily happens, if a module is called "M", the `M` constant exists and holds it:
-
-```ruby
-module M
-end
-
-M.reachable? # => true
-```
-
-But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
-
-```ruby
-module M
-end
-
-orphan = Object.send(:remove_const, :M)
-
-# The module object is orphan now but it still has a name.
-orphan.name # => "M"
-
-# You cannot reach it via the constant M because it does not even exist.
-orphan.reachable? # => false
-
-# Let's define a module called "M" again.
-module M
-end
-
-# The constant M exists now again, and it stores a module
-# object called "M", but it is a new instance.
-orphan.reachable? # => false
-```
-
-NOTE: Defined in `active_support/core_ext/module/reachable.rb`.
-
 ### Anonymous
 
 A module may or may not have a name:
@@ -745,7 +707,6 @@ end
 
 m = Object.send(:remove_const, :M)
 
-m.reachable? # => false
 m.anonymous? # => false
 ```
 
