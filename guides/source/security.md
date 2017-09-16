@@ -1038,18 +1038,18 @@ By default, this file contains the application's
 access keys for external APIs.
 
 The credentials added to this file are accessible via `Rails.application.credentials`.
-For example, with the following decrypted `config/credentails.yml.enc`:
+For example, with the following decrypted `config/credentials.yml.enc`:
 
     secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
     some_api_key: SOMEKEY
 
-`Rails.application.credentails.some_api_key` returns `SOMEKEY` in any environment.
+`Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
 
 If you want an exception to be raised when some key is blank, use the bang
 version:
 
 ```ruby
-Rails.application.credentails.some_api_key! # => raises KeyError: key not found: :some_api_key
+Rails.application.credentials.some_api_key! # => raises KeyError: key not found: :some_api_key
 ```
 
 Additional Resources
