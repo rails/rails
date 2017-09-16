@@ -161,6 +161,16 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2015, 1, 5, 15, 15, 10), date_time_init(2015, 1, 3, 15, 15, 10).next_weekday
   end
 
+  def test_next_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(0)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(1)
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month.next_month
+  end
+
   def test_next_month_on_31st
     assert_equal date_time_init(2005, 9, 30, 15, 15, 10), date_time_init(2005, 8, 31, 15, 15, 10).next_month
   end
@@ -213,6 +223,16 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2015, 1, 2, 15, 15, 10), date_time_init(2015, 1, 4, 15, 15, 10).prev_weekday
   end
 
+  def test_prev_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(0)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(1)
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month.prev_month
+  end
+
   def test_prev_month_on_31st
     assert_equal date_time_init(2004, 2, 29, 10, 10, 10), date_time_init(2004, 3, 31, 10, 10, 10).prev_month
   end
@@ -223,6 +243,10 @@ module DateAndTimeBehavior
 
   def test_prev_year
     assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year
+  end
+
+  def test_last_month_on_31st
+    assert_equal date_time_init(2004, 2, 29, 0, 0, 0), date_time_init(2004, 3, 31, 0, 0, 0).last_month
   end
 
   def test_days_to_week_start

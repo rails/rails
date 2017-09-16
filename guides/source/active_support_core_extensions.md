@@ -3019,11 +3019,9 @@ Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
 Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 ```
 
-`prev_month` is aliased to `last_month`.
-
 ##### `prev_quarter`, `next_quarter`
 
-Same as `prev_month` and `next_month`. It returns the date with the same day in the previous or next quarter:
+`prev_quarter` and `next_quarter` return the date with the same day in the previous or next quarter:
 
 ```ruby
 t = Time.local(2010, 5, 8) # => Sat, 08 May 2010
@@ -3174,6 +3172,8 @@ If such a day does not exist, the last day of the corresponding month is returne
 Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
 Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
 ```
+
+`last_month` is short-hand for `#months_ago(1)`.
 
 ##### `weeks_ago`
 
@@ -3353,8 +3353,9 @@ months_ago
 months_since
 beginning_of_month (at_beginning_of_month)
 end_of_month (at_end_of_month)
-prev_month (last_month)
+prev_month
 next_month
+last_month
 beginning_of_quarter (at_beginning_of_quarter)
 end_of_quarter (at_end_of_quarter)
 beginning_of_year (at_beginning_of_year)
@@ -3541,8 +3542,9 @@ months_ago
 months_since
 beginning_of_month (at_beginning_of_month)
 end_of_month (at_end_of_month)
-prev_month (last_month)
+prev_month
 next_month
+last_month
 beginning_of_quarter (at_beginning_of_quarter)
 end_of_quarter (at_end_of_quarter)
 beginning_of_year (at_beginning_of_year)

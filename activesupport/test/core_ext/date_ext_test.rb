@@ -185,10 +185,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582, 10, 18), Date.new(1582, 10, 4).next_week
   end
 
-  def test_last_month_on_31st
-    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
-  end
-
   def test_last_quarter_on_31st
     assert_equal Date.new(2004, 2, 29), Date.new(2004, 5, 31).last_quarter
   end

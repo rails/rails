@@ -1,3 +1,30 @@
+*   Add same method signature for `Time#prev_month` and `Time#next_month`
+    in accordance with `Date#prev_month`, `Date#next_month`.
+
+    Allows pass argument for `Time#prev_month` and `Time#next_month`.
+
+    Before:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_month    # => 2017-08-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_month(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+
+    Time.new(2017, 9, 16, 17, 0).next_month    # => 2017-10-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_month(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+    ```
+
+    After:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_month    # => 2017-08-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_month(1) # => 2017-08-16 17:00:00 +0300
+
+    Time.new(2017, 9, 16, 17, 0).next_month    # => 2017-10-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_month(1) # => 2017-10-16 17:00:00 +0300
+    ```
+
+    *bogdanvlviv*
+
 *   Add same method signature for `Time#prev_day` and `Time#next_day`
     in accordance with `Date#prev_day`, `Date#next_day`.
 

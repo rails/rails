@@ -188,9 +188,9 @@ module DateAndTime
       end
     end
 
-    # Short-hand for months_since(1).
-    def next_month
-      months_since(1)
+    # Returns a new date/time the specified number of months in the future.
+    def next_month(months = 1)
+      advance(months: months)
     end
 
     # Short-hand for months_since(3)
@@ -223,11 +223,15 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
+    # Returns a new date/time the specified number of months ago.
+    def prev_month(months = 1)
+      advance(months: -months)
+    end
+
     # Short-hand for months_ago(1).
-    def prev_month
+    def last_month
       months_ago(1)
     end
-    alias_method :last_month, :prev_month
 
     # Short-hand for months_ago(3).
     def prev_quarter

@@ -248,10 +248,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2016, 2, 29), DateTime.civil(2016, 3, 7).last_week
   end
 
-  def test_last_month_on_31st
-    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
-  end
-
   def test_last_quarter_on_31st
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 5, 31).last_quarter
   end
