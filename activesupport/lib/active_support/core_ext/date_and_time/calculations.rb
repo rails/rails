@@ -20,9 +20,9 @@ module DateAndTime
       advance(days: -1)
     end
 
-    # Returns a new date/time representing the previous day.
-    def prev_day
-      advance(days: -1)
+    # Returns a new date/time the specified number of days ago.
+    def prev_day(days = 1)
+      advance(days: -days)
     end
 
     # Returns a new date/time representing tomorrow.
@@ -30,9 +30,9 @@ module DateAndTime
       advance(days: 1)
     end
 
-    # Returns a new date/time representing the next day.
-    def next_day
-      advance(days: 1)
+    # Returns a new date/time the specified number of days in the future.
+    def next_day(days = 1)
+      advance(days: days)
     end
 
     # Returns true if the date/time is today.

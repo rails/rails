@@ -1,3 +1,30 @@
+*   Add same method signature for `Time#prev_day` and `Time#next_day`
+    in accordance with `Date#prev_day`, `Date#next_day`.
+
+    Allows pass argument for `Time#prev_day` and `Time#next_day`.
+
+    Before:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_day    # => 2017-09-15 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_day(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+
+    Time.new(2017, 9, 16, 17, 0).next_day    # => 2017-09-17 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_day(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+    ```
+
+    After:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_day    # => 2017-09-15 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_day(1) # => 2017-09-15 17:00:00 +0300
+
+    Time.new(2017, 9, 16, 17, 0).next_day    # => 2017-09-17 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_day(1) # => 2017-09-17 17:00:00 +0300
+    ```
+
+    *bogdanvlviv*
+
 *   `IO#to_json` now returns the `to_s` representation, rather than
     attempting to convert to an array. This fixes a bug where `IO#to_json`
     would raise an `IOError` when called on an unreadable object.
