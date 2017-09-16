@@ -1,3 +1,7 @@
+*   Deprecate `Module#reachable?` method.
+
+    *bogdanvlviv*
+
 *   Add `config/credentials.yml.enc` to store production app secrets.
 
     Allows saving any authentication credentials for third party services
