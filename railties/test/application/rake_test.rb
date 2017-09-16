@@ -133,13 +133,8 @@ module ApplicationTests
 
       output = rails("routes")
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
     end
 
@@ -174,18 +169,14 @@ module ApplicationTests
 
       output = rails("routes", "-g", "show", allow_failure: true)
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
 
       output = rails("routes", "-g", "POST")
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                    Controller#Action
-                                POST /cart(.:format)                                cart#create
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                                POST /cart(.:format) cart#create
       MESSAGE
 
       output = rails("routes", "-g", "basketballs")
@@ -242,12 +233,11 @@ module ApplicationTests
       RUBY
 
       assert_equal <<-MESSAGE.strip_heredoc, rails("routes")
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+        You don't have any routes defined!
+
+        Please add some routes in config/routes.rb.
+
+        For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
       MESSAGE
     end
 
@@ -261,13 +251,8 @@ module ApplicationTests
       output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
 
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
     end
 
