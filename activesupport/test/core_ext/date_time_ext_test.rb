@@ -162,10 +162,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005, 4, 30, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 4, 20, 10, 10, 10).end_of_month
   end
 
-  def test_last_year
-    assert_equal DateTime.civil(2004, 6, 5, 10),  DateTime.civil(2005, 6, 5, 10, 0, 0).last_year
-  end
-
   def test_ago
     assert_equal DateTime.civil(2005, 2, 22, 10, 10, 9),  DateTime.civil(2005, 2, 22, 10, 10, 10).ago(1)
     assert_equal DateTime.civil(2005, 2, 22, 9, 10, 10),  DateTime.civil(2005, 2, 22, 10, 10, 10).ago(3600)

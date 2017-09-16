@@ -180,7 +180,13 @@ module DateAndTimeBehavior
   end
 
   def test_next_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-2)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(0)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(1)
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(2)
     assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year.next_year
   end
 
   def test_prev_week
@@ -242,11 +248,21 @@ module DateAndTimeBehavior
   end
 
   def test_prev_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-2)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(0)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(1)
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(2)
     assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year.prev_year
   end
 
   def test_last_month_on_31st
     assert_equal date_time_init(2004, 2, 29, 0, 0, 0), date_time_init(2004, 3, 31, 0, 0, 0).last_month
+  end
+
+  def test_last_year
+    assert_equal date_time_init(2004, 6, 5, 10, 0, 0), date_time_init(2005, 6, 5, 10, 0, 0).last_year
   end
 
   def test_days_to_week_start

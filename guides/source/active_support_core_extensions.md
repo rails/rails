@@ -2998,8 +2998,6 @@ d.prev_year               # => Sun, 28 Feb 1999
 d.next_year               # => Wed, 28 Feb 2001
 ```
 
-`prev_year` is aliased to `last_year`.
-
 ##### `prev_month`, `next_month`
 
 In Ruby 1.9 `prev_month` and `next_month` return the date with the same day in the last or next month:
@@ -3156,6 +3154,8 @@ If such a day does not exist, the last day of the corresponding month is returne
 Date.new(2012, 2, 29).years_ago(3)     # => Sat, 28 Feb 2009
 Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
 ```
+
+`last_year` is short-hand for `#years_ago(1)`.
 
 ##### `months_ago`, `months_since`
 
@@ -3362,7 +3362,8 @@ beginning_of_year (at_beginning_of_year)
 end_of_year (at_end_of_year)
 years_ago
 years_since
-prev_year (last_year)
+prev_year
+last_year
 next_year
 on_weekday?
 on_weekend?
@@ -3551,7 +3552,8 @@ beginning_of_year (at_beginning_of_year)
 end_of_year (at_end_of_year)
 years_ago
 years_since
-prev_year (last_year)
+prev_year
+last_year
 next_year
 on_weekday?
 on_weekend?

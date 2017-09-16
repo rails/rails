@@ -198,9 +198,9 @@ module DateAndTime
       months_since(3)
     end
 
-    # Short-hand for years_since(1).
-    def next_year
-      years_since(1)
+    # Returns a new date/time the specified number of years in the future.
+    def next_year(years = 1)
+      advance(years: years)
     end
 
     # Returns a new date/time representing the given day in the previous week.
@@ -239,11 +239,15 @@ module DateAndTime
     end
     alias_method :last_quarter, :prev_quarter
 
+    # Returns a new date/time the specified number of years ago.
+    def prev_year(years = 1)
+      advance(years: -years)
+    end
+
     # Short-hand for years_ago(1).
-    def prev_year
+    def last_year
       years_ago(1)
     end
-    alias_method :last_year, :prev_year
 
     # Returns the number of days to the start of the week on the given day.
     # Week is assumed to start on +start_day+, default is

@@ -178,10 +178,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005, 2, 4, 19, 30, 59, Rational(999999999, 1000)), Time.local(2005, 2, 4, 19, 30, 10).end_of_minute
   end
 
-  def test_last_year
-    assert_equal Time.local(2004, 6, 5, 10),  Time.local(2005, 6, 5, 10, 0, 0).last_year
-  end
-
   def test_ago
     assert_equal Time.local(2005, 2, 22, 10, 10, 9),  Time.local(2005, 2, 22, 10, 10, 10).ago(1)
     assert_equal Time.local(2005, 2, 22, 9, 10, 10),  Time.local(2005, 2, 22, 10, 10, 10).ago(3600)

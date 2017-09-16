@@ -120,10 +120,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582, 10, 4), Date.new(1583, 10, 14).prev_year
   end
 
-  def test_last_year
-    assert_equal Date.new(2004, 6, 5),  Date.new(2005, 6, 5).last_year
-  end
-
   def test_last_year_in_leap_years
     assert_equal Date.new(1999, 2, 28), Date.new(2000, 2, 29).last_year
   end
