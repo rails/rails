@@ -3,7 +3,6 @@
 require_relative "module/aliasing"
 require_relative "module/introspection"
 require_relative "module/anonymous"
-require_relative "module/reachable"
 require_relative "module/attribute_accessors"
 require_relative "module/attribute_accessors_per_thread"
 require_relative "module/attr_internal"
