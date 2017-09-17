@@ -1,3 +1,8 @@
+*   Remove deprecated `ActiveSupport.halt_callback_chains_on_return_false`
+    and `ActiveSupport.halt_callback_chains_on_return_false=`.
+
+    *bogdanvlviv*
+
 *   Add `config/credentials.yml.enc` to store production app secrets.
 
     Allows saving any authentication credentials for third party services
