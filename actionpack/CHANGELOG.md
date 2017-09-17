@@ -1,3 +1,10 @@
+*  Use Capybara registered `:puma` server config.
+
+    The Capybara registered `:puma` server ensures the puma server is run in process so
+    connection sharing and open request detection work correctly by default.
+
+    *Thomas Walpole*
+
 ## Rails 5.1.6 (March 29, 2018) ##
 
 *   Check exclude before flagging cookies as secure.
