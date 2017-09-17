@@ -1,3 +1,7 @@
+*   Add `mini_magick` to default `Gemfile` as comment.
+
+    *Yoshiyuki Hirano*
+
 *   Derive `secret_key_base` from the app name in development and test environments.
 
     Spares away needless secret configs.
