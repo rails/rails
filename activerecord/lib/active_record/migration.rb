@@ -354,9 +354,9 @@ module ActiveRecord
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:migrate STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
