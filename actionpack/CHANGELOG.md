@@ -1,3 +1,10 @@
+*   Use Capybara registered `:puma` server config.
+
+    The Capybara registered `:puma` server ensures the puma server is run in process so
+    connection sharing and open request detection work correctly by default.
+
+    *Thomas Walpole*
+
 *   Ensure dev and prod puma configs do not clobber `ActionDispatch::SystemTesting` defaults. Adds workers: 0 and daemon: false
 
     *Max Schwenk*

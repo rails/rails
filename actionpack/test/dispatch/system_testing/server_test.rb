@@ -7,10 +7,6 @@ class ServerTest < ActiveSupport::TestCase
     ActionDispatch::SystemTesting::Server.new.run
   end
 
-  test "initializing the server port" do
-    assert_includes Capybara.servers, :rails_puma
-  end
-
   test "port is always included" do
     assert Capybara.always_include_port, "expected Capybara.always_include_port to be true"
   end
