@@ -1400,7 +1400,7 @@ module ActiveRecord
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
-        def has_many(name, scope = nil, options = {}, &extension)
+        def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
         end
@@ -1534,7 +1534,7 @@ module ActiveRecord
         #   has_one :club, through: :membership
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
-        def has_one(name, scope = nil, options = {})
+        def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
         end
@@ -1678,7 +1678,7 @@ module ActiveRecord
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
-        def belongs_to(name, scope = nil, options = {})
+        def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
         end
