@@ -67,9 +67,7 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name, through_scope)
-            should_reset = through_scope != through_reflection.klass.unscoped
-
+          def reset_association(owners, association_name, should_reset)
             # Don't cache the association - we would only be caching a subset
             if should_reset
               owners.each { |owner|
@@ -112,7 +110,7 @@ module ActiveRecord
               end
             end
 
-            scope
+            scope unless scope.empty_scope?
           end
       end
     end
