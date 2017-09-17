@@ -237,7 +237,7 @@ Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
 We can easily generate these models in our "dummy" Rails application by running the following commands from the
-test/dummy directory:
+`test/dummy` directory:
 
 ```bash
 $ cd test/dummy
