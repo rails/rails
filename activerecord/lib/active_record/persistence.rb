@@ -124,7 +124,7 @@ module ActiveRecord
       #
       # ==== Parameters
       #
-      # * +id+ - Can be either an Integer or an Array of Integers.
+      # * +id+ - This should be the id or an array of ids to be destroyed.
       #
       # ==== Examples
       #
