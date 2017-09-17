@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionView::Template::Handlers::Erubis`.
+
+    *bogdanvlviv*
+
 *   Remove default `alt` text generation.
 
     Fixes #30096

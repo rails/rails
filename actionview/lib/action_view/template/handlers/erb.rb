@@ -3,11 +3,8 @@
 module ActionView
   class Template
     module Handlers
-      autoload :Erubis, "action_view/template/handlers/erb/deprecated_erubis"
-
       class ERB
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
-        autoload :Erubis, "action_view/template/handlers/erb/erubis"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
