@@ -68,8 +68,7 @@ module ActiveRecord
           end
 
           def reset_association(owners, association_name, through_scope)
-            should_reset = (through_scope != through_reflection.klass.unscoped) ||
-               (options[:source_type] && through_reflection.collection?)
+            should_reset = through_scope != through_reflection.klass.unscoped
 
             # Don't cache the association - we would only be caching a subset
             if should_reset
