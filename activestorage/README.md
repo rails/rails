@@ -63,7 +63,7 @@ end
 ```
 
 ```erb
-<%= form_with model: @message do |form| %>
+<%= form_with model: @message, local: true do |form| %>
   <%= form.text_field :title, placeholder: "Title" %><br>
   <%= form.text_area :content %><br><br>
 
