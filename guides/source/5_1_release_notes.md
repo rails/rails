@@ -602,7 +602,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/28157))
 
 *   Deprecated passing string to `:if` and `:unless` conditional options on `set_callback` and `skip_callback`.
-    ([Commit](https://github.com/rails/rails/commit/0952552)
+    ([Commit](https://github.com/rails/rails/commit/0952552))
 
 ### Notable changes
 
