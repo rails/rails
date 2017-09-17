@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionCable::SubscriptionAdapter::EventedRedis`.
+
+    *bogdanvlviv*
+
 *   Hash long stream identifiers when using PostgreSQL adapter.
 
     PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
