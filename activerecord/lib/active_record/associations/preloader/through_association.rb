@@ -28,6 +28,8 @@ module ActiveRecord
 
           middle_records = through_records.flat_map(&:last)
 
+          reflection_scope = reflection_scope() if reflection.scope
+
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
                                          reflection_scope)
@@ -49,7 +51,7 @@ module ActiveRecord
               }.compact
 
               # Respect the order on `reflection_scope` if it exists, else use the natural order.
-              if reflection_scope.values[:order].present?
+              if reflection_scope && !reflection_scope.order_values.empty?
                 @id_map ||= id_to_index_map @preloaded_records
                 rhs_records.sort_by { |rhs| @id_map[rhs] }
               else
