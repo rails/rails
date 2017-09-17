@@ -12,6 +12,21 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
   teardown { teardown_app }
 
+  test "edit without editor gives hint" do
+    assert_match "No $EDITOR to open credentials in", run_edit_command(editor: "")
+  end
+
+  test "edit credentials" do
+    # Run twice to ensure credentials can be reread after first edit pass.
+    2.times do
+      assert_match(/access_key_id: 123/, run_edit_command)
+    end
+  end
+
+  test "show credentials" do
+    assert_match(/access_key_id: 123/, run_show_command)
+  end
+
   test "edit command does not add master key to gitignore when already exist" do
     run_edit_command
 
@@ -26,5 +41,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       switch_env("EDITOR", editor) do
         rails "credentials:edit"
       end
+    end
+
+    def run_show_command
+      rails "credentials:show"
     end
 end
