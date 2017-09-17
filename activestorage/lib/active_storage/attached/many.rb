@@ -20,8 +20,10 @@ module ActiveStorage
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
-      attachables.flatten.collect do |attachable|
-        attachments.create!(name: name, blob: create_blob_from(attachable))
+      transaction do
+        attachables.flatten.collect do |attachable|
+          attachments.create!(name: name, blob: create_blob_from(attachable))
+        end
       end
     end
 

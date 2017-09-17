@@ -24,7 +24,9 @@ module ActiveStorage
       if attached? && dependent == :purge_later
         replace attachable
       else
-        write_attachment create_attachment_from(attachable)
+        record.transaction do
+          write_attachment create_attachment_from(attachable)
+        end
       end
     end
 
