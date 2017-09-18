@@ -38,21 +38,23 @@ class AggregationsTest < ActiveRecord::TestCase
 
     assert_equal "39", customers(:david).gps_location.latitude
     assert_equal "-110", customers(:david).gps_location.longitude
-
-    customers(:david).save
-
-    customers(:david).reload
-
-    assert_equal "39", customers(:david).gps_location.latitude
-    assert_equal "-110", customers(:david).gps_location.longitude
   end
 
   def test_reloaded_instance_refreshes_aggregations
     assert_equal "35.544623640962634", customers(:david).gps_location.latitude
     assert_equal "-105.9309951055148", customers(:david).gps_location.longitude
+    assert_equal "35.544623640962634x-105.9309951055148", customers(:david)["gps_location"]
 
     Customer.update_all("gps_location = '24x113'")
+
+    assert_not_equal "24",     customers(:david).gps_location.latitude
+    assert_not_equal "113",    customers(:david).gps_location.longitude
+    assert_not_equal "24x113", customers(:david)["gps_location"]
+
     customers(:david).reload
+
+    assert_equal "24",     customers(:david).gps_location.latitude
+    assert_equal "113",    customers(:david).gps_location.longitude
     assert_equal "24x113", customers(:david)["gps_location"]
 
     assert_equal GpsLocation.new("24x113"), customers(:david).gps_location
