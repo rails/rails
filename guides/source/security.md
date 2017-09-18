@@ -1029,7 +1029,7 @@ Rails generates a `config/credentials.yml.enc` to store third-party credentials
 within the repo. This is only viable because Rails encrypts the file with a master
 key that's generated into a version control ignored `config/master.key` — Rails
 will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
-the key to boot in production, so the credentials can be read.
+key to boot in production, so the credentials can be read.
 
 To edit stored credentials use `bin/rails credentials:edit`.
 
