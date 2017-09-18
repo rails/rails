@@ -489,6 +489,10 @@ class TestController < ApplicationController
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
+  def partial_with_string_locals
+    render partial: "customer", locals: { "customer" => Customer.new("david") }
+  end
+
   def partial_with_form_builder
     render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
@@ -1166,6 +1170,11 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_locals
     get :partial_with_locals
+    assert_equal "Hello: david", @response.body
+  end
+
+  def test_partial_with_string_locals
+    get :partial_with_string_locals
     assert_equal "Hello: david", @response.body
   end
 

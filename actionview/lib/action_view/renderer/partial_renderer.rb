@@ -363,7 +363,7 @@ module ActionView
         @options = options
         @block   = block
 
-        @locals  = options[:locals] || {}
+        @locals  = options[:locals] ? options[:locals].symbolize_keys : {}
         @details = extract_details(options)
 
         prepend_formats(options[:formats])
