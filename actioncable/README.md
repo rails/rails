@@ -454,9 +454,9 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 ## Deployment
 
 Action Cable is powered by a combination of WebSockets and threads. All of the
-connection management is handled internally by utilizing Ruby’s native thread
+connection management is handled internally by utilizing Ruby's native thread
 support, which means you can use all your regular Rails models with no problems
-as long as you haven’t committed any thread-safety sins.
+as long as you haven't committed any thread-safety sins.
 
 The Action Cable server does _not_ need to be a multi-threaded application server.
 This is because Action Cable uses the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking)

@@ -954,7 +954,7 @@ to work on some subclass, things get interesting.
 While working with `Polygon` you do not need to be aware of all its descendants,
 because anything in the table is by definition a polygon, but when working with
 subclasses Active Record needs to be able to enumerate the types it is looking
-for. Let’s see an example.
+for. Let's see an example.
 
 `Rectangle.all` only loads rectangles by adding a type constraint to the query:
 
@@ -963,7 +963,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle")
 ```
 
-Let’s introduce now a subclass of `Rectangle`:
+Let's introduce now a subclass of `Rectangle`:
 
 ```ruby
 # app/models/square.rb
@@ -978,7 +978,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle", "Square")
 ```
 
-But there’s a caveat here: How does Active Record know that the class `Square`
+But there's a caveat here: How does Active Record know that the class `Square`
 exists at all?
 
 Even if the file `app/models/square.rb` exists and defines the `Square` class,
@@ -1049,7 +1049,7 @@ end
 
 The purpose of this setup would be that the application uses the class that
 corresponds to the environment via `AUTH_SERVICE`. In development mode
-`MockedAuthService` gets autoloaded when the initializer runs. Let’s suppose
+`MockedAuthService` gets autoloaded when the initializer runs. Let's suppose
 we do some requests, change its implementation, and hit the application again.
 To our surprise the changes are not reflected. Why?
 
