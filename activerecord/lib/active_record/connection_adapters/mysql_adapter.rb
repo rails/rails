@@ -282,6 +282,10 @@ module ActiveRecord
               super
             end
           end
+
+          def has_precision?
+            precision || 0
+          end
         end
 
         class Time < Type::Time # :nodoc:
@@ -328,8 +332,11 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
-        m.register_type %r(datetime)i, Fields::DateTime.new
         m.register_type %r(time)i,     Fields::Time.new
+        m.register_type(%r(datetime)i) do |sql_type|
+          precision = extract_precision(sql_type)
+          Fields::DateTime.new(precision: precision)
+        end
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:

@@ -74,7 +74,7 @@ if mysql_56?
       result = results.find do |result_hash|
         result_hash["column_name"] == column_name
       end
-      result && result["datetime_precision"]
+      result && result["datetime_precision"].to_i
     end
 
     def activerecord_column_option(tablename, column_name, option)

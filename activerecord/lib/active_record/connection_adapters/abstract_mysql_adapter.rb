@@ -282,6 +282,14 @@ module ActiveRecord
         0
       end
 
+      def quoted_date(value)
+        if supports_datetime_with_precision? && value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity #:nodoc:
