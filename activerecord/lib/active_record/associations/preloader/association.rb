@@ -27,14 +27,14 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # The name of the key on the model which declares the association
-        def owner_key_name
-          raise NotImplementedError
-        end
-
         private
           def options
             reflection.options
+          end
+
+          # The name of the key on the model which declares the association
+          def owner_key_name
+            reflection.join_foreign_key
           end
 
           def associated_records_by_owner(preloader)
