@@ -22,14 +22,14 @@ module ActiveRecord
           end
         end
 
-        # The name of the key on the associated records
-        def association_key_name
-          raise NotImplementedError
-        end
-
         private
           def options
             reflection.options
+          end
+
+          # The name of the key on the associated records
+          def association_key_name
+            reflection.join_primary_key(klass)
           end
 
           # The name of the key on the model which declares the association

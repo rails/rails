@@ -292,11 +292,15 @@ module ActiveRecord
       end
 
       def get_join_keys(association_klass)
-        JoinKeys.new(join_pk(association_klass), join_foreign_key)
+        JoinKeys.new(join_primary_key(association_klass), join_foreign_key)
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
         Relation.create(klass, table, predicate_builder)
+      end
+
+      def join_primary_key(_)
+        foreign_key
       end
 
       def join_foreign_key
@@ -311,10 +315,6 @@ module ActiveRecord
       private
         def predicate_builder(table)
           PredicateBuilder.new(TableMetadata.new(klass, table))
-        end
-
-        def join_pk(_)
-          foreign_key
         end
 
         def primary_key(klass)
@@ -736,6 +736,10 @@ module ActiveRecord
         end
       end
 
+      def join_primary_key(klass)
+        polymorphic? ? association_primary_key(klass) : association_primary_key
+      end
+
       def join_foreign_key
         foreign_key
       end
@@ -744,10 +748,6 @@ module ActiveRecord
 
         def calculate_constructable(macro, options)
           !polymorphic?
-        end
-
-        def join_pk(klass)
-          polymorphic? ? association_primary_key(klass) : association_primary_key
         end
     end
 
