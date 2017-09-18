@@ -6,6 +6,7 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
+require "mini_magick"
 
 begin
   require "byebug"
@@ -44,7 +45,7 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
     end
 
-    def create_image_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
       ActiveStorage::Blob.create_after_upload! \
         io: file_fixture(filename).open,
         filename: filename, content_type: content_type
@@ -54,8 +55,8 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
     end
 
-    def read_image_variant(variant)
-      MiniMagick::Image.open variant.service.send(:path_for, variant.key)
+    def read_image(blob_or_variant)
+      MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
     end
 end
 

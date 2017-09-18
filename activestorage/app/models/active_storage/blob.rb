@@ -14,12 +14,16 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
+  class UnpreviewableError < StandardError; end
+
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
   store :metadata, coder: JSON
 
   class_attribute :service
+
+  has_one_attached :image
 
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.
@@ -101,24 +105,51 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
-  # Returns an ActiveStorage::Variant instance with the set of +transformations+
-  # passed in. This is only relevant for image files, and it allows any image to
-  # be transformed for size, colors, and the like. Example:
+  # Returns an ActiveStorage::Variant instance with the set of +transformations+ provided. This is only relevant for image
+  # files, and it allows any image to be transformed for size, colors, and the like. Example:
   #
   #   avatar.variant(resize: "100x100").processed.service_url
   #
-  # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
+  # This will create and process a variant of the avatar blob that's constrained to a height and width of 100px.
   # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
   #
   # Frequently, though, you don't actually want to transform the variant right away. But rather simply refer to a
   # specific variant that can be created by a controller on-demand. Like so:
   #
-  #   <%= image_tag url_for(Current.user.avatar.variant(resize: "100x100")) %>
+  #   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
   #
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
   # can then produce on-demand.
   def variant(transformations)
     ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
+  end
+
+
+  # Returns an ActiveStorage::Preview instance with the set of +transformations+ provided. A preview is an image generated
+  # from a non-image blob. Active Storage comes with built-in previewers for videos and PDF documents. The video previewer
+  # extracts the first frame from a video and the PDF previewer extracts the first page from a PDF document.
+  #
+  #   blob.preview(resize: "100x100").processed.service_url
+  #
+  # Avoid processing previews synchronously in views. Instead, link to a controller action that processes them on demand.
+  # Active Storage provides one, but you may want to create your own (for example, if you need authentication). Here’s
+  # how to use the built-in version:
+  #
+  #   <%= image_tag video.preview(resize: "100x100") %>
+  #
+  # This method raises ActiveStorage::Blob::UnpreviewableError if no previewer accepts the receiving blob. To determine
+  # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
+  def preview(transformations)
+    if previewable?
+      ActiveStorage::Preview.new(self, ActiveStorage::Variation.new(transformations))
+    else
+      raise UnpreviewableError
+    end
+  end
+
+  # Returns true if any previewer accepts the blob. By default, this will return true for videos and PDF documents.
+  def previewable?
+    ActiveStorage.previewers.any? { |klass| klass.accept?(self) }
   end
 
 

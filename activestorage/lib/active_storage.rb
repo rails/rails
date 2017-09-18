@@ -33,6 +33,11 @@ module ActiveStorage
 
   autoload :Attached
   autoload :Service
+  autoload :Previewer
 
   mattr_accessor :verifier
+
+  mattr_accessor :previewers do
+    [ ActiveStorage::Previewer::PdfPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+  end
 end

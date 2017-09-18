@@ -24,12 +24,17 @@ module ActiveStorage
       end
     end
 
-    # FIXME: Add streaming when given a block
+    # FIXME: Download in chunks when given a block.
     def download(key)
       instrument :download, key do
         io = file_for(key).download
         io.rewind
-        io.read
+
+        if block_given?
+          yield io.read
+        else
+          io.read
+        end
       end
     end
 
