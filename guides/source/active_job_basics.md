@@ -395,7 +395,7 @@ It's also possible to retry or discard a job if an exception is raised during ex
 For example:
 
 ```ruby
-class RemoteServiceJob < ActiveJob::Base
+class RemoteServiceJob < ApplicationJob
   retry_on CustomAppException # defaults to 3s wait, 5 attempts
 
   discard_on ActiveJob::DeserializationError
