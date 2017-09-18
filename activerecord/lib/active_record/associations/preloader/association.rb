@@ -23,10 +23,6 @@ module ActiveRecord
         end
 
         private
-          def options
-            reflection.options
-          end
-
           # The name of the key on the associated records
           def association_key_name
             reflection.join_primary_key(klass)

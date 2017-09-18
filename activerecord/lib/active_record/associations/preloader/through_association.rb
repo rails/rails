@@ -80,6 +80,7 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
+            options = reflection.options
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
