@@ -46,7 +46,7 @@ def in_memory_db?
 end
 
 def mysql_56?
-  current_adapter?(:MysqlAdapter, :Mysql2Adapter) &&
+  current_adapter?(:Mysql2Adapter) &&
     ActiveRecord::Base.connection.send(:version) >= '5.6.0'
 end
 
