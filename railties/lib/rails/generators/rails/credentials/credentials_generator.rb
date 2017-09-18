@@ -37,7 +37,7 @@ module Rails
 
       private
         def credentials_template
-          "# amazon:\n#  access_key_id: 123\n#  secret_access_key: 345\n\n" +
+          "# aws:\n#  access_key_id: 123\n#  secret_access_key: 345\n\n" +
           "# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.\n" +
           "secret_key_base: #{SecureRandom.hex(64)}"
         end
