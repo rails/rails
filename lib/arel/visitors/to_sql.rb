@@ -427,7 +427,8 @@ module Arel
       end
 
       def visit_Arel_SelectManager o, collector
-        collector << "(#{o.to_sql.rstrip})"
+        collector << '('
+        visit(o.ast, collector) << ')'
       end
 
       def visit_Arel_Nodes_Ascending o, collector
