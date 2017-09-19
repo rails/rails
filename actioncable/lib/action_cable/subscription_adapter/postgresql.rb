@@ -2,7 +2,6 @@
 
 gem "pg", "~> 0.18"
 require "pg"
-require "thread"
 require "digest/sha1"
 
 module ActionCable

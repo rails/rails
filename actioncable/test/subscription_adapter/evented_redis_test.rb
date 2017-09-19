@@ -31,7 +31,6 @@ class EventedRedisAdapterTest < ActionCable::TestCase
 
   def test_slow_eventmachine
     require "eventmachine"
-    require "thread"
 
     lock = Mutex.new
 
