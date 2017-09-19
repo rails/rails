@@ -522,6 +522,8 @@ module ActiveRecord
       #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      # * <tt>:comment</tt> -
+      #   Specifies the comment for the column. This option is ignored by some backends.
       #
       # Note: The precision is the total number of significant digits,
       # and the scale is the number of digits that can be stored following
