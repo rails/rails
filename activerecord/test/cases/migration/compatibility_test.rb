@@ -199,6 +199,36 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
   end
 
+  def test_legacy_join_table_foreign_keys_should_be_integer
+    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      def change
+        create_join_table :apples, :bananas do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    schema = dump_table_schema "apples_bananas"
+    assert_match %r{integer "apple_id", null: false}, schema
+    assert_match %r{integer "banana_id", null: false}, schema
+  end
+
+  def test_legacy_join_table_column_options_should_be_overwritten
+    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      def change
+        create_join_table :apples, :bananas, column_options: { type: :bigint } do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    schema = dump_table_schema "apples_bananas"
+    assert_match %r{bigint "apple_id", null: false}, schema
+    assert_match %r{bigint "banana_id", null: false}, schema
+  end
+
   if current_adapter?(:Mysql2Adapter)
     def test_legacy_bigint_primary_key_should_be_auto_incremented
       @migration = Class.new(ActiveRecord::Migration[5.0]) {

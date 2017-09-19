@@ -71,6 +71,21 @@ module ActiveRecord
           end
         end
 
+        def create_join_table(table_1, table_2, column_options: {}, **options)
+          column_options.reverse_merge!(type: :integer)
+
+          if block_given?
+            super(table_1, table_2, column_options: column_options, **options) do |t|
+              class << t
+                prepend TableDefinition
+              end
+              yield t
+            end
+          else
+            super
+          end
+        end
+
         def add_reference(table_name, ref_name, **options)
           super(table_name, ref_name, type: :integer, **options)
         end
