@@ -3,8 +3,6 @@
 module ActiveSupport
   module Testing
     module Isolation
-      require "thread"
-
       def self.included(klass) #:nodoc:
         klass.class_eval do
           parallelize_me!

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "cases/helper"
 require "models/person"
 require "models/job"

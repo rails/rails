@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "set"
-require "thread"
 require "concurrent/map"
 require "pathname"
 require_relative "core_ext/module/aliasing"
