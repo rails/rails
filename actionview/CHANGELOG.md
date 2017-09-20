@@ -6,6 +6,10 @@
 
     *John Hawthorn*
 
+*   Fix `ActionView::FixtureResolver` so that it handles template variants correctly.
+
+    *Edward Rudd*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 

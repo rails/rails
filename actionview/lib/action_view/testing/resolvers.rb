@@ -25,8 +25,8 @@ module ActionView #:nodoc:
 
       def query(path, exts, _, locals)
         query = +""
-        EXTENSIONS.each_key do |ext|
-          query << "(" << exts[ext].map { |e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
+        EXTENSIONS.each do |ext, prefix|
+          query << "(" << exts[ext].map { |e| e && Regexp.escape("#{prefix}#{e}") }.join("|") << "|)"
         end
         query = /^(#{Regexp.escape(path)})#{query}$/
 
