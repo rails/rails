@@ -154,7 +154,7 @@ environments. You can enable or disable it in your configuration through the
 
 More reading:
 
-* [Optimize caching](http://code.google.com/speed/page-speed/docs/caching.html)
+* [Optimize caching](https://developers.google.com/speed/docs/insights/LeverageBrowserCaching)
 * [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 
