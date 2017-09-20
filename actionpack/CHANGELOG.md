@@ -1,3 +1,13 @@
+## Rails 4.2.10.rc1 (September 20, 2017) ##
+
+*   Fix regression in behavior of `normalize_path`.
+
+    In Rails 5 there was a change to ensure the encoding of the original string
+    in a path was maintained. This was incorrectly backported to Rails 4.2 which
+    caused a regression.
+
+    *Eileen M. Uchitelle*
+
 ## Rails 4.2.9 (June 26, 2017) ##
 
 *   Use more specific check for :format in route path
