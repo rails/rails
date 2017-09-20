@@ -84,6 +84,19 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "find with attached blob" do
+    records = %w[alice bob].map do |name|
+      User.create!(name: name).tap do |user|
+        user.avatar.attach create_blob(filename: "#{name}.jpg")
+      end
+    end
+
+    users = User.where(id: records.map(&:id)).with_attached_avatar.all
+
+    assert_equal "alice.jpg", users.first.avatar.filename.to_s
+    assert_equal "bob.jpg", users.second.avatar.filename.to_s
+  end
+
 
   test "attach existing blobs" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")

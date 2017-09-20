@@ -12,6 +12,10 @@ module ActiveStorage
     # There is no column defined on the model side, Active Storage takes
     # care of the mapping between your records and the attachment.
     #
+    # To avoid N+1 queries, you can include the attached blobs in your query like so:
+    #
+    #   User.with_attached_avatar
+    #
     # Under the covers, this relationship is implemented as a +has_one+ association to a
     # ActiveStorage::Attachment record and a +has_one-through+ association to a
     # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
@@ -32,6 +36,8 @@ module ActiveStorage
 
       has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record
       has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
+
+      scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
       if dependent == :purge_later
         before_destroy { public_send(name).purge_later }
