@@ -1,3 +1,11 @@
+*   Add `Rails::Generators::PoroModelGenerator`.
+
+    Creates a model as Plain Old Ruby Object:
+
+      $ bin/rails generate poro_model address
+
+    *Yoshiyuki Hirano*
+
 *   Add `mini_magick` to default `Gemfile` as comment.
 
     *Yoshiyuki Hirano*
