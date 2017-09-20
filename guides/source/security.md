@@ -1049,7 +1049,7 @@ If you want an exception to be raised when some key is blank, use the bang
 version:
 
 ```ruby
-Rails.application.credentials.some_api_key! # => raises KeyError: key not found: :some_api_key
+Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
 
 Additional Resources
