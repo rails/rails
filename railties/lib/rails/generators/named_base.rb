@@ -100,11 +100,11 @@ module Rails
         end
 
         def index_helper # :doc:
-          uncountable? ? "#{plural_table_name}_index" : plural_table_name
+          uncountable? ? "#{plural_route_name}_index" : plural_route_name
         end
 
         def show_helper # :doc:
-          "#{singular_table_name}_url(@#{singular_table_name})"
+          "#{singular_route_name}_url(@#{singular_table_name})"
         end
 
         def edit_helper # :doc:
@@ -112,7 +112,7 @@ module Rails
         end
 
         def new_helper # :doc:
-          "new_#{singular_table_name}_url"
+          "new_#{singular_route_name}_url"
         end
 
         def field_id(attribute_name)
@@ -149,6 +149,35 @@ module Rails
             Rails.application.class.name.split("::").first.underscore
           else
             "application"
+          end
+        end
+
+        def redirect_resource_name # :doc:
+          model_resource_name(prefix: "@")
+        end
+
+        def model_resource_name(prefix: "") # :doc:
+          resource_name = "#{prefix}#{singular_table_name}"
+          if controller_class_path.empty?
+            resource_name
+          else
+            "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
+          end
+        end
+
+        def singular_route_name # :doc:
+          if controller_class_path.empty?
+            singular_table_name
+          else
+            "#{controller_class_path.join('_')}_#{singular_table_name}"
+          end
+        end
+
+        def plural_route_name # :doc:
+          if controller_class_path.empty?
+            plural_table_name
+          else
+            "#{controller_class_path.join('_')}_#{plural_table_name}"
           end
         end
 

@@ -131,6 +131,19 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin/foos",  :controller_file_path
     assert_name g, "foos",        :controller_file_name
     assert_name g, "admin.foos",  :controller_i18n_scope
+    assert_name g, "admin_user",  :singular_route_name
+    assert_name g, "admin_users", :plural_route_name
+    assert_name g, "[:admin, @user]", :redirect_resource_name
+    assert_name g, "[:admin, user]",  :model_resource_name
+    assert_name g, "admin_users", :index_helper
+  end
+
+  def test_scaffold_plural_names
+    g = generator ["User"]
+    assert_name g, "@user", :redirect_resource_name
+    assert_name g, "user",  :model_resource_name
+    assert_name g, "user",  :singular_route_name
+    assert_name g, "users", :plural_route_name
   end
 
   private
