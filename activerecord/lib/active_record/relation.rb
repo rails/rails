@@ -63,7 +63,7 @@ module ActiveRecord
 
       @klass.connection.insert(
         im,
-        "SQL",
+        "#{@klass} Create",
         primary_key || false,
         primary_key_value,
         nil,
@@ -86,7 +86,7 @@ module ActiveRecord
 
       @klass.connection.update(
         um,
-        "SQL",
+        "#{@klass} Update",
       )
     end
 
@@ -373,7 +373,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, "SQL"
+      @klass.connection.update stmt, "#{@klass} Update All"
     end
 
     # Destroys the records by instantiating each
@@ -432,7 +432,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      affected = @klass.connection.delete(stmt, "SQL")
+      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
       reset
       affected

@@ -1,3 +1,10 @@
+*   Update payload names for `sql.active_record` instrumentation to be
+    more descriptive.
+
+    Fixes #30586.
+
+    *Jeremy Green*
+
 *   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
     when lock wait time expires.
 
