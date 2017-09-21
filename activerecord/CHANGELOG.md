@@ -1,3 +1,9 @@
+*   Use given algorithm while removing index from database.
+
+    Fixes #24190.
+
+    *Mehmet Emin İNAÇ*
+
 *   Update payload names for `sql.active_record` instrumentation to be
     more descriptive.
 
