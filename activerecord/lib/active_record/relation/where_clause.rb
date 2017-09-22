@@ -11,19 +11,19 @@ module ActiveRecord
 
       def +(other)
         WhereClause.new(
-          predicates + other.predicates,
+          predicates + other.predicates
         )
       end
 
       def -(other)
         WhereClause.new(
-          predicates - other.predicates,
+          predicates - other.predicates
         )
       end
 
       def merge(other)
         WhereClause.new(
-          predicates_unreferenced_by(other) + other.predicates,
+          predicates_unreferenced_by(other) + other.predicates
         )
       end
 
@@ -40,7 +40,7 @@ module ActiveRecord
           common
         else
           or_clause = WhereClause.new(
-            [left.ast.or(right.ast)],
+            [left.ast.or(right.ast)]
           )
           common + or_clause
         end

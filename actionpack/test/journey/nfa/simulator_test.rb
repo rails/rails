@@ -71,7 +71,7 @@ module ActionDispatch
             "/articles(.:format)",
             "/articles/new(.:format)",
             "/articles/:id/edit(.:format)",
-            "/articles/:id(.:format)",
+            "/articles/:id(.:format)"
           ].map { |path|
             ast = parser.parse path
             ast.each { |n| n.memo = ast }

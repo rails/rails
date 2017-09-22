@@ -309,7 +309,7 @@ class ShareLockTest < ActiveSupport::TestCase
             done.wait
           end
         end
-      end,
+      end
     ]
 
     assert_threads_not_stuck threads
@@ -335,7 +335,7 @@ class ShareLockTest < ActiveSupport::TestCase
             done.wait
           end
         end
-      end,
+      end
     ]
 
     assert_threads_stuck threads

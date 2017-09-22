@@ -13,17 +13,17 @@ module AbstractController
         @controller = TranslationController.new
         I18n.backend.store_translations(:en,
           one: {
-            two: "bar",
+            two: "bar"
           },
           abstract_controller: {
             testing: {
               translation: {
                 index: {
-                  foo: "bar",
+                  foo: "bar"
                 },
-                no_action: "no_action_tr",
-              },
-            },
+                no_action: "no_action_tr"
+              }
+            }
           })
       end
 

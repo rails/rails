@@ -585,12 +585,12 @@ module ActiveRecord
           if prepared_statements
             Arel::Collectors::Composite.new(
               Arel::Collectors::SQLString.new,
-              Arel::Collectors::Bind.new,
+              Arel::Collectors::Bind.new
             )
           else
             Arel::Collectors::SubstituteBinds.new(
               self,
-              Arel::Collectors::SQLString.new,
+              Arel::Collectors::SQLString.new
             )
           end
         end

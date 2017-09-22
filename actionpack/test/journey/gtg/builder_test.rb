@@ -24,7 +24,7 @@ module ActionDispatch
             [1, "/"],
             [2, "b"],
             [2, "/"],
-            [1, "c"],
+            [1, "c"]
           ].inject([0]) { |state, (exp, sym)|
             new = table.move(state, sym)
             assert_equal exp, new.length

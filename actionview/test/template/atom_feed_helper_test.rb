@@ -216,7 +216,7 @@ class ScrollsController < ActionController::Base
   def index
     @scrolls = [
       Scroll.new(1, "1", "Hello One", "Something <i>COOL!</i>", Time.utc(2007, 12, 12, 15), Time.utc(2007, 12, 12, 15)),
-      Scroll.new(2, "2", "Hello Two", "Something Boring", Time.utc(2007, 12, 12, 15)),
+      Scroll.new(2, "2", "Hello Two", "Something Boring", Time.utc(2007, 12, 12, 15))
     ]
 
     render inline: FEEDS[params[:id]], type: :builder

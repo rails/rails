@@ -417,7 +417,7 @@ module ActionDispatch
 
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
-          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show"
         ], output
       end
     end

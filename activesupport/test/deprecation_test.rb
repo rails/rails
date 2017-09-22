@@ -107,7 +107,7 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.behavior = [
       lambda { |msg, callstack, horizon, gem| @a = msg },
       lambda { |msg, callstack| @b = msg },
-      lambda { |*args| @c = args },
+      lambda { |*args| @c = args }
     ]
 
     @dtc.partially

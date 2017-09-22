@@ -40,7 +40,7 @@ module ActiveRecord
 
         {
           "attributes" => attributes,
-          "new_record" => new_record,
+          "new_record" => new_record
         }
       end
     end

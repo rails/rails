@@ -1469,7 +1469,7 @@ class RouteSetTest < ActiveSupport::TestCase
     end
 
     assert_equal({ controller: "connection/manage",
-                   action: "index", }, request_path_params("/connection/manage"))
+                   action: "index" }, request_path_params("/connection/manage"))
 
     url = controller.url_for(controller: "connection", only_path: true)
     assert_equal "/connection/connection", url

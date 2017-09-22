@@ -41,7 +41,7 @@ module ActiveRecord
         date:        { name: "date" },
         binary:      { name: "blob", limit: 65535 },
         boolean:     { name: "tinyint", limit: 1 },
-        json:        { name: "json" },
+        json:        { name: "json" }
       }
 
       class StatementPool < ConnectionAdapters::StatementPool
@@ -829,7 +829,7 @@ module ActiveRecord
             table: parts[0],
             foreign_key: parts[1],
             target_table: parts[2],
-            primary_key: parts[3],
+            primary_key: parts[3]
           )
         end
 

@@ -933,7 +933,7 @@ module ActiveRecord
           limit_attribute = Attribute.with_cast_value(
             "LIMIT".freeze,
             connection.sanitize_limit(limit_value),
-            Type.default_value,
+            Type.default_value
           )
           arel.take(Arel::Nodes::BindParam.new(limit_attribute))
         end
@@ -941,7 +941,7 @@ module ActiveRecord
           offset_attribute = Attribute.with_cast_value(
             "OFFSET".freeze,
             offset_value.to_i,
-            Type.default_value,
+            Type.default_value
           )
           arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
         end

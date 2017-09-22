@@ -752,7 +752,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = [
       { name: david.name },
       { name: "Santiago" },
-      { name: "tenderlove" },
+      { name: "tenderlove" }
     ].inject(Author.unscoped) do |memo, param|
       memo.where(param)
     end

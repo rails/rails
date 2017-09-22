@@ -21,7 +21,7 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
       foo: "bar",
       Foo: "bar",
       "d-a-s-h-e-s": "",
-      "white space": "",
+      "white space": ""
     }
     assert_equal locals.inspect, render(file: "test/render_file_inspect_local_assigns", locals: locals)
   end
@@ -31,7 +31,7 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
       _: "one",
       arg: "two",
       args: "three",
-      block: "four",
+      block: "four"
     }
     assert_equal "one two three four", render(file: "test/test_template_with_delegation_reserved_keywords", locals: locals)
   end

@@ -9,20 +9,20 @@ class CodeStatisticsCalculator #:nodoc:
       begin_block_comment: /^=begin/,
       end_block_comment: /^=end/,
       class: /^\s*class\s+[_A-Z]/,
-      method: /^\s*def\s+[_a-z]/,
+      method: /^\s*def\s+[_a-z]/
     },
     js: {
       line_comment: %r{^\s*//},
       begin_block_comment: %r{^\s*/\*},
       end_block_comment: %r{\*/},
-      method: /function(\s+[_a-zA-Z][\da-zA-Z]*)?\s*\(/,
+      method: /function(\s+[_a-zA-Z][\da-zA-Z]*)?\s*\(/
     },
     coffee: {
       line_comment: /^\s*#/,
       begin_block_comment: /^\s*###/,
       end_block_comment: /^\s*###/,
       class: /^\s*class\s+[_A-Z]/,
-      method: /[-=]>/,
+      method: /[-=]>/
     }
   }
 

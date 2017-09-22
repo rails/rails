@@ -254,7 +254,7 @@ module ActionDispatch
 
         path, _ = @formatter.generate(nil,
           { controller: "tasks",
-                 action: "a/b c+d",
+                 action: "a/b c+d"
         }, {})
         assert_equal "/tasks/a%2Fb%20c+d", path
       end
@@ -264,7 +264,7 @@ module ActionDispatch
 
         path, _ = @formatter.generate(
           nil, { controller: "admin/tasks",
-                 action: "a/b c+d",
+                 action: "a/b c+d"
         }, {})
         assert_equal "/admin/tasks/a%2Fb%20c+d", path
       end
@@ -291,7 +291,7 @@ module ActionDispatch
           relative_url_root: nil
         }
         redirection_parameters = {
-          "action" => "show",
+          "action" => "show"
         }
         missing_key = "name"
         missing_parameters = {
@@ -333,7 +333,7 @@ module ActionDispatch
       {
         "/content"          => { controller: "content" },
         "/content/list"     => { controller: "content", action: "list" },
-        "/content/show/10"  => { controller: "content", action: "show", id: "10" },
+        "/content/show/10"  => { controller: "content", action: "show", id: "10" }
       }.each do |request_path, expected|
         define_method("test_recognize_#{expected.keys.map(&:to_s).join('_')}") do
           get "/:controller(/:action(/:id))", to: "foo#bar"

@@ -136,7 +136,7 @@ class MigratorTest < ActiveRecord::TestCase
       ["down", "001", "Valid people have last names"],
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
-      ["up",   "010", "********** NO FILE **********"],
+      ["up",   "010", "********** NO FILE **********"]
     ], ActiveRecord::Migrator.migrations_status(path)
   end
 
@@ -150,7 +150,7 @@ class MigratorTest < ActiveRecord::TestCase
       ["down", "001", "Valid people have last names"],
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
-      ["up",   "010", "********** NO FILE **********"],
+      ["up",   "010", "********** NO FILE **********"]
     ], ActiveRecord::Migrator.migrations_status(path)
   end
 
@@ -165,7 +165,7 @@ class MigratorTest < ActiveRecord::TestCase
     assert_equal [
       ["up", "001", "Valid people have last names"],
       ["up", "002", "We need reminders"],
-      ["up", "003", "Innocent jointable"],
+      ["up", "003", "Innocent jointable"]
     ], ActiveRecord::Migrator.migrations_status(path)
   ensure
     ActiveRecord::Migrator.migrations_paths = prev_paths
@@ -183,7 +183,7 @@ class MigratorTest < ActiveRecord::TestCase
       ["up",   "20100101010101", "Valid with timestamps people have last names"],
       ["down", "20100201010101", "Valid with timestamps we need reminders"],
       ["down", "20100301010101", "Valid with timestamps innocent jointable"],
-      ["up",   "20160528010101", "********** NO FILE **********"],
+      ["up",   "20160528010101", "********** NO FILE **********"]
     ], ActiveRecord::Migrator.migrations_status(paths)
   end
 

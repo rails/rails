@@ -8,7 +8,7 @@ class ActiveRecord::Relation
       first_clause = WhereClause.new([table["id"].eq(bind_param(1))])
       second_clause = WhereClause.new([table["name"].eq(bind_param("Sean"))])
       combined = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))]
       )
 
       assert_equal combined, first_clause + second_clause
@@ -47,13 +47,13 @@ class ActiveRecord::Relation
 
     test "merge removes bind parameters matching overlapping equality clauses" do
       a = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))]
       )
       b = WhereClause.new(
-        [table["name"].eq(bind_param("Jim"))],
+        [table["name"].eq(bind_param("Jim"))]
       )
       expected = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Jim"))],
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Jim"))]
       )
 
       assert_equal expected, a.merge(b)
@@ -62,13 +62,13 @@ class ActiveRecord::Relation
     test "merge allows for columns with the same name from different tables" do
       table2 = Arel::Table.new("table2")
       a = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table2["id"].eq(bind_param(2))],
+        [table["id"].eq(bind_param(1)), table2["id"].eq(bind_param(2))]
       )
       b = WhereClause.new(
-        [table["id"].eq(bind_param(3))],
+        [table["id"].eq(bind_param(3))]
       )
       expected = WhereClause.new(
-        [table2["id"].eq(bind_param(2)), table["id"].eq(bind_param(3))],
+        [table2["id"].eq(bind_param(2)), table["id"].eq(bind_param(3))]
       )
 
       assert_equal expected, a.merge(b)
@@ -109,7 +109,7 @@ class ActiveRecord::Relation
       where_clause = WhereClause.new([
         table["id"].in([1, 2, 3]),
         table["name"].eq(bind_param("Sean")),
-        table["age"].gteq(bind_param(30)),
+        table["age"].gteq(bind_param(30))
       ])
       expected = WhereClause.new([table["age"].gteq(bind_param(30))])
 
@@ -132,7 +132,7 @@ class ActiveRecord::Relation
     test "ast groups its predicates with AND" do
       predicates = [
         table["id"].in([1, 2, 3]),
-        table["name"].eq(bind_param(nil)),
+        table["name"].eq(bind_param(nil))
       ]
       where_clause = WhereClause.new(predicates)
       expected = Arel::Nodes::And.new(predicates)
@@ -145,12 +145,12 @@ class ActiveRecord::Relation
       where_clause = WhereClause.new([
         table["id"].in([1, 2, 3]),
         "foo = bar",
-        random_object,
+        random_object
       ])
       expected = Arel::Nodes::And.new([
         table["id"].in([1, 2, 3]),
         Arel::Nodes::Grouping.new(Arel.sql("foo = bar")),
-        random_object,
+        random_object
       ])
 
       assert_equal expected, where_clause.ast
@@ -183,14 +183,14 @@ class ActiveRecord::Relation
 
     test "or places common conditions before the OR" do
       a = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))],
+        [table["id"].eq(bind_param(1)), table["name"].eq(bind_param("Sean"))]
       )
       b = WhereClause.new(
-        [table["id"].eq(bind_param(1)), table["hair_color"].eq(bind_param("black"))],
+        [table["id"].eq(bind_param(1)), table["hair_color"].eq(bind_param("black"))]
       )
 
       common = WhereClause.new(
-        [table["id"].eq(bind_param(1))],
+        [table["id"].eq(bind_param(1))]
       )
 
       or_clause = WhereClause.new([table["name"].eq(bind_param("Sean"))])
@@ -215,13 +215,13 @@ class ActiveRecord::Relation
     test "or will use only common conditions if one side only has common conditions" do
       only_common = WhereClause.new([
         table["id"].eq(bind_param(1)),
-        "foo = bar",
+        "foo = bar"
       ])
 
       common_with_extra = WhereClause.new([
         table["id"].eq(bind_param(1)),
         "foo = bar",
-        table["extra"].eq(bind_param("pluto")),
+        table["extra"].eq(bind_param("pluto"))
       ])
 
       assert_equal only_common, only_common.or(common_with_extra)

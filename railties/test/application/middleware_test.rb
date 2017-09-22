@@ -94,7 +94,7 @@ module ApplicationTests
         # Outright dependencies
         %w(ActionDispatch::Static Rack::Sendfile),
         %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
-        %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
+        %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies)
       ]
 
       require "tsort"

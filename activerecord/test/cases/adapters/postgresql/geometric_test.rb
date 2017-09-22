@@ -103,7 +103,7 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     expected_value = [
       ActiveRecord::Point.new(1, 2),
       ActiveRecord::Point.new(2, 3),
-      ActiveRecord::Point.new(3, 4),
+      ActiveRecord::Point.new(3, 4)
     ]
     p = PostgresqlPoint.new(array_of_points: expected_value)
 

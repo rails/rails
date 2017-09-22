@@ -406,7 +406,7 @@ module ActiveRecord
         @_start_transaction_state.reverse_merge!(
           new_record: @new_record,
           destroyed: @destroyed,
-          frozen?: frozen?,
+          frozen?: frozen?
         )
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       end

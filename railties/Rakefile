@@ -39,7 +39,7 @@ namespace :test do
         FileUtils::RUBY,
         "-w",
         *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
-        file,
+        file
       ])
       puts fake_command
 

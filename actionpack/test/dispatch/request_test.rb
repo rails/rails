@@ -534,7 +534,7 @@ class RequestCGI < BaseRequestTest
       "SERVER_NAME" => "glu.ttono.us",
       "SERVER_PORT" => "8007",
       "SERVER_PROTOCOL" => "HTTP/1.1",
-      "SERVER_SOFTWARE" => "lighttpd/1.4.5",
+      "SERVER_SOFTWARE" => "lighttpd/1.4.5"
     )
 
     assert_equal "Basic", request.auth_type

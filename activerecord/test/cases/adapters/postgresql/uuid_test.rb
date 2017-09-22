@@ -124,7 +124,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
      # The following is not a valid RFC 4122 UUID, but PG doesn't seem to care,
      # so we shouldn't block it either. (Pay attention to "fb6d" – the "f" here
      # is invalid – it must be one of 8, 9, A, B, a, b according to the spec.)
-     "{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}",
+     "{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}"
     ].each do |valid_uuid|
       uuid = UUIDType.new guid: valid_uuid
       assert_not_nil uuid.guid

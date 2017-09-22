@@ -809,7 +809,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     [
       lambda { authors(:david).very_special_comments = [VerySpecialComment.create!(body: "Gorp!", post_id: 1011), VerySpecialComment.create!(body: "Eep!", post_id: 1012)] },
       lambda { authors(:david).very_special_comments << VerySpecialComment.create!(body: "Hoohah!", post_id: 1013) },
-      lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) },
+      lambda { authors(:david).very_special_comments.delete(authors(:david).very_special_comments.first) }
     ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
