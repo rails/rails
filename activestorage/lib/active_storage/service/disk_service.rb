@@ -64,9 +64,10 @@ module ActiveStorage
           if defined?(Rails.application)
             Rails.application.routes.url_helpers.rails_disk_service_path \
               verified_key_with_expiration,
-              filename: filename, disposition: disposition, content_type: content_type
+              filename: filename, disposition: content_disposition_with(type: disposition, filename: filename), content_type: content_type
           else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}&disposition=#{disposition}"
+            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}" \
+              "&disposition=#{content_disposition_with(type: disposition, filename: filename)}"
           end
 
         payload[:url] = generated_url

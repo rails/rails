@@ -113,5 +113,9 @@ module ActiveStorage
         # ActiveStorage::Service::DiskService => Disk
         self.class.name.split("::").third.remove("Service")
       end
+
+      def content_disposition_with(type: "inline", filename:)
+        (type.to_s.presence_in(%w( attachment inline )) || "inline") + "; #{filename.parameters}"
+      end
   end
 end

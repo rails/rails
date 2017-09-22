@@ -11,7 +11,7 @@ if SERVICE_CONFIGURATIONS[:azure]
 
     test "signed URL generation" do
       url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
-        disposition: "inline; filename=\"avatar.png\"", filename: "avatar.png", content_type: "image/png")
+        disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
 
       assert_match(/(\S+)&rscd=inline%3B\+filename%3D%22avatar.png%22&rsct=image%2Fpng/, url)
       assert_match SERVICE_CONFIGURATIONS[:azure][:container], url
