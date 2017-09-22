@@ -356,23 +356,19 @@ module ActiveRecord
 
       def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
         default = extract_new_default_value(default_or_changes)
-        column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, default: default
+        change_column table_name, column_name, nil, default: default
       end
 
       def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
-        column = column_for(table_name, column_name)
-
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
 
-        change_column table_name, column_name, column.sql_type, null: null
+        change_column table_name, column_name, nil, null: null
       end
 
       def change_column_comment(table_name, column_name, comment) #:nodoc:
-        column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, comment: comment
+        change_column table_name, column_name, nil, comment: comment
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
@@ -678,6 +674,7 @@ module ActiveRecord
 
         def change_column_sql(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
+          type ||= column.sql_type
 
           unless options.key?(:default)
             options[:default] = column.default
