@@ -311,6 +311,11 @@ module ActiveRecord
         execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
       end
 
+      def change_table_comment(table_name, comment) #:nodoc:
+        comment = "" if comment.nil?
+        execute("ALTER TABLE #{quote_table_name(table_name)} COMMENT #{quote(comment)}")
+      end
+
       # Renames a table.
       #
       # Example:
@@ -363,6 +368,11 @@ module ActiveRecord
         end
 
         change_column table_name, column_name, column.sql_type, null: null
+      end
+
+      def change_column_comment(table_name, column_name, comment) #:nodoc:
+        column = column_for(table_name, column_name)
+        change_column table_name, column_name, column.sql_type, comment: comment
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
