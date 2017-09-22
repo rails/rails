@@ -726,7 +726,7 @@ module ActiveRecord
 
         def remove_index_sql(table_name, options = {})
           index_name = index_name_for_remove(table_name, options)
-          "DROP INDEX #{index_name}"
+          "DROP INDEX #{quote_column_name(index_name)}"
         end
 
         def add_timestamps_sql(table_name, options = {})
