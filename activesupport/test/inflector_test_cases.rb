@@ -141,13 +141,13 @@ module InflectorTestCases
     "HTMLTidyGenerator"     => "html_tidy_generator",
     "FreeBSD"               => "free_bsd",
     "HTML"                  => "html",
-    "ForceXMLController"    => "force_xml_controller",
+    "ForceXMLController"    => "force_xml_controller"
   }
 
   CamelWithModuleToUnderscoreWithSlash = {
     "Admin::Product" => "admin/product",
     "Users::Commission::Department" => "users/commission/department",
-    "UsersSection::CommissionDepartment" => "users_section/commission_department",
+    "UsersSection::CommissionDepartment" => "users_section/commission_department"
   }
 
   ClassNameToForeignKeyWithUnderscore = {

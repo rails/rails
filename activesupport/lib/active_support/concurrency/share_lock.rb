@@ -32,7 +32,7 @@ module ActiveSupport
               purpose: purpose,
               compatible: compatible,
               waiting: !!@waiting[thread],
-              sleeper: @sleeping[thread],
+              sleeper: @sleeping[thread]
             }
           end
 

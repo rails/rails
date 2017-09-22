@@ -44,7 +44,7 @@ module ActiveSupport
             "\u2029" => '\u2029',
             ">"      => '\u003e',
             "<"      => '\u003c',
-            "&"      => '\u0026',
+            "&"      => '\u0026'
             }
 
           ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u

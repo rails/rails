@@ -628,7 +628,7 @@ module ActiveRecord
               type: cast_type.type,
               limit: cast_type.limit,
               precision: cast_type.precision,
-              scale: cast_type.scale,
+              scale: cast_type.scale
             )
             PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
           end

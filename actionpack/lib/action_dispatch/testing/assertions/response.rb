@@ -8,7 +8,7 @@ module ActionDispatch
         success:  :successful?,
         missing:  :not_found?,
         redirect: :redirection?,
-        error:    :server_error?,
+        error:    :server_error?
       }
 
       # Asserts that the response is one of the following types:

@@ -41,7 +41,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   def test_distance_of_time_in_words_calls_i18n_with_custom_scope
     {
       [30.days, { scope: :'datetime.distance_in_words_ago' }] => [:'about_x_months', 1],
-      [60.days, { scope: :'datetime.distance_in_words_ago' }] => [:'x_months',       2],
+      [60.days, { scope: :'datetime.distance_in_words_ago' }] => [:'x_months',       2]
     }.each do |passed, expected|
       assert_distance_of_time_in_words_translates_key(passed, expected, scope: :'datetime.distance_in_words_ago')
     end

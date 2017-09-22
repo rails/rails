@@ -654,7 +654,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       # Other
       [%w(n cr lf n), 3],
       [%w(n l v t), 2],
-      [%w(cr extend n), 3],
+      [%w(cr extend n), 3]
     ].each do |input, expected_length|
       if input.kind_of?(Array)
         str = string_from_classes(input)

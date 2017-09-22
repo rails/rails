@@ -1154,7 +1154,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     topic.replies.create!([
       { title: "re: zoom", content: "speedy quick!" },
-      { title: "re: zoom 2", content: "OMG lol!" },
+      { title: "re: zoom 2", content: "OMG lol!" }
     ])
     assert_equal 2, topic.replies_count
     assert_equal 2, topic.replies.size
@@ -1838,7 +1838,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:mary).comment_ids = [comments(:greetings).id, comments(:more_greetings).id] },
       lambda { authors(:mary).comments = [comments(:greetings), comments(:more_greetings)] },
       lambda { authors(:mary).comments << Comment.create!(body: "Yay", post_id: 424242) },
-      lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
+      lambda { authors(:mary).comments.delete(authors(:mary).comments.first) }
     ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 

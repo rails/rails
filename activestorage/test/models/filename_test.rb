@@ -34,7 +34,7 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
       "\xC3".dup.force_encoding(Encoding::ISO8859_1) => "Ã",
       "\xAD" => "�",
       "\xCF" => "�",
-      "\x00" => "",
+      "\x00" => ""
     }.each do |actual, expected|
       assert_equal expected, ActiveStorage::Filename.new(actual).sanitized
     end

@@ -172,7 +172,7 @@ module ActionPack
       ["/posts?page=2",  [{ controller: "posts", page: 2 }]],
       ["/posts?q%5Bfoo%5D%5Ba%5D=b", [{ controller: "posts", q: { foo: { a: "b" } } }]],
 
-      ["/news.rss", [{ controller: "news", action: "index", format: "rss" }]],
+      ["/news.rss", [{ controller: "news", action: "index", format: "rss" }]]
     ].each_with_index do |(url, params), i|
       if params.length > 1
         hash, path_params, route = *params

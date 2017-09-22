@@ -115,7 +115,7 @@ module ActiveRecord
                   type_casted_binds: -> { type_casted_binds(binds) },
                   name: name,
                   connection_id: object_id,
-                  cached: true,
+                  cached: true
                 )
                 @query_cache[sql][binds]
               else

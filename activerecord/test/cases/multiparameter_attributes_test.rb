@@ -92,7 +92,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
       attributes = {
         "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
-        "written_on(4i)" => "2004", "written_on(5i)" => "36", "written_on(6i)" => "64",
+        "written_on(4i)" => "2004", "written_on(5i)" => "36", "written_on(6i)" => "64"
       }
       topic = Topic.find(1)
       topic.attributes = attributes
@@ -392,7 +392,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       "written_on(2i)" => "3",
       "written_on(3i)" => "11",
       "written_on(4i)" => "13",
-      "written_on(5i)" => "55",
+      "written_on(5i)" => "55"
     )
     refute_predicate topic, :written_on_came_from_user?
   end

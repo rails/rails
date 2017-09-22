@@ -45,7 +45,7 @@ module Rails
       },
 
       test_unit: {
-        fixture_replacement: "-r",
+        fixture_replacement: "-r"
       }
     }
 

@@ -112,7 +112,7 @@ module ActiveRecord
         bit_varying: { name: "bit varying" },
         money:       { name: "money" },
         interval:    { name: "interval" },
-        oid:         { name: "oid" },
+        oid:         { name: "oid" }
       }
 
       OID = PostgreSQL::OID #:nodoc:
@@ -374,7 +374,7 @@ module ActiveRecord
       OPERATION_ALIASES = { # :nodoc:
         "maximum" => "max",
         "minimum" => "min",
-        "average" => "avg",
+        "average" => "avg"
       }
 
       # Returns the version of the connected PostgreSQL server.
@@ -791,7 +791,7 @@ module ActiveRecord
             "oid" => PG::TextDecoder::Integer,
             "float4" => PG::TextDecoder::Float,
             "float8" => PG::TextDecoder::Float,
-            "bool" => PG::TextDecoder::Boolean,
+            "bool" => PG::TextDecoder::Boolean
           }
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<-SQL % known_coder_types.join(", ")

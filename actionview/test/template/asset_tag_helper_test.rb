@@ -64,7 +64,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag(nil, {}, {:type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="" type="text/html" />),
     %(auto_discovery_link_tag(nil, {}, {:title => "No stream.. really", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="No stream.. really" type="text/html" />),
     %(auto_discovery_link_tag(:rss, {}, {:title => "My RSS", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="text/html" />),
-    %(auto_discovery_link_tag(:atom, {}, {:rel => "Not so alternate"})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:atom, {}, {:rel => "Not so alternate"})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" />)
   }
 
   JavascriptPathToTag = {
@@ -106,7 +106,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
-    %(javascript_include_tag("//example.com/all.js")) => %(<script src="//example.com/all.js"></script>),
+    %(javascript_include_tag("//example.com/all.js")) => %(<script src="//example.com/all.js"></script>)
   }
 
   StylePathToTag = {
@@ -151,7 +151,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
-    %(stylesheet_link_tag("//www.example.com/styles/style.css")) => %(<link href="//www.example.com/styles/style.css" media="screen" rel="stylesheet" />),
+    %(stylesheet_link_tag("//www.example.com/styles/style.css")) => %(<link href="//www.example.com/styles/style.css" media="screen" rel="stylesheet" />)
   }
 
   ImagePathToTag = {

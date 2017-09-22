@@ -36,13 +36,13 @@ module ActionDispatch
                           [:SLASH, "/"],
                           [:LPAREN, "("],
                           [:SYMBOL, ":page"],
-                          [:RPAREN, ")"],
+                          [:RPAREN, ")"]
                         ]],
             ["(/:action)", [
                             [:LPAREN, "("],
                             [:SLASH, "/"],
                             [:SYMBOL, ":action"],
-                            [:RPAREN, ")"],
+                            [:RPAREN, ")"]
                            ]],
             ["(())", [[:LPAREN, "("],
                      [:LPAREN, "("], [:RPAREN, ")"], [:RPAREN, ")"]]],
@@ -50,8 +50,8 @@ module ActionDispatch
                             [:LPAREN, "("],
                             [:DOT, "."],
                             [:SYMBOL, ":format"],
-                            [:RPAREN, ")"],
-                          ]],
+                            [:RPAREN, ")"]
+                          ]]
           ].each do |str, expected|
             @scanner.scan_setup str
             assert_tokens expected, @scanner

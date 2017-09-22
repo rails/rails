@@ -41,7 +41,7 @@ module ActiveSupport
           [:start, "hi", 1, {}],
           [:start, "hi", 2, {}],
           [:finish, "hi", 2, {}],
-          [:finish, "hi", 1, {}],
+          [:finish, "hi", 1, {}]
         ], listener.events
       end
 
@@ -67,7 +67,7 @@ module ActiveSupport
           [:start,  "hello", 1, {}],
           [:start,  "world", 1, {}],
           [:finish,  "world", 1, {}],
-          [:finish,  "hello", 1, {}],
+          [:finish,  "hello", 1, {}]
         ], listener.events
       end
 

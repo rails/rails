@@ -69,7 +69,7 @@ module ActionCable
             @executor ||= Concurrent::ThreadPoolExecutor.new(
               min_threads: 1,
               max_threads: 10,
-              max_queue: 0,
+              max_queue: 0
             )
 
             @thread = Thread.new { run }

@@ -727,7 +727,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       author_email_address: "david@loudthinking.com",
       parent_id: nil,
       ad_revenue: BigDecimal("1.50"),
-      optimum_viewing_angle: 135.0,
+      optimum_viewing_angle: 135.0
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["topic"]
@@ -823,7 +823,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       title: "Colored Pencil PhotoBooth Fun",
       ispublic: "1",
       isfriend: "0",
-      isfamily: "0",
+      isfamily: "0"
     }.stringify_keys
 
     assert_equal expected_topic_hash, Hash.from_xml(topic_xml)["rsp"]["photos"]["photo"]
@@ -971,7 +971,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
     expected_product_hash = {
       weight: 0.5,
-      image: { "type" => "ProductImage", "filename" => "image.gif" },
+      image: { "type" => "ProductImage", "filename" => "image.gif" }
     }.stringify_keys
 
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]

@@ -120,7 +120,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
         }
       },
       "something_else" => "blah",
-      "logo" => __FILE__,
+      "logo" => __FILE__
     }
     assert_parses expected, query
   end

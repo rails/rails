@@ -365,7 +365,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     carrier = Carrier.create!
     customer_carrier = CustomerCarrier.create!(
       customer: customer,
-      carrier: carrier,
+      carrier: carrier
     )
     account = ShopAccount.create!(customer_carrier: customer_carrier)
 
@@ -380,7 +380,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     other_customer = Customer.create!
     other_customer_carrier = CustomerCarrier.create!(
       customer: other_customer,
-      carrier: other_carrier,
+      carrier: other_carrier
     )
     other_account = ShopAccount.create!(customer_carrier: other_customer_carrier)
 

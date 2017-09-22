@@ -96,7 +96,7 @@ module ActiveRecord
         end
         assert_equal [
           [:rename_column, [:fruits, :cultivar, :kind]],
-          [:remove_column, [:fruits, :name, :string, {}], nil],
+          [:remove_column, [:fruits, :name, :string, {}], nil]
         ], @recorder.commands
 
         assert_raises(ActiveRecord::IrreversibleMigration) do

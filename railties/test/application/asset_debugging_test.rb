@@ -103,7 +103,7 @@ module ApplicationTests
         audio_url:       %r{http://example.org/audios/#{contents}},
         font_url:        %r{http://example.org/fonts/#{contents}},
         javascript_url:  %r{http://example.org/javascripts/#{contents}},
-        stylesheet_url:  %r{http://example.org/stylesheets/#{contents}},
+        stylesheet_url:  %r{http://example.org/stylesheets/#{contents}}
       }
 
       cases.each do |(view_method, tag_match)|
@@ -123,7 +123,7 @@ module ApplicationTests
     test "{ skip_pipeline: true } does not use the asset pipeline" do
       cases = {
         /\/assets\/application-.*.\.js/ => {},
-        /application.js/                => { skip_pipeline: true },
+        /application.js/                => { skip_pipeline: true }
       }
       cases.each do |(tag_match, options_hash)|
         app_file "app/views/posts/index.html.erb", "<%= asset_path('application.js', #{options_hash}) %>"
@@ -142,7 +142,7 @@ module ApplicationTests
     test "public_compute_asset_path does not use the asset pipeline" do
       cases = {
         compute_asset_path:        /\/assets\/application-.*.\.js/,
-        public_compute_asset_path: /application.js/,
+        public_compute_asset_path: /application.js/
       }
 
       cases.each do |(view_method, tag_match)|

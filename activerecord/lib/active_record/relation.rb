@@ -66,7 +66,7 @@ module ActiveRecord
         "#{@klass} Create",
         primary_key || false,
         primary_key_value,
-        nil,
+        nil
       )
     end
 
@@ -86,7 +86,7 @@ module ActiveRecord
 
       @klass.connection.update(
         um,
-        "#{@klass} Update",
+        "#{@klass} Update"
       )
     end
 

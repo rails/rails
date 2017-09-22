@@ -449,7 +449,7 @@ module CallbacksTest
         "running",
         "unwrap_inner",
         "third_trouble",
-        "unwrap_outer",
+        "unwrap_outer"
       ], double.history
     end
   end
@@ -594,7 +594,7 @@ module CallbacksTest
         [:before_save, :symbol],
         [:before_save, :string],
         [:before_save, :string],
-        [:before_save, :combined_symbol],
+        [:before_save, :combined_symbol]
       ], person.history
     end
   end
