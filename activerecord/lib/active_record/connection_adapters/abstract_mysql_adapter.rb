@@ -284,7 +284,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<-SQL.strip_heredoc, "SCHEMA")
+        query_value(<<-SQL.strip_heredoc, "SCHEMA").presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}

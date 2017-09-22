@@ -150,7 +150,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
     def test_change_table_comment_to_nil
       @connection.change_table_comment :commenteds, nil
-      assert @connection.table_comment("commenteds").blank?
+      assert_nil @connection.table_comment("commenteds")
     end
 
     def test_change_column_comment
