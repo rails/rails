@@ -38,8 +38,8 @@ class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
-  def initialize(blob, variation)
-    @blob, @variation = blob, variation
+  def initialize(blob, variation_or_variation_key)
+    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.

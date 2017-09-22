@@ -23,8 +23,8 @@ class ActiveStorage::Preview
   attr_reader :blob, :variation
   delegate :image, to: :blob
 
-  def initialize(blob, variation)
-    @blob, @variation = blob, variation
+  def initialize(blob, variation_or_variation_key)
+    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
   def processed
