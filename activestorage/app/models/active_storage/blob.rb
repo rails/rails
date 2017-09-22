@@ -23,7 +23,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   class_attribute :service
 
-  has_one_attached :image
+  has_one_attached :preview_image
 
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.

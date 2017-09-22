@@ -21,7 +21,6 @@ class ActiveStorage::Preview
   class UnprocessedError < StandardError; end
 
   attr_reader :blob, :variation
-  delegate :image, to: :blob
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
@@ -30,6 +29,10 @@ class ActiveStorage::Preview
   def processed
     process unless processed?
     self
+  end
+
+  def image
+    blob.preview_image
   end
 
   def service_url(**options)
