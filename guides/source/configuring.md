@@ -487,6 +487,17 @@ Defaults to `'signed cookie'`.
   authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
   cookie'`.
 
+* `config.action_dispatch.encrypted_cookie_cipher` sets the cipher to be
+  used for encrypted cookies. This defaults to `"aes-256-gcm"`.
+
+* `config.action_dispatch.signed_cookie_digest` sets the digest to be
+  used for signed cookies. This defaults to `"SHA1"`.
+
+* `config.action_dispatch.cookies_rotations` is set to an instance of
+  [RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html).
+  It provides an interface for rotating keys, salts, ciphers, and
+  digests for encrypted and signed cookies.
+
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.

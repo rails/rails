@@ -3,11 +3,13 @@
 require "abstract_unit"
 require "stringio"
 require "active_support/key_generator"
+require "active_support/messages/rotation_configuration"
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   SessionSecret = "b3c631c314c0bbca50c1b2843150fe33"
   Generator = ActiveSupport::LegacyKeyGenerator.new(SessionSecret)
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, digest: "SHA1")
   SignedBar = Verifier.generate(foo: "bar", session_id: SecureRandom.hex(16))
@@ -346,6 +348,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       args[0] ||= {}
       args[0][:headers] ||= {}
       args[0][:headers]["action_dispatch.key_generator"] ||= Generator
+      args[0][:headers]["action_dispatch.cookies_rotations"] ||= Rotations
+
       super(path, *args)
     end
 
