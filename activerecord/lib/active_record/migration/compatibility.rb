@@ -20,6 +20,11 @@ module ActiveRecord
 
       class V5_0 < V5_1
         module TableDefinition
+          def primary_key(name, type = :primary_key, **options)
+            type = :integer if type == :primary_key
+            super
+          end
+
           def references(*args, **options)
             super(*args, type: :integer, **options)
           end
@@ -84,6 +89,20 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def add_column(table_name, column_name, type, options = {})
+          if type == :primary_key
+            case adapter_name
+            when "PostgreSQL"
+              type = :serial
+            when "Mysql2"
+              type = :integer
+              options[:auto_increment] = true
+            end
+            options[:primary_key] = true
+          end
+          super
         end
 
         def add_reference(table_name, ref_name, **options)
