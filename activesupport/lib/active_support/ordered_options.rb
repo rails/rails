@@ -46,7 +46,7 @@ module ActiveSupport
         bangs = name_string.chomp!("!")
 
         if bangs
-          fetch(name_string.to_sym).presence || raise(KeyError.new(":#{name_string} is blank"))
+          self[name_string].presence || raise(KeyError.new(":#{name_string} is blank"))
         else
           self[name_string]
         end
