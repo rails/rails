@@ -391,7 +391,7 @@ module ActiveRecord
       def build_count_subquery(relation, column_name, distinct)
         relation.select_values = [
           if column_name == :all
-            distinct ? table[Arel.star] : Arel.sql("1")
+            distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)
           else
             column_alias = Arel.sql("count_column")
             aggregate_column(column_name).as(column_alias)
