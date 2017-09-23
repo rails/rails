@@ -410,6 +410,10 @@ module ActiveRecord
         def aliased_types(name, fallback)
           "timestamp" == name ? :datetime : fallback
         end
+
+        def integer_like_primary_key?(type, options)
+          options[:primary_key] && [:integer, :bigint].include?(type) && !options.key?(:default)
+        end
     end
 
     class AlterTable # :nodoc:

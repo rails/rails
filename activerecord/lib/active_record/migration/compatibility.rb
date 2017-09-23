@@ -93,13 +93,7 @@ module ActiveRecord
 
         def add_column(table_name, column_name, type, options = {})
           if type == :primary_key
-            case adapter_name
-            when "PostgreSQL"
-              type = :serial
-            when "Mysql2"
-              type = :integer
-              options[:auto_increment] = true
-            end
+            type = :integer
             options[:primary_key] = true
           end
           super
