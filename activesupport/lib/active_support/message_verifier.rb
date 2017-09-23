@@ -4,6 +4,7 @@ require "base64"
 require_relative "core_ext/object/blank"
 require_relative "security_utils"
 require_relative "messages/metadata"
+require_relative "messages/rotator"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -73,7 +74,36 @@ module ActiveSupport
   # Then the messages can be verified and returned upto the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
+  #
+  # === Rotating keys
+  #
+  # This class also defines a +rotate+ method which can be used to rotate out
+  # verification keys no longer in use.
+  #
+  # This method is called with an options hash where a +:digest+ option and
+  # either a +:raw_key+ or +:secret+ option must be defined. If +:raw_key+ is
+  # defined, it is used directly for the underlying HMAC function. If the
+  # +:secret+ option is defined, a +:salt+ option must also be defined and a
+  # +KeyGenerator+ instance will be used to derive a key using +:salt+.  When
+  # +:secret+ is used, a +:key_generator+ option may also be defined allowing
+  # for custom +KeyGenerator+ instances. This method can be called multiple
+  # times and new verifier instances will be added to the rotation stack on
+  # each call.
+  #
+  #   # Specifying the key used for verification
+  #   @verifier.rotate raw_key: older_key, digest: "SHA1"
+  #
+  #   # Specify the digest
+  #   @verifier.rotate raw_key: old_key, digest: "SHA256"
+  #
+  #   # Using a KeyGenerator instance with a secret and salt
+  #   @verifier.rotate secret: old_secret, salt: old_salt, digest: "SHA1"
+  #
+  #   # Specifying the key generator instance
+  #   @verifier.rotate key_generator: old_key_gen, salt: old_salt, digest: "SHA256"
   class MessageVerifier
+    prepend Messages::Rotator::Verifier
+
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
@@ -120,7 +150,7 @@ module ActiveSupport
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
-    def verified(signed_message, purpose: nil)
+    def verified(signed_message, purpose: nil, **)
       if valid_message?(signed_message)
         begin
           data = signed_message.split("--".freeze)[0]
@@ -145,8 +175,8 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
-    def verify(signed_message, purpose: nil)
-      verified(signed_message, purpose: purpose) || raise(InvalidSignature)
+    def verify(*args)
+      verified(*args) || raise(InvalidSignature)
     end
 
     # Generates a signed message for the provided value.

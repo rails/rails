@@ -54,7 +54,37 @@ module ActiveSupport
   #
   # Then the messages can be verified and returned upto the expire time.
   # Thereafter, verifying returns +nil+.
+  #
+  # === Rotating keys
+  #
+  # This class also defines a +rotate+ method which can be used to rotate out
+  # encryption keys no longer in use.
+  #
+  # This method is called with an options hash where a +:cipher+ option and
+  # either a +:raw_key+ or +:secret+ option must be defined. If +:raw_key+ is
+  # defined, it is used directly for the underlying encryption function. If
+  # the +:secret+ option is defined, a +:salt+ option must also be defined and
+  # a +KeyGenerator+ instance will be used to derive a key using +:salt+. When
+  # +:secret+ is used, a +:key_generator+ option may also be defined allowing
+  # for custom +KeyGenerator+ instances. If CBC encryption is used a
+  # `:raw_signed_key` or a `:signed_salt` option must also be defined. A
+  # +:digest+ may also be defined when using CBC encryption. This method can be
+  # called multiple times and new encryptor instances will be added to the
+  # rotation stack on each call.
+  #
+  #   # Specifying the key used for encryption
+  #   crypt.rotate raw_key: old_aead_key, cipher: "aes-256-gcm"
+  #   crypt.rotate raw_key: old_cbc_key, raw_signed_key: old_cbc_sign_key, cipher: "aes-256-cbc", digest: "SHA1"
+  #
+  #   # Using a KeyGenerator instance with a secret and salt(s)
+  #   crypt.rotate secret: old_aead_secret, salt: old_aead_salt, cipher: "aes-256-gcm"
+  #   crypt.rotate secret: old_cbc_secret, salt: old_cbc_salt, signed_salt: old_cbc_signed_salt, cipher: "aes-256-cbc", digest: "SHA1"
+  #
+  #   # Specifying the key generator instance
+  #   crypt.rotate key_generator: old_key_gen, salt: old_salt, cipher: "aes-256-gcm"
   class MessageEncryptor
+    prepend Messages::Rotator::Encryptor
+
     class << self
       attr_accessor :use_authenticated_message_encryption #:nodoc:
 
@@ -126,7 +156,7 @@ module ActiveSupport
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
-    def decrypt_and_verify(data, purpose: nil)
+    def decrypt_and_verify(data, purpose: nil, **)
       _decrypt(verifier.verify(data), purpose)
     end
 
