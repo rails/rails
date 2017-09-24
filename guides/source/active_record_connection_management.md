@@ -92,9 +92,9 @@ connections.
 Now, one might imagine that, in the above example (which is exemplary of
 typical code), because...
 
-a) A completely new pool of connections is established in each child process.
-c) No DB operations are done in the children before the child pools are established.
-d) No DB operations are done in the parent before the child pools are established.
+1. A completely new pool of connections is established in each child process.
+1. No DB operations are done in the children before the child pools are established.
+1. No DB operations are done in the parent before the child pools are established.
 
 ...then maybe the disconnect in the parent isn't necessary, since no resources
 are attempted to be shared between processes at the same time?
