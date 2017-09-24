@@ -1,3 +1,11 @@
+*   Add `assert_enqueued_email_with` test helper.
+
+        assert_enqueued_email_with ContactMailer, :welcome do
+          ContactMailer.welcome.deliver_later
+        end
+    
+    *Mikkel Malmberg*
+
 *   Allow Action Mailer classes to configure their delivery job.
 
         class MyMailer < ApplicationMailer
