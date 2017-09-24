@@ -99,7 +99,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     old_message = old_verifier.generate("message verified with old raw key")
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate raw_key: old_raw_key, digest: "SHA1"
+    verifier.rotate raw_key: old_raw_key
 
     assert_equal "message verified with old raw key", verifier.verified(old_message)
   end
@@ -112,7 +112,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     old_message = old_verifier.generate("message verified with old secret and salt")
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate secret: old_secret, salt: old_salt, digest: "SHA1"
+    verifier.rotate secret: old_secret, salt: old_salt
 
     assert_equal "message verified with old secret and salt", verifier.verified(old_message)
   end
@@ -125,7 +125,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
     old_message = old_verifier.generate("message verified with old key generator and salt")
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate key_generator: old_key_gen, salt: old_salt, digest: "SHA1"
+    verifier.rotate key_generator: old_key_gen, salt: old_salt
 
     assert_equal "message verified with old key generator and salt", verifier.verified(old_message)
   end
@@ -175,7 +175,7 @@ class MessageVerifierTest < ActiveSupport::TestCase
       "message verified with old secret, salt, and metadata", purpose: "rotation")
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate secret: old_secret, salt: old_salt, digest: "SHA1"
+    verifier.rotate secret: old_secret, salt: old_salt
 
     assert_equal "message verified with old secret, salt, and metadata",
       verifier.verified(old_message, purpose: "rotation")

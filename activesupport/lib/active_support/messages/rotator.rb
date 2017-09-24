@@ -3,9 +3,10 @@
 module ActiveSupport
   module Messages
     module Rotator # :nodoc:
-      def initialize(*args)
+      def initialize(*, **options)
         super
 
+        @options   = options
         @rotations = []
       end
 
@@ -24,10 +25,12 @@ module ActiveSupport
 
         private
           def create_rotation(raw_key: nil, raw_signed_key: nil, **options)
+            options[:cipher] ||= @cipher
+
             self.class.new \
               raw_key || extract_key(options),
               raw_signed_key || extract_signing_key(options),
-              options.slice(:cipher, :digest, :serializer)
+              @options.merge(options.slice(:cipher, :digest, :serializer))
           end
 
           def extract_key(cipher:, salt:, key_generator: nil, secret: nil, **)
@@ -53,8 +56,8 @@ module ActiveSupport
         end
 
         private
-          def create_rotation(raw_key: nil, digest: nil, serializer: nil, **options)
-            self.class.new(raw_key || extract_key(options), digest: digest, serializer: serializer)
+          def create_rotation(raw_key: nil, **options)
+            self.class.new(raw_key || extract_key(options), @options.merge(options.slice(:digest, :serializer)))
           end
 
           def extract_key(key_generator: nil, secret: nil, salt:)

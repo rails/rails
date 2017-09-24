@@ -121,9 +121,21 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     old_message = old_encryptor.encrypt_and_sign("message encrypted with old raw key")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate raw_key: old_raw_key, cipher: "aes-256-gcm"
+    encryptor.rotate raw_key: old_raw_key
 
     assert_equal "message encrypted with old raw key", encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_rotating_serializer
+    old_raw_key = SecureRandom.random_bytes(32)
+
+    old_message = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm", serializer: JSON).
+      encrypt_and_sign(ahoy: :hoy)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm", serializer: JSON)
+    encryptor.rotate raw_key: old_raw_key
+
+    assert_equal({ "ahoy" => "hoy" }, encryptor.decrypt_and_verify(old_message))
   end
 
   def test_with_rotated_secret_and_salt
@@ -134,7 +146,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     old_message = old_encryptor.encrypt_and_sign("message encrypted with old secret and salt")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate secret: old_secret, salt: old_salt, cipher: "aes-256-gcm"
+    encryptor.rotate secret: old_secret, salt: old_salt
 
     assert_equal "message encrypted with old secret and salt", encryptor.decrypt_and_verify(old_message)
   end
@@ -147,7 +159,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     old_message = old_encryptor.encrypt_and_sign("message encrypted with old key generator and salt")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate key_generator: old_key_gen, salt: old_salt, cipher: "aes-256-gcm"
+    encryptor.rotate key_generator: old_key_gen, salt: old_salt
 
     assert_equal "message encrypted with old key generator and salt", encryptor.decrypt_and_verify(old_message)
   end
@@ -227,7 +239,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       "message encrypted with old secret, salt, and metadata", purpose: "rotation")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate secret: old_secret, salt: old_salt, cipher: "aes-256-gcm"
+    encryptor.rotate secret: old_secret, salt: old_salt
 
     assert_equal "message encrypted with old secret, salt, and metadata",
       encryptor.decrypt_and_verify(old_message, purpose: "rotation")
