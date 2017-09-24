@@ -13,6 +13,7 @@ module ActiveRecord
       register_handler(Range, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
+      register_handler(Set, ArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)

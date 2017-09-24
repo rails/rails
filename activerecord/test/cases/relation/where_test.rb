@@ -314,6 +314,12 @@ module ActiveRecord
       assert_equal essays(:david_modest_proposal), essay
     end
 
+    def test_where_on_association_with_custom_primary_key_with_set_of_ids
+      essay = Essay.where(writer: Set.new(["David"])).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
     def test_where_with_relation_on_has_many_association
       essay = essays(:david_modest_proposal)
       author = Author.where(essays: Essay.where(id: essay.id)).first
