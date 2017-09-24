@@ -176,7 +176,7 @@ $ bin/rails db:migrate
 Now that we have a user model to play with, we will just edit the
 `app/controllers/users_controller.rb` make it instruct the `UserMailer` to deliver
 an email to the newly created user by editing the create action and inserting a
-call to `UserMailer.welcome_email` right after the user is successfully saved.
+call to `UserMailer.with(user: @user).welcome_email` right after the user is successfully saved.
 
 Action Mailer is nicely integrated with Active Job so you can send emails outside
 of the request-response cycle, so the user doesn't have to wait on it:
@@ -191,7 +191,7 @@ class UsersController < ApplicationController
     respond_to do |format|
       if @user.save
         # Tell the UserMailer to send a welcome email after save
-        UserMailer.welcome_email.with(user: @user).deliver_later
+        UserMailer.with(user: @user).welcome_email.deliver_later
 
         format.html { redirect_to(@user, notice: 'User was successfully created.') }
         format.json { render json: @user, status: :created, location: @user }
@@ -225,6 +225,11 @@ class SendWeeklySummary
   end
 end
 ```
+
+Any key value pair passed to `with` just becomes the `params` for the mailer
+action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
+`params[:account]` available in the mailer action. Just like controllers have
+params.
 
 The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
 can then just be told `deliver_now` or `deliver_later` to send itself out. The
@@ -477,7 +482,7 @@ special URL that renders them. In the above example, the preview class for
 ```ruby
 class UserMailerPreview < ActionMailer::Preview
   def welcome_email
-    UserMailer.welcome_email.with(user: User.first)
+    UserMailer.with(user: User.first).welcome_email
   end
 end
 ```
