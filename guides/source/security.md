@@ -85,37 +85,129 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 * _Critical data should not be stored in session_. If the user clears their cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
 
-### Session Storage
+### Encrypted Session Storage
 
 NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
 
-Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session ID. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
+The `CookieStore` saves the session hash directly in a cookie on the
+client-side. The server retrieves the session hash from the cookie and
+eliminates the need for a session ID. That will greatly increase the
+speed of the application, but it is a controversial storage option and
+you have to think about the security implications and storage
+limitations of it:
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _Storing the current user's database id in a session is usually ok_.
+* Cookies imply a strict size limit of 4kB. This is fine as you should
+  not store large amounts of data in a session anyway, as described
+  before. Storing the current user's database id in a session is common
+  practice.
 
-* The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret (`secrets.secret_token`) and inserted into the end of the cookie.
+* Session cookies do not invalidate themselves and can be maliciously
+  reused. It may be a good idea to have your application invalidate old
+  session cookies using a stored timestamp.
 
-In Rails 4, encrypted cookies through AES in CBC mode with HMAC using SHA1 for
-verification was introduced. This prevents the user from accessing and tampering
-the content of the cookie. Thus the session becomes a more secure place to store
-data. The encryption is performed using a server-side `secret_key_base`.
-Two salts are used when deriving keys for encryption and verification. These
-salts are set via the `config.action_dispatch.encrypted_cookie_salt` and
-`config.action_dispatch.encrypted_signed_cookie_salt` configuration values.
+The `CookieStore` uses the
+[encrypted](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
+cookie jar to provide a secure, encrypted location to store session
+data. Cookie-based sessions thus provide both integrity as well as
+confidentiality to their contents. The encryption key, as well as the
+verification key used for
+[signed](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
+cookies, is derived from the `secret_key_base` configuration value.
 
-Rails 5.2 uses AES-GCM for the encryption which couples authentication
-and encryption in one faster step and produces shorter ciphertexts.
+As of Rails 5.2 encrypted cookies and sessions are protected using AES
+GCM encryption. This form of encryption is a type of Authenticated
+Encryption and couples authentication and encryption in single step
+while also producing shorter ciphertexts as compared to other
+algorithms previously used. The key for cookies encrypted with AES GCM
+are derived using a salt value defined by the
+`config.action_dispatch.authenticated_encrypted_cookie_salt`
+configuration value.
 
-Encrypted cookies are automatically upgraded if the
-`config.action_dispatch.use_authenticated_cookie_encryption` is enabled.
+Prior to this version, encrypted cookies were secured using AES in CBC
+mode with HMAC using SHA1 for authentication. The keys for this type of
+encryption and for HMAC verification were derived via the salts defined
+by `config.action_dispatch.encrypted_cookie_salt` and
+`config.action_dispatch.encrypted_signed_cookie_salt` respectively.
 
-_Do not use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters! Instead use `rails secret` to generate secret keys!_
+Prior to Rails version 4 in both versions 2 and 3, session cookies were
+protected using only HMAC verification. As such, these session cookies
+only provided integrity to their content because the actual session data
+was stored in plaintext encoded as base64. This is how `signed` cookies
+work in the current version of Rails. These kinds of cookies are still
+useful for protecting the integrity of certain client-stored data and
+information.
+
+__Do not use a trivial secret for the `secret_key_base`, i.e. a word
+from a dictionary, or one which is shorter than 30 characters! Instead
+use `rails secret` to generate secret keys!__
+
+It is also important to use different salt values for encrypted and
+signed cookies. Using the same value for different salt configuration
+values may lead to the same derived key being used for different
+security features which in turn may weaken the strength of the key.
 
 In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
     secret_key_base: 492f...
 
 If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
+
+### Rotating Keys for Encrypted and Signed Cookies
+
+It is possible to rotate the `secret_key_base` as well as the salts,
+ciphers, and digests used for both encrypted and signed cookies. Rotating
+the `secret_key_base` is necessary if the value was exposed or leaked.
+It is also useful to rotate this value for other more benign reasons,
+such as an employee leaving your organization or changing hosting
+environments.
+
+Key rotations can be defined through the
+`config.action_dispatch.cookies_rotations` configuration value. This
+value is set to an instance of
+[RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html)
+which provides an interface for rotating signed and encrypted cookie
+keys, salts, digests, and ciphers.
+
+For example, suppose we want to rotate out an old `secret_key_base`, we
+can define a signed and encrypted key rotation as follows:
+
+```ruby
+config.action_dispatch.cookies_rotations.rotate :encrypted,
+  cipher: "aes-256-gcm",
+  secret: Rails.application.credentials.old_secret_key_base,
+  salt: config.action_dispatch.authenticated_encrypted_cookie_salt
+
+config.action_dispatch.cookies_rotations.rotate :signed,
+  digest: "SHA1",
+  secret: Rails.application.credentials.old_secret_key_base,
+  salt: config.action_dispatch.signed_cookie_salt
+```
+
+Multiple rotations are possible by calling `rotate` multiple times. For
+example, suppose we want to use SHA512 for signed cookies while rotating
+out SHA256 and SHA1 digests using the same `secret_key_base`
+
+```ruby
+config.action_dispatch.signed_cookie_digest = "SHA512"
+
+config.action_dispatch.cookies_rotations.rotate :signed,
+  digest: "SHA256",
+  secret: Rails.application.credentials.secret_key_base,
+  salt: config.action_dispatch.signed_cookie_salt
+
+config.action_dispatch.cookies_rotations.rotate :signed,
+  digest: "SHA1",
+  secret: Rails.application.credentials.secret_key_base,
+  salt: config.action_dispatch.signed_cookie_salt
+```
+
+For more details on key rotation with encrypted and signed messages as
+well as the various options the `rotate` method accepts, please refer to
+the
+[MessageEncryptor API](api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
+and
+[MessageVerifier API](api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
+documentation.
 
 ### Replay Attacks for CookieStore Sessions
 

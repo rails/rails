@@ -1,3 +1,14 @@
+*   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
+
+    This change introduces a `rotate` method to both the `MessageEncryptor` and
+    `MessageVerifier` classes. This method accepts the same arguments and
+    options as the given classes' constructor. The `encrypt_and_verify` method
+    for `MessageEncryptor` and the `verified` method for `MessageVerifier` also
+    accept an optional keyword argument `:on_rotation` block which is called
+    when a rotated instance is used to decrypt or verify the message.
+
+    *Michael J Coyne*
+
 *   Deprecate `Module#reachable?` method.
 
     *bogdanvlviv*
