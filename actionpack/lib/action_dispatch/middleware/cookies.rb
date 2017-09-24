@@ -571,7 +571,7 @@ module ActionDispatch
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
 
         request.cookies_rotations.signed.each do |*secrets, **options|
-          @verifier.rotate *secrets, serializer: SERIALIZER, **options
+          @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
         end
 
         if upgrade_legacy_signed_cookies?
@@ -604,7 +604,7 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
 
         request.cookies_rotations.encrypted.each do |*secrets, **options|
-          @encryptor.rotate *secrets, serializer: SERIALIZER, **options
+          @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
