@@ -164,7 +164,7 @@ environments.
 Key rotations can be defined through the
 `config.action_dispatch.cookies_rotations` configuration value. This
 value is set to an instance of
-[RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html)
+[RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/Messages/RotationConfiguration.html)
 which provides an interface for rotating signed and encrypted cookie
 keys, salts, digests, and ciphers.
 
