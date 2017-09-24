@@ -461,37 +461,13 @@ class CookiesTest < ActionController::TestCase
     assert_equal verifier.generate(45), cookies[:user_id]
   end
 
-  def test_signed_cookie_rotations_with_secret_key_base_and_digest
-    rotated_secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-    rotated_salt = "signed cookie"
+  def test_signed_cookie_rotating_secret_and_digest
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
-    @request.env["action_dispatch.cookies_rotations"].rotate :signed,
-      secret: rotated_secret_key_base, salt: rotated_salt, digest: "SHA1"
+    @request.env["action_dispatch.cookies_rotations"].rotate :signed, secret, digest: "SHA1"
 
-    old_secret = ActiveSupport::KeyGenerator.new(rotated_secret_key_base, iterations: 1000).generate_key(rotated_salt)
-    old_message = ActiveSupport::MessageVerifier.new(old_secret, digest: "SHA1", serializer: Marshal).generate(45)
-
-    @request.headers["Cookie"] = "user_id=#{old_message}"
-
-    get :get_signed_cookie
-    assert_equal 45, @controller.send(:cookies).signed[:user_id]
-
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
-    verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256", serializer: Marshal)
-    assert_equal 45, verifier.verify(@response.cookies["user_id"])
-  end
-
-  def test_signed_cookie_rotations_with_raw_key_and_digest
-    rotated_raw_key = "b3c631c314c0bbca50c1b2843150fe33"
-
-    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
-    @request.env["action_dispatch.cookies_rotations"].rotate :signed,
-      raw_key: rotated_raw_key, digest: "SHA1"
-
-    old_message = ActiveSupport::MessageVerifier.new(rotated_raw_key, digest: "SHA1", serializer: Marshal).generate(45)
-
+    old_message = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal).generate(45)
     @request.headers["Cookie"] = "user_id=#{old_message}"
 
     get :get_signed_cookie
@@ -993,40 +969,15 @@ class CookiesTest < ActionController::TestCase
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
-  def test_encrypted_cookie_rotations_with_secret_and_salt
-    rotated_secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-    rotated_salt = "authenticated encrypted cookie"
+  def test_encrypted_cookie_rotating_secret
+    secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted,
-      secret: rotated_secret_key_base, salt: rotated_salt, cipher: "aes-256-gcm"
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret
 
     key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
 
-    old_secret = ActiveSupport::KeyGenerator.new(rotated_secret_key_base, iterations: 1000).generate_key(rotated_salt, key_len)
-    old_message = ActiveSupport::MessageEncryptor.new(old_secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign("bar")
-
-    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape old_message}"
-
-    get :get_encrypted_cookie
-    assert_equal "bar", @controller.send(:cookies).encrypted[:foo]
-
-    key_generator = @request.env["action_dispatch.key_generator"]
-    secret = key_generator.generate_key(@request.env["action_dispatch.authenticated_encrypted_cookie_salt"], key_len)
-    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal)
-    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
-  end
-
-  def test_encrypted_cookie_rotations_with_raw_key
-    raw_key = "b3c631c314c0bbca50c1b2843150fe33"
-
-    @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted,
-      raw_key: raw_key, cipher: "aes-256-gcm"
-
-    key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
-
-    old_message = ActiveSupport::MessageEncryptor.new(raw_key, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign(45)
+    old_message = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign(45)
 
     @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape old_message}"
 

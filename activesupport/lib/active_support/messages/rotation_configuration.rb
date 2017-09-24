@@ -9,15 +9,15 @@ module ActiveSupport
         @signed, @encrypted = [], []
       end
 
-      def rotate(kind = nil, **options)
+      def rotate(kind = nil, *args)
         case kind
         when :signed
-          @signed << options
+          @signed << args
         when :encrypted
-          @encrypted << options
+          @encrypted << args
         else
-          rotate :signed, options
-          rotate :encrypted, options
+          rotate :signed, args
+          rotate :encrypted, args
         end
       end
     end

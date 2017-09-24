@@ -264,9 +264,9 @@ module ActionDispatch
         end
 
         def upgrade_legacy_hmac_aes_cbc_cookies?
-          request.secret_key_base.present?                       &&
-            request.encrypted_signed_cookie_salt.present?        &&
-            request.encrypted_cookie_salt.present?               &&
+          request.secret_key_base.present? &&
+            request.encrypted_signed_cookie_salt.present? &&
+            request.encrypted_cookie_salt.present? &&
             request.use_authenticated_cookie_encryption
         end
 
@@ -570,12 +570,12 @@ module ActionDispatch
         secret = request.key_generator.generate_key(request.signed_cookie_salt)
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
 
-        request.cookies_rotations.signed.each do |rotation_options|
-          @verifier.rotate serializer: SERIALIZER, **rotation_options
+        request.cookies_rotations.signed.each do |*secrets, **options|
+          @verifier.rotate *secrets, serializer: SERIALIZER, **options
         end
 
         if upgrade_legacy_signed_cookies?
-          @verifier.rotate raw_key: request.secret_token, serializer: SERIALIZER
+          @verifier.rotate request.secret_token, serializer: SERIALIZER
         end
       end
 
@@ -603,14 +603,15 @@ module ActionDispatch
         secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
 
-        request.cookies_rotations.encrypted.each do |rotation_options|
-          @encryptor.rotate serializer: SERIALIZER, **rotation_options
+        request.cookies_rotations.encrypted.each do |*secrets, **options|
+          @encryptor.rotate *secrets, serializer: SERIALIZER, **options
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
-          @encryptor.rotate \
-            key_generator: request.key_generator, salt: request.encrypted_cookie_salt, signed_salt: request.encrypted_signed_cookie_salt,
-            cipher: "aes-256-cbc", digest: digest, serializer: SERIALIZER
+          secret = request.key_generator.generate_key(request.encrypted_cookie_salt)
+          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+
+          @encryptor.rotate secret, sign_secret, cipher: "aes-256-cbc", digest: digest, serializer: SERIALIZER
         end
 
         if upgrade_legacy_signed_cookies?
