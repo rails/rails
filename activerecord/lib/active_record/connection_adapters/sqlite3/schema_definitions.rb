@@ -9,13 +9,10 @@ module ActiveRecord
         end
         alias :belongs_to :references
 
-        def new_column_definition(name, type, **options) # :nodoc:
-          if integer_like_primary_key?(type, options)
-            type = :primary_key
+        private
+          def integer_like_primary_key_type(type, options)
+            :primary_key
           end
-
-          super
-        end
       end
     end
   end

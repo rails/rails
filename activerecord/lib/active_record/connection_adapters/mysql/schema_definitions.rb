@@ -57,17 +57,12 @@ module ActiveRecord
         include ColumnMethods
 
         def new_column_definition(name, type, **options) # :nodoc:
-          if integer_like_primary_key?(type, options)
-            options[:auto_increment] = true
-          end
-
           case type
           when :virtual
             type = options[:type]
           when :primary_key
             type = :integer
             options[:limit] ||= 8
-            options[:auto_increment] = true
             options[:primary_key] = true
           when /\Aunsigned_(?<type>.+)\z/
             type = $~[:type].to_sym
@@ -80,6 +75,11 @@ module ActiveRecord
         private
           def aliased_types(name, fallback)
             fallback
+          end
+
+          def integer_like_primary_key_type(type, options)
+            options[:auto_increment] = true
+            type
           end
       end
 

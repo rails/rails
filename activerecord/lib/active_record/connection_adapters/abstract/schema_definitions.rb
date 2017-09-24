@@ -396,6 +396,9 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, **options) # :nodoc:
+        if integer_like_primary_key?(type, options)
+          type = integer_like_primary_key_type(type, options)
+        end
         type = aliased_types(type.to_s, type)
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
@@ -413,6 +416,10 @@ module ActiveRecord
 
         def integer_like_primary_key?(type, options)
           options[:primary_key] && [:integer, :bigint].include?(type) && !options.key?(:default)
+        end
+
+        def integer_like_primary_key_type(type, options)
+          type
         end
     end
 

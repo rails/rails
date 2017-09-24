@@ -179,17 +179,14 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        def new_column_definition(name, type, **options) # :nodoc:
-          if integer_like_primary_key?(type, options)
-            type = if type == :bigint || options[:limit] == 8
+        private
+          def integer_like_primary_key_type(type, options)
+            if type == :bigint || options[:limit] == 8
               :bigserial
             else
               :serial
             end
           end
-
-          super
-        end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table
