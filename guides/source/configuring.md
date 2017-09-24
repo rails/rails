@@ -494,7 +494,7 @@ Defaults to `'signed cookie'`.
   used for signed cookies. This defaults to `"SHA1"`.
 
 * `config.action_dispatch.cookies_rotations` is set to an instance of
-  [RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html).
+  [RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/Messages/RotationConfiguration.html).
   It provides an interface for rotating keys, salts, ciphers, and
   digests for encrypted and signed cookies.
 
