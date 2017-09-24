@@ -216,7 +216,6 @@ An API application comes with the following middleware by default:
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
-- `MyApi::Application::Routes`
 
 See the [internal middleware](rails_on_rack.html#internal-middleware-stack)
 section of the Rack guide for further information on them.
