@@ -2,7 +2,7 @@
 
 module ActiveSupport
   module Messages
-    class RotationConfiguration
+    class RotationConfiguration # :nodoc:
       attr_reader :signed, :encrypted
 
       def initialize

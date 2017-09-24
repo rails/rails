@@ -161,12 +161,9 @@ It is also useful to rotate this value for other more benign reasons,
 such as an employee leaving your organization or changing hosting
 environments.
 
-Key rotations can be defined through the
-`config.action_dispatch.cookies_rotations` configuration value. This
-value is set to an instance of
-[RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html)
-which provides an interface for rotating signed and encrypted cookie
-keys, salts, digests, and ciphers.
+Key rotations can be defined through
+`config.action_dispatch.cookies_rotations` which provides an interface for
+rotating signed and encrypted cookie keys, salts, digests, and ciphers.
 
 For example, suppose we want to rotate out an old `secret_key_base`, we
 can define a signed and encrypted key rotation as follows:
@@ -185,7 +182,7 @@ config.action_dispatch.cookies_rotations.rotate :signed,
 
 Multiple rotations are possible by calling `rotate` multiple times. For
 example, suppose we want to use SHA512 for signed cookies while rotating
-out SHA256 and SHA1 digests using the same `secret_key_base`
+out SHA256 and SHA1 digests using the same `secret_key_base`:
 
 ```ruby
 config.action_dispatch.signed_cookie_digest = "SHA512"
