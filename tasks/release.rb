@@ -6,7 +6,6 @@ FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitali
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
-gem_version = Gem::Version.new(version)
 
 directory "pkg"
 
