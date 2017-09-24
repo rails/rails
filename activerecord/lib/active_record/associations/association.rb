@@ -130,8 +130,8 @@ module ActiveRecord
       def extensions
         extensions = klass.default_extensions | reflection.extensions
 
-        if scope = reflection.scope
-          extensions |= klass.unscoped.instance_exec(owner, &scope).extensions
+        if reflection.scope
+          extensions |= reflection.scope_for(klass.unscoped, owner).extensions
         end
 
         extensions

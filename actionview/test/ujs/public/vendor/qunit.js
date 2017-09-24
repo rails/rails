@@ -42,7 +42,7 @@ var QUnit,
 	 * with IE 7 (and prior) where Error.prototype.toString is
 	 * not properly implemented
 	 *
-	 * Based on http://es5.github.com/#x15.11.4.4
+	 * Based on https://es5.github.io/#x15.11.4.4
 	 *
 	 * @param {String|Error} error
 	 * @return {String} error message

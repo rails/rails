@@ -53,8 +53,8 @@ module ActiveRecord
     #   end
     #
     # Database-specific information on row locking:
-    #   MySQL: http://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-    #   PostgreSQL: http://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
+    #   MySQL: https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+    #   PostgreSQL: https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
       # lock. Pass an SQL locking clause to append the end of the SELECT statement

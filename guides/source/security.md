@@ -98,7 +98,7 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 In Rails 4, encrypted cookies through AES in CBC mode with HMAC using SHA1 for
 verification was introduced. This prevents the user from accessing and tampering
 the content of the cookie. Thus the session becomes a more secure place to store
-data. The encryption is performed using a server-side `secrets.secret_key_base`.
+data. The encryption is performed using a server-side `secret_key_base`.
 Two salts are used when deriving keys for encryption and verification. These
 salts are set via the `config.action_dispatch.encrypted_cookie_salt` and
 `config.action_dispatch.encrypted_signed_cookie_salt` configuration values.
@@ -111,18 +111,9 @@ Encrypted cookies are automatically upgraded if the
 
 _Do not use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters! Instead use `rails secret` to generate secret keys!_
 
-Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`, e.g.:
+In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
-    development:
-      secret_key_base: a75d...
-
-    test:
-      secret_key_base: 492f...
-
-    production:
-      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
-
-Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
+    secret_key_base: 492f...
 
 If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
 
@@ -189,7 +180,7 @@ class Session < ApplicationRecord
 end
 ```
 
-The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a created_at column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
+The section about session fixation introduced the problem of maintained sessions. An attacker maintaining a session every five minutes can keep the session alive forever, although you are expiring sessions. A simple solution for this would be to add a `created_at` column to the sessions table. Now you can delete sessions that were created a long time ago. Use this line in the sweep method above:
 
 ```ruby
 delete_all "updated_at < '#{time.ago.to_s(:db)}' OR
@@ -687,7 +678,7 @@ The most common entry points are message posts, user comments, and guest books, 
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the web site to get confidential information or install malicious software through security holes in the web browser.
 
-During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The [Symantec Global Internet Security threat report](http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf) also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](http://pandalabs.pandasecurity.com/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high targets.
+During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The [Symantec Global Internet Security threat report](http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf) also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](http://pandalabs.pandasecurity.com/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
 
 #### HTML/JavaScript Injection
 
@@ -1025,34 +1016,40 @@ Here is a list of common headers:
 * **X-Content-Type-Options:** _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
-* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
 
 Environmental Security
 ----------------------
 
 It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
-### Custom secrets
+### Custom credentials
 
-Rails generates a `config/secrets.yml`. By default, this file contains the
-application's `secret_key_base`, but it could also be used to store other
-secrets such as access keys for external APIs.
+Rails generates a `config/credentials.yml.enc` to store third-party credentials
+within the repo. This is only viable because Rails encrypts the file with a master
+key that's generated into a version control ignored `config/master.key` — Rails
+will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
+key to boot in production, so the credentials can be read.
 
-The secrets added to this file are accessible via `Rails.application.secrets`.
-For example, with the following `config/secrets.yml`:
+To edit stored credentials use `bin/rails credentials:edit`.
 
-    development:
-      secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
-      some_api_key: SOMEKEY
+By default, this file contains the application's
+`secret_key_base`, but it could also be used to store other credentials such as
+access keys for external APIs.
 
-`Rails.application.secrets.some_api_key` returns `SOMEKEY` in the development
-environment.
+The credentials added to this file are accessible via `Rails.application.credentials`.
+For example, with the following decrypted `config/credentials.yml.enc`:
+
+    secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+    some_api_key: SOMEKEY
+
+`Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
 
 If you want an exception to be raised when some key is blank, use the bang
 version:
 
 ```ruby
-Rails.application.secrets.some_api_key! # => raises KeyError: key not found: :some_api_key
+Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
 
 Additional Resources
@@ -1060,7 +1057,7 @@ Additional Resources
 
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
-* Subscribe to the Rails security [mailing list.](http://groups.google.com/group/rubyonrails-security)
-* [Brakeman - Rails Security Scanner](http://brakemanscanner.org/) - To perform static security analysis for Rails applications.
-* [Keep up to date on the other application layers.](http://secunia.com/) (they have a weekly newsletter, too)
-* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet.](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet)
+* Subscribe to the Rails security [mailing list](https://groups.google.com/forum/#!forum/rubyonrails-security).
+* [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
+* [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too).
+* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet).

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -335,31 +337,37 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         # Use a static key
-        secrets.secret_key_base = "known key base"
+        Rails.application.credentials.secret_key_base = "known key base"
 
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
       RUBY
 
-      require "#{app_path}/config/environment"
+      begin
+        old_rails_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
 
-      get "/foo/write_raw_session"
-      get "/foo/read_session"
-      assert_equal "1", last_response.body
+        require "#{app_path}/config/environment"
 
-      get "/foo/write_session"
-      get "/foo/read_session"
-      assert_equal "2", last_response.body
+        get "/foo/write_raw_session"
+        get "/foo/read_session"
+        assert_equal "1", last_response.body
 
-      get "/foo/read_encrypted_cookie"
-      assert_equal "2", last_response.body
+        get "/foo/write_session"
+        get "/foo/read_session"
+        assert_equal "2", last_response.body
 
-      cipher = "aes-256-gcm"
-      secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+        get "/foo/read_encrypted_cookie"
+        assert_equal "2", last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
+        cipher = "aes-256-gcm"
+        secret = app.key_generator.generate_key("authenticated encrypted cookie")
+        encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+
+        get "/foo/read_raw_cookie"
+        assert_equal 2, encryptor.decrypt_and_verify(last_response.body)["foo"]
+      ensure
+        ENV["RAILS_ENV"] = old_rails_env
+      end
     end
 
     test "session upgrading legacy signed cookies to new signed cookies" do
@@ -398,26 +406,32 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        secrets.secret_key_base = nil
+        Rails.application.credentials.secret_key_base = nil
       RUBY
 
-      require "#{app_path}/config/environment"
+      begin
+        old_rails_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
 
-      get "/foo/write_raw_session"
-      get "/foo/read_session"
-      assert_equal "1", last_response.body
+        require "#{app_path}/config/environment"
 
-      get "/foo/write_session"
-      get "/foo/read_session"
-      assert_equal "2", last_response.body
+        get "/foo/write_raw_session"
+        get "/foo/read_session"
+        assert_equal "1", last_response.body
 
-      get "/foo/read_signed_cookie"
-      assert_equal "2", last_response.body
+        get "/foo/write_session"
+        get "/foo/read_session"
+        assert_equal "2", last_response.body
 
-      verifier = ActiveSupport::MessageVerifier.new(app.secrets.secret_token)
+        get "/foo/read_signed_cookie"
+        assert_equal "2", last_response.body
 
-      get "/foo/read_raw_cookie"
-      assert_equal 2, verifier.verify(last_response.body)["foo"]
+        verifier = ActiveSupport::MessageVerifier.new(app.secrets.secret_token)
+
+        get "/foo/read_raw_cookie"
+        assert_equal 2, verifier.verify(last_response.body)["foo"]
+      ensure
+        ENV["RAILS_ENV"] = old_rails_env
+      end
     end
 
     test "calling reset_session on request does not trigger an error for API apps" do

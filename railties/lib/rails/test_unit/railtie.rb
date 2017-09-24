@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "line_filtering"
 
 if defined?(Rake.application) && Rake.application.top_level_tasks.grep(/^(default$|test(:|$))/).any?

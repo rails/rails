@@ -147,12 +147,16 @@ class InheritanceTest < ActiveRecord::TestCase
     # Concrete subclass of AR::Base.
     assert Post.descends_from_active_record?
 
+    # Concrete subclasses of a concrete class which has a type column.
+    assert !StiPost.descends_from_active_record?
+    assert !SubStiPost.descends_from_active_record?
+
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
+    assert !AbstractStiPost.descends_from_active_record?
 
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
+    # Concrete subclass of an abstract class which has a type column.
+    assert !SubAbstractStiPost.descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
@@ -172,7 +176,8 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Post, Post.base_class
     assert_equal Post, SpecialPost.base_class
     assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
+    assert_equal Post, SubStiPost.base_class
+    assert_equal SubAbstractStiPost, SubAbstractStiPost.base_class
   end
 
   def test_abstract_inheritance_base_class

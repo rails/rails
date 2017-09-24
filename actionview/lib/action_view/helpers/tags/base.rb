@@ -35,7 +35,7 @@ module ActionView
 
         private
 
-          def value(object)
+          def value
             if @allow_method_names_outside_object
               object.public_send @method_name if object && object.respond_to?(@method_name)
             else
@@ -43,19 +43,19 @@ module ActionView
             end
           end
 
-          def value_before_type_cast(object)
+          def value_before_type_cast
             unless object.nil?
               method_before_type_cast = @method_name + "_before_type_cast"
 
-              if value_came_from_user?(object) && object.respond_to?(method_before_type_cast)
+              if value_came_from_user? && object.respond_to?(method_before_type_cast)
                 object.public_send(method_before_type_cast)
               else
-                value(object)
+                value
               end
             end
           end
 
-          def value_came_from_user?(object)
+          def value_came_from_user?
             method_name = "#{@method_name}_came_from_user?"
             !object.respond_to?(method_name) || object.public_send(method_name)
           end
@@ -138,7 +138,7 @@ module ActionView
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
+            value.to_s.gsub(/\s/, "_").gsub(/[^-[[:word:]]]/, "").mb_chars.downcase.to_s
           end
 
           def select_content_tag(option_tags, options, html_options)
@@ -150,7 +150,7 @@ module ActionView
               options[:include_blank] ||= true unless options[:prompt]
             end
 
-            value = options.fetch(:selected) { value(object) }
+            value = options.fetch(:selected) { value() }
             select = content_tag("select", add_options(option_tags, options, value), html_options)
 
             if html_options["multiple"] && options.fetch(:include_hidden, true)

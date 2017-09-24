@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
@@ -107,7 +109,7 @@ module ActionDispatch
       end
 
       # Hook overridden in controller to add request information
-      # with `default_url_options`. Application logic should not
+      # with +default_url_options+. Application logic should not
       # go into url_options.
       def url_options
         default_url_options

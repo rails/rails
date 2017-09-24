@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "minitest/mock"
 require "rails/command"
@@ -202,6 +204,12 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     start({ adapter: "oracle", database: "db", username: "user", password: "secret" }, ["-p"])
     assert !aborted
     assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
+  end
+
+  def test_sqlserver
+    start(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
+    assert_not aborted
+    assert_equal ["sqsh", "-D", "db", "-U", "user", "-P", "secret", "-S", "localhost:1433"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   module TemplateAssertions
     def assert_template(options = {}, message = nil)

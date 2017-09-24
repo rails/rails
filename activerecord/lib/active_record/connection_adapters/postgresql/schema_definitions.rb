@@ -44,15 +44,8 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
           if type == :uuid
             options[:default] = options.fetch(:default, "gen_random_uuid()")
-          elsif options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
-            type = if type == :bigint || options[:limit] == 8
-              :bigserial
-            else
-              :serial
-            end
           end
 
           super
@@ -185,6 +178,18 @@ module ActiveRecord
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        def new_column_definition(name, type, **options) # :nodoc:
+          if integer_like_primary_key?(type, options)
+            type = if type == :bigint || options[:limit] == 8
+              :bigserial
+            else
+              :serial
+            end
+          end
+
+          super
+        end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table

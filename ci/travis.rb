@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require "fileutils"
 include FileUtils
 
@@ -14,7 +16,7 @@ commands = [
 ]
 
 commands.each do |command|
-  system("#{command} > /dev/null 2>&1")
+  system(command, [1, 2] => File::NULL)
 end
 
 class Build
@@ -28,6 +30,7 @@ class Build
     "av"       => "actionview",
     "aj"       => "activejob",
     "ac"       => "actioncable",
+    "ast"      => "activestorage",
     "guides"   => "guides"
   }
 
@@ -163,6 +166,7 @@ ENV["GEM"].split(",").each do |gem|
     next if gem == "aj:integration" && isolated
     next if gem == "guides" && isolated
     next if gem == "av:ujs" && isolated
+    next if gem == "ast" && isolated
 
     build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!

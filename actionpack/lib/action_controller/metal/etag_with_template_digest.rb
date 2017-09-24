@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # When our views change, they should bubble up into HTTP cache freshness
   # and bust browser caches. So the template digest for the current action

@@ -17,12 +17,7 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
-      include MySQL::ColumnDumper
       include MySQL::SchemaStatements
-
-      def update_table_definition(table_name, base) # :nodoc:
-        MySQL::Table.new(table_name, base)
-      end
 
       ##
       # :singleton-method:
@@ -38,7 +33,7 @@ module ActiveRecord
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
-        float:       { name: "float" },
+        float:       { name: "float", limit: 24 },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
         timestamp:   { name: "timestamp" },
@@ -177,8 +172,7 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql, binds = to_sql(arel, binds)
-        sql     = "EXPLAIN #{sql}"
+        sql     = "EXPLAIN #{to_sql(arel, binds)}"
         start   = Time.now
         result  = exec_query(sql, "EXPLAIN", binds)
         elapsed = Time.now - start
@@ -290,7 +284,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<-SQL.strip_heredoc, "SCHEMA")
+        query_value(<<-SQL.strip_heredoc, "SCHEMA").presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -315,6 +309,11 @@ module ActiveRecord
         end.join(", ")
 
         execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
+      end
+
+      def change_table_comment(table_name, comment) #:nodoc:
+        comment = "" if comment.nil?
+        execute("ALTER TABLE #{quote_table_name(table_name)} COMMENT #{quote(comment)}")
       end
 
       # Renames a table.
@@ -357,18 +356,19 @@ module ActiveRecord
 
       def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
         default = extract_new_default_value(default_or_changes)
-        column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, default: default
+        change_column table_name, column_name, nil, default: default
       end
 
       def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
-        column = column_for(table_name, column_name)
-
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
 
-        change_column table_name, column_name, column.sql_type, null: null
+        change_column table_name, column_name, nil, null: null
+      end
+
+      def change_column_comment(table_name, column_name, comment) #:nodoc:
+        change_column table_name, column_name, nil, comment: comment
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
@@ -495,7 +495,7 @@ module ActiveRecord
 
       def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
         if column.collation && !column.case_sensitive?
-          table[attribute].eq(Arel::Nodes::Bin.new(Arel::Nodes::BindParam.new(value)))
+          table[attribute].eq(Arel::Nodes::Bin.new(value))
         else
           super
         end
@@ -635,6 +635,7 @@ module ActiveRecord
         ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
+        ER_LOCK_WAIT_TIMEOUT    = 1205
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -658,6 +659,8 @@ module ActiveRecord
             NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
+          when ER_LOCK_WAIT_TIMEOUT
+            TransactionTimeout.new(message)
           else
             super
           end
@@ -671,6 +674,7 @@ module ActiveRecord
 
         def change_column_sql(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
+          type ||= column.sql_type
 
           unless options.key?(:default)
             options[:default] = column.default
@@ -719,7 +723,7 @@ module ActiveRecord
 
         def remove_index_sql(table_name, options = {})
           index_name = index_name_for_remove(table_name, options)
-          "DROP INDEX #{index_name}"
+          "DROP INDEX #{quote_column_name(index_name)}"
         end
 
         def add_timestamps_sql(table_name, options = {})
@@ -761,7 +765,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
           if sql_mode = variables.delete("sql_mode")
             sql_mode = quote(sql_mode)
@@ -778,7 +782,7 @@ module ActiveRecord
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
           # NAMES does not have an equals sign, see
-          # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
+          # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
             encoding = "NAMES #{@config[:encoding]}".dup

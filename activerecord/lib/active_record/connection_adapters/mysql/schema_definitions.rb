@@ -4,11 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module ColumnMethods
-        def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
-          super
-        end
-
         def blob(*args, **options)
           args.each { |name| column(name, :blob, options) }
         end
@@ -62,6 +57,10 @@ module ActiveRecord
         include ColumnMethods
 
         def new_column_definition(name, type, **options) # :nodoc:
+          if integer_like_primary_key?(type, options)
+            options[:auto_increment] = true
+          end
+
           case type
           when :virtual
             type = options[:type]

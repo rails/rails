@@ -224,7 +224,7 @@ module ActiveRecord
 
         # Sets the schema search path to a string of comma-separated schema names.
         # Names beginning with $ have to be quoted (e.g. $user => '$user').
-        # See: http://www.postgresql.org/docs/current/static/ddl-schemas.html
+        # See: https://www.postgresql.org/docs/current/static/ddl-schemas.html
         #
         # This should be not be called manually but set in database.yml.
         def schema_search_path=(schema_csv)
@@ -584,6 +584,14 @@ module ActiveRecord
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super, *order_columns].join(", ")
+        end
+
+        def update_table_definition(table_name, base) # :nodoc:
+          PostgreSQL::Table.new(table_name, base)
+        end
+
+        def create_schema_dumper(options) # :nodoc:
+          PostgreSQL::SchemaDumper.create(self, options)
         end
 
         private

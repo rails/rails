@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "env_helpers"
 require "rails/command"
@@ -188,7 +190,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
     ARGV.replace args
 
     options = parse_arguments(args)
-    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C"
+    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
 
     assert_equal expected, options[:restart_cmd]
   ensure

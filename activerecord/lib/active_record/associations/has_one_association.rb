@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record Has One Association
   module Associations
+    # = Active Record Has One Association
     class HasOneAssociation < SingularAssociation #:nodoc:
       include ForeignAssociation
 

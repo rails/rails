@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"

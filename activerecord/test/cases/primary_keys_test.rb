@@ -326,7 +326,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
-    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+    @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
     end
@@ -334,14 +334,24 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
       t.string :region
       t.integer :code
     end
+    @connection.create_table(:travels, primary_key: ["from", "to"], force: true) do |t|
+      t.string :from
+      t.string :to
+    end
   end
 
   def teardown
-    @connection.drop_table(:barcodes, if_exists: true)
+    @connection.drop_table :uber_barcodes, if_exists: true
+    @connection.drop_table :barcodes_reverse, if_exists: true
+    @connection.drop_table :travels, if_exists: true
   end
 
   def test_composite_primary_key
-    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+    assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
+  end
+
+  def test_composite_primary_key_with_reserved_words
+    assert_equal ["from", "to"], @connection.primary_keys("travels")
   end
 
   def test_composite_primary_key_out_of_order
@@ -352,7 +362,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
-        "barcodes"
+        "uber_barcodes"
       end
     end
     warning = capture(:stderr) do
@@ -361,9 +371,9 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
-  def test_dumping_composite_primary_key
-    schema = dump_table_schema "barcodes"
-    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+  def test_collectly_dump_composite_primary_key
+    schema = dump_table_schema "uber_barcodes"
+    assert_match %r{create_table "uber_barcodes", primary_key: \["region", "code"\]}, schema
   end
 
   def test_dumping_composite_primary_key_out_of_order
@@ -434,7 +444,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with serial/integer" do
       @connection.create_table(:widgets, id: @pk_type, force: true)
       schema = dump_table_schema "widgets"
-      assert_match %r{create_table "widgets", id: :#{@pk_type}, force: :cascade}, schema
+      assert_match %r{create_table "widgets", id: :#{@pk_type}, }, schema
     end
 
     if current_adapter?(:Mysql2Adapter)
@@ -447,7 +457,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :integer, unsigned: true, }, schema
       end
 
       test "bigint primary key with unsigned" do
@@ -459,7 +469,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert column.unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, }, schema
       end
     end
   end

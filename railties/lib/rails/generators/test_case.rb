@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../generators"
 require_relative "testing/behaviour"
 require_relative "testing/setup_and_teardown"

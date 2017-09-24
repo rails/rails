@@ -72,7 +72,6 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
@@ -421,14 +420,14 @@ module ActiveRecord
       end
 
       def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
-        table[attribute].eq(Arel::Nodes::BindParam.new(value))
+        table[attribute].eq(value)
       end
 
       def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(Arel::Nodes::BindParam.new(value)))
+          table[attribute].lower.eq(table.lower(value))
         else
-          table[attribute].eq(Arel::Nodes::BindParam.new(value))
+          table[attribute].eq(value)
         end
       end
 
@@ -443,7 +442,11 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        visitor.accept(node, collector).value
+        column_name_from_arel_node(node)
+      end
+
+      def column_name_from_arel_node(node) # :nodoc:
+        visitor.accept(node, Arel::Collectors::SQLString.new).value
       end
 
       def default_index_type?(index) # :nodoc:

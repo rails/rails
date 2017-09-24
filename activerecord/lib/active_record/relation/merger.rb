@@ -135,19 +135,17 @@ module ActiveRecord
           if other.reordering_value
             # override any order specified in the original relation
             relation.reorder! other.order_values
-          elsif other.order_values
+          elsif other.order_values.any?
             # merge in order_values from relation
             relation.order! other.order_values
           end
 
-          relation.extend(*other.extending_values) unless other.extending_values.blank?
+          extensions = other.extensions - relation.extensions
+          relation.extending!(*extensions) if extensions.any?
         end
 
         def merge_single_values
-          if relation.from_clause.empty?
-            relation.from_clause = other.from_clause
-          end
-          relation.lock_value ||= other.lock_value
+          relation.lock_value ||= other.lock_value if other.lock_value
 
           unless other.create_with_value.blank?
             relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
@@ -155,11 +153,15 @@ module ActiveRecord
         end
 
         def merge_clauses
-          CLAUSE_METHODS.each do |method|
-            clause = relation.get_value(method)
-            other_clause = other.get_value(method)
-            relation.set_value(method, clause.merge(other_clause))
+          if relation.from_clause.empty? && !other.from_clause.empty?
+            relation.from_clause = other.from_clause
           end
+
+          where_clause = relation.where_clause.merge(other.where_clause)
+          relation.where_clause = where_clause unless where_clause.empty?
+
+          having_clause = relation.having_clause.merge(other.having_clause)
+          relation.having_clause = having_clause unless having_clause.empty?
         end
     end
   end

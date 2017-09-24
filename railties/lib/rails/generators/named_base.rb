@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/introspection"
 require_relative "base"
 require_relative "generated_attribute"

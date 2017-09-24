@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
 require "active_support/message_verifier"
@@ -81,16 +83,17 @@ module ActionDispatch
   #   cookies[:lat_lon] = JSON.generate([47.68, -122.37])
   #
   #   # Sets a cookie that expires in 1 hour.
-  #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
+  #   cookies[:login] = { value: "XJ-122", expires: 1.hour }
+  #
+  #   # Sets a cookie that expires at a specific time.
+  #   cookies[:login] = { value: "XJ-122", expires: Time.utc(2020, 10, 15, 5) }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's `secrets.secret_key_base` value.
   #   # It can be read using the signed method `cookies.signed[:name]`
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets an encrypted cookie value before sending it to the client which
   #   # prevent users from reading and tampering with its value.
-  #   # The cookie is signed by your app's `secrets.secret_key_base` value.
   #   # It can be read using the encrypted method `cookies.encrypted[:name]`
   #   cookies.encrypted[:discount] = 45
   #
@@ -98,7 +101,7 @@ module ActionDispatch
   #   cookies.permanent[:login] = "XJ-122"
   #
   #   # You can also chain these methods:
-  #   cookies.permanent.signed[:login] = "XJ-122"
+  #   cookies.signed.permanent[:login] = "XJ-122"
   #
   # Examples of reading:
   #
@@ -116,7 +119,7 @@ module ActionDispatch
   #
   #  cookies[:name] = {
   #    value: 'a yummy cookie',
-  #    expires: 1.year.from_now,
+  #    expires: 1.year,
   #    domain: 'domain.com'
   #  }
   #
@@ -142,7 +145,7 @@ module ActionDispatch
   # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
   #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 1.
-  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
+  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time or ActiveSupport::Duration object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
@@ -186,10 +189,10 @@ module ActionDispatch
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
+      # If +secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
       #
       # Example:
       #
@@ -209,13 +212,13 @@ module ActionDispatch
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
       # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
       #
-      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
+      # If +secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
       # If +config.action_dispatch.encrypted_cookie_salt+ and +config.action_dispatch.encrypted_signed_cookie_salt+
       # are both set, legacy cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
       #
       # Example:
       #
@@ -358,7 +361,11 @@ module ActionDispatch
         @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
-      def handle_options(options) #:nodoc:
+      def handle_options(options) # :nodoc:
+        if options[:expires].respond_to?(:from_now)
+          options[:expires] = options[:expires].from_now
+        end
+
         options[:path] ||= "/"
 
         if options[:domain] == :all || options[:domain] == "all"
@@ -486,6 +493,14 @@ module ActionDispatch
         def request; @parent_jar.request; end
 
       private
+        def expiry_options(options)
+          if options[:expires].respond_to?(:from_now)
+            { expires_in: options[:expires] }
+          else
+            { expires_at: options[:expires] }
+          end
+        end
+
         def parse(name, data); data; end
         def commit(options); end
     end
@@ -567,14 +582,14 @@ module ActionDispatch
         end
 
         def commit(options)
-          options[:value] = @verifier.generate(serialize(options[:value]))
+          options[:value] = @verifier.generate(serialize(options[:value]), expiry_options(options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
     end
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
-    # secrets.secret_token and secrets.secret_key_base are both set. It reads
+    # secrets.secret_token and secret_key_base are both set. It reads
     # legacy cookies signed with the old dummy key generator and signs and
     # re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
@@ -588,7 +603,7 @@ module ActionDispatch
         super
 
         if ActiveSupport::LegacyKeyGenerator === key_generator
-          raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " \
+          raise "You didn't set secret_key_base, which is required for this cookie jar. " \
             "Read the upgrade documentation to learn more about this new config option."
         end
 
@@ -607,14 +622,14 @@ module ActionDispatch
         end
 
         def commit(options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), expiry_options(options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
     end
 
     # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
-    # instead of EncryptedCookieJar if secrets.secret_token and secrets.secret_key_base
+    # instead of EncryptedCookieJar if secrets.secret_token and secret_key_base
     # are both set. It reads legacy cookies signed with the old dummy key generator and
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:

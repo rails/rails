@@ -158,26 +158,6 @@ module ActiveRecord
       end
     end
 
-    # test resetting sequences in odd tables in PostgreSQL
-    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-      require "models/movie"
-      require "models/subscriber"
-
-      def test_reset_empty_table_with_custom_pk
-        Movie.delete_all
-        Movie.connection.reset_pk_sequence! "movies"
-        assert_equal 1, Movie.create(name: "fight club").id
-      end
-
-      def test_reset_table_with_non_integer_pk
-        Subscriber.delete_all
-        Subscriber.connection.reset_pk_sequence! "subscribers"
-        sub = Subscriber.new(name: "robert drake")
-        sub.id = "bob drake"
-        assert_nothing_raised { sub.save! }
-      end
-    end
-
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do
@@ -247,6 +227,38 @@ module ActiveRecord
         result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
         assert_equal expected.to_hash, result.to_hash
       end
+
+      def test_insert_update_delete_with_legacy_binds
+        binds = [[nil, 1]]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
+
+      def test_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
     end
 
     def test_select_methods_passing_a_association_relation
@@ -276,11 +288,11 @@ module ActiveRecord
       def test_log_invalid_encoding
         error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise "ы".force_encoding(Encoding::ASCII_8BIT)
+            raise "ы".dup.force_encoding(Encoding::ASCII_8BIT)
           end
         end
 
-        assert_not_nil error.message
+        assert_equal "ы", error.message
       end
     end
   end
@@ -366,6 +378,26 @@ module ActiveRecord
         assert @connection.transaction_open?
         @connection.disconnect!
         assert !@connection.transaction_open?
+      end
+    end
+
+    # test resetting sequences in odd tables in PostgreSQL
+    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
+      require "models/movie"
+      require "models/subscriber"
+
+      def test_reset_empty_table_with_custom_pk
+        Movie.delete_all
+        Movie.connection.reset_pk_sequence! "movies"
+        assert_equal 1, Movie.create(name: "fight club").id
+      end
+
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! "subscribers"
+        sub = Subscriber.new(name: "robert drake")
+        sub.id = "bob drake"
+        assert_nothing_raised { sub.save! }
       end
     end
   end

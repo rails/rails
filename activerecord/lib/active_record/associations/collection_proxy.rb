@@ -135,8 +135,9 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def find(*args, &block)
-        @association.find(*args, &block)
+      def find(*args)
+        return super if block_given?
+        @association.find(*args)
       end
 
       ##

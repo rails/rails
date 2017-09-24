@@ -57,7 +57,6 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
-      include SQLite3::ColumnDumper
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
@@ -77,7 +76,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Indicates whether boolean values are stored in sqlite3 databases as 1
-      # and 0 or 't' and 'f'. Leaving `ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer`
+      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
       # set to false is deprecated. SQLite databases have used 't' and 'f' to
       # serialize boolean values and must have old data converted to 1 and 0
       # (its native boolean serialization) before setting this flag to true.
@@ -86,7 +85,7 @@ module ActiveRecord
       #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
       #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
       # for all models and all boolean columns, after which the flag must be set
-      # to true by adding the following to your application.rb file:
+      # to true by adding the following to your <tt>application.rb</tt> file:
       #
       #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       class_attribute :represent_boolean_as_integer, default: false
@@ -97,10 +96,6 @@ module ActiveRecord
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
-      end
-
-      def update_table_definition(table_name, base) # :nodoc:
-        SQLite3::Table.new(table_name, base)
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -203,8 +198,7 @@ module ActiveRecord
       #++
 
       def explain(arel, binds = [])
-        sql, binds = to_sql(arel, binds)
-        sql = "EXPLAIN QUERY PLAN #{sql}"
+        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
@@ -292,7 +286,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
+      # See: https://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
       def valid_alter_table_type?(type)
         type.to_sym != :primary_key

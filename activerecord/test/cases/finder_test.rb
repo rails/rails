@@ -1153,7 +1153,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2)", e.message
+      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
     end
   end
 
@@ -1177,6 +1177,10 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with multi-arg conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.find_by("id = ?", posts(:eager_other).id)
+  end
+
+  test "find_by with range conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by(id: posts(:eager_other).id...posts(:misc_by_bob).id)
   end
 
   test "find_by returns nil if the record is missing" do

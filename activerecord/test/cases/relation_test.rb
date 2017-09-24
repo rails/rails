@@ -73,11 +73,6 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
-    def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass, :b, Post.predicate_builder)
-      assert_equal "posts", relation.table_name
-    end
-
     def test_scope_for_create
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal({}, relation.scope_for_create)
@@ -98,6 +93,14 @@ module ActiveRecord
 
       relation.create_with_value = { hello: "world" }
       assert_equal({ "hello" => "world", "id" => 10 }, relation.scope_for_create)
+    end
+
+    def test_empty_scope
+      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      assert relation.empty_scope?
+
+      relation.merge!(relation)
+      assert relation.empty_scope?
     end
 
     def test_bad_constants_raise_errors

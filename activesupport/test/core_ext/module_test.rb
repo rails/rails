@@ -374,6 +374,14 @@ class ModuleTest < ActiveSupport::TestCase
     assert_match(/undefined method `my_fake_method' for/, e.message)
   end
 
+  def test_delegate_missing_to_raises_delegation_error_if_target_nil
+    e = assert_raises(Module::DelegationError) do
+      DecoratedTester.new(nil).name
+    end
+
+    assert_equal "name delegated to client, but client is nil", e.message
+  end
+
   def test_delegate_missing_to_affects_respond_to
     assert DecoratedTester.new(@david).respond_to?(:name)
     assert_not DecoratedTester.new(@david).respond_to?(:private_name)

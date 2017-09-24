@@ -16,6 +16,7 @@ Style/AndOr:
 # method call.
 Style/BracesAroundHashParameters:
   Enabled: true
+  EnforcedStyle: context_dependent
 
 # Align `when` with `case`.
 Layout/CaseIndentation:
@@ -26,10 +27,6 @@ Layout/CommentIndentation:
   Enabled: true
 
 Layout/EmptyLineAfterMagicComment:
-  Enabled: true
-
-# No extra empty lines.
-Layout/EmptyLines:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
@@ -86,17 +83,12 @@ Style/MethodDefParentheses:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
-  Include:
-    - 'activesupport/**/*'
-    - 'activemodel/**/*'
-    - 'actioncable/**/*'
-    - 'activejob/**/*'
-    - 'activerecord/**/*'
-    - 'actionmailer/**/*'
-    - 'actionview/**/*'
   Exclude:
     - 'actionview/test/**/*.builder'
     - 'actionview/test/**/*.ruby'
+    - 'actionpack/test/**/*.builder'
+    - 'actionpack/test/**/*.ruby'
+    - 'activestorage/db/migrate/**/*.rb'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:

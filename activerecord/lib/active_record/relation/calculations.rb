@@ -259,6 +259,9 @@ module ActiveRecord
           column = aggregate_column(column_name)
 
           select_value = operation_over_aggregate_column(column, operation, distinct)
+          if operation == "sum" && distinct
+            select_value.distinct = true
+          end
 
           column_alias = select_value.alias
           column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
@@ -388,7 +391,7 @@ module ActiveRecord
       def build_count_subquery(relation, column_name, distinct)
         relation.select_values = [
           if column_name == :all
-            distinct ? table[Arel.star] : Arel.sql("1")
+            distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)
           else
             column_alias = Arel.sql("count_column")
             aggregate_column(column_name).as(column_alias)

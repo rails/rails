@@ -10,6 +10,11 @@ module ActiveRecord
 
       # Converts an arel AST to SQL
       def to_sql(arel_or_sql_string, binds = [])
+        sql, _ = to_sql_and_binds(arel_or_sql_string, binds)
+        sql
+      end
+
+      def to_sql_and_binds(arel_or_sql_string, binds = []) # :nodoc:
         if arel_or_sql_string.respond_to?(:ast)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
@@ -21,6 +26,7 @@ module ActiveRecord
           [arel_or_sql_string.dup.freeze, binds]
         end
       end
+      private :to_sql_and_binds
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
@@ -39,7 +45,7 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
-        sql, binds = to_sql(arel, binds)
+        sql, binds = to_sql_and_binds(arel, binds)
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
           preparable = false
         else
@@ -138,22 +144,22 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        sql, binds = to_sql(arel)
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
       alias create insert
 
       # Executes the update statement and returns the number of rows affected.
-      def update(arel, name = nil)
-        sql, binds = to_sql(arel)
+      def update(arel, name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(arel, name = nil)
-        sql, binds = to_sql(arel)
+      def delete(arel, name = nil, binds = [])
+        sql, binds = to_sql_and_binds(arel, binds)
         exec_delete(sql, name, binds)
       end
 
@@ -175,7 +181,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+      # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
       # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
       # supports savepoints.
       #
@@ -227,7 +233,7 @@ module ActiveRecord
       # You should consult the documentation for your database to understand the
       # semantics of these different levels:
       #
-      # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+      # * https://www.postgresql.org/docs/current/static/transaction-iso.html
       # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
@@ -465,12 +471,12 @@ module ActiveRecord
             @binds = []
           end
 
-          def << str
+          def <<(str)
             @parts << str
             self
           end
 
-          def add_bind obj
+          def add_bind(obj)
             @binds << obj
             @parts << Arel::Nodes::BindParam.new(1)
             self

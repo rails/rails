@@ -7,6 +7,16 @@ class FormTagHelperTest < ActionView::TestCase
 
   tests ActionView::Helpers::FormTagHelper
 
+  class WithActiveStorageRoutesControllers < ActionController::Base
+    test_routes do
+      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
+    end
+
+    def url_options
+      { host: "testtwo.host" }
+    end
+  end
+
   def setup
     super
     @controller = BasicController.new
@@ -90,53 +100,53 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_multipart
-    actual = form_tag({}, "multipart" => true)
+    actual = form_tag({}, { "multipart" => true })
     expected = whole_form("http://www.example.com", enctype: true)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_patch
-    actual = form_tag({}, method: :patch)
+    actual = form_tag({}, { method: :patch })
     expected = whole_form("http://www.example.com", method: :patch)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_put
-    actual = form_tag({}, method: :put)
+    actual = form_tag({}, { method: :put })
     expected = whole_form("http://www.example.com", method: :put)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_method_delete
-    actual = form_tag({}, method: :delete)
+    actual = form_tag({}, { method: :delete })
 
     expected = whole_form("http://www.example.com", method: :delete)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_remote
-    actual = form_tag({}, remote: true)
+    actual = form_tag({}, { remote: true })
 
     expected = whole_form("http://www.example.com", remote: true)
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_with_remote_false
-    actual = form_tag({}, remote: false)
+    actual = form_tag({}, { remote: false })
 
     expected = whole_form
     assert_dom_equal expected, actual
   end
 
   def test_form_tag_enforce_utf8_true
-    actual = form_tag({}, enforce_utf8: true)
+    actual = form_tag({}, { enforce_utf8: true })
     expected = whole_form("http://www.example.com", enforce_utf8: true)
     assert_dom_equal expected, actual
     assert actual.html_safe?
   end
 
   def test_form_tag_enforce_utf8_false
-    actual = form_tag({}, enforce_utf8: false)
+    actual = form_tag({}, { enforce_utf8: false })
     expected = whole_form("http://www.example.com", enforce_utf8: false)
     assert_dom_equal expected, actual
     assert actual.html_safe?
@@ -176,6 +186,33 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_file_field_tag_with_options
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
+  end
+
+  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true)
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_defined
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true)
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_dont_mutate_arguments
+    original_options = { class: "pix", direct_upload: true }
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
+      file_field_tag("picsplz", original_options)
+    )
+
+    assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
   def test_password_field_tag
@@ -604,7 +641,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
-      %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+      %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
       image_submit_tag("save.gif", data: { confirm: "Are you sure?" })
     )
   end

@@ -1,13 +1,20 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 
 if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
     module ConnectionAdapters
       class MysqlTypeLookupTest < ActiveRecord::TestCase
+        include ConnectionHelper
+
         setup do
           @connection = ActiveRecord::Base.connection
+        end
+
+        def teardown
+          reset_connection
         end
 
         def test_boolean_types

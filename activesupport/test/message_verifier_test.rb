@@ -101,12 +101,12 @@ class MessageVerifierMetadataTest < ActiveSupport::TestCase
 
   def test_verify_raises_when_purpose_differs
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
-      @verifier.verify(@verifier.generate(@message, purpose: "payment"), purpose: "shipping")
+      @verifier.verify(generate(data, purpose: "payment"), purpose: "shipping")
     end
   end
 
   def test_verify_raises_when_expired
-    signed_message = @verifier.generate(@message, expires_in: 1.month)
+    signed_message = generate(data, expires_in: 1.month)
 
     travel 2.months
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
@@ -139,5 +139,20 @@ class MessageVerifierMetadataJSONTest < MessageVerifierMetadataTest
   private
     def verifier_options
       { serializer: MessageVerifierTest::JSONSerializer.new }
+    end
+end
+
+class MessageEncryptorMetadataNullSerializerTest < MessageVerifierMetadataTest
+  private
+    def data
+      "string message"
+    end
+
+    def null_serializing?
+      true
+    end
+
+    def verifier_options
+      { serializer: ActiveSupport::MessageEncryptor::NullSerializer }
     end
 end

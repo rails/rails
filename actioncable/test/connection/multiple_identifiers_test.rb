@@ -36,8 +36,4 @@ class ActionCable::Connection::MultipleIdentifiersTest < ActionCable::TestCase
       @connection.process
       @connection.send :handle_open
     end
-
-    def close_connection
-      @connection.send :handle_close
-    end
 end

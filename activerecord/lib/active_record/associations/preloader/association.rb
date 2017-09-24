@@ -17,26 +17,20 @@ module ActiveRecord
         end
 
         def run(preloader)
-          preload(preloader)
-        end
-
-        def preload(preloader)
-          raise NotImplementedError
-        end
-
-        # The name of the key on the associated records
-        def association_key_name
-          raise NotImplementedError
-        end
-
-        # The name of the key on the model which declares the association
-        def owner_key_name
-          raise NotImplementedError
+          associated_records_by_owner(preloader).each do |owner, records|
+            associate_records_to_owner(owner, records)
+          end
         end
 
         private
-          def options
-            reflection.options
+          # The name of the key on the associated records
+          def association_key_name
+            reflection.join_primary_key(klass)
+          end
+
+          # The name of the key on the model which declares the association
+          def owner_key_name
+            reflection.join_foreign_key
           end
 
           def associated_records_by_owner(preloader)
@@ -49,6 +43,10 @@ module ActiveRecord
             owners.each_with_object({}) do |owner, result|
               result[owner] = records[convert_key(owner[owner_key_name])] || []
             end
+          end
+
+          def associate_records_to_owner(owner, records)
+            raise NotImplementedError
           end
 
           def owner_keys
@@ -72,7 +70,11 @@ module ActiveRecord
           end
 
           def key_conversion_required?
-            @key_conversion_required ||= association_key_type != owner_key_type
+            unless defined?(@key_conversion_required)
+              @key_conversion_required = (association_key_type != owner_key_type)
+            end
+
+            @key_conversion_required
           end
 
           def convert_key(key)
@@ -113,27 +115,17 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.scope_for(klass)
-          end
-
-          def klass_scope
-            current_scope = klass.current_scope
-
-            if current_scope && current_scope.empty_scope?
-              klass.unscoped
-            else
-              klass.default_scoped
-            end
+            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
           end
 
           def build_scope
-            scope = klass_scope
+            scope = klass.scope_for_association
 
             if reflection.type
               scope.where!(reflection.type => model.base_class.sti_name)
             end
 
-            scope.merge!(reflection_scope)
+            scope.merge!(reflection_scope) if reflection.scope
             scope.merge!(preload_scope) if preload_scope
             scope
           end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
@@ -13,7 +15,7 @@ module ActionDispatch
         #   normalize_path("")      # => "/"
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
-          path ||= ''
+          path ||= ""
           encoding = path.encoding
           path = "/#{path}".dup
           path.squeeze!("/".freeze)
@@ -25,7 +27,7 @@ module ActionDispatch
         end
 
         # URI path and fragment escaping
-        # http://tools.ietf.org/html/rfc3986
+        # https://tools.ietf.org/html/rfc3986
         class UriEncoder # :nodoc:
           ENCODE   = "%%%02X".freeze
           US_ASCII = Encoding::US_ASCII

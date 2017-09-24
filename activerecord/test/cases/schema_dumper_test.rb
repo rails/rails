@@ -66,7 +66,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_uses_force_cascade_on_create_table
     output = dump_table_schema "authors"
-    assert_match %r{create_table "authors", force: :cascade}, output
+    assert_match %r{create_table "authors",.* force: :cascade}, output
   end
 
   def test_schema_dump_excludes_sqlite_sequence
@@ -207,18 +207,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_should_use_false_as_default
-    output = standard_dump
+    output = dump_table_schema "booleans"
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_text_field
-    output = standard_dump
+    output = dump_table_schema "admin_users"
     assert_match %r{t\.text\s+"params"$}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_binary_field
-    output = standard_dump
+    output = dump_table_schema "binaries"
     assert_match %r{t\.binary\s+"data"$}, output
+  end
+
+  def test_schema_dump_does_not_include_limit_for_float_field
+    output = dump_table_schema "numeric_data"
+    assert_match %r{t\.float\s+"temperature"$}, output
   end
 
   if current_adapter?(:Mysql2Adapter)
@@ -392,6 +397,31 @@ class SchemaDumperTest < ActiveRecord::TestCase
     if ActiveRecord::Base.connection.supports_foreign_keys?
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
+    end
+  ensure
+    migration.migrate(:down)
+
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
+    $stdout = original
+  end
+
+  def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
+    original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.table_name_prefix = "foo$"
+    ActiveRecord::Base.table_name_suffix = "$bar"
+
+    migration = CreateDogMigration.new
+    migration.migrate(:up)
+
+    output = perform_schema_dump
+    assert_no_match %r{create_table "foo\$.+\$bar"}, output
+    assert_no_match %r{add_index "foo\$.+\$bar"}, output
+    assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
     end
   ensure
     migration.migrate(:down)

@@ -5,14 +5,9 @@ module ActiveRecord
     class Preloader
       class SingularAssociation < Association #:nodoc:
         private
-
-          def preload(preloader)
-            associated_records_by_owner(preloader).each do |owner, associated_records|
-              record = associated_records.first
-
-              association = owner.association(reflection.name)
-              association.target = record
-            end
+          def associate_records_to_owner(owner, records)
+            association = owner.association(reflection.name)
+            association.target = records.first
           end
       end
     end

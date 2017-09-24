@@ -62,6 +62,14 @@ module ActiveRecord
           end
         end
 
+        def update_table_definition(table_name, base)
+          MySQL::Table.new(table_name, base)
+        end
+
+        def create_schema_dumper(options)
+          MySQL::SchemaDumper.create(self, options)
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 

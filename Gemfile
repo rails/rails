@@ -1,9 +1,8 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
-git_source(:github) do |repo_name|
-  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
-  "https://github.com/#{repo_name}.git"
-end
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
@@ -11,13 +10,12 @@ gem "arel", github: "rails/arel"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
-gem "thor", github: "erikhuda/thor"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
 
-gem "capybara", "~> 2.13"
+gem "capybara", "~> 2.15"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
@@ -39,10 +37,11 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 
+# https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 group :doc do
-  gem "sdoc", "> 1.0.0.rc1", "< 2.0"
+  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
@@ -72,7 +71,7 @@ group :job do
   gem "backburner", require: false
   #TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
-  gem "qu-redis", require: false
+  # gem "qu-redis", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
 end
@@ -92,13 +91,20 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+group :storage do
+  gem "aws-sdk-s3", require: false
+  gem "google-cloud-storage", "~> 1.3", require: false
+  gem "azure-storage", require: false
+
+  gem "mini_magick"
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  # FIX: Our test suite isn't ready to run in random order yet.
-  gem "minitest", "< 5.3.4"
+  gem "minitest-bisect"
 
   platforms :mri do
     gem "stackprof"

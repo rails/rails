@@ -7,4 +7,5 @@ class Module
   def reachable? #:nodoc:
     !anonymous? && name.safe_constantize.equal?(self)
   end
+  deprecate :reachable?
 end

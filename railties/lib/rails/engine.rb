@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "railtie"
 require_relative "engine/railties"
 require "active_support/core_ext/module/delegation"

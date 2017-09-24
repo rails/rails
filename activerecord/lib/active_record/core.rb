@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
+require "concurrent/map"
 
 module ActiveRecord
   module Core
@@ -142,14 +143,14 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def allocate
         define_attribute_methods
         super
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => {}.extend(Mutex_m), false => {}.extend(Mutex_m) }
+        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
       def inherited(child_class) # :nodoc:
@@ -168,8 +169,7 @@ module ActiveRecord
 
         id = ids.first
 
-        return super if id.kind_of?(Array) ||
-                         id.is_a?(ActiveRecord::Base)
+        return super if StatementCache.unsupported_value?(id)
 
         key = primary_key
 
@@ -177,7 +177,7 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], self, connection).first
+        record = statement.execute([id], connection).first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
@@ -194,7 +194,7 @@ module ActiveRecord
         hash = args.first
 
         return super if !(Hash === hash) || hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v || Base === v
+          StatementCache.unsupported_value?(v)
         }
 
         # We can't cache Post.find_by(author: david) ...yet
@@ -209,7 +209,7 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, self, connection).first
+          statement.execute(hash.values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         rescue ::RangeError
@@ -251,7 +251,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for association proxies.
+      # Overwrite the default class equality method to provide support for decorated models.
       def ===(object)
         object.is_a?(self)
       end
@@ -282,9 +282,7 @@ module ActiveRecord
 
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
-          cache[key] || cache.synchronize {
-            cache[key] ||= StatementCache.create(connection, &block)
-          }
+          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
         end
 
         def relation
@@ -531,7 +529,7 @@ module ActiveRecord
       #
       # So we can avoid the +method_missing+ hit by explicitly defining +#to_ary+ as +nil+ here.
       #
-      # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
+      # See also https://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
       def to_ary
         nil
       end

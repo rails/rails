@@ -274,7 +274,15 @@ class Module
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
-          super
+          begin
+            super
+          rescue NoMethodError
+            if #{target}.nil?
+              raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+            else
+              raise
+            end
+          end
         end
       end
     RUBY

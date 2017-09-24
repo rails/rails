@@ -1,3 +1,80 @@
+*   Deprecate `Module#reachable?` method.
+
+    *bogdanvlviv*
+
+*   Add `config/credentials.yml.enc` to store production app secrets.
+
+    Allows saving any authentication credentials for third party services
+    directly in repo encrypted with `config/master.key` or `ENV["RAILS_MASTER_KEY"]`.
+
+    This will eventually replace `Rails.application.secrets` and the encrypted
+    secrets introduced in Rails 5.1.
+
+    *DHH*, *Kasper Timm Hansen*
+
+*   Add `ActiveSupport::EncryptedFile` and `ActiveSupport::EncryptedConfiguration`.
+
+    Allows for stashing encrypted files or configuration directly in repo by
+    encrypting it with a key.
+
+    Backs the new credentials setup above, but can also be used independently.
+
+    *DHH*, *Kasper Timm Hansen*
+
+*   `Module#delegate_missing_to` now raises `DelegationError` if target is nil,
+    similar to `Module#delegate`.
+
+    *Anton Khamets*
+
+*   Update `String#camelize` to provide feedback when wrong option is passed
+
+    `String#camelize` was returning nil without any feedback when an
+    invalid option was passed as a parameter.
+
+    Previously:
+
+        'one_two'.camelize(true)
+        => nil
+
+    Now:
+
+        'one_two'.camelize(true)
+        => ArgumentError: Invalid option, use either :upper or :lower.
+
+    *Ricardo Díaz*
+
+*   Fix modulo operations involving durations
+
+    Rails 5.1 introduced `ActiveSupport::Duration::Scalar` as a wrapper
+    around numeric values as a way of ensuring a duration was the outcome of
+    an expression. However, the implementation was missing support for modulo
+    operations. This support has now been added and should result in a duration
+    being returned from expressions involving modulo operations.
+
+    Prior to Rails 5.1:
+
+        5.minutes % 2.minutes
+        => 60
+
+    Now:
+
+        5.minutes % 2.minutes
+        => 1 minute
+
+    Fixes #29603 and #29743.
+
+    *Sayan Chakraborty*, *Andrew White*
+
+*   Fix division where a duration is the denominator
+
+    PR #29163 introduced a change in behavior when a duration was the denominator
+    in a calculation - this was incorrect as dividing by a duration should always
+    return a `Numeric`. The behavior of previous versions of Rails has been restored.
+
+    Fixes #29592.
+
+    *Andrew White*
+
 *   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
    `ActiveSupport::MessageEncryptor`.
 
@@ -86,15 +163,15 @@
 
 *   Fix implicit coercion calculations with scalars and durations
 
-    Previously calculations where the scalar is first would be converted to a duration
-    of seconds but this causes issues with dates being converted to times, e.g:
+    Previously, calculations where the scalar is first would be converted to a duration
+    of seconds, but this causes issues with dates being converted to times, e.g:
 
         Time.zone = "Beijing"           # => Asia/Shanghai
         date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
         2 * 1.day                       # => 172800 seconds
         date + 2 * 1.day                # => Mon, 22 May 2017 00:00:00 CST +08:00
 
-    Now the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
+    Now, the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
     the part structure of the duration where possible, e.g:
 
         Time.zone = "Beijing"           # => Asia/Shanghai
