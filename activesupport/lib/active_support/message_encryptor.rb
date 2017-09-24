@@ -57,31 +57,27 @@ module ActiveSupport
   #
   # === Rotating keys
   #
-  # This class also defines a +rotate+ method which can be used to rotate out
-  # encryption keys no longer in use.
+  # MessageEncryptor also supports rotating out old configurations by falling
+  # back to a stack of encryptors. Call `rotate` to build and add an encryptor
+  # so `decrypt_and_verify` will also try the fallback.
   #
-  # This method is called with an options hash where a +:cipher+ option and
-  # either a +:raw_key+ or +:secret+ option must be defined. If +:raw_key+ is
-  # defined, it is used directly for the underlying encryption function. If
-  # the +:secret+ option is defined, a +:salt+ option must also be defined and
-  # a +KeyGenerator+ instance will be used to derive a key using +:salt+. When
-  # +:secret+ is used, a +:key_generator+ option may also be defined allowing
-  # for custom +KeyGenerator+ instances. If CBC encryption is used a
-  # `:raw_signed_key` or a `:signed_salt` option must also be defined. A
-  # +:digest+ may also be defined when using CBC encryption. This method can be
-  # called multiple times and new encryptor instances will be added to the
-  # rotation stack on each call.
+  # By default any rotated encryptors use the values of the primary
+  # encryptor unless specified otherwise.
   #
-  #   # Specifying the key used for encryption
-  #   crypt.rotate raw_key: old_aead_key, cipher: "aes-256-gcm"
-  #   crypt.rotate raw_key: old_cbc_key, raw_signed_key: old_cbc_sign_key, cipher: "aes-256-cbc", digest: "SHA1"
+  # You'd give your encryptor the new defaults:
   #
-  #   # Using a KeyGenerator instance with a secret and salt(s)
-  #   crypt.rotate secret: old_aead_secret, salt: old_aead_salt, cipher: "aes-256-gcm"
-  #   crypt.rotate secret: old_cbc_secret, salt: old_cbc_salt, signed_salt: old_cbc_signed_salt, cipher: "aes-256-cbc", digest: "SHA1"
+  #   crypt = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
   #
-  #   # Specifying the key generator instance
-  #   crypt.rotate key_generator: old_key_gen, salt: old_salt, cipher: "aes-256-gcm"
+  # Then gradually rotate the old values out by adding them as fallbacks. Any message
+  # generated with the old values will then work until the rotation is removed.
+  #
+  #   crypt.rotate old_secret            # Fallback to an old secret instead of @secret.
+  #   crypt.rotate cipher: "aes-256-cbc" # Fallback to an old cipher instead of aes-256-gcm.
+  #
+  # Though if both the secret and the cipher was changed at the same time,
+  # the above should be combined into:
+  #
+  #   verifier.rotate old_secret, cipher: "aes-256-cbc"
   class MessageEncryptor
     prepend Messages::Rotator::Encryptor
 

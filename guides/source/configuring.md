@@ -493,10 +493,8 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.signed_cookie_digest` sets the digest to be
   used for signed cookies. This defaults to `"SHA1"`.
 
-* `config.action_dispatch.cookies_rotations` is set to an instance of
-  [RotationConfiguration](http://api.rubyonrails.org/classes/ActiveSupport/RotationConfiguration.html).
-  It provides an interface for rotating keys, salts, ciphers, and
-  digests for encrypted and signed cookies.
+* `config.action_dispatch.cookies_rotations` allows rotating
+  secrets, ciphers, and digests for encrypted and signed cookies.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)

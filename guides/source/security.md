@@ -161,42 +161,30 @@ It is also useful to rotate this value for other more benign reasons,
 such as an employee leaving your organization or changing hosting
 environments.
 
-Key rotations can be defined through
-`config.action_dispatch.cookies_rotations` which provides an interface for
-rotating signed and encrypted cookie keys, salts, digests, and ciphers.
-
-For example, suppose we want to rotate out an old `secret_key_base`, we
-can define a signed and encrypted key rotation as follows:
+For example to rotate out an old `secret_key_base`, we can define signed and
+encrypted rotations as follows:
 
 ```ruby
-config.action_dispatch.cookies_rotations.rotate :encrypted,
-  cipher: "aes-256-gcm",
-  secret: Rails.application.credentials.old_secret_key_base,
-  salt: config.action_dispatch.authenticated_encrypted_cookie_salt
-
-config.action_dispatch.cookies_rotations.rotate :signed,
-  digest: "SHA1",
-  secret: Rails.application.credentials.old_secret_key_base,
-  salt: config.action_dispatch.signed_cookie_salt
+Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+  cookies.rotate :encrypted, secret: Rails.application.credentials.old_secret_key_base
+  cookies.rotate :signed,    secret: Rails.application.credentials.old_secret_key_base
+end
 ```
 
-Multiple rotations are possible by calling `rotate` multiple times. For
-example, suppose we want to use SHA512 for signed cookies while rotating
-out SHA256 and SHA1 digests using the same `secret_key_base`:
+It's also possible to set up multiple rotations. For instance to use `SHA512`
+for signed cookies while rotating out SHA256 and SHA1 digests, we'd do:
 
 ```ruby
-config.action_dispatch.signed_cookie_digest = "SHA512"
+Rails.application.config.action_dispatch.signed_cookie_digest = "SHA512"
 
-config.action_dispatch.cookies_rotations.rotate :signed,
-  digest: "SHA256",
-  secret: Rails.application.credentials.secret_key_base,
-  salt: config.action_dispatch.signed_cookie_salt
-
-config.action_dispatch.cookies_rotations.rotate :signed,
-  digest: "SHA1",
-  secret: Rails.application.credentials.secret_key_base,
-  salt: config.action_dispatch.signed_cookie_salt
+Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+  cookies.rotate :signed, digest: "SHA256"
+  cookies.rotate :signed, digest: "SHA1"
+end
 ```
+
+While you can setup as many rotations as you'd like it's not common to have many
+rotations going at any one time.
 
 For more details on key rotation with encrypted and signed messages as
 well as the various options the `rotate` method accepts, please refer to

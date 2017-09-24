@@ -77,30 +77,27 @@ module ActiveSupport
   #
   # === Rotating keys
   #
-  # This class also defines a +rotate+ method which can be used to rotate out
-  # verification keys no longer in use.
+  # MessageVerifier also supports rotating out old configurations by falling
+  # back to a stack of verifiers. Call `rotate` to build and add a verifier to
+  # so either `verified` or `verify` will also try verifying with the fallback.
   #
-  # This method is called with an options hash where a +:digest+ option and
-  # either a +:raw_key+ or +:secret+ option must be defined. If +:raw_key+ is
-  # defined, it is used directly for the underlying HMAC function. If the
-  # +:secret+ option is defined, a +:salt+ option must also be defined and a
-  # +KeyGenerator+ instance will be used to derive a key using +:salt+.  When
-  # +:secret+ is used, a +:key_generator+ option may also be defined allowing
-  # for custom +KeyGenerator+ instances. This method can be called multiple
-  # times and new verifier instances will be added to the rotation stack on
-  # each call.
+  # By default any rotated verifiers use the values of the primary
+  # verifier unless specified otherwise.
   #
-  #   # Specifying the key used for verification
-  #   @verifier.rotate raw_key: older_key, digest: "SHA1"
+  # You'd give your verifier the new defaults:
   #
-  #   # Specify the digest
-  #   @verifier.rotate raw_key: old_key, digest: "SHA256"
+  #   verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512", serializer: JSON)
   #
-  #   # Using a KeyGenerator instance with a secret and salt
-  #   @verifier.rotate secret: old_secret, salt: old_salt, digest: "SHA1"
+  # Then gradually rotate the old values out by adding them as fallbacks. Any message
+  # generated with the old values will then work until the rotation is removed.
   #
-  #   # Specifying the key generator instance
-  #   @verifier.rotate key_generator: old_key_gen, salt: old_salt, digest: "SHA256"
+  #   verifier.rotate old_secret          # Fallback to an old secret instead of @secret.
+  #   verifier.rotate digest: "SHA256"    # Fallback to an old digest instead of SHA512.
+  #   verifier.rotate serializer: Marshal # Fallback to an old serializer instead of JSON.
+  #
+  # Though the above would most likely be combined into one rotation:
+  #
+  #   verifier.rotate old_secret, digest: "SHA256", serializer: Marshal
   class MessageVerifier
     prepend Messages::Rotator::Verifier
 
