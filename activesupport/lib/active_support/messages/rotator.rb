@@ -10,8 +10,8 @@ module ActiveSupport
         @rotations = []
       end
 
-      def rotate(*args)
-        @rotations << create_rotation(*args)
+      def rotate(*secrets, **options)
+        @rotations << build_rotation(*secrets, @options.merge(options))
       end
 
       module Encryptor
@@ -24,27 +24,8 @@ module ActiveSupport
         end
 
         private
-          def create_rotation(raw_key: nil, raw_signed_key: nil, **options)
-            options[:cipher] ||= @cipher
-
-            self.class.new \
-              raw_key || extract_key(options),
-              raw_signed_key || extract_signing_key(options),
-              @options.merge(options.slice(:cipher, :digest, :serializer))
-          end
-
-          def extract_key(cipher:, salt:, key_generator: nil, secret: nil, **)
-            key_generator ||= key_generator_for(secret)
-            key_generator.generate_key(salt, self.class.key_len(cipher))
-          end
-
-          def extract_signing_key(cipher:, signed_salt: nil, key_generator: nil, secret: nil, **)
-            if cipher.downcase.end_with?("cbc")
-              raise ArgumentError, "missing signed_salt for signing key generation" unless signed_salt
-
-              key_generator ||= key_generator_for(secret)
-              key_generator.generate_key(signed_salt)
-            end
+          def build_rotation(secret = @secret, sign_secret = @sign_secret, options)
+            self.class.new(secret, sign_secret, options)
           end
       end
 
@@ -56,21 +37,12 @@ module ActiveSupport
         end
 
         private
-          def create_rotation(raw_key: nil, **options)
-            self.class.new(raw_key || extract_key(options), @options.merge(options.slice(:digest, :serializer)))
-          end
-
-          def extract_key(key_generator: nil, secret: nil, salt:)
-            key_generator ||= key_generator_for(secret)
-            key_generator.generate_key(salt)
+          def build_rotation(secret = @secret, options)
+            self.class.new(secret, options)
           end
       end
 
       private
-        def key_generator_for(secret)
-          ActiveSupport::KeyGenerator.new(secret, iterations: 1000)
-        end
-
         def run_rotations(on_rotation)
           @rotations.find do |rotation|
             if message = yield(rotation) rescue next

@@ -115,134 +115,70 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
-  def test_with_rotated_raw_key
-    old_raw_key = SecureRandom.random_bytes(32)
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old raw key")
+  def test_rotating_secret
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").encrypt_and_sign("old")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate raw_key: old_raw_key
+    encryptor.rotate secrets[:old]
 
-    assert_equal "message encrypted with old raw key", encryptor.decrypt_and_verify(old_message)
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
   end
 
   def test_rotating_serializer
-    old_raw_key = SecureRandom.random_bytes(32)
-
-    old_message = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm", serializer: JSON).
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm", serializer: JSON).
       encrypt_and_sign(ahoy: :hoy)
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm", serializer: JSON)
-    encryptor.rotate raw_key: old_raw_key
+    encryptor.rotate secrets[:old]
 
     assert_equal({ "ahoy" => "hoy" }, encryptor.decrypt_and_verify(old_message))
   end
 
-  def test_with_rotated_secret_and_salt
-    old_secret, old_salt = SecureRandom.random_bytes(32), "old salt"
-    old_raw_key = ActiveSupport::KeyGenerator.new(old_secret, iterations: 1000).generate_key(old_salt, 32)
-
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old secret and salt")
-
-    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate secret: old_secret, salt: old_salt
-
-    assert_equal "message encrypted with old secret and salt", encryptor.decrypt_and_verify(old_message)
-  end
-
-  def test_with_rotated_key_generator
-    old_key_gen, old_salt = ActiveSupport::KeyGenerator.new(SecureRandom.random_bytes(32), iterations: 256), "old salt"
-
-    old_raw_key = old_key_gen.generate_key(old_salt, 32)
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old key generator and salt")
-
-    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate key_generator: old_key_gen, salt: old_salt
-
-    assert_equal "message encrypted with old key generator and salt", encryptor.decrypt_and_verify(old_message)
-  end
-
-  def test_with_rotated_aes_cbc_encryptor_with_raw_keys
-    old_raw_key, old_raw_signed_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(16)
-
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old raw keys")
+  def test_rotating_aes_cbc_secrets
+    old_encryptor = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign", cipher: "aes-256-cbc")
+    old_message = old_encryptor.encrypt_and_sign("old")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    encryptor.rotate raw_key: old_raw_key, raw_signed_key: old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1"
+    encryptor.rotate secrets[:old], "old sign", cipher: "aes-256-cbc"
 
-    assert_equal "message encrypted with old raw keys", encryptor.decrypt_and_verify(old_message)
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
   end
 
-  def test_with_rotated_aes_cbc_encryptor_with_secret_and_salts
-    old_secret, old_salt, old_signed_salt = SecureRandom.random_bytes(32), "old salt", "old signed salt"
-
-    old_key_gen = ActiveSupport::KeyGenerator.new(old_secret, iterations: 1000)
-    old_raw_key = old_key_gen.generate_key(old_salt, 32)
-    old_raw_signed_key = old_key_gen.generate_key(old_signed_salt)
-
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old secret and salts")
+  def test_multiple_rotations
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign("older")
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign").encrypt_and_sign("old")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    encryptor.rotate secret: old_secret, salt: old_salt, signed_salt: old_signed_salt, cipher: "aes-256-cbc", digest: "SHA1"
+    encryptor.rotate secrets[:old], "old sign"
+    encryptor.rotate secrets[:older], "older sign"
 
-    assert_equal "message encrypted with old secret and salts", encryptor.decrypt_and_verify(old_message)
+    assert_equal "new",   encryptor.decrypt_and_verify(encryptor.encrypt_and_sign("new"))
+    assert_equal "old",   encryptor.decrypt_and_verify(old_message)
+    assert_equal "older", encryptor.decrypt_and_verify(older_message)
   end
 
-  def test_with_rotating_multiple_encryptors
-    older_raw_key, older_raw_signed_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(16)
-    old_raw_key, old_raw_signed_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(16)
-
-    older_encryptor = ActiveSupport::MessageEncryptor.new(older_raw_key, older_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1")
-    older_message = older_encryptor.encrypt_and_sign("message encrypted with older raw key")
-
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1")
-    old_message = old_encryptor.encrypt_and_sign("message encrypted with old raw key")
+  def test_on_rotation_is_called_and_returns_modified_messages
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    encryptor.rotate raw_key: old_raw_key, raw_signed_key: old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1"
-    encryptor.rotate raw_key: older_raw_key, raw_signed_key: older_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1"
+    encryptor.rotate secrets[:old]
+    encryptor.rotate secrets[:older], "older sign"
 
-    assert_equal "encrypted message", encryptor.decrypt_and_verify(encryptor.encrypt_and_sign("encrypted message"))
-    assert_equal "message encrypted with old raw key", encryptor.decrypt_and_verify(old_message)
-    assert_equal "message encrypted with older raw key", encryptor.decrypt_and_verify(older_message)
-  end
+    rotated = false
+    message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = true })
 
-  def test_on_rotation_instance_callback_is_called_and_returns_modified_messages
-    callback_ran, message = nil, nil
-
-    older_raw_key, older_raw_signed_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(16)
-    old_raw_key, old_raw_signed_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(16)
-
-    older_encryptor = ActiveSupport::MessageEncryptor.new(older_raw_key, older_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1")
-    older_message = older_encryptor.encrypt_and_sign(encoded: "message")
-
-    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
-    encryptor.rotate raw_key: old_raw_key, raw_signed_key: old_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1"
-    encryptor.rotate raw_key: older_raw_key, raw_signed_key: older_raw_signed_key, cipher: "aes-256-cbc", digest: "SHA1"
-
-    message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { callback_ran = true })
-
-    assert callback_ran, "callback was ran"
     assert_equal({ encoded: "message" }, message)
+    assert rotated
   end
 
   def test_with_rotated_metadata
-    old_secret, old_salt = SecureRandom.random_bytes(32), "old salt"
-    old_raw_key = ActiveSupport::KeyGenerator.new(old_secret, iterations: 1000).generate_key(old_salt, 32)
-
-    old_encryptor = ActiveSupport::MessageEncryptor.new(old_raw_key, cipher: "aes-256-gcm")
-    old_message = old_encryptor.encrypt_and_sign(
-      "message encrypted with old secret, salt, and metadata", purpose: "rotation")
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").
+      encrypt_and_sign("metadata", purpose: :rotation)
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
-    encryptor.rotate secret: old_secret, salt: old_salt
+    encryptor.rotate secrets[:old]
 
-    assert_equal "message encrypted with old secret, salt, and metadata",
-      encryptor.decrypt_and_verify(old_message, purpose: "rotation")
+    assert_equal "metadata", encryptor.decrypt_and_verify(old_message, purpose: :rotation)
   end
 
   private
@@ -262,6 +198,10 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
         @encryptor.decrypt_and_verify(value)
       end
+    end
+
+    def secrets
+      @secrets ||= Hash.new { |h,k| h[k] = SecureRandom.random_bytes(32) }
     end
 
     def munge(base64_string)

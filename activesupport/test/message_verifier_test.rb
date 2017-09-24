@@ -92,93 +92,49 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verify(signed_message)
   end
 
-  def test_with_rotated_raw_key
-    old_raw_key = SecureRandom.random_bytes(32)
-
-    old_verifier = ActiveSupport::MessageVerifier.new(old_raw_key, digest: "SHA1")
-    old_message = old_verifier.generate("message verified with old raw key")
+  def test_rotating_secret
+    old_message = ActiveSupport::MessageVerifier.new("old", digest: "SHA1").generate("old")
 
     verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate raw_key: old_raw_key
+    verifier.rotate "old"
 
-    assert_equal "message verified with old raw key", verifier.verified(old_message)
+    assert_equal "old", verifier.verified(old_message)
   end
 
-  def test_with_rotated_secret_and_salt
-    old_secret, old_salt = SecureRandom.random_bytes(32), "old salt"
+  def test_multiple_rotations
+    old_message   = ActiveSupport::MessageVerifier.new("old", digest: "SHA256").generate("old")
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate("older")
 
-    old_raw_key = ActiveSupport::KeyGenerator.new(old_secret, iterations: 1000).generate_key(old_salt)
-    old_verifier = ActiveSupport::MessageVerifier.new(old_raw_key, digest: "SHA1")
-    old_message = old_verifier.generate("message verified with old secret and salt")
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
+    verifier.rotate "old",   digest: "SHA256"
+    verifier.rotate "older", digest: "SHA1"
 
-    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate secret: old_secret, salt: old_salt
-
-    assert_equal "message verified with old secret and salt", verifier.verified(old_message)
+    assert_equal "new",   verifier.verified(verifier.generate("new"))
+    assert_equal "old",   verifier.verified(old_message)
+    assert_equal "older", verifier.verified(older_message)
   end
 
-  def test_with_rotated_key_generator
-    old_key_gen, old_salt = ActiveSupport::KeyGenerator.new(SecureRandom.random_bytes(32), iterations: 256), "old salt"
+  def test_on_rotation_is_called_and_verified_returns_message
+    older_message = ActiveSupport::MessageVerifier.new("older", digest: "SHA1").generate(encoded: "message")
 
-    old_raw_key = old_key_gen.generate_key(old_salt)
-    old_verifier = ActiveSupport::MessageVerifier.new(old_raw_key, digest: "SHA1")
-    old_message = old_verifier.generate("message verified with old key generator and salt")
+    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512")
+    verifier.rotate "old",   digest: "SHA256"
+    verifier.rotate "older", digest: "SHA1"
 
-    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate key_generator: old_key_gen, salt: old_salt
+    rotated = false
+    message = verifier.verified(older_message, on_rotation: proc { rotated = true })
 
-    assert_equal "message verified with old key generator and salt", verifier.verified(old_message)
-  end
-
-  def test_with_rotating_multiple_verifiers
-    old_raw_key, older_raw_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(32)
-
-    old_verifier = ActiveSupport::MessageVerifier.new(old_raw_key, digest: "SHA256")
-    old_message = old_verifier.generate("message verified with old raw key")
-
-    older_verifier = ActiveSupport::MessageVerifier.new(older_raw_key, digest: "SHA1")
-    older_message = older_verifier.generate("message verified with older raw key")
-
-    verifier = ActiveSupport::MessageVerifier.new("new secret", digest: "SHA512")
-    verifier.rotate raw_key: old_raw_key, digest: "SHA256"
-    verifier.rotate raw_key: older_raw_key, digest: "SHA1"
-
-    assert_equal "verified message", verifier.verified(verifier.generate("verified message"))
-    assert_equal "message verified with old raw key", verifier.verified(old_message)
-    assert_equal "message verified with older raw key", verifier.verified(older_message)
-  end
-
-  def test_on_rotation_keyword_block_is_called_and_verified_returns_message
-    callback_ran, message = nil, nil
-
-    old_raw_key, older_raw_key = SecureRandom.random_bytes(32), SecureRandom.random_bytes(32)
-
-    older_verifier = ActiveSupport::MessageVerifier.new(older_raw_key, digest: "SHA1")
-    older_message = older_verifier.generate(encoded: "message")
-
-    verifier = ActiveSupport::MessageVerifier.new("new secret", digest: "SHA512")
-    verifier.rotate raw_key: old_raw_key, digest: "SHA256"
-    verifier.rotate raw_key: older_raw_key, digest: "SHA1"
-
-    message = verifier.verified(older_message, on_rotation: proc { callback_ran = true })
-
-    assert callback_ran, "callback was ran"
     assert_equal({ encoded: "message" }, message)
+    assert rotated
   end
 
-  def test_with_rotated_metadata
-    old_secret, old_salt = SecureRandom.random_bytes(32), "old salt"
+  def test_rotations_with_metadata
+    old_message = ActiveSupport::MessageVerifier.new("old").generate("old", purpose: :rotation)
 
-    old_raw_key = ActiveSupport::KeyGenerator.new(old_secret, iterations: 1000).generate_key(old_salt)
-    old_verifier = ActiveSupport::MessageVerifier.new(old_raw_key, digest: "SHA1")
-    old_message = old_verifier.generate(
-      "message verified with old secret, salt, and metadata", purpose: "rotation")
+    verifier = ActiveSupport::MessageVerifier.new(@secret)
+    verifier.rotate "old"
 
-    verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA1")
-    verifier.rotate secret: old_secret, salt: old_salt
-
-    assert_equal "message verified with old secret, salt, and metadata",
-      verifier.verified(old_message, purpose: "rotation")
+    assert_equal "old", verifier.verified(old_message, purpose: :rotation)
   end
 end
 
