@@ -7,10 +7,11 @@ module Erb # :nodoc:
     class MailerGenerator < Base # :nodoc:
       argument :actions, type: :array, default: [], banner: "method method"
 
-      def copy_view_files
-        view_base_path = File.join("app/views", class_path, file_name + "_mailer")
-        empty_directory view_base_path
+      def create_root_directory
+        empty_directory base_path
+      end
 
+      def create_view_files
         if behavior == :invoke
           formats.each do |format|
             layout_path = File.join("app/views/layouts", class_path, filename_with_extensions("mailer", format))
@@ -22,13 +23,16 @@ module Erb # :nodoc:
           @action = action
 
           formats.each do |format|
-            @path = File.join(view_base_path, filename_with_extensions(action, format))
+            @path = File.join(base_path, filename_with_extensions(action, format))
             template filename_with_extensions(:view, format), @path
           end
         end
       end
 
       private
+        def base_path
+          File.join("app/views", class_path, file_name + "_mailer")
+        end
 
         def formats
           [:text, :html]
