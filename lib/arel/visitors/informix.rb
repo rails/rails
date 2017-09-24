@@ -18,9 +18,7 @@ module Arel
       end
       def visit_Arel_Nodes_SelectCore o, collector
         collector = inject_join o.projections, collector, ", "
-        froms = false
         if o.source && !o.source.empty?
-          froms = true
           collector << " FROM "
           collector = visit o.source, collector
         end
