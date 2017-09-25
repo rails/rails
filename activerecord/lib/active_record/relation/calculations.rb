@@ -175,7 +175,7 @@ module ActiveRecord
     # See also #ids.
     #
     def pluck(*column_names)
-      if loaded? && (column_names.map(&:to_s) - attribute_names_and_aliases).empty?
+      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names_and_aliases).empty?
         return records.pluck(*column_names)
       end
 

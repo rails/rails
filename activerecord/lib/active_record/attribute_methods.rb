@@ -239,19 +239,17 @@ module ActiveRecord
         end
       end
 
-      private
-
-        # An Array of String attribute names and aliases for accessing those
-        # attributes.
-        #
-        #   class Person < ActiveRecord::Base
-        #   end
-        #
-        #   Person.attribute_names_and_aliases
-        #   # => ["id", "created_at", "updated_at", "name", "age"]
-        def attribute_names_and_aliases
-          attribute_names + attribute_aliases.keys
-        end
+      # An Array of String attribute names and aliases for accessing those
+      # attributes.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   Person.attribute_names_and_aliases
+      #   # => ["id", "created_at", "updated_at", "name", "age"]
+      def attribute_names_and_aliases # :nodoc:
+        attribute_names + attribute_aliases.keys
+      end
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
