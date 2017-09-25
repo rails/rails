@@ -13,7 +13,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
 
   def test_default_scope
-    expected = Developer.all.merge!(order: "salary DESC").to_a.collect(&:salary)
+    expected = Developer.all.merge!(order: Arel.sql("salary DESC")).to_a.collect(&:salary)
     received = DeveloperOrderedBySalary.all.collect(&:salary)
     assert_equal expected, received
   end
@@ -80,20 +80,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.all.merge!(order: "salary DESC, name DESC").to_a.collect(&:name)
+    expected = Developer.all.merge!(order: Arel.sql("salary DESC, name DESC")).to_a.collect(&:name)
     received = DeveloperOrderedBySalary.by_name.to_a.collect(&:name)
     assert_equal expected, received
   end
 
   def test_reorder_overrides_default_scope_order
-    expected = Developer.order("name DESC").collect(&:name)
-    received = DeveloperOrderedBySalary.reorder("name DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("name DESC")).collect(&:name)
+    received = DeveloperOrderedBySalary.reorder(Arel.sql("name DESC")).collect(&:name)
     assert_equal expected, received
   end
 
   def test_order_after_reorder_combines_orders
-    expected = Developer.order("name DESC, id DESC").collect { |dev| [dev.name, dev.id] }
-    received = Developer.order("name ASC").reorder("name DESC").order("id DESC").collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order(Arel.sql("name DESC, id DESC")).collect { |dev| [dev.name, dev.id] }
+    received = Developer.order(Arel.sql("name ASC")).reorder(Arel.sql("name DESC")).order(Arel.sql("id DESC")).collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
@@ -104,69 +104,69 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_after_reordering_and_combining
-    expected = Developer.order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }
-    received = DeveloperOrderedBySalary.reorder("name DESC").unscope(:order).order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order(Arel.sql("id DESC, name DESC")).collect { |dev| [dev.name, dev.id] }
+    received = DeveloperOrderedBySalary.reorder(Arel.sql("name DESC")).unscope(:order).order(Arel.sql("id DESC, name DESC")).collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
 
     expected_2 = Developer.all.collect { |dev| [dev.name, dev.id] }
-    received_2 = Developer.order("id DESC, name DESC").unscope(:order).collect { |dev| [dev.name, dev.id] }
+    received_2 = Developer.order(Arel.sql("id DESC, name DESC")).unscope(:order).collect { |dev| [dev.name, dev.id] }
     assert_equal expected_2, received_2
 
     expected_3 = Developer.all.collect { |dev| [dev.name, dev.id] }
-    received_3 = Developer.reorder("name DESC").unscope(:order).collect { |dev| [dev.name, dev.id] }
+    received_3 = Developer.reorder(Arel.sql("name DESC")).unscope(:order).collect { |dev| [dev.name, dev.id] }
     assert_equal expected_3, received_3
   end
 
   def test_unscope_with_where_attributes
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "David").unscope(where: :name).collect(&:name)
     assert_equal expected, received
 
-    expected_2 = Developer.order("salary DESC").collect(&:name)
+    expected_2 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({ where: :name }, :select).collect(&:name)
     assert_equal expected_2, received_2
 
-    expected_3 = Developer.order("salary DESC").collect(&:name)
+    expected_3 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
     assert_equal expected_3, received_3
 
-    expected_4 = Developer.order("salary DESC").collect(&:name)
+    expected_4 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
     assert_equal expected_4, received_4
 
-    expected_5 = Developer.order("salary DESC").collect(&:name)
+    expected_5 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
     assert_equal expected_5, received_5
 
-    expected_6 = Developer.order("salary DESC").collect(&:name)
+    expected_6 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_6 = DeveloperOrderedBySalary.where(Developer.arel_table["name"].eq("David")).unscope(where: :name).collect(&:name)
     assert_equal expected_6, received_6
 
-    expected_7 = Developer.order("salary DESC").collect(&:name)
+    expected_7 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_7 = DeveloperOrderedBySalary.where(Developer.arel_table[:name].eq("David")).unscope(where: :name).collect(&:name)
     assert_equal expected_7, received_7
   end
 
   def test_unscope_comparison_where_clauses
     # unscoped for WHERE (`developers`.`id` <= 2)
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY..2).unscope(where: :id).collect { |dev| dev.name }
     assert_equal expected, received
 
     # unscoped for WHERE (`developers`.`id` < 2)
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY...2).unscope(where: :id).collect { |dev| dev.name }
     assert_equal expected, received
   end
 
   def test_unscope_multiple_where_clauses
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "Jamis").where(id: 1).unscope(where: [:name, :id]).collect(&:name)
     assert_equal expected, received
   end
 
   def test_unscope_string_where_clauses_involved
-    dev_relation = Developer.order("salary DESC").where("created_at > ?", 1.year.ago)
+    dev_relation = Developer.order(Arel.sql("salary DESC")).where("created_at > ?", 1.year.ago)
     expected = dev_relation.collect(&:name)
 
     dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
@@ -176,35 +176,35 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_with_grouping_attributes
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect(&:name)
     assert_equal expected, received
 
-    expected_2 = Developer.order("salary DESC").collect(&:name)
+    expected_2 = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received_2 = DeveloperOrderedBySalary.group("name").unscope(:group).collect(&:name)
     assert_equal expected_2, received_2
   end
 
   def test_unscope_with_limit_in_query
-    expected = Developer.order("salary DESC").collect(&:name)
+    expected = Developer.order(Arel.sql("salary DESC")).collect(&:name)
     received = DeveloperOrderedBySalary.limit(1).unscope(:limit).collect(&:name)
     assert_equal expected, received
   end
 
   def test_order_to_unscope_reordering
-    scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
+    scope = DeveloperOrderedBySalary.order(Arel.sql("salary DESC, name ASC")).reverse_order.unscope(:order)
     assert !/order/i.match?(scope.to_sql)
   end
 
   def test_unscope_reverse_order
     expected = Developer.all.collect(&:name)
-    received = Developer.order("salary DESC").reverse_order.unscope(:order).collect(&:name)
+    received = Developer.order(Arel.sql("salary DESC")).reverse_order.unscope(:order).collect(&:name)
     assert_equal expected, received
   end
 
   def test_unscope_select
-    expected = Developer.order("salary ASC").collect(&:name)
-    received = Developer.order("salary DESC").reverse_order.select(:name).unscope(:select).collect(&:name)
+    expected = Developer.order(Arel.sql("salary ASC")).collect(&:name)
+    received = Developer.order(Arel.sql("salary DESC")).reverse_order.select(:name).unscope(:select).collect(&:name)
     assert_equal expected, received
 
     expected_2 = Developer.all.collect(&:id)
@@ -256,11 +256,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
 
     assert_raises(ArgumentError) do
-      Developer.order("name DESC").reverse_order.unscope(:reverse_order)
+      Developer.order(Arel.sql("name DESC")).reverse_order.unscope(:reverse_order)
     end
 
     assert_raises(ArgumentError) do
-      Developer.order("name DESC").where(name: "Jamis").unscope()
+      Developer.order(Arel.sql("name DESC")).where(name: "Jamis").unscope()
     end
   end
 
@@ -295,7 +295,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_not_prevail
-    expected = Developer.all.merge!(order: "salary desc").to_a.collect(&:salary)
+    expected = Developer.all.merge!(order: Arel.sql("salary desc")).to_a.collect(&:salary)
     received = DeveloperOrderedBySalary.all.merge!(order: "salary").to_a.collect(&:salary)
     assert_equal expected, received
   end

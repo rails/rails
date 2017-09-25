@@ -13,10 +13,10 @@ class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts
 
   def test_relation_merging
-    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
+    devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order(Arel.sql("id ASC")).where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
 
-    dev_with_count = Developer.limit(1).merge(Developer.order("id DESC")).merge(Developer.select("developers.*"))
+    dev_with_count = Developer.limit(1).merge(Developer.order(Arel.sql("id DESC"))).merge(Developer.select("developers.*"))
     assert_equal [developers(:poor_jamis)], dev_with_count.to_a
   end
 
@@ -47,8 +47,8 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << Post.order("comments.id DESC").merge(Post.eager_load(:last_comment)).merge(Post.all)
-    relations << Post.eager_load(:last_comment).merge(Post.order("comments.id DESC")).merge(Post.all)
+    relations << Post.order(Arel.sql("comments.id DESC")).merge(Post.eager_load(:last_comment)).merge(Post.all)
+    relations << Post.eager_load(:last_comment).merge(Post.order(Arel.sql("comments.id DESC"))).merge(Post.all)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -57,7 +57,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_locks
-    devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
+    devs = Developer.lock.where("salary >= 80000").order(Arel.sql("id DESC")).merge(Developer.limit(2))
     assert devs.locked?
   end
 
@@ -118,7 +118,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
-      merge(Author.where(name: "Bob")).order("posts.id").pluck(Arel.sql("posts.id"))
+      merge(Author.where(name: "Bob")).order(Arel.sql("posts.id")).pluck(Arel.sql("posts.id"))
 
     assert_equal [posts(:misc_by_bob).id,
                   posts(:other_by_bob).id], hello_by_bob
@@ -131,7 +131,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
 
     posts_by_author_name = Post.limit(3).joins(:author).
-      merge(Author.order("name")).pluck(Arel.sql("authors.name"))
+      merge(Author.order(Arel.sql("name"))).pluck(Arel.sql("authors.name"))
 
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
   end

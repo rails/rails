@@ -50,15 +50,15 @@ module ActiveRecord
     end
 
     def test_or_preserves_other_querying_methods
-      expected = Post.where("id = 1 or id = 2 or id = 3").order("body asc").to_a
-      partial = Post.order("body asc")
+      expected = Post.where("id = 1 or id = 2 or id = 3").order(Arel.sql("body asc")).to_a
+      partial = Post.order(Arel.sql("body asc"))
       assert_equal expected, partial.where("id = 1").or(partial.where(id: [2, 3])).to_a
-      assert_equal expected, Post.order("body asc").where("id = 1").or(Post.order("body asc").where(id: [2, 3])).to_a
+      assert_equal expected, Post.order(Arel.sql("body asc")).where("id = 1").or(Post.order(Arel.sql("body asc")).where(id: [2, 3])).to_a
     end
 
     def test_or_with_incompatible_relations
       error = assert_raises ArgumentError do
-        Post.order("body asc").where("id = 1").or(Post.order("id desc").where(id: [2, 3])).to_a
+        Post.order(Arel.sql("body asc")).where("id = 1").or(Post.order(Arel.sql("id desc")).where(id: [2, 3])).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
@@ -78,12 +78,12 @@ module ActiveRecord
 
     def test_or_with_unscope_order
       expected = Post.where("id = 1 or id = 2")
-      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
+      assert_equal expected, Post.order(Arel.sql("body asc")).where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
     end
 
     def test_or_with_incompatible_unscope
       error = assert_raises ArgumentError do
-        Post.order("body asc").where("id = 1").or(Post.order("body asc").where("id = 2").unscope(:order)).to_a
+        Post.order(Arel.sql("body asc")).where("id = 1").or(Post.order(Arel.sql("body asc")).where("id = 2").unscope(:order)).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
@@ -101,7 +101,7 @@ module ActiveRecord
     end
 
     def test_or_inside_named_scope
-      expected = Post.where("body LIKE '\%a\%' OR title LIKE ?", "%'%").order("id DESC").to_a
+      expected = Post.where("body LIKE '\%a\%' OR title LIKE ?", "%'%").order(Arel.sql("id DESC")).to_a
       assert_equal expected, Post.order(id: :desc).typographically_interesting
     end
 

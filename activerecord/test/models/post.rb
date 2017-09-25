@@ -21,7 +21,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments,      -> { order("comments_count DESC") }
+  scope :ranked_by_comments,      -> { order(Arel.sql("comments_count DESC")) }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -35,8 +35,8 @@ class Post < ActiveRecord::Base
   def first_comment
     super.body
   end
-  has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
-  has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
+  has_one :first_comment, -> { order(Arel.sql("id ASC")) }, class_name: "Comment"
+  has_one :last_comment, -> { order(Arel.sql("id desc")) }, class_name: "Comment"
 
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
@@ -52,7 +52,7 @@ class Post < ActiveRecord::Base
 
   has_many :comments do
     def find_most_recent
-      order("id DESC").first
+      order(Arel.sql("id DESC")).first
     end
 
     def newest
@@ -85,7 +85,7 @@ class Post < ActiveRecord::Base
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
-  has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
+  has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order(Arel.sql("posts.id")) }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
@@ -317,6 +317,10 @@ class FakeKlass
 
     def arel_attribute(name, table)
       table[name]
+    end
+
+    def enforce_raw_sql_whitelist(*args)
+      # noop
     end
   end
 end

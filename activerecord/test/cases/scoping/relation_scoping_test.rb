@@ -39,23 +39,23 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
+    assert_equal Developer.order(Arel.sql("id DESC")).to_a.reverse, Developer.order(Arel.sql("id DESC")).reverse_order
   end
 
   def test_reverse_order_with_arel_node
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
+    assert_equal Developer.order(Arel.sql("id DESC")).to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
   end
 
   def test_reverse_order_with_multiple_arel_nodes
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order(Arel.sql("id DESC")).order(Arel.sql("name DESC")).to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_reverse_order_with_arel_nodes_and_strings
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order(Arel.sql("id DESC")).order(Arel.sql("name DESC")).to_a.reverse, Developer.order(Arel.sql("id DESC")).order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_double_reverse_order_produces_original_order
-    assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
+    assert_equal Developer.order(Arel.sql("name DESC")), Developer.order(Arel.sql("name DESC")).reverse_order.reverse_order
   end
 
   def test_scoped_find
@@ -72,7 +72,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_last
-    highest_salary = Developer.order("salary DESC").first
+    highest_salary = Developer.order(Arel.sql("salary DESC")).first
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last
@@ -80,8 +80,8 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_find_last_preserves_scope
-    lowest_salary  = Developer.order("salary ASC").first
-    highest_salary = Developer.order("salary DESC").first
+    lowest_salary  = Developer.order(Arel.sql("salary ASC")).first
+    highest_salary = Developer.order(Arel.sql("salary DESC")).first
 
     Developer.order("salary").scoping do
       assert_equal highest_salary, Developer.last
