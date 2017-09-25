@@ -162,4 +162,12 @@ class ValidatesTest < ActiveModel::TestCase
     assert_not_predicate topic, :valid?
     assert_equal ["Y U NO CONFIRM"], topic.errors[:title_confirmation]
   end
+
+  def test_validate_with_on_and_except_options
+    error = assert_raises(ArgumentError) do
+      Topic.validates :title, presence: true, on: :test, except: :test1
+    end
+    message = "You cannot specify both :on and :except"
+    assert_equal message, error.message
+  end
 end

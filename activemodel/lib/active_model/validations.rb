@@ -54,6 +54,25 @@ module ActiveModel
       class_attribute :_validators, instance_writer: false, default: Hash.new { |h, k| h[k] = [] }
     end
 
+    def self.convert_on_and_except(options)
+      if options.key?(:on)
+        options = options.dup
+        options[:on] = Array(options[:on])
+        options[:if] = Array(options[:if])
+        options[:if].unshift ->(o) {
+          !(options[:on] & Array(o.validation_context)).empty?
+        }
+      elsif options.key?(:except)
+        options = options.dup
+        options[:except] = Array(options[:except])
+        options[:if] = Array(options[:if])
+        options[:if].unshift ->(o) {
+          (options[:except] & Array(o.validation_context)).empty?
+        }
+      end
+      options
+    end
+
     module ClassMethods
       # Validates each attribute against a block.
       #
@@ -73,6 +92,7 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is inactive. Same arguments as :on.
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
@@ -88,7 +108,7 @@ module ActiveModel
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
-      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless, :prepend].freeze # :nodoc:
+      VALID_OPTIONS_FOR_VALIDATE = [:on, :except, :if, :unless, :prepend].freeze # :nodoc:
 
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
@@ -162,14 +182,7 @@ module ActiveModel
           end
         end
 
-        if options.key?(:on)
-          options = options.dup
-          options[:on] = Array(options[:on])
-          options[:if] = Array(options[:if])
-          options[:if].unshift ->(o) {
-            !(options[:on] & Array(o.validation_context)).empty?
-          }
-        end
+        options = ActiveModel::Validations.convert_on_and_except(options)
 
         set_callback(:validate, *args, options, &block)
       end

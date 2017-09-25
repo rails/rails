@@ -77,6 +77,7 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:except</tt> - Specifies the contexts where this validation is inactive. Same arguments as :on.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
@@ -98,7 +99,7 @@ module ActiveModel
       #   validates :token, length: 24, strict: TokenLengthException
       #
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
+      # Finally, the options +:if+, +:unless+, +:on+, +:except+, +:allow_blank+, +:allow_nil+, +:strict+
       # and +:message+ can be given to one specific validator, as a hash:
       #
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
@@ -108,6 +109,7 @@ module ActiveModel
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
+        raise ArgumentError, "You cannot specify both :on and :except" if %i(on except).all? { |k| defaults.key?(k) }
 
         defaults[:attributes] = attributes
 
@@ -154,7 +156,7 @@ module ActiveModel
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [:if, :unless, :on, :allow_blank, :allow_nil, :strict]
+        [:if, :unless, :on, :except, :allow_blank, :allow_nil, :strict]
       end
 
       def _parse_validates_options(options)

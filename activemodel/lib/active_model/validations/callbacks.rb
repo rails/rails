@@ -56,14 +56,8 @@ module ActiveModel
         def before_validation(*args, &block)
           options = args.extract_options!
 
-          if options.key?(:on)
-            options = options.dup
-            options[:on] = Array(options[:on])
-            options[:if] = Array(options[:if])
-            options[:if].unshift ->(o) {
-              !(options[:on] & Array(o.validation_context)).empty?
-            }
-          end
+          raise ArgumentError, "You cannot specify both :on and :except" if %i(on except).all? { |k| options.key?(k) }
+          options = ActiveModel::Validations.convert_on_and_except(options)
 
           set_callback(:validation, :before, *args, options, &block)
         end
@@ -99,13 +93,8 @@ module ActiveModel
           options = options.dup
           options[:prepend] = true
 
-          if options.key?(:on)
-            options[:on] = Array(options[:on])
-            options[:if] = Array(options[:if])
-            options[:if].unshift ->(o) {
-              !(options[:on] & Array(o.validation_context)).empty?
-            }
-          end
+          raise ArgumentError, "You cannot specify both :on and :except" if %i(on except).all? { |k| options.key?(k) }
+          options = ActiveModel::Validations.convert_on_and_except(options)
 
           set_callback(:validation, :after, *args, options, &block)
         end
