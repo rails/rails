@@ -170,7 +170,9 @@ module ActiveRecord
       def enforce_raw_sql_whitelist(args, whitelist: attribute_names_and_aliases) # :nodoc:
         unexpected = args.reject do |arg|
           whitelist.include?(arg.to_s) ||
-            arg.kind_of?(Arel::Node) || arg.is_a?(Arel::Nodes::SqlLiteral)
+            arg.kind_of?(Arel::Node) ||
+            arg.is_a?(Arel::Nodes::SqlLiteral) ||
+            arg.is_a?(Arel::Attributes::Attribute)
         end
 
         return if unexpected.none?
