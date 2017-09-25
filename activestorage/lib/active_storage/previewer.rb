@@ -42,9 +42,7 @@ module ActiveStorage
         to.binmode
 
         IO.popen(argv) do |out|
-          while chunk = out.read(1.megabyte)
-            to.write(chunk)
-          end
+          IO.copy_stream(out, to)
         end
 
         to.rewind
