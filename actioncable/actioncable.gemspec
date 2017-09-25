@@ -28,5 +28,5 @@ Gem::Specification.new do |s|
   s.add_dependency "actionpack", version
 
   s.add_dependency "nio4r",            "~> 2.0"
-  s.add_dependency "websocket-driver", "~> 0.6.1"
+  s.add_dependency "websocket-driver", "~> 0.7.0"
 end
