@@ -201,7 +201,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     end
 
     def secrets
-      @secrets ||= Hash.new { |h,k| h[k] = SecureRandom.random_bytes(32) }
+      @secrets ||= Hash.new { |h, k| h[k] = SecureRandom.random_bytes(32) }
     end
 
     def munge(base64_string)
