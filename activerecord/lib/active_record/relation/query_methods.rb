@@ -1075,6 +1075,9 @@ module ActiveRecord
           when Arel::Nodes::Ordering
             o.reverse
           when String
+            # ensure we're not dealing with string subclass (Eg. Arel::Nodes::SqlLiteral)
+            o = String.new(o)
+
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
             end
