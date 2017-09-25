@@ -301,8 +301,6 @@ module ApplicationTests
     end
 
     test "session upgrading from AES-CBC-HMAC encryption to AES-GCM encryption" do
-      skip "@kaspth will fix this"
-
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'
