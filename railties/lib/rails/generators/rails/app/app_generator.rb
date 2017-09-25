@@ -69,7 +69,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init"
+        run "git init", capture: options[:quiet]
       end
     end
 
@@ -164,7 +164,7 @@ module Rails
       require_relative "../master_key/master_key_generator"
 
       after_bundle do
-        Rails::Generators::MasterKeyGenerator.new.add_master_key_file
+        Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet]).add_master_key_file
       end
     end
 
@@ -174,7 +174,7 @@ module Rails
       require_relative "../credentials/credentials_generator"
 
       after_bundle do
-        Rails::Generators::CredentialsGenerator.new.add_credentials_file_silently
+        Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
       end
     end
 
