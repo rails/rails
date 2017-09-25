@@ -2,7 +2,7 @@
 
 require_relative "../../migration/join_table"
 require "active_support/core_ext/string/access"
-require "digest"
+require "digest/sha2"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
