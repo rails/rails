@@ -16,6 +16,14 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           @connection.drop_table "testing_parents", if_exists: true
         end
 
+        test "foreign keys can't be created for non-reference column" do
+          @connection.create_table :testings do |t|
+            assert_raises(ArgumentError) do
+              t.integer :testing_parent_id, foreign_key: true
+            end
+          end
+        end
+
         test "foreign keys can be created with the table" do
           @connection.create_table :testings do |t|
             t.references :testing_parent, foreign_key: true

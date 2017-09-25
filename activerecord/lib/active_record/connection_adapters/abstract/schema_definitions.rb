@@ -407,6 +407,7 @@ module ActiveRecord
 
       private
         def create_column_definition(name, type, options)
+          raise ArgumentError, "You can't add foreign_key for non-reference column #{name}" if options[:foreign_key]
           ColumnDefinition.new(name, type, options)
         end
 
