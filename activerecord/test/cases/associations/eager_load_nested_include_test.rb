@@ -120,7 +120,7 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
     assert_nothing_raised do
       # @davey_mcdave doesn't have any author_favorites
       includes = { posts: :comments, categorizations: :category, author_favorites: :favorite_author }
-      Author.all.merge!(includes: includes, where: { authors: { name: @davey_mcdave.name } }, order: "categories.name").to_a
+      Author.all.merge!(includes: includes, where: { authors: { name: @davey_mcdave.name } }, order: Arel.sql("categories.name")).to_a
     end
   end
 end

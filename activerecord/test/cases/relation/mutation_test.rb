@@ -94,7 +94,7 @@ module ActiveRecord
     end
 
     test "reverse_order!" do
-      @relation = Post.order("title ASC, comments_count DESC")
+      @relation = Post.order(Arel.sql("title ASC, comments_count DESC"))
 
       relation.reverse_order!
 

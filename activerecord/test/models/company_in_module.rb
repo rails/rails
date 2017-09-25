@@ -9,7 +9,7 @@ module MyApplication
 
     class Firm < Company
       has_many :clients, -> { order("id") }, dependent: :destroy
-      has_many :clients_sorted_desc, -> { order("id DESC") }, class_name: "Client"
+      has_many :clients_sorted_desc, -> { order(Arel.sql("id DESC")) }, class_name: "Client"
       has_many :clients_of_firm, -> { order "id" }, foreign_key: "client_of", class_name: "Client"
       has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, class_name: "Client"
       has_one :account, class_name: "MyApplication::Billing::Account", dependent: :destroy

@@ -86,7 +86,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   # Through: has_many through
   def test_has_many_through_has_many_through_with_has_many_source_reflection
     luke, david = subscribers(:first), subscribers(:second)
-    assert_equal [luke, david, david], authors(:david).subscribers.order("subscribers.nick")
+    assert_equal [luke, david, david], authors(:david).subscribers.order(Arel.sql("subscribers.nick"))
   end
 
   def test_has_many_through_has_many_through_with_has_many_source_reflection_preload
@@ -156,7 +156,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
     assert_equal [groucho_details, other_details],
-                 members(:groucho).organization_member_details.order("member_details.id")
+                 members(:groucho).organization_member_details.order(Arel.sql("member_details.id"))
   end
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload
@@ -171,7 +171,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where("member_details.id" => member_details(:groucho).id).order("member_details.id"),
+      Member.where("member_details.id" => member_details(:groucho).id).order(Arel.sql("member_details.id")),
       [members(:groucho), members(:some_other_guy)], :organization_member_details
     )
 
@@ -187,7 +187,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
     assert_equal [groucho_details, other_details],
-                 members(:groucho).organization_member_details_2.order("member_details.id")
+                 members(:groucho).organization_member_details_2.order(Arel.sql("member_details.id"))
   end
 
   def test_has_many_through_has_one_through_with_has_many_source_reflection_preload
@@ -203,7 +203,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_through_with_has_many_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where("member_details.id" => member_details(:groucho).id).order("member_details.id"),
+      Member.where("member_details.id" => member_details(:groucho).id).order(Arel.sql("member_details.id")),
       [members(:groucho), members(:some_other_guy)], :organization_member_details_2
     )
 
@@ -218,7 +218,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection
     general, cooking = categories(:general), categories(:cooking)
 
-    assert_equal [general, cooking], authors(:bob).post_categories.order("categories.id")
+    assert_equal [general, cooking], authors(:bob).post_categories.order(Arel.sql("categories.id"))
   end
 
   def test_has_many_through_has_many_with_has_and_belongs_to_many_source_reflection_preload
@@ -246,7 +246,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection
     greetings, more = comments(:greetings), comments(:more_greetings)
 
-    assert_equal [greetings, more], categories(:technology).post_comments.order("comments.id")
+    assert_equal [greetings, more], categories(:technology).post_comments.order(Arel.sql("comments.id"))
   end
 
   def test_has_many_through_has_and_belongs_to_many_with_has_many_source_reflection_preload
@@ -264,7 +264,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     Category.joins(:post_comments).first
 
     assert_includes_and_joins_equal(
-      Category.where("comments.id" => comments(:more_greetings).id).order("categories.id"),
+      Category.where("comments.id" => comments(:more_greetings).id).order(Arel.sql("categories.id")),
       [categories(:general), categories(:technology)], :post_comments
     )
   end
@@ -275,7 +275,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection
     greetings, more = comments(:greetings), comments(:more_greetings)
 
-    assert_equal [greetings, more], authors(:bob).category_post_comments.order("comments.id")
+    assert_equal [greetings, more], authors(:bob).category_post_comments.order(Arel.sql("comments.id"))
   end
 
   def test_has_many_through_has_many_with_has_many_through_habtm_source_reflection_preload
@@ -292,7 +292,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     Author.joins(:category_post_comments).first
 
     assert_includes_and_joins_equal(
-      Author.where("comments.id" => comments(:does_it_hurt).id).order("authors.id"),
+      Author.where("comments.id" => comments(:does_it_hurt).id).order(Arel.sql("authors.id")),
       [authors(:david), authors(:mary)], :category_post_comments
     )
   end
@@ -327,7 +327,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     welcome_general, thinking_general = taggings(:welcome_general), taggings(:thinking_general)
 
     assert_equal [welcome_general, thinking_general],
-                 categorizations(:david_welcome_general).post_taggings.order("taggings.id")
+                 categorizations(:david_welcome_general).post_taggings.order(Arel.sql("taggings.id"))
   end
 
   def test_has_many_through_belongs_to_with_has_many_through_source_reflection_preload
@@ -341,7 +341,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_belongs_to_with_has_many_through_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Categorization.where("taggings.id" => taggings(:welcome_general).id).order("taggings.id"),
+      Categorization.where("taggings.id" => taggings(:welcome_general).id).order(Arel.sql("taggings.id")),
       [categorizations(:david_welcome_general)], :post_taggings
     )
   end
@@ -411,7 +411,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_distinct_has_many_through_a_has_many_through_association_on_through_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second)],
-                 author.distinct_subscribers.order("subscribers.nick")
+                 author.distinct_subscribers.order(Arel.sql("subscribers.nick"))
   end
 
   def test_nested_has_many_through_with_a_table_referenced_multiple_times
@@ -436,7 +436,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_foreign_key_option_on_through_reflection
-    assert_equal [posts(:welcome), posts(:authorless)], people(:david).agents_posts.order("posts.id")
+    assert_equal [posts(:welcome), posts(:authorless)], people(:david).agents_posts.order(Arel.sql("posts.id"))
     assert_equal [authors(:david)], references(:david_unicyclist).agents_posts_authors
 
     references = Reference.joins(:agents_posts_authors).where("authors.id" => authors(:david).id)
@@ -444,7 +444,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_foreign_key_option_on_source_reflection
-    assert_equal [people(:michael), people(:susan)], jobs(:unicyclist).agents.order("people.id")
+    assert_equal [people(:michael), people(:susan)], jobs(:unicyclist).agents.order(Arel.sql("people.id"))
 
     jobs = Job.joins(:agents)
     assert_equal [jobs(:unicyclist), jobs(:unicyclist)], jobs

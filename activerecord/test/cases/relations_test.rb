@@ -102,7 +102,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_scoped_first
-    topics = Topic.all.order("id ASC")
+    topics = Topic.all.order(Arel.sql("id ASC"))
 
     assert_queries(1) do
       2.times { assert_equal "The First Topic", topics.first.title }
@@ -112,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_loaded_first
-    topics = Topic.all.order("id ASC")
+    topics = Topic.all.order(Arel.sql("id ASC"))
     topics.load # force load
 
     assert_no_queries do
@@ -123,7 +123,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_loaded_first_with_limit
-    topics = Topic.all.order("id ASC")
+    topics = Topic.all.order(Arel.sql("id ASC"))
     topics.load # force load
 
     assert_no_queries do
@@ -135,7 +135,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_first_get_more_than_available
-    topics = Topic.all.order("id ASC")
+    topics = Topic.all.order(Arel.sql("id ASC"))
     unloaded_first = topics.first(10)
     topics.load # force load
 
@@ -238,7 +238,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function
-    topics = Topic.order("length(title)").reverse_order
+    topics = Topic.order(Arel.sql("length(title)")).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -248,24 +248,24 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function_other_predicates
-    topics = Topic.order("author_name, length(title), id").reverse_order
+    topics = Topic.order(Arel.sql("author_name, length(title), id")).reverse_order
     assert_equal topics(:second).title, topics.first.title
-    topics = Topic.order("length(author_name), id, length(title)").reverse_order
+    topics = Topic.order(Arel.sql("length(author_name), id, length(title)")).reverse_order
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_multiargument_function
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(author_name, title)").reverse_order
+      Topic.order(Arel.sql("concat(author_name, title)")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(lower(author_name), title)").reverse_order
+      Topic.order(Arel.sql("concat(lower(author_name), title)")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(author_name, lower(title))").reverse_order
+      Topic.order(Arel.sql("concat(author_name, lower(title))")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+      Topic.order(Arel.sql("concat(lower(author_name), title, length(title)")).reverse_order
     end
   end
 
@@ -277,10 +277,10 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_reverse_order_with_nulls_first_or_last
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("title NULLS FIRST").reverse_order
+      Topic.order(Arel.sql("title NULLS FIRST")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("title nulls last").reverse_order
+      Topic.order(Arel.sql("title nulls last")).reverse_order
     end
   end
 
@@ -319,7 +319,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_raising_exception_on_invalid_hash_params
-    e = assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
+    e = assert_raise(ArgumentError) { Topic.order(Arel.sql("name"), Arel.sql("id DESC"), id: :asfsdf) }
     assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :ASC, :DESC, "asc", "desc", "ASC", "DESC"]', e.message
   end
 
@@ -365,7 +365,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_order_and_take
-    entrants = Entrant.order("id ASC").limit(2).to_a
+    entrants = Entrant.order(Arel.sql("id ASC")).limit(2).to_a
 
     assert_equal 2, entrants.size
     assert_equal entrants(:first).name, entrants.first.name
@@ -373,18 +373,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_cross_table_order_and_limit
     tags = Tag.includes(:taggings).
-              order("tags.name asc", "taggings.taggable_id asc", "REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").
-              limit(1).to_a
+              order(
+                Arel.sql("tags.name asc"),
+                Arel.sql("taggings.taggable_id asc"),
+                Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")
+              ).limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).references(:taggings).order(Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")).limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).references(:taggings).order(Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")).to_a
     assert_equal 3, tags.length
   end
 
@@ -400,12 +403,12 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_order_limit_and_offset
-    entrants = Entrant.order("id ASC").limit(2).offset(1)
+    entrants = Entrant.order(Arel.sql("id ASC")).limit(2).offset(1)
 
     assert_equal 2, entrants.to_a.size
     assert_equal entrants(:second).name, entrants.first.name
 
-    entrants = Entrant.order("id ASC").limit(2).offset(2)
+    entrants = Entrant.order(Arel.sql("id ASC")).limit(2).offset(2)
     assert_equal 1, entrants.to_a.size
     assert_equal entrants(:third).name, entrants.first.name
   end
@@ -504,7 +507,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_of_stis_with_multiple_references
     authors = Author.eager_load(posts: { special_comments: { post: [ :special_comments, :very_special_comment ] } }).
-      order("comments.body, very_special_comments_posts.body").where("posts.id = 4").to_a
+      order(Arel.sql("comments.body, very_special_comments_posts.body")).where("posts.id = 4").to_a
 
     assert_equal [authors(:david)], authors
     assert_no_queries do
@@ -515,27 +518,27 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_preloaded_associations
     assert_queries(2) do
-      posts = Post.preload(:comments).order("posts.id")
+      posts = Post.preload(:comments).order(Arel.sql("posts.id"))
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.preload(:comments).order("posts.id")
+      posts = Post.preload(:comments).order(Arel.sql("posts.id"))
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.preload(:author).order("posts.id")
+      posts = Post.preload(:author).order(Arel.sql("posts.id"))
       assert posts.first.author
     end
 
     assert_queries(2) do
-      posts = Post.preload(:author).order("posts.id")
+      posts = Post.preload(:author).order(Arel.sql("posts.id"))
       assert posts.first.author
     end
 
     assert_queries(3) do
-      posts = Post.preload(:author, :comments).order("posts.id")
+      posts = Post.preload(:author, :comments).order(Arel.sql("posts.id"))
       assert posts.first.author
       assert posts.first.comments.first
     end
@@ -550,22 +553,22 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_with_included_associations
     assert_queries(2) do
-      posts = Post.includes(:comments).order("posts.id")
+      posts = Post.includes(:comments).order(Arel.sql("posts.id"))
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.all.includes(:comments).order("posts.id")
+      posts = Post.all.includes(:comments).order(Arel.sql("posts.id"))
       assert posts.first.comments.first
     end
 
     assert_queries(2) do
-      posts = Post.includes(:author).order("posts.id")
+      posts = Post.includes(:author).order(Arel.sql("posts.id"))
       assert posts.first.author
     end
 
     assert_queries(3) do
-      posts = Post.includes(:author, :comments).order("posts.id")
+      posts = Post.includes(:author, :comments).order(Arel.sql("posts.id"))
       assert posts.first.author
       assert posts.first.comments.first
     end
@@ -577,7 +580,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_includes_with_select
-    query = Post.select("comments_count AS ranking").order("ranking").includes(:comments)
+    query = Post.select("comments_count AS ranking").order(Arel.sql("ranking")).includes(:comments)
       .where(comments: { id: 1 })
 
     assert_equal ["comments_count AS ranking"], query.select_values
@@ -646,9 +649,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_to_sql_on_eager_join
     expected = assert_sql {
-      Post.eager_load(:last_comment).order("comments.id DESC").to_a
+      Post.eager_load(:last_comment).order(Arel.sql("comments.id DESC")).to_a
     }.first
-    actual = Post.eager_load(:last_comment).order("comments.id DESC").to_sql
+    actual = Post.eager_load(:last_comment).order(Arel.sql("comments.id DESC")).to_sql
     assert_equal expected, actual
   end
 
@@ -659,7 +662,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_loading_with_one_association_with_non_preload
-    posts = Post.eager_load(:last_comment).order("comments.id DESC")
+    posts = Post.eager_load(:last_comment).order(Arel.sql("comments.id DESC"))
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
@@ -695,7 +698,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_ids
-    authors = Author.order("id ASC")
+    authors = Author.order(Arel.sql("id ASC"))
 
     results = authors.find(authors(:david).id, authors(:mary).id)
     assert_kind_of Array, results
@@ -979,7 +982,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_multiple_selects
-    post = Post.all.select("comments_count").select("title").order("id ASC").first
+    post = Post.all.select("comments_count").select("title").order(Arel.sql("id ASC")).first
     assert_equal "Welcome to the weblog", post.title
     assert_equal 2, post.comments_count
   end
@@ -1341,7 +1344,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_except
-    relation = Post.where(author_id: 1).order("id ASC").limit(1)
+    relation = Post.where(author_id: 1).order(Arel.sql("id ASC")).limit(1)
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.except(:order, :limit)
@@ -1352,7 +1355,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_only
-    relation = Post.where(author_id: 1).order("id ASC").limit(1)
+    relation = Post.where(author_id: 1).order(Arel.sql("id ASC")).limit(1)
     assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.only(:where)
@@ -1363,7 +1366,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_anonymous_extension
-    relation = Post.where(author_id: 1).order("id ASC").extending do
+    relation = Post.where(author_id: 1).order(Arel.sql("id ASC")).extending do
       def author
         "lifo"
       end
@@ -1374,7 +1377,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_named_extension
-    relation = Post.where(author_id: 1).order("id ASC").extending(Post::NamedExtension)
+    relation = Post.where(author_id: 1).order(Arel.sql("id ASC")).extending(Post::NamedExtension)
     assert_equal "lifo", relation.author
     assert_equal "lifo", relation.limit(1).author
   end
@@ -1389,13 +1392,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_order_using_scoping
-    car1 = CoolCar.order("id DESC").scoping do
-      CoolCar.all.merge!(order: "id asc").first
+    car1 = CoolCar.order(Arel.sql("id DESC")).scoping do
+      CoolCar.all.merge!(order: Arel.sql("id asc")).first
     end
     assert_equal "zyke", car1.name
 
-    car2 = FastCar.order("id DESC").scoping do
-      FastCar.all.merge!(order: "id asc").first
+    car2 = FastCar.order(Arel.sql("id DESC")).scoping do
+      FastCar.all.merge!(order: Arel.sql("id asc")).first
     end
     assert_equal "zyke", car2.name
   end
@@ -1418,7 +1421,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_ordering_with_extra_spaces
-    assert_equal authors(:david), Author.order("id DESC , name DESC").last
+    assert_equal authors(:david), Author.order(Arel.sql("id DESC , name DESC")).last
   end
 
   def test_update_all_with_blank_argument
@@ -1439,7 +1442,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_joins_and_limit_and_order
-    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("comments.id").limit(1)
+    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order(Arel.sql("comments.id")).limit(1)
     assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
     assert_equal posts(:thinking), comments(:greetings).post
     assert_equal posts(:welcome),  comments(:more_greetings).post
@@ -1454,7 +1457,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("posts.id", "comments.id")
+    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order(Arel.sql("posts.id"), Arel.sql("comments.id"))
     count        = all_comments.count
     comments     = all_comments.offset(1)
 
@@ -1564,52 +1567,52 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_automatically_added_order_references
-    scope = Post.order("comments.body")
+    scope = Post.order(Arel.sql("comments.body"))
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    scope = Post.order(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
       assert_equal ["comments"], scope.references_values
     end
 
-    scope = Post.order("comments.body", "yaks.body")
+    scope = Post.order(Arel.sql("comments.body"), Arel.sql("yaks.body"))
     assert_equal ["comments", "yaks"], scope.references_values
 
     # Don't infer yaks, let's not go down that road again...
-    scope = Post.order("comments.body, yaks.body")
+    scope = Post.order(Arel.sql("comments.body, yaks.body"))
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order("comments.body asc")
+    scope = Post.order(Arel.sql("comments.body asc"))
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order("foo(comments.body)")
+    scope = Post.order(Arel.sql("foo(comments.body)"))
     assert_equal [], scope.references_values
   end
 
   def test_automatically_added_reorder_references
-    scope = Post.reorder("comments.body")
+    scope = Post.reorder(Arel.sql("comments.body"))
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    scope = Post.reorder(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
       assert_equal ["comments"], scope.references_values
     end
 
-    scope = Post.reorder("comments.body", "yaks.body")
+    scope = Post.reorder(Arel.sql("comments.body"), Arel.sql("yaks.body"))
     assert_equal %w(comments yaks), scope.references_values
 
     # Don't infer yaks, let's not go down that road again...
-    scope = Post.reorder("comments.body, yaks.body")
+    scope = Post.reorder(Arel.sql("comments.body, yaks.body"))
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder("comments.body asc")
+    scope = Post.reorder(Arel.sql("comments.body asc"))
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder("foo(comments.body)")
+    scope = Post.reorder(Arel.sql("foo(comments.body)"))
     assert_equal [], scope.references_values
   end
 
@@ -1811,7 +1814,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "joins with select" do
-    posts = Post.joins(:author).select("id", "authors.author_address_id").order("posts.id").limit(3)
+    posts = Post.joins(:author).select("id", "authors.author_address_id").order(Arel.sql("posts.id")).limit(3)
     assert_equal [1, 2, 4], posts.map(&:id)
     assert_equal [1, 1, 1], posts.map(&:author_address_id)
   end

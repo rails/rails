@@ -7,10 +7,10 @@ class Author < ActiveRecord::Base
   has_many :very_special_comments, through: :posts
   has_many :posts_with_comments, -> { includes(:comments) }, class_name: "Post"
   has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, class_name: "Post"
-  has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
-  has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
+  has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order(Arel.sql("comments.id")) }, class_name: "Post"
+  has_many :posts_sorted_by_id_limited, -> { order(Arel.sql("posts.id")).limit(1) }, class_name: "Post"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
-  has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
+  has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order(Arel.sql("posts.id")) }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
   has_one  :post_about_thinking, -> { where("posts.title like '%thinking%'") }, class_name: "Post"
   has_one  :post_about_thinking_with_last_comment, -> { where("posts.title like '%thinking%'").includes(:last_comment) }, class_name: "Post"
@@ -20,15 +20,15 @@ class Author < ActiveRecord::Base
     end
   end
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
-  has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
+  has_many :comments_with_order_and_conditions, -> { order(Arel.sql("comments.body")).where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
   has_many :comments_for_first_author, -> { for_first_author }, through: :posts, source: :comments
 
   has_many :first_posts
-  has_many :comments_on_first_posts, -> { order("posts.id desc, comments.id asc") }, through: :first_posts, source: :comments
+  has_many :comments_on_first_posts, -> { order(Arel.sql("posts.id desc, comments.id asc")) }, through: :first_posts, source: :comments
 
   has_one :first_post
-  has_one :comment_on_first_post, -> { order("posts.id desc, comments.id asc") }, through: :first_post, source: :comments
+  has_one :comment_on_first_post, -> { order(Arel.sql("posts.id desc, comments.id asc")) }, through: :first_post, source: :comments
 
   has_many :thinking_posts, -> { where(title: "So I was thinking") }, dependent: :delete_all, class_name: "Post"
   has_many :welcome_posts, -> { where(title: "Welcome to the weblog") }, class_name: "Post"
@@ -40,11 +40,11 @@ class Author < ActiveRecord::Base
            -> { where(title: "Welcome to the weblog").where(Post.arel_table[:comments_count].gt(0)) },
            class_name: "Post"
 
-  has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts, source: :comments
+  has_many :comments_desc, -> { order(Arel.sql("comments.id DESC")) }, through: :posts, source: :comments
   has_many :unordered_comments, -> { unscope(:order).distinct }, through: :posts_sorted_by_id_limited, source: :comments
   has_many :funky_comments, through: :posts, source: :comments
-  has_many :ordered_uniq_comments, -> { distinct.order("comments.id") }, through: :posts, source: :comments
-  has_many :ordered_uniq_comments_desc, -> { distinct.order("comments.id DESC") }, through: :posts, source: :comments
+  has_many :ordered_uniq_comments, -> { distinct.order(Arel.sql("comments.id")) }, through: :posts, source: :comments
+  has_many :ordered_uniq_comments_desc, -> { distinct.order(Arel.sql("comments.id DESC")) }, through: :posts, source: :comments
   has_many :readonly_comments, -> { readonly }, through: :posts, source: :comments
 
   has_many :special_posts
@@ -107,15 +107,15 @@ class Author < ActiveRecord::Base
 
   has_many :similar_posts, -> { distinct }, through: :tags, source: :tagged_posts
   has_many :ordered_posts, -> { distinct }, through: :ordered_tags, source: :tagged_posts
-  has_many :distinct_tags, -> { select("DISTINCT tags.*").order("tags.name") }, through: :posts, source: :tags
+  has_many :distinct_tags, -> { select("DISTINCT tags.*").order(Arel.sql("tags.name")) }, through: :posts, source: :tags
 
   has_many :tags_with_primary_key, through: :posts
 
   has_many :books
   has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
   has_many :subscriptions,        through: :books
-  has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
-  has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
+  has_many :subscribers, -> { order(Arel.sql("subscribers.nick")) }, through: :subscriptions
+  has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order(Arel.sql("subscribers.nick")) }, through: :subscriptions, source: :subscriber
 
   has_one :essay, primary_key: :name, as: :writer
   has_one :essay_category, through: :essay, source: :category

@@ -472,7 +472,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scopes_on_relations
     # Topic.replied
-    approved_topics = Topic.all.approved.order("id DESC")
+    approved_topics = Topic.all.approved.order(Arel.sql("id DESC"))
     assert_equal topics(:fifth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied
@@ -480,7 +480,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_index_on_scope
-    approved = Topic.approved.order("id ASC")
+    approved = Topic.approved.order(Arel.sql("id ASC"))
     assert_equal topics(:second), approved[0]
     assert approved.loaded?
   end

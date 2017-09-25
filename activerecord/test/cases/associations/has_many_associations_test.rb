@@ -48,7 +48,7 @@ class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCa
     author = authors(:david)
     # this can fail on adapters which require ORDER BY expressions to be included in the SELECT expression
     # if the reorder clauses are not correctly handled
-    assert author.posts_with_comments_sorted_by_comment_id.where("comments.id > 0").reorder("posts.comments_count DESC", "posts.tags_count DESC").last
+    assert author.posts_with_comments_sorted_by_comment_id.where("comments.id > 0").reorder(Arel.sql("posts.comments_count DESC"), Arel.sql("posts.tags_count DESC")).last
   end
 end
 
@@ -550,7 +550,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_clients = companies(:first_firm).clients_sorted_desc.order("companies.id")
+    ordered_clients = companies(:first_firm).clients_sorted_desc.order(Arel.sql("companies.id"))
     assert_equal ["id DESC", "companies.id"], ordered_clients.order_values
   end
 
@@ -1123,7 +1123,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_deleting_updates_counter_cache
-    topic = Topic.order("id ASC").first
+    topic = Topic.order(Arel.sql("id ASC")).first
     assert_equal topic.replies.to_a.size, topic.replies_count
 
     topic.replies.delete(topic.replies.first)
@@ -1162,7 +1162,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_pushing_association_updates_counter_cache
-    topic = Topic.order("id ASC").first
+    topic = Topic.order(Arel.sql("id ASC")).first
     reply = Reply.create!
 
     assert_difference "topic.reload.replies_count", 1 do
@@ -1212,7 +1212,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_calling_update_attributes_on_id_changes_the_counter_cache
-    topic = Topic.order("id ASC").first
+    topic = Topic.order(Arel.sql("id ASC")).first
     original_count = topic.replies.to_a.size
     assert_equal original_count, topic.replies_count
 
