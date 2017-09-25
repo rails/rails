@@ -152,36 +152,38 @@ In test and development applications get a `secret_key_base` derived from the ap
 
 If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
 
-### Rotating Keys for Encrypted and Signed Cookies
+### Rotating Encrypted and Signed Cookies Configurations
 
-It is possible to rotate the `secret_key_base` as well as the salts,
-ciphers, and digests used for both encrypted and signed cookies. Rotating
-the `secret_key_base` is necessary if the value was exposed or leaked.
-It is also useful to rotate this value for other more benign reasons,
-such as an employee leaving your organization or changing hosting
-environments.
+Rotation is ideal for changing cookie configurations and ensuring old cookies
+aren't immediately invalid. Your users then have a chance to visit your site,
+get their cookie read with an old configuration and have it rewritten with the
+new change. The rotation can then be removed once you're comfortable enough
+users have had their chance to get their cookies upgraded.
 
-For example to rotate out an old `secret_key_base`, we can define signed and
-encrypted rotations as follows:
+It's possible to rotate the ciphers and digests used for encrypted and signed cookies.
+
+For instance to change the digest used for signed cookies from SHA1 to SHA256,
+you would first assign the new configuration value:
 
 ```ruby
-Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-  cookies.rotate :encrypted, secret: Rails.application.credentials.old_secret_key_base
-  cookies.rotate :signed,    secret: Rails.application.credentials.old_secret_key_base
-end
+Rails.application.config.action_dispatch.signed_cookie_digest = "SHA256"
 ```
 
-It's also possible to set up multiple rotations. For instance to use `SHA512`
-for signed cookies while rotating out SHA256 and SHA1 digests, we'd do:
+Then you'd set up a rotation with the old configuration to keep it alive.
 
 ```ruby
-Rails.application.config.action_dispatch.signed_cookie_digest = "SHA512"
-
 Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
   cookies.rotate :signed, digest: "SHA256"
-  cookies.rotate :signed, digest: "SHA1"
 end
 ```
+
+Then any written signed cookies will be digested with SHA256. Old cookies
+that were written with SHA1 can still be read, and if accessed will be written
+with the new digest so they're upgraded and won't be invalid when you remove the
+rotation.
+
+Once users with SHA1 digested signed cookies should no longer have a chance to
+have their cookies rewritten, remove the rotation.
 
 While you can setup as many rotations as you'd like it's not common to have many
 rotations going at any one time.
