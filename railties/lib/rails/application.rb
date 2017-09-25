@@ -259,8 +259,12 @@ module Rails
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.authenticated_encrypted_cookie_salt" => config.action_dispatch.authenticated_encrypted_cookie_salt,
+          "action_dispatch.use_authenticated_cookie_encryption" => config.action_dispatch.use_authenticated_cookie_encryption,
+          "action_dispatch.encrypted_cookie_cipher" => config.action_dispatch.encrypted_cookie_cipher,
+          "action_dispatch.signed_cookie_digest" => config.action_dispatch.signed_cookie_digest,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
-          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
+          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
+          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations
         )
       end
     end

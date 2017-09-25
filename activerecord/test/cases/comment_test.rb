@@ -142,5 +142,27 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_match %r[t\.string\s+"absent_comment"\n], output
       assert_no_match %r[t\.string\s+"absent_comment", comment:\n], output
     end
+
+    def test_change_table_comment
+      @connection.change_table_comment :commenteds, "Edited table comment"
+      assert_equal "Edited table comment", @connection.table_comment("commenteds")
+    end
+
+    def test_change_table_comment_to_nil
+      @connection.change_table_comment :commenteds, nil
+      assert_nil @connection.table_comment("commenteds")
+    end
+
+    def test_change_column_comment
+      @connection.change_column_comment :commenteds, :name, "Edited column comment"
+      column = Commented.columns_hash["name"]
+      assert_equal "Edited column comment", column.comment
+    end
+
+    def test_change_column_comment_to_nil
+      @connection.change_column_comment :commenteds, :name, nil
+      column = Commented.columns_hash["name"]
+      assert_nil column.comment
+    end
   end
 end

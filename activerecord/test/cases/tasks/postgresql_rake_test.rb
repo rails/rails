@@ -229,7 +229,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def teardown
@@ -333,7 +332,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def test_structure_load

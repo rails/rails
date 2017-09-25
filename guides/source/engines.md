@@ -1322,7 +1322,7 @@ engine.
 
 Assets within an engine work in an identical way to a full application. Because
 the engine class inherits from `Rails::Engine`, the application will know to
-look up assets in the engine's 'app/assets' and 'lib/assets' directories.
+look up assets in the engine's `app/assets` and `lib/assets` directories.
 
 Like all of the other components of an engine, the assets should be namespaced.
 This means that if you have an asset called `style.css`, it should be placed at

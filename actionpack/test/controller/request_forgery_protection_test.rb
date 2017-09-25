@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/messages/rotation_configuration"
 
 # common controller actions
 module RequestForgeryProtectionActions
@@ -630,13 +631,14 @@ end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
-    def generate_key(secret)
+    def generate_key(secret, length = nil)
       "03312270731a2ed0d11ed091c2338a06"
     end
   end
 
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
+    @request.env[ActionDispatch::Cookies::COOKIES_ROTATIONS] = ActiveSupport::Messages::RotationConfiguration.new
   end
 
   test "should allow to set signed cookies" do

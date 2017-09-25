@@ -594,7 +594,7 @@ familiar error:
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
 
-NOTE: by default `form_with` submits forms using Ajax thereby skipping full page
+NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
 redirects. To make this guide easier to get into we've disabled that with
 `local: true` for now.
 

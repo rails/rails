@@ -3,6 +3,7 @@
 require "erb"
 require "abstract_unit"
 require "controller/fake_controllers"
+require "active_support/messages/rotation_configuration"
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
   SprocketsApp = lambda { |env|
@@ -4947,6 +4948,7 @@ end
 class FlashRedirectTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
 
   class KeyGeneratorMiddleware
     def initialize(app)
@@ -4955,6 +4957,8 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
 
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
+      env["action_dispatch.cookies_rotations"] ||= Rotations
+
       @app.call(env)
     end
   end

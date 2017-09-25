@@ -400,9 +400,9 @@ Rails.application.config.session_store :cookie_store, key: '_your_app_session', 
 Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
 
 ```ruby
-# amazon:
-#  access_key_id: 123
-#  secret_access_key: 345
+# aws:
+#   access_key_id: 123
+#   secret_access_key: 345
 
 # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
 secret_key_base: 492f...

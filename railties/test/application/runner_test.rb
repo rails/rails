@@ -128,5 +128,17 @@ module ApplicationTests
         assert_match "production", rails("runner", "puts Rails.env")
       end
     end
+
+    def test_can_call_same_name_class_as_defined_in_thor
+      app_file "app/models/task.rb", <<-MODEL
+      class Task
+        def self.count
+          42
+        end
+      end
+      MODEL
+
+      assert_match "42", rails("runner", "puts Task.count")
+    end
   end
 end
