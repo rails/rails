@@ -52,13 +52,13 @@ module ApplicationTests
     end
 
     test "signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests" do
-      skip "@kaspth will fix this"
+      signed_salt = ActionDispatch::Railtie.config.action_dispatch.signed_cookie_salt
 
-      key_gen_sha1 = ActiveSupport::KeyGenerator.new("legacy sha1 secret", iterations: 1000)
-      key_gen_sha256 = ActiveSupport::KeyGenerator.new("legacy sha256 secret", iterations: 1000)
+      secret_sha1 = ActiveSupport::KeyGenerator.new("legacy sha1 secret", iterations: 1000).generate_key(signed_salt)
+      secret_sha256 = ActiveSupport::KeyGenerator.new("legacy sha256 secret", iterations: 1000).generate_key(signed_salt)
 
-      verifer_sha1 = ActiveSupport::MessageVerifier.new(key_gen_sha1.generate_key("sha1 salt"), digest: :SHA1)
-      verifer_sha256 = ActiveSupport::MessageVerifier.new(key_gen_sha256.generate_key("sha256 salt"), digest: :SHA256)
+      verifer_sha1 = ActiveSupport::MessageVerifier.new(secret_sha1, digest: :SHA1)
+      verifer_sha256 = ActiveSupport::MessageVerifier.new(secret_sha256, digest: :SHA256)
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -92,19 +92,18 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.action_dispatch.cookies_rotations.rotate :signed,
-          digest: "SHA1", secret: "legacy sha1 secret", salt: "sha1 salt"
-
-        config.action_dispatch.cookies_rotations.rotate :signed,
-          digest: "SHA256", secret: "legacy sha256 secret", salt: "sha256 salt"
+        config.action_dispatch.cookies_rotations.tap do |cookies|
+          cookies.rotate :signed, #{secret_sha1.inspect}, digest: "SHA1"
+          cookies.rotate :signed, #{secret_sha256.inspect}, digest: "SHA256"
+        end
 
         config.action_dispatch.signed_cookie_digest = "SHA512"
-        config.action_dispatch.signed_cookie_salt = "sha512 salt"
       RUBY
 
       require "#{app_path}/config/environment"
 
-      verifer_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512)
+      secert_sha512 = app.key_generator.generate_key(signed_salt)
+      verifer_sha512 = ActiveSupport::MessageVerifier.new(secert_sha512, digest: :SHA512)
 
       get "/foo/write_raw_cookie_sha1"
       get "/foo/read_signed"
@@ -122,13 +121,13 @@ module ApplicationTests
     end
 
     test "encrypted cookies with multiple rotated out ciphers" do
-      skip "@kaspth will fix this"
+      encrypted_salt = ActionDispatch::Railtie.config.action_dispatch.authenticated_encrypted_cookie_salt
 
-      key_gen_one = ActiveSupport::KeyGenerator.new("legacy secret one", iterations: 1000)
-      key_gen_two = ActiveSupport::KeyGenerator.new("legacy secret two", iterations: 1000)
+      secret_one = ActiveSupport::KeyGenerator.new("legacy secret one", iterations: 1000).generate_key(encrypted_salt, 32)
+      secret_two = ActiveSupport::KeyGenerator.new("legacy secret two", iterations: 1000).generate_key(encrypted_salt, 32)
 
-      encryptor_one = ActiveSupport::MessageEncryptor.new(key_gen_one.generate_key("salt one", 32), cipher: "aes-256-gcm")
-      encryptor_two = ActiveSupport::MessageEncryptor.new(key_gen_two.generate_key("salt two", 32), cipher: "aes-256-gcm")
+      encryptor_one = ActiveSupport::MessageEncryptor.new(secret_one, cipher: "aes-256-gcm")
+      encryptor_two = ActiveSupport::MessageEncryptor.new(secret_two, cipher: "aes-256-gcm")
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -163,19 +162,17 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.action_dispatch.use_authenticated_cookie_encryption = true
-        config.action_dispatch.encrypted_cookie_cipher = "aes-256-gcm"
-        config.action_dispatch.authenticated_encrypted_cookie_salt = "salt"
 
-        config.action_dispatch.cookies_rotations.rotate :encrypted,
-          cipher: "aes-256-gcm", secret: "legacy secret one", salt: "salt one"
-
-        config.action_dispatch.cookies_rotations.rotate :encrypted,
-          cipher: "aes-256-gcm", secret: "legacy secret two", salt: "salt two"
+        config.action_dispatch.cookies_rotations.tap do |cookies|
+          cookies.rotate :encrypted, #{secret_one.inspect}, cipher: "aes-256-gcm"
+          cookies.rotate :encrypted, #{secret_two.inspect}, cipher: "aes-256-gcm"
+        end
       RUBY
 
       require "#{app_path}/config/environment"
 
-      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm")
+      secret = app.key_generator.generate_key(encrypted_salt, 32)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm")
 
       get "/foo/write_raw_cookie_one"
       get "/foo/read_encrypted"

@@ -608,7 +608,7 @@ module ActionDispatch
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
-          secret = request.key_generator.generate_key(request.encrypted_cookie_salt)
+          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-cbc"))
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
 
           @encryptor.rotate secret, sign_secret, cipher: "aes-256-cbc", digest: digest, serializer: SERIALIZER
