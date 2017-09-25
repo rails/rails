@@ -297,7 +297,7 @@ module ActiveRecord
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
+      @klass.enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.order_values += args
@@ -320,7 +320,7 @@ module ActiveRecord
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
+      @klass.enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
       preprocess_order_args(args)
 
       self.reordering_value = true
