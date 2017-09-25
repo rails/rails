@@ -23,8 +23,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   class_attribute :service
 
-  class_attribute :default_url_expiry, default: 5.minutes
-
   has_one_attached :preview_image
 
   class << self
@@ -159,13 +157,13 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-  def service_url(expires_in: default_url_expiry, disposition: "inline")
+  def service_url(expires_in: service.url_expires_in, disposition: "inline")
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
-  def service_url_for_direct_upload(expires_in: default_url_expiry)
+  def service_url_for_direct_upload(expires_in: service.url_expires_in)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 

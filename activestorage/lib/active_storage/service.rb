@@ -4,6 +4,7 @@ require "active_storage/log_subscriber"
 
 module ActiveStorage
   class IntegrityError < StandardError; end
+
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -41,6 +42,8 @@ module ActiveStorage
     autoload :Configurator
 
     class_attribute :logger
+
+    class_attribute :url_expires_in, default: 5.minutes
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
