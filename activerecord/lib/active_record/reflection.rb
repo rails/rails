@@ -425,7 +425,6 @@ module ActiveRecord
 
       def initialize(name, scope, options, active_record)
         super
-        @automatic_inverse_of = nil
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
@@ -609,12 +608,14 @@ module ActiveRecord
         # If it cannot find a suitable inverse association name, it returns
         # +nil+.
         def inverse_name
-          options.fetch(:inverse_of) do
-            @automatic_inverse_of ||= automatic_inverse_of
+          unless defined?(@inverse_name)
+            @inverse_name = options.fetch(:inverse_of) { automatic_inverse_of }
           end
+
+          @inverse_name
         end
 
-        # returns either false or the inverse association name that it finds.
+        # returns either +nil+ or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
@@ -631,8 +632,6 @@ module ActiveRecord
               return inverse_name
             end
           end
-
-          false
         end
 
         # Checks if the inverse reflection that is returned from the
